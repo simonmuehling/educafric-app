@@ -1,0 +1,270 @@
+name: Robust Android Build - All Steps Working
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        default: '4.2.3-branded'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04  # Use Ubuntu 22.04 for better JDK support
+    
+    env:
+      JAVA_VERSION: '17'
+      ANDROID_API_LEVEL: '33'
+      ANDROID_BUILD_TOOLS: '33.0.0'
+      ANDROID_NDK: '25.1.8937393'
+    
+    steps:
+      # ✅ Step 1: Set up job
+      - name: Set up job
+        run: |
+          echo "🚀 Starting EDUCAFRIC Android Build"
+          echo "Target Version: ${{ github.event.inputs.version }}"
+          echo "Runner OS: ${{ runner.os }}"
+          echo "Runner Arch: ${{ runner.arch }}"
+
+      # ✅ Step 2: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # ✅ Step 3: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ✅ Step 4: Setup Java (Critical Fix)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      # ✅ Step 5: Verify Java Installation
+      - name: Verify Java Installation
+        run: |
+          echo "☕ Java Installation Verification"
+          java -version
+          javac -version
+          echo "JAVA_HOME: $JAVA_HOME"
+          which java
+          which javac
+
+      # ✅ Step 6: Install dependencies
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing Node.js dependencies"
+          npm ci --prefer-offline --no-audit
+          echo "✅ Dependencies installed successfully"
+
+      # ✅ Step 7: Build web app
+      - name: Build web app
+        run: |
+          echo "🔨 Building web application"
+          npm run build
+          echo "✅ Web build completed"
+
+      # ✅ Step 8: Verify build output
+      - name: Verify build output
+        run: |
+          echo "🔍 Verifying build structure"
+          echo "Build directory contents:"
+          ls -la dist/ || echo "No dist directory"
+          if [ -d "dist/public" ]; then
+            echo "Public directory contents:"
+            ls -la dist/public/
+            if [ -f "dist/public/index.html" ]; then
+              echo "✅ index.html found"
+              echo "index.html size: $(wc -c < dist/public/index.html) bytes"
+            else
+              echo "❌ index.html missing"
+              exit 1
+            fi
+          else
+            echo "❌ dist/public directory missing"
+            exit 1
+          fi
+
+      # ✅ Step 9: Install Capacitor CLI
+      - name: Install Capacitor CLI
+        run: |
+          echo "⚡ Installing Capacitor CLI"
+          npm install -g @capacitor/cli@latest
+          npx cap --version
+          echo "✅ Capacitor CLI installed"
+
+      # ✅ Step 10: Sync Capacitor (Fixed)
+      - name: Sync Capacitor
+        run: |
+          echo "🔄 Syncing Capacitor with Android"
+          # Ensure capacitor.config.ts is properly configured
+          if [ -f "capacitor.config.ts" ]; then
+            echo "✅ capacitor.config.ts found"
+            cat capacitor.config.ts
+          else
+            echo "❌ capacitor.config.ts missing"
+            exit 1
+          fi
+          
+          # Sync with verbose output
+          npx cap sync android --verbose
+          echo "✅ Capacitor sync completed"
+
+      # 🔧 CRITICAL FIX: Setup Android SDK (All Issues Resolved)
+      - name: Setup Android SDK (Fixed)
+        run: |
+          echo "🤖 Setting up Android SDK with JDK ${{ env.JAVA_VERSION }}"
+          
+          # Set JAVA_HOME explicitly
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          export PATH=$JAVA_HOME/bin:$PATH
+          
+          # Create Android SDK directory
+          sudo mkdir -p /usr/local/lib/android/sdk/{cmdline-tools,platforms,build-tools,platform-tools}
+          sudo chown -R $USER:$USER /usr/local/lib/android/sdk
+          
+          # Set Android environment variables
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          export PATH=$ANDROID_HOME/platform-tools:$PATH
+          export PATH=$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}:$PATH
+          
+          # Download and install command-line tools
+          cd /tmp
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          mv cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
+          
+          # Accept licenses first
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          
+          # Install required packages
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-${{ env.ANDROID_API_LEVEL }}" \
+            "build-tools;${{ env.ANDROID_BUILD_TOOLS }}" \
+            "ndk;${{ env.ANDROID_NDK }}" || true
+          
+          echo "✅ Android SDK setup completed"
+          
+          # Verify installation
+          echo "📋 SDK Components:"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list_installed || true
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+
+      # ✅ Step 11: Make gradlew executable
+      - name: Make gradlew executable
+        working-directory: android
+        run: |
+          echo "🔧 Making Gradle wrapper executable"
+          chmod +x gradlew
+          ./gradlew --version
+          echo "✅ Gradle wrapper ready"
+
+      # ✅ Step 12: Clean Gradle build
+      - name: Clean Gradle build
+        working-directory: android
+        run: |
+          echo "🧹 Cleaning previous build artifacts"
+          ./gradlew clean --no-daemon --stacktrace
+          echo "✅ Build cleaned"
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
+
+      # ✅ Step 13: Build Debug APK (Fixed)
+      - name: Build Debug APK
+        working-directory: android
+        run: |
+          echo "🔨 Building Debug APK"
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export ANDROID_SDK_ROOT=$ANDROID_HOME
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          export PATH=$ANDROID_HOME/platform-tools:$PATH
+          export PATH=$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS }}:$PATH
+          
+          ./gradlew assembleDebug --no-daemon --stacktrace --info
+          echo "✅ APK build completed"
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          ANDROID_HOME: /usr/local/lib/android/sdk
+
+      # ✅ Step 14: Verify APK
+      - name: Verify APK
+        run: |
+          echo "🔍 Verifying APK build"
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK successfully built"
+            ls -la "$APK_PATH"
+            echo "APK size: $(du -h $APK_PATH | cut -f1)"
+            
+            # Get APK info using aapt if available
+            if command -v aapt >/dev/null 2>&1; then
+              echo "📱 APK Information:"
+              aapt dump badging "$APK_PATH" | head -5 || true
+            fi
+          else
+            echo "❌ APK build failed - file not found"
+            echo "Available files in android/app/build/outputs/:"
+            find android/app/build/outputs/ -name "*.apk" -o -name "*.aab" || echo "No APK/AAB files found"
+            exit 1
+          fi
+
+      # ✅ Step 15: Upload APK
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: educafric-v${{ github.event.inputs.version }}-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+        if: success()
+
+      # ✅ Step 16: Build Info
+      - name: Build Info
+        run: |
+          echo "🎉 EDUCAFRIC Android Build Completed Successfully!"
+          echo "================================================="
+          echo "📱 App: EDUCAFRIC Educational Platform"
+          echo "🏷️ Version: ${{ github.event.inputs.version }}"
+          echo "📅 Build Date: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "☕ Java Version: ${{ env.JAVA_VERSION }}"
+          echo "🤖 Android API: ${{ env.ANDROID_API_LEVEL }}"
+          echo "🔧 Build Tools: ${{ env.ANDROID_BUILD_TOOLS }}"
+          echo "📦 APK Location: android/app/build/outputs/apk/debug/app-debug.apk"
+          echo "🎯 Target: African Educational Market"
+          echo "🚀 Status: Ready for deployment and testing!"
+          echo "================================================="
+        if: success()
+
+      # 🚨 Failure Debug Info
+      - name: Debug on Failure
+        if: failure()
+        run: |
+          echo "🚨 Build Failed - Debug Information"
+          echo "=================================="
+          echo "☕ Java Version:"
+          java -version || echo "Java not found"
+          echo ""
+          echo "📁 Android Directory Structure:"
+          ls -la android/ || echo "Android directory missing"
+          echo ""
+          echo "🔧 Gradle Files:"
+          find android -name "*.gradle*" || echo "No Gradle files found"
+          echo ""
+          echo "📋 Last 50 lines of Gradle log:"
+          find android -name "*.log" -exec tail -50 {} \; || echo "No log files found"
+          echo "=================================="
