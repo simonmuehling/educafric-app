@@ -113,8 +113,8 @@ const FunctionalTeacherClasses: React.FC = () => {
     );
   }
 
-  const totalStudents = classes.reduce((sum, cls) => sum + cls.studentCount, 0);
-  const currentAcademicYear = classes[0]?.academicYear || '2024-2025';
+  const totalStudents = Array.isArray(classes) ? classes.reduce((sum, cls) => sum + (cls.studentCount || 0), 0) : 0;
+  const currentAcademicYear = Array.isArray(classes) && classes.length > 0 ? classes[0]?.academicYear || '2024-2025' : '2024-2025';
 
   return (
     <div className="p-6 space-y-6">

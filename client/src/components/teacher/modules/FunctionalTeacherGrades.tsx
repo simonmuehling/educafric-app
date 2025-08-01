@@ -51,6 +51,9 @@ const FunctionalTeacherGrades: React.FC = () => {
     enabled: !!user
   });
 
+  // Safe grades array handling to prevent runtime errors
+  const safeGrades = Array.isArray(grades) ? grades : [];
+
   // Add grade mutation
   const addGradeMutation = useMutation({
     mutationFn: async (gradeData: any) => {
@@ -191,11 +194,11 @@ const FunctionalTeacherGrades: React.FC = () => {
     );
   }
 
-  // Calculate statistics
-  const totalGrades = (Array.isArray(grades) ? grades.length : 0);
-  const avgGrade = (Array.isArray(grades) ? grades.length : 0) > 0 ? (grades.reduce((sum, g) => sum + g.grade, 0) / (Array.isArray(grades) ? grades.length : 0)).toFixed(1) : 0;
-  const excellentCount = (Array.isArray(grades) ? grades : []).filter(g => g.grade >= 16).length;
-  const needsHelpCount = (Array.isArray(grades) ? grades : []).filter(g => g.grade < 12).length;
+  // Calculate statistics using safe grades
+  const totalGrades = safeGrades.length;
+  const avgGrade = safeGrades.length > 0 ? (safeGrades.reduce((sum, g) => sum + (g.grade || 0), 0) / safeGrades.length).toFixed(1) : '0';
+  const excellentCount = safeGrades.filter(g => (g.grade || 0) >= 16).length;
+  const needsHelpCount = safeGrades.filter(g => (g.grade || 0) < 12).length;
 
   const getGradeColor = (grade: number) => {
     if (grade >= 16) return 'text-green-600 bg-green-100';

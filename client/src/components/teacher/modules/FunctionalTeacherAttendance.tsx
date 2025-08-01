@@ -39,6 +39,12 @@ const FunctionalTeacherAttendance: React.FC = () => {
     notes: ''
   });
 
+  // Fetch teacher's assigned classes for selection
+  const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
+    queryKey: ['/api/teacher/classes'],
+    enabled: !!user
+  });
+
   // Fetch teacher attendance data from PostgreSQL API
   const { data: attendance = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ['/api/teacher/attendance'],
@@ -327,14 +333,26 @@ const FunctionalTeacherAttendance: React.FC = () => {
                 <h3 className="text-lg font-semibold mb-4">Marquer les Présences</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Classe ID</label>
-                    <input
-                      type="text"
-                      value={attendanceForm.classId}
-                      onChange={(e) => setAttendanceForm(prev => ({ ...prev, classId: e.target.value }))}
-                      placeholder="ID de la classe"
-                      className="w-full border rounded-md px-3 py-2"
-                    />
+                    <label className="text-sm font-medium">Classe Assignée</label>
+                    {classesLoading ? (
+                      <div className="w-full border rounded-md px-3 py-2 bg-gray-50">
+                        Chargement des classes...
+                      </div>
+                    ) : (
+                      <select
+                        value={attendanceForm.classId}
+                        onChange={(e) => setAttendanceForm(prev => ({ ...prev, classId: e.target.value }))}
+                        className="w-full border rounded-md px-3 py-2"
+                        data-testid="select-assigned-class"
+                      >
+                        <option value="">Sélectionner une classe</option>
+                        {Array.isArray(teacherClasses) && teacherClasses.map((classe) => (
+                          <option key={classe.id} value={classe.id}>
+                            {classe.name} - {classe.subject || 'Matière'} ({classe.students || 0} élèves)
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium">Date</label>

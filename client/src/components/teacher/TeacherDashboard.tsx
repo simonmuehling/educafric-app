@@ -14,6 +14,7 @@ import ReportCardManagement from './modules/ReportCardManagement';
 import FunctionalTeacherCommunications from './modules/FunctionalTeacherCommunications';
 import TeacherTimetable from './modules/TeacherTimetable';
 import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
+import TeacherMultiRoleSwitch from './modules/TeacherMultiRoleSwitch';
 import HelpCenter from '@/components/help/HelpCenter';
 
 interface TeacherDashboardProps {
@@ -82,6 +83,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       reports: 'Bulletins',
       communications: 'Communications',
       profile: 'Profil',
+      multirole: 'Multi-Rôles',
       help: 'Aide'
     },
     en: {
@@ -96,6 +98,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       reports: 'Report Cards',
       communications: 'Communications',
       profile: 'Profile',
+      multirole: 'Multi-Roles',
       help: 'Help'
     }
   };
@@ -183,6 +186,21 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
           </div>
         </div>
       </div>
+    },
+    {
+      id: 'multirole',
+      label: t.multirole,
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: <TeacherMultiRoleSwitch onRoleSwitch={(role) => {
+        console.log(`[TEACHER_DASHBOARD] 🔄 Role switch requested: ${role}`);
+        // Handle role switch logic here
+        if (role === 'Parent') {
+          window.location.href = '/parent';
+        } else if (role === 'Freelancer') {
+          window.location.href = '/freelancer';
+        }
+      }} />
     },
     {
       id: 'settings',
