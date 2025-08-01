@@ -1,0 +1,131 @@
+name: Fixed Android Build v4.2.3
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        default: '4.2.3-branded'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup JDK 17 (Required for Android SDK)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Verify Java Installation
+        run: |
+          echo "Java version:"
+          java -version
+          echo "JAVA_HOME: $JAVA_HOME"
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          echo "Updated JAVA_HOME: $JAVA_HOME"
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Verify Build Output
+        run: |
+          echo "Checking build structure..."
+          ls -la dist/
+          if [ -d "dist/public" ]; then
+            ls -la dist/public/
+            test -f dist/public/index.html && echo "✓ index.html found" || echo "✗ index.html missing"
+          else
+            echo "✗ dist/public directory missing"
+          fi
+
+      - name: Install Capacitor CLI Globally
+        run: npm install -g @capacitor/cli
+
+      - name: Sync Capacitor with Android
+        run: npx cap sync android
+
+      - name: Setup Android SDK with JDK 17
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-33
+            build-tools;33.0.0
+            ndk;25.1.8937393
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          SKIP_JDK_VERSION_CHECK: true
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          SKIP_JDK_VERSION_CHECK: true
+
+      - name: Make Gradle Wrapper Executable
+        working-directory: android
+        run: chmod +x gradlew
+
+      - name: Clean Gradle Build
+        working-directory: android
+        run: ./gradlew clean --no-daemon --stacktrace
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          SKIP_JDK_VERSION_CHECK: true
+
+      - name: Build Debug APK with JDK 17
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace --info
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+          SKIP_JDK_VERSION_CHECK: true
+
+      - name: Verify APK Build
+        run: |
+          echo "Checking for APK files..."
+          find android -name "*.apk" -type f
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "✓ APK successfully built"
+            ls -la "$APK_PATH"
+            echo "APK size: $(du -h $APK_PATH | cut -f1)"
+          else
+            echo "✗ APK build failed"
+            exit 1
+          fi
+
+      - name: Upload EDUCAFRIC APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: educafric-v${{ github.event.inputs.version }}-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Build Success Summary
+        run: |
+          echo "🎉 EDUCAFRIC Android APK Build Successful!"
+          echo "=========================================="
+          echo "📱 App Name: EDUCAFRIC Platform"
+          echo "🏷️ Version: ${{ github.event.inputs.version }}"
+          echo "📅 Build Date: $(date '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "🔧 Build Environment: Ubuntu Latest + JDK 17"
+          echo "📦 APK Location: android/app/build/outputs/apk/debug/app-debug.apk"
+          echo "🎯 Target Android API: 33"
+          echo "🚀 Ready for deployment and testing!"
+          echo "=========================================="
