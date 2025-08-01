@@ -49,6 +49,7 @@ Preferred communication style: Simple, everyday language.
 - Resolved conflicting logo import references across login, password reset, and navbar
 - Fixed logoImage variable conflicts causing TypeScript errors and runtime failures
 - Updated all logo references to use consistent direct image paths
+- Fixed static file serving issue by copying logos to client/public for Vite development server
 - EDUCAFRIC logos now display properly across all authentication and navigation interfaces
 
 **GitHub Actions Ready:**
