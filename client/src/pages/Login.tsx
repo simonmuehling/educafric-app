@@ -11,7 +11,8 @@ import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
-import logoImage from '@assets/Edu_new (128 x 128 px)-2_1753244365562.png';
+// Logo available in public directory
+const logoImage = '/educafric-logo-128.png';
 import { useErrorMessages } from '@/lib/errorMessages';
 import { MobileErrorDisplay } from '@/components/ui/MobileErrorDisplay';
 import { MobileLanguageToggle } from '@/components/ui/LanguageToggle';
@@ -58,9 +59,10 @@ export default function Login() {
         phone: phoneNumber,
         email: formData.email 
       });
+      const data = await response.json();
 
-      if (response.detectedRoles && Array.isArray(response.detectedRoles) && response.detectedRoles.length > 1) {
-        setDetectedRoles(response.detectedRoles);
+      if (data.detectedRoles && Array.isArray(data.detectedRoles) && data.detectedRoles.length > 1) {
+        setDetectedRoles(data.detectedRoles);
         setShowMultiRolePopup(true);
         return true;
       }
@@ -104,7 +106,7 @@ export default function Login() {
 
   const proceedWithRegistration = async () => {
     try {
-      await register(formData.email, formData.password, formData.firstName, formData.lastName, formData.phoneNumber, formData.role);
+      await register(formData.email, formData.password, formData.firstName, formData.lastName, formData.phoneNumber);
       
       celebrateSignup();
       setShowCelebration({

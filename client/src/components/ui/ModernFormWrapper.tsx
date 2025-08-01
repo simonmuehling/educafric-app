@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
-import logoImage from '@assets/Edu_new (128 x 128 px)-2_1753244365562.png';
+const logoImage = '/educafric-logo-128.png';
 
 interface ModernFormWrapperProps {
   title?: string;

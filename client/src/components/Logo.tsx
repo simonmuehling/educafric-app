@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import logoImage from '@assets/Edu_new (128 x 128 px)-2_1753244365562.png';
+const logoImage = '/educafric-logo-128.png';
 
 interface LogoProps {
   className?: string;

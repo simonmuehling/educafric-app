@@ -10,7 +10,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import logoImage from '@assets/Edu_new (128 x 128 px)-2_1753244365562.png';
+const logoImage = '/educafric-logo-128.png';
 
 
 export default function FrontpageNavbar() {

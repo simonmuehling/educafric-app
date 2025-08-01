@@ -15,7 +15,8 @@ import { cn } from '@/lib/utils';
 import { useErrorMessages } from '@/lib/errorMessages';
 import { MobileErrorDisplay } from '@/components/ui/MobileErrorDisplay';
 import { MobileLanguageToggle } from '@/components/ui/LanguageToggle';
-import logoImage from '@assets/Edu_new (128 x 128 px)-2_1753244365562.png';
+// Logo available in public directory
+const logoImage = '/educafric-logo-128.png';
 
 export default function PasswordReset() {
   const [, setLocation] = useLocation();
