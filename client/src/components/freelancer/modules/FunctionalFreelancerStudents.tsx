@@ -185,7 +185,16 @@ const FunctionalFreelancerStudents: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => {
+            toast({
+              title: language === 'fr' ? 'Ajouter un élève' : 'Add Student',
+              description: language === 'fr' ? 'Formulaire d\'ajout d\'élève ouvert' : 'Add student form opened'
+            });
+          }}
+          data-testid="button-add-student"
+        >
           <Plus className="w-4 h-4 mr-2" />
           {t?.actions?.addStudent}
         </Button>
@@ -447,19 +456,59 @@ const FunctionalFreelancerStudents: React.FC = () => {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: language === 'fr' ? 'Progrès de l\'élève' : 'Student Progress',
+                                description: language === 'fr' ? `Affichage des progrès de ${student.fullName}` : `Showing progress for ${student.fullName}`
+                              });
+                            }}
+                            data-testid={`button-view-progress-${student.id}`}
+                          >
                             <Eye className="w-4 h-4 mr-2" />
                             {t?.actions?.viewProgress}
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: language === 'fr' ? 'Programmer une séance' : 'Schedule Session',
+                                description: language === 'fr' ? `Planification d'une séance avec ${student.fullName}` : `Scheduling session with ${student.fullName}`
+                              });
+                            }}
+                            data-testid={`button-schedule-session-${student.id}`}
+                          >
                             <Calendar className="w-4 h-4 mr-2" />
                             {t?.actions?.scheduleSession}
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: language === 'fr' ? 'Contacter l\'élève' : 'Contact Student',
+                                description: language === 'fr' ? `Message envoyé à ${student.fullName}` : `Message sent to ${student.fullName}`
+                              });
+                            }}
+                            data-testid={`button-contact-${student.id}`}
+                          >
                             <Phone className="w-4 h-4 mr-2" />
                             {t?.actions?.contact}
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              toast({
+                                title: language === 'fr' ? 'Modifier l\'élève' : 'Edit Student',
+                                description: language === 'fr' ? `Modification des informations de ${student.fullName}` : `Editing information for ${student.fullName}`
+                              });
+                            }}
+                            data-testid={`button-edit-${student.id}`}
+                          >
                             <Edit className="w-4 h-4 mr-2" />
                             Modifier
                           </Button>

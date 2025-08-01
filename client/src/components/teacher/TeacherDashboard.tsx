@@ -13,7 +13,7 @@ import CreateEducationalContent from './modules/CreateEducationalContent';
 import ReportCardManagement from './modules/ReportCardManagement';
 import FunctionalTeacherCommunications from './modules/FunctionalTeacherCommunications';
 import TeacherTimetable from './modules/TeacherTimetable';
-import TeacherProfileSettings from './modules/TeacherProfileSettings';
+import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
 import HelpCenter from '@/components/help/HelpCenter';
 
 interface TeacherDashboardProps {
@@ -189,7 +189,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: 'Paramètres',
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <TeacherProfileSettings />
+      component: <FunctionalTeacherProfile />
     },
     {
       id: 'help',

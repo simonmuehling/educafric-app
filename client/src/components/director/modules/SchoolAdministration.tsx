@@ -30,7 +30,7 @@ import {
   Search, Download, Edit, Trash2, Phone, Mail, Plus,
   UserPlus, Settings, BarChart3, Eye
 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+
 
 interface Teacher {
   id: number;
@@ -99,11 +99,16 @@ const SchoolAdministration: React.FC = () => {
 
   // Create teacher mutation
   const createTeacherMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/administration/teachers', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/administration/teachers', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create teacher');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -123,11 +128,16 @@ const SchoolAdministration: React.FC = () => {
 
   // Update teacher mutation
   const updateTeacherMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => apiRequest(`/api/administration/teachers/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const response = await fetch(`/api/administration/teachers/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update teacher');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
       toast({
@@ -139,9 +149,14 @@ const SchoolAdministration: React.FC = () => {
 
   // Delete teacher mutation
   const deleteTeacherMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/administration/teachers/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/administration/teachers/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete teacher');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -154,11 +169,16 @@ const SchoolAdministration: React.FC = () => {
 
   // Similar mutations for students and parents
   const createStudentMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/administration/students', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/administration/students', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create student');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -170,9 +190,14 @@ const SchoolAdministration: React.FC = () => {
   });
 
   const deleteStudentMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/administration/students/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/administration/students/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete student');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -180,11 +205,16 @@ const SchoolAdministration: React.FC = () => {
   });
 
   const createParentMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/administration/parents', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' }
-    }),
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/administration/parents', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create parent');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -196,9 +226,14 @@ const SchoolAdministration: React.FC = () => {
   });
 
   const deleteParentMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/administration/parents/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/administration/parents/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete parent');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
       queryClient.invalidateQueries({ queryKey: ['/api/administration/stats'] });
@@ -214,7 +249,7 @@ const SchoolAdministration: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   // Filtrage des données avec sécurité
-  const filteredTeachers = (teachers || []).filter((teacher: any) => {
+  const filteredTeachers = (Array.isArray(teachers) ? teachers : []).filter((teacher: any) => {
     if (!teacher) return false;
     const fullName = (teacher.firstName || '') + ' ' + (teacher.lastName || '');
     const email = teacher.email || '';

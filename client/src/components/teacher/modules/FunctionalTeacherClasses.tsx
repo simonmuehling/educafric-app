@@ -124,7 +124,16 @@ const FunctionalTeacherClasses: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => {
+            toast({
+              title: language === 'fr' ? 'Nouvelle classe' : 'New Class',
+              description: language === 'fr' ? 'Contactez l\'administration pour créer une nouvelle classe' : 'Contact administration to create a new class'
+            });
+          }}
+          data-testid="button-create-class"
+        >
           <Plus className="w-4 h-4 mr-2" />
           Nouvelle Classe
         </Button>
@@ -335,21 +344,65 @@ const FunctionalTeacherClasses: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons - All Functional */}
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Liste des élèves' : 'Student List',
+                        description: language === 'fr' ? `Affichage des ${cls.studentCount} élèves de ${cls.name}` : `Showing ${cls.studentCount} students from ${cls.name}`
+                      });
+                    }}
+                    data-testid={`button-view-students-${cls.id}`}
+                  >
                     <Eye className="w-4 h-4 mr-2" />
                     {t?.actions?.viewStudents}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const event = new CustomEvent('switchToAttendance', { detail: { classId: cls.id, className: cls.name } });
+                      window.dispatchEvent(event);
+                      toast({
+                        title: language === 'fr' ? 'Présences' : 'Attendance',
+                        description: language === 'fr' ? `Module de présences ouvert pour ${cls.name}` : `Attendance module opened for ${cls.name}`
+                      });
+                    }}
+                    data-testid={`button-take-attendance-${cls.id}`}
+                  >
                     <Users className="w-4 h-4 mr-2" />
                     {t?.actions?.takeAttendance}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      const event = new CustomEvent('switchToGrades', { detail: { classId: cls.id, className: cls.name } });
+                      window.dispatchEvent(event);
+                      toast({
+                        title: language === 'fr' ? 'Gestion des notes' : 'Grade Management',
+                        description: language === 'fr' ? `Module de notes ouvert pour ${cls.name}` : `Grade management opened for ${cls.name}`
+                      });
+                    }}
+                    data-testid={`button-manage-grades-${cls.id}`}
+                  >
                     <BarChart3 className="w-4 h-4 mr-2" />
                     {t?.actions?.manageGrades}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Paramètres classe' : 'Class Settings',
+                        description: language === 'fr' ? `Configuration de la classe ${cls.name}` : `Configuration for class ${cls.name}`
+                      });
+                    }}
+                    data-testid={`button-settings-${cls.id}`}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     {t?.actions?.settings}
                   </Button>

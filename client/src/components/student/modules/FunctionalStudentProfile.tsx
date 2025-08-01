@@ -11,11 +11,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   User, Mail, Phone, Calendar, MapPin, BookOpen, 
-  Award, Users, GraduationCap, Edit, Save, X, School,
-  BarChart3, Clock, TrendingUp, Star, DollarSign
+  Award, Star, TrendingUp, Edit, Save, X, School,
+  GraduationCap, Clock, BarChart3
 } from 'lucide-react';
 
-interface FreelancerProfile {
+interface StudentProfile {
   id: number;
   firstName: string;
   lastName: string;
@@ -23,16 +23,18 @@ interface FreelancerProfile {
   phone: string;
   dateOfBirth: string;
   address: string;
-  specializations: string[];
-  qualifications: string[];
-  experience: number;
+  className: string;
+  schoolName: string;
+  parentName: string;
+  parentPhone: string;
   bio: string;
-  hourlyRate: number;
+  interests: string[];
   languages: string[];
-  totalStudents: number;
-  totalSessions: number;
-  averageRating: number;
-  completedProjects: number;
+  averageGrade: number;
+  classRank: number;
+  attendanceRate: number;
+  completedAssignments: number;
+  totalAssignments: number;
   achievements: Array<{
     id: number;
     title: string;
@@ -42,24 +44,24 @@ interface FreelancerProfile {
   }>;
 }
 
-const FunctionalFreelancerProfile: React.FC = () => {
+const FunctionalStudentProfile: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<FreelancerProfile>>({});
+  const [formData, setFormData] = useState<Partial<StudentProfile>>({});
 
-  // Fetch freelancer profile data
-  const { data: profile, isLoading } = useQuery<FreelancerProfile>({
-    queryKey: ['/api/freelancer/profile'],
+  // Fetch student profile data
+  const { data: profile, isLoading } = useQuery<StudentProfile>({
+    queryKey: ['/api/student/profile'],
     enabled: !!user
   });
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (updates: Partial<FreelancerProfile>) => {
-      const response = await fetch('/api/freelancer/profile/update', {
+    mutationFn: async (updates: Partial<StudentProfile>) => {
+      const response = await fetch('/api/student/profile/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -69,7 +71,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/student/profile'] });
       setIsEditing(false);
       toast({
         title: language === 'fr' ? 'Profil mis à jour' : 'Profile updated',
@@ -106,10 +108,10 @@ const FunctionalFreelancerProfile: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Mon Profil Freelancer',
-      subtitle: 'Gérez vos informations professionnelles et compétences',
+      title: 'Mon Profil Étudiant',
+      subtitle: 'Gérez vos informations personnelles et académiques',
       personalInfo: 'Informations Personnelles',
-      professionalInfo: 'Informations Professionnelles',
+      academicInfo: 'Informations Académiques',
       achievements: 'Réalisations',
       stats: 'Statistiques',
       edit: 'Modifier',
@@ -121,24 +123,24 @@ const FunctionalFreelancerProfile: React.FC = () => {
       phone: 'Téléphone',
       dateOfBirth: 'Date de naissance',
       address: 'Adresse',
-      specializations: 'Spécialisations',
-      qualifications: 'Qualifications',
-      experience: 'Années d\'expérience',
-      bio: 'Biographie professionnelle',
-      hourlyRate: 'Tarif horaire (FCFA)',
+      className: 'Classe',
+      parentName: 'Nom du parent/tuteur',
+      parentPhone: 'Téléphone parent',
+      bio: 'Biographie',
+      interests: 'Centres d\'intérêt',
       languages: 'Langues parlées',
-      totalStudents: 'Élèves Totaux',
-      totalSessions: 'Sessions Totales',
-      averageRating: 'Note Moyenne',
-      completedProjects: 'Projets Terminés',
+      currentAverage: 'Moyenne actuelle',
+      classRank: 'Rang de classe',
+      attendanceRate: 'Taux de présence',
+      assignmentsCompleted: 'Devoirs terminés',
       recentAchievements: 'Réalisations récentes',
       loading: 'Chargement du profil...'
     },
     en: {
-      title: 'My Freelancer Profile',
-      subtitle: 'Manage your professional information and skills',
+      title: 'My Student Profile',
+      subtitle: 'Manage your personal and academic information',
       personalInfo: 'Personal Information',
-      professionalInfo: 'Professional Information',
+      academicInfo: 'Academic Information',
       achievements: 'Achievements',
       stats: 'Statistics',
       edit: 'Edit',
@@ -150,16 +152,16 @@ const FunctionalFreelancerProfile: React.FC = () => {
       phone: 'Phone',
       dateOfBirth: 'Date of Birth',
       address: 'Address',
-      specializations: 'Specializations',
-      qualifications: 'Qualifications',
-      experience: 'Years of Experience',
-      bio: 'Professional Biography',
-      hourlyRate: 'Hourly Rate (FCFA)',
+      className: 'Class',
+      parentName: 'Parent/Guardian Name',
+      parentPhone: 'Parent Phone',
+      bio: 'Biography',
+      interests: 'Interests',
       languages: 'Languages Spoken',
-      totalStudents: 'Total Students',
-      totalSessions: 'Total Sessions',
-      averageRating: 'Average Rating',
-      completedProjects: 'Completed Projects',
+      currentAverage: 'Current Average',
+      classRank: 'Class Rank',
+      attendanceRate: 'Attendance Rate',
+      assignmentsCompleted: 'Assignments Completed',
       recentAchievements: 'Recent Achievements',
       loading: 'Loading profile...'
     }
@@ -224,7 +226,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
         <Tabs defaultValue="personal" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="personal">{t.personalInfo}</TabsTrigger>
-            <TabsTrigger value="professional">{t.professionalInfo}</TabsTrigger>
+            <TabsTrigger value="academic">{t.academicInfo}</TabsTrigger>
             <TabsTrigger value="achievements">{t.achievements}</TabsTrigger>
           </TabsList>
 
@@ -287,13 +289,11 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.hourlyRate}</label>
+                    <label className="text-sm font-medium">{t.className}</label>
                     <Input
-                      value={formData.hourlyRate || 0}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: Number(e.target.value) }))}
-                      disabled={!isEditing}
-                      type="number"
-                      data-testid="input-hourlyRate"
+                      value={formData.className || ''}
+                      disabled={true}
+                      data-testid="input-className"
                     />
                   </div>
                 </div>
@@ -307,59 +307,6 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     data-testid="input-address"
                   />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Professional Information Tab */}
-          <TabsContent value="professional" className="space-y-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <Users className="w-12 h-12 text-blue-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.totalStudents || 0}</h3>
-                  <p className="text-gray-600">{t.totalStudents}</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <Clock className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.totalSessions || 0}</h3>
-                  <p className="text-gray-600">{t.totalSessions}</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <Star className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.averageRating || 0}/5</h3>
-                  <p className="text-gray-600">{t.averageRating}</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <BarChart3 className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.completedProjects || 0}</h3>
-                  <p className="text-gray-600">{t.completedProjects}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BookOpen className="w-5 h-5 mr-2" />
-                  {t.professionalInfo}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">{t.specializations}</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {(formData.specializations || []).map((spec, index) => (
-                      <Badge key={index} variant="outline">{spec}</Badge>
-                    ))}
-                  </div>
-                </div>
                 <div>
                   <label className="text-sm font-medium">{t.bio}</label>
                   <Textarea
@@ -367,22 +314,48 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                     disabled={!isEditing}
                     rows={4}
-                    placeholder={language === 'fr' ? 'Décrivez votre expérience et compétences...' : 'Describe your experience and skills...'}
+                    placeholder={language === 'fr' ? 'Parlez-nous de vous...' : 'Tell us about yourself...'}
                     data-testid="input-bio"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">{t.experience}</label>
-                  <Input
-                    value={formData.experience || 0}
-                    onChange={(e) => setFormData(prev => ({ ...prev, experience: Number(e.target.value) }))}
-                    disabled={!isEditing}
-                    type="number"
-                    data-testid="input-experience"
                   />
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Academic Information Tab */}
+          <TabsContent value="academic" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <BarChart3 className="w-12 h-12 text-blue-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">{profile?.averageGrade || 0}/20</h3>
+                  <p className="text-gray-600">{t.currentAverage}</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <TrendingUp className="w-12 h-12 text-green-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">#{profile?.classRank || 0}</h3>
+                  <p className="text-gray-600">{t.classRank}</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <Clock className="w-12 h-12 text-orange-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">{profile?.attendanceRate || 0}%</h3>
+                  <p className="text-gray-600">{t.attendanceRate}</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <BookOpen className="w-12 h-12 text-purple-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {profile?.completedAssignments || 0}/{profile?.totalAssignments || 0}
+                  </h3>
+                  <p className="text-gray-600">{t.assignmentsCompleted}</p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Achievements Tab */}
@@ -427,4 +400,4 @@ const FunctionalFreelancerProfile: React.FC = () => {
   );
 };
 
-export default FunctionalFreelancerProfile;
+export default FunctionalStudentProfile;

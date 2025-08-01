@@ -9,9 +9,10 @@ import StudentTimetable from './modules/StudentTimetable';
 import StudentGrades from './modules/StudentGrades';
 import StudentHomework from './modules/StudentHomework';
 import StudentCommunications from './modules/StudentCommunications';
-import StudentProfile from './modules/StudentProfile';
+import FunctionalStudentProfile from './modules/FunctionalStudentProfile';
 import FunctionalStudentBulletins from './modules/FunctionalStudentBulletins';
 import FunctionalStudentAttendance from './modules/FunctionalStudentAttendance';
+import FunctionalStudentClasses from './modules/FunctionalStudentClasses';
 import StudentProgress from './modules/StudentProgress';
 
 // import StudentAchievements from './modules/StudentAchievements';
@@ -102,7 +103,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <StudentTimetable />
+      component: <FunctionalStudentClasses />
     },
     {
       id: 'grades',
@@ -176,7 +177,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.profile,
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <StudentProfile />
+      component: <FunctionalStudentProfile />
     },
     {
       id: 'help',

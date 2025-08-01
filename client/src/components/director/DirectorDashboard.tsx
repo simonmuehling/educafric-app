@@ -6,7 +6,7 @@ import {
   UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import SchoolSettings from './modules/SchoolSettings';
+import FunctionalDirectorProfile from './modules/FunctionalDirectorProfile';
 import TeacherManagement from './modules/TeacherManagement';
 import StudentManagement from './modules/StudentManagement';
 import ClassManagement from './modules/ClassManagement';
@@ -147,7 +147,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <SchoolSettings />
+      component: <FunctionalDirectorProfile />
     },
     {
       id: 'teachers',

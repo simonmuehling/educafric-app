@@ -147,7 +147,7 @@ const StudentHomework: React.FC = () => {
     }
   };
 
-  const filteredHomework = (Array.isArray(homework) ? homework : []).filter((hw: any) => {
+  const filteredHomework = (homework || []).filter((hw: any) => {
     if (filterStatus === 'all') return true;
     return hw.status === filterStatus;
   });
@@ -243,7 +243,7 @@ const StudentHomework: React.FC = () => {
                       className="w-full border rounded-md px-3 py-2"
                     >
                       <option value="">Sélectionner un devoir</option>
-                      {homework.filter(hw => hw.status === 'pending').map(hw => (
+                      {(homework || []).filter(hw => hw.status === 'pending').map(hw => (
                         <option key={hw.id} value={hw.id}>
                           {hw.subject} - {hw.title}
                         </option>

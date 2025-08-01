@@ -12,10 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   User, Mail, Phone, Calendar, MapPin, BookOpen, 
   Award, Users, GraduationCap, Edit, Save, X, School,
-  BarChart3, Clock, TrendingUp, Star, DollarSign
+  BarChart3, Clock, TrendingUp, Star
 } from 'lucide-react';
 
-interface FreelancerProfile {
+interface TeacherProfile {
   id: number;
   firstName: string;
   lastName: string;
@@ -23,16 +23,17 @@ interface FreelancerProfile {
   phone: string;
   dateOfBirth: string;
   address: string;
-  specializations: string[];
+  schoolName: string;
+  subjects: string[];
   qualifications: string[];
   experience: number;
   bio: string;
-  hourlyRate: number;
+  specializations: string[];
   languages: string[];
+  totalClasses: number;
   totalStudents: number;
-  totalSessions: number;
-  averageRating: number;
-  completedProjects: number;
+  averageClassSize: number;
+  yearsTeaching: number;
   achievements: Array<{
     id: number;
     title: string;
@@ -42,24 +43,24 @@ interface FreelancerProfile {
   }>;
 }
 
-const FunctionalFreelancerProfile: React.FC = () => {
+const FunctionalTeacherProfile: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<FreelancerProfile>>({});
+  const [formData, setFormData] = useState<Partial<TeacherProfile>>({});
 
-  // Fetch freelancer profile data
-  const { data: profile, isLoading } = useQuery<FreelancerProfile>({
-    queryKey: ['/api/freelancer/profile'],
+  // Fetch teacher profile data
+  const { data: profile, isLoading } = useQuery<TeacherProfile>({
+    queryKey: ['/api/teacher/profile'],
     enabled: !!user
   });
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (updates: Partial<FreelancerProfile>) => {
-      const response = await fetch('/api/freelancer/profile/update', {
+    mutationFn: async (updates: Partial<TeacherProfile>) => {
+      const response = await fetch('/api/teacher/profile/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
@@ -69,7 +70,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/profile'] });
       setIsEditing(false);
       toast({
         title: language === 'fr' ? 'Profil mis à jour' : 'Profile updated',
@@ -106,8 +107,8 @@ const FunctionalFreelancerProfile: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Mon Profil Freelancer',
-      subtitle: 'Gérez vos informations professionnelles et compétences',
+      title: 'Mon Profil Enseignant',
+      subtitle: 'Gérez vos informations professionnelles et académiques',
       personalInfo: 'Informations Personnelles',
       professionalInfo: 'Informations Professionnelles',
       achievements: 'Réalisations',
@@ -121,22 +122,23 @@ const FunctionalFreelancerProfile: React.FC = () => {
       phone: 'Téléphone',
       dateOfBirth: 'Date de naissance',
       address: 'Adresse',
-      specializations: 'Spécialisations',
+      schoolName: 'École',
+      subjects: 'Matières enseignées',
       qualifications: 'Qualifications',
       experience: 'Années d\'expérience',
       bio: 'Biographie professionnelle',
-      hourlyRate: 'Tarif horaire (FCFA)',
+      specializations: 'Spécialisations',
       languages: 'Langues parlées',
+      totalClasses: 'Classes Totales',
       totalStudents: 'Élèves Totaux',
-      totalSessions: 'Sessions Totales',
-      averageRating: 'Note Moyenne',
-      completedProjects: 'Projets Terminés',
+      averageClassSize: 'Taille Moyenne des Classes',
+      yearsTeaching: 'Années d\'Enseignement',
       recentAchievements: 'Réalisations récentes',
       loading: 'Chargement du profil...'
     },
     en: {
-      title: 'My Freelancer Profile',
-      subtitle: 'Manage your professional information and skills',
+      title: 'My Teacher Profile',
+      subtitle: 'Manage your professional and academic information',
       personalInfo: 'Personal Information',
       professionalInfo: 'Professional Information',
       achievements: 'Achievements',
@@ -150,16 +152,17 @@ const FunctionalFreelancerProfile: React.FC = () => {
       phone: 'Phone',
       dateOfBirth: 'Date of Birth',
       address: 'Address',
-      specializations: 'Specializations',
+      schoolName: 'School',
+      subjects: 'Subjects Taught',
       qualifications: 'Qualifications',
       experience: 'Years of Experience',
       bio: 'Professional Biography',
-      hourlyRate: 'Hourly Rate (FCFA)',
+      specializations: 'Specializations',
       languages: 'Languages Spoken',
+      totalClasses: 'Total Classes',
       totalStudents: 'Total Students',
-      totalSessions: 'Total Sessions',
-      averageRating: 'Average Rating',
-      completedProjects: 'Completed Projects',
+      averageClassSize: 'Average Class Size',
+      yearsTeaching: 'Years Teaching',
       recentAchievements: 'Recent Achievements',
       loading: 'Loading profile...'
     }
@@ -287,13 +290,11 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.hourlyRate}</label>
+                    <label className="text-sm font-medium">{t.schoolName}</label>
                     <Input
-                      value={formData.hourlyRate || 0}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: Number(e.target.value) }))}
-                      disabled={!isEditing}
-                      type="number"
-                      data-testid="input-hourlyRate"
+                      value={formData.schoolName || ''}
+                      disabled={true}
+                      data-testid="input-schoolName"
                     />
                   </div>
                 </div>
@@ -317,29 +318,29 @@ const FunctionalFreelancerProfile: React.FC = () => {
               <Card className="text-center">
                 <CardContent className="pt-6">
                   <Users className="w-12 h-12 text-blue-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">{profile?.totalClasses || 0}</h3>
+                  <p className="text-gray-600">{t.totalClasses}</p>
+                </CardContent>
+              </Card>
+              <Card className="text-center">
+                <CardContent className="pt-6">
+                  <GraduationCap className="w-12 h-12 text-green-600 mx-auto mb-2" />
                   <h3 className="text-2xl font-bold text-gray-900">{profile?.totalStudents || 0}</h3>
                   <p className="text-gray-600">{t.totalStudents}</p>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardContent className="pt-6">
-                  <Clock className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.totalSessions || 0}</h3>
-                  <p className="text-gray-600">{t.totalSessions}</p>
+                  <BarChart3 className="w-12 h-12 text-orange-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">{profile?.averageClassSize || 0}</h3>
+                  <p className="text-gray-600">{t.averageClassSize}</p>
                 </CardContent>
               </Card>
               <Card className="text-center">
                 <CardContent className="pt-6">
-                  <Star className="w-12 h-12 text-yellow-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.averageRating || 0}/5</h3>
-                  <p className="text-gray-600">{t.averageRating}</p>
-                </CardContent>
-              </Card>
-              <Card className="text-center">
-                <CardContent className="pt-6">
-                  <BarChart3 className="w-12 h-12 text-purple-600 mx-auto mb-2" />
-                  <h3 className="text-2xl font-bold text-gray-900">{profile?.completedProjects || 0}</h3>
-                  <p className="text-gray-600">{t.completedProjects}</p>
+                  <Clock className="w-12 h-12 text-purple-600 mx-auto mb-2" />
+                  <h3 className="text-2xl font-bold text-gray-900">{profile?.yearsTeaching || 0}</h3>
+                  <p className="text-gray-600">{t.yearsTeaching}</p>
                 </CardContent>
               </Card>
             </div>
@@ -353,10 +354,10 @@ const FunctionalFreelancerProfile: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">{t.specializations}</label>
+                  <label className="text-sm font-medium">{t.subjects}</label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {(formData.specializations || []).map((spec, index) => (
-                      <Badge key={index} variant="outline">{spec}</Badge>
+                    {(formData.subjects || []).map((subject, index) => (
+                      <Badge key={index} variant="outline">{subject}</Badge>
                     ))}
                   </div>
                 </div>
@@ -367,18 +368,8 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                     disabled={!isEditing}
                     rows={4}
-                    placeholder={language === 'fr' ? 'Décrivez votre expérience et compétences...' : 'Describe your experience and skills...'}
+                    placeholder={language === 'fr' ? 'Décrivez votre expérience professionnelle...' : 'Describe your professional experience...'}
                     data-testid="input-bio"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">{t.experience}</label>
-                  <Input
-                    value={formData.experience || 0}
-                    onChange={(e) => setFormData(prev => ({ ...prev, experience: Number(e.target.value) }))}
-                    disabled={!isEditing}
-                    type="number"
-                    data-testid="input-experience"
                   />
                 </div>
               </CardContent>
@@ -427,4 +418,4 @@ const FunctionalFreelancerProfile: React.FC = () => {
   );
 };
 
-export default FunctionalFreelancerProfile;
+export default FunctionalTeacherProfile;
