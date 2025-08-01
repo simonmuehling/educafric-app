@@ -7,7 +7,7 @@
     
     <!-- App Description -->
     <string name="app_description">Solution éducative complète pour l\'Afrique - Gestion scolaire, communication parents-enseignants, suivi des élèves</string>
-    <string name="app_version">Version 4.2.1</string>
+    <string name="app_version">Version 4.2.3</string>
     
     <!-- Feature Descriptions -->
     <string name="camera_permission_desc">Nécessaire pour prendre des photos de profil et numériser des documents éducatifs</string>
