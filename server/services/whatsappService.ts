@@ -514,7 +514,7 @@ Montant dû: {{amount}} CFA
 Échéance: {{dueDate}}
 Catégorie: {{paymentType}}
 
-💳 Paiement sécurisé: https://www.educafric.com/payments
+💳 Paiement sécurisé: https://educafric.com/payments
 🏪 Ou en espèces à l'école
 
 Questions? Contactez l'administration:
@@ -529,7 +529,7 @@ Questions? Contactez l'administration:
 Date: {{date}}
 Concerne: {{audience}}
 
-Plus d'infos: https://www.educafric.com/announcements
+Plus d'infos: https://educafric.com/announcements
 
 École {{schoolName}}
 📞 {{schoolPhone}}`,
@@ -573,7 +573,7 @@ Teacher: {{teacherName}}
 💬 Comment: "{{comment}}"
 
 View all details on Educafric:
-https://www.educafric.com/grades
+https://educafric.com/grades
 
 {{schoolName}} School`,
 

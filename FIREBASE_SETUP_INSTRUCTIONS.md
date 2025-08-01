@@ -18,7 +18,7 @@ Your current Replit domain is: **Check browser URL** (e.g., `abc123.replit.dev`)
 #### Required Domains to Add:
 - `localhost` (for development)
 - Your current Replit domain (e.g., `abc123.replit.dev`)
-- `www.educafric.com` (for production)
+- `educafric.com` (for production)
 - Any custom domains you plan to use
 
 ### 3. Port-Specific Domains (if needed)

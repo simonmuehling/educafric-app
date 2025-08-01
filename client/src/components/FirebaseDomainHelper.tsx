@@ -25,7 +25,8 @@ export function FirebaseDomainHelper() {
     currentDomain,
     `${currentDomain}:5000`,
     'localhost',
-    'www?.educafric?.com'
+    'www.educafric.com',
+    'educafric.com'
   ];
 
   if (!showHelper) {

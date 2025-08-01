@@ -414,7 +414,7 @@
 
 💬 WHATSAPP INSTANTANÉ : +237 656 200 472
 📧 EMAIL EXPRESS : commercial@educafric.com
-🌐 INSCRIPTION IMMÉDIATE : www.educafric.com
+🌐 INSCRIPTION IMMÉDIATE : educafric.com
 ```
 
 ---

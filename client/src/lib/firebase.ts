@@ -3,12 +3,13 @@ import { getAuth, signInWithRedirect, signInWithPopup, GoogleAuthProvider, getRe
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: import?.meta?.env.VITE_FIREBASE_API_KEY,
-  authDomain: "www?.educafric?.com", // Set to production domain for proper authentication
-  projectId: import?.meta?.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: `${import?.meta?.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
-  messagingSenderId: "123456789", // Default for development
-  appId: import?.meta?.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "smartwatch-tracker-e061f.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 let app: FirebaseApp | null = null;
@@ -118,7 +119,9 @@ export async function handleRedirect() {
           if (response.ok) {
             console.log('Firebase user synced with backend successfully');
             // Redirect to dashboard
-            window?.location?.href = '/dashboard';
+            if (window?.location) {
+              window.location.href = '/dashboard';
+            }
           } else {
             console.error('Backend sync failed:', await response.text());
             alert('Account sync failed. Please try logging in again.');

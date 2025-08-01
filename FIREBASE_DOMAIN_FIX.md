@@ -6,7 +6,7 @@ Google sign-in is failing due to unauthorized domain error. The current Replit d
 ## Current Configuration
 - Firebase Project: smartwatch-tracker-e061f
 - Site Key: 6LcI9IwrAAAAALTCMs6z4tj-lEHQntAFI5XuA2F-
-- Auth Domain: www.educafric.com (production)
+- Auth Domain: educafric.com (production)
 
 ## Required Firebase Console Settings
 
@@ -20,8 +20,8 @@ Add these domains to Firebase Console → Authentication → Settings → Author
 - YOUR_REPLIT_DOMAIN-5000.preview.app.github.dev (if using port 5000)
 
 **Production Domains:**
-- www.educafric.com
 - educafric.com
+- www.educafric.com (redirect)
 - Any custom domains you plan to use
 
 ### 2. Google Provider Configuration
@@ -51,6 +51,6 @@ The updated authentication system:
 4. Check backend sync functionality
 
 ## Notes
-- The authDomain is set to "www.educafric.com" for production consistency
+- The authDomain is set to "educafric.com" for production consistency
 - reCAPTCHA integration is maintained throughout the authentication flow
 - Error messages are user-friendly while providing technical details in console
