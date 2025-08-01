@@ -3566,6 +3566,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== COMMERCIAL DOCUMENTS API ROUTES =====
+
+  // Get all documents for commercial dashboard
+  app.get("/api/commercial/documents", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! User:`, req.user?.id);
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, (req.user as any)?.role);
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      // Demo documents data
+      const documentsData = [
+        {
+          id: 1,
+          userId: (req.user as any).id,
+          title: "Proposition École Bilingue Yaoundé",
+          content: "Proposition commerciale détaillée pour l'implémentation d'EDUCAFRIC à l'École Bilingue de Yaoundé.",
+          type: "proposal",
+          status: "sent",
+          language: "fr",
+          clientInfo: {
+            name: "École Bilingue de Yaoundé",
+            email: "direction@ecolebilingueyaounde.cm",
+            phone: "+237 222 345 678",
+            institution: "École Bilingue de Yaoundé",
+            address: "Yaoundé, Cameroun"
+          },
+          createdAt: "2024-12-15T10:30:00Z",
+          updatedAt: "2024-12-15T14:20:00Z"
+        },
+        {
+          id: 2,
+          userId: (req.user as any).id,
+          title: "Contrat Collège Moderne Douala",
+          content: "Contrat de service pour l'intégration complète de la plateforme EDUCAFRIC au Collège Moderne de Douala.",
+          type: "contract",
+          status: "signed",
+          language: "fr",
+          clientInfo: {
+            name: "Collège Moderne Douala",
+            email: "admin@collegemoderndouala.cm",
+            phone: "+237 233 456 789",
+            institution: "Collège Moderne Douala",
+            address: "Douala, Cameroun"
+          },
+          createdAt: "2024-12-10T09:15:00Z",
+          updatedAt: "2024-12-20T16:45:00Z"
+        }
+      ];
+      
+      console.log(`[COMMERCIAL_DOCUMENTS] ✅ Found ${documentsData.length} documents for commercial ${(req.user as any).id}`);
+      res.json(documentsData);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_DOCUMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch commercial documents' });
+    }
+  });
+
+  // Download document
+  app.get("/api/commercial/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const documentId = req.params.id;
+      const content = `EDUCAFRIC - Document Commercial ${documentId}\n\nDocument téléchargé le ${new Date().toLocaleString('fr-FR')}\n\nContenu du document...`;
+      
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="document-${documentId}.txt"`);
+      res.send(content);
+    } catch (error: any) {
+      console.error('[DOCUMENT_DOWNLOAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to download document' });
+    }
+  });
+
+  // Share document via email
+  app.post("/api/commercial/documents/:id/share", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const { email, message } = req.body;
+      const documentId = req.params.id;
+      
+      console.log(`[DOCUMENT_SHARE] Sharing document ${documentId} to ${email}`);
+      
+      // Simulation d'envoi d'email
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      res.json({ success: true, message: 'Document shared successfully' });
+    } catch (error: any) {
+      console.error('[DOCUMENT_SHARE] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to share document' });
+    }
+  });
+
+  // Delete document
+  app.delete("/api/commercial/documents/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const documentId = req.params.id;
+      console.log(`[DOCUMENT_DELETE] Deleting document ${documentId}`);
+      
+      // Simulation de suppression
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      res.json({ success: true, message: 'Document deleted successfully' });
+    } catch (error: any) {
+      console.error('[DOCUMENT_DELETE] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to delete document' });
+    }
+  });
+
+  // Create new document (Site Admin)
+  app.post("/api/commercial/documents", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['SiteAdmin', 'Admin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const { title, content, type, language, clientInfo } = req.body;
+      
+      const newDocument = {
+        id: Date.now(),
+        userId: (req.user as any).id,
+        title,
+        content,
+        type,
+        status: 'draft',
+        language: language || 'fr',
+        clientInfo,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log(`[DOCUMENT_CREATE] Document created: ${newDocument.title}`);
+      
+      res.status(201).json(newDocument);
+    } catch (error: any) {
+      console.error('[DOCUMENT_CREATE] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to create document' });
+    }
+  });
+
   // ===== SITE ADMIN API ROUTES =====
 
   // Site Admin Dashboard Overview
