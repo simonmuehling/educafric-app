@@ -46,6 +46,9 @@ jobs:
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+      env:
+        JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+        SKIP_JDK_VERSION_CHECK: true
       
     - name: Install dependencies
       run: |
