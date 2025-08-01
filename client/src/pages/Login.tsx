@@ -11,8 +11,6 @@ import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
-// Logo available in public directory
-const logoImage = '/educafric-logo-128.png';
 import { useErrorMessages } from '@/lib/errorMessages';
 import { MobileErrorDisplay } from '@/components/ui/MobileErrorDisplay';
 import { MobileLanguageToggle } from '@/components/ui/LanguageToggle';
@@ -265,7 +263,7 @@ export default function Login() {
             <div className="relative">
               <div className="w-24 h-24 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300 overflow-hidden">
                 <img 
-                  src={logoImage} 
+                  src="/educafric-logo-128.png" 
                   alt={language === 'fr' ? 'Logo Educafric' : 'Educafric Logo'} 
                   className="w-20 h-20 object-contain rounded-2xl"
                 />

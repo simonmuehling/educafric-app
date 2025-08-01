@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
-const logoImage = '/educafric-logo-128.png';
 
 interface ModernFormWrapperProps {
   title?: string;
@@ -37,7 +36,7 @@ export function ModernFormWrapper({
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300 overflow-hidden">
                   <img 
-                    src={logoImage} 
+                    src="/educafric-logo-128.png" 
                     alt={language === 'fr' ? 'Logo Educafric' : 'Educafric Logo'} 
                     className="w-16 h-16 object-contain rounded-2xl"
                   />

@@ -10,7 +10,6 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-const logoImage = '/educafric-logo-128.png';
 
 
 export default function FrontpageNavbar() {
@@ -105,7 +104,7 @@ export default function FrontpageNavbar() {
           {/* Logo - Home Button */}
           <Link href="/" className="flex items-center">
             <img 
-              src={logoImage} 
+              src="/educafric-logo-128.png" 
               alt="Educafric Logo" 
               className="w-10 h-10 rounded-full object-cover"
             />
