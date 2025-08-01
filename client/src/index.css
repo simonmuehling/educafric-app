@@ -224,6 +224,29 @@
     box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 3px;
   }
 
+  /* Fix white background for all forms */
+  form, 
+  .form-container,
+  .dialog-content,
+  [data-radix-dialog-content],
+  [role="dialog"],
+  .homework-form,
+  .assignment-form,
+  .submission-form,
+  .settings-form {
+    @apply bg-white !important;
+  }
+
+  /* Ensure form cards have white backgrounds */
+  .form-card {
+    @apply bg-white p-6 rounded-lg shadow-sm !important;
+  }
+
+  /* Dialog overlays */
+  .dialog-overlay {
+    @apply bg-black bg-opacity-50 !important;
+  }
+
   /* Animated Button Style */
   .modern-btn {
     display: block;

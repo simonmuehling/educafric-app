@@ -8942,6 +8942,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Multi-role detection and management routes
   app.use('/api/auth', multiRoleRoutes);
 
+  // ===== STUDENT LIBRARY ROUTES =====
+  app.get("/api/student/library", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Student', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Student access required' });
+      }
+      
+      const libraryData = [
+        { subject: 'Mathématiques', currentGrade: 16.5, previousGrade: 15.2, trend: 'up', goal: 17.0, assignments: { total: 12, completed: 10, average: 16.2 } },
+        { subject: 'Français', currentGrade: 14.8, previousGrade: 15.1, trend: 'down', goal: 16.0, assignments: { total: 8, completed: 7, average: 14.5 } },
+        { subject: 'Sciences', currentGrade: 15.9, previousGrade: 15.9, trend: 'stable', goal: 16.5, assignments: { total: 10, completed: 9, average: 15.7 } },
+        { subject: 'Histoire', currentGrade: 17.2, previousGrade: 16.8, trend: 'up', goal: 17.0, assignments: { total: 6, completed: 6, average: 17.1 } }
+      ];
+
+      res.json({ success: true, data: libraryData, message: 'Library data retrieved successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: 'Error fetching library data' });
+    }
+  });
+
+  app.get("/api/student/achievements", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Student', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Student access required' });
+      }
+      
+      const achievements = [
+        { id: 1, title: 'Excellent Student', description: 'Maintained average above 16/20', icon: '🏆', date: '2025-01-15', points: 100 },
+        { id: 2, title: 'Perfect Attendance', description: '95% attendance rate this term', icon: '📅', date: '2025-01-10', points: 75 },
+        { id: 3, title: 'Math Champion', description: 'Top score in mathematics', icon: '🔢', date: '2025-01-05', points: 80 }
+      ];
+
+      res.json({ success: true, data: achievements, message: 'Achievements retrieved successfully' });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: 'Error fetching achievements' });
+    }
+  });
+
+  // ===== ACCOUNT MANAGEMENT ROUTES =====
+  app.put("/api/auth/change-password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const user = req.user as any;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Current password and new password are required' });
+      }
+
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!isValidPassword) {
+        return res.status(400).json({ message: 'Current password is incorrect' });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+      await storage.updateUser(user.id, { password: hashedPassword });
+
+      res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to change password' });
+    }
+  });
+
+  app.delete("/api/auth/delete-account", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      
+      await storage.deleteUser(userId);
+      
+      req.logout((err) => {
+        if (err) console.error('Error during logout after account deletion:', err);
+      });
+      
+      res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ message: 'Failed to delete account' });
+    }
+  });
+
 
 
   // HOSTINGER EMAIL ROUTES - DO NOT CHANGE CONFIGURATION

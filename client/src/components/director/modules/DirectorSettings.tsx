@@ -4,17 +4,17 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { Settings } from 'lucide-react';
 import AccountManagement from '@/components/settings/AccountManagement';
 
-const ParentSettings = () => {
+const DirectorSettings = () => {
   const { language } = useLanguage();
 
   const text = {
     fr: {
-      title: 'Paramètres',
-      subtitle: 'Gérez vos paramètres de compte parent'
+      title: 'Paramètres École',
+      subtitle: 'Gérez vos paramètres de compte directeur'
     },
     en: {
-      title: 'Settings',
-      subtitle: 'Manage your parent account settings'
+      title: 'School Settings',
+      subtitle: 'Manage your director account settings'
     }
   };
 
@@ -37,4 +37,4 @@ const ParentSettings = () => {
   );
 };
 
-export default ParentSettings;
+export default DirectorSettings;

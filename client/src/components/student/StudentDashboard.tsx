@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import StudentTimetable from './modules/StudentTimetable';
@@ -17,6 +17,7 @@ import StudentProgress from './modules/StudentProgress';
 
 // import StudentAchievements from './modules/StudentAchievements';
 import HelpCenter from '@/components/help/HelpCenter';
+import StudentSettings from './modules/StudentSettings';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -178,6 +179,13 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
       component: <FunctionalStudentProfile />
+    },
+    {
+      id: 'settings',
+      label: t.settings,
+      icon: <Settings className="w-6 h-6" />,
+      color: 'bg-gray-500',
+      component: <StudentSettings />
     },
     {
       id: 'help',

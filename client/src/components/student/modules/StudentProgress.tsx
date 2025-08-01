@@ -94,15 +94,16 @@ const StudentProgress = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch student's progress data from API
+  // Fetch student's library data from API
   const { data: progressData = [], isLoading, error } = useQuery({
-    queryKey: ['/api/student/progress', user?.id, selectedPeriod],
+    queryKey: ['/api/student/library', user?.id, selectedPeriod],
     queryFn: async () => {
-      const response = await fetch(`/api/student/progress?studentId=${user?.id}&period=${selectedPeriod}`);
+      const response = await fetch(`/api/student/library?studentId=${user?.id}&period=${selectedPeriod}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch progress data');
+        throw new Error('Failed to fetch library data');
       }
-      return response.json();
+      const result = await response.json();
+      return result.data || [];
     },
     enabled: !!user?.id
   });
@@ -113,7 +114,8 @@ const StudentProgress = () => {
     queryFn: async () => {
       const response = await fetch(`/api/student/achievements?studentId=${user?.id}`);
       if (!response.ok) throw new Error('Failed to fetch achievements');
-      return response.json();
+      const result = await response.json();
+      return result.data || [];
     },
     enabled: !!user?.id
   });

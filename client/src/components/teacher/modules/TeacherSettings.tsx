@@ -1,19 +1,38 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ModernCard } from '@/components/ui/ModernCard';
+import { Settings } from 'lucide-react';
+import AccountManagement from '@/components/settings/AccountManagement';
 
-const TeacherSettings: React.FC = () => {
+const TeacherSettings = () => {
   const { language } = useLanguage();
 
+  const text = {
+    fr: {
+      title: 'Paramètres',
+      subtitle: 'Gérez vos paramètres de compte enseignant'
+    },
+    en: {
+      title: 'Settings',
+      subtitle: 'Manage your teacher account settings'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">
-        {language === 'fr' ? 'Paramètres Enseignant' : 'Teacher Settings'}
-      </h1>
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <p className="text-gray-600">
-          {language === 'fr' ? 'Configuration des paramètres de votre compte enseignant.' : 'Configure your teacher account settings.'}
-        </p>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-6">
+        <Settings className="w-6 h-6 text-blue-600" />
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <p className="text-gray-600">{t.subtitle}</p>
+        </div>
       </div>
+
+      <ModernCard className="p-6">
+        <AccountManagement />
+      </ModernCard>
     </div>
   );
 };
