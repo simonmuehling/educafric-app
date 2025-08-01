@@ -34,6 +34,14 @@ jobs:
       - name: Build web app
         run: npm run build
 
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -la dist/
+          ls -la dist/public/
+          echo "Checking for index.html..."
+          test -f dist/public/index.html && echo "✓ index.html found" || echo "✗ index.html missing"
+
       - name: Install Capacitor CLI
         run: npm install -g @capacitor/cli
 
