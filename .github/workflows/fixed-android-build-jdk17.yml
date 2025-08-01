@@ -1,4 +1,4 @@
-name: Simple Android Build
+name: Fixed Android Build JDK17 - EDUCAFRIC
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     
     steps:
       - name: Checkout code
@@ -22,38 +22,43 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Java
+      - name: Setup JDK 17 (Critical Fix)
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          check-latest: true
+
+      - name: Verify Java Installation
+        run: |
+          echo "Java verification:"
+          java -version
+          javac -version
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "PATH: $PATH"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline
 
       - name: Build web app
-        run: npm run build
-
-      - name: Verify build output
         run: |
-          echo "Checking build output..."
-          ls -la dist/
+          npm run build
+          echo "Build completed - verifying output:"
           ls -la dist/public/
-          echo "Checking for index.html..."
-          test -f dist/public/index.html && echo "✓ index.html found" || echo "✗ index.html missing"
 
       - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
+        run: npm install -g @capacitor/cli@latest
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Setup Android SDK (JDK17 Compatible)
+      - name: Setup Android SDK (Manual - JDK17 Compatible)
         run: |
-          # Manual Android SDK setup to avoid JDK version conflicts
+          # Create Android SDK directory
           sudo mkdir -p /opt/android-sdk
           sudo chown -R $USER:$USER /opt/android-sdk
           
+          # Set environment variables
           export ANDROID_HOME=/opt/android-sdk
           export ANDROID_SDK_ROOT=$ANDROID_HOME
           echo "ANDROID_HOME=/opt/android-sdk" >> $GITHUB_ENV
@@ -62,43 +67,64 @@ jobs:
           echo "/opt/android-sdk/platform-tools" >> $GITHUB_PATH
           echo "/opt/android-sdk/build-tools/33.0.0" >> $GITHUB_PATH
           
-          # Download and setup command line tools
+          # Download command line tools
           cd /tmp
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q commandlinetools-linux-11076708_latest.zip
           mkdir -p $ANDROID_HOME/cmdline-tools/latest
           mv cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
           
-          # Accept licenses and install required packages
+          # Set proper Java for SDK manager
+          export JAVA_HOME=$JAVA_HOME
+          
+          # Accept licenses and install packages
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools"
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-33"
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "build-tools;33.0.0"
           
-          echo "✅ Android SDK setup completed with JDK 17"
+          echo "Android SDK setup completed with JDK 17"
 
       - name: Make gradlew executable
         working-directory: android
-        run: chmod +x gradlew
+        run: |
+          chmod +x gradlew
+          ./gradlew --version
 
-      - name: Build Debug APK
+      - name: Build Debug APK (JDK17)
         working-directory: android
         run: |
+          export JAVA_HOME=$JAVA_HOME
           export ANDROID_HOME=/opt/android-sdk
           export ANDROID_SDK_ROOT=/opt/android-sdk
           ./gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+
+      - name: Verify APK Build
+        run: |
+          APK_PATH="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK successfully built"
+            ls -la "$APK_PATH"
+            echo "APK size: $(du -h $APK_PATH | cut -f1)"
+          else
+            echo "❌ APK build failed"
+            exit 1
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: educafric-v${{ github.event.inputs.version }}-debug.apk
+          name: educafric-v${{ github.event.inputs.version }}-debug-jdk17
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Build Info
+      - name: Build Success Summary
         run: |
-          echo "EDUCAFRIC Android APK Build Complete"
+          echo "🎉 EDUCAFRIC Android Build Successful!"
           echo "Version: ${{ github.event.inputs.version }}"
-          echo "Build Date: $(date)"
-          echo "APK Location: android/app/build/outputs/apk/debug/app-debug.apk"
-          ls -la android/app/build/outputs/apk/debug/ || echo "Debug APK not found"
+          echo "JDK: 17 (Temurin)"
+          echo "Android SDK: 33"
+          echo "Build Type: Debug APK"
+          echo "Status: Ready for testing and deployment"
