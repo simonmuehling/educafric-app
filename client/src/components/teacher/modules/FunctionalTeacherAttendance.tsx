@@ -227,7 +227,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -346,9 +346,9 @@ const FunctionalTeacherAttendance: React.FC = () => {
                         data-testid="select-assigned-class"
                       >
                         <option value="">Sélectionner une classe</option>
-                        {Array.isArray(teacherClasses) && teacherClasses.map((classe) => (
+                        {Array.isArray(teacherClasses) && (Array.isArray(teacherClasses) ? teacherClasses : []).map((classe) => (
                           <option key={classe.id} value={classe.id}>
-                            {classe.name} - {classe.subject || 'Matière'} ({classe.students || 0} élèves)
+                            {classe.name || ''} - {classe.subject || 'Matière'} ({classe.students || 0} élèves)
                           </option>
                         ))}
                       </select>

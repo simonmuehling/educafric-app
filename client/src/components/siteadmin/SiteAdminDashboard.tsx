@@ -171,7 +171,7 @@ const SiteAdminDashboard = ({ activeModule }: SiteAdminDashboardProps) => {
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={activeModule}

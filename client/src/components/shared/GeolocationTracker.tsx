@@ -131,7 +131,7 @@ const GeolocationTracker = () => {
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <MapPin className="w-6 h-6 text-blue-500" />
-              {t.title}
+              {t.title || ''}
             </h2>
             <div className="flex items-center gap-3">
               <Badge variant={trackingActive ? "default" : "secondary"}>
@@ -203,7 +203,7 @@ const GeolocationTracker = () => {
                 <div key={zone.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className={`w-3 h-3 ${zone.color} rounded-full`}></div>
                   <div className="flex-1">
-                    <p className="font-medium">{zone.name}</p>
+                    <p className="font-medium">{zone.name || ''}</p>
                     <p className="text-sm text-gray-600">{zone.address}</p>
                   </div>
                   <Badge variant="outline" className="text-green-600 border-green-200">

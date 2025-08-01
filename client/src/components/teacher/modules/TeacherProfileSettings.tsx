@@ -152,7 +152,7 @@ const TeacherProfileSettings = () => {
 
     try {
       await apiRequest('PUT', '/api/auth/profile', {
-        username: `${profile.firstName} ${profile.lastName}`,
+        username: `${profile.firstName || ''} ${profile.lastName || ''}`,
         email: profile.email,
         phone: profile.phone,
         address: profile.address,
@@ -238,9 +238,9 @@ const TeacherProfileSettings = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-2">{t.firstName}</label>
+            <label className="block text-sm font-medium mb-2">{t.firstName || ''}</label>
             <Input
-              value={profile.firstName}
+              value={profile.firstName || ''}
               onChange={(e) => setProfile(prev => ({ ...prev, firstName: e?.target?.value }))}
               disabled={!isEditing}
               placeholder="Jean"
@@ -248,9 +248,9 @@ const TeacherProfileSettings = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t.lastName}</label>
+            <label className="block text-sm font-medium mb-2">{t.lastName || ''}</label>
             <Input
-              value={profile.lastName}
+              value={profile.lastName || ''}
               onChange={(e) => setProfile(prev => ({ ...prev, lastName: e?.target?.value }))}
               disabled={!isEditing}
               placeholder="Dupont"
@@ -258,10 +258,10 @@ const TeacherProfileSettings = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">{t.email}</label>
+            <label className="block text-sm font-medium mb-2">{t.email || ''}</label>
             <Input
               type="email"
-              value={profile.email}
+              value={profile.email || ''}
               onChange={(e) => setProfile(prev => ({ ...prev, email: e?.target?.value }))}
               disabled={!isEditing}
               placeholder="jean.dupont@educafric.com"
@@ -511,7 +511,7 @@ const TeacherProfileSettings = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
         <p className="text-gray-600">{t.subtitle}</p>
       </div>
 
@@ -552,7 +552,7 @@ const TeacherProfileSettings = () => {
               >
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4" />
-                  {section.name}
+                  {section.name || ''}
                 </div>
               </button>
             );

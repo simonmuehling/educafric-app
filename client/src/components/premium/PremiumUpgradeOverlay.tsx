@@ -91,7 +91,7 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
           <div className="mb-4">
             <Badge variant="secondary" className="mb-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
               <Star className="w-3 h-3 mr-1" />
-              {upgradeInfo.title}
+              {upgradeInfo.title || ''}
             </Badge>
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               {moduleName}

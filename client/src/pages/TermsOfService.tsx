@@ -318,7 +318,7 @@ const TermsOfService = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-black mb-4">
-            {t.title}
+            {t.title || ''}
           </h1>
           <p className="text-black">
             {t.lastUpdated}
@@ -370,10 +370,10 @@ const TermsOfService = () => {
                 {(Array.isArray(t?.sections?.userAccounts?.roles) ? t?.sections?.userAccounts?.roles : []).map((role, index) => (
                   <div key={index} className="border-l-4 border-primary pl-4">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {role.title}
+                      {role.title || ''}
                     </h3>
                     <p className="text-black">
-                      {role.description}
+                      {role.description || ''}
                     </p>
                   </div>
                 ))}
@@ -395,10 +395,10 @@ const TermsOfService = () => {
                 {(Array.isArray(t?.sections?.subscriptions?.plans) ? t?.sections?.subscriptions?.plans : []).map((plan, index) => (
                   <div key={index} className="border-l-4 border-green-500 pl-4">
                     <h3 className="font-semibold text-gray-900 dark:text-white">
-                      {plan.title}
+                      {plan.title || ''}
                     </h3>
                     <p className="text-black">
-                      {plan.description}
+                      {plan.description || ''}
                     </p>
                   </div>
                 ))}
@@ -466,7 +466,7 @@ const TermsOfService = () => {
             <Card key={index}>
               <CardContent className="p-8">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  {section.title}
+                  {section.title || ''}
                 </h2>
                 {(section as any)?.items ? (
                   <ul className="list-disc list-inside space-y-2 text-black">

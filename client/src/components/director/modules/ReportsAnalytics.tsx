@@ -174,7 +174,7 @@ const ReportsAnalytics: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <BarChart3 className="w-8 h-8 text-blue-600" />
-              {t.title}
+              {t.title || ''}
             </h1>
             <p className="text-gray-600 mt-2">{t.subtitle}</p>
           </div>
@@ -204,10 +204,10 @@ const ReportsAnalytics: React.FC = () => {
                       <report.icon className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="font-medium">{report.name}</h3>
+                      <h3 className="font-medium">{report.name || ''}</h3>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-4">{report.description}</p>
+                  <p className="text-sm text-gray-600 mb-4">{report.description || ''}</p>
                   <Button 
                     onClick={() => handleGenerateReport(report.id)}
                     disabled={generatingReport === report.id}
@@ -247,7 +247,7 @@ const ReportsAnalytics: React.FC = () => {
                       <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium">{report.name}</p>
+                      <p className="font-medium">{report.name || ''}</p>
                       <p className="text-sm text-gray-600">{report.date} • {report.size}</p>
                     </div>
                   </div>

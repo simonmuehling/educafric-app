@@ -458,7 +458,7 @@ export default function Subscribe() {
 
           toast({
             title: t.paymentSuccess,
-            description: `${planDetails.name} activé avec succès!`,
+            description: `${planDetails.name || ''} activé avec succès!`,
           });
 
           // Reset form
@@ -614,7 +614,7 @@ export default function Subscribe() {
         <div className="container mx-auto px-4 pt-20">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-              {t.title}
+              {t.title || ''}
             </h1>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
               {t.subtitle}
@@ -705,7 +705,7 @@ export default function Subscribe() {
                 
                 <CardHeader className="text-center pb-4">
                   <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {plan.name}
+                    {plan.name || ''}
                   </h3>
                   
                   <div className="mb-4">
@@ -781,7 +781,7 @@ export default function Subscribe() {
               <CardContent>
                 <div className="flex justify-between items-center p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
                   <div>
-                    <h3 className="font-semibold text-xl text-white">{planDetails.name}</h3>
+                    <h3 className="font-semibold text-xl text-white">{planDetails.name || ''}</h3>
                     <p className="text-blue-200">
                       {planDetails.period === 'monthly' ? t.perMonth : 
                        planDetails.period === 'semester' ? t.perSemester : t.perYear}
@@ -797,7 +797,7 @@ export default function Subscribe() {
             {/* Country-Specific Payment Methods */}
             <CountryPaymentButtons
               planId={planDetails.id}
-              planName={planDetails.name}
+              planName={planDetails.name || ''}
               amount={convertFromCFA(planDetails.price)}
               onPaymentInitiated={handlePaymentInitiated}
               className="bg-white/10 backdrop-blur-md border-white/20"

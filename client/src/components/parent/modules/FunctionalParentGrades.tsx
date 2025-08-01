@@ -231,6 +231,7 @@ const FunctionalParentGrades: React.FC = () => {
 
   // Filter grades
   const filteredGrades = (Array.isArray(grades) ? grades : []).filter(grade => {
+    if (!grade) return false;
     const matchesStudent = selectedStudent === 'all' || grade.studentName === selectedStudent;
     const matchesSubject = selectedSubject === 'all' || grade.subject === selectedSubject;
     const matchesTerm = selectedTerm === 'current' || grade.term === selectedTerm || selectedTerm === 'year';
@@ -244,7 +245,7 @@ const FunctionalParentGrades: React.FC = () => {
   // Calculate statistics
   const totalGrades = (Array.isArray(filteredGrades) ? filteredGrades.length : 0);
   const avgGrade = (Array.isArray(filteredGrades) ? filteredGrades.length : 0) > 0 
-    ? Math.round((filteredGrades.reduce((sum, g) => sum + g.grade, 0) / (Array.isArray(filteredGrades) ? filteredGrades.length : 0)) * 10) / 10
+    ? Math.round(((Array.isArray(filteredGrades) ? filteredGrades : []).reduce((sum, g) => sum + g.grade, 0) / (Array.isArray(filteredGrades) ? filteredGrades.length : 0)) * 10) / 10
     : 0;
   const aboveAverage = (Array.isArray(filteredGrades) ? filteredGrades : []).filter(g => g.grade >= g.classAverage).length;
   const improvements = (Array.isArray(filteredGrades) ? filteredGrades : []).filter(g => g.trend === 'improving').length;
@@ -306,7 +307,7 @@ const FunctionalParentGrades: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
       </div>

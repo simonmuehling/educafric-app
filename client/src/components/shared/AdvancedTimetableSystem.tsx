@@ -559,7 +559,7 @@ const AdvancedTimetableSystem = () => {
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">{t.title}</h2>
+        <h2 className="text-2xl font-bold">{t.title || ''}</h2>
         <p className="text-gray-600">{t.subtitle}</p>
       </div>
 

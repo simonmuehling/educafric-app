@@ -38,7 +38,7 @@ const StudentHelp = () => {
     
     toast({
       title: language === 'fr' ? 'Guide ouvert' : 'Guide opened',
-      description: language === 'fr' ? `Ouverture du guide: ${topic.title}` : `Opening guide: ${topic.title}`
+      description: language === 'fr' ? `Ouverture du guide: ${topic.title || ''}` : `Opening guide: ${topic.title || ''}`
     });
   };
 
@@ -235,6 +235,7 @@ const StudentHelp = () => {
   ];
 
   const filteredTopics = (Array.isArray(helpTopics) ? helpTopics : []).filter(topic => {
+    if (!topic) return false;
     const matchesCategory = selectedCategory === 'all' || topic.category === selectedCategory;
     const matchesSearch = searchQuery === '' || 
       topic?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -243,6 +244,7 @@ const StudentHelp = () => {
   });
 
   const filteredFAQs = (Array.isArray(faqs) ? faqs : []).filter(faq => {
+    if (!faq) return false;
     const matchesCategory = selectedCategory === 'all' || faq.category === selectedCategory;
     const matchesSearch = searchQuery === '' ||
       faq?.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -253,7 +255,7 @@ const StudentHelp = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
       </div>
 
@@ -303,8 +305,8 @@ const StudentHelp = () => {
                     {topic.icon}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">{topic.title}</h4>
-                    <p className="text-sm text-gray-600">{topic.description}</p>
+                    <h4 className="font-semibold text-gray-900 mb-1">{topic.title || ''}</h4>
+                    <p className="text-sm text-gray-600">{topic.description || ''}</p>
                   </div>
                 </div>
               </div>
@@ -403,7 +405,7 @@ const StudentHelp = () => {
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-gray-500" />
                 <div>
-                  <p className="text-sm text-gray-600">{t.email}</p>
+                  <p className="text-sm text-gray-600">{t.email || ''}</p>
                   <p className="font-medium text-gray-900">info@educafric.com</p>
                 </div>
               </div>

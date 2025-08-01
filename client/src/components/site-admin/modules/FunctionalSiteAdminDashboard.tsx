@@ -170,7 +170,7 @@ const FunctionalSiteAdminDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex items-center space-x-2">
@@ -350,8 +350,8 @@ const FunctionalSiteAdminDashboard: React.FC = () => {
                     }
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm">{alert.title}</div>
-                    <div className="text-xs text-gray-600">{alert.description}</div>
+                    <div className="font-medium text-sm">{alert.title || ''}</div>
+                    <div className="text-xs text-gray-600">{alert.description || ''}</div>
                     <div className="text-xs text-gray-500 mt-1">{alert.timestamp}</div>
                   </div>
                 </div>
@@ -375,7 +375,7 @@ const FunctionalSiteAdminDashboard: React.FC = () => {
                     <span className="text-sm font-semibold text-blue-600">{index + 1}</span>
                   </div>
                   <div>
-                    <div className="font-medium">{school.name}</div>
+                    <div className="font-medium">{school.name || ''}</div>
                     <div className="text-sm text-gray-600">{school.users} utilisateurs</div>
                   </div>
                 </div>

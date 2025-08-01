@@ -309,7 +309,7 @@ const GeolocationManagementNew: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t.title || ''}</h1>
           <p className="text-gray-600 dark:text-gray-400">{t.subtitle}</p>
         </div>
 
@@ -403,7 +403,7 @@ const GeolocationManagementNew: React.FC = () => {
                 <div>
                   <Label>Nom de la zone</Label>
                   <Input
-                    value={zoneForm.name}
+                    value={zoneForm.name || ''}
                     onChange={(e) => setZoneForm({...zoneForm, name: e?.target?.value})}
                     placeholder="École, Maison, etc."
                     data-testid="input-zone-name"
@@ -638,8 +638,8 @@ const GeolocationManagementNew: React.FC = () => {
                 <div key={zone.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-medium" data-testid={`zone-name-${zone.id}`}>{zone.name}</h3>
-                      <p className="text-sm text-gray-500">{zone.description}</p>
+                      <h3 className="font-medium" data-testid={`zone-name-${zone.id}`}>{zone.name || ''}</h3>
+                      <p className="text-sm text-gray-500">{zone.description || ''}</p>
                     </div>
                     <Badge variant={zone.isActive ? "default" : "secondary"}>
                       {zone.isActive ? t.active : t.inactive}

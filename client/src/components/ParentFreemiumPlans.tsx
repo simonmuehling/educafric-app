@@ -105,7 +105,7 @@ export default function ParentFreemiumPlans() {
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="section-title mb-4">{t.title}</h2>
+          <h2 className="section-title mb-4">{t.title || ''}</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t.subtitle}
           </p>

@@ -120,7 +120,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
       if (file.size > maxFileSize) {
         toast({
           title: 'Fichier trop volumineux',
-          description: `${file.name} dépasse la limite de 50MB.`,
+          description: `${file.name || ''} dépasse la limite de 50MB.`,
           variant: 'destructive'
         });
         return;
@@ -165,7 +165,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
   };
 
   const handleSubmit = () => {
@@ -218,7 +218,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
 
         {homework && (
           <div className="bg-blue-50 p-4 rounded-lg mb-4">
-            <h3 className="font-semibold text-blue-900">{homework.title}</h3>
+            <h3 className="font-semibold text-blue-900">{homework.title || ''}</h3>
             <p className="text-sm text-blue-700">Matière: {homework.subject}</p>
             <p className="text-sm text-blue-700">À rendre le: {homework.dueDate}</p>
           </div>
@@ -313,7 +313,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
             <div>
               <Label className="text-sm font-medium">Fichiers sélectionnés</Label>
               <div className="mt-2 space-y-2">
-                {selectedFiles.map((fileWithPreview, index) => (
+                {(Array.isArray(selectedFiles) ? selectedFiles : []).map((fileWithPreview, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className="flex-shrink-0">
                       {fileWithPreview.preview ? (
@@ -330,7 +330,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
-                        {fileWithPreview.file.name}
+                        {(fileWithPreview.file.name || '')}
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatFileSize(fileWithPreview.file.size)}

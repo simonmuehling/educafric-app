@@ -64,7 +64,7 @@ export default function PremiumFeatureBlock({
 
         {/* Title */}
         <h3 className="text-xl font-bold text-gray-800 mb-3">
-          {t.title}
+          {t.title || ''}
         </h3>
 
         {/* Description */}

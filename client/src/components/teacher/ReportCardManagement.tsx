@@ -309,7 +309,7 @@ const ReportCardManagement = () => {
       
       toast({
         title: language === 'fr' ? 'Bulletins générés' : 'Report cards generated',
-        description: `${(Array.isArray(students) ? students.length : 0)} ${language === 'fr' ? 'bulletins créés avec succès' : 'report cards created successfully'}`
+        description: `${(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)} ${language === 'fr' ? 'bulletins créés avec succès' : 'report cards created successfully'}`
       });
       
       // Mettre à jour le statut des étudiants
@@ -353,7 +353,7 @@ const ReportCardManagement = () => {
       
       toast({
         title: language === 'fr' ? 'PDF téléchargé' : 'PDF downloaded',
-        description: `${language === 'fr' ? 'Bulletin de' : 'Report card for'} ${student.name}`
+        description: `${language === 'fr' ? 'Bulletin de' : 'Report card for'} ${student.name || ''}`
       });
       
     } catch (error) {
@@ -366,8 +366,8 @@ const ReportCardManagement = () => {
   };
 
   // Statistiques de classe
-  const classAverage = (Array.isArray(students) ? students.length : 0) > 0 ? students.reduce((sum, s) => sum + s.average, 0) / (Array.isArray(students) ? students.length : 0) : 0;
-  const successRate = (Array.isArray(students) ? students : []).filter(s => s.average >= 10).length / (Array.isArray(students) ? students.length : 0) * 100;
+  const classAverage = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) > 0 ? (Array.isArray(students) ? students : []).reduce((sum, s) => sum + s.average, 0) / (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) : 0;
+  const successRate = (Array.isArray(students) ? students : []).filter(s => s.average >= 10).length / (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) * 100;
   const completedBulletins = (Array.isArray(students) ? students : []).filter(s => s.status === 'complete').length;
 
   return (
@@ -375,7 +375,7 @@ const ReportCardManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
           <div className="flex items-center gap-2 mt-2">
             <Badge className="bg-blue-100 text-blue-800">
@@ -383,7 +383,7 @@ const ReportCardManagement = () => {
               {t.autoImport}
             </Badge>
             <Badge className="bg-green-100 text-green-800">
-              {(Array.isArray(students) ? students.length : 0)} {t.studentsImported}
+              {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)} {t.studentsImported}
             </Badge>
           </div>
         </div>
@@ -414,7 +414,7 @@ const ReportCardManagement = () => {
           >
             {(Array.isArray(classes) ? classes : []).map(cls => (
               <option key={cls.id} value={cls.id}>
-                {cls.name} ({cls.students} élèves)
+                {cls.name || ''} ({cls.students} élèves)
               </option>
             ))}
           </select>
@@ -428,7 +428,7 @@ const ReportCardManagement = () => {
           >
             {(Array.isArray(periods) ? periods : []).map(period => (
               <option key={period.id} value={period.id}>
-                {period.name} ({period.dates})
+                {period.name || ''} ({period.dates})
               </option>
             ))}
           </select>
@@ -438,7 +438,7 @@ const ReportCardManagement = () => {
       {/* Statistiques de classe */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
-          <div className="text-2xl font-bold text-gray-800">{(Array.isArray(students) ? students.length : 0)}</div>
+          <div className="text-2xl font-bold text-gray-800">{(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)}</div>
           <div className="text-sm text-gray-600">Élèves</div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-green">
@@ -450,7 +450,7 @@ const ReportCardManagement = () => {
           <div className="text-sm text-gray-600">{t.successRate}</div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-orange">
-          <div className="text-2xl font-bold text-gray-800">{completedBulletins}/{(Array.isArray(students) ? students.length : 0)}</div>
+          <div className="text-2xl font-bold text-gray-800">{completedBulletins}/{(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)}</div>
           <div className="text-sm text-gray-600">Bulletins terminés</div>
         </ModernCard>
       </div>
@@ -476,7 +476,7 @@ const ReportCardManagement = () => {
                           {student.number}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{student.name}</p>
+                          <p className="font-semibold text-gray-900">{student.name || ''}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <Badge className={getStatusColor(student.status)}>
                               {getStatusText(student.status)}
@@ -517,7 +517,7 @@ const ReportCardManagement = () => {
                         {student.number}
                       </div>
                       <div>
-                        <p className="font-medium text-lg">{student.name}</p>
+                        <p className="font-medium text-lg">{student.name || ''}</p>
                         <p className="text-sm text-gray-600">Parent: {student.parentName}</p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -571,14 +571,14 @@ const ReportCardManagement = () => {
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent className="max-w-4xl bg-white">
             <DialogHeader>
-              <DialogTitle>Bulletin de {currentBulletin.name}</DialogTitle>
+              <DialogTitle>Bulletin de {currentBulletin.name || ''}</DialogTitle>
             </DialogHeader>
             <div className="space-y-6">
               {/* Informations élève */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-600">Nom complet</p>
-                  <p className="font-semibold">{currentBulletin.name}</p>
+                  <p className="font-semibold">{currentBulletin.name || ''}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Numéro</p>

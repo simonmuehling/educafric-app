@@ -168,6 +168,7 @@ const ContactsManagement = () => {
   };
 
   const filteredContacts = (Array.isArray(contacts) ? contacts : []).filter(contact => {
+    if (!contact) return false;
     const matchesSearch = contact?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          contact?.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          contact?.position?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -191,7 +192,7 @@ const ContactsManagement = () => {
           <Users className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -243,7 +244,7 @@ const ContactsManagement = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-900">{contact.name}</h3>
+                      <h3 className="font-semibold text-gray-900">{contact.name || ''}</h3>
                       <Badge className={getStatusColor(contact.status)}>
                         {contact.status}
                       </Badge>
@@ -264,7 +265,7 @@ const ContactsManagement = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Mail className="w-3 h-3" />
-                        {contact.email}
+                        {contact.email || ''}
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -290,7 +291,7 @@ const ContactsManagement = () => {
                     </Button>
                     <Button variant="outline" size="sm" className="flex items-center gap-1">
                       <Mail className="w-3 h-3" />
-                      {t.email}
+                      {t.email || ''}
                     </Button>
                   </div>
                 </div>

@@ -169,6 +169,7 @@ const PaymentAdministration = () => {
   };
 
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter(payment => {
+    if (!payment) return false;
     const matchesSearch = payment?.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment?.transactionId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment?.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -185,7 +186,7 @@ const PaymentAdministration = () => {
 
   return (
     <ModuleContainer
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       icon={<CreditCard className="w-6 h-6" />}
       iconColor="from-green-500 to-green-600"
@@ -283,7 +284,7 @@ const PaymentAdministration = () => {
                     <td className="p-4">
                       <div>
                         <div className="font-medium">{payment.school}</div>
-                        <div className="text-sm text-gray-600">{payment.description}</div>
+                        <div className="text-sm text-gray-600">{payment.description || ''}</div>
                       </div>
                     </td>
                     <td className="p-4 font-semibold">{formatCurrency(payment.amount)}</td>

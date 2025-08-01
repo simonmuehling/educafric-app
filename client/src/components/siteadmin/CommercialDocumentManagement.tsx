@@ -230,8 +230,8 @@ const CommercialDocumentManagement: React.FC = () => {
     setDocumentToSend(document);
     setSendForm({
       recipientEmail: document.clientInfo?.email || '',
-      subject: `Document Commercial: ${document.title}`,
-      message: `Veuillez trouver ci-joint le document commercial "${document.title}".`
+      subject: `Document Commercial: ${document.title || ''}`,
+      message: `Veuillez trouver ci-joint le document commercial "${document.title || ''}".`
     });
     setIsSendDialogOpen(true);
   };
@@ -307,7 +307,7 @@ const CommercialDocumentManagement: React.FC = () => {
                   <Label htmlFor="title">Titre du Document *</Label>
                   <Input
                     id="title"
-                    value={createForm.title}
+                    value={createForm.title || ''}
                     onChange={(e) => setCreateForm(prev => ({ ...prev, title: e?.target?.value }))}
                     placeholder="Ex: Proposition commerciale École Excellence"
                   />
@@ -503,7 +503,7 @@ const CommercialDocumentManagement: React.FC = () => {
             <TableBody>
               {(Array.isArray(documents) ? documents : []).map((document) => (
                 <TableRow key={document.id}>
-                  <TableCell className="font-medium">{document.title}</TableCell>
+                  <TableCell className="font-medium">{document.title || ''}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">
                       {getTypeLabel(document.type)}

@@ -197,7 +197,7 @@ const BulletinManager = () => {
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-500" />
-              {t.title}
+              {t.title || ''}
             </h2>
             <Button onClick={handleCreateBulletin} className="bg-green-600 hover:bg-green-700">
               <Plus className="w-4 h-4 mr-2" />
@@ -268,7 +268,7 @@ const BulletinManager = () => {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {bulletin?.subjects?.slice(0, 4).map((subject, index) => (
                       <div key={index} className="flex justify-between">
-                        <span className="truncate">{subject.name}:</span>
+                        <span className="truncate">{subject.name || ''}:</span>
                         <span className="font-semibold">{subject.grade}/20</span>
                       </div>
                     ))}

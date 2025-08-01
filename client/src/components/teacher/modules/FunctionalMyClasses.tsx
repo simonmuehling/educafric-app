@@ -177,6 +177,7 @@ const FunctionalMyClasses: React.FC = () => {
 
   const classes = classesData || [];
   const filteredClasses = (Array.isArray(classes) ? classes : []).filter(cls => {
+    if (!cls) return false;
     const matchesSearch = cls?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          cls?.subject?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = selectedLevel === 'all' || cls?.name?.includes(selectedLevel);
@@ -201,7 +202,7 @@ const FunctionalMyClasses: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -220,7 +221,7 @@ const FunctionalMyClasses: React.FC = () => {
                 <Label htmlFor="className">{t.className}</Label>
                 <Input
                   id="className"
-                  value={newClass.name}
+                  value={newClass.name || ''}
                   onChange={(e) => setNewClass({...newClass, name: e?.target?.value})}
                   placeholder="Ex: 6ème A"
                 />
@@ -311,7 +312,7 @@ const FunctionalMyClasses: React.FC = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-lg">{classItem.name}</h3>
+                    <h3 className="font-semibold text-lg">{classItem.name || ''}</h3>
                     <p className="text-sm text-gray-600">{classItem.subject}</p>
                   </div>
                   <Badge variant="default" className="bg-green-100 text-green-800">

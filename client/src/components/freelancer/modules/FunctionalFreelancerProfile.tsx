@@ -184,7 +184,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
           <div className="flex gap-2">
@@ -240,7 +240,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">{t.firstName}</label>
+                    <label className="text-sm font-medium">{t.firstName || ''}</label>
                     <Input
                       value={formData.firstName || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
@@ -249,7 +249,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.lastName}</label>
+                    <label className="text-sm font-medium">{t.lastName || ''}</label>
                     <Input
                       value={formData.lastName || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
@@ -258,7 +258,7 @@ const FunctionalFreelancerProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.email}</label>
+                    <label className="text-sm font-medium">{t.email || ''}</label>
                     <Input
                       value={formData.email || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -402,8 +402,8 @@ const FunctionalFreelancerProfile: React.FC = () => {
                         <Star className="w-5 h-5 text-yellow-600" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
-                        <p className="text-gray-600 text-sm">{achievement.description}</p>
+                        <h4 className="font-semibold text-gray-900">{achievement.title || ''}</h4>
+                        <p className="text-gray-600 text-sm">{achievement.description || ''}</p>
                         <p className="text-gray-500 text-xs mt-1">{achievement.date}</p>
                       </div>
                       <Badge variant="outline">{achievement.type}</Badge>

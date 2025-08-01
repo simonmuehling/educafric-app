@@ -294,7 +294,7 @@ const CountryPaymentButtons: React.FC<CountryPaymentButtonsProps> = ({
                       {getMethodIcon(method.type, method.icon)}
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">{method.name}</div>
+                      <div className="font-medium">{method.name || ''}</div>
                       <div className="text-sm opacity-90">{method.provider}</div>
                     </div>
                   </div>
@@ -358,7 +358,7 @@ const CountryPaymentButtons: React.FC<CountryPaymentButtonsProps> = ({
                       {getMethodIcon(method.type, method.icon)}
                     </div>
                     <div className="text-left">
-                      <div className="font-medium">{method.name}</div>
+                      <div className="font-medium">{method.name || ''}</div>
                       <div className="text-sm text-gray-500">{method.provider}</div>
                     </div>
                   </div>

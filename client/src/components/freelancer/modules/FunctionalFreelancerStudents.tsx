@@ -142,6 +142,7 @@ const FunctionalFreelancerStudents: React.FC = () => {
 
   // Filter and search students
   const filteredStudents = (Array.isArray(students) ? students : []).filter(student => {
+    if (!student) return false;
     const matchesFilter = selectedFilter === 'all' || student.status === selectedFilter;
     const matchesSearch = student?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student?.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -149,10 +150,10 @@ const FunctionalFreelancerStudents: React.FC = () => {
   });
 
   // Calculate statistics
-  const totalStudents = (Array.isArray(students) ? students.length : 0);
+  const totalStudents = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0);
   const activeStudents = (Array.isArray(students) ? students : []).filter(s => s.status === 'good').length;
-  const avgGrade = (Array.isArray(students) ? students.length : 0) > 0 
-    ? Math.round(students.reduce((sum, s) => sum + s.averageGrade, 0) / (Array.isArray(students) ? students.length : 0))
+  const avgGrade = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) > 0 
+    ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + s.averageGrade, 0) / (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0))
     : 0;
   const needsAttention = (Array.isArray(students) ? students : []).filter(s => s.status === 'needs_attention').length;
 
@@ -182,7 +183,7 @@ const FunctionalFreelancerStudents: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button 
@@ -414,7 +415,7 @@ const FunctionalFreelancerStudents: React.FC = () => {
                           </div>
                           <div>
                             <h4 className="text-lg font-semibold text-gray-900">{student.fullName}</h4>
-                            <p className="text-sm text-gray-600">{student.email}</p>
+                            <p className="text-sm text-gray-600">{student.email || ''}</p>
                           </div>
                           {getStatusBadge(student.status)}
                         </div>

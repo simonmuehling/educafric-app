@@ -197,11 +197,11 @@ const SandboxLogin = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {t.title}
+              {t.title || ''}
             </h1>
           </div>
           <p className="text-xl text-gray-600 mb-2">{t.subtitle}</p>
-          <p className="text-gray-500">{t.description}</p>
+          <p className="text-gray-500">{t.description || ''}</p>
           
           <div className="flex items-center justify-center gap-4 mt-4">
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
@@ -230,7 +230,7 @@ const SandboxLogin = () => {
                 <div className={`w-16 h-16 ${profile.color} rounded-2xl flex items-center justify-center mx-auto mb-3 text-white shadow-lg`}>
                   {profile.icon}
                 </div>
-                <CardTitle className="text-lg">{profile.name}</CardTitle>
+                <CardTitle className="text-lg">{profile.name || ''}</CardTitle>
                 <p className="text-sm text-blue-600 font-medium">
                   {profile.realName || profile.name}
                 </p>
@@ -246,12 +246,12 @@ const SandboxLogin = () => {
 
               <CardContent className="pt-0">
                 <p className="text-sm text-gray-600 mb-4 min-h-[3rem]">
-                  {profile.description}
+                  {profile.description || ''}
                 </p>
                 
                 <div className="space-y-2 mb-4">
                   <div className="text-xs text-gray-500">
-                    <strong>Email:</strong> {profile.email}
+                    <strong>Email:</strong> {profile.email || ''}
                   </div>
                   <div className="text-xs text-gray-500">
                     <strong>Rôle:</strong> {profile.role}

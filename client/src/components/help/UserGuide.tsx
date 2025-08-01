@@ -324,7 +324,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
         <TabsList className="grid w-full grid-cols-2 mb-6">
           {Object.entries(guideContent).map(([key, guide]) => (
             <TabsTrigger key={key} value={key}>
-              {guide.title}
+              {guide.title || ''}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -335,16 +335,16 @@ export default function UserGuide({ userType }: UserGuideProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                   <BookOpen className="w-6 h-6 text-blue-600" />
-                  {guide.title}
+                  {guide.title || ''}
                 </CardTitle>
                 <CardDescription className="text-base">
-                  {guide.description}
+                  {guide.description || ''}
                 </CardDescription>
               </CardHeader>
             </Card>
 
             <div className="space-y-6">
-              {guide.(Array.isArray(steps) ? steps : []).map((step, index) => (
+              {guide.steps.map((step, index) => (
                 <Card key={step.id} className="overflow-hidden">
                   <CardHeader>
                     <div className="flex items-start gap-4">
@@ -352,9 +352,9 @@ export default function UserGuide({ userType }: UserGuideProps) {
                         {index + 1}
                       </div>
                       <div className="flex-1">
-                        <CardTitle className="text-xl mb-2">{step.title}</CardTitle>
+                        <CardTitle className="text-xl mb-2">{step.title || ''}</CardTitle>
                         <CardDescription className="text-base">
-                          {step.description}
+                          {step.description || ''}
                         </CardDescription>
                       </div>
                     </div>
@@ -382,7 +382,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                           </span>
                         </div>
                         <ul className="space-y-2">
-                          {step.(Array.isArray(tips) ? tips : []).map((tip, tipIndex) => (
+                          {step.tips.map((tip, tipIndex) => (
                             <li key={tipIndex} className="flex items-start gap-2 text-blue-800">
                               <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                               <span className="text-sm">{tip}</span>

@@ -136,7 +136,7 @@ const PremiumServices = () => {
             <Settings className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>
@@ -155,7 +155,7 @@ const PremiumServices = () => {
           <Settings className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -178,7 +178,7 @@ const PremiumServices = () => {
         />
         <ModernStatsCard
           title={t.alertsSent}
-          value={services.reduce((sum, s) => sum + (s.alertsSent || 0), 0).toString()}
+          value={(Array.isArray(services) ? services : []).reduce((sum, s) => sum + (s.alertsSent || 0), 0).toString()}
           icon={<AlertTriangle className="w-5 h-5" />}
           trend={{ value: 5, isPositive: false }}
           gradient="orange"
@@ -211,8 +211,8 @@ const PremiumServices = () => {
                     {service.id === 'emergency-alerts' && <AlertTriangle className="w-6 h-6 text-red-600" />}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{service.name}</h3>
-                    <p className="text-sm text-gray-600">{service.description}</p>
+                    <h3 className="text-lg font-semibold text-gray-800">{service.name || ''}</h3>
+                    <p className="text-sm text-gray-600">{service.description || ''}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">

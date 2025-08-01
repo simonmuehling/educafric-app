@@ -187,18 +187,23 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     }
   };
 
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch = teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || teacher.subjects.includes(selectedSubject);
+  const filteredTeachers = Array.isArray(teachers) ? teachers.filter(teacher => {
+    if (!teacher) return false;
+    const name = teacher.name || '';
+    const email = teacher.email || '';
+    const subjects = Array.isArray(teacher.subjects) ? teacher.subjects : [];
+    
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSubject = selectedSubject === 'all' || subjects.includes(selectedSubject);
     return matchesSearch && matchesSubject;
-  });
+  }) : [];
 
   const stats = {
-    totalTeachers: teachers.length,
-    activeTeachers: teachers.filter(t => t.status === 'active').length,
-    averageExperience: teachers.length > 0 ? Math.round(teachers.reduce((sum, t) => sum + t.experience, 0) / teachers.length) : 0,
-    onLeave: teachers.filter(t => t.status === 'on_leave').length
+    totalTeachers: Array.isArray(teachers) ? teachers.length : 0,
+    activeTeachers: Array.isArray(teachers) ? teachers.filter(t => t && t.status === 'active').length : 0,
+    averageExperience: Array.isArray(teachers) && teachers.length > 0 ? Math.round(teachers.reduce((sum, t) => sum + (t.experience || 0), 0) / teachers.length) : 0,
+    onLeave: Array.isArray(teachers) ? teachers.filter(t => t && t.status === 'on_leave').length : 0
   };
 
   const text = language === 'fr' ? {
@@ -282,7 +287,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{text.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
           <p className="text-gray-500">Gérez le personnel enseignant de votre établissement</p>
         </div>
         <Button 
@@ -404,19 +409,19 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">{text.form.name}</Label>
+                <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
-                  value={teacherForm.name}
+                  value={teacherForm.name || ''}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Jean Dupont"
                   className="w-full"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.email}</Label>
+                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
                 <Input
                   type="email"
-                  value={teacherForm.email}
+                  value={teacherForm.email || ''}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="jean.dupont@ecole.com"
                   className="w-full"
@@ -527,18 +532,18 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">{text.form.name}</Label>
+                <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
-                  value={teacherForm.name}
+                  value={teacherForm.name || ''}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.email}</Label>
+                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
                 <Input
                   type="email"
-                  value={teacherForm.email}
+                  value={teacherForm.email || ''}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full"
                 />
@@ -606,12 +611,12 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredTeachers.map((teacher) => (
+              {(Array.isArray(filteredTeachers) ? filteredTeachers : []).map((teacher) => (
                 <div key={teacher.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="font-medium">{teacher.name}</div>
+                        <div className="font-medium">{teacher.name || ''}</div>
                         <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[teacher.status]}
                         </Badge>
@@ -622,7 +627,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                         <span>⏰ {teacher.experience} ans</span>
                       </div>
                       <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                        <span>📧 {teacher.email}</span>
+                        <span>📧 {teacher.email || ''}</span>
                         <span>📱 {teacher.phone}</span>
                         <span>🏫 {teacher.classes.join(', ')}</span>
                       </div>

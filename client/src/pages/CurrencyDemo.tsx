@@ -150,11 +150,11 @@ const CurrencyDemo = () => {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            {t.title}
+            {t.title || ''}
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            {t.description}
+            {t.description || ''}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -326,7 +326,7 @@ const CurrencyDemo = () => {
                   <div key={index} className="p-3 border rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant="outline">{curr.code}</Badge>
-                      <span className="font-medium text-sm">{curr.name}</span>
+                      <span className="font-medium text-sm">{curr.name || ''}</span>
                     </div>
                     <div className="text-xs text-gray-500">{curr.countries}</div>
                   </div>

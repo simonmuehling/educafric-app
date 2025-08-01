@@ -279,6 +279,7 @@ const FunctionalParentPayments: React.FC = () => {
 
   // Filter payments
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter(payment => {
+    if (!payment) return false;
     const matchesStudent = selectedStudent === 'all' || payment.studentName === selectedStudent;
     const matchesStatus = selectedStatus === 'all' || payment.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || payment.category === selectedCategory;
@@ -383,7 +384,7 @@ const FunctionalParentPayments: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Dialog open={isNewPaymentOpen} onOpenChange={setIsNewPaymentOpen}>
@@ -395,7 +396,7 @@ const FunctionalParentPayments: React.FC = () => {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>{t.newPaymentForm.title}</DialogTitle>
+              <DialogTitle>{(t.newPaymentForm.title || '')}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreatePayment} className="space-y-4">
               <div>
@@ -405,7 +406,7 @@ const FunctionalParentPayments: React.FC = () => {
                     <SelectValue placeholder={t.newPaymentForm.selectStudent} />
                   </SelectTrigger>
                   <SelectContent>
-                    {uniqueStudents.map(student => (
+                    {(Array.isArray(uniqueStudents) ? uniqueStudents : []).map(student => (
                       <SelectItem key={student} value={student}>{student}</SelectItem>
                     ))}
                     <SelectItem value="Junior Kamga">Junior Kamga</SelectItem>
@@ -414,10 +415,10 @@ const FunctionalParentPayments: React.FC = () => {
               </div>
 
               <div>
-                <Label htmlFor="description">{t.newPaymentForm.description} *</Label>
+                <Label htmlFor="description">{(t.newPaymentForm.description || '')} *</Label>
                 <Input
                   id="description"
-                  value={newPaymentForm.description}
+                  value={newPaymentForm.description || ''}
                   onChange={(e) => setNewPaymentForm(prev => ({...prev, description: e.target.value}))}
                   placeholder={t.newPaymentForm.enterDescription}
                   data-testid="description-input"
@@ -641,7 +642,7 @@ const FunctionalParentPayments: React.FC = () => {
                           </div>
                           <div className="flex-1">
                             <h4 className="text-lg font-semibold text-gray-900">
-                              {payment.description}
+                              {payment.description || ''}
                             </h4>
                             <p className="text-sm text-gray-600">
                               {payment.studentName} - {t.category[payment.category as keyof typeof t.category]}

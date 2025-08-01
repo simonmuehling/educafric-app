@@ -160,11 +160,11 @@ const GeolocationPricingPlans = () => {
           </div>
           
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            {t.title}
+            {t.title || ''}
           </h2>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            {t.description}
+            {t.description || ''}
           </p>
         </div>
 
@@ -228,7 +228,7 @@ const GeolocationPricingPlans = () => {
                   {plan.icon}
                 </div>
                 
-                <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">{plan.name || ''}</h3>
                 
                 <div className="mt-4">
                   {plan.monthlyPrice && (

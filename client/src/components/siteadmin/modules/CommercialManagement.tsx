@@ -459,7 +459,7 @@ const CommercialManagement = () => {
                       <div className="text-sm text-gray-600">{lead.position}</div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Mail className="w-3 h-3" />
-                        {lead.email}
+                        {lead.email || ''}
                       </div>
                       {lead.phone && (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -594,7 +594,7 @@ const CommercialManagement = () => {
             <Briefcase className="w-6 h-6 text-pink-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

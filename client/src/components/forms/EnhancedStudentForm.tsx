@@ -233,7 +233,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
       relationship: 'mother',
       address: formData.address, // Pre-fill with student address
       profession: '',
-      isPrimary: (Array.isArray(formData.parents) ? parents.length : 0) === 0 // First parent is primary by default
+      isPrimary: (Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) === 0 // First parent is primary by default
     };
     
     setFormData({
@@ -285,7 +285,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
       return false;
     }
 
-    if ((Array.isArray(formData.parents) ? parents.length : 0) === 0) {
+    if ((Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) === 0) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: t.atLeastOneParent,
@@ -338,7 +338,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5" />
-            {t.title}
+            {t.title || ''}
           </DialogTitle>
         </DialogHeader>
 
@@ -355,11 +355,11 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName" className="flex items-center gap-1">
-                    {t.firstName} <span className="text-red-500">*</span>
+                    {t.firstName || ''} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="firstName"
-                    value={formData.firstName}
+                    value={formData.firstName || ''}
                     onChange={(e) => setFormData({...formData, firstName: e?.target?.value})}
                     data-testid="input-student-firstname"
                   />
@@ -367,22 +367,22 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
 
                 <div>
                   <Label htmlFor="lastName" className="flex items-center gap-1">
-                    {t.lastName} <span className="text-red-500">*</span>
+                    {t.lastName || ''} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="lastName"
-                    value={formData.lastName}
+                    value={formData.lastName || ''}
                     onChange={(e) => setFormData({...formData, lastName: e?.target?.value})}
                     data-testid="input-student-lastname"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">{t.email}</Label>
+                  <Label htmlFor="email">{t.email || ''}</Label>
                   <Input
                     id="email"
                     type="email"
-                    value={formData.email}
+                    value={formData.email || ''}
                     onChange={(e) => setFormData({...formData, email: e?.target?.value})}
                     data-testid="input-student-email"
                   />
@@ -421,7 +421,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                     <SelectContent>
                       {(Array.isArray(classes) ? classes : []).map((cls: any) => (
                         <SelectItem key={cls.id} value={cls?.id?.toString()}>
-                          {cls.name} - {cls.level}
+                          {cls.name || ''} - {cls.level}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -505,7 +505,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                         </Badge>
                         <span className="font-medium">
                           {parent.firstName || parent.lastName 
-                            ? `${parent.firstName} ${parent.lastName}`.trim()
+                            ? `${parent.firstName || ''} ${parent.lastName || ''}`.trim()
                             : `Parent ${index + 1}`
                           }
                         </span>
@@ -518,7 +518,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                         >
                           {showParentDetails[parent.id || `${index}`] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </Button>
-                        {(Array.isArray(formData.parents) ? parents.length : 0) > 1 && (
+                        {(Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) > 1 && (
                           <Button
                             onClick={() => removeParent(index)}
                             variant="ghost"
@@ -534,18 +534,18 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div>
-                        <Label>{t.firstName}</Label>
+                        <Label>{t.firstName || ''}</Label>
                         <Input
-                          value={parent.firstName}
+                          value={parent.firstName || ''}
                           onChange={(e) => updateParent(index, { firstName: e?.target?.value })}
                           data-testid={`input-parent-firstname-${index}`}
                         />
                       </div>
 
                       <div>
-                        <Label>{t.lastName}</Label>
+                        <Label>{t.lastName || ''}</Label>
                         <Input
-                          value={parent.lastName}
+                          value={parent.lastName || ''}
                           onChange={(e) => updateParent(index, { lastName: e?.target?.value })}
                           data-testid={`input-parent-lastname-${index}`}
                         />
@@ -583,10 +583,10 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                       <div className="mt-4 space-y-3 p-3 bg-gray-50 rounded-lg">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           <div>
-                            <Label>{t.email}</Label>
+                            <Label>{t.email || ''}</Label>
                             <Input
                               type="email"
-                              value={parent.email}
+                              value={parent.email || ''}
                               onChange={(e) => updateParent(index, { email: e?.target?.value })}
                               data-testid={`input-parent-email-${index}`}
                             />

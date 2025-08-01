@@ -215,7 +215,7 @@ const ConnectionSystemDashboard: React.FC<ConnectionSystemDashboardProps> = ({ l
         <CardHeader>
           <CardTitle className="flex items-center space-x-3 text-blue-800">
             <Users className="h-6 w-6" />
-            <span>{t.title}</span>
+            <span>{t.title || ''}</span>
           </CardTitle>
           <p className="text-blue-600">{t.subtitle}</p>
         </CardHeader>
@@ -397,7 +397,7 @@ const ConnectionSystemDashboard: React.FC<ConnectionSystemDashboardProps> = ({ l
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingStats.(Array.isArray(byPriority) ? byPriority : []).map((priority) => (
+                {pendingStats.byPriority.map((priority) => (
                   <div key={priority.priority} className="flex items-center justify-between">
                     <span className="text-sm font-medium">
                       {t.priorities[priority.priority as keyof typeof t.priorities]}

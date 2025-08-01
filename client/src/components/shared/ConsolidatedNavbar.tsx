@@ -116,7 +116,7 @@ const ConsolidatedNavbar: React.FC<ConsolidatedNavbarProps> = ({
             {/* User Info */}
             {user && (
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
-                <span>{user.email}</span>
+                <span>{user.email || ''}</span>
                 <span className="text-blue-600 font-medium">
                   ({getRoleDisplayName(userRole || user.role)})
                 </span>

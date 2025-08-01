@@ -224,7 +224,7 @@ const ComponentPlayground = () => {
               <div className="text-gray-700">
                 {item.icon}
               </div>
-              <span className="text-xs text-gray-600">{item.name}</span>
+              <span className="text-xs text-gray-600">{item.name || ''}</span>
             </div>
           ))}
         </div>

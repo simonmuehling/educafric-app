@@ -182,7 +182,7 @@ const NotificationTester: React.FC = () => {
     setTestResults(prev => [...results, ...prev]);
     setIsLoading(false);
 
-    const successCount = results.filter(r => r.result?.success).length;
+    const successCount = (Array.isArray(results) ? results : []).filter(r => r.result?.success).length;
     toast({
       title: `Sequence Test Complete`,
       description: `${successCount}/${results.length} tests passed`,
@@ -221,7 +221,7 @@ const NotificationTester: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {notificationTypes.map(type => (
+                        {(Array.isArray(notificationTypes) ? notificationTypes : []).map(type => (
                           <SelectItem key={type.value} value={type.value}>
                             <div className="flex items-center gap-2">
                               {type.icon}
@@ -237,7 +237,7 @@ const NotificationTester: React.FC = () => {
                     <Label htmlFor="title">Title</Label>
                     <Input
                       id="title"
-                      value={testForm.title}
+                      value={testForm.title || ''}
                       onChange={(e) => setTestForm(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Enter notification title"
                       data-testid="notification-title-input"
@@ -263,7 +263,7 @@ const NotificationTester: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {priorities.map(priority => (
+                        {(Array.isArray(priorities) ? priorities : []).map(priority => (
                           <SelectItem key={priority.value} value={priority.value}>
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full ${priority.color}`}></div>
@@ -280,7 +280,7 @@ const NotificationTester: React.FC = () => {
                 <div className="space-y-4">
                   <Label>Delivery Channels</Label>
                   <div className="space-y-3">
-                    {channels.map(channel => (
+                    {(Array.isArray(channels) ? channels : []).map(channel => (
                       <div key={channel.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-2">
                           {channel.icon}
@@ -351,7 +351,7 @@ const NotificationTester: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {testResults.map((test) => (
+              {(Array.isArray(testResults) ? testResults : []).map((test) => (
                 <div
                   key={test.id}
                   className={`p-4 border rounded-lg ${
@@ -365,7 +365,7 @@ const NotificationTester: React.FC = () => {
                       ) : (
                         <X className="w-4 h-4 text-red-600" />
                       )}
-                      <span className="font-medium">{test.title}</span>
+                      <span className="font-medium">{test.title || ''}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={test.result?.success ? "default" : "destructive"}>

@@ -241,7 +241,7 @@ const UpdatedSandboxDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {t.title}
+              {t.title || ''}
             </h1>
             <p className="text-muted-foreground mt-2">{t.subtitle}</p>
             <div className="flex items-center gap-4 mt-3">
@@ -270,12 +270,12 @@ const UpdatedSandboxDashboard = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickStats.map((stat, index) => (
+          {(Array.isArray(quickStats) ? quickStats : []).map((stat, index) => (
             <Card key={index} className="hover:shadow-lg transition-shadow duration-200 border-0 shadow-sm bg-white/70 backdrop-blur-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title || ''}</p>
                     <p className="text-2xl font-bold mt-2">{stat.value}</p>
                     <p className={`text-xs mt-1 ${stat.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
                       {stat.trend} vs last week
@@ -300,14 +300,14 @@ const UpdatedSandboxDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {systemInfo.map((info, index) => (
+              {(Array.isArray(systemInfo) ? systemInfo : []).map((info, index) => (
                 <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-white dark:bg-slate-600 shadow-sm">
                       {info.icon}
                     </div>
                     <div>
-                      <p className="font-medium">{info.title}</p>
+                      <p className="font-medium">{info.title || ''}</p>
                       <p className="text-xl font-bold text-blue-600">{info.value}</p>
                     </div>
                   </div>
@@ -331,7 +331,7 @@ const UpdatedSandboxDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sandboxModules.map((module) => (
+              {(Array.isArray(sandboxModules) ? sandboxModules : []).map((module) => (
                 <Card key={module.id} className="group hover:shadow-md transition-all duration-200 cursor-pointer border-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -340,9 +340,9 @@ const UpdatedSandboxDashboard = () => {
                           {module.icon}
                         </div>
                         <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 transition-colors">
-                          {module.title}
+                          {module.title || ''}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4">{module.description}</p>
+                        <p className="text-sm text-muted-foreground mb-4">{module.description || ''}</p>
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Active

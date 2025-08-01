@@ -197,7 +197,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            {t.title} - {country}
+            {t.title || ''} - {country}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -226,7 +226,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                           {method.icon}
                         </div>
                         <div>
-                          <div className="font-medium">{method.name}</div>
+                          <div className="font-medium">{method.name || ''}</div>
                           <div className="text-sm text-gray-500">{method.provider}</div>
                         </div>
                       </div>
@@ -299,7 +299,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                             {getMethodIcon(method.type)}
                           </div>
                           <div>
-                            <div className="font-medium">{method.name}</div>
+                            <div className="font-medium">{method.name || ''}</div>
                             <div className="text-sm text-gray-500">{method.provider}</div>
                           </div>
                         </div>

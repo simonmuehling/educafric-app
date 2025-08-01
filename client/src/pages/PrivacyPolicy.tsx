@@ -239,7 +239,7 @@ const PrivacyPolicy = () => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-black mb-4">
-            {t.title}
+            {t.title || ''}
           </h1>
           <p className="text-black">
             {t.lastUpdated}
@@ -273,7 +273,7 @@ const PrivacyPolicy = () => {
               {t?.sections?.dataCollection.subsections?.map((subsection, index) => (
                 <div key={index} className="mb-6">
                   <h3 className="text-lg font-medium text-black mb-3">
-                    {subsection.title}
+                    {subsection.title || ''}
                   </h3>
                   <ul className="list-disc list-inside space-y-2 text-black">
                     {(Array.isArray(subsection.items) ? subsection.items : []).map((item, itemIndex) => (
@@ -357,7 +357,7 @@ const PrivacyPolicy = () => {
             <Card key={index}>
               <CardContent className="p-8">
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                  {section.title}
+                  {section.title || ''}
                 </h2>
                 <p className="text-black leading-relaxed">
                   {section.content}

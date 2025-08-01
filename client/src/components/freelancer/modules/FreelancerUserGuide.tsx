@@ -189,7 +189,7 @@ const FreelancerUserGuide = () => {
           <HelpCircle className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -204,8 +204,8 @@ const FreelancerUserGuide = () => {
                   {action.icon}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm">{action.title}</h4>
-                  <p className="text-xs text-gray-600 mt-1">{action.description}</p>
+                  <h4 className="font-semibold text-sm">{action.title || ''}</h4>
+                  <p className="text-xs text-gray-600 mt-1">{action.description || ''}</p>
                 </div>
               </div>
             </CardContent>
@@ -223,7 +223,7 @@ const FreelancerUserGuide = () => {
             className="flex items-center gap-2"
           >
             {section.icon}
-            {section.title}
+            {section.title || ''}
           </Button>
         ))}
       </div>

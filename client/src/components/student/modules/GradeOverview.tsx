@@ -54,7 +54,7 @@ const GradeOverview = () => {
           {(Array.isArray(subjects) ? subjects : []).map((subject, index) => (
             <div key={index} className="bg-white p-4 rounded-xl border">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold">{subject.name}</h4>
+                <h4 className="font-semibold">{subject.name || ''}</h4>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-gray-800">{subject.grade}/20</span>
                   <span className="text-sm text-gray-500">Coeff. {subject.coefficient}</span>

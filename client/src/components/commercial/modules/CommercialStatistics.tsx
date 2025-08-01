@@ -146,7 +146,7 @@ const CommercialStatistics = () => {
           <BarChart3 className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -287,13 +287,13 @@ const CommercialStatistics = () => {
           <CardContent>
             <div className="space-y-3">
               {(Array.isArray(regionData) ? regionData : []).map((region, index) => (
-                <div key={region.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={region.name || ''} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                       {index + 1}
                     </div>
                     <div>
-                      <div className="font-medium">{region.name}</div>
+                      <div className="font-medium">{region.name || ''}</div>
                       <div className="text-sm text-gray-600">{region.schools} {language === 'fr' ? 'écoles' : 'schools'}</div>
                     </div>
                   </div>

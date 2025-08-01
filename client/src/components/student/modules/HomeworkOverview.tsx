@@ -96,7 +96,7 @@ const HomeworkOverview = () => {
                       {getStatusText(item.status)}
                     </span>
                   </div>
-                  <p className="text-gray-700 mb-2">{item.title}</p>
+                  <p className="text-gray-700 mb-2">{item.title || ''}</p>
                   <p className="text-sm text-gray-500">
                     {language === 'fr' ? 'À rendre le:' : 'Due:'} {item.dueDate}
                   </p>

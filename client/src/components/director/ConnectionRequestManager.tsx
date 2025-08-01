@@ -231,7 +231,7 @@ const ConnectionRequestManager: React.FC<ConnectionRequestManagerProps> = ({ lan
         <CardHeader>
           <CardTitle className="flex items-center space-x-3 text-indigo-800">
             <User className="h-6 w-6" />
-            <span>{t.title}</span>
+            <span>{t.title || ''}</span>
           </CardTitle>
           <p className="text-indigo-600">{t.subtitle}</p>
         </CardHeader>

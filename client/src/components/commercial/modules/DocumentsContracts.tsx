@@ -178,6 +178,7 @@ const DocumentsContracts = () => {
   };
 
   const filteredDocuments = (Array.isArray(documents) ? documents : []).filter(doc => {
+    if (!doc) return false;
     const matchesSearch = doc?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc?.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc?.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -214,7 +215,7 @@ const DocumentsContracts = () => {
         
         toast({
           title: language === 'fr' ? 'Document ouvert' : 'Document opened',
-          description: language === 'fr' ? `Consultation de ${doc.name}` : `Viewing ${doc.name}`,
+          description: language === 'fr' ? `Consultation de ${doc.name || ''}` : `Viewing ${doc.name || ''}`,
         });
 
         // Nettoyer l'URL après 1 minute
@@ -250,7 +251,7 @@ const DocumentsContracts = () => {
         // Créer un lien temporaire pour le téléchargement
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${doc.name}.pdf`;
+        link.download = `${doc.name || ''}.pdf`;
         document?.body?.appendChild(link);
         link.click();
         document?.body?.removeChild(link);
@@ -260,7 +261,7 @@ const DocumentsContracts = () => {
         
         toast({
           title: language === 'fr' ? 'Téléchargement réussi' : 'Download successful',
-          description: language === 'fr' ? `${doc.name} téléchargé avec succès` : `${doc.name} downloaded successfully`,
+          description: language === 'fr' ? `${doc.name || ''} téléchargé avec succès` : `${doc.name || ''} downloaded successfully`,
         });
       } else {
         throw new Error(`HTTP ${response.status}`);
@@ -279,8 +280,8 @@ const DocumentsContracts = () => {
     try {
       const shareUrl = `${window?.location?.origin}/commercial/documents/shared/${doc.id}`;
       const shareText = language === 'fr' 
-        ? `Document commercial: ${doc.name} - ${doc.description}`
-        : `Commercial document: ${doc.name} - ${doc.description}`;
+        ? `Document commercial: ${doc.name || ''} - ${doc.description || ''}`
+        : `Commercial document: ${doc.name || ''} - ${doc.description || ''}`;
       
       if (navigator.share) {
         await navigator.share({
@@ -455,7 +456,7 @@ const DocumentsContracts = () => {
         const result = await response.json();
         toast({
           title: language === 'fr' ? 'Document supprimé' : 'Document deleted',
-          description: language === 'fr' ? `${doc.name} supprimé avec succès` : `${doc.name} deleted successfully`,
+          description: language === 'fr' ? `${doc.name || ''} supprimé avec succès` : `${doc.name || ''} deleted successfully`,
         });
       } else {
         throw new Error('Delete failed');
@@ -478,7 +479,7 @@ const DocumentsContracts = () => {
           <FileText className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -533,7 +534,7 @@ const DocumentsContracts = () => {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{doc.name}</h3>
+                      <h3 className="font-semibold text-gray-900">{doc.name || ''}</h3>
                       <Badge className={getStatusColor(doc.status)}>
                         {doc.status === 'signed' ? t.signed : 
                          doc.status === 'pending' ? t.pending : 
@@ -543,7 +544,7 @@ const DocumentsContracts = () => {
                         {doc.format}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{doc.description}</p>
+                    <p className="text-sm text-gray-600">{doc.description || ''}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Building2 className="w-3 h-3" />

@@ -183,8 +183,8 @@ const EnhancedCreateAssignment = () => {
     toast({
       title: language === 'fr' ? 'Devoir créé!' : 'Assignment created!',
       description: language === 'fr' 
-        ? `"${assignment.title}" créé avec ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} fichier(s) et ${audioUrl ? '1 audio' : '0 audio'}`
-        : `"${assignment.title}" created with ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} file(s) and ${audioUrl ? '1 audio' : '0 audio'}`
+        ? `"${assignment.title || ''}" créé avec ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} fichier(s) et ${audioUrl ? '1 audio' : '0 audio'}`
+        : `"${assignment.title || ''}" created with ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} file(s) and ${audioUrl ? '1 audio' : '0 audio'}`
     });
 
     // Reset form
@@ -214,7 +214,7 @@ const EnhancedCreateAssignment = () => {
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
           <BookOpen className="w-6 h-6 text-blue-500" />
-          {t.title}
+          {t.title || ''}
         </h2>
         <p className="text-gray-600 mt-2">
           {language === 'fr' ? 'Créez un devoir avec du contenu multimédia' : 'Create an assignment with multimedia content'}
@@ -232,7 +232,7 @@ const EnhancedCreateAssignment = () => {
               <Label htmlFor="title">{t.assignmentTitle}</Label>
               <Input
                 id="title"
-                value={assignment.title}
+                value={assignment.title || ''}
                 onChange={(e) => setAssignment({...assignment, title: e?.target?.value})}
                 placeholder={language === 'fr' ? 'Ex: Exercices de géométrie' : 'Ex: Geometry exercises'}
                 required
@@ -308,10 +308,10 @@ const EnhancedCreateAssignment = () => {
           </div>
 
           <div className="mt-4 space-y-2">
-            <Label htmlFor="description">{t.description}</Label>
+            <Label htmlFor="description">{t.description || ''}</Label>
             <Textarea
               id="description"
-              value={assignment.description}
+              value={assignment.description || ''}
               onChange={(e) => setAssignment({...assignment, description: e?.target?.value})}
               placeholder={language === 'fr' ? 'Description courte du devoir' : 'Short description of the assignment'}
               rows={3}
@@ -409,7 +409,7 @@ const EnhancedCreateAssignment = () => {
                     <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
                       <div className="flex items-center gap-2">
                         <Paperclip className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm">{file.name}</span>
+                        <span className="text-sm">{file.name || ''}</span>
                         <span className="text-xs text-gray-500">
                           ({(file.size / 1024 / 1024).toFixed(1)} MB)
                         </span>

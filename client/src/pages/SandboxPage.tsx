@@ -23,7 +23,7 @@ const SandboxPage = () => {
   }
 
   // Sandbox environment provides full premium access with realistic family/school relationships
-  console.log(`🔬 Sandbox Access: ${user.email} (${user.role}) - Full Premium Features Enabled`);
+  console.log(`🔬 Sandbox Access: ${user.email || ''} (${user.role}) - Full Premium Features Enabled`);
 
   return (
     <SandboxPremiumProvider>

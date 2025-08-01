@@ -614,7 +614,7 @@ const ContentManagement = () => {
                     }}
                   />
                 </th>
-                <th className="text-left py-3 px-4">{t.title}</th>
+                <th className="text-left py-3 px-4">{t.title || ''}</th>
                 <th className="text-left py-3 px-4">{t.type}</th>
                 <th className="text-left py-3 px-4">{t.size}</th>
                 <th className="text-left py-3 px-4">{t.createdBy}</th>
@@ -643,7 +643,7 @@ const ContentManagement = () => {
                     <div className="flex items-center gap-3">
                       {getFileIcon(document.fileType)}
                       <div>
-                        <div className="font-medium">{document.title}</div>
+                        <div className="font-medium">{document.title || ''}</div>
                         <div className="text-sm text-gray-600">{document.fileName}</div>
                         <Badge className={getCategoryColor(document.category)} variant="outline">
                           {document.category}
@@ -723,7 +723,7 @@ const ContentManagement = () => {
             <FileText className="w-6 h-6 text-orange-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

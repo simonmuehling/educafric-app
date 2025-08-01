@@ -246,8 +246,8 @@ export default function FirebaseIntegration() {
                   <div className="flex items-center space-x-3">
                     {service.icon}
                     <div>
-                      <h3 className="font-semibold">{service.name}</h3>
-                      <p className="text-sm text-gray-600">{service.description}</p>
+                      <h3 className="font-semibold">{service.name || ''}</h3>
+                      <p className="text-sm text-gray-600">{service.description || ''}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -301,7 +301,7 @@ export default function FirebaseIntegration() {
                   <div className="flex items-center space-x-3">
                     {service.icon}
                     <div>
-                      <h4 className="font-medium">{service.name}</h4>
+                      <h4 className="font-medium">{service.name || ''}</h4>
                       <p className="text-sm text-gray-600">
                         {service.status === 'active' ? 'Service opérationnel' :
                          service.status === 'configured' ? 'Configuration requise' :

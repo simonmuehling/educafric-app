@@ -305,7 +305,7 @@ export function TimetableCreation({ onSlotCreated, onBulkOperation }: TimetableC
             <Clock className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+            <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>
@@ -393,7 +393,7 @@ export function TimetableCreation({ onSlotCreated, onBulkOperation }: TimetableC
                     <option value={0}>{t.selectClass}</option>
                     {(Array.isArray(classesData) ? classesData : []).map((classItem: any) => (
                       <option key={classItem.id} value={classItem.id}>
-                        {classItem.name} ({classItem.level})
+                        {classItem.name || ''} ({classItem.level})
                       </option>
                     ))}
                   </select>
@@ -429,7 +429,7 @@ export function TimetableCreation({ onSlotCreated, onBulkOperation }: TimetableC
                     <option value={0}>{t.selectTeacher}</option>
                     {(Array.isArray(teachersData) ? teachersData : []).map((teacher: any) => (
                       <option key={teacher.id} value={teacher.id}>
-                        {teacher.name}
+                        {teacher.name || ''}
                       </option>
                     ))}
                   </select>

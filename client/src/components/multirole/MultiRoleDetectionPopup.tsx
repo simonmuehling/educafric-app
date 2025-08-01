@@ -159,7 +159,7 @@ export default function MultiRoleDetectionPopup({
                       </div>
                       
                       <div className="mt-2">
-                        <p className="text-sm text-gray-700">{suggestion.description}</p>
+                        <p className="text-sm text-gray-700">{suggestion.description || ''}</p>
                         {suggestion.schoolName && (
                           <p className="text-xs text-gray-500 mt-1">
                             {t('multiRole.school')}: {suggestion.schoolName}

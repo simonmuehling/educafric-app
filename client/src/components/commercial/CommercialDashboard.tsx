@@ -147,7 +147,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={activeModule}

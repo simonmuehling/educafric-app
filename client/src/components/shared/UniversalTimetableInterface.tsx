@@ -346,7 +346,7 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">{t.title}</h2>
+              <h2 className="text-2xl font-bold">{t.title || ''}</h2>
               <p className="text-blue-100 mt-1">{t.roleViews[userRole]}</p>
               <div className="flex flex-wrap gap-2 mt-3">
                 <Badge variant="secondary" className="bg-white/20 text-white">
@@ -553,7 +553,7 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(subjects) ? subjects : []).map((subject: any) => (
-                      <SelectItem key={subject.id} value={subject.name}>{subject.name}</SelectItem>
+                      <SelectItem key={subject.id} value={subject.name || ''}>{subject.name || ''}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -572,8 +572,8 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(teachers) ? teachers : []).map((teacher: any) => (
-                      <SelectItem key={teacher.id} value={`${teacher.firstName} ${teacher.lastName}`}>
-                        {teacher.firstName} {teacher.lastName}
+                      <SelectItem key={teacher.id} value={`${teacher.firstName || ''} ${teacher.lastName || ''}`}>
+                        {teacher.firstName || ''} {teacher.lastName || ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

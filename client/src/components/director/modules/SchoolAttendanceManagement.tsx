@@ -212,7 +212,7 @@ const SchoolAttendanceManagement = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -264,7 +264,7 @@ const SchoolAttendanceManagement = () => {
               <option value="">{t.selectClass}</option>
               {(Array.isArray(classes) ? classes : []).map((classItem: any) => (
                 <option key={classItem.id} value={classItem.id}>
-                  {classItem.name}
+                  {classItem.name || ''}
                 </option>
               ))}
             </select>
@@ -278,7 +278,7 @@ const SchoolAttendanceManagement = () => {
               Présence - {classes.find((c: any) => c?.id?.toString() === selectedClass)?.name} - {selectedDate}
             </h4>
             
-            {(Array.isArray(students) ? students.length : 0) > 0 ? (
+            {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) > 0 ? (
               <div className="space-y-2">
                 {(Array.isArray(students) ? students : []).map((student: any) => {
                   const attendance = attendanceData.find((a: any) => 
@@ -296,7 +296,7 @@ const SchoolAttendanceManagement = () => {
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">
-                            {student.firstName} {student.lastName}
+                            {student.firstName || ''} {student.lastName || ''}
                           </p>
                           <p className="text-sm text-gray-600">ID: {student.id}</p>
                         </div>

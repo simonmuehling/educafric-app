@@ -199,7 +199,7 @@ Gardez ce document en lieu sûr!
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentT.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{currentT.title || ''}</h2>
         <p className="text-gray-600 mb-6">{currentT.subtitle}</p>
       </div>
 

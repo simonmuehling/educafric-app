@@ -217,7 +217,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={activeModule}

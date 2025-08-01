@@ -377,8 +377,8 @@ const UserManagement = () => {
                     }}
                   />
                 </th>
-                <th className="text-left py-3 px-4">{t.name}</th>
-                <th className="text-left py-3 px-4">{t.email}</th>
+                <th className="text-left py-3 px-4">{t.name || ''}</th>
+                <th className="text-left py-3 px-4">{t.email || ''}</th>
                 <th className="text-left py-3 px-4">{t.role}</th>
                 <th className="text-left py-3 px-4">{t.status}</th>
                 <th className="text-left py-3 px-4">{t.lastLogin}</th>
@@ -410,7 +410,7 @@ const UserManagement = () => {
                       </div>
                       <div>
                         <div className="font-medium">
-                          {userData.firstName} {userData.lastName}
+                          {userData.firstName || ''} {userData.lastName || ''}
                         </div>
                         {userData.isTestAccount && (
                           <Badge variant="outline" className="text-xs">
@@ -423,7 +423,7 @@ const UserManagement = () => {
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
-                      {userData.email}
+                      {userData.email || ''}
                     </div>
                     {userData.phone && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -511,7 +511,7 @@ const UserManagement = () => {
             <Users className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

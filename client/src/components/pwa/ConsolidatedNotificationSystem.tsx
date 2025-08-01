@@ -109,7 +109,7 @@ const ConsolidatedNotification: React.FC<ConsolidatedNotificationProps> = ({ not
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-1">
-              <h4 className="font-semibold text-sm">{notification.title}</h4>
+              <h4 className="font-semibold text-sm">{notification.title || ''}</h4>
               
               {/* Priority indicator */}
               {notification.priority === 'urgent' && (

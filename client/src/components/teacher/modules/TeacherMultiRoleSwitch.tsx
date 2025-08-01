@@ -112,7 +112,7 @@ const TeacherMultiRoleSwitch: React.FC<MultiRoleProps> = ({ onRoleSwitch }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button variant="outline" className="border-gray-300">
@@ -161,7 +161,7 @@ const TeacherMultiRoleSwitch: React.FC<MultiRoleProps> = ({ onRoleSwitch }) => {
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.availableRoles}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {userRoles.filter(role => role.role !== selectedRole).map((role) => (
+          {(Array.isArray(userRoles) ? userRoles : []).filter(role => role.role !== selectedRole).map((role) => (
             <Card key={role.role} className="hover:shadow-lg transition-shadow cursor-pointer">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -190,14 +190,14 @@ const TeacherMultiRoleSwitch: React.FC<MultiRoleProps> = ({ onRoleSwitch }) => {
                   <div className="flex items-center">
                     <User className="w-4 h-4 text-gray-500 mr-2" />
                     <span className="text-sm text-gray-600">
-                      {role.description}
+                      {role.description || ''}
                     </span>
                   </div>
                   <Button
                     onClick={() => handleRoleSwitch(role.role)}
                     className={`w-full mt-3 ${role.color} hover:opacity-90`}
                     size="sm"
-                    data-testid={`button-switch-${role.role.toLowerCase()}`}
+                    data-testid={`button-switch-${(role.role || '').toLowerCase()}`}
                   >
                     {t.switchTo} {role.role}
                   </Button>

@@ -113,7 +113,7 @@ const GeometryExercise: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3 mb-2">
             <Triangle className="w-8 h-8 text-blue-600" />
-            {t.title}
+            {t.title || ''}
           </h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>

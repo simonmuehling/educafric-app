@@ -148,8 +148,8 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="text-blue-600">{device.icon}</div>
                   <div className="flex-1">
-                    <h3 className="font-semibold">{device.name}</h3>
-                    <p className="text-sm text-gray-600">{device.description}</p>
+                    <h3 className="font-semibold">{device.name || ''}</h3>
+                    <p className="text-sm text-gray-600">{device.description || ''}</p>
                   </div>
                   {deviceData.deviceType === device.id && (
                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -247,7 +247,7 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
           </div>
           
           <div className="grid md:grid-cols-2 gap-3">
-            {config.(Array.isArray(zones) ? zones : []).map((zone, index) => (
+            {config.zones.map((zone, index) => (
               <Card key={index} className="cursor-pointer hover:shadow-md">
                 <CardContent className="flex items-center gap-3 p-4">
                   <MapPin className="w-5 h-5 text-green-600" />
@@ -293,8 +293,8 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="text-blue-600">{permission.icon}</div>
                   <div className="flex-1">
-                    <h3 className="font-semibold">{permission.title}</h3>
-                    <p className="text-sm text-gray-600">{permission.description}</p>
+                    <h3 className="font-semibold">{permission.title || ''}</h3>
+                    <p className="text-sm text-gray-600">{permission.description || ''}</p>
                   </div>
                   <Button
                     variant={deviceData.permissions[permission.key as keyof typeof deviceData.permissions] ? "default" : "outline"}
@@ -435,7 +435,7 @@ export default function DeviceSetupWizard({ userType, onComplete, onCancel }: De
               {config.icon}
             </div>
             <div>
-              <CardTitle className="text-2xl">{config.title}</CardTitle>
+              <CardTitle className="text-2xl">{config.title || ''}</CardTitle>
               <CardDescription>
                 {language === 'fr' 
                   ? 'Assistant de configuration des dispositifs de géolocalisation'

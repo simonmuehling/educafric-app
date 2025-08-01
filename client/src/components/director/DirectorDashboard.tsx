@@ -340,7 +340,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={activeModule}

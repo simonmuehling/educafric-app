@@ -238,9 +238,9 @@ const FunctionalCommercialLeads: React.FC = () => {
 
   // Calculate statistics
   const totalLeads = leads.length;
-  const hotLeads = leads.filter(l => l.priority === 'high' && ['interested', 'negotiating'].includes(l.status)).length;
-  const estimatedValue = leads.reduce((sum, l) => sum + l.estimatedValue, 0);
-  const wonLeads = leads.filter(l => l.status === 'won').length;
+  const hotLeads = (Array.isArray(leads) ? leads : []).filter(l => l.priority === 'high' && ['interested', 'negotiating'].includes(l.status)).length;
+  const estimatedValue = (Array.isArray(leads) ? leads : []).reduce((sum, l) => sum + l.estimatedValue, 0);
+  const wonLeads = (Array.isArray(leads) ? leads : []).filter(l => l.status === 'won').length;
   const conversionRate = totalLeads > 0 ? Math.round((wonLeads / totalLeads) * 100) : 0;
 
   const getStatusColor = (status: string) => {
@@ -264,10 +264,11 @@ const FunctionalCommercialLeads: React.FC = () => {
     }
   };
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.schoolName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.location.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredLeads = (Array.isArray(leads) ? leads : []).filter(lead => {
+    if (!lead) return false;
+    const matchesSearch = (lead.schoolName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (lead.contactPerson || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (lead.location || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
     
@@ -279,7 +280,7 @@ const FunctionalCommercialLeads: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -418,7 +419,7 @@ const FunctionalCommercialLeads: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredLeads.map((lead) => (
+              {(Array.isArray(filteredLeads) ? filteredLeads : []).map((lead) => (
                 <div key={lead.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
@@ -452,7 +453,7 @@ const FunctionalCommercialLeads: React.FC = () => {
                           </span>
                           <span className="flex items-center gap-1">
                             <Mail className="w-4 h-4" />
-                            {lead.email}
+                            {lead.email || ''}
                           </span>
                           <span className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
@@ -568,7 +569,7 @@ const FunctionalCommercialLeads: React.FC = () => {
                 <label className="text-sm font-medium">Email *</label>
                 <input
                   type="email"
-                  value={leadForm.email}
+                  value={leadForm.email || ''}
                   onChange={(e) => setLeadForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="contact@ecole.cm"
                   className="w-full border rounded-md px-3 py-2"

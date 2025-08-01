@@ -201,8 +201,8 @@ const BulletinGradeInput = () => {
     const studentGrades = Object.values(grades).filter(g => g.studentId === studentId);
     if ((Array.isArray(studentGrades) ? studentGrades.length : 0) === 0) return 0;
 
-    const totalPoints = studentGrades.reduce((sum, g) => sum + (g.grade * g.coefficient), 0);
-    const totalCoefficients = studentGrades.reduce((sum, g) => sum + g.coefficient, 0);
+    const totalPoints = (Array.isArray(studentGrades) ? studentGrades : []).reduce((sum, g) => sum + (g.grade * g.coefficient), 0);
+    const totalCoefficients = (Array.isArray(studentGrades) ? studentGrades : []).reduce((sum, g) => sum + g.coefficient, 0);
     
     return totalCoefficients > 0 ? (totalPoints / totalCoefficients).toFixed(2) : 0;
   };
@@ -292,7 +292,7 @@ const BulletinGradeInput = () => {
         <div className="flex items-center gap-3 mb-2">
           <BookOpen className="w-8 h-8" />
           <div>
-            <h1 className="text-2xl font-bold">{t.title}</h1>
+            <h1 className="text-2xl font-bold">{t.title || ''}</h1>
             <p className="text-blue-100">{t.subtitle}</p>
           </div>
         </div>
@@ -312,7 +312,7 @@ const BulletinGradeInput = () => {
               <option value="">{t.selectClass}</option>
               {Array.isArray(classes) && (classes as any[]).map((cls: any) => (
                 <option key={cls.id} value={cls.id}>
-                  {cls.name} - {cls.level}
+                  {cls.name || ''} - {cls.level}
                 </option>
               ))}
             </select>
@@ -364,7 +364,7 @@ const BulletinGradeInput = () => {
             </div>
           </div>
 
-          {!Array.isArray(students) || (Array.isArray(students) ? students.length : 0) === 0 ? (
+          {!Array.isArray(students) || (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p>{t.noStudents}</p>
@@ -377,7 +377,7 @@ const BulletinGradeInput = () => {
                     <div className="flex items-center gap-3">
                       <GraduationCap className="w-5 h-5 text-blue-600" />
                       <h4 className="font-semibold text-lg">
-                        {student.firstName} {student.lastName}
+                        {student.firstName || ''} {student.lastName || ''}
                       </h4>
                       <Badge variant="secondary">{student.className}</Badge>
                     </div>

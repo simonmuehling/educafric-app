@@ -204,7 +204,7 @@ export const ParentGeolocation = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -295,7 +295,7 @@ export const ParentGeolocation = () => {
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">{getDeviceIcon(child.deviceType || '')}</div>
                         <div>
-                          <h4 className="font-medium text-gray-800">{child.name}</h4>
+                          <h4 className="font-medium text-gray-800">{child.name || ''}</h4>
                           <p className="text-sm text-gray-600">{child.class}</p>
                         </div>
                       </div>
@@ -346,7 +346,7 @@ export const ParentGeolocation = () => {
               <Card key={child.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">{child.name}</h3>
+                    <h3 className="text-lg font-semibold">{child.name || ''}</h3>
                     <Badge className={getStatusColor(child.status)}>
                       {t[child.status as keyof typeof t]}
                     </Badge>
@@ -387,7 +387,7 @@ export const ParentGeolocation = () => {
                     variant="outline" 
                     className="w-full"
                     onClick={() => {
-                      console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name}`);
+                      console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name || ''}`);
                       // This would typically open a configuration modal
                       queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
                     }}
@@ -423,7 +423,7 @@ export const ParentGeolocation = () => {
                       {zone.type === 'school' && <School className="w-5 h-5 text-green-500" />}
                       {zone.type === 'relative' && <Users className="w-5 h-5 text-purple-500" />}
                       {zone.type === 'activity' && <Activity className="w-5 h-5 text-orange-500" />}
-                      <h4 className="font-medium">{zone.name}</h4>
+                      <h4 className="font-medium">{zone.name || ''}</h4>
                     </div>
                     <Badge variant={zone.active ? "default" : "secondary"}>
                       {zone.active ? 'Actif' : 'Inactif'}
@@ -450,7 +450,7 @@ export const ParentGeolocation = () => {
                     size="sm" 
                     className="w-full mt-3"
                     onClick={() => {
-                      console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name}`);
+                      console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
                       // This would typically open an edit modal
                       queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
                     }}

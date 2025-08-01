@@ -892,7 +892,7 @@ const SandboxDashboard = () => {
                           fetch('/api/parent/safe-zones')
                             .then(res => res.json())
                             .then(data => {
-                              console.log(`Safe zones found: ${(Array.isArray(data) ? data.length : 0)}`, data);
+                              console.log(`Safe zones found: ${(Array.isArray(data) ? (Array.isArray(data) ? data.length : 0) : 0)}`, data);
                               setActiveTab('geolocation');
                             })
                             .catch(err => {
@@ -910,7 +910,7 @@ const SandboxDashboard = () => {
                           fetch('/api/freelancer/students')
                             .then(res => res.json())
                             .then(data => {
-                              console.log(`Students found: ${(Array.isArray(data) ? data.length : 0)}`, data);
+                              console.log(`Students found: ${(Array.isArray(data) ? (Array.isArray(data) ? data.length : 0) : 0)}`, data);
                               setActiveTab('geolocation');
                             })
                             .catch(err => {
@@ -1214,7 +1214,7 @@ const SandboxDashboard = () => {
 
   return (
     <UnifiedDashboardLayout
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       tabs={sandboxTabs}
       activeTab={activeTab}

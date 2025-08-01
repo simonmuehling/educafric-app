@@ -401,7 +401,7 @@ const DocumentManagement = () => {
         const result = await response.json();
         toast({
           title: language === 'fr' ? 'Document supprimé' : 'Document deleted',
-          description: language === 'fr' ? `${doc.name} supprimé avec succès` : `${doc.name} deleted successfully`,
+          description: language === 'fr' ? `${doc.name || ''} supprimé avec succès` : `${doc.name || ''} deleted successfully`,
         });
       } else {
         throw new Error('Delete failed');
@@ -429,8 +429,8 @@ const DocumentManagement = () => {
     toast({
       title: language === 'fr' ? 'Permissions du document' : 'Document permissions',
       description: language === 'fr' 
-        ? `${doc.name}: ${currentPermission}. Visible pour: ${doc?.visibleTo?.join(', ')}`
-        : `${doc.name}: ${currentPermission}. Visible to: ${doc?.visibleTo?.join(', ')}`,
+        ? `${doc.name || ''}: ${currentPermission}. Visible pour: ${doc?.visibleTo?.join(', ')}`
+        : `${doc.name || ''}: ${currentPermission}. Visible to: ${doc?.visibleTo?.join(', ')}`,
     });
   };
 
@@ -445,7 +445,7 @@ const DocumentManagement = () => {
         <div className="flex items-center gap-3 mb-2">
           <FileText className="w-8 h-8" />
           <div>
-            <h1 className="text-2xl font-bold">{t.title}</h1>
+            <h1 className="text-2xl font-bold">{t.title || ''}</h1>
             <p className="text-blue-100">{t.subtitle}</p>
           </div>
         </div>
@@ -587,7 +587,7 @@ const DocumentManagement = () => {
                     <FileText className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm md:text-base text-gray-900 truncate leading-tight">{doc.name}</h4>
+                    <h4 className="font-medium text-sm md:text-base text-gray-900 truncate leading-tight">{doc.name || ''}</h4>
                     <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-1">
                       <Badge variant={doc.status === 'active' ? 'default' : 'secondary'} className="text-xs px-2 py-0.5">
                         {doc.status === 'active' ? t.active : t.archived}

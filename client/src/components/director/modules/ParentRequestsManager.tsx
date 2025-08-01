@@ -92,6 +92,7 @@ const ParentRequestsManager: React.FC = () => {
   ];
 
   const filteredRequests = (Array.isArray(parentRequests) ? parentRequests : []).filter(request => {
+    if (!request) return false;
     const matchesSearch = request?.parentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request?.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          request?.subject?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -339,7 +340,7 @@ const ParentRequestsManager: React.FC = () => {
                         <strong>{language === 'fr' ? 'Date' : 'Date'}:</strong> {request.date} à {request.time}
                       </p>
                       <p className="text-sm text-gray-600">
-                        <strong>Email:</strong> {request.email}
+                        <strong>Email:</strong> {request.email || ''}
                       </p>
                       <p className="text-sm text-gray-600">
                         <strong>{language === 'fr' ? 'Téléphone' : 'Phone'}:</strong> {request.phone}

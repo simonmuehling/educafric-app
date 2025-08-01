@@ -339,7 +339,7 @@ const CreateEducationalContent = () => {
                         </Badge>
                       </div>
                       
-                      <h4 className="font-semibold mb-2 line-clamp-2">{content.title}</h4>
+                      <h4 className="font-semibold mb-2 line-clamp-2">{content.title || ''}</h4>
                       
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>{content.subject} - {content.level}</p>
@@ -404,7 +404,7 @@ const CreateEducationalContent = () => {
                       <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm font-medium">{file.name}</span>
+                          <span className="text-sm font-medium">{file.name || ''}</span>
                           <Badge variant="outline" className="text-xs">
                             {(file.size / 1024 / 1024).toFixed(1)} MB
                           </Badge>
@@ -443,8 +443,8 @@ const CreateEducationalContent = () => {
                       </div>
                     </div>
                     
-                    <h4 className="font-semibold mb-2">{template.title}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                    <h4 className="font-semibold mb-2">{template.title || ''}</h4>
+                    <p className="text-sm text-gray-600 mb-3">{template.description || ''}</p>
                     
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
                       <span>{template.downloads} téléchargements</span>
@@ -478,7 +478,7 @@ const CreateEducationalContent = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
@@ -524,7 +524,7 @@ const CreateEducationalContent = () => {
               >
                 <div className="flex items-center gap-2">
                   <Icon className="w-4 h-4" />
-                  {tab.name}
+                  {tab.name || ''}
                 </div>
               </button>
             );
@@ -546,7 +546,7 @@ const CreateEducationalContent = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">{t.contentTitle}</label>
                 <Input
-                  value={currentContent.title}
+                  value={currentContent.title || ''}
                   onChange={(e) => setCurrentContent(prev => ({ ...prev, title: e?.target?.value }))}
                   placeholder="Titre du contenu..."
                 />
@@ -560,16 +560,16 @@ const CreateEducationalContent = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {(Array.isArray(contentTypes) ? contentTypes : []).map(type => (
-                    <option key={type.id} value={type.id}>{type.name}</option>
+                    <option key={type.id} value={type.id}>{type.name || ''}</option>
                   ))}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">{t.description}</label>
+              <label className="block text-sm font-medium mb-2">{t.description || ''}</label>
               <Textarea
-                value={currentContent.description}
+                value={currentContent.description || ''}
                 onChange={(e) => setCurrentContent(prev => ({ ...prev, description: e?.target?.value }))}
                 placeholder="Description du contenu..."
                 rows={3}
@@ -585,7 +585,7 @@ const CreateEducationalContent = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {(Array.isArray(subjects) ? subjects : []).map(subject => (
-                    <option key={subject.id} value={subject.id}>{subject.name}</option>
+                    <option key={subject.id} value={subject.id}>{subject.name || ''}</option>
                   ))}
                 </select>
               </div>
@@ -598,7 +598,7 @@ const CreateEducationalContent = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {(Array.isArray(levels) ? levels : []).map(level => (
-                    <option key={level.id} value={level.id}>{level.name}</option>
+                    <option key={level.id} value={level.id}>{level.name || ''}</option>
                   ))}
                 </select>
               </div>

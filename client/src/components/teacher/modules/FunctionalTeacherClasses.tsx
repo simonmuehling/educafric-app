@@ -113,7 +113,7 @@ const FunctionalTeacherClasses: React.FC = () => {
     );
   }
 
-  const totalStudents = Array.isArray(classes) ? classes.reduce((sum, cls) => sum + (cls.studentCount || 0), 0) : 0;
+  const totalStudents = Array.isArray(classes) ? (Array.isArray(classes) ? classes : []).reduce((sum, cls) => sum + (cls.studentCount || 0), 0) : 0;
   const currentAcademicYear = Array.isArray(classes) && classes.length > 0 ? classes[0]?.academicYear || '2024-2025' : '2024-2025';
 
   return (
@@ -121,7 +121,7 @@ const FunctionalTeacherClasses: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button 
@@ -303,7 +303,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                       <BookOpen className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{cls.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{cls.name || ''}</h3>
                       <p className="text-sm text-gray-600">
                         {cls.level} - {cls.section} • {cls.schoolName}
                       </p>
@@ -352,7 +352,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     onClick={() => {
                       toast({
                         title: language === 'fr' ? 'Liste des élèves' : 'Student List',
-                        description: language === 'fr' ? `Affichage des ${cls.studentCount} élèves de ${cls.name}` : `Showing ${cls.studentCount} students from ${cls.name}`
+                        description: language === 'fr' ? `Affichage des ${cls.studentCount} élèves de ${cls.name || ''}` : `Showing ${cls.studentCount} students from ${cls.name || ''}`
                       });
                     }}
                     data-testid={`button-view-students-${cls.id}`}
@@ -368,7 +368,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                       window.dispatchEvent(event);
                       toast({
                         title: language === 'fr' ? 'Présences' : 'Attendance',
-                        description: language === 'fr' ? `Module de présences ouvert pour ${cls.name}` : `Attendance module opened for ${cls.name}`
+                        description: language === 'fr' ? `Module de présences ouvert pour ${cls.name || ''}` : `Attendance module opened for ${cls.name || ''}`
                       });
                     }}
                     data-testid={`button-take-attendance-${cls.id}`}
@@ -384,7 +384,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                       window.dispatchEvent(event);
                       toast({
                         title: language === 'fr' ? 'Gestion des notes' : 'Grade Management',
-                        description: language === 'fr' ? `Module de notes ouvert pour ${cls.name}` : `Grade management opened for ${cls.name}`
+                        description: language === 'fr' ? `Module de notes ouvert pour ${cls.name || ''}` : `Grade management opened for ${cls.name || ''}`
                       });
                     }}
                     data-testid={`button-manage-grades-${cls.id}`}
@@ -398,7 +398,7 @@ const FunctionalTeacherClasses: React.FC = () => {
                     onClick={() => {
                       toast({
                         title: language === 'fr' ? 'Paramètres classe' : 'Class Settings',
-                        description: language === 'fr' ? `Configuration de la classe ${cls.name}` : `Configuration for class ${cls.name}`
+                        description: language === 'fr' ? `Configuration de la classe ${cls.name || ''}` : `Configuration for class ${cls.name || ''}`
                       });
                     }}
                     data-testid={`button-settings-${cls.id}`}

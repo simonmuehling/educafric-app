@@ -239,7 +239,7 @@ const FunctionalCommercialSettings: React.FC = () => {
               <label className="text-sm font-medium">{t?.profile?.firstName}</label>
               <input
                 type="text"
-                value={profileForm.firstName}
+                value={profileForm.firstName || ''}
                 onChange={(e) => setProfileForm(prev => ({ ...prev, firstName: e.target.value }))}
                 disabled={!isEditing}
                 className="w-full border rounded-md px-3 py-2 disabled:bg-gray-100"
@@ -250,7 +250,7 @@ const FunctionalCommercialSettings: React.FC = () => {
               <label className="text-sm font-medium">{t?.profile?.lastName}</label>
               <input
                 type="text"
-                value={profileForm.lastName}
+                value={profileForm.lastName || ''}
                 onChange={(e) => setProfileForm(prev => ({ ...prev, lastName: e.target.value }))}
                 disabled={!isEditing}
                 className="w-full border rounded-md px-3 py-2 disabled:bg-gray-100"
@@ -261,7 +261,7 @@ const FunctionalCommercialSettings: React.FC = () => {
               <label className="text-sm font-medium">{t?.profile?.email}</label>
               <input
                 type="email"
-                value={profileForm.email}
+                value={profileForm.email || ''}
                 onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
                 disabled={!isEditing}
                 className="w-full border rounded-md px-3 py-2 disabled:bg-gray-100"
@@ -482,7 +482,7 @@ const FunctionalCommercialSettings: React.FC = () => {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
         <p className="text-gray-600 mt-1">{t.subtitle}</p>
       </div>
 

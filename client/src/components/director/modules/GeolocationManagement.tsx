@@ -149,7 +149,7 @@ const GeolocationManagement: React.FC = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-blue-600" />
-                {t.title}
+                {t.title || ''}
               </h2>
               <p className="text-gray-600 mt-1">{t.subtitle}</p>
             </div>
@@ -294,7 +294,7 @@ const GeolocationManagement: React.FC = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">{getDeviceIcon(device.type)}</span>
-                        <span className="font-medium">{device.name}</span>
+                        <span className="font-medium">{device.name || ''}</span>
                       </div>
                     </td>
                     <td className="p-4">{device.studentName}</td>

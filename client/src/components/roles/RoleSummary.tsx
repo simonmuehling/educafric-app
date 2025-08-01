@@ -170,9 +170,9 @@ export default function RoleSummary() {
                   <role.icon className="h-8 w-8" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">{role.title}</CardTitle>
+                  <CardTitle className="text-xl font-bold">{role.title || ''}</CardTitle>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                    {role.description}
+                    {role.description || ''}
                   </p>
                 </div>
               </div>

@@ -171,9 +171,9 @@ const FreelancerClasses = () => {
   }
 
   // Calculate statistics
-  const totalStudents = (Array.isArray(students) ? students.length : 0);
+  const totalStudents = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0);
   const activeStudents = (Array.isArray(students) ? students : []).filter((s: any) => s.status === 'active').length;
-  const monthlyEarnings = students.reduce((sum: number, s: any) => 
+  const monthlyEarnings = (Array.isArray(students) ? students : []).reduce((sum: number, s: any) => 
     sum + ((s.hourlyRate || 0) * (s.weeklyHours || 0) * 4), 0);
   const sessionsThisWeek = (Array.isArray(sessions) ? sessions : []).filter((s: any) => {
     const sessionDate = new Date(s.date);
@@ -236,7 +236,7 @@ const FreelancerClasses = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -262,7 +262,7 @@ const FreelancerClasses = () => {
 
         {/* Students List */}
         <div className="space-y-4">
-          {(Array.isArray(students) ? students.length : 0) === 0 ? (
+          {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {t.noStudents}
             </div>
@@ -281,7 +281,7 @@ const FreelancerClasses = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h4 className="font-semibold text-gray-900 text-lg">{student.name}</h4>
+                          <h4 className="font-semibold text-gray-900 text-lg">{student.name || ''}</h4>
                           <Badge className={getPaymentColor(paymentStatus)}>
                             {t[paymentStatus as keyof typeof t] || paymentStatus}
                           </Badge>

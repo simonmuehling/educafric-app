@@ -525,7 +525,7 @@ const BulletinFinalizer: React.FC = () => {
                 {(Array.isArray(uniqueClasses) ? uniqueClasses : []).map((cls) => (
                   <div key={cls.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">{cls.name}</h4>
+                      <h4 className="font-medium">{cls.name || ''}</h4>
                       <p className="text-sm text-gray-600">
                         {cls.bulletinCount} {language === 'fr' ? 'bulletins' : 'bulletins'}
                       </p>
@@ -567,7 +567,7 @@ const BulletinFinalizer: React.FC = () => {
                         }}
                       />
                       <Label htmlFor={`class-${cls.id}`} className="text-sm">
-                        {cls.name} ({cls.bulletinCount} bulletins)
+                        {cls.name || ''} ({cls.bulletinCount} bulletins)
                       </Label>
                     </div>
                   ))}

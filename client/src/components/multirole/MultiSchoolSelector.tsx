@@ -98,7 +98,7 @@ export default function MultiSchoolSelector({ className }: MultiSchoolSelectorPr
             {(Array.isArray(schools) ? schools : []).map((school) => (
               <SelectItem key={school.id} value={school?.id?.toString()}>
                 <div className="flex items-center gap-2">
-                  <span>{school.name}</span>
+                  <span>{school.name || ''}</span>
                   {school.isActive && (
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   )}

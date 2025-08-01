@@ -164,7 +164,7 @@ const SchoolSettings: React.FC = () => {
                   </Label>
                   {isEditing ? (
                     <Input
-                      value={schoolData.name}
+                      value={schoolData.name || ''}
                       onChange={(e) => setSchoolData({...schoolData, name: e?.target?.value})}
                       className="mt-1"
                     />
@@ -214,12 +214,12 @@ const SchoolSettings: React.FC = () => {
                 {isEditing ? (
                   <Input
                     type="email"
-                    value={schoolData.email}
+                    value={schoolData.email || ''}
                     onChange={(e) => setSchoolData({...schoolData, email: e?.target?.value})}
                     className="mt-1"
                   />
                 ) : (
-                  <p className="mt-1 text-gray-900 font-mono">{schoolData.email}</p>
+                  <p className="mt-1 text-gray-900 font-mono">{schoolData.email || ''}</p>
                 )}
               </div>
             </div>

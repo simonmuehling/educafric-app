@@ -175,6 +175,7 @@ const PaymentConfirmation = () => {
   };
 
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter(payment => {
+    if (!payment) return false;
     const matchesSearch = payment?.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment?.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment?.contact?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -197,7 +198,7 @@ const PaymentConfirmation = () => {
           <DollarSign className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -250,7 +251,7 @@ const PaymentConfirmation = () => {
                          payment.status === 'pending' ? t.pending : t.rejected}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600">{payment.description}</p>
+                    <p className="text-sm text-gray-600">{payment.description || ''}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span>{t.reference}: {payment.reference}</span>
                       <span>{t.date}: {payment.date}</span>
@@ -315,7 +316,7 @@ const PaymentConfirmation = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {payments.reduce((sum, p) => sum + (p.status === 'confirmed' ? p.amount : 0), 0).toLocaleString()}
+              {(Array.isArray(payments) ? payments : []).reduce((sum, p) => sum + (p.status === 'confirmed' ? p.amount : 0), 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-600">{language === 'fr' ? 'Total Confirmé' : 'Total Confirmed'}</div>
           </CardContent>
@@ -323,7 +324,7 @@ const PaymentConfirmation = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-purple-600">
-              {payments.reduce((sum, p) => sum + (p.status === 'pending' ? p.amount : 0), 0).toLocaleString()}
+              {(Array.isArray(payments) ? payments : []).reduce((sum, p) => sum + (p.status === 'pending' ? p.amount : 0), 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-600">{language === 'fr' ? 'En Cours' : 'In Progress'}</div>
           </CardContent>

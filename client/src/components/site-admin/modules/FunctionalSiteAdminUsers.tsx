@@ -233,10 +233,11 @@ const FunctionalSiteAdminUsers: React.FC = () => {
     suspended: 45
   };
 
-  const filteredUsers = mockUsers.filter(user => {
-    const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = (Array.isArray(mockUsers) ? mockUsers : []).filter(user => {
+    if (!user) return false;
+    const matchesSearch = (user.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (user.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
     
@@ -272,7 +273,7 @@ const FunctionalSiteAdminUsers: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -417,14 +418,14 @@ const FunctionalSiteAdminUsers: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {(Array.isArray(filteredUsers) ? filteredUsers : []).map((user) => (
                   <tr key={user.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-2">
                       <div>
                         <div className="font-medium">
-                          {user.firstName} {user.lastName}
+                          {user.firstName || ''} {user.lastName || ''}
                         </div>
-                        <div className="text-sm text-gray-600">{user.email}</div>
+                        <div className="text-sm text-gray-600">{user.email || ''}</div>
                         <div className="text-xs text-gray-500">{user.phone}</div>
                       </div>
                     </td>

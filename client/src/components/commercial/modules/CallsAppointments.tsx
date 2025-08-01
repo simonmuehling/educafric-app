@@ -338,7 +338,7 @@ const CallsAppointments = () => {
           <Phone className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -422,7 +422,7 @@ const CallsAppointments = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {calls.reduce((sum, call) => sum + parseInt(call.duration), 0)}
+              {(Array.isArray(calls) ? calls : []).reduce((sum, call) => sum + parseInt(call.duration), 0)}
             </div>
             <div className="text-sm text-gray-600">{language === 'fr' ? 'Minutes Totales' : 'Total Minutes'}</div>
           </CardContent>

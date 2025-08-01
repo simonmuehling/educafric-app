@@ -377,8 +377,8 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
                     {selectedTopic.readTime} min
                   </div>
                 </div>
-                <CardTitle className="text-2xl">{selectedTopic.title}</CardTitle>
-                <CardDescription className="text-lg">{selectedTopic.description}</CardDescription>
+                <CardTitle className="text-2xl">{selectedTopic.title || ''}</CardTitle>
+                <CardDescription className="text-lg">{selectedTopic.description || ''}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -401,7 +401,7 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
                   {(Array.isArray(selectedTopic.downloadLinks) ? selectedTopic.downloadLinks : []).map((link, index) => (
                     <Button key={index} variant="outline" size="sm" className="w-full justify-start">
                       <FileText className="w-4 h-4 mr-2" />
-                      {link.title}
+                      {link.title || ''}
                     </Button>
                   ))}
                 </div>
@@ -437,10 +437,10 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
           <div className={`p-3 rounded-lg ${config.color} text-white`}>
             {config.icon}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{config.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{config.title || ''}</h1>
         </div>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          {config.description}
+          {config.description || ''}
         </p>
       </div>
 
@@ -492,7 +492,7 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-xl">
                 {section.icon}
-                {section.title}
+                {section.title || ''}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -520,8 +520,8 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       </div>
-                      <h3 className="font-semibold mb-2">{topic.title}</h3>
-                      <p className="text-sm text-gray-600">{topic.description}</p>
+                      <h3 className="font-semibold mb-2">{topic.title || ''}</h3>
+                      <p className="text-sm text-gray-600">{topic.description || ''}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -578,10 +578,10 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
           </div>
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {config.title}
+          {config.title || ''}
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          {config.description}
+          {config.description || ''}
         </p>
       </div>
 
@@ -632,7 +632,7 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-xl">
                   {section.icon}
-                  {section.title}
+                  {section.title || ''}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -660,8 +660,8 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
                           </div>
                           <ChevronRight className="w-4 h-4 text-gray-400" />
                         </div>
-                        <h3 className="font-semibold mb-2">{topic.title}</h3>
-                        <p className="text-sm text-gray-600">{topic.description}</p>
+                        <h3 className="font-semibold mb-2">{topic.title || ''}</h3>
+                        <p className="text-sm text-gray-600">{topic.description || ''}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -733,10 +733,10 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
           <div className={`p-3 rounded-lg ${config.color} text-white`}>
             {config.icon}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{config.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{config.title || ''}</h1>
         </div>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          {config.description}
+          {config.description || ''}
         </p>
       </div>
 
@@ -788,7 +788,7 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-xl">
                 {section.icon}
-                {section.title}
+                {section.title || ''}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -816,8 +816,8 @@ export default function HelpCenter({ userType }: HelpCenterProps) {
                         </div>
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       </div>
-                      <h3 className="font-semibold mb-2">{topic.title}</h3>
-                      <p className="text-sm text-gray-600">{topic.description}</p>
+                      <h3 className="font-semibold mb-2">{topic.title || ''}</h3>
+                      <p className="text-sm text-gray-600">{topic.description || ''}</p>
                     </CardContent>
                   </Card>
                 ))}

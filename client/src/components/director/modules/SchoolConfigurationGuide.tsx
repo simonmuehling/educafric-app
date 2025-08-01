@@ -198,8 +198,8 @@ const SchoolConfigurationGuide: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Icon className="w-5 h-5 text-blue-600" />
                     <div>
-                      <div className="font-medium">{config.title}</div>
-                      <div className="text-sm text-gray-600">{config.description}</div>
+                      <div className="font-medium">{config.title || ''}</div>
+                      <div className="text-sm text-gray-600">{config.description || ''}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

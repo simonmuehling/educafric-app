@@ -223,10 +223,11 @@ const FunctionalSiteAdminSchools: React.FC = () => {
     totalRevenue: 12500000
   };
 
-  const filteredSchools = mockSchools.filter(school => {
-    const matchesSearch = school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         school.director.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         school.location.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSchools = (Array.isArray(mockSchools) ? mockSchools : []).filter(school => {
+    if (!school) return false;
+    const matchesSearch = (school.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (school.director || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (school.location || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlan = planFilter === 'all' || school.plan === planFilter;
     const matchesStatus = statusFilter === 'all' || school.status === statusFilter;
     
@@ -266,7 +267,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -391,13 +392,13 @@ const FunctionalSiteAdminSchools: React.FC = () => {
 
       {/* Schools Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredSchools.map((school) => (
+        {(Array.isArray(filteredSchools) ? filteredSchools : []).map((school) => (
           <Card key={school.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {school.name}
+                    {school.name || ''}
                   </h3>
                   <p className="text-sm text-gray-600">{school.director}</p>
                   <div className="flex items-center mt-2 text-sm text-gray-500">
@@ -462,7 +463,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 text-gray-500 mr-2" />
-                    <span className="text-blue-600">{school.email}</span>
+                    <span className="text-blue-600">{school.email || ''}</span>
                   </div>
                 </div>
 
@@ -517,7 +518,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">{selectedSchool.name}</h2>
+              <h2 className="text-2xl font-bold">{selectedSchool.name || ''}</h2>
               <Button
                 variant="outline"
                 onClick={() => setSelectedSchool(null)}
@@ -533,7 +534,7 @@ const FunctionalSiteAdminSchools: React.FC = () => {
                   <div><strong>Directeur:</strong> {selectedSchool.director}</div>
                   <div><strong>Adresse:</strong> {selectedSchool.address}</div>
                   <div><strong>Téléphone:</strong> {selectedSchool.phone}</div>
-                  <div><strong>Email:</strong> {selectedSchool.email}</div>
+                  <div><strong>Email:</strong> {selectedSchool.email || ''}</div>
                   {selectedSchool.website && (
                     <div><strong>Site web:</strong> {selectedSchool.website}</div>
                   )}

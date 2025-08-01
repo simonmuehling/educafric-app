@@ -328,7 +328,7 @@ const CommunicationsCenter: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <MessageSquare className="w-8 h-8 text-blue-600" />
-              {t.title}
+              {t.title || ''}
             </h1>
             <p className="text-gray-600 mt-2">{t.subtitle}</p>
           </div>

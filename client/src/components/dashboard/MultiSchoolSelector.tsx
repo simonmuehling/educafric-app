@@ -153,12 +153,12 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
               <ChevronDown className="w-4 h-4 ml-2" />
             </SelectTrigger>
             <SelectContent>
-              {schools.(Array.isArray(affiliatedSchools) ? affiliatedSchools : []).map((school) => (
+              {schools.affiliatedSchools.map((school) => (
                 <SelectItem key={school.id} value={school?.id?.toString()}>
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center gap-2">
                       <Building className="w-4 h-4" />
-                      <span>{school.name}</span>
+                      <span>{school.name || ''}</span>
                     </div>
                     {school.position && (
                       <Badge variant="outline" className="ml-2 text-xs">

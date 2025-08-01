@@ -243,14 +243,14 @@ const CommercialDocumentManagement: React.FC = () => {
   const handleDownload = async (doc: CommercialDocument) => {
     try {
       // Simulation de téléchargement - créer un blob avec le contenu du document
-      const content = `EDUCAFRIC - Document Commercial\n\nTitre: ${doc.title}\nType: ${doc.type}\nStatut: ${doc.status}\n\nContenu:\n${doc.content}\n\nClient: ${doc.clientInfo?.name || 'N/A'}\nEmail: ${doc.clientInfo?.email || 'N/A'}\nInstitution: ${doc.clientInfo?.institution || 'N/A'}`;
+      const content = `EDUCAFRIC - Document Commercial\n\nTitre: ${doc.title || ''}\nType: ${doc.type}\nStatut: ${doc.status}\n\nContenu:\n${doc.content}\n\nClient: ${doc.clientInfo?.name || 'N/A'}\nEmail: ${doc.clientInfo?.email || 'N/A'}\nInstitution: ${doc.clientInfo?.institution || 'N/A'}`;
       
       const blob = new Blob([content], { type: 'text/plain' });
       const url = window.URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${doc.title}.txt`;
+      a.download = `${doc.title || ''}.txt`;
       window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -258,7 +258,7 @@ const CommercialDocumentManagement: React.FC = () => {
       
       toast({
         title: "Document téléchargé",
-        description: `${doc.title} a été téléchargé`,
+        description: `${doc.title || ''} a été téléchargé`,
       });
     } catch (error) {
       toast({
@@ -329,7 +329,7 @@ const CommercialDocumentManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
       </div>
@@ -364,9 +364,9 @@ const CommercialDocumentManagement: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {documents.map((document: CommercialDocument) => (
+                {(Array.isArray(documents) ? documents : []).map((document: CommercialDocument) => (
                   <TableRow key={document.id}>
-                    <TableCell className="font-medium">{document.title}</TableCell>
+                    <TableCell className="font-medium">{document.title || ''}</TableCell>
                     <TableCell>{getTypeBadge(document.type)}</TableCell>
                     <TableCell>{getStatusBadge(document.status)}</TableCell>
                     <TableCell>
@@ -460,7 +460,7 @@ const CommercialDocumentManagement: React.FC = () => {
                   <>
                     <div>
                       <h4 className="font-semibold text-sm text-gray-700">Client</h4>
-                      <p className="text-sm">{selectedDocument.clientInfo.name}</p>
+                      <p className="text-sm">{(selectedDocument.clientInfo.name || '')}</p>
                     </div>
                     <div>
                       <h4 className="font-semibold text-sm text-gray-700">Institution</h4>

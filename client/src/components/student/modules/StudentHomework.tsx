@@ -179,7 +179,7 @@ const StudentHomework: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
 
@@ -280,7 +280,7 @@ const StudentHomework: React.FC = () => {
                         <option value="">Sélectionner un devoir</option>
                         {(homework || []).filter(hw => hw.status === 'pending').map(hw => (
                           <option key={hw.id} value={hw.id}>
-                            {hw.subject} - {hw.title}
+                            {hw.subject} - {hw.title || ''}
                           </option>
                         ))}
                       </select>
@@ -326,7 +326,7 @@ const StudentHomework: React.FC = () => {
               <CardHeader className="pb-3 bg-white">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-gray-900 mb-2">{hw.title}</h3>
+                    <h3 className="font-semibold text-lg text-gray-900 mb-2">{hw.title || ''}</h3>
                     <div className="flex gap-2 mb-2">
                       <Badge className={getStatusColor(hw.status)}>
                         {t.status[hw.status as keyof typeof t.status] || hw.status}
@@ -354,7 +354,7 @@ const StudentHomework: React.FC = () => {
                     <User className="w-4 h-4" />
                     <span>{hw.teacher}</span>
                   </div>
-                  <p className="text-sm text-gray-700 line-clamp-2">{hw.description}</p>
+                  <p className="text-sm text-gray-700 line-clamp-2">{hw.description || ''}</p>
                   
                   <div className="flex gap-2 pt-2">
                     <Dialog>
@@ -370,7 +370,7 @@ const StudentHomework: React.FC = () => {
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl bg-white">
                         <DialogHeader className="bg-white">
-                          <DialogTitle>{hw.title}</DialogTitle>
+                          <DialogTitle>{hw.title || ''}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 bg-white">
                           <div className="grid grid-cols-2 gap-4">
@@ -396,8 +396,8 @@ const StudentHomework: React.FC = () => {
                             </div>
                           </div>
                           <div>
-                            <Label className="text-sm font-medium">{t.description}</Label>
-                            <p className="text-sm text-gray-700 mt-1">{hw.description}</p>
+                            <Label className="text-sm font-medium">{t.description || ''}</Label>
+                            <p className="text-sm text-gray-700 mt-1">{hw.description || ''}</p>
                           </div>
                           
                           {hw.status !== 'completed' && (

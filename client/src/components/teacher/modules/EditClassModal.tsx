@@ -91,7 +91,7 @@ const EditClassModal = ({ isOpen, onClose, classData, onSave }: EditClassModalPr
     onSave(updatedClass);
     toast({
       title: language === 'fr' ? 'Classe modifiée' : 'Class updated',
-      description: language === 'fr' ? `${formData.name} a été modifiée avec succès` : `${formData.name} has been updated successfully`
+      description: language === 'fr' ? `${formData.name || ''} a été modifiée avec succès` : `${formData.name || ''} has been updated successfully`
     });
     onClose();
   };
@@ -103,7 +103,7 @@ const EditClassModal = ({ isOpen, onClose, classData, onSave }: EditClassModalPr
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -124,7 +124,7 @@ const EditClassModal = ({ isOpen, onClose, classData, onSave }: EditClassModalPr
             </Label>
             <Input
               id="className"
-              value={formData.name}
+              value={formData.name || ''}
               onChange={(e) => handleInputChange('name', e?.target?.value)}
               placeholder={t?.placeholders?.className}
               className="mt-1"
@@ -196,11 +196,11 @@ const EditClassModal = ({ isOpen, onClose, classData, onSave }: EditClassModalPr
           {/* Description */}
           <div>
             <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-              {t.description}
+              {t.description || ''}
             </Label>
             <Textarea
               id="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) => handleInputChange('description', e?.target?.value)}
               placeholder={t?.placeholders?.description}
               className="mt-1"

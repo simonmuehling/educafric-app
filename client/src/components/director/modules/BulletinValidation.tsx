@@ -548,7 +548,7 @@ const BulletinValidation: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
           <CheckCircle className="w-6 h-6 mr-3 text-blue-600" />
-          {text.title}
+          {text.title || ''}
         </h2>
         <p className="text-gray-600 mt-1">{text.subtitle}</p>
       </div>

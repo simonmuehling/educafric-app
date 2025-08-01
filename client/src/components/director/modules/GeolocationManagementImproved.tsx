@@ -467,7 +467,7 @@ const GeolocationManagementImproved: React.FC = () => {
 
     toast({
       title: t.zoneAdded,
-      description: `${zoneForm.name} - Rayon: ${zoneForm.radius}m`
+      description: `${zoneForm.name || ''} - Rayon: ${zoneForm.radius}m`
     });
     
     setShowAddZoneModal(false);
@@ -525,7 +525,7 @@ const GeolocationManagementImproved: React.FC = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
                 <MapPin className="w-6 h-6 text-blue-600" />
-                {t.title}
+                {t.title || ''}
               </h2>
               <p className="text-gray-600 mt-1">{t.subtitle}</p>
             </div>
@@ -662,7 +662,7 @@ const GeolocationManagementImproved: React.FC = () => {
                       <td className="p-3">
                         <div className="flex items-center gap-2">
                           <span className="text-lg">{getDeviceIcon(device.type)}</span>
-                          {device.name}
+                          {device.name || ''}
                         </div>
                       </td>
                       <td className="p-3">{device.studentName}</td>
@@ -672,7 +672,7 @@ const GeolocationManagementImproved: React.FC = () => {
                       <td className="p-3">{device.battery}</td>
                       <td className="p-3">
                         <MobileActionsOverlay
-                          title={`${device.name} Actions`}
+                          title={`${device.name || ''} Actions`}
                           actions={[
                             {
                               id: `view-location-${device.id}`,
@@ -785,7 +785,7 @@ const GeolocationManagementImproved: React.FC = () => {
                         }`}
                       >
                         <div className="text-3xl mb-2">{device.icon}</div>
-                        <h4 className="font-semibold text-sm">{device.name}</h4>
+                        <h4 className="font-semibold text-sm">{device.name || ''}</h4>
                         <p className="text-xs text-gray-500">{device.desc}</p>
                       </div>
                     ))}
@@ -841,7 +841,7 @@ const GeolocationManagementImproved: React.FC = () => {
                     <div className="space-y-1 text-sm">
                       <p><strong>{language === 'fr' ? 'Nom' : 'Name'}:</strong> {selectedStudent.fullName}</p>
                       <p><strong>{language === 'fr' ? 'Classe' : 'Class'}:</strong> {selectedStudent.className}</p>
-                      <p><strong>Email:</strong> {selectedStudent.email}</p>
+                      <p><strong>Email:</strong> {selectedStudent.email || ''}</p>
                     </div>
                     <h4 className="font-semibold text-blue-800 flex items-center gap-2 mt-3 mb-2">
                       <Phone className="w-4 h-4" />
@@ -1025,7 +1025,7 @@ const GeolocationManagementImproved: React.FC = () => {
                   <Label htmlFor="zoneName">{t.zoneName} *</Label>
                   <Input
                     id="zoneName"
-                    value={zoneForm.name}
+                    value={zoneForm.name || ''}
                     onChange={(e) => setZoneForm(prev => ({ ...prev, name: e?.target?.value }))}
                     placeholder={language === 'fr' ? 'Ex: École, Maison, Bibliothèque' : 'Ex: School, Home, Library'}
                   />
@@ -1035,7 +1035,7 @@ const GeolocationManagementImproved: React.FC = () => {
                   <Label htmlFor="zoneDescription">{t.zoneDescription}</Label>
                   <Textarea
                     id="zoneDescription"
-                    value={zoneForm.description}
+                    value={zoneForm.description || ''}
                     onChange={(e) => setZoneForm(prev => ({ ...prev, description: e?.target?.value }))}
                     placeholder={language === 'fr' ? 'Description de la zone sécurisée' : 'Safe zone description'}
                     rows={2}

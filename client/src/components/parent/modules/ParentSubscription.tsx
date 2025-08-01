@@ -196,7 +196,7 @@ const ParentSubscription = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
         <p className="text-gray-600 mt-1">{t.subtitle}</p>
       </div>
 
@@ -307,7 +307,7 @@ const ParentSubscription = () => {
               )}
 
               <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name || ''}</h3>
                 <div className="text-3xl font-bold text-gray-900">
                   {plan?.price?.toLocaleString()} CFA
                 </div>

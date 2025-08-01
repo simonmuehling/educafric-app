@@ -164,8 +164,8 @@ export default function MultiRoleManagement() {
                         <UserCog className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <h4 className="font-medium">{user.name}</h4>
-                        <p className="text-sm text-gray-600">{user.email}</p>
+                        <h4 className="font-medium">{user.name || ''}</h4>
+                        <p className="text-sm text-gray-600">{user.email || ''}</p>
                         <p className="text-xs text-gray-500">{user.school}</p>
                       </div>
                     </div>
@@ -175,7 +175,7 @@ export default function MultiRoleManagement() {
                           <Badge className="bg-blue-100 text-blue-800">
                             {availableRoles.find(r => r.value === user.primaryRole)?.label}
                           </Badge>
-                          {user.(Array.isArray(secondaryRoles) ? secondaryRoles : []).map((role, index) => (
+                          {user.secondaryRoles.map((role, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {availableRoles.find(r => r.value === role)?.label}
                             </Badge>
@@ -295,8 +295,8 @@ export default function MultiRoleManagement() {
                     <Shield className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium">{admin.name}</h4>
-                    <p className="text-sm text-gray-600">{admin.email}</p>
+                    <h4 className="font-medium">{admin.name || ''}</h4>
+                    <p className="text-sm text-gray-600">{admin.email || ''}</p>
                     <div className="flex items-center space-x-2 mt-1">
                       <Badge className="bg-red-100 text-red-800 text-xs">{admin.role}</Badge>
                       <span className="text-xs text-gray-500">Région {admin.region}</span>
@@ -305,7 +305,7 @@ export default function MultiRoleManagement() {
                 </div>
                 <div className="text-right">
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {admin.(Array.isArray(permissions) ? permissions : []).map((perm, index) => (
+                    {admin.permissions.map((perm, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {perm}
                       </Badge>
@@ -328,8 +328,8 @@ export default function MultiRoleManagement() {
           {selectedUser && (
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium">{selectedUser.name}</h4>
-                <p className="text-sm text-gray-600">{selectedUser.email}</p>
+                <h4 className="font-medium">{selectedUser.name || ''}</h4>
+                <p className="text-sm text-gray-600">{selectedUser.email || ''}</p>
               </div>
               
               <div>

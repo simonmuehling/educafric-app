@@ -182,7 +182,7 @@ export const ParentResources = () => {
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -229,16 +229,16 @@ export const ParentResources = () => {
                 {category.icon}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800">{category.title}</h3>
-                <p className="text-gray-600 text-sm">{category.description}</p>
+                <h3 className="text-lg font-semibold text-gray-800">{category.title || ''}</h3>
+                <p className="text-gray-600 text-sm">{category.description || ''}</p>
               </div>
             </div>
 
             <div className="space-y-3">
-              {category.(Array.isArray(resources) ? resources : []).map((resource, resourceIndex) => (
+              {category.resources.map((resource, resourceIndex) => (
                 <div key={resourceIndex} className="bg-white rounded-lg p-4 border border-gray-200">
                   <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-medium text-gray-800 flex-1">{resource.title}</h4>
+                    <h4 className="font-medium text-gray-800 flex-1">{resource.title || ''}</h4>
                     {getResourceTypeBadge(resource.type)}
                   </div>
                   <div className="flex items-center justify-between">
@@ -297,7 +297,7 @@ export const ParentResources = () => {
               <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-opacity-30 transition-all">
                 {link.icon}
               </div>
-              <span className="text-sm font-semibold">{link.title}</span>
+              <span className="text-sm font-semibold">{link.title || ''}</span>
             </button>
           ))}
         </div>

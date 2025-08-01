@@ -486,7 +486,7 @@ const InteractiveSchoolConfigurationGuide = () => {
               {t.requirements}
             </h3>
             <ul className="space-y-2">
-              {selectedStep.(Array.isArray(requirements) ? requirements : []).map((req, index) => (
+              {selectedStep.requirements.map((req, index) => (
                 <li key={index} className="flex items-center gap-2 text-sm">
                   <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                   {req}
@@ -539,7 +539,7 @@ const InteractiveSchoolConfigurationGuide = () => {
       <ModernCard className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold mb-2">{t.title}</h1>
+            <h1 className="text-2xl font-bold mb-2">{t.title || ''}</h1>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
           <div className="text-right">

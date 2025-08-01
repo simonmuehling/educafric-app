@@ -141,7 +141,7 @@ export default function TwoFactorSetup() {
   const downloadBackupCodes = () => {
     if (!setupData) return;
     
-    const codesText = setupData.(Array.isArray(backupCodes) ? backupCodes : []).map((code, index) => `${index + 1}. ${code}`).join('\n');
+    const codesText = setupData.backupCodes.map((code, index) => `${index + 1}. ${code}`).join('\n');
     const blob = new Blob([`Educafric 2FA Backup Codes\n\n${codesText}\n\nStore these codes securely. Each can only be used once.`], 
       { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -205,7 +205,7 @@ export default function TwoFactorSetup() {
                 <div className="flex items-center justify-between">
                   <span>Available Methods</span>
                   <div className="flex gap-1">
-                    {status.(Array.isArray(methods) ? methods : []).map(method => (
+                    {status.methods.map(method => (
                       <Badge key={method} variant="outline">{method}</Badge>
                     ))}
                   </div>
@@ -311,7 +311,7 @@ export default function TwoFactorSetup() {
             <div className="space-y-2">
               <h4 className="font-medium">Setup Instructions:</h4>
               <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
-                {setupData.instructions.(Array.isArray(steps) ? steps : []).map((step, index) => (
+                {setupData.instructions.steps.map((step, index) => (
                   <li key={index}>{step}</li>
                 ))}
               </ol>
@@ -371,7 +371,7 @@ export default function TwoFactorSetup() {
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="grid grid-cols-2 gap-2 font-mono text-sm">
-                {setupData.(Array.isArray(backupCodes) ? backupCodes : []).map((code, index) => (
+                {setupData.backupCodes.map((code, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span>{index + 1}. {code}</span>
                   </div>

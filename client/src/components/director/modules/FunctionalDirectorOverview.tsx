@@ -108,10 +108,10 @@ export function FunctionalDirectorOverview() {
                   {stat.value}
                 </h3>
                 <p className="text-sm font-medium text-gray-600 mb-1">
-                  {stat.title}
+                  {stat.title || ''}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {stat.description}
+                  {stat.description || ''}
                 </p>
               </div>
             </ModernCard>

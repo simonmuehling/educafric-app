@@ -283,7 +283,7 @@ const DeviceConfigurationGuide = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600 text-lg">{t.subtitle}</p>
         </div>
 
@@ -302,7 +302,7 @@ const DeviceConfigurationGuide = () => {
                   onClick={() => setSelectedDevice(key)}
                 >
                   {device.icon}
-                  <span>{device.name}</span>
+                  <span>{device.name || ''}</span>
                 </Button>
               ))}
             </div>
@@ -321,7 +321,7 @@ const DeviceConfigurationGuide = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {currentDevice.(Array.isArray(requirements) ? requirements : []).map((req, index) => (
+                {currentDevice.requirements.map((req, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <CheckCircle className="w-5 h-5 text-green-500" />
                     <span className="text-sm">{req}</span>
@@ -341,7 +341,7 @@ const DeviceConfigurationGuide = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {currentDevice.(Array.isArray(features) ? features : []).map((feature, index) => (
+                {currentDevice.features.map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-sm">{feature}</span>
@@ -362,7 +362,7 @@ const DeviceConfigurationGuide = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {currentDevice.(Array.isArray(steps) ? steps : []).map((step, index) => (
+              {currentDevice.steps.map((step, index) => (
                 <div key={index} className="flex items-start gap-4 p-4 border rounded-lg">
                   <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-semibold text-blue-600">
                     {index + 1}
@@ -370,10 +370,10 @@ const DeviceConfigurationGuide = () => {
                   <div className="flex-grow">
                     <div className="flex items-center gap-3 mb-2">
                       {step.icon}
-                      <h3 className="font-semibold">{step.title}</h3>
+                      <h3 className="font-semibold">{step.title || ''}</h3>
                       {getStatusBadge(step.status)}
                     </div>
-                    <p className="text-sm text-gray-600">{step.description}</p>
+                    <p className="text-sm text-gray-600">{step.description || ''}</p>
                   </div>
                 </div>
               ))}

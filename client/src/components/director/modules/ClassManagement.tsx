@@ -604,7 +604,7 @@ const ClassManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">{String(t?.stats?.students) || "N/A"}</p>
-                <p className="text-2xl font-bold">{finalClasses.reduce((sum: number, c: any) => sum + c.currentStudents, 0)}</p>
+                <p className="text-2xl font-bold">{(Array.isArray(finalClasses) ? finalClasses : []).reduce((sum: number, c: any) => sum + c.currentStudents, 0)}</p>
               </div>
             </div>
           </Card>
@@ -615,7 +615,7 @@ const ClassManagement: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">{String(t?.stats?.capacity) || "N/A"}</p>
-                <p className="text-2xl font-bold">{Math.round(finalClasses.reduce((sum: number, c: any) => sum + c.capacity, 0) / (Array.isArray(finalClasses) ? finalClasses.length : 0))}</p>
+                <p className="text-2xl font-bold">{Math.round((Array.isArray(finalClasses) ? finalClasses : []).reduce((sum: number, c: any) => sum + c.capacity, 0) / (Array.isArray(finalClasses) ? finalClasses.length : 0))}</p>
               </div>
             </div>
           </Card>

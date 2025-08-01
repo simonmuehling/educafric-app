@@ -108,7 +108,7 @@ const StudentAchievements: React.FC = () => {
     return (
       <div className="min-h-screen bg-white p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title || ''}</h1>
           <p className="text-red-600">{t.error}</p>
         </div>
       </div>
@@ -179,7 +179,7 @@ const StudentAchievements: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Trophy className="w-8 h-8 text-yellow-600" />
-            {t.title}
+            {t.title || ''}
           </h1>
           <p className="text-gray-600 mt-2">{t.subtitle}</p>
         </div>
@@ -227,8 +227,8 @@ const StudentAchievements: React.FC = () => {
                       {getAchievementIcon(achievement.category)}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{achievement.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
+                      <h3 className="font-medium text-gray-900">{achievement.title || ''}</h3>
+                      <p className="text-sm text-gray-600 mb-2">{achievement.description || ''}</p>
                       <div className="flex items-center gap-2">
                         <Badge className={getStatusColor(achievement.status)}>
                           {t.status[achievement.status as keyof typeof t.status]}
@@ -266,8 +266,8 @@ const StudentAchievements: React.FC = () => {
                         {getAchievementIcon(goal.category)}
                       </div>
                       <div>
-                        <h3 className="font-medium">{goal.title}</h3>
-                        <p className="text-sm text-gray-600">{goal.description}</p>
+                        <h3 className="font-medium">{goal.title || ''}</h3>
+                        <p className="text-sm text-gray-600">{goal.description || ''}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -314,8 +314,8 @@ const StudentAchievements: React.FC = () => {
                       {getAchievementIcon(achievement.category)}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">{achievement.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{achievement.description}</p>
+                      <h3 className="font-medium text-gray-900">{achievement.title || ''}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{achievement.description || ''}</p>
                     </div>
                     <div className="flex items-center justify-center gap-2">
                       <Badge className={getStatusColor(achievement.status)}>

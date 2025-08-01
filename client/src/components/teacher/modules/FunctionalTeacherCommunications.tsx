@@ -131,6 +131,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
 
   // Filter communications based on selected tab
   const filteredCommunications = (Array.isArray(communications) ? communications : []).filter(comm => {
+    if (!comm) return false;
     switch (selectedTab) {
       case 'inbox':
         return comm.direction === 'received';
@@ -180,7 +181,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">

@@ -171,7 +171,7 @@ const SettingsManager = () => {
         <CardHeader>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Settings className="w-6 h-6 text-blue-500" />
-            {t.title}
+            {t.title || ''}
           </h2>
         </CardHeader>
       </Card>
@@ -187,27 +187,27 @@ const SettingsManager = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="firstName">{t.firstName}</Label>
+              <Label htmlFor="firstName">{t.firstName || ''}</Label>
               <Input
                 id="firstName"
-                value={settings.firstName}
+                value={settings.firstName || ''}
                 onChange={(e) => handleInputChange('firstName', e?.target?.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">{t.lastName}</Label>
+              <Label htmlFor="lastName">{t.lastName || ''}</Label>
               <Input
                 id="lastName"
-                value={settings.lastName}
+                value={settings.lastName || ''}
                 onChange={(e) => handleInputChange('lastName', e?.target?.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">{t.email}</Label>
+              <Label htmlFor="email">{t.email || ''}</Label>
               <Input
                 id="email"
                 type="email"
-                value={settings.email}
+                value={settings.email || ''}
                 onChange={(e) => handleInputChange('email', e?.target?.value)}
               />
             </div>

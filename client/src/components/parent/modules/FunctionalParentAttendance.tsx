@@ -226,6 +226,7 @@ const FunctionalParentAttendance: React.FC = () => {
 
   // Filter attendance records
   const filteredAttendance = (Array.isArray(attendance) ? attendance : []).filter(record => {
+    if (!record) return false;
     const matchesStudent = selectedStudent === 'all' || record.studentName === selectedStudent;
     const matchesStatus = selectedStatus === 'all' || record.status === selectedStatus;
     
@@ -302,7 +303,7 @@ const FunctionalParentAttendance: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
       </div>

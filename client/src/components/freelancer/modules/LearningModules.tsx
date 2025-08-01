@@ -138,7 +138,7 @@ const LearningModules = () => {
           <GraduationCap className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -179,8 +179,8 @@ const LearningModules = () => {
                   {feature.icon}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-2">{feature.title}</h4>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">{feature.title || ''}</h4>
+                  <p className="text-sm text-gray-600">{feature.description || ''}</p>
                 </div>
               </div>
             </CardContent>
@@ -205,7 +205,7 @@ const LearningModules = () => {
                     {getTypeIcon(module.type)}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{module.title}</h4>
+                    <h4 className="font-semibold text-gray-900">{module.title || ''}</h4>
                     <p className="text-sm text-gray-600">{module.subject}</p>
                   </div>
                   <div className="text-center">
@@ -238,7 +238,7 @@ const LearningModules = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {t.(Array.isArray(features) ? features : []).map((feature, index) => (
+            {t.features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
                 <span className="text-gray-700">{feature}</span>
@@ -257,7 +257,7 @@ const LearningModules = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {t.(Array.isArray(benefits) ? benefits : []).map((benefit, index) => (
+            {t.benefits.map((benefit, index) => (
               <div key={index} className="flex items-start gap-3 p-3 bg-teal-50 rounded-lg">
                 <div className="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center text-teal-700 text-sm font-semibold mt-0.5">
                   ✓

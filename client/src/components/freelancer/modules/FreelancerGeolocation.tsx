@@ -288,7 +288,7 @@ const FreelancerGeolocation = () => {
     <div className="space-y-6 p-6 bg-white">
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -465,7 +465,7 @@ const FreelancerGeolocation = () => {
                 <div className="flex items-center gap-4">
                   {getZoneIcon(zone.type)}
                   <div>
-                    <h4 className="font-semibold">{zone.name}</h4>
+                    <h4 className="font-semibold">{zone.name || ''}</h4>
                     <p className="text-sm text-gray-600">
                       {language === 'fr' ? 'Coordonnées' : 'Coordinates'}: {zone?.coordinates?.lat}, {zone?.coordinates?.lng}
                     </p>

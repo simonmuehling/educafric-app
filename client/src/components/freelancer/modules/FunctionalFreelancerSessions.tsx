@@ -140,6 +140,7 @@ const FunctionalFreelancerSessions: React.FC = () => {
 
   // Filter sessions
   const filteredSessions = (Array.isArray(sessions) ? sessions : []).filter(session => {
+    if (!session) return false;
     if (selectedFilter === 'all') return true;
     if (selectedFilter === 'today') return session.date === selectedDate;
     return session.status === selectedFilter;
@@ -155,6 +156,7 @@ const FunctionalFreelancerSessions: React.FC = () => {
   const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
   const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
   const thisWeekSessions = (Array.isArray(sessions) ? sessions : []).filter(s => {
+    if (!s) return false;
     const sessionDate = new Date(s.date);
     return sessionDate >= startOfWeek && sessionDate <= endOfWeek;
   }).length;
@@ -194,7 +196,7 @@ const FunctionalFreelancerSessions: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -310,7 +312,7 @@ const FunctionalFreelancerSessions: React.FC = () => {
                         <div className="flex items-center space-x-3 mb-3">
                           {getStatusIcon(session.status)}
                           <div>
-                            <h4 className="text-lg font-semibold text-gray-900">{session.title}</h4>
+                            <h4 className="text-lg font-semibold text-gray-900">{session.title || ''}</h4>
                             <p className="text-sm text-gray-600">{session.studentName}</p>
                           </div>
                           {getStatusBadge(session.status)}

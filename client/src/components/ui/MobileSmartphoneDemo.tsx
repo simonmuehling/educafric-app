@@ -105,7 +105,7 @@ const MobileSmartphoneDemo: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <DashboardNavbar title={t.title} subtitle={t.subtitle} />
+      <DashboardNavbar title={t.title || ''} subtitle={t.subtitle} />
       
       {/* Mobile-optimized header with compact search */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 px-3 py-2">

@@ -121,7 +121,7 @@ const FunctionalCommercialReports: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -269,7 +269,7 @@ const FunctionalCommercialReports: React.FC = () => {
               {mockData.topSchools.map((school, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">{school.name}</div>
+                    <div className="font-medium">{school.name || ''}</div>
                     <div className="text-sm text-gray-500">{school.students} élèves</div>
                   </div>
                   <div className="text-right">

@@ -178,11 +178,11 @@ const Demo = () => {
             </div>
             
             <h1 className="h1 text-black mb-6">
-              {t.title}
+              {t.title || ''}
             </h1>
             
             <p className="text-xl text-black/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-              {t.description}
+              {t.description || ''}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -317,10 +317,10 @@ const Demo = () => {
                     <IconComponent className="w-12 h-12" />
                   </div>
                   <h3 className="h3 mb-4 text-black dark:text-foreground group-hover:text-primary transition-colors">
-                    {feature.title}
+                    {feature.title || ''}
                   </h3>
                   <p className="text-black dark:text-muted-foreground leading-relaxed">
-                    {feature.description}
+                    {feature.description || ''}
                   </p>
                 </div>
               );
@@ -357,11 +357,11 @@ const Demo = () => {
                         {index + 1}
                       </span>
                       <h3 className="h4 text-black dark:text-foreground">
-                        {step.title}
+                        {step.title || ''}
                       </h3>
                     </div>
                     <p className="text-black dark:text-muted-foreground leading-relaxed">
-                      {step.description}
+                      {step.description || ''}
                     </p>
                   </div>
                 </div>

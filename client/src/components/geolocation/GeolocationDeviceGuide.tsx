@@ -238,7 +238,7 @@ export default function GeolocationDeviceGuide() {
           {(Array.isArray(userGuides) ? userGuides : []).map(guide => (
             <TabsTrigger key={guide.type} value={guide.type} className="flex items-center gap-2">
               {guide.icon}
-              {guide.title}
+              {guide.title || ''}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -254,8 +254,8 @@ export default function GeolocationDeviceGuide() {
                     {guide.icon}
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{guide.title}</CardTitle>
-                    <CardDescription className="text-lg">{guide.description}</CardDescription>
+                    <CardTitle className="text-2xl">{guide.title || ''}</CardTitle>
+                    <CardDescription className="text-lg">{guide.description || ''}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -269,7 +269,7 @@ export default function GeolocationDeviceGuide() {
                       {language === 'fr' ? 'Avantages' : 'Benefits'}
                     </h3>
                     <ul className="space-y-2">
-                      {guide.(Array.isArray(benefits) ? benefits : []).map((benefit, index) => (
+                      {guide.benefits.map((benefit, index) => (
                         <li key={index} className="flex items-center gap-2 text-gray-700">
                           <div className="w-2 h-2 bg-green-500 rounded-full" />
                           {benefit}
@@ -285,7 +285,7 @@ export default function GeolocationDeviceGuide() {
                       {language === 'fr' ? 'Prérequis' : 'Requirements'}
                     </h3>
                     <ul className="space-y-2">
-                      {guide.(Array.isArray(requirements) ? requirements : []).map((req, index) => (
+                      {guide.requirements.map((req, index) => (
                         <li key={index} className="flex items-center gap-2 text-gray-700">
                           <div className="w-2 h-2 bg-orange-500 rounded-full" />
                           {req}
@@ -304,13 +304,13 @@ export default function GeolocationDeviceGuide() {
                 {language === 'fr' ? 'Dispositifs Compatibles' : 'Compatible Devices'}
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
-                {guide.(Array.isArray(devices) ? devices : []).map(device => (
+                {guide.devices.map(device => (
                   <Card key={device.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <div className="flex items-center gap-3">
                         {device.icon}
                         <div>
-                          <CardTitle className="text-lg">{device.name}</CardTitle>
+                          <CardTitle className="text-lg">{device.name || ''}</CardTitle>
                           {device.africaOptimized && (
                             <Badge variant="secondary" className="bg-green-100 text-green-800">
                               {language === 'fr' ? 'Optimisé Afrique' : 'Africa Optimized'}
@@ -320,7 +320,7 @@ export default function GeolocationDeviceGuide() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600">{device.description}</p>
+                      <p className="text-sm text-gray-600">{device.description || ''}</p>
                       
                       {/* Features */}
                       <div>
@@ -328,7 +328,7 @@ export default function GeolocationDeviceGuide() {
                           {language === 'fr' ? 'Fonctionnalités' : 'Features'}
                         </h4>
                         <ul className="space-y-1">
-                          {device.(Array.isArray(features) ? features : []).map((feature, index) => (
+                          {device.features.map((feature, index) => (
                             <li key={index} className="text-xs text-gray-600 flex items-center gap-1">
                               <CheckCircle className="w-3 h-3 text-green-500" />
                               {feature}
@@ -343,7 +343,7 @@ export default function GeolocationDeviceGuide() {
                           {language === 'fr' ? 'Compatibilité' : 'Compatibility'}
                         </h4>
                         <div className="flex flex-wrap gap-1">
-                          {device.(Array.isArray(compatibility) ? compatibility : []).map((comp, index) => (
+                          {device.compatibility.map((comp, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {comp}
                             </Badge>
@@ -366,7 +366,7 @@ export default function GeolocationDeviceGuide() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {guide.(Array.isArray(setupSteps) ? setupSteps : []).map((step, index) => (
+                  {guide.setupSteps.map((step, index) => (
                     <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
                       <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
                         {index + 1}

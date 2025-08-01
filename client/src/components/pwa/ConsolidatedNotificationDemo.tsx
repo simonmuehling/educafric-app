@@ -249,7 +249,7 @@ const ConsolidatedNotificationDemo = () => {
                 {test.icon}
               </div>
               <div>
-                <div className="font-medium text-gray-900">{test.title}</div>
+                <div className="font-medium text-gray-900">{test.title || ''}</div>
                 <div className="text-sm text-gray-500">
                   {language === 'fr' ? 'In-app notification' : 'In-app notification'}
                 </div>
@@ -289,7 +289,7 @@ const ConsolidatedNotificationDemo = () => {
                 {test.icon}
               </div>
               <div>
-                <div className="font-medium text-gray-900">{test.title}</div>
+                <div className="font-medium text-gray-900">{test.title || ''}</div>
                 <div className="text-sm text-gray-500">
                   {language === 'fr' ? 'PWA + In-app' : 'PWA + In-app'}
                 </div>

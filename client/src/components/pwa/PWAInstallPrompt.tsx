@@ -220,7 +220,7 @@ const PWAInstallPrompt = () => {
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">{t.title}</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t.title || ''}</h3>
               <p className="text-sm text-gray-600">{t.subtitle}</p>
             </div>
           </div>
@@ -229,7 +229,7 @@ const PWAInstallPrompt = () => {
         {/* Features */}
         <div className="px-6 pb-4">
           <div className="space-y-3">
-            {t.(Array.isArray(features) ? features : []).map((feature, index) => (
+            {t.features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>

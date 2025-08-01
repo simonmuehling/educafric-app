@@ -81,7 +81,7 @@ export function EducafricCardSlider({ cards, title, subtitle }: EducafricCardSli
                 <div className="educafric-card-visual">
                   <img
                     src={card.image}
-                    alt={card.title}
+                    alt={card.title || ''}
                     className="educafric-card-img"
                     width={400}
                     height={200}
@@ -91,8 +91,8 @@ export function EducafricCardSlider({ cards, title, subtitle }: EducafricCardSli
               
               <div className="educafric-card-content">
                 <div className="educafric-card-meta">
-                  <h3 className="educafric-card-title">{card.title}</h3>
-                  <p className="educafric-card-desc">{card.description}</p>
+                  <h3 className="educafric-card-title">{card.title || ''}</h3>
+                  <p className="educafric-card-desc">{card.description || ''}</p>
                 </div>
 
                 <div className="educafric-card-actions">

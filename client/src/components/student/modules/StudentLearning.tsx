@@ -55,7 +55,7 @@ const StudentLearning = () => {
       
       toast({
         title: language === 'fr' ? 'Ressource ouverte' : 'Resource opened',
-        description: language === 'fr' ? `Ouverture de "${resource.title}"` : `Opening "${resource.title}"`
+        description: language === 'fr' ? `Ouverture de "${resource.title || ''}"` : `Opening "${resource.title || ''}"`
       });
     } catch (error) {
       toast({
@@ -76,7 +76,7 @@ const StudentLearning = () => {
       const url = window?.URL?.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${resource.title}.${resource.type === 'video' ? 'mp4' : 'pdf'}`;
+      a.download = `${resource.title || ''}.${resource.type === 'video' ? 'mp4' : 'pdf'}`;
       document?.body?.appendChild(a);
       a.click();
       window?.URL?.revokeObjectURL(url);
@@ -84,7 +84,7 @@ const StudentLearning = () => {
       
       toast({
         title: language === 'fr' ? 'Téléchargement réussi' : 'Download successful',
-        description: language === 'fr' ? `"${resource.title}" téléchargé` : `"${resource.title}" downloaded`
+        description: language === 'fr' ? `"${resource.title || ''}" téléchargé` : `"${resource.title || ''}" downloaded`
       });
     } catch (error) {
       toast({
@@ -224,7 +224,7 @@ const StudentLearning = () => {
   // Calculate statistics
   const totalResources = (Array.isArray(resources) ? resources.length : 0);
   const completedResources = (Array.isArray(resources) ? resources : []).filter((r: LearningResource) => r.completed).length;
-  const totalStudyTime = resources.reduce((sum: number, r: LearningResource) => {
+  const totalStudyTime = (Array.isArray(resources) ? resources : []).reduce((sum: number, r: LearningResource) => {
     const minutes = parseInt(r?.duration?.replace('min', '')) || 0;
     return sum + minutes;
   }, 0);
@@ -253,7 +253,7 @@ const StudentLearning = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
       </div>
 
@@ -322,7 +322,7 @@ const StudentLearning = () => {
             <option value="">{t.allSubjects}</option>
             {(Array.isArray(subjects) ? subjects : []).map((subject: Subject) => (
               <option key={subject.id} value={subject.id}>
-                {subject.name} ({subject.resourceCount})
+                {subject.name || ''} ({subject.resourceCount})
               </option>
             ))}
           </select>
@@ -358,7 +358,7 @@ const StudentLearning = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                        {resource.title}
+                        {resource.title || ''}
                       </h3>
                       <p className="text-sm text-gray-600">{resource.subject}</p>
                     </div>
@@ -369,7 +369,7 @@ const StudentLearning = () => {
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-gray-600 line-clamp-3">{resource.description}</p>
+                <p className="text-sm text-gray-600 line-clamp-3">{resource.description || ''}</p>
 
                 {/* Metadata */}
                 <div className="flex items-center justify-between text-sm text-gray-500">

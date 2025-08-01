@@ -85,7 +85,7 @@ const WebInspector = () => {
           id: Date.now().toString() + Math.random(),
           timestamp: new Date(),
           level: level === 'debug' ? 'debug' : level,
-          message: args.map(arg => 
+          message: (Array.isArray(args) ? args : []).map(arg => 
             typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
           ).join(' '),
           source: 'console'
@@ -121,7 +121,7 @@ const WebInspector = () => {
         const duration = Date.now() - startTime;
 
         setNetworkRequests(prev => 
-          prev.map(req => 
+          (Array.isArray(prev) ? prev : []).map(req => 
             req.id === requestId 
               ? { ...req, status: response.status, duration }
               : req
@@ -133,7 +133,7 @@ const WebInspector = () => {
         const duration = Date.now() - startTime;
         
         setNetworkRequests(prev => 
-          prev.map(req => 
+          (Array.isArray(prev) ? prev : []).map(req => 
             req.id === requestId 
               ? { ...req, error: error instanceof Error ? error.message : 'Network error', duration }
               : req
@@ -255,7 +255,7 @@ const WebInspector = () => {
     return 'bg-gray-500';
   };
 
-  const filteredLogs = logs.filter(log => logFilter.includes(log.level));
+  const filteredLogs = (Array.isArray(logs) ? logs : []).filter(log => logFilter.includes(log.level));
 
   if (!isVisible) {
     return null; // Hide the inspector button completely
@@ -323,7 +323,7 @@ const WebInspector = () => {
                     onClick={() => {
                       setLogFilter(prev => 
                         prev.includes(level) 
-                          ? prev.filter(l => l !== level)
+                          ? (Array.isArray(prev) ? prev : []).filter(l => l !== level)
                           : [...prev, level]
                       );
                     }}
@@ -343,7 +343,7 @@ const WebInspector = () => {
           
           <ScrollArea className="flex-1 p-3">
             <div className="space-y-1 font-mono text-sm">
-              {filteredLogs.map(log => (
+              {(Array.isArray(filteredLogs) ? filteredLogs : []).map(log => (
                 <div
                   key={log.id}
                   className="flex items-start space-x-2 p-2 rounded hover:bg-slate-50"
@@ -391,11 +391,11 @@ const WebInspector = () => {
           
           <ScrollArea className="flex-1">
             <div className="space-y-1">
-              {networkRequests.map(request => (
+              {(Array.isArray(networkRequests) ? networkRequests : []).map(request => (
                 <div
                   key={request.id}
                   className="flex items-center space-x-3 p-3 hover:bg-slate-50 border-b"
-                  data-testid={`network-request-${request.method.toLowerCase()}`}
+                  data-testid={`network-request-${(request.method || '').toLowerCase()}`}
                 >
                   <Badge variant="outline" className="text-xs">
                     {request.method}
@@ -433,7 +433,7 @@ const WebInspector = () => {
           
           <ScrollArea className="flex-1 p-3">
             <div className="space-y-3">
-              {errors.map(error => (
+              {(Array.isArray(errors) ? errors : []).map(error => (
                 <Card key={error.id} className="border-red-200">
                   <CardContent className="p-4">
                     <div className="flex items-start space-x-3">

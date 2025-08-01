@@ -67,7 +67,7 @@ const ChildrenManagement = () => {
             <div key={child.id} className={`activity-card-${index % 2 === 0 ? 'blue' : 'green'} p-6 rounded-xl transition-all duration-300 hover:scale-102`}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">{child.name}</h4>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{child.name || ''}</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">{language === 'fr' ? 'Classe' : 'Class'}</p>

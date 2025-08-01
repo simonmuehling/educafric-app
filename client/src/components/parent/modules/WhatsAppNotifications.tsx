@@ -218,7 +218,7 @@ const WhatsAppNotifications = () => {
   const savePreferences = async () => {
     setIsLoading(true);
     try {
-      const settingsData = preferences.map(pref => ({
+      const settingsData = (Array.isArray(preferences) ? preferences : []).map(pref => ({
         notificationType: pref.type,
         enabled: pref.enabled,
         emailEnabled: false, // WhatsApp focus
@@ -295,7 +295,7 @@ const WhatsAppNotifications = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{text.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{text.title || ''}</h2>
           <p className="text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">

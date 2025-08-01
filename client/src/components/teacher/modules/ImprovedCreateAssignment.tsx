@@ -355,7 +355,7 @@ const ImprovedCreateAssignment = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">Créer un nouveau devoir avec instructions multimédia</p>
         </div>
         <div className="flex gap-2">
@@ -377,16 +377,16 @@ const ImprovedCreateAssignment = () => {
             <div>
               <label className="block text-sm font-medium mb-2">{t.assignmentTitle} *</label>
               <Input
-                value={assignment.title}
+                value={assignment.title || ''}
                 onChange={(e) => setAssignment(prev => ({ ...prev, title: e?.target?.value }))}
                 placeholder="Ex: Exercices de mathématiques chapitre 5"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">{t.description} *</label>
+              <label className="block text-sm font-medium mb-2">{t.description || ''} *</label>
               <Textarea
-                value={assignment.description}
+                value={assignment.description || ''}
                 onChange={(e) => setAssignment(prev => ({ ...prev, description: e?.target?.value }))}
                 placeholder="Description courte du devoir..."
                 rows={3}
@@ -402,7 +402,7 @@ const ImprovedCreateAssignment = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {(Array.isArray(subjects) ? subjects : []).map(subject => (
-                    <option key={subject.id} value={subject.id}>{subject.name}</option>
+                    <option key={subject.id} value={subject.id}>{subject.name || ''}</option>
                   ))}
                 </select>
               </div>
@@ -415,7 +415,7 @@ const ImprovedCreateAssignment = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {(Array.isArray(classes) ? classes : []).map(cls => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
                   ))}
                 </select>
               </div>
@@ -449,7 +449,7 @@ const ImprovedCreateAssignment = () => {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {(Array.isArray(assignmentTypes) ? assignmentTypes : []).map(type => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
+                  <option key={type.id} value={type.id}>{type.name || ''}</option>
                 ))}
               </select>
             </div>
@@ -587,7 +587,7 @@ const ImprovedCreateAssignment = () => {
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm truncate">{file.name}</span>
+                          <span className="text-sm truncate">{file.name || ''}</span>
                           <Badge variant="outline" className="text-xs">
                             {(file.size / 1024 / 1024).toFixed(1)} MB
                           </Badge>

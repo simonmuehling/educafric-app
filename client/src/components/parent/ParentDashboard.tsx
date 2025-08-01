@@ -226,7 +226,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={currentActiveModule || activeModule}

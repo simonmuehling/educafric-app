@@ -257,14 +257,14 @@ const FreelancerTimetable = () => {
     </ModernCard>
   );
 
-  const weeklyEarnings = tutoringSchedule.reduce((total, session) => total + session.rate, 0);
+  const weeklyEarnings = (Array.isArray(tutoringSchedule) ? tutoringSchedule : []).reduce((total, session) => total + session.rate, 0);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{text.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{text.title || ''}</h2>
           <p className="text-gray-600">{text.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">

@@ -382,7 +382,7 @@ const SchoolConfigurationGuide: React.FC = () => {
                     {language === 'fr' ? 'Éléments requis :' : 'Required elements:'}
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {step.(Array.isArray(requiredFields) ? requiredFields : []).map((field, i) => (
+                    {step.requiredFields.map((field, i) => (
                       <Badge key={i} variant="outline" className="text-xs">
                         {field}
                       </Badge>

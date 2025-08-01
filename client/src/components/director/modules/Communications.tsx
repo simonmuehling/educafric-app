@@ -212,7 +212,7 @@ const Communications = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -291,7 +291,7 @@ const Communications = () => {
                 <option value="">{t.selectClass}</option>
                 {(Array.isArray(classes) ? classes : []).map((cls: any) => (
                   <option key={cls.id} value={cls.id}>
-                    {cls.name} - {cls.level} ({cls.studentCount} élèves)
+                    {cls.name || ''} - {cls.level} ({cls.studentCount} élèves)
                   </option>
                 ))}
               </select>
@@ -312,7 +312,7 @@ const Communications = () => {
                 <option value="">Choisir un enseignant</option>
                 {(Array.isArray(teachers) ? teachers : []).map((teacher: any) => (
                   <option key={teacher.id} value={teacher.id}>
-                    {teacher.name} - {(teacher.subjects && Array.isArray(teacher.subjects)) ? teacher?.subjects?.join(', ') : 'Aucune matière'}
+                    {teacher.name || ''} - {(teacher.subjects && Array.isArray(teacher.subjects)) ? teacher?.subjects?.join(', ') : 'Aucune matière'}
                   </option>
                 ))}
               </select>
@@ -333,7 +333,7 @@ const Communications = () => {
                 <option value="">Choisir un élève</option>
                 {(Array.isArray(students) ? students : []).map((student: any) => (
                   <option key={student.id} value={student.id}>
-                    {student.name} - {student.className || 'Classe non définie'} (Parent: {student.parentName || 'Non spécifié'})
+                    {student.name || ''} - {student.className || 'Classe non définie'} (Parent: {student.parentName || 'Non spécifié'})
                   </option>
                 ))}
               </select>

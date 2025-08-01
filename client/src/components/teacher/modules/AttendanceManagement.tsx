@@ -169,7 +169,7 @@ const AttendanceManagement: React.FC = () => {
   };
 
   const handleQuickMessage = (template: string, student: Student) => {
-    const message = template.replace('{name}', `${student.firstName} ${student.lastName}`);
+    const message = template.replace('{name}', `${student.firstName || ''} ${student.lastName || ''}`);
     setContactForm({ ...contactForm, message, quickMessage: template });
   };
 
@@ -228,7 +228,7 @@ const AttendanceManagement: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
           <div className="flex items-center gap-4">
@@ -248,7 +248,7 @@ const AttendanceManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{t.totalStudents}</p>
-                <p className="text-3xl font-bold text-gray-900">{(Array.isArray(students) ? students.length : 0)}</p>
+                <p className="text-3xl font-bold text-gray-900">{(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)}</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -301,10 +301,10 @@ const AttendanceManagement: React.FC = () => {
                 {/* Student Name Overlay */}
                 <div className="bg-gradient-to-br from-indigo-600 to-purple-600 text-white p-4 text-center">
                   <h3 className="font-bold text-lg mb-1">
-                    {student.firstName}
+                    {student.firstName || ''}
                   </h3>
                   <p className="text-sm opacity-90">
-                    {student.lastName}
+                    {student.lastName || ''}
                   </p>
                   {student.attendance?.status && (
                     <Badge className={`mt-2 ${getStatusColor(student?.attendance?.status)}`}>
@@ -377,9 +377,9 @@ const AttendanceManagement: React.FC = () => {
                                 <SelectValue placeholder={t.selectQuickMessage} />
                               </SelectTrigger>
                               <SelectContent className="bg-white">
-                                <SelectItem value={t.absenceToday}>📞 {t?.absenceToday?.replace('{name}', `${student.firstName}`)}</SelectItem>
-                                <SelectItem value={t.lateToday}>⏰ {t?.lateToday?.replace('{name}', `${student.firstName}`)}</SelectItem>
-                                <SelectItem value={t.behaviorMeeting}>📚 {t?.behaviorMeeting?.replace('{name}', `${student.firstName}`)}</SelectItem>
+                                <SelectItem value={t.absenceToday}>📞 {t?.absenceToday?.replace('{name}', `${student.firstName || ''}`)}</SelectItem>
+                                <SelectItem value={t.lateToday}>⏰ {t?.lateToday?.replace('{name}', `${student.firstName || ''}`)}</SelectItem>
+                                <SelectItem value={t.behaviorMeeting}>📚 {t?.behaviorMeeting?.replace('{name}', `${student.firstName || ''}`)}</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -425,7 +425,7 @@ const AttendanceManagement: React.FC = () => {
           ))}
         </div>
 
-        {(Array.isArray(students) ? students.length : 0) === 0 && (
+        {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">

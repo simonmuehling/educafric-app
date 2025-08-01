@@ -25,7 +25,7 @@ const ParentSettings = () => {
       <div className="flex items-center gap-3 mb-6">
         <Settings className="w-6 h-6 text-blue-600" />
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>

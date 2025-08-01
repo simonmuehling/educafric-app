@@ -239,7 +239,7 @@ export default function ReportValidation() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {mockReports.(Array.isArray(pending) ? pending : []).map((report) => (
+            {mockReports.pending.map((report) => (
               <ModernCard key={report.id} className="p-6">
                 <div className="space-y-4">
                   <div className="flex justify-between items-start">
@@ -306,7 +306,7 @@ export default function ReportValidation() {
             <h3 className="text-lg font-semibold mb-4">Bulletins Approuvés</h3>
             
             <div className="space-y-4">
-              {mockReports.(Array.isArray(approved) ? approved : []).map((report) => (
+              {mockReports.approved.map((report) => (
                 <div key={report.id} className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                   <div className="flex items-center space-x-4">
                     <CheckCircle className="w-8 h-8 text-green-500" />
@@ -346,7 +346,7 @@ export default function ReportValidation() {
             <h3 className="text-lg font-semibold mb-4">Bulletins Rejetés</h3>
             
             <div className="space-y-4">
-              {mockReports.(Array.isArray(rejected) ? rejected : []).map((report) => (
+              {mockReports.rejected.map((report) => (
                 <div key={report.id} className="p-4 border border-red-200 rounded-lg bg-red-50">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">

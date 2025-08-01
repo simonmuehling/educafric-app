@@ -147,7 +147,7 @@ const FunctionalMyChildren: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -174,7 +174,7 @@ const FunctionalMyChildren: React.FC = () => {
                 <SelectItem value="all">{t.allChildren}</SelectItem>
                 {(Array.isArray(children) ? children : []).map(child => (
                   <SelectItem key={child.id} value={child?.id?.toString()}>
-                    {child.firstName} {child.lastName}
+                    {child.firstName || ''} {child.lastName || ''}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -205,7 +205,7 @@ const FunctionalMyChildren: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">
-                        {child.firstName} {child.lastName}
+                        {child.firstName || ''} {child.lastName || ''}
                       </h3>
                       <p className="text-sm text-gray-600">{child.class} - {child.level}</p>
                     </div>
@@ -311,7 +311,7 @@ const FunctionalMyChildren: React.FC = () => {
                       <BookOpen className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <p className="font-medium">{child.firstName} {child.lastName}</p>
+                      <p className="font-medium">{child.firstName || ''} {child.lastName || ''}</p>
                       <p className="text-sm text-gray-600">
                         Dernière note: {child.averageGrade}/20 en {child.class}
                       </p>

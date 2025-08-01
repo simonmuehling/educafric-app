@@ -316,7 +316,7 @@ const ParentNotificationTester: React.FC = () => {
     setTestResults(prev => [...results, ...prev]);
     setIsLoading(false);
 
-    const successCount = results.filter(r => r.result?.success).length;
+    const successCount = (Array.isArray(results) ? results : []).filter(r => r.result?.success).length;
     toast({
       title: language === 'fr' ? 'Test Séquence Terminé' : 'Sequence Test Complete',
       description: `${successCount}/${results.length} ${language === 'fr' ? 'tests réussis' : 'tests passed'}`,
@@ -338,7 +338,7 @@ const ParentNotificationTester: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TestTube className="w-5 h-5 text-blue-500" />
-            {t.title}
+            {t.title || ''}
           </CardTitle>
           <p className="text-sm text-gray-600">{t.subtitle}</p>
         </CardHeader>
@@ -351,13 +351,13 @@ const ParentNotificationTester: React.FC = () => {
             
             <TabsContent value="scenarios" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {educationalScenarios.map((scenario, index) => (
+                {(Array.isArray(educationalScenarios) ? educationalScenarios : []).map((scenario, index) => (
                   <Card key={index} className="border-l-4 border-l-blue-500">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                           {notificationTypes.find(t => t.value === scenario.type)?.icon}
-                          <h4 className="font-medium">{scenario.title}</h4>
+                          <h4 className="font-medium">{scenario.title || ''}</h4>
                         </div>
                         <Badge variant="outline" className={priorities.find(p => p.value === scenario.priority)?.color}>
                           {priorities.find(p => p.value === scenario.priority)?.label}
@@ -419,7 +419,7 @@ const ParentNotificationTester: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {notificationTypes.map(type => (
+                        {(Array.isArray(notificationTypes) ? notificationTypes : []).map(type => (
                           <SelectItem key={type.value} value={type.value}>
                             <div className="flex items-center gap-2">
                               {type.icon}
@@ -435,7 +435,7 @@ const ParentNotificationTester: React.FC = () => {
                     <Label htmlFor="title">{t.title_field}</Label>
                     <Input
                       id="title"
-                      value={testForm.title}
+                      value={testForm.title || ''}
                       onChange={(e) => setTestForm(prev => ({ ...prev, title: e.target.value }))}
                       placeholder={language === 'fr' ? 'Entrez le titre' : 'Enter title'}
                       data-testid="notification-title-input"
@@ -461,7 +461,7 @@ const ParentNotificationTester: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {priorities.map(priority => (
+                        {(Array.isArray(priorities) ? priorities : []).map(priority => (
                           <SelectItem key={priority.value} value={priority.value}>
                             <div className="flex items-center gap-2">
                               <div className={`w-3 h-3 rounded-full ${priority.color}`}></div>
@@ -478,7 +478,7 @@ const ParentNotificationTester: React.FC = () => {
                 <div className="space-y-4">
                   <Label>{t.channels}</Label>
                   <div className="space-y-3">
-                    {channels.map(channel => (
+                    {(Array.isArray(channels) ? channels : []).map(channel => (
                       <div key={channel.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-2">
                           {channel.icon}
@@ -522,7 +522,7 @@ const ParentNotificationTester: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {testResults.map((test) => (
+              {(Array.isArray(testResults) ? testResults : []).map((test) => (
                 <div
                   key={test.id}
                   className={`p-4 border rounded-lg ${
@@ -536,7 +536,7 @@ const ParentNotificationTester: React.FC = () => {
                       ) : (
                         <X className="w-4 h-4 text-red-600" />
                       )}
-                      <span className="font-medium">{test.title}</span>
+                      <span className="font-medium">{test.title || ''}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={test.result?.success ? "default" : "destructive"}>

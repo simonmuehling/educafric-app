@@ -220,13 +220,13 @@ const FirebaseIntegrationTest = () => {
       await service.testFunction();
       toast({
         title: t.testSuccess,
-        description: `${service.name} test completed successfully`
+        description: `${service.name || ''} test completed successfully`
       });
     } catch (error) {
-      console.error(`${service.name} test failed:`, error);
+      console.error(`${service.name || ''} test failed:`, error);
       toast({
         title: t.testFailed,
-        description: `${service.name} test failed`,
+        description: `${service.name || ''} test failed`,
         variant: "destructive"
       });
     } finally {
@@ -282,8 +282,8 @@ const FirebaseIntegrationTest = () => {
               <div className="flex items-center gap-4">
                 {service.icon}
                 <div>
-                  <h4 className="font-medium">{service.name}</h4>
-                  <p className="text-sm text-gray-600">{service.description}</p>
+                  <h4 className="font-medium">{service.name || ''}</h4>
+                  <p className="text-sm text-gray-600">{service.description || ''}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ const FirebaseIntegrationTest = () => {
             <Database className="w-6 h-6 text-orange-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

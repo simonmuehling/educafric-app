@@ -151,6 +151,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
 
   // Filter payments
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter(payment => {
+    if (!payment) return false;
     if (selectedFilter === 'all') return true;
     if (selectedFilter === 'thisMonth') {
       return payment?.date?.startsWith(selectedMonth);
@@ -159,7 +160,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
   });
 
   // Calculate statistics
-  const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+  const totalRevenue = (Array.isArray(payments) ? payments : []).reduce((sum, p) => sum + p.amount, 0);
   const thisMonthRevenue = payments
     .filter(p => p?.date?.startsWith(selectedMonth))
     .reduce((sum, p) => sum + p.amount, 0);
@@ -203,7 +204,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -370,7 +371,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
 
                         <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-500 mb-1">{t?.payment?.description}</p>
-                          <p className="text-sm text-gray-700">{payment.description}</p>
+                          <p className="text-sm text-gray-700">{payment.description || ''}</p>
                         </div>
 
                         <div className="flex flex-wrap gap-2">

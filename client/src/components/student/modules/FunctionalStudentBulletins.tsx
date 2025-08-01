@@ -299,7 +299,7 @@ const FunctionalStudentBulletins: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
 

@@ -151,13 +151,13 @@ export function FunctionalDirectorTeachers() {
                 </div>
 
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {teacher.firstName} {teacher.lastName}
+                  {teacher.firstName || ''} {teacher.lastName || ''}
                 </h3>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="truncate">{teacher.email}</span>
+                    <span className="truncate">{teacher.email || ''}</span>
                   </div>
                   {teacher.phone && (
                     <div className="flex items-center text-sm text-gray-600">
@@ -180,7 +180,7 @@ export function FunctionalDirectorTeachers() {
                       Matières enseignées
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {teacher.(Array.isArray(subjects) ? subjects : []).map((subject, index) => (
+                      {teacher.subjects.map((subject, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full"

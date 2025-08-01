@@ -59,7 +59,7 @@ export function FormBuilder({
   
   // Create validation schema from fields
   const schema = z.object(
-    fields.reduce((acc, field) => {
+    (Array.isArray(fields) ? fields : []).reduce((acc, field) => {
       if (field.validation) {
         acc[field.id] = field.validation;
       } else if (field.required) {
@@ -73,7 +73,7 @@ export function FormBuilder({
 
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: fields.reduce((acc, field) => {
+    defaultValues: (Array.isArray(fields) ? fields : []).reduce((acc, field) => {
       acc[field.id] = field.defaultValue || '';
       return acc;
     }, {} as Record<string, any>)
@@ -121,7 +121,7 @@ export function FormBuilder({
             />
             {field.description && (
               <p id={`${field.id}-description`} className="text-sm text-gray-600">
-                {field.description}
+                {field.description || ''}
               </p>
             )}
             {error && (
@@ -168,7 +168,7 @@ export function FormBuilder({
             />
             {field.description && (
               <p id={`${field.id}-description`} className="text-sm text-gray-600">
-                {field.description}
+                {field.description || ''}
               </p>
             )}
             {error && (
@@ -213,7 +213,7 @@ export function FormBuilder({
             />
             {field.description && (
               <p id={`${field.id}-description`} className="text-sm text-gray-600">
-                {field.description}
+                {field.description || ''}
               </p>
             )}
             {error && (
@@ -248,7 +248,7 @@ export function FormBuilder({
             </div>
             {field.description && (
               <p id={`${field.id}-description`} className="text-sm text-gray-600">
-                {field.description}
+                {field.description || ''}
               </p>
             )}
             {error && (
@@ -292,7 +292,7 @@ export function FormBuilder({
             />
             {field.description && (
               <p id={`${field.id}-description`} className="text-sm text-gray-600">
-                {field.description}
+                {field.description || ''}
               </p>
             )}
             {error && (
@@ -410,7 +410,7 @@ function PasswordField({
       </div>
       {field.description && (
         <p id={`${field.id}-description`} className="text-sm text-gray-600">
-          {field.description}
+          {field.description || ''}
         </p>
       )}
       {error && (

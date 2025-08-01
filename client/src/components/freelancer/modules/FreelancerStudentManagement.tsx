@@ -154,9 +154,9 @@ const FreelancerStudentManagement: React.FC = () => {
     );
   }
 
-  const totalStudents = (Array.isArray(students) ? students.length : 0);
+  const totalStudents = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0);
   const activeStudents = (Array.isArray(students) ? students : []).filter((s: any) => s.status === 'active').length;
-  const sessionsThisWeek = students.reduce((acc: number, s: any) => acc + (s.sessionsThisWeek || 0), 0);
+  const sessionsThisWeek = (Array.isArray(students) ? students : []).reduce((acc: number, s: any) => acc + (s.sessionsThisWeek || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
@@ -164,7 +164,7 @@ const FreelancerStudentManagement: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
           <Dialog open={isAddingStudent} onOpenChange={setIsAddingStudent}>
@@ -181,25 +181,25 @@ const FreelancerStudentManagement: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>{t.firstName} *</Label>
+                    <Label>{t.firstName || ''} *</Label>
                     <Input
-                      value={newStudentData.firstName}
+                      value={newStudentData.firstName || ''}
                       onChange={(e) => setNewStudentData({...newStudentData, firstName: e?.target?.value})}
                     />
                   </div>
                   <div>
-                    <Label>{t.lastName} *</Label>
+                    <Label>{t.lastName || ''} *</Label>
                     <Input
-                      value={newStudentData.lastName}
+                      value={newStudentData.lastName || ''}
                       onChange={(e) => setNewStudentData({...newStudentData, lastName: e?.target?.value})}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label>{t.email} *</Label>
+                  <Label>{t.email || ''} *</Label>
                   <Input
                     type="email"
-                    value={newStudentData.email}
+                    value={newStudentData.email || ''}
                     onChange={(e) => setNewStudentData({...newStudentData, email: e?.target?.value})}
                   />
                 </div>
@@ -310,7 +310,7 @@ const FreelancerStudentManagement: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                      {student.firstName} {student.lastName}
+                      {student.firstName || ''} {student.lastName || ''}
                     </h3>
                     <div className="flex gap-2 mb-2">
                       <Badge className={student.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
@@ -327,7 +327,7 @@ const FreelancerStudentManagement: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Mail className="w-4 h-4" />
-                    <span className="truncate">{student.email}</span>
+                    <span className="truncate">{student.email || ''}</span>
                   </div>
                   {student.phone && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -361,16 +361,16 @@ const FreelancerStudentManagement: React.FC = () => {
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-sm font-medium">{t.firstName}</Label>
-                              <p className="text-sm text-gray-600">{student.firstName}</p>
+                              <Label className="text-sm font-medium">{t.firstName || ''}</Label>
+                              <p className="text-sm text-gray-600">{student.firstName || ''}</p>
                             </div>
                             <div>
-                              <Label className="text-sm font-medium">{t.lastName}</Label>
-                              <p className="text-sm text-gray-600">{student.lastName}</p>
+                              <Label className="text-sm font-medium">{t.lastName || ''}</Label>
+                              <p className="text-sm text-gray-600">{student.lastName || ''}</p>
                             </div>
                             <div>
-                              <Label className="text-sm font-medium">{t.email}</Label>
-                              <p className="text-sm text-gray-600">{student.email}</p>
+                              <Label className="text-sm font-medium">{t.email || ''}</Label>
+                              <p className="text-sm text-gray-600">{student.email || ''}</p>
                             </div>
                             <div>
                               <Label className="text-sm font-medium">{t.phone}</Label>
@@ -405,7 +405,7 @@ const FreelancerStudentManagement: React.FC = () => {
           ))}
         </div>
 
-        {(Array.isArray(students) ? students.length : 0) === 0 && (
+        {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">

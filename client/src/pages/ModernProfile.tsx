@@ -146,7 +146,7 @@ export default function ModernProfile() {
                 <Label htmlFor="firstName" className={modernLabelClasses}>First Name</Label>
                 <Input
                   id="firstName"
-                  value={profileData.firstName}
+                  value={profileData.firstName || ''}
                   onChange={(e) => setProfileData({ ...profileData, firstName: e?.target?.value })}
                   className={modernInputClasses}
                   required
@@ -157,7 +157,7 @@ export default function ModernProfile() {
                 <Label htmlFor="lastName" className={modernLabelClasses}>Last Name</Label>
                 <Input
                   id="lastName"
-                  value={profileData.lastName}
+                  value={profileData.lastName || ''}
                   onChange={(e) => setProfileData({ ...profileData, lastName: e?.target?.value })}
                   className={modernInputClasses}
                   required

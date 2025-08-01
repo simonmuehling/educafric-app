@@ -174,7 +174,7 @@ const FirebaseDeviceModal: React.FC<FirebaseDeviceModalProps> = ({
         <DialogHeader className="bg-white pb-4">
           <DialogTitle className="flex items-center gap-2 text-gray-800">
             <Smartphone className="w-5 h-5 text-blue-600" />
-            {t.title}
+            {t.title || ''}
           </DialogTitle>
         </DialogHeader>
         
@@ -221,7 +221,7 @@ const FirebaseDeviceModal: React.FC<FirebaseDeviceModalProps> = ({
                 setFormData(prev => ({ 
                   ...prev, 
                   studentId: e?.target?.value,
-                  studentName: student ? `${student.name} - ${student.class}` : ''
+                  studentName: student ? `${student.name || ''} - ${student.class}` : ''
                 }));
               }}
               data-testid="select-student"
@@ -229,7 +229,7 @@ const FirebaseDeviceModal: React.FC<FirebaseDeviceModalProps> = ({
               <option value="">{t.selectStudent}</option>
               {(Array.isArray(studentOptions) ? studentOptions : []).map(student => (
                 <option key={student.value} value={student.value}>
-                  {student.name} - {student.class}
+                  {student.name || ''} - {student.class}
                 </option>
               ))}
             </select>

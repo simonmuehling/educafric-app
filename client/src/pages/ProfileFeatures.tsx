@@ -276,7 +276,7 @@ export default function ProfileFeatures() {
                     </Label>
                     <Input
                       id="firstName"
-                      value={profileData.firstName}
+                      value={profileData.firstName || ''}
                       onChange={(e) => setProfileData({ ...profileData, firstName: e?.target?.value })}
                       placeholder={language === 'fr' ? 'Votre prénom' : 'Your first name'}
                       required
@@ -289,7 +289,7 @@ export default function ProfileFeatures() {
                     </Label>
                     <Input
                       id="lastName"
-                      value={profileData.lastName}
+                      value={profileData.lastName || ''}
                       onChange={(e) => setProfileData({ ...profileData, lastName: e?.target?.value })}
                       placeholder={language === 'fr' ? 'Votre nom' : 'Your last name'}
                       required
@@ -306,7 +306,7 @@ export default function ProfileFeatures() {
                       <Input
                         id="email"
                         type="email"
-                        value={profileData.email}
+                        value={profileData.email || ''}
                         onChange={(e) => setProfileData({ ...profileData, email: e?.target?.value })}
                         placeholder="example@educafric.com"
                         className="pl-10"

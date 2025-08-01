@@ -217,7 +217,7 @@ export class DeviceTrackingService {
         await this.createAlert({
           deviceId: device.id,
           type: 'entry',
-          message: `${device.deviceName} entered ${zone.name}`,
+          message: `${device.deviceName} entered ${zone.name || ''}`,
           location,
           severity: 'low'
         });
@@ -228,7 +228,7 @@ export class DeviceTrackingService {
         await this.createAlert({
           deviceId: device.id,
           type: 'exit',
-          message: `${device.deviceName} left ${zone.name}`,
+          message: `${device.deviceName} left ${zone.name || ''}`,
           location,
           severity: zone.type === 'school' ? 'medium' : 'low'
         });

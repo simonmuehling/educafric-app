@@ -159,6 +159,7 @@ const FunctionalParentChildren: React.FC = () => {
 
   // Filter and search children
   const filteredChildren = (Array.isArray(children) ? children : []).filter(child => {
+    if (!child) return false;
     const matchesFilter = selectedFilter === 'all' || child.status === selectedFilter;
     const matchesSearch = child?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          child?.className?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -169,7 +170,7 @@ const FunctionalParentChildren: React.FC = () => {
   const totalChildren = (Array.isArray(children) ? children.length : 0);
   const excellentChildren = (Array.isArray(children) ? children : []).filter(c => c.status === 'excellent').length;
   const avgGrade = (Array.isArray(children) ? children.length : 0) > 0 
-    ? Math.round(children.reduce((sum, c) => sum + c.averageGrade, 0) / (Array.isArray(children) ? children.length : 0))
+    ? Math.round((Array.isArray(children) ? children : []).reduce((sum, c) => sum + c.averageGrade, 0) / (Array.isArray(children) ? children.length : 0))
     : 0;
   const needsAttention = (Array.isArray(children) ? children : []).filter(c => c.status === 'needs_attention').length;
 
@@ -215,7 +216,7 @@ const FunctionalParentChildren: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
       </div>
@@ -589,7 +590,7 @@ const FunctionalParentChildren: React.FC = () => {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
-                                  subject: language === 'fr' ? `Demande de contact - ${child.firstName}` : `Contact request - ${child.firstName}`,
+                                  subject: language === 'fr' ? `Demande de contact - ${child.firstName || ''}` : `Contact request - ${child.firstName || ''}`,
                                   message: language === 'fr' ? 'Demande de contact avec l\'enseignant' : 'Request to contact teacher'
                                 }),
                                 credentials: 'include'

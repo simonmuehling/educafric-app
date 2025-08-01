@@ -260,7 +260,7 @@ const SchoolAdministration: React.FC = () => {
            subjects.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const filteredStudents = (students || []).filter((student: any) => {
+  const filteredStudents = Array.isArray(students) ? students.filter((student: any) => {
     if (!student) return false;
     const fullName = (student.firstName || '') + ' ' + (student.lastName || '');
     const email = student.email || '';
@@ -269,16 +269,16 @@ const SchoolAdministration: React.FC = () => {
     return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
            email.toLowerCase().includes(searchTerm.toLowerCase()) ||
            className.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  }) : [];
 
-  const filteredParents = (parents || []).filter((parent: any) => {
+  const filteredParents = Array.isArray(parents) ? parents.filter((parent: any) => {
     if (!parent) return false;
     const fullName = (parent.firstName || '') + ' ' + (parent.lastName || '');
     const email = parent.email || '';
     
     return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
            email.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  }) : [];
 
   const t = {
     fr: {

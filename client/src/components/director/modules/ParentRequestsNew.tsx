@@ -401,7 +401,7 @@ const ParentRequestsNew = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -482,9 +482,9 @@ const ParentRequestsNew = () => {
                     
                     {request.description && (
                       <div>
-                        <h5 className="font-medium text-gray-900 mb-1">{t.description}:</h5>
+                        <h5 className="font-medium text-gray-900 mb-1">{t.description || ''}:</h5>
                         <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded border">
-                          {request.description}
+                          {request.description || ''}
                         </p>
                       </div>
                     )}
@@ -541,7 +541,7 @@ const ParentRequestsNew = () => {
               <div className="bg-gray-50 p-4 rounded border">
                 <h4 className="font-medium mb-2">{selectedRequest.subject}</h4>
                 <p className="text-sm text-gray-600">
-                  {selectedRequest.description}
+                  {selectedRequest.description || ''}
                 </p>
               </div>
             )}

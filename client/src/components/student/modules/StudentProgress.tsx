@@ -157,8 +157,8 @@ const StudentProgress = () => {
   const calculateOverallProgress = () => {
     if ((Array.isArray(progressData) ? progressData.length : 0) === 0) return { average: 0, goal: 0, achievement: 0 };
     
-    const totalGrade = progressData.reduce((sum: number, data: ProgressData) => sum + data.currentGrade, 0);
-    const totalGoal = progressData.reduce((sum: number, data: ProgressData) => sum + data.goal, 0);
+    const totalGrade = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + data.currentGrade, 0);
+    const totalGoal = (Array.isArray(progressData) ? progressData : []).reduce((sum: number, data: ProgressData) => sum + data.goal, 0);
     const average = totalGrade / (Array.isArray(progressData) ? progressData.length : 0);
     const goalAverage = totalGoal / (Array.isArray(progressData) ? progressData.length : 0);
     const achievement = (average / goalAverage) * 100;
@@ -192,7 +192,7 @@ const StudentProgress = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
       </div>
 
@@ -253,7 +253,7 @@ const StudentProgress = () => {
             <div>
               <p className="text-sm text-gray-600">{t.earnedPoints}</p>
               <p className="text-3xl font-bold text-gray-900">
-                {Array.isArray(achievements) ? achievements.reduce((sum: number, a: Achievement) => sum + a.points, 0) : 0}
+                {Array.isArray(achievements) ? (Array.isArray(achievements) ? achievements : []).reduce((sum: number, a: Achievement) => sum + a.points, 0) : 0}
               </p>
               <p className="text-sm text-purple-600">{t.points}</p>
             </div>
@@ -357,8 +357,8 @@ const StudentProgress = () => {
                       <Trophy className="w-6 h-6 text-yellow-600" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
-                      <p className="text-sm text-gray-600">{achievement.description}</p>
+                      <h4 className="font-semibold text-gray-900">{achievement.title || ''}</h4>
+                      <p className="text-sm text-gray-600">{achievement.description || ''}</p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center space-x-1 text-xs text-gray-500">
                           <Calendar className="w-3 h-3" />

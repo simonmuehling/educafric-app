@@ -112,7 +112,7 @@ export default function EducafricFeatures() {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="h2 text-foreground mb-4">
-            {t.title}
+            {t.title || ''}
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             {t.subtitle}
@@ -121,7 +121,7 @@ export default function EducafricFeatures() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {t.(Array.isArray(features) ? features : []).map((feature, index) => {
+          {t.features .map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <div key={index} className="card-enhanced text-center group hover:shadow-xl transition-all duration-300">
@@ -129,10 +129,10 @@ export default function EducafricFeatures() {
                   <IconComponent className="w-12 h-12" />
                 </div>
                 <h3 className="h3 mb-4 group-hover:text-primary transition-colors">
-                  {feature.title}
+                  {feature.title || ''}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">
-                  {feature.description}
+                  {feature.description || ''}
                 </p>
               </div>
             );
@@ -141,7 +141,7 @@ export default function EducafricFeatures() {
 
         {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {t.(Array.isArray(stats) ? stats : []).map((stat, index) => (
+          {t.stats .map((stat, index) => (
             <div key={index} className="text-center">
               <div className="text-4xl md:text-5xl font-bold african-orange-text mb-2">
                 {stat.number}

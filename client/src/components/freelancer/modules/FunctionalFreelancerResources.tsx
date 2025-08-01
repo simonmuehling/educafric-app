@@ -171,6 +171,7 @@ const FunctionalFreelancerResources: React.FC = () => {
 
   // Filter and search resources
   const filteredResources = (Array.isArray(resources) ? resources : []).filter(resource => {
+    if (!resource) return false;
     const matchesFilter = selectedFilter === 'all' || 
                          selectedFilter === resource.type ||
                          (selectedFilter === 'public' && resource.isPublic) ||
@@ -183,8 +184,9 @@ const FunctionalFreelancerResources: React.FC = () => {
   // Calculate statistics
   const totalResources = (Array.isArray(resources) ? resources.length : 0);
   const publicResources = (Array.isArray(resources) ? resources : []).filter(r => r.isPublic).length;
-  const totalDownloads = resources.reduce((sum, r) => sum + r.downloads, 0);
+  const totalDownloads = (Array.isArray(resources) ? resources : []).reduce((sum, r) => sum + r.downloads, 0);
   const thisMonth = (Array.isArray(resources) ? resources : []).filter(r => {
+    if (!r) return false;
     const uploadDate = new Date(r.uploadedAt);
     const now = new Date();
     return uploadDate.getMonth() === now.getMonth() && uploadDate.getFullYear() === now.getFullYear();
@@ -230,7 +232,7 @@ const FunctionalFreelancerResources: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -349,7 +351,7 @@ const FunctionalFreelancerResources: React.FC = () => {
                         {getTypeIcon(resource.type)}
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-900 line-clamp-2">
-                            {resource.title}
+                            {resource.title || ''}
                           </h4>
                           <p className="text-sm text-gray-600">{resource.subject} - {resource.level}</p>
                         </div>

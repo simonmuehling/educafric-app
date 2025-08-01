@@ -244,7 +244,7 @@ export default function ModernSubscriptionPlans() {
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="section-title mb-4">{t.title}</h2>
+          <h2 className="section-title mb-4">{t.title || ''}</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t.subtitle}
           </p>
@@ -299,7 +299,7 @@ export default function ModernSubscriptionPlans() {
 
               {/* Plan Name */}
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {plan.name}
+                {plan.name || ''}
               </h3>
 
               {/* Price */}

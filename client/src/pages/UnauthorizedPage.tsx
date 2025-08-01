@@ -32,7 +32,7 @@ const UnauthorizedPage = () => {
           <Shield className="w-8 h-8 text-red-600" />
         </div>
         
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title || ''}</h1>
         
         <p className="text-gray-600 mb-6">{t.message}</p>
         

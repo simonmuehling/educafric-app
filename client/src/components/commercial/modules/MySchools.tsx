@@ -151,7 +151,7 @@ const MySchools = () => {
           <Building2 className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -180,7 +180,7 @@ const MySchools = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{school.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{school.name || ''}</h3>
                   <p className="text-sm text-gray-600 mt-1">{school.type}</p>
                   <div className="flex items-center gap-1 mt-2 text-sm text-gray-500">
                     <MapPin className="w-3 h-3" />
@@ -208,7 +208,7 @@ const MySchools = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-3 h-3 text-gray-400" />
-                      <span className="text-gray-600">{school.email}</span>
+                      <span className="text-gray-600">{school.email || ''}</span>
                     </div>
                   </div>
                 </div>
@@ -271,7 +271,7 @@ const MySchools = () => {
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{schools.reduce((sum, s) => sum + s.students, 0)}</div>
+            <div className="text-2xl font-bold text-green-600">{(Array.isArray(schools) ? schools : []).reduce((sum, s) => sum + s.students, 0)}</div>
             <div className="text-sm text-gray-600">{language === 'fr' ? 'Total Élèves' : 'Total Students'}</div>
           </CardContent>
         </Card>

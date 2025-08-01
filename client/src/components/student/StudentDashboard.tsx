@@ -226,7 +226,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={currentActiveModule || activeModule}

@@ -181,7 +181,7 @@ export default function DeviceConfiguration() {
                         {getDeviceIcon(device.type)}
                       </div>
                       <div>
-                        <h3 className="font-semibold">{device.name}</h3>
+                        <h3 className="font-semibold">{device.name || ''}</h3>
                         <p className="text-sm text-gray-600">{device.student}</p>
                       </div>
                     </div>
@@ -237,15 +237,15 @@ export default function DeviceConfiguration() {
                   <div className="flex items-center space-x-3 mb-3">
                     {deviceType.icon}
                     <div>
-                      <h4 className="font-medium">{deviceType.name}</h4>
-                      <p className="text-sm text-gray-600">{deviceType.description}</p>
+                      <h4 className="font-medium">{deviceType.name || ''}</h4>
+                      <p className="text-sm text-gray-600">{deviceType.description || ''}</p>
                     </div>
                   </div>
                   
                   <div className="space-y-2 mb-4">
                     <p className="text-sm font-medium">Fonctionnalités:</p>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {deviceType.(Array.isArray(features) ? features : []).map((feature, index) => (
+                      {deviceType.features.map((feature, index) => (
                         <li key={index} className="flex items-center space-x-2">
                           <CheckCircle className="w-3 h-3 text-green-500" />
                           <span>{feature}</span>
@@ -263,7 +263,7 @@ export default function DeviceConfiguration() {
                       setIsAddDialogOpen(true);
                     }}
                   >
-                    Configurer {deviceType.name}
+                    Configurer {deviceType.name || ''}
                   </Button>
                 </div>
               ))}

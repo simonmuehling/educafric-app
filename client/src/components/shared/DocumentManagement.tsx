@@ -430,7 +430,7 @@ const DocumentManagement = () => {
         const blobUrl = window?.URL?.createObjectURL(blob);
         window.open(blobUrl, '_blank');
         
-        console.log(`📄 Document ouvert: ${document.title} (ID: ${document.id})`);
+        console.log(`📄 Document ouvert: ${document.title || ''} (ID: ${document.id})`);
         
         // Nettoyer l'URL après 1 minute
         setTimeout(() => window?.URL?.revokeObjectURL(blobUrl), 60000);
@@ -454,9 +454,9 @@ const DocumentManagement = () => {
       const directUrl = directLinks[document.id];
       if (directUrl) {
         window.open(directUrl, '_blank');
-        console.log(`📄 Document ouvert via lien direct: ${document.title}`);
+        console.log(`📄 Document ouvert via lien direct: ${document.title || ''}`);
       } else {
-        alert(`Impossible d'ouvrir le document: ${document.title}\nDescription: ${document.description}`);
+        alert(`Impossible d'ouvrir le document: ${document.title || ''}\nDescription: ${document.description || ''}`);
       }
     }
   };
@@ -486,7 +486,7 @@ const DocumentManagement = () => {
       link.click();
     } else {
       // Simulation pour les anciens documents
-      alert(`Téléchargement de: ${document.title}`);
+      alert(`Téléchargement de: ${document.title || ''}`);
     }
   };
 
@@ -574,6 +574,7 @@ const DocumentManagement = () => {
   };
 
   const filteredDocuments = (Array.isArray(documents) ? documents : []).filter(doc => {
+    if (!doc) return false;
     const matchesSearch = doc?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc?.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || doc.type === filterType;
@@ -628,13 +629,13 @@ const DocumentManagement = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     {getTypeIcon(doc.type)}
-                    <h3 className="font-semibold">{doc.title}</h3>
+                    <h3 className="font-semibold">{doc.title || ''}</h3>
                     <Badge variant="outline" className="text-xs">
                       {doc?.language?.toUpperCase()}
                     </Badge>
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-3">{doc.description}</p>
+                  <p className="text-sm text-gray-600 mb-3">{doc.description || ''}</p>
                   
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
@@ -650,7 +651,7 @@ const DocumentManagement = () => {
                     <div className="mt-2">
                       <p className="text-xs text-gray-500 mb-1">Partagé avec:</p>
                       <div className="flex flex-wrap gap-1">
-                        {doc.(Array.isArray(sharedWith) ? sharedWith : []).map((email, idx) => (
+                        {doc.sharedWith.map((email, idx) => (
                           <Badge key={idx} variant="secondary" className="text-xs">
                             {email}
                           </Badge>
@@ -748,7 +749,7 @@ const DocumentManagement = () => {
                   <UserCheck className="w-4 h-4 text-gray-500" />
                   <div>
                     <p className="font-medium">{userPerm.userName}</p>
-                    <p className="text-sm text-gray-600">{userPerm.email} • {userPerm.userRole}</p>
+                    <p className="text-sm text-gray-600">{userPerm.email || ''} • {userPerm.userRole}</p>
                   </div>
                 </div>
                 
@@ -782,7 +783,7 @@ const DocumentManagement = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-semibold">Partager Document</h3>
-                <p className="text-sm text-gray-600">{selectedDocument.title}</p>
+                <p className="text-sm text-gray-600">{selectedDocument.title || ''}</p>
               </div>
               <Button variant="ghost" onClick={() => setShowShareModal(false)}>×</Button>
             </div>
@@ -795,7 +796,7 @@ const DocumentManagement = () => {
                     <UserCheck className="w-4 h-4 text-gray-500" />
                     <div>
                       <p className="font-medium">{userPerm.userName}</p>
-                      <p className="text-sm text-gray-600">{userPerm.email}</p>
+                      <p className="text-sm text-gray-600">{userPerm.email || ''}</p>
                     </div>
                   </div>
                   
@@ -803,7 +804,7 @@ const DocumentManagement = () => {
                     <Checkbox
                       checked={selectedDocument?.sharedWith?.includes(userPerm.email)}
                       onCheckedChange={(checked) => 
-                        console.log(`Toggle access for ${userPerm.email}: ${checked}`)
+                        console.log(`Toggle access for ${userPerm.email || ''}: ${checked}`)
                       }
                     />
                     <span className="text-sm">
@@ -827,7 +828,7 @@ const DocumentManagement = () => {
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">{t.title}</h2>
+        <h2 className="text-2xl font-bold">{t.title || ''}</h2>
         <p className="text-gray-600">{t.subtitle}</p>
         {isSiteAdmin() && (
           <div className="mt-2 p-3 bg-blue-50 rounded-lg">
@@ -886,7 +887,7 @@ const DocumentManagement = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">{t.addDocumentTitle}</label>
                 <Input
-                  value={newDocumentData.title}
+                  value={newDocumentData.title || ''}
                   onChange={(e) => setNewDocumentData({...newDocumentData, title: e?.target?.value})}
                   placeholder="Nom du document..."
                 />
@@ -895,7 +896,7 @@ const DocumentManagement = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">{t.addDocumentDescription}</label>
                 <Input
-                  value={newDocumentData.description}
+                  value={newDocumentData.description || ''}
                   onChange={(e) => setNewDocumentData({...newDocumentData, description: e?.target?.value})}
                   placeholder="Description du document..."
                 />

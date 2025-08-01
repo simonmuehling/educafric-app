@@ -184,7 +184,7 @@ const StudentProfile: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
               <p className="text-gray-600">{t.subtitle}</p>
             </div>
             <div className="flex gap-3">
@@ -233,7 +233,7 @@ const StudentProfile: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                  {formData.firstName} {formData.lastName}
+                  {formData.firstName || ''} {formData.lastName || ''}
                 </h3>
                 <p className="text-gray-600 mb-2">{formData.class}</p>
                 <Badge className="bg-blue-100 text-blue-800 mb-4">Élève Actif</Badge>
@@ -241,7 +241,7 @@ const StudentProfile: React.FC = () => {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-center gap-2">
                     <Mail className="w-4 h-4 text-gray-500" />
-                    <span>{formData.email}</span>
+                    <span>{formData.email || ''}</span>
                   </div>
                   <div className="flex items-center justify-center gap-2">
                     <Phone className="w-4 h-4 text-gray-500" />
@@ -297,31 +297,31 @@ const StudentProfile: React.FC = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">{t.firstName}</Label>
+                    <Label htmlFor="firstName">{t.firstName || ''}</Label>
                     <Input
                       id="firstName"
-                      value={formData.firstName}
+                      value={formData.firstName || ''}
                       onChange={(e) => handleInputChange('firstName', e?.target?.value)}
                       disabled={!isEditing}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">{t.lastName}</Label>
+                    <Label htmlFor="lastName">{t.lastName || ''}</Label>
                     <Input
                       id="lastName"
-                      value={formData.lastName}
+                      value={formData.lastName || ''}
                       onChange={(e) => handleInputChange('lastName', e?.target?.value)}
                       disabled={!isEditing}
                       className="mt-1"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">{t.email}</Label>
+                    <Label htmlFor="email">{t.email || ''}</Label>
                     <Input
                       id="email"
                       type="email"
-                      value={formData.email}
+                      value={formData.email || ''}
                       onChange={(e) => handleInputChange('email', e?.target?.value)}
                       disabled={!isEditing}
                       className="mt-1"
@@ -456,7 +456,7 @@ const StudentProfile: React.FC = () => {
                     <div key={index} className="flex items-center gap-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
                       <div className="text-2xl">{achievement.icon}</div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
+                        <h4 className="font-semibold text-gray-900">{achievement.title || ''}</h4>
                         <p className="text-sm text-gray-600">{achievement.date}</p>
                       </div>
                     </div>

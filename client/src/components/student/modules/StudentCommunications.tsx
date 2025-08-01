@@ -201,7 +201,7 @@ const StudentCommunications: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">{t.title}</h1>
+          <h1 className="text-3xl font-bold">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button onClick={handleRefresh} variant="outline">
@@ -272,7 +272,7 @@ const StudentCommunications: React.FC = () => {
                 <div>
                   <label className="text-sm font-medium">Description</label>
                   <Textarea
-                    value={supportForm.description}
+                    value={supportForm.description || ''}
                     onChange={(e) => setSupportForm(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Décrivez votre problème ou votre question..."
                     rows={4}

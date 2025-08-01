@@ -163,7 +163,7 @@ const CommercialCRM = () => {
   // Calculate statistics
   const totalSchools = (Array.isArray(schools) ? schools.length : 0);
   const activeContracts = (Array.isArray(schools) ? schools : []).filter((s: any) => s.status === 'active').length;
-  const monthlyRevenue = schools.reduce((sum: number, s: any) => sum + (s.monthlyRevenue || 0), 0);
+  const monthlyRevenue = (Array.isArray(schools) ? schools : []).reduce((sum: number, s: any) => sum + (s.monthlyRevenue || 0), 0);
   const prospects = (Array.isArray(schools) ? schools : []).filter((s: any) => s.status === 'prospect').length;
   const conversionRate = prospects > 0 ? Math.round((activeContracts / prospects) * 100) : 0;
 
@@ -224,7 +224,7 @@ const CommercialCRM = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -290,7 +290,7 @@ const CommercialCRM = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-semibold text-gray-900">{school.name}</h4>
+                        <h4 className="font-semibold text-gray-900">{school.name || ''}</h4>
                         <Badge className={getStatusColor(school.status)}>
                           {t[school.status as keyof typeof t] || school.status}
                         </Badge>
@@ -377,7 +377,7 @@ const CommercialCRM = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t.email}
+                      {t.email || ''}
                     </label>
                     <Input name="email" type="email" />
                   </div>

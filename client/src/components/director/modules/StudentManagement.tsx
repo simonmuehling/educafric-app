@@ -206,6 +206,7 @@ const StudentManagement: React.FC = () => {
   ];
 
   const filteredStudents = (Array.isArray(students) ? students : []).filter(student => {
+    if (!student) return false;
     const matchesSearch = student?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = selectedClass === 'all' || student?.class?.includes(selectedClass);
     

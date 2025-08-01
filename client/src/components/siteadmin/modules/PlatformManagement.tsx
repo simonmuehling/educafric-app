@@ -298,8 +298,8 @@ const PlatformManagement = () => {
                 <div className="flex items-center gap-3">
                   {getStatusIcon(metric.status)}
                   <div>
-                    <div className="font-medium">{metric.name}</div>
-                    <div className="text-sm text-gray-600">{metric.description}</div>
+                    <div className="font-medium">{metric.name || ''}</div>
+                    <div className="text-sm text-gray-600">{metric.description || ''}</div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -504,7 +504,7 @@ const PlatformManagement = () => {
             <Settings className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

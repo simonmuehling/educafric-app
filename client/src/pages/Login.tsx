@@ -104,7 +104,7 @@ export default function Login() {
 
   const proceedWithRegistration = async () => {
     try {
-      await register(formData.email, formData.password, formData.firstName, formData.lastName, formData.phoneNumber);
+      await register(formData);
       
       celebrateSignup();
       setShowCelebration({
@@ -112,8 +112,8 @@ export default function Login() {
         type: 'signup',
         title: language === 'fr' ? 'Compte créé avec succès!' : 'Account created successfully!',
         message: language === 'fr' 
-          ? `Bienvenue ${formData.firstName} ${formData.lastName}! Votre compte ${t(`roles.${formData?.role?.toLowerCase()}`)} est maintenant actif.`
-          : `Welcome ${formData.firstName} ${formData.lastName}! Your ${t(`roles.${formData?.role?.toLowerCase()}`)} account is now active.`,
+          ? `Bienvenue ${formData.firstName || ''} ${formData.lastName || ''}! Votre compte ${t(`roles.${formData?.role?.toLowerCase()}`)} est maintenant actif.`
+          : `Welcome ${formData.firstName || ''} ${formData.lastName || ''}! Your ${t(`roles.${formData?.role?.toLowerCase()}`)} account is now active.`,
         userRole: formData.role
       });
     } catch (error: any) {
@@ -162,7 +162,7 @@ export default function Login() {
         celebrateSignup();
         
         // Show custom celebration toast with user details
-        const userDisplayName = `${formData.firstName} ${formData.lastName}`;
+        const userDisplayName = `${formData.firstName || ''} ${formData.lastName || ''}`;
         setShowCelebration({
           show: true,
           type: 'signup',
@@ -242,7 +242,7 @@ export default function Login() {
       {showCelebration.show && (
         <CelebrationToast
           type={showCelebration.type}
-          title={showCelebration.title}
+          title={showCelebration.title || ''}
           message={showCelebration.message}
           userRole={showCelebration.userRole}
           onClose={() => setShowCelebration({ show: false, type: 'login', title: '', message: '' })}
@@ -314,7 +314,7 @@ export default function Login() {
                     id="firstName"
                     name="firstName"
                     type="text"
-                    value={formData.firstName}
+                    value={formData.firstName || ''}
                     onChange={handleInputChange}
                     placeholder={language === 'fr' ? 'Jean' : 'John'}
                     required={isRegisterMode}
@@ -327,7 +327,7 @@ export default function Login() {
                     id="lastName"
                     name="lastName"
                     type="text"
-                    value={formData.lastName}
+                    value={formData.lastName || ''}
                     onChange={handleInputChange}
                     placeholder={language === 'fr' ? 'Dupond' : 'Doe'}
                     required={isRegisterMode}
@@ -366,7 +366,7 @@ export default function Login() {
                   id="email"
                   name="email"
                   type="email"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={handleInputChange}
                   placeholder={language === 'fr' ? 'vous@exemple.com' : 'you@example.com'}
                   className="pl-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all"
@@ -479,9 +479,9 @@ export default function Login() {
           setShowMultiRolePopup(false);
           setPendingRegistration(null);
         }}
-        detectedRoles={detectedRoles}
-        phone={formData.phoneNumber}
-        onSelectRoles={handleRoleSelection}
+        phoneNumber={formData.phoneNumber}
+        email={formData.email}
+        onRoleSelection={(roles) => handleRoleSelection(roles.map(r => r.role))}
       />
 
 

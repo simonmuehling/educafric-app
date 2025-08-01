@@ -93,7 +93,7 @@ const ParentProfile = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">
             Gérez vos informations personnelles et préférences
           </p>
@@ -144,29 +144,29 @@ const ParentProfile = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">{t.firstName}</Label>
+                    <Label htmlFor="firstName">{t.firstName || ''}</Label>
                     <Input
                       id="firstName"
-                      value={formData.firstName}
+                      value={formData.firstName || ''}
                       disabled={!isEditing}
                       onChange={(e) => setFormData({...formData, firstName: e?.target?.value})}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">{t.lastName}</Label>
+                    <Label htmlFor="lastName">{t.lastName || ''}</Label>
                     <Input
                       id="lastName"
-                      value={formData.lastName}
+                      value={formData.lastName || ''}
                       disabled={!isEditing}
                       onChange={(e) => setFormData({...formData, lastName: e?.target?.value})}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">{t.email}</Label>
+                    <Label htmlFor="email">{t.email || ''}</Label>
                     <Input
                       id="email"
                       type="email"
-                      value={formData.email}
+                      value={formData.email || ''}
                       disabled={!isEditing}
                       onChange={(e) => setFormData({...formData, email: e?.target?.value})}
                     />

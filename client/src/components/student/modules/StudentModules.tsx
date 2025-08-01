@@ -96,7 +96,7 @@ export const StudentMessages = () => {
     <Card className="p-6">
       <div className="space-y-4">
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title}</h4>
+          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title || ''}</h4>
           <p className="text-sm text-green-700">
             Messages des enseignants, direction et système EDUCAFRIC
           </p>
@@ -244,7 +244,7 @@ export const StudentEducationalContent = () => {
     <Card className="p-6">
       <div className="space-y-4">
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title}</h4>
+          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title || ''}</h4>
           <p className="text-sm text-green-700">
             Ressources pédagogiques créées par vos enseignants
           </p>
@@ -256,8 +256,8 @@ export const StudentEducationalContent = () => {
               <div key={item.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h5 className="font-semibold text-gray-800 mb-1">{item.title}</h5>
-                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                    <h5 className="font-semibold text-gray-800 mb-1">{item.title || ''}</h5>
+                    <p className="text-sm text-gray-600 mb-2">{item.description || ''}</p>
                     <div className="text-xs text-gray-500 space-y-1">
                       <p><strong>{t.subject}:</strong> {item.subject}</p>
                       <p><strong>{t.teacher}:</strong> {item.teacher}</p>
@@ -317,7 +317,7 @@ export const StudentEducationalContent = () => {
             <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-96 overflow-y-auto">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="font-bold text-lg">{selectedContent.title}</h3>
+                  <h3 className="font-bold text-lg">{selectedContent.title || ''}</h3>
                   <p className="text-sm text-gray-600">{selectedContent.teacher} • {selectedContent.subject}</p>
                 </div>
                 <button 
@@ -328,7 +328,7 @@ export const StudentEducationalContent = () => {
                 </button>
               </div>
               <div className="space-y-4">
-                <p className="text-gray-800">{selectedContent.description}</p>
+                <p className="text-gray-800">{selectedContent.description || ''}</p>
                 
                 <div>
                   <h4 className="font-semibold mb-2">Objectifs d'apprentissage:</h4>
@@ -397,7 +397,7 @@ export const StudentTimetableView = () => {
     <Card className="p-6">
       <div className="space-y-4">
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title}</h4>
+          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title || ''}</h4>
           <p className="text-sm text-green-700">
             Classe {timetable?.className} - {timetable?.metadata?.academicYear}
           </p>
@@ -554,7 +554,7 @@ export const StudentBulletins = () => {
     <Card className="p-6">
       <div className="space-y-4">
         <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title}</h4>
+          <h4 className="font-semibold text-green-900 mb-2">✅ {t.title || ''}</h4>
           <p className="text-sm text-green-700">{t.subtitle}</p>
         </div>
         

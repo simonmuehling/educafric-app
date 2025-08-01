@@ -47,7 +47,7 @@ export default function ModernFormDemo() {
                 <Input
                   id="firstName"
                   placeholder="Enter first name"
-                  value={formData.firstName}
+                  value={formData.firstName || ''}
                   onChange={(e) => handleChange('firstName', e?.target?.value)}
                   className={modernInputClasses}
                 />
@@ -58,7 +58,7 @@ export default function ModernFormDemo() {
                 <Input
                   id="lastName"
                   placeholder="Enter last name"
-                  value={formData.lastName}
+                  value={formData.lastName || ''}
                   onChange={(e) => handleChange('lastName', e?.target?.value)}
                   className={modernInputClasses}
                 />
@@ -72,7 +72,7 @@ export default function ModernFormDemo() {
                   id="email"
                   type="email"
                   placeholder="teacher@school?.edu?.cm"
-                  value={formData.email}
+                  value={formData.email || ''}
                   onChange={(e) => handleChange('email', e?.target?.value)}
                   className={cn(modernInputClasses, "pl-10")}
                 />

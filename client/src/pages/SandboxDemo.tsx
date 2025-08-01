@@ -116,13 +116,13 @@ export default function SandboxDemo() {
               <TestTube className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-gray-800">{t.title}</h1>
+              <h1 className="text-4xl font-bold text-gray-800">{t.title || ''}</h1>
               <p className="text-xl text-blue-600 mt-2">{t.subtitle}</p>
             </div>
           </div>
           
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-8">
-            {t.description}
+            {t.description || ''}
           </p>
 
           {/* Demo Access Button */}
@@ -154,7 +154,7 @@ export default function SandboxDemo() {
 
                 {/* Title */}
                 <h3 className="text-lg font-bold text-gray-800 mb-4">
-                  {role.title}
+                  {role.title || ''}
                 </h3>
 
                 {/* Features */}

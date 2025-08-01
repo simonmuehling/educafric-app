@@ -218,7 +218,7 @@ const TeacherAbsences = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
@@ -369,7 +369,7 @@ const TeacherAbsences = () => {
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">
-                        {teacher.firstName} {teacher.lastName}
+                        {teacher.firstName || ''} {teacher.lastName || ''}
                       </p>
                       <p className="text-sm text-gray-600">
                         {teacher.subjects?.join(', ') || 'Polyvalent'}

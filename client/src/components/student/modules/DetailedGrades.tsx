@@ -67,7 +67,7 @@ export const DetailedGrades = () => {
           <Lock className="w-3 h-3 text-white absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>

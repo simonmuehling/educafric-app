@@ -52,7 +52,7 @@ const FreelancerAttendance = () => {
           <CheckSquare className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -85,7 +85,7 @@ const FreelancerAttendance = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {t.(Array.isArray(features) ? features : []).map((feature, index) => (
+            {t.features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
                 <span className="text-gray-700">{feature}</span>

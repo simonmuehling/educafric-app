@@ -71,7 +71,7 @@ export default function EducafricHero() {
         <div className="max-w-4xl mx-auto">
           {/* Main Heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-            {t.title}
+            {t.title || ''}
             <span className="block african-orange-text">
               {t.subtitle}
             </span>
@@ -79,7 +79,7 @@ export default function EducafricHero() {
           
           {/* Description */}
           <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
-            {t.description}
+            {t.description || ''}
           </p>
           
           {/* Action Button */}

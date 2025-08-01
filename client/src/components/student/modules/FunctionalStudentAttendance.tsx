@@ -141,6 +141,7 @@ const FunctionalStudentAttendance: React.FC = () => {
 
   // Filter records
   const filteredRecords = (Array.isArray(attendanceRecords) ? attendanceRecords : []).filter(record => {
+    if (!record) return false;
     const statusMatch = filterStatus === 'all' || record.status === filterStatus;
     const subjectMatch = filterSubject === 'all' || record.subject === filterSubject;
     return statusMatch && subjectMatch;
@@ -165,7 +166,7 @@ const FunctionalStudentAttendance: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
 

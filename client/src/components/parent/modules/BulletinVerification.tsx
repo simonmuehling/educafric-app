@@ -211,7 +211,7 @@ const BulletinVerification = () => {
         <div className="flex items-center gap-3 mb-2">
           <Shield className="w-8 h-8" />
           <div>
-            <h1 className="text-2xl font-bold">{t.title}</h1>
+            <h1 className="text-2xl font-bold">{t.title || ''}</h1>
             <p className="text-green-100">{t.subtitle}</p>
           </div>
         </div>
@@ -393,7 +393,7 @@ const BulletinVerification = () => {
               <div>
                 <h4 className="text-lg font-semibold mb-4">{t.grades}</h4>
                 <div className="space-y-2">
-                  {verificationResult.bulletin.(Array.isArray(grades) ? grades : []).map((grade, index) => (
+                  {verificationResult.bulletin.grades.map((grade, index) => (
                     <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-white">
                       <div>
                         <span className="font-medium">{grade.subjectName}</span>

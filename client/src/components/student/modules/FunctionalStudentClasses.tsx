@@ -117,9 +117,9 @@ const FunctionalStudentClasses: React.FC = () => {
 
   // Calculate statistics
   const totalClasses = classes.length;
-  const activeClasses = classes.filter(cls => cls.status === 'active').length;
-  const avgGrade = classes.length > 0 ? Math.round(classes.reduce((sum, cls) => sum + cls.averageGrade, 0) / classes.length * 10) / 10 : 0;
-  const avgAttendance = classes.length > 0 ? Math.round(classes.reduce((sum, cls) => sum + cls.attendance, 0) / classes.length) : 0;
+  const activeClasses = (Array.isArray(classes) ? classes : []).filter(cls => cls.status === 'active').length;
+  const avgGrade = classes.length > 0 ? Math.round((Array.isArray(classes) ? classes : []).reduce((sum, cls) => sum + cls.averageGrade, 0) / classes.length * 10) / 10 : 0;
+  const avgAttendance = classes.length > 0 ? Math.round((Array.isArray(classes) ? classes : []).reduce((sum, cls) => sum + cls.attendance, 0) / classes.length) : 0;
 
   if (isLoading) {
     return (
@@ -137,7 +137,7 @@ const FunctionalStudentClasses: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
 
@@ -211,7 +211,7 @@ const FunctionalStudentClasses: React.FC = () => {
               </p>
             </Card>
           ) : (
-            classes.map((classItem) => (
+            (Array.isArray(classes) ? classes : []).map((classItem) => (
               <Card key={classItem.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -220,7 +220,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         <BookOpen className="w-6 h-6 text-blue-600" />
                       </div>
                       <div>
-                        <CardTitle className="text-xl">{classItem.name}</CardTitle>
+                        <CardTitle className="text-xl">{classItem.name || ''}</CardTitle>
                         <p className="text-gray-600">{classItem.subject}</p>
                       </div>
                     </div>
@@ -296,7 +296,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         onClick={() => {
                           toast({
                             title: language === 'fr' ? 'Détails du cours' : 'Class Details',
-                            description: language === 'fr' ? `Affichage des détails de ${classItem.name}` : `Showing details for ${classItem.name}`
+                            description: language === 'fr' ? `Affichage des détails de ${classItem.name || ''}` : `Showing details for ${classItem.name || ''}`
                           });
                         }}
                         data-testid={`button-view-details-${classItem.id}`}
@@ -312,7 +312,7 @@ const FunctionalStudentClasses: React.FC = () => {
                           window.dispatchEvent(event);
                           toast({
                             title: language === 'fr' ? 'Devoirs' : 'Assignments',
-                            description: language === 'fr' ? `Affichage des devoirs de ${classItem.name}` : `Showing assignments for ${classItem.name}`
+                            description: language === 'fr' ? `Affichage des devoirs de ${classItem.name || ''}` : `Showing assignments for ${classItem.name || ''}`
                           });
                         }}
                         data-testid={`button-view-assignments-${classItem.id}`}
@@ -326,7 +326,7 @@ const FunctionalStudentClasses: React.FC = () => {
                         onClick={() => {
                           toast({
                             title: language === 'fr' ? 'Téléchargement' : 'Download',
-                            description: language === 'fr' ? `Téléchargement des ressources de ${classItem.name}` : `Downloading materials for ${classItem.name}`
+                            description: language === 'fr' ? `Téléchargement des ressources de ${classItem.name || ''}` : `Downloading materials for ${classItem.name || ''}`
                           });
                         }}
                         data-testid={`button-download-materials-${classItem.id}`}
@@ -341,7 +341,7 @@ const FunctionalStudentClasses: React.FC = () => {
                           onClick={() => {
                             toast({
                               title: language === 'fr' ? 'Rejoindre le cours' : 'Join Class',
-                              description: language === 'fr' ? `Connexion au cours ${classItem.name}` : `Joining class ${classItem.name}`
+                              description: language === 'fr' ? `Connexion au cours ${classItem.name || ''}` : `Joining class ${classItem.name || ''}`
                             });
                           }}
                           data-testid={`button-join-class-${classItem.id}`}

@@ -215,7 +215,7 @@ export default function GeolocationPricing() {
               <MapPin className="w-8 h-8 mr-3" />
               <h1 className="text-3xl font-bold">Educafric</h1>
             </div>
-            <h2 className="text-xl">{t.title} - {t.subtitle}</h2>
+            <h2 className="text-xl">{t.title || ''} - {t.subtitle}</h2>
           </div>
 
           {/* Important Notice */}

@@ -153,7 +153,7 @@ const BulletinApprovalManagement: React.FC = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
                 <ClipboardList className="w-6 h-6 text-blue-600" />
-                {t.title}
+                {t.title || ''}
               </h2>
               <p className="text-gray-600 mt-1">{t.subtitle}</p>
             </div>

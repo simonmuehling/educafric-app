@@ -220,8 +220,8 @@ const FunctionalGrades = () => {
     return 'text-red-600 bg-red-100';
   };
 
-  const classAverage = students.reduce((sum, student) => sum + student.average, 0) / (Array.isArray(students) ? students.length : 0);
-  const bestStudent = students.reduce((best, student) => student.average > best.average ? student : best);
+  const classAverage = (Array.isArray(students) ? students : []).reduce((sum, student) => sum + student.average, 0) / (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0);
+  const bestStudent = (Array.isArray(students) ? students : []).reduce((best, student) => student.average > best.average ? student : best);
   const studentsNeedingHelp = (Array.isArray(students) ? students : []).filter(student => student.average < 10);
 
   return (
@@ -229,7 +229,7 @@ const FunctionalGrades = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -254,7 +254,7 @@ const FunctionalGrades = () => {
             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {(Array.isArray(classes) ? classes : []).map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
+              <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
             ))}
           </select>
         </div>
@@ -267,7 +267,7 @@ const FunctionalGrades = () => {
           >
             {(Array.isArray(subjects) ? subjects : []).map(subject => (
               <option key={subject.id} value={subject.id}>
-                {subject.name} (Coef. {subject.coefficient})
+                {subject.name || ''} (Coef. {subject.coefficient})
               </option>
             ))}
           </select>
@@ -277,7 +277,7 @@ const FunctionalGrades = () => {
           <select className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             {(Array.isArray(evaluationTypes) ? evaluationTypes : []).map(type => (
               <option key={type.id} value={type.id}>
-                {type.name} (Coef. {type.coefficient})
+                {type.name || ''} (Coef. {type.coefficient})
               </option>
             ))}
           </select>
@@ -287,7 +287,7 @@ const FunctionalGrades = () => {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
-          <div className="text-2xl font-bold text-gray-800">{(Array.isArray(students) ? students.length : 0)}</div>
+          <div className="text-2xl font-bold text-gray-800">{(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)}</div>
           <div className="text-sm text-gray-600">Élèves</div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-green">
@@ -329,7 +329,7 @@ const FunctionalGrades = () => {
                       {student.number}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{student.name}</p>
+                      <p className="font-semibold text-gray-900">{student.name || ''}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className={getGradeColor(student.average)}>
                           Moy: {student.average}/20
@@ -369,7 +369,7 @@ const FunctionalGrades = () => {
                   </div>
                   
                   <div className="flex flex-wrap gap-1">
-                    {student.(Array.isArray(currentGrades) ? currentGrades : []).map((grade, index) => (
+                    {student.currentGrades.map((grade, index) => (
                       <Badge key={index} className={getGradeColor(grade)}>
                         {grade}/20
                       </Badge>
@@ -385,7 +385,7 @@ const FunctionalGrades = () => {
                     {student.number}
                   </div>
                   <div>
-                    <p className="font-medium">{student.name}</p>
+                    <p className="font-medium">{student.name || ''}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={getGradeColor(student.average)}>
                         Moyenne: {student.average}/20
@@ -393,7 +393,7 @@ const FunctionalGrades = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {student.(Array.isArray(currentGrades) ? currentGrades : []).map((grade, index) => (
+                    {student.currentGrades.map((grade, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {grade}/20
                       </Badge>
@@ -461,7 +461,7 @@ const FunctionalGrades = () => {
               <div className="space-y-2">
                 {students.slice(0, 3).map((student, index) => (
                   <div key={index} className="flex justify-between items-center p-3 border rounded-lg">
-                    <span>{student.name} - Moyenne: {student.average}/20</span>
+                    <span>{student.name || ''} - Moyenne: {student.average}/20</span>
                     <Badge className={getGradeColor(student.average)}>
                       {student.average >= classAverage ? 'Au-dessus' : 'En-dessous'} de la moyenne
                     </Badge>
@@ -523,7 +523,7 @@ const FunctionalGrades = () => {
         <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Contacter le Parent - {selectedStudent.name}</DialogTitle>
+              <DialogTitle>Contacter le Parent - {selectedStudent.name || ''}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -550,7 +550,7 @@ const FunctionalGrades = () => {
                 <Button 
                   className="flex-1" 
                   variant="outline"
-                  onClick={() => window.open(`mailto:${selectedStudent.parentEmail}?subject=Notes de ${selectedStudent.name}`)}
+                  onClick={() => window.open(`mailto:${selectedStudent.parentEmail}?subject=Notes de ${selectedStudent.name || ''}`)}
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Email
@@ -561,7 +561,7 @@ const FunctionalGrades = () => {
                 <label className="block text-sm font-medium mb-2">Message rapide :</label>
                 <div className="grid grid-cols-1 gap-2">
                   <Button size="sm" variant="outline" className="justify-start">
-                    📊 Bons résultats de {selectedStudent.name}
+                    📊 Bons résultats de {selectedStudent.name || ''}
                   </Button>
                   <Button size="sm" variant="outline" className="justify-start">
                     📉 Difficultés en {subjects.find(s => s.id === selectedSubject)?.name}

@@ -277,7 +277,7 @@ const AdministratorManagement: React.FC = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
                 <Shield className="w-6 h-6 text-blue-600" />
-                {t.title}
+                {t.title || ''}
               </h2>
               <p className="text-gray-600 mt-1">{t.subtitle}</p>
             </div>
@@ -348,7 +348,7 @@ const AdministratorManagement: React.FC = () => {
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="text-left p-4 font-semibold">{t.adminName}</th>
-                  <th className="text-left p-4 font-semibold">{t.email}</th>
+                  <th className="text-left p-4 font-semibold">{t.email || ''}</th>
                   <th className="text-left p-4 font-semibold">{t.role}</th>
                   <th className="text-left p-4 font-semibold">{t.permissions}</th>
                   <th className="text-left p-4 font-semibold">{t.status}</th>
@@ -446,7 +446,7 @@ const AdministratorManagement: React.FC = () => {
                   <SelectContent>
                     {(Array.isArray(availableTeachers) ? availableTeachers : []).map((teacher: any) => (
                       <SelectItem key={teacher.id} value={teacher?.id?.toString()}>
-                        {teacher.firstName} {teacher.lastName} ({teacher.email})
+                        {teacher.firstName || ''} {teacher.lastName || ''} ({teacher.email || ''})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -512,9 +512,9 @@ const AdministratorManagement: React.FC = () => {
               <div className="max-h-64 overflow-y-auto space-y-3">
                 {Object.entries(modulePermissions).map(([moduleKey, moduleInfo]: [string, any]) => (
                   <div key={moduleKey} className="border rounded-lg p-3">
-                    <div className="font-medium mb-2">{moduleInfo.name}</div>
+                    <div className="font-medium mb-2">{moduleInfo.name || ''}</div>
                     <div className="space-y-2">
-                      {moduleInfo.(Array.isArray(permissions) ? permissions : []).map((permission: string) => (
+                      {moduleInfo.permissions.map((permission: string) => (
                         <div key={permission} className="flex items-center space-x-2">
                           <Checkbox
                             id={`${moduleKey}-${permission}`}

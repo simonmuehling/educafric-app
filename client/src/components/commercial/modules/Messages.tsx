@@ -163,7 +163,7 @@ const Messages = () => {
           <MessageSquare className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
       </div>
@@ -210,7 +210,7 @@ const Messages = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-900 truncate">{conv.name}</h4>
+                          <h4 className="font-medium text-gray-900 truncate">{conv.name || ''}</h4>
                           {conv.unreadCount > 0 && (
                             <Badge className="bg-red-500 text-white text-xs">
                               {conv.unreadCount}

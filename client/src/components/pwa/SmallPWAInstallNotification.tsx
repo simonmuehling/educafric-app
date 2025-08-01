@@ -102,7 +102,7 @@ const SmallPWAInstallNotification: React.FC = () => {
           <Smartphone className="notification-icon text-blue-500" />
           <div className="notification-text">
             <div className="notification-title">
-              {t.title}
+              {t.title || ''}
             </div>
             <div className="notification-message">
               {t.message}

@@ -61,7 +61,7 @@ const MySchoolsModule = () => {
   ];
 
   const displaySchools = (Array.isArray(schools) ? schools.length : 0) > 0 ? schools : mockSchools;
-  const totalRevenue = displaySchools.reduce((acc: number, school: any) => acc + (school.value || school.revenue || 0), 0);
+  const totalRevenue = (Array.isArray(displaySchools) ? displaySchools : []).reduce((acc: number, school: any) => acc + (school.value || school.revenue || 0), 0);
   const activeSchools = (Array.isArray(displaySchools) ? displaySchools : []).filter((s: any) => s.status === 'active' || s.status === 'client').length;
 
   return (
@@ -81,7 +81,7 @@ const MySchoolsModule = () => {
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Élèves Total' : 'Total Students'}
-          value={displaySchools.reduce((acc: number, s: any) => acc + (s.students || 0), 0).toString()}
+          value={(Array.isArray(displaySchools) ? displaySchools : []).reduce((acc: number, s: any) => acc + (s.students || 0), 0).toString()}
           icon={<Users className="w-5 h-5" />}
           gradient="purple"
         />
@@ -104,7 +104,7 @@ const MySchoolsModule = () => {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-3">
-                    <h4 className="text-xl font-bold text-gray-800">{school.name}</h4>
+                    <h4 className="text-xl font-bold text-gray-800">{school.name || ''}</h4>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                       school.status === 'active' ? 'bg-green-100 text-green-800' :
                       school.status === 'trial' ? 'bg-yellow-100 text-yellow-800' :
@@ -147,7 +147,7 @@ const MySchoolsModule = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      <span>{school.email}</span>
+                      <span>{school.email || ''}</span>
                     </div>
                   </div>
                 </div>

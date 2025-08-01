@@ -156,7 +156,7 @@ const FunctionalFreelancerSchedule: React.FC = () => {
     : schedule;
 
   // Group by day for week view
-  const scheduleByDay = schedule.reduce((acc, slot) => {
+  const scheduleByDay = (Array.isArray(schedule) ? schedule : []).reduce((acc, slot) => {
     if (!acc[slot.dayOfWeek]) acc[slot.dayOfWeek] = [];
     acc[slot.dayOfWeek].push(slot);
     return acc;
@@ -202,7 +202,7 @@ const FunctionalFreelancerSchedule: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
@@ -351,7 +351,7 @@ const FunctionalFreelancerSchedule: React.FC = () => {
                               <BookOpen className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                              <h4 className="text-lg font-semibold text-gray-900">{slot.title}</h4>
+                              <h4 className="text-lg font-semibold text-gray-900">{slot.title || ''}</h4>
                               <p className="text-sm text-gray-600">{slot.dayName}</p>
                             </div>
                             {getStatusBadge(slot.status)}

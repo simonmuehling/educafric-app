@@ -87,7 +87,7 @@ const SandboxTestSuite = () => {
       const test = tests[i];
       
       // Update test status to running
-      setTests(prev => prev.map(t => 
+      setTests(prev => (Array.isArray(prev) ? prev : []).map(t => 
         t.id === test.id ? { ...t, status: 'running' } : t
       ));
 
@@ -99,7 +99,7 @@ const SandboxTestSuite = () => {
       // Random pass/fail for demo
       const passed = Math.random() > 0.2;
       
-      setTests(prev => prev.map(t => 
+      setTests(prev => (Array.isArray(prev) ? prev : []).map(t => 
         t.id === test.id ? { 
           ...t, 
           status: passed ? 'passed' : 'failed',
@@ -116,13 +116,13 @@ const SandboxTestSuite = () => {
 
   const stopTests = () => {
     setIsRunning(false);
-    setTests(prev => prev.map(t => 
+    setTests(prev => (Array.isArray(prev) ? prev : []).map(t => 
       t.status === 'running' ? { ...t, status: 'pending' } : t
     ));
   };
 
   const clearResults = () => {
-    setTests(prev => prev.map(t => ({ 
+    setTests(prev => (Array.isArray(prev) ? prev : []).map(t => ({ 
       ...t, 
       status: 'pending',
       duration: undefined,
@@ -159,8 +159,8 @@ const SandboxTestSuite = () => {
     }
   };
 
-  const passedCount = tests.filter(t => t.status === 'passed').length;
-  const failedCount = tests.filter(t => t.status === 'failed').length;
+  const passedCount = (Array.isArray(tests) ? tests : []).filter(t => t.status === 'passed').length;
+  const failedCount = (Array.isArray(tests) ? tests : []).filter(t => t.status === 'failed').length;
   const totalTests = tests.length;
 
   return (
@@ -168,7 +168,7 @@ const SandboxTestSuite = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -264,7 +264,7 @@ const SandboxTestSuite = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {tests.map((test) => (
+            {(Array.isArray(tests) ? tests : []).map((test) => (
               <div key={test.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(test.status)}
@@ -272,8 +272,8 @@ const SandboxTestSuite = () => {
                     {getCategoryIcon(test.category)}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{test.name}</div>
-                    <div className="text-sm text-gray-600">{test.description}</div>
+                    <div className="font-medium text-gray-900">{test.name || ''}</div>
+                    <div className="text-sm text-gray-600">{test.description || ''}</div>
                     {test.error && (
                       <div className="text-xs text-red-600 mt-1">{test.error}</div>
                     )}

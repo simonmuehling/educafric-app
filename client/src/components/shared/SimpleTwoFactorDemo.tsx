@@ -180,9 +180,9 @@ export default function SimpleTwoFactorDemo({ language }: SimpleTwoFactorDemoPro
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="w-5 h-5" />
-          {t.title}
+          {t.title || ''}
         </CardTitle>
-        <CardDescription>{t.description}</CardDescription>
+        <CardDescription>{t.description || ''}</CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">

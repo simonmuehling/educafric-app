@@ -475,7 +475,7 @@ const PreviewModule = () => {
               <Eye className="w-6 h-6 text-indigo-600" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">{t.title}</h2>
+              <h2 className="text-xl font-semibold">{t.title || ''}</h2>
               <p className="text-gray-600">{t.subtitle}</p>
             </div>
           </div>

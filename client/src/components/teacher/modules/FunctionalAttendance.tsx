@@ -99,7 +99,7 @@ const FunctionalAttendance = () => {
     setAttendance(allPresent);
     toast({
       title: language === 'fr' ? 'Tous marqués présents' : 'All marked present',
-      description: `${(Array.isArray(students) ? students.length : 0)} ${language === 'fr' ? 'élèves marqués présents' : 'students marked present'}`
+      description: `${(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)} ${language === 'fr' ? 'élèves marqués présents' : 'students marked present'}`
     });
   };
 
@@ -159,7 +159,7 @@ const FunctionalAttendance = () => {
   };
 
   const getAttendanceStats = () => {
-    const total = (Array.isArray(students) ? students.length : 0);
+    const total = (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0);
     const present = Object.values(attendance).filter(status => status === 'present').length;
     const absent = Object.values(attendance).filter(status => status === 'absent').length;
     const late = Object.values(attendance).filter(status => status === 'late').length;
@@ -175,7 +175,7 @@ const FunctionalAttendance = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -200,7 +200,7 @@ const FunctionalAttendance = () => {
             className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {(Array.isArray(classes) ? classes : []).map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
+              <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
             ))}
           </select>
         </div>
@@ -277,7 +277,7 @@ const FunctionalAttendance = () => {
                         {student.number}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{student.name}</p>
+                        <p className="font-semibold text-gray-900">{student.name || ''}</p>
                         {student.parentName && (
                           <p className="text-xs text-gray-500">Parent: {student.parentName}</p>
                         )}
@@ -340,7 +340,7 @@ const FunctionalAttendance = () => {
                       {student.number}
                     </div>
                     <div>
-                      <p className="font-medium">{student.name}</p>
+                      <p className="font-medium">{student.name || ''}</p>
                       <p className="text-sm text-gray-500">ID: {student.number}</p>
                       {student.parentName && (
                         <p className="text-xs text-gray-500">Parent: {student.parentName}</p>
@@ -481,7 +481,7 @@ const FunctionalAttendance = () => {
         <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
           <DialogContent className="bg-white">
             <DialogHeader>
-              <DialogTitle>Contacter le Parent - {selectedStudent.name}</DialogTitle>
+              <DialogTitle>Contacter le Parent - {selectedStudent.name || ''}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -506,7 +506,7 @@ const FunctionalAttendance = () => {
                 <Button 
                   className="flex-1" 
                   variant="outline"
-                  onClick={() => window.open(`mailto:${selectedStudent.parentEmail}?subject=Concernant ${selectedStudent.name}`)}
+                  onClick={() => window.open(`mailto:${selectedStudent.parentEmail}?subject=Concernant ${selectedStudent.name || ''}`)}
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Email
@@ -517,10 +517,10 @@ const FunctionalAttendance = () => {
                 <label className="block text-sm font-medium mb-2">Message rapide :</label>
                 <div className="grid grid-cols-1 gap-2">
                   <Button size="sm" variant="outline" className="justify-start">
-                    📞 Absence de {selectedStudent.name} aujourd'hui
+                    📞 Absence de {selectedStudent.name || ''} aujourd'hui
                   </Button>
                   <Button size="sm" variant="outline" className="justify-start">
-                    ⏰ {selectedStudent.name} est en retard
+                    ⏰ {selectedStudent.name || ''} est en retard
                   </Button>
                   <Button size="sm" variant="outline" className="justify-start">
                     📚 RDV pour discuter du comportement

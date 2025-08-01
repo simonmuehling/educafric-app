@@ -204,7 +204,7 @@ const ParentChildConnectionManager: React.FC<ParentChildConnectionManagerProps> 
         <CardHeader>
           <CardTitle className="flex items-center space-x-3 text-blue-800">
             <User className="h-6 w-6" />
-            <span>{t.title}</span>
+            <span>{t.title || ''}</span>
           </CardTitle>
           <p className="text-blue-600">{t.subtitle}</p>
         </CardHeader>

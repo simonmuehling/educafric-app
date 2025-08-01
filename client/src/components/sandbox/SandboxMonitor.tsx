@@ -73,7 +73,7 @@ const SandboxMonitor = () => {
     if (!isMonitoring) return;
 
     const interval = setInterval(() => {
-      setMetrics(prev => prev.map(metric => ({
+      setMetrics(prev => (Array.isArray(prev) ? prev : []).map(metric => ({
         ...metric,
         value: Math.max(0, Math.min(100, metric.value + (Math.random() - 0.5) * 10)),
         trend: Math.random() > 0.7 ? (Math.random() > 0.5 ? 'up' : 'down') : 'stable',
@@ -129,7 +129,7 @@ const SandboxMonitor = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -222,11 +222,11 @@ const SandboxMonitor = () => {
 
         <TabsContent value="metrics" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {metrics.map((metric, index) => (
+            {(Array.isArray(metrics) ? metrics : []).map((metric, index) => (
               <Card key={index}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600">{metric.name}</span>
+                    <span className="text-sm font-medium text-gray-600">{metric.name || ''}</span>
                     {getTrendIcon(metric.trend)}
                   </div>
                   <div className="flex items-center justify-between">
@@ -261,7 +261,7 @@ const SandboxMonitor = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {logs.map((log) => (
+                {(Array.isArray(logs) ? logs : []).map((log) => (
                   <div key={log.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded">
                     <Badge className={getLevelColor(log.level)}>
                       {log.level.toUpperCase()}

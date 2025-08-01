@@ -196,9 +196,9 @@ const FunctionalTeacherGrades: React.FC = () => {
 
   // Calculate statistics using safe grades
   const totalGrades = safeGrades.length;
-  const avgGrade = safeGrades.length > 0 ? (safeGrades.reduce((sum, g) => sum + (g.grade || 0), 0) / safeGrades.length).toFixed(1) : '0';
-  const excellentCount = safeGrades.filter(g => (g.grade || 0) >= 16).length;
-  const needsHelpCount = safeGrades.filter(g => (g.grade || 0) < 12).length;
+  const avgGrade = safeGrades.length > 0 ? ((Array.isArray(safeGrades) ? safeGrades : []).reduce((sum, g) => sum + (g.grade || 0), 0) / safeGrades.length).toFixed(1) : '0';
+  const excellentCount = (Array.isArray(safeGrades) ? safeGrades : []).filter(g => (g.grade || 0) >= 16).length;
+  const needsHelpCount = (Array.isArray(safeGrades) ? safeGrades : []).filter(g => (g.grade || 0) < 12).length;
 
   const getGradeColor = (grade: number) => {
     if (grade >= 16) return 'text-green-600 bg-green-100';
@@ -219,7 +219,7 @@ const FunctionalTeacherGrades: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -508,7 +508,7 @@ const FunctionalTeacherGrades: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {grades.map((grade) => (
+              {(Array.isArray(grades) ? grades : []).map((grade) => (
                 <div key={grade.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">

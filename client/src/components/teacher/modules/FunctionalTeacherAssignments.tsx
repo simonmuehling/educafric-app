@@ -191,7 +191,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
   // Calculate statistics
   const totalAssignments = (Array.isArray(assignments) ? assignments.length : 0);
   const avgCompletion = (Array.isArray(assignments) ? assignments.length : 0) > 0 
-    ? Math.round(assignments.reduce((sum, a) => sum + a.completionRate, 0) / (Array.isArray(assignments) ? assignments.length : 0))
+    ? Math.round((Array.isArray(assignments) ? assignments : []).reduce((sum, a) => sum + a.completionRate, 0) / (Array.isArray(assignments) ? assignments.length : 0))
     : 0;
   const pendingCount = (Array.isArray(assignments) ? assignments : []).filter(a => a.status === 'active').length;
   const overdueCount = (Array.isArray(assignments) ? assignments : []).filter(a => a.status === 'overdue').length;
@@ -223,7 +223,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -332,7 +332,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                     <label className="text-sm font-medium">Titre du Devoir</label>
                     <input
                       type="text"
-                      value={homeworkForm.title}
+                      value={homeworkForm.title || ''}
                       onChange={(e) => setHomeworkForm(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Ex: Exercices de mathématiques"
                       className="w-full border rounded-md px-3 py-2"
@@ -341,7 +341,7 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   <div>
                     <label className="text-sm font-medium">Description</label>
                     <textarea
-                      value={homeworkForm.description}
+                      value={homeworkForm.description || ''}
                       onChange={(e) => setHomeworkForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Description détaillée du devoir..."
                       rows={3}
@@ -461,11 +461,11 @@ const FunctionalTeacherAssignments: React.FC = () => {
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <FileText className="w-5 h-5 text-blue-600" />
-                          <h4 className="text-lg font-semibold text-gray-900">{assignment.title}</h4>
+                          <h4 className="text-lg font-semibold text-gray-900">{assignment.title || ''}</h4>
                           {getStatusBadge(assignment.status)}
                         </div>
                         
-                        <p className="text-gray-600 mb-3 line-clamp-2">{assignment.description}</p>
+                        <p className="text-gray-600 mb-3 line-clamp-2">{assignment.description || ''}</p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                           <div>

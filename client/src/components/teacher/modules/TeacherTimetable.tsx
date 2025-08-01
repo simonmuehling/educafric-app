@@ -169,7 +169,7 @@ const TeacherTimetable = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">
@@ -226,7 +226,7 @@ const TeacherTimetable = () => {
           >
             <option value="all">{t.allClasses}</option>
             {(Array.isArray(classes) ? classes : []).map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
+              <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
             ))}
           </select>
         </div>
@@ -240,7 +240,7 @@ const TeacherTimetable = () => {
             <div className="block md:hidden space-y-4">
               {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
                 <div key={day.id} className="border rounded-lg p-3">
-                  <h3 className="font-semibold text-lg mb-3 text-center">{day.name}</h3>
+                  <h3 className="font-semibold text-lg mb-3 text-center">{day.name || ''}</h3>
                   <div className="space-y-2">
                     {(schedule as any)[day.id]?.map((slot: any, index: number) => (
                       <div 
@@ -270,7 +270,7 @@ const TeacherTimetable = () => {
                     <th className="w-24 p-3 text-left font-medium text-gray-700">Horaire</th>
                     {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
                       <th key={day.id} className="p-3 text-center font-medium text-gray-700">
-                        {day.name}
+                        {day.name || ''}
                       </th>
                     ))}
                   </tr>
@@ -318,7 +318,7 @@ const TeacherTimetable = () => {
           {(Array.isArray(classes) ? classes : []).map(cls => (
             <div key={cls.id} className="flex items-center gap-2">
               <div className={`w-4 h-4 rounded ${getClassColor(cls.name)}`}></div>
-              <span className="text-sm font-medium">{cls.name}</span>
+              <span className="text-sm font-medium">{cls.name || ''}</span>
               <Badge variant="outline" className="text-xs">{cls.students}</Badge>
             </div>
           ))}
@@ -343,7 +343,7 @@ const TeacherTimetable = () => {
               <label className="block text-sm font-medium mb-2">{t.class}</label>
               <select className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 {(Array.isArray(classes) ? classes : []).map(cls => (
-                  <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
                 ))}
               </select>
             </div>

@@ -257,7 +257,7 @@ const FreelancerSubscription = () => {
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{t.title}</h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">{t.title || ''}</h3>
         <p className="text-gray-600">{t.subtitle}</p>
       </div>
 
@@ -282,8 +282,8 @@ const FreelancerSubscription = () => {
               <div className={`inline-flex p-3 rounded-full bg-${plan.color}-100 text-${plan.color}-600 mb-4`}>
                 {plan.icon}
               </div>
-              <h4 className="text-xl font-bold text-gray-900 mb-2">{plan.name}</h4>
-              <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+              <h4 className="text-xl font-bold text-gray-900 mb-2">{plan.name || ''}</h4>
+              <p className="text-gray-600 text-sm mb-4">{plan.description || ''}</p>
               
               {/* Pricing */}
               <div className="mb-4">

@@ -119,7 +119,7 @@ const ProfileSettings = () => {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
         <p className="text-gray-600 mt-1">{t.subtitle}</p>
       </div>
 
@@ -146,19 +146,19 @@ const ProfileSettings = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">{t.firstName}</Label>
+                <Label htmlFor="firstName">{t.firstName || ''}</Label>
                 <Input
                   id="firstName"
-                  value={formData.firstName}
+                  value={formData.firstName || ''}
                   onChange={(e) => handleInputChange('firstName', e?.target?.value)}
                   disabled={!isEditing}
                 />
               </div>
               <div>
-                <Label htmlFor="lastName">{t.lastName}</Label>
+                <Label htmlFor="lastName">{t.lastName || ''}</Label>
                 <Input
                   id="lastName"
-                  value={formData.lastName}
+                  value={formData.lastName || ''}
                   onChange={(e) => handleInputChange('lastName', e?.target?.value)}
                   disabled={!isEditing}
                 />
@@ -166,11 +166,11 @@ const ProfileSettings = () => {
             </div>
 
             <div>
-              <Label htmlFor="email">{t.email}</Label>
+              <Label htmlFor="email">{t.email || ''}</Label>
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={(e) => handleInputChange('email', e?.target?.value)}
                 disabled={!isEditing}
               />

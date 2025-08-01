@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       
       // Enhanced login notification with user details
-      const userDisplayName = `${userData.firstName} ${userData.lastName}`;
+      const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
       const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
       console.log(`🎉 Login successful: ${userDisplayName} (${roleDisplay}) - ${email}`);
       
@@ -104,9 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       // Enhanced registration notification with user details
-      const userDisplayName = `${userData.firstName} ${userData.lastName}`;
+      const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
       const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
-      console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email}`);
+      console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email || ''}`);
     } catch (error: any) {
       console.error('Registration error:', error);
       throw error;

@@ -168,7 +168,7 @@ const EnhancedSandboxDashboard = () => {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold">{t.title}</h1>
+            <h1 className="text-2xl font-bold">{t.title || ''}</h1>
             <p className="text-blue-100">{t.subtitle}</p>
           </div>
           <Badge className="bg-green-500 text-white">
@@ -177,7 +177,7 @@ const EnhancedSandboxDashboard = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {systemStats.map((stat, index) => (
+          {(Array.isArray(systemStats) ? systemStats : []).map((stat, index) => (
             <div key={index} className="bg-white/10 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className={stat.color}>
@@ -187,7 +187,7 @@ const EnhancedSandboxDashboard = () => {
               </div>
               <div className="mt-2">
                 <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-sm text-blue-100">{stat.title}</div>
+                <div className="text-sm text-blue-100">{stat.title || ''}</div>
               </div>
             </div>
           ))}
@@ -204,17 +204,17 @@ const EnhancedSandboxDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => (
+            {(Array.isArray(quickActions) ? quickActions : []).map((action, index) => (
               <Button
                 key={index}
                 onClick={action.action}
                 className={`${action.color} text-white h-auto p-4 flex flex-col items-start gap-2`}
-                data-testid={`quick-action-${action.title.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`quick-action-${(action.title || '').toLowerCase().replace(/\s+/g, '-')}`}
               >
                 {action.icon}
                 <div className="text-left">
-                  <div className="font-semibold text-sm">{action.title}</div>
-                  <div className="text-xs opacity-90">{action.description}</div>
+                  <div className="font-semibold text-sm">{action.title || ''}</div>
+                  <div className="text-xs opacity-90">{action.description || ''}</div>
                 </div>
               </Button>
             ))}
@@ -232,7 +232,7 @@ const EnhancedSandboxDashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {devTools.map((tool) => (
+            {(Array.isArray(devTools) ? devTools : []).map((tool) => (
               <Card key={tool.id} className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => window.open(tool.route, '_blank')}>
                 <CardContent className="p-4">
@@ -242,12 +242,12 @@ const EnhancedSandboxDashboard = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm">{tool.title}</h3>
+                        <h3 className="font-semibold text-sm">{tool.title || ''}</h3>
                         <Badge variant={tool.status === 'active' ? 'default' : 'secondary'}>
                           {tool.status}
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-600">{tool.description}</p>
+                      <p className="text-xs text-gray-600">{tool.description || ''}</p>
                     </div>
                   </div>
                 </CardContent>

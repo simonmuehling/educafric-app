@@ -141,7 +141,7 @@ const ParentCommunicationsBidirectional = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
 
@@ -280,7 +280,7 @@ const ParentCommunicationsBidirectional = () => {
                       <SelectItem value="direction">{t.direction}</SelectItem>
                       {(Array.isArray(teachers) ? teachers : []).map((teacher) => (
                         <SelectItem key={teacher.id} value={teacher?.id?.toString()}>
-                          {teacher.name} - {teacher.subject} ({teacher.class})
+                          {teacher.name || ''} - {teacher.subject} ({teacher.class})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -383,7 +383,7 @@ const ParentCommunicationsBidirectional = () => {
                       <User className="w-4 h-4 text-gray-600" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{teacher.name}</p>
+                      <p className="font-medium text-sm">{teacher.name || ''}</p>
                       <p className="text-xs text-gray-600">{teacher.subject}</p>
                       <p className="text-xs text-gray-500">{teacher.class}</p>
                     </div>

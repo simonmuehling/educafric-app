@@ -350,8 +350,8 @@ const FamilySafetyNetwork: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {getZoneIcon(zone.zoneType)}
                       <div>
-                        <h4 className="font-medium">{zone.name}</h4>
-                        <p className="text-sm text-gray-600">{zone.description}</p>
+                        <h4 className="font-medium">{zone.name || ''}</h4>
+                        <p className="text-sm text-gray-600">{zone.description || ''}</p>
                       </div>
                     </div>
                     <Badge variant={zone.isActive ? "default" : "secondary"}>

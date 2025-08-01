@@ -213,7 +213,7 @@ const FunctionalParentProfile: React.FC = () => {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{t.title || ''}</h1>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
           <div className="flex gap-2">
@@ -269,7 +269,7 @@ const FunctionalParentProfile: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">{t.firstName}</label>
+                    <label className="text-sm font-medium">{t.firstName || ''}</label>
                     <Input
                       value={formData.firstName || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
@@ -278,7 +278,7 @@ const FunctionalParentProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.lastName}</label>
+                    <label className="text-sm font-medium">{t.lastName || ''}</label>
                     <Input
                       value={formData.lastName || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
@@ -287,7 +287,7 @@ const FunctionalParentProfile: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">{t.email}</label>
+                    <label className="text-sm font-medium">{t.email || ''}</label>
                     <Input
                       value={formData.email || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
@@ -365,7 +365,7 @@ const FunctionalParentProfile: React.FC = () => {
                           <Users className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{child.name}</h4>
+                          <h4 className="font-semibold text-gray-900">{child.name || ''}</h4>
                           <p className="text-sm text-gray-600">{child.className}</p>
                         </div>
                       </div>

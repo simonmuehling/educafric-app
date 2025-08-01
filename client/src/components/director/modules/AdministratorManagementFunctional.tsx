@@ -305,7 +305,7 @@ const AdministratorManagementFunctional: React.FC = () => {
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {t.title}
+                    {t.title || ''}
                   </CardTitle>
                   <p className="text-gray-600 mt-1">{t.subtitle}</p>
                 </div>
@@ -342,7 +342,7 @@ const AdministratorManagementFunctional: React.FC = () => {
                         <SelectContent>
                           {(Array.isArray(availableTeachers) ? availableTeachers : []).map((teacher: any) => (
                             <SelectItem key={teacher.id} value={teacher?.id?.toString()}>
-                              {teacher.firstName} {teacher.lastName}
+                              {teacher.firstName || ''} {teacher.lastName || ''}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -522,7 +522,7 @@ const AdministratorManagementFunctional: React.FC = () => {
                       onCheckedChange={() => togglePermission(permission.id)}
                     />
                     <Label htmlFor={permission.id} className="text-sm">
-                      {permission.name}
+                      {permission.name || ''}
                     </Label>
                   </div>
                 ))}

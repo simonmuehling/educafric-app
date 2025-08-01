@@ -444,7 +444,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           {/* Content */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {currentStepData.title}
+              {currentStepData.title || ''}
             </h3>
             <p className="text-gray-600 leading-relaxed">
               {currentStepData.content}

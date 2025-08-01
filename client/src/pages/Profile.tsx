@@ -189,7 +189,7 @@ export default function Profile() {
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
-                      value={profileData.firstName}
+                      value={profileData.firstName || ''}
                       onChange={(e) => setProfileData({ ...profileData, firstName: e?.target?.value })}
                       required
                     />
@@ -199,7 +199,7 @@ export default function Profile() {
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
-                      value={profileData.lastName}
+                      value={profileData.lastName || ''}
                       onChange={(e) => setProfileData({ ...profileData, lastName: e?.target?.value })}
                       required
                     />

@@ -147,6 +147,7 @@ const ResourceManager = () => {
   ];
 
   const filteredResources = (Array.isArray(resources) ? resources : []).filter(resource => {
+    if (!resource) return false;
     const matchesSearch = resource?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource?.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource?.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -210,7 +211,7 @@ const ResourceManager = () => {
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <FileText className="w-6 h-6 text-blue-500" />
-              {t.title}
+              {t.title || ''}
             </h2>
             <Button onClick={handleAddResource} className="bg-green-600 hover:bg-green-700">
               <Plus className="w-4 h-4 mr-2" />
@@ -292,7 +293,7 @@ const ResourceManager = () => {
                 </div>
               </div>
 
-              <h3 className="font-semibold text-lg mb-2 line-clamp-2">{resource.name}</h3>
+              <h3 className="font-semibold text-lg mb-2 line-clamp-2">{resource.name || ''}</h3>
               
               <div className="space-y-2 text-sm text-gray-600 mb-3">
                 <div className="flex justify-between">
@@ -314,7 +315,7 @@ const ResourceManager = () => {
               </div>
 
               <p className="text-sm text-gray-700 mb-4 line-clamp-2">
-                {resource.description}
+                {resource.description || ''}
               </p>
 
               <div className="flex gap-2">

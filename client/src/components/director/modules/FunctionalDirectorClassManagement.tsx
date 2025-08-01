@@ -176,18 +176,19 @@ const FunctionalDirectorClassManagement: React.FC = () => {
     }
   };
 
-  const filteredClasses = classes.filter(cls => {
-    const matchesSearch = cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         cls.teacherName.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredClasses = (Array.isArray(classes) ? classes : []).filter(cls => {
+    if (!cls) return false;
+    const matchesSearch = (cls.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (cls.teacherName || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = selectedLevel === 'all' || cls.level === selectedLevel;
     return matchesSearch && matchesLevel;
   });
 
   const stats = {
     totalClasses: classes.length,
-    totalStudents: classes.reduce((sum, cls) => sum + cls.currentStudents, 0),
-    averageCapacity: classes.length > 0 ? Math.round(classes.reduce((sum, cls) => sum + cls.capacity, 0) / classes.length) : 0,
-    fullClasses: classes.filter(cls => cls.status === 'full').length
+    totalStudents: (Array.isArray(classes) ? classes : []).reduce((sum, cls) => sum + cls.currentStudents, 0),
+    averageCapacity: classes.length > 0 ? Math.round((Array.isArray(classes) ? classes : []).reduce((sum, cls) => sum + cls.capacity, 0) / classes.length) : 0,
+    fullClasses: (Array.isArray(classes) ? classes : []).filter(cls => cls.status === 'full').length
   };
 
   const text = language === 'fr' ? {
@@ -285,7 +286,7 @@ const FunctionalDirectorClassManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{text.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
           <p className="text-gray-500">Gérez les classes de votre établissement</p>
         </div>
         <Button 
@@ -409,9 +410,9 @@ const FunctionalDirectorClassManagement: React.FC = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">{text.form.name}</Label>
+                <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
-                  value={classForm.name}
+                  value={classForm.name || ''}
                   onChange={(e) => setClassForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Ex: 6ème A"
                   className="w-full"
@@ -512,9 +513,9 @@ const FunctionalDirectorClassManagement: React.FC = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium">{text.form.name}</Label>
+                <Label className="text-sm font-medium">{(text.form.name || '')}</Label>
                 <Input
-                  value={classForm.name}
+                  value={classForm.name || ''}
                   onChange={(e) => setClassForm(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full"
                 />
@@ -603,12 +604,12 @@ const FunctionalDirectorClassManagement: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredClasses.map((classItem) => (
+              {(Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem) => (
                 <div key={classItem.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="font-medium">{classItem.name}</div>
+                        <div className="font-medium">{classItem.name || ''}</div>
                         <Badge variant={classItem.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[classItem.status]}
                         </Badge>

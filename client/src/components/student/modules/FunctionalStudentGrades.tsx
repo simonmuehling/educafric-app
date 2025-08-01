@@ -180,6 +180,7 @@ const FunctionalStudentGrades: React.FC = () => {
   };
 
   const filteredGrades = (Array.isArray(grades) ? grades : []).filter(grade => {
+    if (!grade) return false;
     if (selectedSubject !== 'all' && grade.subject !== selectedSubject) return false;
     return true;
   });
@@ -202,7 +203,7 @@ const FunctionalStudentGrades: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-800">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex gap-2">

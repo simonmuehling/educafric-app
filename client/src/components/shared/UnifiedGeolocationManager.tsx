@@ -307,7 +307,7 @@ const UnifiedGeolocationManager: React.FC<GeolocationManagerProps> = ({
               <div className="flex items-center gap-3">
                 {getDeviceIcon(device.type)}
                 <div>
-                  <h4 className="font-medium">{device.name}</h4>
+                  <h4 className="font-medium">{device.name || ''}</h4>
                   <p className="text-sm text-gray-600">{device.childName}</p>
                 </div>
               </div>
@@ -483,7 +483,7 @@ const UnifiedGeolocationManager: React.FC<GeolocationManagerProps> = ({
                 />
                 {getZoneIcon(zone.type)}
                 <div>
-                  <h4 className="font-medium">{zone.name}</h4>
+                  <h4 className="font-medium">{zone.name || ''}</h4>
                   <p className="text-sm text-gray-600">{zone.address}</p>
                 </div>
               </div>
@@ -569,7 +569,7 @@ const UnifiedGeolocationManager: React.FC<GeolocationManagerProps> = ({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">{t.title}</h2>
+          <h2 className="text-2xl font-bold">{t.title || ''}</h2>
           <p className="text-gray-600">{t.subtitle}</p>
         </div>
         <Button variant="outline" className="flex items-center gap-2">

@@ -123,7 +123,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <div className="hidden md:flex items-center ml-3 px-2 py-1 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200/50">
                 <div className="text-right">
                   <p className="text-xs font-medium text-gray-900 truncate max-w-24">
-                    {user.firstName} {user.lastName}
+                    {user.firstName || ''} {user.lastName || ''}
                   </p>
                   <p className="text-[10px] text-gray-500">{user.role}</p>
                 </div>

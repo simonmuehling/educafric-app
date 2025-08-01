@@ -251,12 +251,12 @@ const MobileDashboardDemo: React.FC<MobileDashboardDemoProps> = ({
       <div className="space-y-6">
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-3">
-            {activeModuleData.title}
+            {activeModuleData.title || ''}
           </h2>
           <p className="text-gray-600 mb-4">
             {language === 'fr' 
-              ? `Module ${activeModuleData.title} - Interface mobile optimisée pour smartphone`
-              : `${activeModuleData.title} Module - Mobile-optimized interface for smartphones`
+              ? `Module ${activeModuleData.title || ''} - Interface mobile optimisée pour smartphone`
+              : `${activeModuleData.title || ''} Module - Mobile-optimized interface for smartphones`
             }
           </p>
           
@@ -337,12 +337,12 @@ const MobileDashboardDemo: React.FC<MobileDashboardDemoProps> = ({
   }
 
   return (
-    <MobileDashboardLayout title={t.title} subtitle={t.subtitle} columns={2}>
+    <MobileDashboardLayout title={t.title || ''} subtitle={t.subtitle} columns={2}>
       {(Array.isArray(modules) ? modules : []).map((module) => (
         <MobileDashboardCard
           key={module.id}
           id={module.id}
-          title={module.title}
+          title={module.title || ''}
           icon={module.icon}
           color={module.color}
           onClick={() => handleModuleClick(module.id)}

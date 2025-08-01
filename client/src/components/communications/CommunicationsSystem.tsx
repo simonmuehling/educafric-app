@@ -340,7 +340,7 @@ const CommunicationsSystem: React.FC<CommunicationsSystemProps> = ({ userRole })
             <div>
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <MessageSquare className="w-6 h-6" />
-                {t.title}
+                {t.title || ''}
               </h2>
               <p className="text-purple-100 mt-1">{t.subtitle}</p>
             </div>

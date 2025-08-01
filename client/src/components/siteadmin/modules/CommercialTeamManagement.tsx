@@ -140,12 +140,12 @@ const CommercialTeamManagement = () => {
     member?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalRevenue = commercialTeam.reduce((sum, member) => sum + member.revenue, 0);
-  const avgPerformance = commercialTeam.reduce((sum, member) => sum + (member.performance / member.target * 100), 0) / (Array.isArray(commercialTeam) ? commercialTeam.length : 0);
+  const totalRevenue = (Array.isArray(commercialTeam) ? commercialTeam : []).reduce((sum, member) => sum + member.revenue, 0);
+  const avgPerformance = (Array.isArray(commercialTeam) ? commercialTeam : []).reduce((sum, member) => sum + (member.performance / member.target * 100), 0) / (Array.isArray(commercialTeam) ? commercialTeam.length : 0);
 
   return (
     <ModuleContainer
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       icon={<UserCog className="w-6 h-6" />}
       iconColor="from-indigo-500 to-indigo-600"
@@ -208,8 +208,8 @@ const CommercialTeamManagement = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left p-4 font-semibold text-gray-900">{t.name}</th>
-                  <th className="text-left p-4 font-semibold text-gray-900">{t.email}</th>
+                  <th className="text-left p-4 font-semibold text-gray-900">{t.name || ''}</th>
+                  <th className="text-left p-4 font-semibold text-gray-900">{t.email || ''}</th>
                   <th className="text-left p-4 font-semibold text-gray-900">{t.role}</th>
                   <th className="text-left p-4 font-semibold text-gray-900">{t.performance}</th>
                   <th className="text-left p-4 font-semibold text-gray-900">{language === 'fr' ? 'Écoles' : 'Schools'}</th>
@@ -224,10 +224,10 @@ const CommercialTeamManagement = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <UserCog className="w-4 h-4 text-indigo-600" />
-                        <span className="font-medium">{member.name}</span>
+                        <span className="font-medium">{member.name || ''}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-gray-600">{member.email}</td>
+                    <td className="p-4 text-gray-600">{member.email || ''}</td>
                     <td className="p-4">
                       <Badge className={getRoleColor(member.role)}>
                         {member.role === 'manager' ? t.manager :
@@ -309,7 +309,7 @@ const CommercialTeamManagement = () => {
                 return (
                   <div key={member.id} className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="font-medium">{member.name}</span>
+                      <span className="font-medium">{member.name || ''}</span>
                       <span className={`text-sm font-medium ${getPerformanceColor(member.performance, member.target)}`}>
                         {performanceRate.toFixed(0)}%
                       </span>

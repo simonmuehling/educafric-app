@@ -151,7 +151,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
         <CardHeader>
           <CardTitle className="flex items-center space-x-3 text-purple-800">
             <QrCode className="h-6 w-6" />
-            <span>{t.title}</span>
+            <span>{t.title || ''}</span>
           </CardTitle>
           <p className="text-purple-600">{t.subtitle}</p>
         </CardHeader>
@@ -229,7 +229,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {t.instructions.(Array.isArray(steps) ? steps : []).map((step, index) => (
+              {t.instructions.steps.map((step, index) => (
                 <p key={index} className="text-sm text-blue-600">{step}</p>
               ))}
             </div>
@@ -245,7 +245,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {t.security.(Array.isArray(points) ? points : []).map((point, index) => (
+              {t.security.points.map((point, index) => (
                 <p key={index} className="text-sm text-green-600">{point}</p>
               ))}
             </div>

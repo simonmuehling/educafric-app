@@ -197,9 +197,9 @@ const FunctionalCommercialSchools: React.FC = () => {
 
   // Calculate statistics
   const totalSchools = schools.length;
-  const activeSchools = schools.filter(s => s.status === 'active').length;
-  const monthlyRevenue = schools.reduce((sum, s) => sum + s.monthlyRevenue, 0);
-  const averageStudents = totalSchools > 0 ? Math.round(schools.reduce((sum, s) => sum + s.studentCount, 0) / totalSchools) : 0;
+  const activeSchools = (Array.isArray(schools) ? schools : []).filter(s => s.status === 'active').length;
+  const monthlyRevenue = (Array.isArray(schools) ? schools : []).reduce((sum, s) => sum + s.monthlyRevenue, 0);
+  const averageStudents = totalSchools > 0 ? Math.round((Array.isArray(schools) ? schools : []).reduce((sum, s) => sum + s.studentCount, 0) / totalSchools) : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -219,10 +219,11 @@ const FunctionalCommercialSchools: React.FC = () => {
     }
   };
 
-  const filteredSchools = schools.filter(school => {
-    const matchesSearch = school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         school.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         school.director.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSchools = (Array.isArray(schools) ? schools : []).filter(school => {
+    if (!school) return false;
+    const matchesSearch = (school.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (school.location || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (school.director || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || school.status === statusFilter;
     const matchesPlan = planFilter === 'all' || school.subscriptionPlan === planFilter;
     
@@ -234,7 +235,7 @@ const FunctionalCommercialSchools: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
@@ -370,12 +371,12 @@ const FunctionalCommercialSchools: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredSchools.map((school) => (
+              {(Array.isArray(filteredSchools) ? filteredSchools : []).map((school) => (
                 <div key={school.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-semibold text-lg">{school.name}</h4>
+                        <h4 className="font-semibold text-lg">{school.name || ''}</h4>
                         <Badge className={getStatusColor(school.status)}>
                           {t?.status?.[school.status as keyof typeof t.status]}
                         </Badge>
@@ -442,7 +443,7 @@ const FunctionalCommercialSchools: React.FC = () => {
                 <label className="text-sm font-medium">Nom de l'École *</label>
                 <input
                   type="text"
-                  value={schoolForm.name}
+                  value={schoolForm.name || ''}
                   onChange={(e) => setSchoolForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Ex: École Primaire Excellence"
                   className="w-full border rounded-md px-3 py-2"
@@ -486,7 +487,7 @@ const FunctionalCommercialSchools: React.FC = () => {
                   <label className="text-sm font-medium">Email *</label>
                   <input
                     type="email"
-                    value={schoolForm.email}
+                    value={schoolForm.email || ''}
                     onChange={(e) => setSchoolForm(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="contact@ecole.cm"
                     className="w-full border rounded-md px-3 py-2"

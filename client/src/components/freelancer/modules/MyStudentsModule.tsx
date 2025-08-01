@@ -42,13 +42,13 @@ const MyStudentsModule = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <ModernStatsCard
           title={language === 'fr' ? 'Élèves Actifs' : 'Active Students'}
-          value={(Array.isArray(students) ? students.length : 0).toString()}
+          value={(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0).toString()}
           icon={<User className="w-5 h-5" />}
           gradient="blue"
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Heures Totales' : 'Total Hours'}
-          value={students.reduce((acc, s) => acc + s.sessionHours, 0).toString()}
+          value={(Array.isArray(students) ? students : []).reduce((acc, s) => acc + s.sessionHours, 0).toString()}
           icon={<Clock className="w-5 h-5" />}
           gradient="green"
         />
@@ -60,7 +60,7 @@ const MyStudentsModule = () => {
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Progrès Moyen' : 'Average Progress'}
-          value={`${Math.round(students.reduce((acc, s) => acc + s.progress, 0) / (Array.isArray(students) ? students.length : 0))}%`}
+          value={`${Math.round((Array.isArray(students) ? students : []).reduce((acc, s) => acc + s.progress, 0) / (Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0))}%`}
           icon={<TrendingUp className="w-5 h-5" />}
           gradient="orange"
           trend={{ value: 5.2, isPositive: true }}
@@ -76,7 +76,7 @@ const MyStudentsModule = () => {
             <div key={student.id} className={`activity-card-${['blue', 'green', 'purple'][index % 3]} p-6 rounded-xl transition-all duration-300 hover:scale-102`}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">{student.name}</h4>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">{student.name || ''}</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">  
                     <div>
                       <p className="text-sm text-gray-600">{language === 'fr' ? 'Matière' : 'Subject'}</p>

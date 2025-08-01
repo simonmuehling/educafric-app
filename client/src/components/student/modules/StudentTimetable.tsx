@@ -74,7 +74,7 @@ const StudentTimetable: React.FC = () => {
     return (
       <div className="min-h-screen bg-white p-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title || ''}</h1>
           <p className="text-red-600">{t.error}</p>
         </div>
       </div>
@@ -121,7 +121,7 @@ const StudentTimetable: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Calendar className="w-8 h-8 text-blue-600" />
-            {t.title}
+            {t.title || ''}
           </h1>
           <p className="text-gray-600 mt-2">{t.subtitle}</p>
         </div>

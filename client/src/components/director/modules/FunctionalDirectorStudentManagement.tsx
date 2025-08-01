@@ -184,19 +184,25 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   };
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = selectedClass === 'all' || student.className === selectedClass;
+  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(student => {
+    if (!student) return false;
+    const firstName = student.firstName || '';
+    const lastName = student.lastName || '';
+    const email = student.email || '';
+    const className = student.className || '';
+    
+    const matchesSearch = firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesClass = selectedClass === 'all' || className === selectedClass;
     return matchesSearch && matchesClass;
-  });
+  }) : [];
 
   const stats = {
-    totalStudents: students.length,
-    activeStudents: students.filter(s => s.status === 'active').length,
-    averageGrade: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.average, 0) / students.length * 10) / 10 : 0,
-    averageAttendance: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + s.attendance, 0) / students.length) : 0
+    totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,
+    activeStudents: Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(s => s && s.status === 'active').length : 0,
+    averageGrade: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.average || 0), 0) / (Array.isArray(students) ? students.length : 0) * 10) / 10 : 0,
+    averageAttendance: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.attendance || 0), 0) / (Array.isArray(students) ? students.length : 0)) : 0
   };
 
   const text = language === 'fr' ? {
@@ -280,7 +286,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{text.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
           <p className="text-gray-500">Gérez tous les élèves de votre établissement</p>
         </div>
         <Button 
@@ -404,18 +410,18 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">{text.form.firstName}</Label>
+                  <Label className="text-sm font-medium">{(text.form.firstName || '')}</Label>
                   <Input
-                    value={studentForm.firstName}
+                    value={studentForm.firstName || ''}
                     onChange={(e) => setStudentForm(prev => ({ ...prev, firstName: e.target.value }))}
                     placeholder="Prénom"
                     className="w-full"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">{text.form.lastName}</Label>
+                  <Label className="text-sm font-medium">{(text.form.lastName || '')}</Label>
                   <Input
-                    value={studentForm.lastName}
+                    value={studentForm.lastName || ''}
                     onChange={(e) => setStudentForm(prev => ({ ...prev, lastName: e.target.value }))}
                     placeholder="Nom"
                     className="w-full"
@@ -423,10 +429,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.email}</Label>
+                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
                 <Input
                   type="email"
-                  value={studentForm.email}
+                  value={studentForm.email || ''}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="eleve@exemple.com"
                   className="w-full"
@@ -529,27 +535,27 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium">{text.form.firstName}</Label>
+                  <Label className="text-sm font-medium">{(text.form.firstName || '')}</Label>
                   <Input
-                    value={studentForm.firstName}
+                    value={studentForm.firstName || ''}
                     onChange={(e) => setStudentForm(prev => ({ ...prev, firstName: e.target.value }))}
                     className="w-full"
                   />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">{text.form.lastName}</Label>
+                  <Label className="text-sm font-medium">{(text.form.lastName || '')}</Label>
                   <Input
-                    value={studentForm.lastName}
+                    value={studentForm.lastName || ''}
                     onChange={(e) => setStudentForm(prev => ({ ...prev, lastName: e.target.value }))}
                     className="w-full"
                   />
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.email}</Label>
+                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
                 <Input
                   type="email"
-                  value={studentForm.email}
+                  value={studentForm.email || ''}
                   onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full"
                 />
@@ -626,12 +632,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredStudents.map((student) => (
+              {(Array.isArray(filteredStudents) ? filteredStudents : []).map((student) => (
                 <div key={student.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <div className="font-medium">{student.firstName} {student.lastName}</div>
+                        <div className="font-medium">{student.firstName || ''} {student.lastName || ''}</div>
                         <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[student.status]}
                         </Badge>
@@ -643,7 +649,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         <span>👨‍👩‍👧 {student.parentName}</span>
                       </div>
                       <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                        <span>📧 {student.email}</span>
+                        <span>📧 {student.email || ''}</span>
                         <span>📱 {student.parentPhone}</span>
                       </div>
                     </div>

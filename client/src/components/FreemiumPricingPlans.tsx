@@ -196,7 +196,7 @@ export default function FreemiumPricingPlans() {
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="section-title mb-4">{t.title}</h2>
+          <h2 className="section-title mb-4">{t.title || ''}</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             {t.subtitle}
           </p>
@@ -269,7 +269,7 @@ export default function FreemiumPricingPlans() {
 
             {/* Premium Features Sections */}
             <div className="space-y-6 mb-8">
-              {premiumSections.map((section, idx) => {
+              {(Array.isArray(premiumSections) ? premiumSections : []).map((section, idx) => {
                 const sectionData = t.features.premium[section.key as keyof typeof t.features.premium];
                 return (
                   <div key={idx} className={`${section.bgColor} rounded-lg p-4`}>
@@ -278,11 +278,11 @@ export default function FreemiumPricingPlans() {
                         {section.icon}
                       </div>
                       <h4 className={`font-semibold ${section.color}`}>
-                        {sectionData.title}
+                        {sectionData.title || ''}
                       </h4>
                     </div>
                     <div className="space-y-2">
-                      {sectionData.items.map((item, itemIdx) => (
+                      {sectionData.items .map((item, itemIdx) => (
                         <div key={itemIdx} className="flex items-start space-x-2">
                           <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <Check className="w-2.5 h-2.5 text-white" />

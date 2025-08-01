@@ -470,7 +470,7 @@ const FunctionalSiteAdminSettings: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         {isEditing && (
@@ -512,7 +512,7 @@ const FunctionalSiteAdminSettings: React.FC = () => {
                   service.status === 'warning' ? 'text-yellow-500' : 'text-red-500'
                 }`} />
                 <div>
-                  <div className="font-medium">{service.name}</div>
+                  <div className="font-medium">{service.name || ''}</div>
                   <Badge className={
                     service.status === 'healthy' ? 'bg-green-100 text-green-800' :
                     service.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :

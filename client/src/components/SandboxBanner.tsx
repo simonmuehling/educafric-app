@@ -31,7 +31,7 @@ export default function SandboxBanner() {
             <TestTube className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">{t.title}</h3>
+            <h3 className="font-bold text-lg">{t.title || ''}</h3>
             <p className="text-sm opacity-90">{t.subtitle}</p>
           </div>
         </div>

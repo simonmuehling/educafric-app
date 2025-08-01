@@ -391,7 +391,7 @@ const SchoolManagement = () => {
                         <Building2 className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <div className="font-medium">{school.name}</div>
+                        <div className="font-medium">{school.name || ''}</div>
                         <div className="text-sm text-gray-600">
                           {getLevelTranslation(school.level)}
                         </div>
@@ -495,7 +495,7 @@ const SchoolManagement = () => {
             <School className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">{t.title}</h2>
+            <h2 className="text-xl font-semibold">{t.title || ''}</h2>
             <p className="text-gray-600">{t.subtitle}</p>
           </div>
         </div>

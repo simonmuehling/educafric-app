@@ -103,7 +103,7 @@ export default function SubscriptionSuccess() {
 
           {/* Success Message */}
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {t.title}
+            {t.title || ''}
           </h1>
           
           <p className="text-xl text-gray-600 mb-8">
