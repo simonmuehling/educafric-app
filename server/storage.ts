@@ -173,6 +173,12 @@ export interface IStorage {
   getTeacherStudentsWithAttendance(teacherId: number, date: string): Promise<any[]>;
   sendParentCommunication(data: { studentId: number; teacherId: number; message: string; type: string }): Promise<any>;
   getFreelancerStudents(freelancerId: number): Promise<any[]>;
+  
+  // ===== TEACHER SPECIFIC METHODS =====
+  getTeacherAttendanceOverview(teacherId: number): Promise<any[]>;
+  getTeacherGradesOverview(teacherId: number): Promise<any[]>;
+  getTeacherAssignments(teacherId: number): Promise<any[]>;
+  getTeacherCommunications(teacherId: number): Promise<any[]>;
   addFreelancerStudent(data: any): Promise<any>;
   
   // Site Admin methods - Real data for platform administration
@@ -2828,14 +2834,14 @@ export class DatabaseStorage implements IStorage {
         id: grades.id,
         studentId: grades.studentId,
         subjectId: grades.subjectId,
-        classId: grades.classId,
         grade: grades.grade,
         maxGrade: grades.maxGrade,
         gradedAt: grades.gradedAt,
         comments: grades.comments
       })
       .from(grades)
-      .where(sql`${grades.classId} = ANY(${classIds})`)
+      .leftJoin(enrollments, eq(grades.studentId, enrollments.studentId))
+      .where(sql`${enrollments.classId} = ANY(${classIds})`)
       .orderBy(desc(grades.gradedAt))
       .limit(50);
 
@@ -2852,20 +2858,24 @@ export class DatabaseStorage implements IStorage {
             .where(eq(subjects.id, grade.subjectId))
             .limit(1);
 
-          const classInfo = await db.select({ name: classes.name })
-            .from(classes)
-            .where(eq(classes.id, grade.classId))
+          // Get student's class
+          const enrollment = await db.select()
+            .from(enrollments)
+            .leftJoin(classes, eq(enrollments.classId, classes.id))
+            .where(eq(enrollments.studentId, grade.studentId))
             .limit(1);
+
+          const percentage = grade.maxGrade ? Math.round((grade.grade / grade.maxGrade) * 100) : 0;
 
           return {
             id: grade.id,
             studentId: grade.studentId,
             studentName: student[0] ? `${student[0].firstName} ${student[0].lastName}` : 'Élève inconnu',
             subjectName: subject[0]?.name || 'Matière inconnue',
-            className: classInfo[0]?.name || 'Classe inconnue',
-            grade: grade.grade || 0,
-            maxGrade: grade.maxGrade || 20,
-            percentage: Math.round((grade.grade / (grade.maxGrade || 20)) * 100),
+            className: enrollment[0]?.classes?.name || 'Classe inconnue',
+            grade: grade.grade,
+            maxGrade: grade.maxGrade,
+            percentage,
             gradedAt: grade.gradedAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
             comments: grade.comments || ''
           };
@@ -2876,6 +2886,165 @@ export class DatabaseStorage implements IStorage {
       return enrichedGrades;
     } catch (error) {
       console.error(`Error getting teacher grades for ${teacherId}:`, error);
+      return [];
+    }
+  }
+
+  // 4. TEACHER ASSIGNMENTS MODULE
+  async getTeacherAssignments(teacherId: number): Promise<any[]> {
+    console.log(`[STORAGE] Starting getTeacherAssignments for teacher ${teacherId}`);
+    try {
+      // Get classes taught by this teacher
+      const teacherClasses = await db.select()
+        .from(classes)
+        .where(eq(classes.teacherId, teacherId));
+
+      const classIds = teacherClasses.map(cls => cls.id);
+      if (classIds.length === 0) return [];
+
+      // Get homework/assignments for all classes
+      const assignments = await db.select({
+        id: homework.id,
+        classId: homework.classId,
+        subjectId: homework.subjectId,
+        title: homework.title,
+        description: homework.description,
+        dueDate: homework.dueDate,
+        createdAt: homework.createdAt,
+        priority: homework.priority
+      })
+      .from(homework)
+      .where(sql`${homework.classId} = ANY(${classIds})`)
+      .orderBy(desc(homework.createdAt))
+      .limit(50);
+
+      // Enrich with class and subject names
+      const enrichedAssignments = await Promise.all(
+        assignments.map(async (assignment) => {
+          const classInfo = await db.select({ name: classes.name })
+            .from(classes)
+            .where(eq(classes.id, assignment.classId))
+            .limit(1);
+
+          const subject = await db.select({ name: subjects.name })
+            .from(subjects)
+            .where(eq(subjects.id, assignment.subjectId))
+            .limit(1);
+
+          // Count submissions
+          const submissions = await db.select({ count: sql`count(*)` })
+            .from(homeworkSubmissions)
+            .where(eq(homeworkSubmissions.homeworkId, assignment.id));
+
+          return {
+            id: assignment.id,
+            title: assignment.title,
+            description: assignment.description,
+            className: classInfo[0]?.name || 'Classe inconnue',
+            subjectName: subject[0]?.name || 'Matière inconnue',
+            dueDate: assignment.dueDate?.toISOString().split('T')[0] || '',
+            createdAt: assignment.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+            priority: assignment.priority || 'medium',
+            submissionsCount: Number(submissions[0]?.count) || 0,
+            status: new Date(assignment.dueDate || '') > new Date() ? 'active' : 'expired'
+          };
+        })
+      );
+
+      console.log(`[TEACHER_ASSIGNMENTS] Retrieved ${enrichedAssignments.length} assignments for teacher ${teacherId}`);
+      return enrichedAssignments;
+    } catch (error) {
+      console.error(`Error getting teacher assignments for ${teacherId}:`, error);
+      return [];
+    }
+  }
+
+  // 5. TEACHER COMMUNICATIONS MODULE
+  async getTeacherCommunications(teacherId: number): Promise<any[]> {
+    console.log(`[STORAGE] Starting getTeacherCommunications for teacher ${teacherId}`);
+    try {
+      // Get messages sent and received by this teacher
+      const sentMessages = await db.select({
+        id: messages.id,
+        recipientId: messages.recipientId,
+        subject: messages.subject,
+        content: messages.content,
+        createdAt: messages.createdAt,
+        isRead: messages.isRead,
+        messageType: messages.messageType,
+        direction: sql`'sent'`
+      })
+      .from(messages)
+      .where(eq(messages.senderId, teacherId))
+      .orderBy(desc(messages.createdAt))
+      .limit(25);
+
+      const receivedMessages = await db.select({
+        id: messages.id,
+        senderId: messages.senderId,
+        subject: messages.subject,
+        content: messages.content,
+        createdAt: messages.createdAt,
+        isRead: messages.isRead,
+        messageType: messages.messageType,
+        direction: sql`'received'`
+      })
+      .from(messages)
+      .where(eq(messages.recipientId, teacherId))
+      .orderBy(desc(messages.createdAt))
+      .limit(25);
+
+      // Enrich with user names
+      const enrichedSent = await Promise.all(
+        sentMessages.map(async (msg) => {
+          const recipient = await db.select({ firstName: users.firstName, lastName: users.lastName, role: users.role })
+            .from(users)
+            .where(eq(users.id, msg.recipientId))
+            .limit(1);
+
+          return {
+            id: msg.id,
+            direction: 'sent',
+            contactName: recipient[0] ? `${recipient[0].firstName} ${recipient[0].lastName}` : 'Destinataire inconnu',
+            contactRole: recipient[0]?.role || 'Unknown',
+            subject: msg.subject || 'Sans objet',
+            content: msg.content,
+            date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+            isRead: msg.isRead || false,
+            type: msg.messageType || 'general'
+          };
+        })
+      );
+
+      const enrichedReceived = await Promise.all(
+        receivedMessages.map(async (msg) => {
+          const sender = await db.select({ firstName: users.firstName, lastName: users.lastName, role: users.role })
+            .from(users)
+            .where(eq(users.id, msg.senderId))
+            .limit(1);
+
+          return {
+            id: msg.id,
+            direction: 'received',
+            contactName: sender[0] ? `${sender[0].firstName} ${sender[0].lastName}` : 'Expéditeur inconnu',
+            contactRole: sender[0]?.role || 'Unknown',
+            subject: msg.subject || 'Sans objet',
+            content: msg.content,
+            date: msg.createdAt?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0],
+            isRead: msg.isRead || false,
+            type: msg.messageType || 'general'
+          };
+        })
+      );
+
+      // Combine and sort by date
+      const allCommunications = [...enrichedSent, ...enrichedReceived]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      console.log(`[TEACHER_COMMUNICATIONS] Retrieved ${allCommunications.length} communications for teacher ${teacherId}`);
+      return allCommunications;
+    } catch (error) {
+      console.error(`Error getting teacher communications for ${teacherId}:`, error);
       return [];
     }
   }
