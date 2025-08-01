@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import HomeworkSubmissionModal from '../HomeworkSubmissionModal';
 import { 
   BookOpen, Calendar, Clock, CheckCircle, AlertCircle, 
   Upload, Send, Eye, Filter, Search, User
@@ -24,6 +25,8 @@ const StudentHomework: React.FC = () => {
   const [submissionText, setSubmissionText] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const [isEnhancedSubmitOpen, setIsEnhancedSubmitOpen] = useState(false);
+  const [homeworkToSubmit, setHomeworkToSubmit] = useState<any>(null);
   const [submissionForm, setSubmissionForm] = useState({
     homeworkId: '',
     content: '',
@@ -212,76 +215,107 @@ const StudentHomework: React.FC = () => {
           </Button>
         </div>
 
-        {/* Soumettre un Devoir Section */}
-        <Card className="mb-6">
+        {/* Enhanced Homework Submission Section */}
+        <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
+              <h3 className="text-lg font-semibold text-blue-900">
                 <Send className="w-5 h-5 mr-2 inline" />
                 Soumettre un Devoir
               </h3>
             </div>
           </CardHeader>
           <CardContent>
-            <Dialog open={isSubmitOpen} onOpenChange={setIsSubmitOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 w-full" data-testid="button-submit-homework">
-                  <Send className="w-4 h-4 mr-2" />
-                  Soumettre un Devoir
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                  <DialogTitle>Soumettre un Devoir</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Devoir à soumettre</label>
-                    <select
-                      value={submissionForm.homeworkId}
-                      onChange={(e) => setSubmissionForm(prev => ({ ...prev, homeworkId: e.target.value }))}
-                      className="w-full border rounded-md px-3 py-2"
-                    >
-                      <option value="">Sélectionner un devoir</option>
-                      {(homework || []).filter(hw => hw.status === 'pending').map(hw => (
-                        <option key={hw.id} value={hw.id}>
-                          {hw.subject} - {hw.title}
-                        </option>
-                      ))}
-                    </select>
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Enhanced Submission Button */}
+              <Button
+                onClick={() => {
+                  if (homework && homework.length > 0) {
+                    const pendingHomework = homework.find(hw => hw.status === 'pending');
+                    if (pendingHomework) {
+                      setHomeworkToSubmit(pendingHomework);
+                      setIsEnhancedSubmitOpen(true);
+                    } else {
+                      toast({
+                        title: 'Aucun devoir en attente',
+                        description: 'Tous vos devoirs ont été soumis.',
+                        variant: 'default'
+                      });
+                    }
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white h-16 flex-col"
+                data-testid="button-enhanced-submit"
+              >
+                <Upload className="w-5 h-5 mb-1" />
+                <span className="text-sm">Soumettre avec Fichiers</span>
+                <span className="text-xs opacity-80">Photos, Documents, Vidéos</span>
+              </Button>
+
+              {/* Simple Text Submission */}
+              <Dialog open={isSubmitOpen} onOpenChange={setIsSubmitOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50 h-16 flex-col"
+                    data-testid="button-simple-submit"
+                  >
+                    <Send className="w-5 h-5 mb-1" />
+                    <span className="text-sm">Soumission Simple</span>
+                    <span className="text-xs">Texte uniquement</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle>Soumettre un Devoir (Simple)</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Devoir à soumettre</label>
+                      <select
+                        value={submissionForm.homeworkId}
+                        onChange={(e) => setSubmissionForm(prev => ({ ...prev, homeworkId: e.target.value }))}
+                        className="w-full border rounded-md px-3 py-2"
+                      >
+                        <option value="">Sélectionner un devoir</option>
+                        {(homework || []).filter(hw => hw.status === 'pending').map(hw => (
+                          <option key={hw.id} value={hw.id}>
+                            {hw.subject} - {hw.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Votre réponse</label>
+                      <Textarea
+                        value={submissionForm.content}
+                        onChange={(e) => setSubmissionForm(prev => ({ ...prev, content: e.target.value }))}
+                        placeholder="Rédigez votre réponse ici..."
+                        rows={6}
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-4">
+                      <Button 
+                        onClick={handleSubmitHomework}
+                        disabled={submitHomeworkMutation.isPending || !submissionForm.homeworkId || !submissionForm.content}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                      >
+                        {submitHomeworkMutation.isPending ? 'Envoi...' : 'Soumettre le Devoir'}
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsSubmitOpen(false)}>
+                        Annuler
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Votre réponse</label>
-                    <Textarea
-                      value={submissionForm.content}
-                      onChange={(e) => setSubmissionForm(prev => ({ ...prev, content: e.target.value }))}
-                      placeholder="Rédigez votre réponse ici..."
-                      rows={6}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Pièces jointes (optionnel)</label>
-                    <Input
-                      value={submissionForm.attachments}
-                      onChange={(e) => setSubmissionForm(prev => ({ ...prev, attachments: e.target.value }))}
-                      placeholder="Liens vers vos fichiers ou documents"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={handleSubmitHomework}
-                      disabled={submitHomeworkMutation.isPending || !submissionForm.homeworkId || !submissionForm.content}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    >
-                      {submitHomeworkMutation.isPending ? 'Envoi...' : 'Soumettre le Devoir'}
-                    </Button>
-                    <Button variant="outline" onClick={() => setIsSubmitOpen(false)}>
-                      Annuler
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            <div className="mt-4 p-4 bg-blue-100 rounded-lg">
+              <p className="text-sm text-blue-800">
+                💡 <strong>Nouveau :</strong> Vous pouvez maintenant joindre des photos, documents et fichiers à vos soumissions !
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -376,19 +410,48 @@ const StudentHomework: React.FC = () => {
                                 rows={4}
                                 className="bg-white border-gray-300 focus:border-blue-500"
                               />
-                              <Button
-                                onClick={handleSubmit}
-                                disabled={!submissionText.trim() || submitHomeworkMutation.isPending}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                              >
-                                <Send className="w-4 h-4 mr-2" />
-                                {submitHomeworkMutation.isPending ? t.submitting : t.submit}
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={handleSubmit}
+                                  disabled={!submissionText.trim() || submitHomeworkMutation.isPending}
+                                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                >
+                                  <Send className="w-4 h-4 mr-2" />
+                                  {submitHomeworkMutation.isPending ? t.submitting : t.submit}
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    setHomeworkToSubmit(hw);
+                                    setSelectedHomework(null);
+                                    setIsEnhancedSubmitOpen(true);
+                                  }}
+                                  variant="outline"
+                                  className="border-green-300 text-green-700 hover:bg-green-50"
+                                >
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Avec Fichiers
+                                </Button>
+                              </div>
                             </div>
                           )}
                         </div>
                       </DialogContent>
                     </Dialog>
+                    
+                    {hw.status === 'pending' && (
+                      <Button
+                        onClick={() => {
+                          setHomeworkToSubmit(hw);
+                          setIsEnhancedSubmitOpen(true);
+                        }}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        data-testid={`button-submit-${hw.id}`}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        Soumettre
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -411,6 +474,13 @@ const StudentHomework: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Enhanced Homework Submission Modal */}
+      <HomeworkSubmissionModal
+        isOpen={isEnhancedSubmitOpen}
+        onOpenChange={setIsEnhancedSubmitOpen}
+        homework={homeworkToSubmit}
+      />
     </div>
   );
 };

@@ -437,11 +437,30 @@ export const homeworkSubmissions = pgTable("homework_submissions", {
   homeworkId: integer("homework_id").notNull(),
   studentId: integer("student_id").notNull(),
   submissionText: text("submission_text"),
-  attachmentUrl: text("attachment_url"),
+  
+  // Enhanced attachment system for files and photos
+  attachments: jsonb("attachments"), // Array of {type, url, name, size, uploadedAt}
+  attachmentUrls: text("attachment_urls").array(), // Legacy support - array of URLs
+  
+  // File upload metadata
+  totalFileSize: integer("total_file_size").default(0), // Total size in bytes
+  fileCount: integer("file_count").default(0),
+  
+  // Submission status and workflow  
+  status: text("status").default("submitted"), // submitted, reviewed, graded, returned
   submittedAt: timestamp("submitted_at").defaultNow(),
+  lastModifiedAt: timestamp("last_modified_at").defaultNow(),
+  
+  // Grading
   grade: decimal("grade", { precision: 5, scale: 2 }),
   feedback: text("feedback"),
   teacherGradedAt: timestamp("teacher_graded_at"),
+  teacherId: integer("teacher_id"), // Who graded it
+  
+  // Additional metadata
+  submissionSource: text("submission_source").default("web"), // web, mobile, camera
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
 });
 
 // Timetable management - Enhanced African Educational System
@@ -739,6 +758,8 @@ export type Attendance = typeof attendance.$inferSelect;
 export type InsertAttendance = typeof attendance.$inferInsert;
 export type Homework = typeof homework.$inferSelect;
 export type InsertHomework = typeof homework.$inferInsert;
+export type HomeworkSubmission = typeof homeworkSubmissions.$inferSelect;
+export type InsertHomeworkSubmission = typeof homeworkSubmissions.$inferInsert;
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
@@ -858,6 +879,30 @@ export const insertTimetableTemplateSchema = createInsertSchema(timetableTemplat
   usageCount: true,
   createdAt: true,
   updatedAt: true
+});
+
+// Homework Submission Schema with File Upload Support
+export const insertHomeworkSubmissionSchema = createInsertSchema(homeworkSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  lastModifiedAt: true,
+  teacherGradedAt: true
+});
+
+export const homeworkSubmissionFileSchema = z.object({
+  type: z.enum(['image', 'document', 'video', 'audio', 'other']),
+  url: z.string().url('URL de fichier invalide'),
+  name: z.string().min(1, 'Nom de fichier requis'),
+  size: z.number().min(1, 'Taille de fichier requise'),
+  mimeType: z.string().min(1, 'Type MIME requis'),
+  uploadedAt: z.string().optional()
+});
+
+export const homeworkSubmissionSchema = z.object({
+  homeworkId: z.number().positive('ID devoir requis'),
+  submissionText: z.string().max(5000, 'Texte de soumission trop long').optional(),
+  attachments: z.array(homeworkSubmissionFileSchema).max(5, 'Maximum 5 fichiers autorisés').optional(),
+  submissionSource: z.enum(['web', 'mobile', 'camera']).default('web')
 });
 
 export type InsertTimetableData = z.infer<typeof insertTimetableSchema>;

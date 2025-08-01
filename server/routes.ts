@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import multer from "multer";
 import path from "path";
+import { homeworkUpload, getFileInfo } from "./upload";
 import bcrypt from "bcrypt";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -2278,7 +2279,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // POST ROUTES FOR STUDENT ACTIONS
+  // POST ROUTES FOR STUDENT ACTIONS - ENHANCED HOMEWORK SUBMISSION WITH FILE UPLOAD
+  app.post("/api/student/homework/submit", homeworkUpload.array('files', 5), requireAuth, async (req, res) => {
+    console.log(`[HOMEWORK_SUBMIT] 🔥 Enhanced homework submission route REACHED! User:`, req.user?.id);
+    try {
+      if (!req.user || !['Student', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Student access required' });
+      }
+      
+      const currentUser = req.user as any;
+      const { homeworkId, submissionText, submissionSource = 'web' } = req.body;
+      const files = req.files as Express.Multer.File[];
+      
+      console.log(`[HOMEWORK_SUBMIT] Submitting homework ${homeworkId} for student ${currentUser.id}`);
+      console.log(`[HOMEWORK_SUBMIT] Files uploaded: ${files?.length || 0}`);
+      console.log(`[HOMEWORK_SUBMIT] Submission text length: ${submissionText?.length || 0}`);
+      
+      // Validate required fields
+      if (!homeworkId) {
+        return res.status(400).json({ message: 'ID du devoir requis' });
+      }
+      
+      if (!submissionText && (!files || files.length === 0)) {
+        return res.status(400).json({ message: 'Veuillez fournir un texte ou des fichiers' });
+      }
+      
+      // Process uploaded files
+      let attachments: any[] = [];
+      let totalFileSize = 0;
+      
+      if (files && files.length > 0) {
+        attachments = files.map(file => {
+          const fileInfo = getFileInfo(file);
+          totalFileSize += file.size;
+          return fileInfo;
+        });
+      }
+      
+      // Create homework submission
+      const submissionData = {
+        homeworkId: parseInt(homeworkId),
+        studentId: currentUser.id,
+        submissionText: submissionText || null,
+        attachments: attachments.length > 0 ? attachments : null,
+        attachmentUrls: attachments.map(att => att.url),
+        totalFileSize,
+        fileCount: attachments.length,
+        status: 'submitted',
+        submissionSource,
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent')
+      };
+      
+      // For demo/sandbox mode
+      if (currentUser.id === 9004 || currentUser.id === 9002) {
+        const newSubmission = {
+          id: Date.now(),
+          ...submissionData,
+          submittedAt: new Date().toISOString(),
+          lastModifiedAt: new Date().toISOString()
+        };
+        
+        console.log(`[HOMEWORK_SUBMIT] ✅ Demo submission created:`, {
+          id: newSubmission.id,
+          homeworkId: newSubmission.homeworkId,
+          studentId: newSubmission.studentId,
+          filesCount: attachments.length,
+          textLength: submissionText?.length || 0
+        });
+        
+        return res.json({ 
+          success: true, 
+          submission: newSubmission,
+          message: 'Devoir soumis avec succès',
+          attachments: attachments
+        });
+      }
+      
+      // TODO: For production, implement with database storage
+      // const submission = await storage.createHomeworkSubmission(submissionData);
+      
+      res.json({ 
+        success: true, 
+        message: 'Devoir soumis avec succès',
+        attachments: attachments,
+        totalFileSize
+      });
+      
+    } catch (error: any) {
+      console.error('[HOMEWORK_SUBMIT] ❌ Error:', error);
+      res.status(500).json({ 
+        message: 'Erreur lors de la soumission du devoir',
+        error: error.message 
+      });
+    }
+  });
+
+  // Legacy route for backward compatibility - simplified submission
   app.post("/api/student/homework", requireAuth, async (req, res) => {
     console.log(`[ROUTES_DEBUG] 🔥 POST StudentHomework route REACHED! User:`, req.user?.id);
     try {
@@ -2290,7 +2387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const homeworkData = req.body;
       
       // For sandbox mode, simulate homework submission
-      if (currentUser.id === 9002) {
+      if (currentUser.id === 9002 || currentUser.id === 9004) {
         const newSubmission = {
           id: Date.now(),
           homework_id: homeworkData.homeworkId,
