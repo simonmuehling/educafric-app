@@ -25,7 +25,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Install dependencies
@@ -48,9 +48,9 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Setup Android SDK (JDK17 Compatible)
+      - name: Setup Android SDK (JDK21 Compatible)
         run: |
-          # Manual Android SDK setup to avoid JDK version conflicts
+          # Manual Android SDK setup for Java 21 compatibility
           sudo mkdir -p /opt/android-sdk
           sudo chown -R $USER:$USER /opt/android-sdk
           
@@ -75,7 +75,7 @@ jobs:
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-33"
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "build-tools;33.0.0"
           
-          echo "✅ Android SDK setup completed with JDK 17"
+          echo "✅ Android SDK setup completed with JDK 21"
 
       - name: Make gradlew executable
         working-directory: android
