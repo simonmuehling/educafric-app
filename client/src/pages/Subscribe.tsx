@@ -716,9 +716,9 @@ export default function Subscribe() {
                       {plan.period === 'monthly' ? t.perMonth : 
                        plan.period === 'semester' ? t.perSemester : t.perYear}
                     </div>
-                    {plan.savings && (
+                    {(plan as any).savings && (
                       <div className="text-sm text-green-600 font-medium mt-1">
-                        Économisez {plan.savings.toLocaleString()} CFA
+                        Économisez {((plan as any).savings).toLocaleString()} CFA
                       </div>
                     )}
                   </div>

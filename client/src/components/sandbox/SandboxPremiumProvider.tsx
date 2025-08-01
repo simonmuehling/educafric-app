@@ -51,20 +51,30 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
   }
 
   // In sandbox mode, ALL users get FULL premium access to ALL features
-  const hasFullAccess = isSandboxUser ? true : true; // SANDBOX: Always true
+  const hasFullAccess = isSandboxUser ? true : true; // SANDBOX: Always true for testing
+  
+  // For demonstration purposes: show premium overlays but allow instant access
   const _originalAccess = Boolean(
     (user as any)?.subscription === 'premium' ||
-    (user as any)?.premiumFeatures
+    (user as any)?.premiumFeatures ||
+    isSandboxUser // Sandbox users get premium access
   );
 
   const isPremiumFeature = (feature: string): boolean => {
-    // CRITICAL: In sandbox, ALL features are ALWAYS available for ALL roles
+    // In sandbox mode: Show premium features but allow testing
     if (isSandboxUser) {
-      console.log(`🏖️ Sandbox Premium Access: Feature "${feature}" → GRANTED (Sandbox Mode)`);
-      return false; // Return false so features show as "available" not "premium"
+      console.log(`🏖️ Sandbox Demo: Feature "${feature}" → Available for testing`);
+      // Show premium UI but allow access for demonstration
+      return false; 
     }
-    // For non-sandbox users, check actual premium status
-    return hasFullAccess;
+    
+    // For regular users, apply normal premium logic
+    const premiumFeatures = [
+      'geolocation', 'payments', 'advanced_analytics', 'communication',
+      'document_management', 'enhanced_reports', 'priority_support'
+    ];
+    
+    return premiumFeatures.includes(feature) && !_originalAccess;
   };
 
   // Enhanced user detection (for backwards compatibility)
