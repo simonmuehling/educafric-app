@@ -15,6 +15,9 @@ import FreelancerCommunications from './modules/FreelancerCommunications';
 import FreelancerGeolocation from './modules/FreelancerGeolocation';
 import HelpCenter from '@/components/help/HelpCenter';
 
+// Import Premium components
+import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
+
 interface FreelancerDashboardProps {
   stats?: any;
   activeModule?: string;
@@ -35,6 +38,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       resources: 'Ressources',
       communications: 'Communications',
       geolocation: 'Géolocalisation',
+      analytics: 'Analytics',  
       help: 'Aide'
     },
     en: {
@@ -67,49 +71,140 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.students,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <FunctionalFreelancerStudents />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Étudiants Premium"
+          userType="Freelancer"
+          features={[
+            "Accès à toutes les écoles partenaires",
+            "Profil d'étudiant détaillé avec historique",
+            "Système de notation avancé",
+            "Communication directe avec parents"
+          ]}
+        >
+          <FunctionalFreelancerStudents />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'sessions',
       label: t.sessions,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <FunctionalFreelancerSessions />
+      component: (
+        <PremiumFeatureGate
+          featureName="Sessions d'Enseignement"
+          userType="Freelancer"
+          features={[
+            "Planification illimitée de sessions",
+            "Outils pédagogiques intégrés",
+            "Enregistrement des progressions",
+            "Rapports détaillés par session"
+          ]}
+        >
+          <FunctionalFreelancerSessions />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <DollarSign className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalFreelancerPayments />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Financière"
+          userType="Freelancer"
+          features={[
+            "Facturation automatisée",
+            "Suivi des paiements temps réel",
+            "Rapports fiscaux mensuels",
+            "Paiements Orange Money & MTN"
+          ]}
+        >
+          <FunctionalFreelancerPayments />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'schedule',
       label: t.schedule,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: <FunctionalFreelancerSchedule />
+      component: (
+        <PremiumFeatureGate
+          featureName="Planning Professionnel"
+          userType="Freelancer"
+          features={[
+            "Calendrier synchronisé multi-écoles",
+            "Gestion des disponibilités avancée",
+            "Rappels automatiques de cours",
+            "Optimisation des trajets"
+          ]}
+        >
+          <FunctionalFreelancerSchedule />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'resources',
       label: t.resources,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: <FunctionalFreelancerResources />
+      component: (
+        <PremiumFeatureGate
+          featureName="Ressources Pédagogiques"
+          userType="Freelancer"
+          features={[
+            "Bibliothèque de cours premium",
+            "Outils de création de contenu",
+            "Partage sécurisé avec étudiants",
+            "Templates professionnels"
+          ]}
+        >
+          <FunctionalFreelancerResources />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'communications',
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <FreelancerCommunications />
+      component: (
+        <PremiumFeatureGate
+          featureName="Communication Professionnelle"
+          userType="Freelancer"
+          features={[
+            "Messagerie directe avec écoles",
+            "Notifications WhatsApp intégrées",
+            "Rapports de progression automatiques",
+            "Support client prioritaire"
+          ]}
+        >
+          <FreelancerCommunications />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <FreelancerGeolocation />
+      component: (
+        <PremiumFeatureGate
+          featureName="Géolocalisation Pro"
+          userType="Freelancer"
+          features={[
+            "Optimisation d'itinéraires multi-écoles",
+            "Suivi kilométrique automatique",
+            "Zones d'intervention personnalisées",
+            "Calcul des frais de déplacement"
+          ]}
+        >
+          <FreelancerGeolocation />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'help',

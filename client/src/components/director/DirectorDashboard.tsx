@@ -30,6 +30,9 @@ import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers
 import CommunicationsCenter from './modules/CommunicationsCenter';
 import SchoolConfigurationGuide from './modules/SchoolConfigurationGuide';
 
+// Import Premium components
+import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
+
 interface DirectorDashboardProps {
   activeModule?: string;
 }
@@ -154,28 +157,80 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.teachers,
       icon: <UserCheck className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <FunctionalDirectorTeacherManagement />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Enseignants Avancée"
+          userType="School"
+          features={[
+            "Gestion illimitée d'enseignants",
+            "Rapports de performance détaillés", 
+            "Planification automatique des cours",
+            "Outils de communication intégrés"
+          ]}
+        >
+          <FunctionalDirectorTeacherManagement />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'students',
       label: t.students,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <FunctionalDirectorStudentManagement />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Élèves Premium"
+          userType="School"
+          features={[
+            "Base de données étudiants illimitée",
+            "Suivi personnalisé de progression",
+            "Communication automatisée avec parents",
+            "Rapports d'analyse comportementale"
+          ]}
+        >
+          <FunctionalDirectorStudentManagement />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'classes',
       label: t.classes,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalDirectorClassManagement />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Classes Multi-niveaux"
+          userType="School"
+          features={[
+            "Classes illimitées tous niveaux",
+            "Outils pédagogiques avancés",
+            "Affectation automatique enseignants",
+            "Analytics de performance par classe"
+          ]}
+        >
+          <FunctionalDirectorClassManagement />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'timetable',
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: <TimetableConfiguration />
+      component: (
+        <PremiumFeatureGate
+          featureName="Emploi du Temps Intelligent"
+          userType="School"
+          features={[
+            "Génération automatique d'emplois du temps",
+            "Optimisation des conflits d'horaires",
+            "Synchronisation multi-classes",
+            "Notifications automatiques de changements"
+          ]}
+        >
+          <TimetableConfiguration />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'attendance',
@@ -189,7 +244,20 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <CommunicationsCenter />
+      component: (
+        <PremiumFeatureGate
+          featureName="Centre Communications Pro"
+          userType="School"
+          features={[
+            "Messages groupés SMS/WhatsApp illimités",
+            "Templates de communication automatisés",
+            "Suivi de livraison des messages",
+            "Intégration avec systèmes de notation"
+          ]}
+        >
+          <CommunicationsCenter />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'teacher-absence',
@@ -210,7 +278,20 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.geolocation,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <GeolocationManagementImproved />
+      component: (
+        <PremiumFeatureGate
+          featureName="Géolocalisation Sécurisée"
+          userType="School"
+          features={[
+            "Suivi GPS temps réel de tous les élèves",
+            "Zones de sécurité personnalisables",
+            "Alertes automatiques parents/école",
+            "Rapports de fréquentation géolocalisés"
+          ]}
+        >
+          <GeolocationManagementImproved />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'bulletin-validation',

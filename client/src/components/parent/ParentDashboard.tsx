@@ -23,6 +23,9 @@ import FunctionalParentGrades from './modules/FunctionalParentGrades';
 import FunctionalParentAttendance from './modules/FunctionalParentAttendance';
 import FunctionalParentPayments from './modules/FunctionalParentPayments';
 
+// Import Premium components
+import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
+
 interface ParentDashboardProps {
   activeModule?: string;
 }
@@ -110,35 +113,100 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <FunctionalParentMessages />
+      component: (
+        <PremiumFeatureGate
+          featureName="Messages Enseignants"
+          userType="Parent"
+          features={[
+            "Communication directe avec les enseignants",
+            "Notifications push instantanées",
+            "Historique complet des conversations",
+            "Pièces jointes et photos"
+          ]}
+        >
+          <FunctionalParentMessages />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'grades',
       label: t.results,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <FunctionalParentGrades />
+      component: (
+        <PremiumFeatureGate
+          featureName="Bulletins & Notes Détaillés"
+          userType="Parent"
+          features={[
+            "Bulletins avec graphiques détaillés",
+            "Analyse de progression par matière",
+            "Comparaison avec la moyenne de classe",
+            "Téléchargement PDF professionnel"
+          ]}
+        >
+          <FunctionalParentGrades />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckCircle2 className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalParentAttendance />
+      component: (
+        <PremiumFeatureGate
+          featureName="Suivi Présence Avancé"
+          userType="Parent"
+          features={[
+            "Alertes absence en temps réel",
+            "Historique de présence détaillé",
+            "Justification d'absence en ligne",
+            "Rapport mensuel automatique"
+          ]}
+        >
+          <FunctionalParentAttendance />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'payments',
       label: 'Paiements',
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <FunctionalParentPayments />
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Paiements"
+          userType="Parent"
+          features={[
+            "Paiements Orange Money & MTN",
+            "Historique complet des factures",
+            "Rappels automatiques d'échéance",
+            "Reçus PDF téléchargeables"
+          ]}
+        >
+          <FunctionalParentPayments />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <ParentGeolocation />
+      component: (
+        <PremiumFeatureGate
+          featureName="Géolocalisation Premium"
+          userType="Parent"
+          features={[
+            "Suivi GPS temps réel de votre enfant",
+            "Zones de sécurité personnalisées",
+            "Alertes d'arrivée/départ école",
+            "Historique des déplacements"
+          ]}
+        >
+          <ParentGeolocation />
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'settings',
