@@ -1,10 +1,10 @@
-modules = ["nodejs-20", "web", "postgresql-16"]
+modules = ["nodejs-20", "web", "postgresql-16", "java-21", "openjdk-21"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["openjdk17", "android-tools", "jdk17", "wget", "unzip", "openjdk"]
+packages = ["openjdk17", "android-tools", "jdk17", "wget", "unzip", "openjdk", "jdk21"]
 
 [deployment]
 deploymentTarget = "autoscale"
