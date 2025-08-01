@@ -24,6 +24,12 @@ Preferred communication style: Simple, everyday language.
 - Clean Git history established
 - Production-ready codebase available for collaboration and deployment
 
+**GitHub Actions Setup (In Progress):**
+- CI/CD workflows created locally (ci.yml, android-release.yml, android-build.yml)
+- Issue: Personal Access Token lacks 'workflow' scope permission
+- Solution needed: Update GitHub token with workflow permissions for automated builds
+- Target: Automated APK/AAB generation and branch protection rules
+
 ## System Architecture
 
 ### Frontend Architecture
