@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "253782008056",
+    "project_id": "smartwatch-tracker-e061f",
+    "storage_bucket": "smartwatch-tracker-e061f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253782008056:android:e72cd9dd8026239f9a9b0d",
+        "android_client_info": {
+          "package_name": "com.muehlingsolutions.educafric"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "253782008056-8b2thmuboe1sol9b190ntsqel76a9v86.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7_xE47farKjW4DQuAo7Bz5sxUfHL2DoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "253782008056-8b2thmuboe1sol9b190ntsqel76a9v86.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
