@@ -24,7 +24,8 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
         return {
           title: "Fonctionnalité Premium Parent",
           subtitle: "Débloquez le suivi complet de votre enfant",
-          price: "2,500 CFA/mois",
+          price: "1,000 CFA/mois",
+          priceDetails: "ou 12,000 CFA/an (économisez 2,000 CFA)",
           benefits: [
             "Géolocalisation temps réel",
             "Bulletins détaillés",
@@ -36,7 +37,8 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
         return {
           title: "Module Premium École",
           subtitle: "Accédez à la gestion avancée",
-          price: "15,000 CFA/mois",
+          price: "50,000 CFA/an",
+          priceDetails: "École publique - École privée : 75,000 CFA/an",
           benefits: [
             "Gestion multi-classes illimitée",
             "Rapports analytiques avancés",
@@ -48,7 +50,8 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
         return {
           title: "Outils Premium Freelancer",
           subtitle: "Maximisez vos opportunités",
-          price: "5,000 CFA/mois",
+          price: "25,000 CFA/an",
+          priceDetails: "ou 12,500 CFA/semestre",
           benefits: [
             "Accès à toutes les écoles",
             "Profil certifié premium",
@@ -60,7 +63,8 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
         return {
           title: "Fonctionnalité Premium",
           subtitle: "Débloquez toutes les fonctionnalités",
-          price: "À partir de 2,500 CFA/mois",
+          price: "À partir de 1,000 CFA/mois",
+          priceDetails: "",
           benefits: features
         };
     }
@@ -102,9 +106,11 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
             <div className="text-2xl font-bold text-green-700">
               {upgradeInfo.price}
             </div>
-            <div className="text-xs text-gray-600">
-              Économisez jusqu'à 30% avec l'abonnement annuel
-            </div>
+            {upgradeInfo.priceDetails && (
+              <div className="text-xs text-gray-600">
+                {upgradeInfo.priceDetails}
+              </div>
+            )}
           </div>
 
           {/* Liste des bénéfices */}

@@ -26,13 +26,13 @@ const LockedModuleCard: React.FC<LockedModuleCardProps> = ({
   const getPricing = () => {
     switch (userType) {
       case 'Parent':
-        return { price: '2,500 CFA', period: '/mois' };
+        return { price: '1,000 CFA', period: '/mois' };
       case 'School':
-        return { price: '15,000 CFA', period: '/mois' };
+        return { price: '50,000 CFA', period: '/an' };
       case 'Freelancer':
-        return { price: '5,000 CFA', period: '/mois' };
+        return { price: '25,000 CFA', period: '/an' };
       default:
-        return { price: '2,500 CFA', period: '/mois' };
+        return { price: '1,000 CFA', period: '/mois' };
     }
   };
 
@@ -102,7 +102,7 @@ const LockedModuleCard: React.FC<LockedModuleCardProps> = ({
                 {pricing.price}
               </div>
               <div className="text-xs text-gray-500">
-                {pricing.period} • Essai gratuit 7 jours
+                {pricing.period} • {userType === 'Parent' ? 'Essai gratuit 7 jours' : 'Voir tous les plans'}
               </div>
             </div>
 

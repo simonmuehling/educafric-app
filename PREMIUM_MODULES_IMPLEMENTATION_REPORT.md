@@ -119,18 +119,23 @@ Système de verrouillage premium implémenté avec succès pour encourager les a
 
 ## 💰 Structure Tarifaire
 
-### Parents: 2,500 CFA/mois
+### Parents: 1,000 CFA/mois
 - Accès complet à tous les modules premium
 - Essai gratuit 7 jours
-- Économies jusqu'à 30% avec abonnement annuel
+- Économies avec abonnement annuel : 12,000 CFA/an (économisez 2,000 CFA)
+- Plans disponibles : Public (1,000 CFA/mois), Privé (1,500 CFA/mois), GPS (1,000 CFA/mois)
 
-### Freelancers: 5,000 CFA/mois  
+### Freelancers: 25,000 CFA/an
 - Outils professionnels avancés
 - Accès multi-écoles
-- Support commercial dédié
+- Support commercial dédié  
+- Option semestrielle : 12,500 CFA/semestre
 - ROI élevé via optimisation des revenus
 
-### Écoles: 15,000 CFA/mois
+### Écoles: 50,000-75,000 CFA/an
+- École publique : 50,000 CFA/an
+- École privée : 75,000 CFA/an
+- Option géolocalisation : 25,000 CFA/an
 - Gestion institutionnelle complète
 - Analytics avancées
 - Support technique prioritaire
