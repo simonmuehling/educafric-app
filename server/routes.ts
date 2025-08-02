@@ -13379,12 +13379,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Document management routes for Site Admin
+  // UNIFIED Document management routes for Site Admin AND Commercial users
   app.get('/api/documents/:id/view', requireAuth, (req, res) => {
     const documentId = req.params.id;
     
-    if (!req.user || !['Admin', 'SiteAdmin'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (!req.user || !['Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied - Admin, SiteAdmin, or Commercial role required' });
     }
 
     // Générer contenu HTML directement pour la visualisation
@@ -13452,8 +13452,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
     const documentId = req.params.id;
     
-    if (!req.user || !['Admin', 'SiteAdmin'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (!req.user || !['Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied - Admin, SiteAdmin, or Commercial role required' });
     }
 
     try {
@@ -13621,126 +13621,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete document functionality for both Site Admin and Commercial
-  // Site Admin document routes
-  app.get('/api/documents/:id/view', requireAuth, async (req, res) => {
-    const documentId = req.params.id;
-    
-    if (!req.user || !['Admin', 'SiteAdmin'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    try {
-      // Import du générateur PDF
-      const { PDFGenerator } = await import('./services/pdfGenerator.js');
-      
-      // Documents admin avec support des nouveaux documents markdown
-      const adminDocs = {
-        '1': 'Rapport Système EDUCAFRIC',
-        '2': 'Projections Financières Plateforme',
-        '3': 'Analyse Utilisateurs',
-        '4': 'Statistiques Écoles',
-        '11': 'EDUCAFRIC - Inventaire Complet des Pages',
-        '12': 'EDUCAFRIC - Référence du Contenu des Notifications',
-        '13': 'EDUCAFRIC - Plans d\'Abonnement Complets',
-        '14': 'EDUCAFRIC - Informations Freemium pour les Écoles Africaines',
-        '15': 'EDUCAFRIC - Comparaison des Services de Géolocalisation',
-        '16': 'EDUCAFRIC - Contrat de Partenariat Établissements/Freelancers 2025',
-        '17': 'EDUCAFRIC - Économies Financières pour les Écoles Africaines',
-        '18': 'EDUCAFRIC - Brochure Commerciale Persuasive'
-      };
-
-      const docTitle = adminDocs[documentId as keyof typeof adminDocs] || 'Document Admin';
-      
-      const documentData = {
-        id: documentId,
-        title: docTitle,
-        user: req.user,
-        type: 'system' as const
-      };
-      
-      // Générer le PDF admin pour visualisation
-      const pdfBuffer = await PDFGenerator.generateSystemReport(documentData);
-      
-      // Configuration des headers pour affichage PDF inline
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${docTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf"`);
-      
-      console.log(`📄 Admin PDF viewed: ${docTitle} for ${req.user.email}`);
-      
-      res.send(pdfBuffer);
-      
-    } catch (error) {
-      console.error('Admin PDF view error:', error);
-      res.status(500).json({ 
-        error: 'Failed to view admin document',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
-    const documentId = req.params.id;
-    
-    if (!req.user || !['Admin', 'SiteAdmin'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
-    try {
-      // Import du générateur PDF
-      const { PDFGenerator } = await import('./services/pdfGenerator.js');
-      
-      // Documents admin avec support des nouveaux documents markdown
-      const adminDocs = {
-        '1': 'Rapport Système EDUCAFRIC',
-        '2': 'Projections Financières Plateforme',
-        '3': 'Analyse Utilisateurs',
-        '4': 'Statistiques Écoles',
-        '11': 'EDUCAFRIC - Inventaire Complet des Pages',
-        '12': 'EDUCAFRIC - Référence du Contenu des Notifications',
-        '13': 'EDUCAFRIC - Plans d\'Abonnement Complets',
-        '14': 'EDUCAFRIC - Informations Freemium pour les Écoles Africaines',
-        '15': 'EDUCAFRIC - Comparaison des Services de Géolocalisation',
-        '16': 'EDUCAFRIC - Contrat de Partenariat Établissements/Freelancers 2025',
-        '17': 'EDUCAFRIC - Économies Financières pour les Écoles Africaines',
-        '18': 'EDUCAFRIC - Brochure Commerciale Persuasive'
-      };
-
-      const docTitle = adminDocs[documentId as keyof typeof adminDocs] || 'Document Admin';
-      
-      const documentData = {
-        id: documentId,
-        title: docTitle,
-        user: req.user,
-        type: 'system' as const
-      };
-      
-      // Générer le PDF admin
-      const pdfBuffer = await PDFGenerator.generateSystemReport(documentData);
-      
-      // Configuration des headers pour téléchargement
-      const filename = `${docTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      
-      console.log(`📄 Admin PDF downloaded: ${filename} for ${req.user.email}`);
-      
-      res.send(pdfBuffer);
-      
-    } catch (error) {
-      console.error('Admin PDF download error:', error);
-      res.status(500).json({ 
-        error: 'Failed to download admin document',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
+  // UNIFIED DOCUMENT ROUTES - Supporting both SiteAdmin and Commercial users
 
   app.delete('/api/documents/:id', requireAuth, (req, res) => {
     const documentId = req.params.id;
     
-    if (!req.user || !['Admin', 'SiteAdmin'].includes(req.user.role)) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (!req.user || !['Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Access denied - Admin, SiteAdmin, or Commercial role required' });
     }
 
     // Simuler la suppression du document
