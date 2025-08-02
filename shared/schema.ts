@@ -521,6 +521,7 @@ export const timetableSlots = pgTable("timetable_slots", {
   isActive: boolean("is_active").default(true),
 });
 
+
 // Timetable templates for reusability
 export const timetableTemplates = pgTable("timetable_templates", {
   id: serial("id").primaryKey(),
@@ -1131,7 +1132,7 @@ export const insertCommercialDocumentSchema = createInsertSchema(commercialDocum
 });
 
 
-// Teacher Absences Management
+// Teacher Absences Management - Enhanced Version
 export const teacherAbsences = pgTable("teacher_absences", {
   id: serial("id").primaryKey(),
   teacherId: integer("teacher_id").notNull(),
@@ -1142,10 +1143,46 @@ export const teacherAbsences = pgTable("teacher_absences", {
   startTime: text("start_time").notNull(), // HH:MM format
   endTime: text("end_time").notNull(), // HH:MM format
   reason: text("reason").notNull(), // 'sick', 'personal', 'emergency', 'training', 'other'
-  status: text("status").default("pending"), // 'pending', 'approved', 'rejected', 'resolved'
+  reasonCategory: text("reason_category").default("personal"), // medical, personal, emergency, official, other
+  isPlanned: boolean("is_planned").default(false),
+  
+  // Enhanced absence management
+  affectedClasses: jsonb("affected_classes"), // Array of {classId, className, subjectId, subjectName, period}
+  totalAffectedStudents: integer("total_affected_students").default(0),
+  priority: text("priority").default("medium"), // low, medium, high, urgent
+  
+  // Status workflow - enhanced
+  status: text("status").default("reported"), // reported, notified, substitute_assigned, resolved, archived
   replacementTeacherId: integer("replacement_teacher_id"),
-  notes: text("notes"),
+  substituteAssignedAt: timestamp("substitute_assigned_at"),
+  substituteAssignedBy: integer("substitute_assigned_by"),
+  substituteInstructions: text("substitute_instructions"),
+  substituteConfirmed: boolean("substitute_confirmed").default(false),
+  
+  // Enhanced notification tracking
+  parentsNotified: boolean("parents_notified").default(false),
+  studentsNotified: boolean("students_notified").default(false),
+  adminNotified: boolean("admin_notified").default(false),
   notificationsSent: boolean("notifications_sent").default(false),
+  notificationsSentAt: timestamp("notifications_sent_at"),
+  notificationMethod: text("notification_method"), // sms, email, whatsapp, push
+  
+  // Resolution and reporting
+  isResolved: boolean("is_resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: integer("resolved_by"),
+  resolutionNotes: text("resolution_notes"),
+  impactAssessment: text("impact_assessment"), // low, medium, high impact on education
+  
+  // Documentation
+  documentation: jsonb("documentation"), // Medical certificates, official letters, etc.
+  attachmentUrls: text("attachment_urls").array(),
+  notes: text("notes"),
+  
+  // Academic tracking
+  academicYear: text("academic_year").default("2024-2025"),
+  term: text("term").default("Trimestre 2"),
+  
   createdBy: integer("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1160,6 +1197,67 @@ export const teacherAbsenceNotifications = pgTable("teacher_absence_notification
   status: text("status").default("pending"), // 'pending', 'sent', 'delivered', 'failed'
   sentAt: timestamp("sent_at"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Quick actions performed on teacher absences
+export const teacherAbsenceActions = pgTable("teacher_absence_actions", {
+  id: serial("id").primaryKey(),
+  absenceId: integer("absence_id").notNull(),
+  actionType: text("action_type").notNull(), // notify_parents, notify_students, assign_substitute, mark_resolved, generate_report
+  performedBy: integer("performed_by").notNull(),
+  actionDetails: jsonb("action_details"), // Specific data for each action type
+  
+  // Notification specifics
+  targetAudience: text("target_audience"), // parents, students, admin, all
+  notificationMethod: text("notification_method"), // sms, email, whatsapp, push
+  messageTemplate: text("message_template"),
+  recipientCount: integer("recipient_count").default(0),
+  successfulDeliveries: integer("successful_deliveries").default(0),
+  failedDeliveries: integer("failed_deliveries").default(0),
+  
+  // Status tracking
+  status: text("status").default("pending"), // pending, in_progress, completed, failed
+  completedAt: timestamp("completed_at"),
+  errorMessage: text("error_message"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Monthly absence reports
+export const monthlyAbsenceReports = pgTable("monthly_absence_reports", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  generatedBy: integer("generated_by").notNull(),
+  
+  // Report period
+  reportMonth: integer("report_month").notNull(), // 1-12
+  reportYear: integer("report_year").notNull(),
+  academicYear: text("academic_year").notNull(),
+  
+  // Statistics
+  totalAbsences: integer("total_absences").default(0),
+  resolvedAbsences: integer("resolved_absences").default(0),
+  unresolvedAbsences: integer("unresolved_absences").default(0),
+  averageResolutionTime: decimal("average_resolution_time", { precision: 5, scale: 2 }), // Hours
+  mostAbsentTeacher: integer("most_absent_teacher"),
+  mostCommonReason: text("most_common_reason"),
+  
+  // Impact analysis
+  totalAffectedStudents: integer("total_affected_students").default(0),
+  totalAffectedClasses: integer("total_affected_classes").default(0),
+  totalNotificationsSent: integer("total_notifications_sent").default(0),
+  substituteSuccessRate: decimal("substitute_success_rate", { precision: 5, scale: 2 }),
+  
+  // Report data
+  reportData: jsonb("report_data"), // Detailed breakdown and charts data
+  reportFileUrl: text("report_file_url"), // Generated PDF report
+  
+  // Status
+  status: text("status").default("draft"), // draft, finalized, archived
+  finalizedAt: timestamp("finalized_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Teacher Absence Relations
@@ -1202,26 +1300,7 @@ export const teacherAbsenceNotificationsRelations = relations(teacherAbsenceNoti
   }),
 }));
 
-// Teacher Absence Types
-export type TeacherAbsence = typeof teacherAbsences.$inferSelect;
-export type InsertTeacherAbsence = typeof teacherAbsences.$inferInsert;
-export type TeacherAbsenceNotification = typeof teacherAbsenceNotifications.$inferSelect;
-export type InsertTeacherAbsenceNotification = typeof teacherAbsenceNotifications.$inferInsert;
 
-// Teacher Absence Validation Schemas
-export const insertTeacherAbsenceSchema = createInsertSchema(teacherAbsences).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  absenceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date format should be YYYY-MM-DD"),
-  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time format should be HH:MM"),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time format should be HH:MM"),
-  reason: z.enum(["sick", "personal", "emergency", "training", "other"]),
-  status: z.enum(["pending", "approved", "rejected", "resolved"]).default("pending"),
-});
-
-export type InsertTeacherAbsenceData = z.infer<typeof insertTeacherAbsenceSchema>;
 
 // Parent Requests Management
 export const parentRequests = pgTable("parent_requests", {
@@ -1347,3 +1426,39 @@ export const insertParentRequestResponseSchema = createInsertSchema(parentReques
 
 export type InsertParentRequestData = z.infer<typeof insertParentRequestSchema>;
 export type InsertParentRequestResponseData = z.infer<typeof insertParentRequestResponseSchema>;
+
+// ===== TEACHER ABSENCE SYSTEM TYPES =====
+export type TeacherAbsence = typeof teacherAbsences.$inferSelect;
+export type InsertTeacherAbsence = typeof teacherAbsences.$inferInsert;
+export type TeacherAbsenceAction = typeof teacherAbsenceActions.$inferSelect;
+export type InsertTeacherAbsenceAction = typeof teacherAbsenceActions.$inferInsert;
+export type MonthlyAbsenceReport = typeof monthlyAbsenceReports.$inferSelect;
+export type InsertMonthlyAbsenceReport = typeof monthlyAbsenceReports.$inferInsert;
+
+// Teacher Absence Validation Schemas
+export const insertTeacherAbsenceSchema = createInsertSchema(teacherAbsences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  reason: z.string().min(1, "Reason is required"),
+  reasonCategory: z.enum(["medical", "personal", "emergency", "official", "other"]),
+  status: z.enum(["reported", "notified", "substitute_assigned", "resolved", "archived"]),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  absenceDate: z.string().min(1, "Date is required"),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
+});
+
+export const insertTeacherAbsenceActionSchema = createInsertSchema(teacherAbsenceActions).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  actionType: z.enum(["notify_parents", "notify_students", "assign_substitute", "mark_resolved", "generate_report"]),
+  targetAudience: z.enum(["parents", "students", "admin", "all"]).optional(),
+  notificationMethod: z.enum(["sms", "email", "whatsapp", "push"]).optional(),
+  status: z.enum(["pending", "in_progress", "completed", "failed"]),
+});
+
+export type InsertTeacherAbsenceData = z.infer<typeof insertTeacherAbsenceSchema>;
+export type InsertTeacherAbsenceActionData = z.infer<typeof insertTeacherAbsenceActionSchema>;

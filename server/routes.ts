@@ -17934,6 +17934,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TEACHER ABSENCE MANAGEMENT API ROUTES =====
+  
+  // Get all teacher absences for a school
+  app.get("/api/school/teacher-absences", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const schoolId = req.user.schoolId || 1; // Default for testing
+      const absences = await storage.getTeacherAbsences(schoolId);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved ${absences.length} absences for school ${schoolId}`);
+      res.json(absences);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error fetching absences:', error);
+      res.status(500).json({ message: 'Failed to fetch teacher absences' });
+    }
+  });
+
+  // Get specific teacher absence by ID
+  app.get("/api/school/teacher-absences/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin', 'Teacher'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      const absence = await storage.getTeacherAbsenceById(absenceId);
+      
+      if (!absence) {
+        return res.status(404).json({ message: 'Teacher absence not found' });
+      }
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved absence ${absenceId}`);
+      res.json(absence);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error fetching absence:', error);
+      res.status(500).json({ message: 'Failed to fetch teacher absence' });
+    }
+  });
+
+  // Create new teacher absence
+  app.post("/api/school/teacher-absences", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin', 'Teacher'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceData = {
+        ...req.body,
+        schoolId: req.user.schoolId || 1,
+        createdBy: req.user.id
+      };
+      
+      const newAbsence = await storage.createTeacherAbsence(absenceData);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Created new absence for teacher ${absenceData.teacherId}`);
+      res.status(201).json(newAbsence);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error creating absence:', error);
+      res.status(500).json({ message: 'Failed to create teacher absence' });
+    }
+  });
+
+  // Update teacher absence
+  app.put("/api/school/teacher-absences/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const updatedAbsence = await storage.updateTeacherAbsence(absenceId, updates);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Updated absence ${absenceId}`);
+      res.json(updatedAbsence);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error updating absence:', error);
+      res.status(500).json({ message: 'Failed to update teacher absence' });
+    }
+  });
+
+  // Delete teacher absence
+  app.delete("/api/school/teacher-absences/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      await storage.deleteTeacherAbsence(absenceId);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Deleted absence ${absenceId}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error deleting absence:', error);
+      res.status(500).json({ message: 'Failed to delete teacher absence' });
+    }
+  });
+
+  // Perform quick actions on absence
+  app.post("/api/school/teacher-absences/:id/actions", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      const { actionType, actionData } = req.body;
+      
+      const actionResult = await storage.performAbsenceAction(
+        absenceId, 
+        actionType, 
+        req.user.id, 
+        actionData
+      );
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Performed action '${actionType}' on absence ${absenceId}`);
+      res.json(actionResult);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error performing action:', error);
+      res.status(500).json({ message: 'Failed to perform absence action' });
+    }
+  });
+
+  // Get available substitutes
+  app.get("/api/school/teacher-absences/:id/substitutes", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      const absence = await storage.getTeacherAbsenceById(absenceId);
+      
+      if (!absence) {
+        return res.status(404).json({ message: 'Absence not found' });
+      }
+      
+      const substitutes = await storage.getAvailableSubstitutes(
+        absence.schoolId,
+        absence.subjectId,
+        { startTime: absence.startTime, endTime: absence.endTime }
+      );
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved ${substitutes.length} available substitutes`);
+      res.json(substitutes);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error fetching substitutes:', error);
+      res.status(500).json({ message: 'Failed to fetch available substitutes' });
+    }
+  });
+
+  // Assign substitute teacher
+  app.post("/api/school/teacher-absences/:id/assign-substitute", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const absenceId = parseInt(req.params.id);
+      const { substituteId, instructions } = req.body;
+      
+      const assignment = await storage.assignSubstitute(
+        absenceId,
+        substituteId,
+        req.user.id,
+        instructions
+      );
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Assigned substitute ${substituteId} to absence ${absenceId}`);
+      res.json(assignment);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error assigning substitute:', error);
+      res.status(500).json({ message: 'Failed to assign substitute' });
+    }
+  });
+
+  // Get absence statistics for school
+  app.get("/api/school/teacher-absences-stats", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const schoolId = req.user.schoolId || 1;
+      const stats = await storage.getAbsenceStatistics(schoolId);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved absence statistics for school ${schoolId}`);
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error fetching statistics:', error);
+      res.status(500).json({ message: 'Failed to fetch absence statistics' });
+    }
+  });
+
+  // Generate monthly absence report
+  app.post("/api/school/teacher-absences-reports", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const { month, year } = req.body;
+      const schoolId = req.user.schoolId || 1;
+      
+      const report = await storage.generateMonthlyAbsenceReport(schoolId, month, year);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Generated monthly report for ${month}/${year}`);
+      res.json(report);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error generating report:', error);
+      res.status(500).json({ message: 'Failed to generate monthly report' });
+    }
+  });
+
+  // Get absence reports for school
+  app.get("/api/school/teacher-absences-reports", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      
+      const schoolId = req.user.schoolId || 1;
+      const reports = await storage.getAbsenceReports(schoolId);
+      
+      console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved ${reports.length} reports for school ${schoolId}`);
+      res.json(reports);
+    } catch (error: any) {
+      console.error('[TEACHER_ABSENCE_API] ❌ Error fetching reports:', error);
+      res.status(500).json({ message: 'Failed to fetch absence reports' });
+    }
+  });
+
   return httpServer;
 }
 

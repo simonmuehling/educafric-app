@@ -19,7 +19,7 @@ import SchoolAdministration from './modules/SchoolAdministration';
 import GeolocationManagementImproved from './modules/GeolocationManagementImproved';
 import BulletinApprovalNew from './modules/BulletinApprovalNew';
 import BulletinValidation from './modules/BulletinValidation';
-import TeacherAbsenceManagement from './modules/TeacherAbsenceManagement';
+import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
 import TimetableConfiguration from './modules/TimetableConfiguration';
 import FinancialManagement from './modules/FinancialManagement';
 import ReportsAnalytics from './modules/ReportsAnalytics';
@@ -264,7 +264,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.teacherAbsence,
       icon: <UserX className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <TeacherAbsenceManagement />
+      component: <TeacherAbsenceManager />
     },
     {
       id: 'parent-requests',
