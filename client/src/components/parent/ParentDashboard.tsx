@@ -25,6 +25,7 @@ import FunctionalParentPayments from './modules/FunctionalParentPayments';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
+import ParentRequestManager from './modules/ParentRequestManager';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -78,6 +79,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       whatsapp: 'WhatsApp (Bientôt)',
       attendance: 'Suivi de Présence',
       geolocation: 'Géolocalisation Enfants',
+      requests: 'Demandes Parents',
       help: 'Aide'
     },
     en: {
@@ -94,6 +96,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       whatsapp: 'WhatsApp (Soon)',
       attendance: 'Attendance',
       geolocation: 'Children Geolocation',
+      requests: 'Parent Requests',
       help: 'Help'
     }
   };
@@ -207,6 +210,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           <ParentGeolocation />
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'requests',
+      label: t.requests,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-orange-500',
+      component: <ParentRequestManager />
     },
     {
       id: 'settings',
