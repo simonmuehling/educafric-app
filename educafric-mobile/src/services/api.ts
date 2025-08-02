@@ -2,8 +2,19 @@ import axios, { AxiosResponse } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API Configuration
-const API_BASE_URL = 'http://10.0.2.2:5000'; // Android emulator localhost
-// For physical device, use your computer's IP: 'http://192.168.1.XXX:5000'
+// IMPORTANT: Choose the correct URL based on how you're testing:
+
+// Option 1: Testing in Android Emulator (virtual device on computer)
+const API_BASE_URL = 'http://10.0.2.2:5000';
+
+// Option 2: Testing on Real Android Phone (uncomment line below and comment line above)
+// const API_BASE_URL = 'http://YOUR_COMPUTER_IP:5000';
+
+// To find YOUR_COMPUTER_IP:
+// 1. Windows: Open Command Prompt → type "ipconfig" → look for "IPv4 Address"
+// 2. Mac: Open Terminal → type "ifconfig" → look for "inet" under "en0"
+// 3. Linux: Open Terminal → type "hostname -I"
+// Example: if your computer's IP is 192.168.1.45, use 'http://192.168.1.45:5000'
 
 // Create axios instance
 const apiClient = axios.create({
