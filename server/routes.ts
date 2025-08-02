@@ -6338,6 +6338,307 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(appointments);
   });
 
+  // ===== COMPREHENSIVE SITE ADMIN API ROUTES =====
+  
+  // Platform User Management
+  app.get("/api/admin/platform-users", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const users = await storage.getAllPlatformUsers();
+      console.log(`[SITE_ADMIN] Retrieved ${users.length} platform users`);
+      res.json(users);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching platform users:', error);
+      res.status(500).json({ message: 'Failed to fetch platform users' });
+    }
+  });
+
+  app.post("/api/admin/platform-users", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const newUser = await storage.createPlatformUser(req.body);
+      console.log(`[SITE_ADMIN] Created platform user: ${newUser.email}`);
+      res.status(201).json(newUser);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error creating platform user:', error);
+      res.status(500).json({ message: 'Failed to create platform user' });
+    }
+  });
+
+  app.put("/api/admin/platform-users/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const updatedUser = await storage.updatePlatformUser(userId, req.body);
+      console.log(`[SITE_ADMIN] Updated platform user: ${userId}`);
+      res.json(updatedUser);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error updating platform user:', error);
+      res.status(500).json({ message: 'Failed to update platform user' });
+    }
+  });
+
+  app.delete("/api/admin/platform-users/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const userId = parseInt(req.params.id);
+      await storage.deletePlatformUser(userId);
+      console.log(`[SITE_ADMIN] Deleted platform user: ${userId}`);
+      res.json({ success: true, message: 'User deleted successfully' });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error deleting platform user:', error);
+      res.status(500).json({ message: 'Failed to delete platform user' });
+    }
+  });
+
+  // Platform School Management
+  app.get("/api/admin/platform-schools", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schools = await storage.getAllPlatformSchools();
+      console.log(`[SITE_ADMIN] Retrieved ${schools.length} platform schools`);
+      res.json(schools);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching platform schools:', error);
+      res.status(500).json({ message: 'Failed to fetch platform schools' });
+    }
+  });
+
+  app.post("/api/admin/platform-schools", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const newSchool = await storage.createPlatformSchool(req.body);
+      console.log(`[SITE_ADMIN] Created platform school: ${newSchool.name}`);
+      res.status(201).json(newSchool);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error creating platform school:', error);
+      res.status(500).json({ message: 'Failed to create platform school' });
+    }
+  });
+
+  app.put("/api/admin/platform-schools/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      const updatedSchool = await storage.updatePlatformSchool(schoolId, req.body);
+      console.log(`[SITE_ADMIN] Updated platform school: ${schoolId}`);
+      res.json(updatedSchool);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error updating platform school:', error);
+      res.status(500).json({ message: 'Failed to update platform school' });
+    }
+  });
+
+  app.delete("/api/admin/platform-schools/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      await storage.deletePlatformSchool(schoolId);
+      console.log(`[SITE_ADMIN] Deleted platform school: ${schoolId}`);
+      res.json({ success: true, message: 'School deleted successfully' });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error deleting platform school:', error);
+      res.status(500).json({ message: 'Failed to delete platform school' });
+    }
+  });
+
+  // System Settings & Configuration
+  app.get("/api/admin/system-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = await storage.getSystemSettings();
+      console.log(`[SITE_ADMIN] Retrieved system settings`);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching system settings:', error);
+      res.status(500).json({ message: 'Failed to fetch system settings' });
+    }
+  });
+
+  app.put("/api/admin/system-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const updatedSettings = await storage.updateSystemSettings(req.body);
+      console.log(`[SITE_ADMIN] Updated system settings`);
+      res.json(updatedSettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error updating system settings:', error);
+      res.status(500).json({ message: 'Failed to update system settings' });
+    }
+  });
+
+  app.get("/api/admin/security-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = await storage.getSecuritySettings();
+      console.log(`[SITE_ADMIN] Retrieved security settings`);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching security settings:', error);
+      res.status(500).json({ message: 'Failed to fetch security settings' });
+    }
+  });
+
+  app.put("/api/admin/security-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const updatedSettings = await storage.updateSecuritySettings(req.body);
+      console.log(`[SITE_ADMIN] Updated security settings`);
+      res.json(updatedSettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error updating security settings:', error);
+      res.status(500).json({ message: 'Failed to update security settings' });
+    }
+  });
+
+  // System Monitoring & Logs
+  app.get("/api/admin/system-logs", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getSystemLogs(limit);
+      console.log(`[SITE_ADMIN] Retrieved ${logs.length} system logs`);
+      res.json(logs);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching system logs:', error);
+      res.status(500).json({ message: 'Failed to fetch system logs' });
+    }
+  });
+
+  app.get("/api/admin/security-logs", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getSecurityLogs(limit);
+      console.log(`[SITE_ADMIN] Retrieved ${logs.length} security logs`);
+      res.json(logs);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching security logs:', error);
+      res.status(500).json({ message: 'Failed to fetch security logs' });
+    }
+  });
+
+  app.get("/api/admin/audit-logs", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 100;
+      const logs = await storage.getAuditLogs(limit);
+      console.log(`[SITE_ADMIN] Retrieved ${logs.length} audit logs`);
+      res.json(logs);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching audit logs:', error);
+      res.status(500).json({ message: 'Failed to fetch audit logs' });
+    }
+  });
+
+  app.get("/api/admin/system-health", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const health = await storage.getSystemHealth();
+      console.log(`[SITE_ADMIN] Retrieved system health status`);
+      res.json(health);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching system health:', error);
+      res.status(500).json({ message: 'Failed to fetch system health' });
+    }
+  });
+
+  app.get("/api/admin/performance-metrics", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const metrics = await storage.getPerformanceMetrics();
+      console.log(`[SITE_ADMIN] Retrieved performance metrics`);
+      res.json(metrics);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error fetching performance metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch performance metrics' });
+    }
+  });
+
+  // Reports & Data Export
+  app.post("/api/admin/generate-report", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const { reportType, filters } = req.body;
+      const report = await storage.generatePlatformReport(reportType, filters);
+      console.log(`[SITE_ADMIN] Generated ${reportType} report`);
+      res.json(report);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error generating report:', error);
+      res.status(500).json({ message: 'Failed to generate report' });
+    }
+  });
+
+  app.post("/api/admin/export-data", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const { dataType, format } = req.body;
+      const exportJob = await storage.exportPlatformData(dataType, format);
+      console.log(`[SITE_ADMIN] Started ${dataType} export in ${format} format`);
+      res.json(exportJob);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] Error exporting data:', error);
+      res.status(500).json({ message: 'Failed to export data' });
+    }
+  });
+
   // Site Admin API Endpoints - Only for main site admin
   app.get("/api/admin/platform-stats", requireAuth, async (req, res) => {
     if (!req.user || (req.user as any).role !== 'SiteAdmin' || (req.user as any).email !== 'simon.admin@educafric.com') {
@@ -17420,6 +17721,216 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[COMMERCIAL_SETTINGS] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to update settings' });
+    }
+  });
+
+  // Site Admin API Routes
+  app.get("/api/admin/platform-stats", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const stats = await storage.getPlatformStats();
+      console.log(`[SITE_ADMIN] ✅ Retrieved platform stats`);
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching platform stats:', error);
+      res.status(500).json({ message: 'Failed to fetch platform stats' });
+    }
+  });
+
+  app.get("/api/admin/platform-users", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const users = await storage.getPlatformUsers();
+      console.log(`[SITE_ADMIN] ✅ Retrieved ${users.length} platform users`);
+      res.json(users);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching platform users:', error);
+      res.status(500).json({ message: 'Failed to fetch platform users' });
+    }
+  });
+
+  app.put("/api/admin/platform-users/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedUser = await storage.updateUser(userId, updates);
+      
+      console.log(`[SITE_ADMIN] ✅ Updated user ${userId}`);
+      res.json(updatedUser);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  app.delete("/api/admin/platform-users/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const userId = parseInt(req.params.id);
+      await storage.deleteUser(userId);
+      
+      console.log(`[SITE_ADMIN] ✅ Deleted user ${userId}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error deleting user:', error);
+      res.status(500).json({ message: 'Failed to delete user' });
+    }
+  });
+
+  app.get("/api/admin/platform-schools", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schools = await storage.getPlatformSchools();
+      console.log(`[SITE_ADMIN] ✅ Retrieved ${schools.length} platform schools`);
+      res.json(schools);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching platform schools:', error);
+      res.status(500).json({ message: 'Failed to fetch platform schools' });
+    }
+  });
+
+  app.put("/api/admin/platform-schools/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedSchool = await storage.updateSchool(schoolId, updates);
+      
+      console.log(`[SITE_ADMIN] ✅ Updated school ${schoolId}`);
+      res.json(updatedSchool);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error updating school:', error);
+      res.status(500).json({ message: 'Failed to update school' });
+    }
+  });
+
+  app.delete("/api/admin/platform-schools/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      await storage.deleteSchool(schoolId);
+      
+      console.log(`[SITE_ADMIN] ✅ Deleted school ${schoolId}`);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error deleting school:', error);
+      res.status(500).json({ message: 'Failed to delete school' });
+    }
+  });
+
+  app.get("/api/admin/system-health", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const health = await storage.getSystemHealth();
+      console.log(`[SITE_ADMIN] ✅ Retrieved system health status`);
+      res.json(health);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching system health:', error);
+      res.status(500).json({ message: 'Failed to fetch system health' });
+    }
+  });
+
+  app.get("/api/admin/performance-metrics", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const metrics = await storage.getPerformanceMetrics();
+      console.log(`[SITE_ADMIN] ✅ Retrieved performance metrics`);
+      res.json(metrics);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching performance metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch performance metrics' });
+    }
+  });
+
+  app.get("/api/admin/system-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = await storage.getSystemSettings();
+      console.log(`[SITE_ADMIN] ✅ Retrieved system settings`);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching system settings:', error);
+      res.status(500).json({ message: 'Failed to fetch system settings' });
+    }
+  });
+
+  app.put("/api/admin/system-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = req.body;
+      const updatedSettings = await storage.updateSystemSettings(settings);
+      
+      console.log(`[SITE_ADMIN] ✅ Updated system settings`);
+      res.json(updatedSettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error updating system settings:', error);
+      res.status(500).json({ message: 'Failed to update system settings' });
+    }
+  });
+
+  app.get("/api/admin/security-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = await storage.getSecuritySettings();
+      console.log(`[SITE_ADMIN] ✅ Retrieved security settings`);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error fetching security settings:', error);
+      res.status(500).json({ message: 'Failed to fetch security settings' });
+    }
+  });
+
+  app.put("/api/admin/security-settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site Admin access required' });
+      }
+      
+      const settings = req.body;
+      const updatedSettings = await storage.updateSecuritySettings(settings);
+      
+      console.log(`[SITE_ADMIN] ✅ Updated security settings`);
+      res.json(updatedSettings);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN] ❌ Error updating security settings:', error);
+      res.status(500).json({ message: 'Failed to update security settings' });
     }
   });
 
