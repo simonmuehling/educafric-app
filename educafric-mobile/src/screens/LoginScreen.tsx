@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import ConnectionTest from '../components/ConnectionTest';
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -40,6 +41,12 @@ const LoginScreen: React.FC = () => {
   const handleDemoLogin = () => {
     // Use demo credentials from your existing system
     setEmail('demo@educafric.com');
+    setPassword('demo123');
+  };
+
+  const handleQuickTestLogin = () => {
+    // Test with different demo accounts
+    setEmail('parent.demo@test.educafric.com');
     setPassword('demo123');
   };
 
@@ -103,6 +110,13 @@ const LoginScreen: React.FC = () => {
             <Text style={styles.demoButtonText}>Try Demo Account</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleQuickTestLogin}
+          >
+            <Text style={styles.testButtonText}>Test Parent Account</Text>
+          </TouchableOpacity>
+
           <View style={styles.linksContainer}>
             <TouchableOpacity>
               <Text style={styles.linkText}>Forgot Password?</Text>
@@ -116,6 +130,8 @@ const LoginScreen: React.FC = () => {
             </View>
           </View>
         </View>
+
+        <ConnectionTest />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -216,6 +232,20 @@ const styles = StyleSheet.create({
   },
   demoButtonText: {
     color: '#0079F2',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  testButton: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#28a745',
+  },
+  testButtonText: {
+    color: '#28a745',
     fontSize: 16,
     fontWeight: '600',
   },
