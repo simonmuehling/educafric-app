@@ -15,7 +15,7 @@ import FunctionalDirectorStudentManagement from './modules/FunctionalDirectorStu
 import FunctionalDirectorTeacherManagement from './modules/FunctionalDirectorTeacherManagement';
 import SchoolAttendanceManagement from './modules/SchoolAttendanceManagement';
 import ParentRequestsNew from './modules/ParentRequestsNew';
-import SchoolAdministration from './modules/SchoolAdministration';
+import DelegateAdministrators from './modules/DelegateAdministrators';
 import GeolocationManagementImproved from './modules/GeolocationManagementImproved';
 import BulletinApprovalNew from './modules/BulletinApprovalNew';
 import BulletinValidation from './modules/BulletinValidation';
@@ -23,7 +23,7 @@ import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
 import TimetableConfiguration from './modules/TimetableConfiguration';
 import FinancialManagement from './modules/FinancialManagement';
 import ReportsAnalytics from './modules/ReportsAnalytics';
-import AdministratorManagementFunctional from './modules/AdministratorManagementFunctional';
+
 import HelpCenter from '@/components/help/HelpCenter';
 import { FunctionalDirectorOverview } from './modules/FunctionalDirectorOverview';
 import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers';
@@ -104,8 +104,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Demandes Parents',
       geolocation: 'Géolocalisation',
       bulletinApproval: 'Validation Bulletins',
-      administrators: 'Administrateurs',
-      schoolAdministrators: 'Administrateurs École',
+      schoolAdministrators: 'Administrateurs Délégués',
       finances: 'Finances',
       reports: 'Rapports',
       help: 'Aide',
@@ -126,8 +125,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Parent Requests',
       geolocation: 'Geolocation',
       bulletinApproval: 'Bulletin Approval',
-      administrators: 'Administrators',
-      schoolAdministrators: 'School Administrators',
+      schoolAdministrators: 'Delegate Administrators',
       finances: 'Finances',
       reports: 'Reports',
       help: 'Help',
@@ -301,18 +299,11 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       component: <BulletinValidation />
     },
     {
-      id: 'administrators',
-      label: t.administrators,
-      icon: <Shield className="w-6 h-6" />,
-      color: 'bg-slate-500',
-      component: <AdministratorManagementFunctional />
-    },
-    {
       id: 'school-administrators',
       label: t.schoolAdministrators,
-      icon: <Users className="w-6 h-6" />,
+      icon: <Shield className="w-6 h-6" />,
       color: 'bg-amber-500',
-      component: <SchoolAdministration />
+      component: <DelegateAdministrators />
     },
 
     {
