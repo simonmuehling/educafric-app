@@ -201,9 +201,9 @@ const DelegateAdministrators: React.FC = () => {
           teacherName: 'Marie Dubois',
           email: 'marie.dubois@educafric.com',
           phone: '+237655123456',
-          adminLevel: 'assistant',
+          adminLevel: 'assistant' as const,
           permissions: availablePermissions.assistant,
-          status: 'active',
+          status: 'active' as const,
           assignedAt: '2024-01-15'
         }
       ] as Administrator[];
@@ -213,31 +213,76 @@ const DelegateAdministrators: React.FC = () => {
   // Fetch administration stats
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/administration/stats'],
-    queryFn: () => fetch('/api/administration/stats', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/administration/stats', { credentials: 'include' });
+        if (!response.ok) return { teachers: 0, students: 0, parents: 0 };
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        return { teachers: 0, students: 0, parents: 0 };
+      }
+    }
   });
 
   // Fetch teachers for administrator selection
   const { data: availableTeachers = [], isLoading: teachersLoading } = useQuery({
     queryKey: ['/api/administration/teachers'],
-    queryFn: () => fetch('/api/administration/teachers', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/administration/teachers', { credentials: 'include' });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+        return [];
+      }
+    }
   });
 
   // Fetch teachers data for administration tab
   const { data: teachers = [] } = useQuery({
     queryKey: ['/api/administration/teachers'],
-    queryFn: () => fetch('/api/administration/teachers', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/administration/teachers', { credentials: 'include' });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching teachers:', error);
+        return [];
+      }
+    }
   });
 
   // Fetch students data
   const { data: students = [] } = useQuery({
     queryKey: ['/api/administration/students'],
-    queryFn: () => fetch('/api/administration/students', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/administration/students', { credentials: 'include' });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        return [];
+      }
+    }
   });
 
   // Fetch parents data
   const { data: parents = [] } = useQuery({
     queryKey: ['/api/administration/parents'],
-    queryFn: () => fetch('/api/administration/parents', { credentials: 'include' }).then(res => res.json())
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/administration/parents', { credentials: 'include' });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching parents:', error);
+        return [];
+      }
+    }
   });
 
   // Add administrator mutation
@@ -389,13 +434,13 @@ const DelegateAdministrators: React.FC = () => {
                         <SelectValue placeholder={t.selectTeacher} />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableTeachers.filter((teacher: Teacher) => 
+                        {Array.isArray(availableTeachers) ? availableTeachers.filter((teacher: Teacher) => 
                           !administrators.find(admin => admin.teacherId === teacher.id)
                         ).map((teacher: Teacher) => (
                           <SelectItem key={teacher.id} value={teacher.id.toString()}>
                             {teacher.firstName} {teacher.lastName}
                           </SelectItem>
-                        ))}
+                        )) : null}
                       </SelectContent>
                     </Select>
                   </div>
