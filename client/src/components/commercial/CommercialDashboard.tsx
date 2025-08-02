@@ -20,6 +20,9 @@ import FunctionalCommercialSchools from './modules/FunctionalCommercialSchools';
 import FunctionalCommercialLeads from './modules/FunctionalCommercialLeads';
 import FunctionalCommercialReports from './modules/FunctionalCommercialReports';
 import FunctionalCommercialSettings from './modules/FunctionalCommercialSettings';
+import FunctionalCommercialAppointments from './modules/FunctionalCommercialAppointments';
+import FunctionalCommercialWhatsApp from './modules/FunctionalCommercialWhatsApp';
+import FunctionalCommercialStatistics from './modules/FunctionalCommercialStatistics';
 
 interface CommercialDashboardProps {
   activeModule?: string;
@@ -106,7 +109,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.statistics,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <CommercialStatistics />
+      component: <FunctionalCommercialStatistics />
     },
     {
       id: 'reports',
@@ -120,14 +123,14 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.appointments,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <CallsAppointments />
+      component: <FunctionalCommercialAppointments />
     },
     {
       id: 'whatsapp',
       label: t.whatsapp,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
-      component: <WhatsAppManager />
+      component: <FunctionalCommercialWhatsApp />
     },
     {
       id: 'settings',

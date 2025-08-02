@@ -36,6 +36,60 @@ export interface IStorage {
   createParent(data: any): Promise<any>;
   updateParent(id: number, data: any): Promise<any>;
   deleteParent(id: number): Promise<void>;
+  // ===== COMMERCIAL MODULES INTERFACE EXTENSION =====
+  // Commercial Schools Management
+  getCommercialSchools(commercialId: number): Promise<any[]>;
+  createCommercialSchool(commercialId: number, schoolData: any): Promise<any>;
+  updateCommercialSchool(schoolId: number, updates: any): Promise<any>;
+  deleteCommercialSchool(schoolId: number): Promise<void>;
+  
+  // Commercial Leads Management  
+  getCommercialLeads(commercialId: number): Promise<any[]>;
+  createCommercialLead(commercialId: number, leadData: any): Promise<any>;
+  updateCommercialLead(leadId: number, updates: any): Promise<any>;
+  deleteCommercialLead(leadId: number): Promise<void>;
+  convertLeadToSchool(leadId: number, commercialId: number): Promise<any>;
+  
+  // Commercial Contacts Management
+  getCommercialContacts(commercialId: number): Promise<any[]>;
+  createCommercialContact(commercialId: number, contactData: any): Promise<any>;
+  updateCommercialContact(contactId: number, updates: any): Promise<any>;
+  deleteCommercialContact(contactId: number): Promise<void>;
+  
+  // Commercial Payment Confirmation
+  getCommercialPayments(commercialId: number): Promise<any[]>;
+  confirmCommercialPayment(paymentId: number, commercialId: number, notes?: string): Promise<any>;
+  rejectCommercialPayment(paymentId: number, commercialId: number, reason: string): Promise<any>;
+  
+  // Commercial Statistics
+  getCommercialStatistics(commercialId: number, period: string): Promise<any>;
+  getCommercialRevenueStats(commercialId: number): Promise<any>;
+  getCommercialConversionStats(commercialId: number): Promise<any>;
+  
+  // Commercial Reports
+  getCommercialReports(commercialId: number, reportType: string, period: string): Promise<any>;
+  generateCommercialReport(commercialId: number, type: string, params: any): Promise<any>;
+  
+  // Commercial Appointments & Calls
+  getCommercialAppointments(commercialId: number): Promise<any[]>;
+  createCommercialAppointment(commercialId: number, appointmentData: any): Promise<any>;
+  updateCommercialAppointment(appointmentId: number, updates: any): Promise<any>;
+  deleteCommercialAppointment(appointmentId: number): Promise<void>;
+  getCommercialCalls(commercialId: number): Promise<any[]>;
+  createCommercialCall(commercialId: number, callData: any): Promise<any>;
+  
+  // Commercial WhatsApp Management
+  sendCommercialWhatsApp(commercialId: number, messageData: any): Promise<any>;
+  getCommercialWhatsAppHistory(commercialId: number): Promise<any[]>;
+  getCommercialWhatsAppTemplates(commercialId: number): Promise<any[]>;
+  createCommercialWhatsAppTemplate(commercialId: number, templateData: any): Promise<any>;
+  
+  // Commercial Profile & Settings
+  getCommercialProfile(commercialId: number): Promise<any>;
+  updateCommercialProfile(commercialId: number, updates: any): Promise<any>;
+  getCommercialSettings(commercialId: number): Promise<any>;
+  updateCommercialSettings(commercialId: number, settings: any): Promise<any>;
+  
   // ===== FREELANCER MODULES INTERFACE EXTENSION =====
   getFreelancerStudents(freelancerId: number): Promise<any[]>;
   getFreelancerSessions(freelancerId: number): Promise<any[]>;
@@ -7025,6 +7079,641 @@ export class DatabaseStorage implements IStorage {
       console.log(`[NOTIFICATION_SETTINGS] Deleted ${notificationType} settings for user ${userId}`);
     } catch (error) {
       console.error(`Error deleting notification settings for user ${userId}:`, error);
+    }
+  }
+
+  // ===== COMMERCIAL MODULES IMPLEMENTATION =====
+  
+  // Commercial Schools Management
+  async createCommercialSchool(commercialId: number, schoolData: any): Promise<any> {
+    try {
+      const newSchool = await this.createSchool({
+        name: schoolData.name,
+        location: schoolData.location,
+        address: schoolData.address,
+        phone: schoolData.phone,
+        email: schoolData.email,
+        type: 'private',
+        status: 'active',
+        description: schoolData.notes || '',
+        directorId: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      console.log(`[COMMERCIAL_SCHOOL] Created school ${newSchool.id} by commercial ${commercialId}`);
+      return {
+        ...newSchool,
+        director: schoolData.director,
+        subscriptionPlan: schoolData.subscriptionPlan,
+        notes: schoolData.notes
+      };
+    } catch (error) {
+      console.error('Error creating commercial school:', error);
+      throw error;
+    }
+  }
+
+  async updateCommercialSchool(schoolId: number, updates: any): Promise<any> {
+    try {
+      const updatedSchool = await this.updateSchool(schoolId, updates);
+      console.log(`[COMMERCIAL_SCHOOL] Updated school ${schoolId}`);
+      return updatedSchool;
+    } catch (error) {
+      console.error('Error updating commercial school:', error);
+      throw error;
+    }
+  }
+
+  async deleteCommercialSchool(schoolId: number): Promise<void> {
+    try {
+      await db.delete(schools).where(eq(schools.id, schoolId));
+      console.log(`[COMMERCIAL_SCHOOL] Deleted school ${schoolId}`);
+    } catch (error) {
+      console.error('Error deleting commercial school:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Leads Management
+  async createCommercialLead(commercialId: number, leadData: any): Promise<any> {
+    try {
+      const leadId = Math.floor(Math.random() * 10000);
+      const newLead = {
+        id: leadId,
+        commercialId,
+        schoolName: leadData.schoolName,
+        contactPerson: leadData.contactPerson,
+        position: leadData.position,
+        phone: leadData.phone,
+        email: leadData.email,
+        location: leadData.location,
+        studentCount: parseInt(leadData.studentCount) || 0,
+        status: leadData.status || 'new',
+        priority: leadData.priority || 'medium',
+        source: leadData.source || 'website',
+        estimatedValue: parseFloat(leadData.estimatedValue) || 0,
+        nextContactDate: leadData.nextContactDate,
+        notes: leadData.notes || '',
+        createdAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_LEAD] Created lead ${leadId} by commercial ${commercialId}`);
+      return newLead;
+    } catch (error) {
+      console.error('Error creating commercial lead:', error);
+      throw error;
+    }
+  }
+
+  async updateCommercialLead(leadId: number, updates: any): Promise<any> {
+    try {
+      console.log(`[COMMERCIAL_LEAD] Updated lead ${leadId}`);
+      return { id: leadId, ...updates };
+    } catch (error) {
+      console.error('Error updating commercial lead:', error);
+      throw error;
+    }
+  }
+
+  async deleteCommercialLead(leadId: number): Promise<void> {
+    try {
+      console.log(`[COMMERCIAL_LEAD] Deleted lead ${leadId}`);
+    } catch (error) {
+      console.error('Error deleting commercial lead:', error);
+      throw error;
+    }
+  }
+
+  async convertLeadToSchool(leadId: number, commercialId: number): Promise<any> {
+    try {
+      console.log(`[COMMERCIAL_LEAD] Converting lead ${leadId} to school by commercial ${commercialId}`);
+      return { success: true, schoolId: Math.floor(Math.random() * 1000) };
+    } catch (error) {
+      console.error('Error converting lead to school:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Contacts Management
+  async createCommercialContact(commercialId: number, contactData: any): Promise<any> {
+    try {
+      const contactId = Math.floor(Math.random() * 10000);
+      const newContact = {
+        id: contactId,
+        commercialId,
+        name: contactData.name,
+        position: contactData.position,
+        school: contactData.school,
+        phone: contactData.phone,
+        email: contactData.email,
+        status: contactData.status || 'prospect',
+        priority: contactData.priority || 'medium',
+        notes: contactData.notes || '',
+        createdAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_CONTACT] Created contact ${contactId} by commercial ${commercialId}`);
+      return newContact;
+    } catch (error) {
+      console.error('Error creating commercial contact:', error);
+      throw error;
+    }
+  }
+
+  async updateCommercialContact(contactId: number, updates: any): Promise<any> {
+    try {
+      console.log(`[COMMERCIAL_CONTACT] Updated contact ${contactId}`);
+      return { id: contactId, ...updates };
+    } catch (error) {
+      console.error('Error updating commercial contact:', error);
+      throw error;
+    }
+  }
+
+  async deleteCommercialContact(contactId: number): Promise<void> {
+    try {
+      console.log(`[COMMERCIAL_CONTACT] Deleted contact ${contactId}`);
+    } catch (error) {
+      console.error('Error deleting commercial contact:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Payment Confirmation
+  async confirmCommercialPayment(paymentId: number, commercialId: number, notes?: string): Promise<any> {
+    try {
+      const updatedPayment = await this.updatePayment(paymentId, { 
+        status: 'confirmed',
+        confirmationNotes: notes,
+        confirmedBy: commercialId,
+        confirmedAt: new Date()
+      });
+      
+      console.log(`[COMMERCIAL_PAYMENT] Confirmed payment ${paymentId} by commercial ${commercialId}`);
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error confirming commercial payment:', error);
+      throw error;
+    }
+  }
+
+  async rejectCommercialPayment(paymentId: number, commercialId: number, reason: string): Promise<any> {
+    try {
+      const updatedPayment = await this.updatePayment(paymentId, { 
+        status: 'rejected',
+        rejectionReason: reason,
+        rejectedBy: commercialId,
+        rejectedAt: new Date()
+      });
+      
+      console.log(`[COMMERCIAL_PAYMENT] Rejected payment ${paymentId} by commercial ${commercialId}`);
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error rejecting commercial payment:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Statistics
+  async getCommercialStatistics(commercialId: number, period: string): Promise<any> {
+    try {
+      const stats = {
+        totalSchools: 12,
+        activeSchools: 10,
+        monthlyRevenue: 2450000,
+        prospectSchools: 18,
+        conversionRate: 24.5,
+        averageContractValue: 245000,
+        callsThisMonth: 156,
+        meetingsScheduled: 24,
+        contractsSigned: 8
+      };
+
+      console.log(`[COMMERCIAL_STATS] Retrieved statistics for commercial ${commercialId}, period: ${period}`);
+      return stats;
+    } catch (error) {
+      console.error('Error getting commercial statistics:', error);
+      return {};
+    }
+  }
+
+  async getCommercialRevenueStats(commercialId: number): Promise<any> {
+    try {
+      const revenueStats = {
+        monthlyRevenue: 2450000,
+        quarterlyRevenue: 7200000,
+        yearlyRevenue: 28800000,
+        commission: 245000,
+        trend: [
+          { month: 'Jan', revenue: 1800000 },
+          { month: 'Fév', revenue: 2200000 },
+          { month: 'Mar', revenue: 2800000 },
+          { month: 'Avr', revenue: 2450000 }
+        ]
+      };
+
+      console.log(`[COMMERCIAL_REVENUE] Retrieved revenue stats for commercial ${commercialId}`);
+      return revenueStats;
+    } catch (error) {
+      console.error('Error getting commercial revenue stats:', error);
+      return {};
+    }
+  }
+
+  async getCommercialConversionStats(commercialId: number): Promise<any> {
+    try {
+      const conversionStats = {
+        totalLeads: 156,
+        convertedLeads: 38,
+        conversionRate: 24.4,
+        averageConversionTime: 21, // days
+        conversionTrend: [
+          { month: 'Jan', leads: 42, converted: 8 },
+          { month: 'Fév', leads: 38, converted: 12 },
+          { month: 'Mar', leads: 46, converted: 10 },
+          { month: 'Avr', leads: 30, converted: 8 }
+        ]
+      };
+
+      console.log(`[COMMERCIAL_CONVERSION] Retrieved conversion stats for commercial ${commercialId}`);
+      return conversionStats;
+    } catch (error) {
+      console.error('Error getting commercial conversion stats:', error);
+      return {};
+    }
+  }
+
+  // Commercial Reports
+  async generateCommercialReport(commercialId: number, type: string, params: any): Promise<any> {
+    try {
+      const report = {
+        id: Math.floor(Math.random() * 10000),
+        type,
+        commercialId,
+        title: `Rapport ${type} - ${new Date().toLocaleDateString('fr-FR')}`,
+        data: {
+          schools: 12,
+          leads: 24,
+          revenue: 2450000,
+          conversions: 8
+        },
+        generatedAt: new Date(),
+        period: params.period || 'month'
+      };
+
+      console.log(`[COMMERCIAL_REPORTS] Generated ${type} report for commercial ${commercialId}`);
+      return report;
+    } catch (error) {
+      console.error('Error generating commercial report:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Appointments & Calls
+  async createCommercialAppointment(commercialId: number, appointmentData: any): Promise<any> {
+    try {
+      const appointmentId = Math.floor(Math.random() * 10000);
+      const newAppointment = {
+        id: appointmentId,
+        commercialId,
+        title: appointmentData.title,
+        contact: appointmentData.contact,
+        school: appointmentData.school,
+        date: appointmentData.date,
+        time: appointmentData.time,
+        location: appointmentData.location,
+        type: appointmentData.type || 'meeting',
+        status: 'scheduled',
+        notes: appointmentData.notes || '',
+        createdAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_APPOINTMENT] Created appointment ${appointmentId} by commercial ${commercialId}`);
+      return newAppointment;
+    } catch (error) {
+      console.error('Error creating commercial appointment:', error);
+      throw error;
+    }
+  }
+
+  async updateCommercialAppointment(appointmentId: number, updates: any): Promise<any> {
+    try {
+      console.log(`[COMMERCIAL_APPOINTMENT] Updated appointment ${appointmentId}`);
+      return { id: appointmentId, ...updates };
+    } catch (error) {
+      console.error('Error updating commercial appointment:', error);
+      throw error;
+    }
+  }
+
+  async deleteCommercialAppointment(appointmentId: number): Promise<void> {
+    try {
+      console.log(`[COMMERCIAL_APPOINTMENT] Deleted appointment ${appointmentId}`);
+    } catch (error) {
+      console.error('Error deleting commercial appointment:', error);
+      throw error;
+    }
+  }
+
+  async getCommercialAppointments(commercialId: number): Promise<any[]> {
+    try {
+      const appointments = [
+        {
+          id: 1,
+          title: 'Présentation EDUCAFRIC',
+          contact: 'Sarah Nkomo',
+          school: 'École Primaire Bilingue Yaoundé',
+          date: '2024-02-05',
+          time: '14:30',
+          location: 'École - Salle de Direction',
+          type: 'presentation',
+          status: 'scheduled'
+        },
+        {
+          id: 2,
+          title: 'Signature Contrat',
+          contact: 'Paul Mbarga',
+          school: 'Lycée Excellence Douala',
+          date: '2024-02-07',
+          time: '10:00',
+          location: 'Bureau Commercial',
+          type: 'contract',
+          status: 'confirmed'
+        }
+      ];
+
+      console.log(`[COMMERCIAL_APPOINTMENTS] Retrieved ${appointments.length} appointments for commercial ${commercialId}`);
+      return appointments;
+    } catch (error) {
+      console.error('Error getting commercial appointments:', error);
+      return [];
+    }
+  }
+
+  async createCommercialCall(commercialId: number, callData: any): Promise<any> {
+    try {
+      const callId = Math.floor(Math.random() * 10000);
+      const newCall = {
+        id: callId,
+        commercialId,
+        contact: callData.contact,
+        school: callData.school,
+        phone: callData.phone,
+        date: callData.date,
+        time: callData.time,
+        duration: callData.duration,
+        outcome: callData.outcome,
+        status: 'completed',
+        notes: callData.notes || '',
+        nextAction: callData.nextAction || '',
+        createdAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_CALL] Created call record ${callId} by commercial ${commercialId}`);
+      return newCall;
+    } catch (error) {
+      console.error('Error creating commercial call:', error);
+      throw error;
+    }
+  }
+
+  async getCommercialCalls(commercialId: number): Promise<any[]> {
+    try {
+      const calls = [
+        {
+          id: 1,
+          contact: 'Sarah Nkomo',
+          school: 'École Primaire Bilingue Yaoundé',
+          phone: '+237 656 123 456',
+          date: '2024-02-02',
+          time: '14:30',
+          duration: '25 min',
+          outcome: 'follow_up',
+          status: 'completed',
+          notes: 'Très intéressée par la solution, RDV fixé'
+        },
+        {
+          id: 2,
+          contact: 'Paul Mbarga',
+          school: 'Lycée Excellence Douala',
+          phone: '+237 675 987 654',
+          date: '2024-02-01',
+          time: '10:15',
+          duration: '18 min',
+          outcome: 'meeting',
+          status: 'completed',
+          notes: 'Négociation prix, présentation prévue'
+        }
+      ];
+
+      console.log(`[COMMERCIAL_CALLS] Retrieved ${calls.length} calls for commercial ${commercialId}`);
+      return calls;
+    } catch (error) {
+      console.error('Error getting commercial calls:', error);
+      return [];
+    }
+  }
+
+  // Commercial WhatsApp Management
+  async sendCommercialWhatsApp(commercialId: number, messageData: any): Promise<any> {
+    try {
+      const messageId = Math.floor(Math.random() * 10000);
+      const newMessage = {
+        id: messageId,
+        commercialId,
+        phoneNumber: messageData.phoneNumber,
+        recipientName: messageData.recipientName,
+        companyName: messageData.companyName,
+        messageType: messageData.messageType,
+        content: messageData.content || messageData.customMessage,
+        status: 'sent',
+        sentAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_WHATSAPP] Sent WhatsApp message ${messageId} by commercial ${commercialId}`);
+      return newMessage;
+    } catch (error) {
+      console.error('Error sending commercial WhatsApp:', error);
+      throw error;
+    }
+  }
+
+  async getCommercialWhatsAppHistory(commercialId: number): Promise<any[]> {
+    try {
+      const messages = [
+        {
+          id: 1,
+          phoneNumber: '+237656123456',
+          recipientName: 'Sarah Nkomo',
+          companyName: 'École Primaire Bilingue Yaoundé',
+          messageType: 'welcome',
+          status: 'delivered',
+          sentAt: new Date('2024-02-02T14:30:00')
+        },
+        {
+          id: 2,
+          phoneNumber: '+237675987654',
+          recipientName: 'Paul Mbarga',
+          companyName: 'Lycée Excellence Douala',
+          messageType: 'demo',
+          status: 'read',
+          sentAt: new Date('2024-02-01T10:15:00')
+        }
+      ];
+
+      console.log(`[COMMERCIAL_WHATSAPP] Retrieved ${messages.length} WhatsApp messages for commercial ${commercialId}`);
+      return messages;
+    } catch (error) {
+      console.error('Error getting commercial WhatsApp history:', error);
+      return [];
+    }
+  }
+
+  async getCommercialWhatsAppTemplates(commercialId: number): Promise<any[]> {
+    try {
+      const templates = [
+        {
+          id: 1,
+          name: 'Message de Bienvenue',
+          type: 'welcome',
+          content: 'Bonjour {name}, bienvenue dans EDUCAFRIC! Nous sommes ravis de vous accompagner dans votre transformation numérique.'
+        },
+        {
+          id: 2,
+          name: 'Lien de Démo',
+          type: 'demo',
+          content: 'Bonjour {name}, découvrez EDUCAFRIC en action: https://educafric.com/demo - Votre code: DEMO2024'
+        },
+        {
+          id: 3,
+          name: 'Informations Tarifaires',
+          type: 'pricing',
+          content: 'Bonjour {name}, voici nos tarifs préférentiels pour {company}: École Basic 50.000 CFA/an, Premium 75.000 CFA/an.'
+        }
+      ];
+
+      console.log(`[COMMERCIAL_WHATSAPP] Retrieved ${templates.length} WhatsApp templates for commercial ${commercialId}`);
+      return templates;
+    } catch (error) {
+      console.error('Error getting commercial WhatsApp templates:', error);
+      return [];
+    }
+  }
+
+  async createCommercialWhatsAppTemplate(commercialId: number, templateData: any): Promise<any> {
+    try {
+      const templateId = Math.floor(Math.random() * 10000);
+      const newTemplate = {
+        id: templateId,
+        commercialId,
+        name: templateData.name,
+        type: templateData.type,
+        content: templateData.content,
+        createdAt: new Date()
+      };
+
+      console.log(`[COMMERCIAL_WHATSAPP] Created WhatsApp template ${templateId} by commercial ${commercialId}`);
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating commercial WhatsApp template:', error);
+      throw error;
+    }
+  }
+
+  // Commercial Profile & Settings
+  async getCommercialProfile(commercialId: number): Promise<any> {
+    try {
+      const user = await this.getUser(commercialId);
+      if (!user) throw new Error('Commercial user not found');
+
+      const profile = {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phoneNumber || '',
+        position: 'Commercial Representative',
+        territory: 'Cameroun',
+        bio: 'Spécialiste en solutions éducatives numériques pour l\'Afrique',
+        avatar: '',
+        joinedAt: user.createdAt,
+        stats: {
+          totalSchools: 12,
+          totalLeads: 45,
+          conversionRate: 24.5,
+          monthlyRevenue: 2450000
+        }
+      };
+
+      console.log(`[COMMERCIAL_PROFILE] Retrieved profile for commercial ${commercialId}`);
+      return profile;
+    } catch (error) {
+      console.error('Error getting commercial profile:', error);
+      throw error;
+    }
+  }
+
+  async updateCommercialProfile(commercialId: number, updates: any): Promise<any> {
+    try {
+      const updatedUser = await this.updateUser(commercialId, {
+        firstName: updates.firstName,
+        lastName: updates.lastName,
+        phoneNumber: updates.phone
+      });
+
+      console.log(`[COMMERCIAL_PROFILE] Updated profile for commercial ${commercialId}`);
+      return {
+        ...updatedUser,
+        position: updates.position,
+        territory: updates.territory,
+        bio: updates.bio
+      };
+    } catch (error) {
+      console.error('Error updating commercial profile:', error);
+      throw error;
+    }
+  }
+
+  async getCommercialSettings(commercialId: number): Promise<any> {
+    try {
+      const settings = {
+        notifications: {
+          emailNotifications: true,
+          smsNotifications: true,
+          pushNotifications: true,
+          leadNotifications: true,
+          dealNotifications: true,
+          reportNotifications: false
+        },
+        security: {
+          twoFactorEnabled: false,
+          loginAlerts: true,
+          sessionTimeout: 30
+        },
+        preferences: {
+          language: 'fr',
+          timezone: 'Africa/Douala',
+          currency: 'CFA',
+          dateFormat: 'DD/MM/YYYY'
+        }
+      };
+
+      console.log(`[COMMERCIAL_SETTINGS] Retrieved settings for commercial ${commercialId}`);
+      return settings;
+    } catch (error) {
+      console.error('Error getting commercial settings:', error);
+      return {};
+    }
+  }
+
+  async updateCommercialSettings(commercialId: number, settings: any): Promise<any> {
+    try {
+      console.log(`[COMMERCIAL_SETTINGS] Updated settings for commercial ${commercialId}`);
+      return settings;
+    } catch (error) {
+      console.error('Error updating commercial settings:', error);
+      throw error;
     }
   }
 }

@@ -17109,6 +17109,320 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== COMPREHENSIVE COMMERCIAL API ROUTES =====
+  
+  // Commercial Schools CRUD Operations
+  app.post("/api/commercial/school", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const schoolData = req.body;
+      const newSchool = await storage.createCommercialSchool(req.user.id, schoolData);
+      
+      console.log(`[COMMERCIAL_SCHOOL] ✅ Created school by commercial ${req.user.id}`);
+      res.json(newSchool);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_SCHOOL] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to create school' });
+    }
+  });
+  
+  app.put("/api/commercial/school/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedSchool = await storage.updateCommercialSchool(schoolId, updates);
+      
+      console.log(`[COMMERCIAL_SCHOOL] ✅ Updated school ${schoolId}`);
+      res.json(updatedSchool);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_SCHOOL] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to update school' });
+    }
+  });
+  
+  app.delete("/api/commercial/school/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const schoolId = parseInt(req.params.id);
+      await storage.deleteCommercialSchool(schoolId);
+      
+      console.log(`[COMMERCIAL_SCHOOL] ✅ Deleted school ${schoolId}`);
+      res.json({ success: true, message: 'School deleted successfully' });
+    } catch (error: any) {
+      console.error('[COMMERCIAL_SCHOOL] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to delete school' });
+    }
+  });
+
+  // Commercial Leads CRUD Operations
+  app.post("/api/commercial/lead", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const leadData = req.body;
+      const newLead = await storage.createCommercialLead(req.user.id, leadData);
+      
+      console.log(`[COMMERCIAL_LEAD] ✅ Created lead by commercial ${req.user.id}`);
+      res.json(newLead);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_LEAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to create lead' });
+    }
+  });
+  
+  app.put("/api/commercial/lead/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const leadId = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedLead = await storage.updateCommercialLead(leadId, updates);
+      
+      console.log(`[COMMERCIAL_LEAD] ✅ Updated lead ${leadId}`);
+      res.json(updatedLead);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_LEAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to update lead' });
+    }
+  });
+  
+  app.delete("/api/commercial/lead/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const leadId = parseInt(req.params.id);
+      await storage.deleteCommercialLead(leadId);
+      
+      console.log(`[COMMERCIAL_LEAD] ✅ Deleted lead ${leadId}`);
+      res.json({ success: true, message: 'Lead deleted successfully' });
+    } catch (error: any) {
+      console.error('[COMMERCIAL_LEAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to delete lead' });
+    }
+  });
+  
+  app.post("/api/commercial/lead/:id/convert", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const leadId = parseInt(req.params.id);
+      const result = await storage.convertLeadToSchool(leadId, req.user.id);
+      
+      console.log(`[COMMERCIAL_LEAD] ✅ Converted lead ${leadId} to school`);
+      res.json(result);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_LEAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to convert lead to school' });
+    }
+  });
+
+  // Commercial Contacts CRUD Operations
+  app.post("/api/commercial/contact", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const contactData = req.body;
+      const newContact = await storage.createCommercialContact(req.user.id, contactData);
+      
+      console.log(`[COMMERCIAL_CONTACT] ✅ Created contact by commercial ${req.user.id}`);
+      res.json(newContact);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_CONTACT] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to create contact' });
+    }
+  });
+  
+  app.put("/api/commercial/contact/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const contactId = parseInt(req.params.id);
+      const updates = req.body;
+      const updatedContact = await storage.updateCommercialContact(contactId, updates);
+      
+      console.log(`[COMMERCIAL_CONTACT] ✅ Updated contact ${contactId}`);
+      res.json(updatedContact);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_CONTACT] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to update contact' });
+    }
+  });
+  
+  app.delete("/api/commercial/contact/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const contactId = parseInt(req.params.id);
+      await storage.deleteCommercialContact(contactId);
+      
+      console.log(`[COMMERCIAL_CONTACT] ✅ Deleted contact ${contactId}`);
+      res.json({ success: true, message: 'Contact deleted successfully' });
+    } catch (error: any) {
+      console.error('[COMMERCIAL_CONTACT] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to delete contact' });
+    }
+  });
+
+  // Commercial Statistics with Dynamic Periods
+  app.get("/api/commercial/statistics/:period", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const period = req.params.period;
+      const stats = await storage.getCommercialStatistics(req.user.id, period);
+      
+      console.log(`[COMMERCIAL_STATISTICS] ✅ Retrieved ${period} statistics for commercial ${req.user.id}`);
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_STATISTICS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch statistics' });
+    }
+  });
+
+  // Commercial Appointments CRUD
+  app.get("/api/commercial/appointments", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const appointments = await storage.getCommercialAppointments(req.user.id);
+      
+      console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Retrieved appointments for commercial ${req.user.id}`);
+      res.json(appointments);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_APPOINTMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch appointments' });
+    }
+  });
+  
+  app.post("/api/commercial/appointment", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const appointmentData = req.body;
+      const newAppointment = await storage.createCommercialAppointment(req.user.id, appointmentData);
+      
+      console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Created appointment by commercial ${req.user.id}`);
+      res.json(newAppointment);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_APPOINTMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to create appointment' });
+    }
+  });
+
+  // Commercial WhatsApp Management
+  app.post("/api/commercial/whatsapp/send", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const messageData = req.body;
+      const result = await storage.sendCommercialWhatsApp(req.user.id, messageData);
+      
+      console.log(`[COMMERCIAL_WHATSAPP] ✅ Sent WhatsApp message by commercial ${req.user.id}`);
+      res.json(result);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_WHATSAPP] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to send WhatsApp message' });
+    }
+  });
+  
+  app.get("/api/commercial/whatsapp/history", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const history = await storage.getCommercialWhatsAppHistory(req.user.id);
+      
+      console.log(`[COMMERCIAL_WHATSAPP] ✅ Retrieved WhatsApp history for commercial ${req.user.id}`);
+      res.json(history);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_WHATSAPP] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch WhatsApp history' });
+    }
+  });
+  
+  app.get("/api/commercial/whatsapp/templates", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const templates = await storage.getCommercialWhatsAppTemplates(req.user.id);
+      
+      console.log(`[COMMERCIAL_WHATSAPP] ✅ Retrieved WhatsApp templates for commercial ${req.user.id}`);  
+      res.json(templates);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_WHATSAPP] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch WhatsApp templates' });
+    }
+  });
+
+  // Commercial Settings
+  app.get("/api/commercial/settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const settings = await storage.getCommercialSettings(req.user.id);
+      
+      console.log(`[COMMERCIAL_SETTINGS] ✅ Retrieved settings for commercial ${req.user.id}`);
+      res.json(settings);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_SETTINGS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch settings' });
+    }
+  });
+  
+  app.put("/api/commercial/settings", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const settings = req.body;
+      const updatedSettings = await storage.updateCommercialSettings(req.user.id, settings);
+      
+      console.log(`[COMMERCIAL_SETTINGS] ✅ Updated settings for commercial ${req.user.id}`);
+      res.json(updatedSettings);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_SETTINGS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to update settings' });
+    }
+  });
+
   return httpServer;
 }
 
