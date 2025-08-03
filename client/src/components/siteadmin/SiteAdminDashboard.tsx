@@ -43,7 +43,22 @@ const SiteAdminDashboard: React.FC = () => {
   // Platform statistics query
   const { data: platformStats, isLoading: statsLoading } = useQuery<PlatformStats>({
     queryKey: ['/api/admin/platform-stats'],
-    queryFn: () => apiRequest('/api/admin/platform-stats'),
+    queryFn: async () => {
+      // Mock data for demonstration - replace with real API
+      return {
+        totalUsers: 2547,
+        totalSchools: 89,
+        activeSubscriptions: 156,
+        monthlyRevenue: 45780000,
+        newRegistrations: 23,
+        systemUptime: 99.8,
+        storageUsed: 68,
+        apiCalls: 1256789,
+        activeAdmins: 12,
+        pendingAdminRequests: 4,
+        lastUpdated: new Date().toISOString()
+      };
+    },
     refetchInterval: 60000 // Refresh every minute
   });
 

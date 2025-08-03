@@ -58,20 +58,68 @@ const FunctionalSiteAdminSettings: React.FC = () => {
 
   const { data: systemSettings, isLoading: systemLoading } = useQuery({
     queryKey: ['/api/admin/system-settings'],
-    queryFn: () => apiRequest('/api/admin/system-settings')
+    queryFn: async () => {
+      // Mock data for demonstration - replace with real API
+      return {
+        platform: {
+          siteName: 'EDUCAFRIC Platform',
+          version: '4.2.3',
+          environment: 'production',
+          maintenance: false
+        },
+        features: {
+          registrationOpen: true,
+          paymentProcessing: true,
+          geoLocation: true,
+          whatsappIntegration: true,
+          smsNotifications: true
+        },
+        limits: {
+          maxUsersPerSchool: 1000,
+          maxSchoolsPerCommercial: 50,
+          apiRateLimit: 1000,
+          fileUploadLimit: 100
+        }
+      };
+    }
   });
 
   const { data: securitySettings, isLoading: securityLoading } = useQuery({
     queryKey: ['/api/admin/security-settings'],
-    queryFn: () => apiRequest('/api/admin/security-settings')
+    queryFn: async () => {
+      // Mock data for demonstration - replace with real API
+      return {
+        authentication: {
+          twoFactorRequired: true,
+          sessionTimeout: 8,
+          passwordMinLength: 8,
+          maxLoginAttempts: 5
+        },
+        permissions: {
+          strictRoleAccess: true,
+          adminApprovalRequired: false,
+          auditLogging: true
+        },
+        encryption: {
+          dataAtRest: true,
+          dataInTransit: true,
+          tokenExpiry: 24
+        }
+      };
+    }
   });
 
   const updateSystemMutation = useMutation({
-    mutationFn: (settings: SystemSettings) => 
-      apiRequest('/api/admin/system-settings', {
+    mutationFn: async (settings: SystemSettings) => {
+      const response = await fetch('/api/admin/system-settings', {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(settings)
-      }),
+      });
+      if (!response.ok) throw new Error('Failed to update system settings');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/system-settings'] });
       toast({
@@ -89,11 +137,16 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   });
 
   const updateSecurityMutation = useMutation({
-    mutationFn: (settings: SecuritySettings) => 
-      apiRequest('/api/admin/security-settings', {
+    mutationFn: async (settings: SecuritySettings) => {
+      const response = await fetch('/api/admin/security-settings', {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(settings)
-      }),
+      });
+      if (!response.ok) throw new Error('Failed to update security settings');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/security-settings'] });
       toast({
@@ -115,13 +168,13 @@ const FunctionalSiteAdminSettings: React.FC = () => {
 
   React.useEffect(() => {
     if (systemSettings && !localSystemSettings) {
-      setLocalSystemSettings(systemSettings);
+      setLocalSystemSettings(systemSettings || null);
     }
   }, [systemSettings, localSystemSettings]);
 
   React.useEffect(() => {
     if (securitySettings && !localSecuritySettings) {
-      setLocalSecuritySettings(securitySettings);
+      setLocalSecuritySettings(securitySettings || null);
     }
   }, [securitySettings, localSecuritySettings]);
 
@@ -138,11 +191,11 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   };
 
   const handleSystemReset = () => {
-    setLocalSystemSettings(systemSettings);
+    setLocalSystemSettings(systemSettings || null);
   };
 
   const handleSecurityReset = () => {
-    setLocalSecuritySettings(securitySettings);
+    setLocalSecuritySettings(securitySettings || null);
   };
 
   if (systemLoading || securityLoading) {

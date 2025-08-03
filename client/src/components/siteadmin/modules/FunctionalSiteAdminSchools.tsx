@@ -27,24 +27,62 @@ const FunctionalSiteAdminSchools: React.FC = () => {
 
   const { data: schools, isLoading, error } = useQuery({
     queryKey: ['/api/admin/platform-schools'],
-    queryFn: () => apiRequest('/api/admin/platform-schools')
+    queryFn: async () => {
+      // Mock data for demonstration - replace with real API
+      return [
+        {
+          id: 1,
+          name: 'Lycée Bilingue de Yaoundé',
+          location: 'Yaoundé, Cameroun',
+          studentCount: 1250,
+          teacherCount: 85,
+          subscriptionStatus: 'active',
+          monthlyRevenue: 2500000,
+          createdAt: '2024-01-15T00:00:00Z',
+          contactEmail: 'admin@lycee-yaounde.cm',
+          phone: '+237698765432'
+        },
+        {
+          id: 2,
+          name: 'École Primaire Central Douala',
+          location: 'Douala, Cameroun',
+          studentCount: 680,
+          teacherCount: 42,
+          subscriptionStatus: 'active',
+          monthlyRevenue: 1800000,
+          createdAt: '2024-03-10T00:00:00Z',
+          contactEmail: 'direction@epc-douala.cm',
+          phone: '+237677123456'
+        }
+      ];
+    }
   });
 
   const deleteSchoolMutation = useMutation({
-    mutationFn: (schoolId: number) => apiRequest(`/api/admin/platform-schools/${schoolId}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: async (schoolId: number) => {
+      const response = await fetch(`/api/admin/platform-schools/${schoolId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete school');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-schools'] });
     }
   });
 
   const updateSchoolMutation = useMutation({
-    mutationFn: ({ schoolId, updates }: { schoolId: number; updates: any }) => 
-      apiRequest(`/api/admin/platform-schools/${schoolId}`, {
+    mutationFn: async ({ schoolId, updates }: { schoolId: number; updates: any }) => {
+      const response = await fetch(`/api/admin/platform-schools/${schoolId}`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(updates)
-      }),
+      });
+      if (!response.ok) throw new Error('Failed to update school');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-schools'] });
     }
