@@ -146,7 +146,7 @@ const ReportCardManagement: React.FC = () => {
   const updateGradeRow = (index: number, field: keyof BulletinGrade, value: any) => {
     setBulletinData(prev => ({
       ...prev,
-      grades: (Array.isArray(prev.grades) ? grades : []).map((grade, i) => 
+      grades: (Array.isArray(prev.grades) ? prev.grades : []).map((grade, i) => 
         i === index ? { ...grade, [field]: value } : grade
       )
     }));
@@ -156,13 +156,13 @@ const ReportCardManagement: React.FC = () => {
   const removeGradeRow = (index: number) => {
     setBulletinData(prev => ({
       ...prev,
-      grades: (Array.isArray(prev.grades) ? grades : []).filter((_, i) => i !== index)
+      grades: (Array.isArray(prev.grades) ? prev.grades : []).filter((_, i) => i !== index)
     }));
   };
 
   // Calculate general average
   const calculateGeneralAverage = () => {
-    if ((Array.isArray(bulletinData.grades) ? grades.length : 0) === 0) return 0;
+    if ((Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) === 0) return 0;
     
     let totalPoints = 0;
     let totalCoefficients = 0;
@@ -240,7 +240,7 @@ const ReportCardManagement: React.FC = () => {
 
   // Handle form submission
   const handleSaveBulletin = (action: 'save' | 'submit' | 'publish') => {
-    if ((Array.isArray(bulletinData.grades) ? grades.length : 0) === 0) {
+    if ((Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) === 0) {
       toast({
         title: 'Erreur',
         description: 'Veuillez ajouter au moins une note',
@@ -346,7 +346,7 @@ const ReportCardManagement: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {(Array.isArray(bulletinData.grades) ? grades : []).map((grade, index) => (
+              {(Array.isArray(bulletinData.grades) ? bulletinData.grades : []).map((grade, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg">
                   <div>
                     <Label className="text-xs">Matière</Label>
@@ -406,7 +406,7 @@ const ReportCardManagement: React.FC = () => {
               ))}
             </div>
 
-            {(Array.isArray(bulletinData.grades) ? grades.length : 0) > 0 && (
+            {(Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) > 0 && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>Moyenne générale calculée: {calculateGeneralAverage()}/20</strong>
@@ -575,7 +575,7 @@ const ReportCardManagement: React.FC = () => {
               </div>
 
               {/* Grades Table */}
-              {(Array.isArray(bulletinData.grades) ? grades.length : 0) > 0 && (
+              {(Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) > 0 && (
                 <div>
                   <h4 className="font-semibold mb-3">Notes par matière</h4>
                   <table className="w-full border-collapse border border-gray-300">
@@ -588,7 +588,7 @@ const ReportCardManagement: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(Array.isArray(bulletinData.grades) ? grades : []).map((grade: BulletinGrade, index: number) => (
+                      {(Array.isArray(bulletinData.grades) ? bulletinData.grades : []).map((grade: BulletinGrade, index: number) => (
                         <tr key={index}>
                           <td className="border border-gray-300 p-2">{grade.subjectName}</td>
                           <td className="border border-gray-300 p-2 text-center font-medium">{grade.grade}/{grade.maxGrade}</td>
