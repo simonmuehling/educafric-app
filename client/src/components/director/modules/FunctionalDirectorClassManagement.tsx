@@ -54,6 +54,15 @@ const FunctionalDirectorClassManagement: React.FC = () => {
     enabled: !!user
   });
 
+  // Fetch teachers data for dropdown
+  const { data: teachers = [], isLoading: isLoadingTeachers } = useQuery<any[]>({
+    queryKey: ['/api/teachers'],
+    queryFn: () => fetch('/api/teachers', {
+      credentials: 'include'
+    }).then(res => res.json()),
+    enabled: !!user
+  });
+
   // Create class mutation
   const createClassMutation = useMutation({
     mutationFn: async (classData: any) => {
@@ -459,12 +468,35 @@ const FunctionalDirectorClassManagement: React.FC = () => {
               </div>
               <div>
                 <Label className="text-sm font-medium">{text.form.teacher}</Label>
-                <Input
-                  value={classForm.teacherName}
-                  onChange={(e) => setClassForm(prev => ({ ...prev, teacherName: e.target.value }))}
-                  placeholder="Nom de l'enseignant principal"
-                  className="w-full"
-                />
+                <Select 
+                  value={classForm.teacherId} 
+                  onValueChange={(value) => {
+                    const selectedTeacher = teachers.find(t => t.id.toString() === value);
+                    setClassForm(prev => ({
+                      ...prev,
+                      teacherId: value,
+                      teacherName: selectedTeacher ? `${selectedTeacher.firstName} ${selectedTeacher.lastName}` : ''
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={isLoadingTeachers ? 'Chargement...' : 'Sélectionner un enseignant'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.length === 0 ? (
+                      <SelectItem value="" disabled>
+                        {isLoadingTeachers ? 'Chargement...' : 'Aucun enseignant disponible'}
+                      </SelectItem>
+                    ) : (
+                      teachers.map((teacher) => (
+                        <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                          {teacher.firstName} {teacher.lastName}
+                          {teacher.subjects && ` (${teacher.subjects.join(', ')})`}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-sm font-medium">{text.form.room}</Label>

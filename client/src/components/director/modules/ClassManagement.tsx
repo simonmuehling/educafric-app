@@ -192,15 +192,23 @@ const ClassManagement: React.FC = () => {
   });
 
   // Fetch teachers data for dropdown
-  const { data: teachersData = [] } = useQuery({
+  const { data: teachersData = [], isLoading: isLoadingTeachers, error: teachersError } = useQuery({
     queryKey: ['/api/teachers'],
     queryFn: async () => {
+      console.log('[CLASS_MANAGEMENT] 🔍 Fetching teachers for school...');
       const response = await fetch('/api/teachers', {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch teachers');
-      return response.json();
-    }
+      if (!response.ok) {
+        console.error('[CLASS_MANAGEMENT] ❌ Failed to fetch teachers:', response.status);
+        throw new Error('Failed to fetch teachers');
+      }
+      const data = await response.json();
+      console.log('[CLASS_MANAGEMENT] ✅ Teachers fetched:', data.length, 'teachers');
+      return data;
+    },
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Add default values for display
@@ -423,26 +431,58 @@ const ClassManagement: React.FC = () => {
                   </div>
                   <div>
                     <Label>{String(t?.form?.teacher) || "N/A"}</Label>
-                    <Select value={String(newClass?.teacherId) || "N/A"} onValueChange={(value) => {
-                      const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
-                      setNewClass({
-                        ...newClass, 
-                        teacherId: value,
-                        teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || "N/A"} ${String(selectedTeacher?.lastName) || "N/A"}` : ''
-                      });
-                    }}>
+                    <Select 
+                      value={String(newClass?.teacherId) || ""} 
+                      onValueChange={(value) => {
+                        console.log('[CLASS_MANAGEMENT] 👨‍🏫 Teacher selected:', value);
+                        const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
+                        setNewClass({
+                          ...newClass, 
+                          teacherId: value,
+                          teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || ""} ${String(selectedTeacher?.lastName) || ""}` : ''
+                        });
+                      }}
+                      disabled={isLoadingTeachers}
+                    >
                       <SelectTrigger className="bg-white border-gray-300">
-                        <SelectValue placeholder={String(t?.form?.selectTeacher) || "N/A"} />
+                        <SelectValue placeholder={
+                          isLoadingTeachers 
+                            ? "Chargement des enseignants..." 
+                            : teachersError 
+                              ? "Erreur de chargement" 
+                              : teachersData.length === 0 
+                                ? "Aucun enseignant disponible"
+                                : String(t?.form?.selectTeacher) || "Sélectionner un enseignant"
+                        } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {(Array.isArray(teachersData) ? teachersData : []).map((teacher: any) => (
-                          <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
-                            {String(teacher?.firstName) || "N/A"} {String(teacher?.lastName) || "N/A"}
-                            {teacher.subjects && ` (${teacher?.subjects?.join(', ')})`}
+                        {isLoadingTeachers ? (
+                          <SelectItem value="" disabled>
+                            Chargement des enseignants...
                           </SelectItem>
-                        ))}
+                        ) : teachersError ? (
+                          <SelectItem value="" disabled>
+                            Erreur: Impossible de charger les enseignants
+                          </SelectItem>
+                        ) : teachersData.length === 0 ? (
+                          <SelectItem value="" disabled>
+                            Aucun enseignant trouvé dans cette école
+                          </SelectItem>
+                        ) : (
+                          teachersData.map((teacher: any) => (
+                            <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
+                              {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}
+                              {teacher.subjects && teacher.subjects.length > 0 && ` (${teacher?.subjects?.join(', ')})`}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
+                    {teachersError && (
+                      <p className="text-sm text-red-600 mt-1">
+                        Erreur: {teachersError.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label>{String(t?.form?.room) || "N/A"}</Label>
@@ -522,26 +562,58 @@ const ClassManagement: React.FC = () => {
                   </div>
                   <div>
                     <Label>{String(t?.form?.teacher) || "N/A"}</Label>
-                    <Select value={selectedClass?.teacherId || ''} onValueChange={(value) => {
-                      const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
-                      setSelectedClass({
-                        ...selectedClass, 
-                        teacherId: value,
-                        teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || "N/A"} ${String(selectedTeacher?.lastName) || "N/A"}` : ''
-                      });
-                    }}>
+                    <Select 
+                      value={selectedClass?.teacherId || ''} 
+                      onValueChange={(value) => {
+                        console.log('[CLASS_MANAGEMENT] 👨‍🏫 Teacher updated:', value);
+                        const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
+                        setSelectedClass({
+                          ...selectedClass, 
+                          teacherId: value,
+                          teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || ""} ${String(selectedTeacher?.lastName) || ""}` : ''
+                        });
+                      }}
+                      disabled={isLoadingTeachers}
+                    >
                       <SelectTrigger className="bg-white border-gray-300">
-                        <SelectValue placeholder={String(t?.form?.selectTeacher) || "N/A"} />
+                        <SelectValue placeholder={
+                          isLoadingTeachers 
+                            ? "Chargement des enseignants..." 
+                            : teachersError 
+                              ? "Erreur de chargement" 
+                              : teachersData.length === 0 
+                                ? "Aucun enseignant disponible"
+                                : String(t?.form?.selectTeacher) || "Sélectionner un enseignant"
+                        } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {(Array.isArray(teachersData) ? teachersData : []).map((teacher: any) => (
-                          <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
-                            {String(teacher?.firstName) || "N/A"} {String(teacher?.lastName) || "N/A"}
-                            {teacher.subjects && ` (${teacher?.subjects?.join(', ')})`}
+                        {isLoadingTeachers ? (
+                          <SelectItem value="" disabled>
+                            Chargement des enseignants...
                           </SelectItem>
-                        ))}
+                        ) : teachersError ? (
+                          <SelectItem value="" disabled>
+                            Erreur: Impossible de charger les enseignants
+                          </SelectItem>
+                        ) : teachersData.length === 0 ? (
+                          <SelectItem value="" disabled>
+                            Aucun enseignant trouvé dans cette école
+                          </SelectItem>
+                        ) : (
+                          teachersData.map((teacher: any) => (
+                            <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
+                              {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}
+                              {teacher.subjects && teacher.subjects.length > 0 && ` (${teacher?.subjects?.join(', ')})`}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
+                    {teachersError && (
+                      <p className="text-sm text-red-600 mt-1">
+                        Erreur: {teachersError.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label>{String(t?.form?.room) || "N/A"}</Label>
