@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Search, Download, Eye, Share, Plus, Filter, Calendar, Building2, Trash2 } from 'lucide-react';
@@ -12,6 +13,8 @@ const DocumentsContracts = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const text = {
     fr: {
@@ -92,7 +95,8 @@ const DocumentsContracts = () => {
       status: 'signed',
       size: '2.4 MB',
       format: 'PDF',
-      description: 'Contrat annuel premium avec services étendus'
+      description: 'Contrat annuel premium avec services étendus',
+      content: 'CONTRAT DE SERVICE EDUCAFRIC\n\nÉCOLE PRIMAIRE BILINGUE DE YAOUNDÉ\n\nArticle 1: Objet du contrat\nLe présent contrat a pour objet la fourniture et l\'implémentation de la plateforme éducative EDUCAFRIC au sein de l\'École Primaire Bilingue de Yaoundé.\n\nArticle 2: Services inclus\n- Plateforme de gestion académique complète\n- Formation du personnel enseignant\n- Support technique 24/7\n- Mise à jour régulière du système\n- Sauvegarde automatique des données\n\nArticle 3: Durée\nLe présent contrat est conclu pour une période de 12 mois renouvelable.\n\nArticle 4: Tarification\nTarif annuel: 75,000 CFA\nPaiement trimestriel accepté\n\nArticle 5: Responsabilités\nEDUCAFRIC s\'engage à fournir un service de qualité conforme aux standards éducatifs africains.'
     },
     {
       id: 2,
@@ -104,7 +108,8 @@ const DocumentsContracts = () => {
       status: 'signed',
       size: '5.1 MB',
       format: 'PDF',
-      description: 'Brochure commerciale principale'
+      description: 'Brochure commerciale principale',
+      content: 'EDUCAFRIC - RÉVOLUTIONNEZ L\'ÉDUCATION EN AFRIQUE\n\nPlateforme éducative complète pour les écoles africaines\n\n🎯 NOTRE MISSION\nTransformer l\'éducation en Afrique grâce à une technologie adaptée aux besoins locaux.\n\n📚 FONCTIONNALITÉS PRINCIPALES\n\nGestion Académique:\n- Système de notes et bulletins\n- Gestion des emplois du temps\n- Suivi des présences\n- Communication parents-enseignants\n\nOutils Pédagogiques:\n- Bibliothèque de cours digitaux\n- Exercices interactifs\n- Évaluations en ligne\n- Tableau de bord personnalisé\n\nCommunication:\n- SMS et WhatsApp intégrés\n- Notifications en temps réel\n- Support multilingue (Français/Anglais)\n\n💰 TARIFS COMPÉTITIFS\n- Parents: 1,000-1,500 CFA/mois\n- Écoles: 50,000-75,000 CFA/an\n- Freelancers: 25,000 CFA/an\n\n🌍 ADAPTÉ À L\'AFRIQUE\n- Compatible avec les réseaux locaux\n- Paiement mobile money\n- Support technique local\n\nContactez-nous: contact@educafric.com'
     },
     {
       id: 3,
@@ -116,7 +121,8 @@ const DocumentsContracts = () => {
       status: 'pending',
       size: '1.8 MB',
       format: 'DOCX',
-      description: 'Proposition commerciale personnalisée'
+      description: 'Proposition commerciale personnalisée',
+      content: 'PROPOSITION COMMERCIALE\nLYCÉE EXCELLENCE DOUALA\n\nObjet: Implémentation plateforme EDUCAFRIC\n\nMadame, Monsieur,\n\nSuite à notre entretien du 15 janvier 2024, nous avons le plaisir de vous présenter notre proposition pour l\'intégration de la plateforme EDUCAFRIC au sein du Lycée Excellence de Douala.\n\nANALYSE DES BESOINS:\n- 450 élèves répartis sur 3 niveaux\n- 25 enseignants\n- Besoin de digitalisation des processus\n- Communication parents améliorée\n\nSOLUTION PROPOSÉE:\n\n1. Plateforme de gestion académique complète\n2. Formation personnalisée pour l\'équipe\n3. Migration des données existantes\n4. Support technique dédié\n\nTARIFICATION:\n- Installation et formation: 150,000 CFA\n- Abonnement annuel: 65,000 CFA\n- Support technique: Inclus\n\nDÉLAI DE MISE EN ŒUVRE:\n2 semaines après signature\n\nVALIDITÉ DE L\'OFFRE:\n30 jours\n\nNous restons à votre disposition pour tout complément d\'information.\n\nCordialement,\nÉquipe EDUCAFRIC'
     },
     {
       id: 4,
@@ -196,76 +202,31 @@ const DocumentsContracts = () => {
   ];
 
   // Fonctions de gestion des documents
-  const handleViewDocument = async (doc: any) => {
-    try {
-      // Ouvrir le document avec credentials pour maintenir la session
-      const response = await fetch(`/api/commercial/documents/${doc.id}/view`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/pdf',
-        },
-      });
-
-      if (response.ok) {
-        // Créer blob URL pour afficher le PDF
-        const blob = await response.blob();
-        const blobUrl = window?.URL?.createObjectURL(blob);
-        window.open(blobUrl, '_blank');
-        
-        toast({
-          title: language === 'fr' ? 'Document ouvert' : 'Document opened',
-          description: language === 'fr' ? `Consultation de ${doc.name || ''}` : `Viewing ${doc.name || ''}`,
-        });
-
-        // Nettoyer l'URL après 1 minute
-        setTimeout(() => window?.URL?.revokeObjectURL(blobUrl), 60000);
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Document view error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur d\'ouverture' : 'Opening error',
-        description: language === 'fr' ? 'Impossible d\'ouvrir le document' : 'Cannot open document',
-        variant: "destructive",
-      });
-    }
+  const handleViewDocument = (doc: any) => {
+    setSelectedDocument(doc);
+    setIsViewDialogOpen(true);
   };
 
   const handleDownloadDocument = async (doc: any) => {
     try {
-      // Télécharger le document avec credentials
-      const response = await fetch(`/api/commercial/documents/${doc.id}/download`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/pdf',
-        },
+      // Créer le contenu du document à télécharger
+      const content = `EDUCAFRIC - Document Commercial\n\nTitre: ${doc.name || ''}\nType: ${doc.type}\nÉcole: ${doc.school}\nStatut: ${doc.status}\nDate: ${doc.date}\n\nDescription:\n${doc.description}\n\nContenu:\n${doc.content || 'Contenu non disponible'}\n\n---\nGénéré par EDUCAFRIC Platform`;
+      
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${doc.name || 'document'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: language === 'fr' ? 'Document téléchargé' : 'Document downloaded',
+        description: language === 'fr' ? `${doc.name || ''} téléchargé avec succès` : `${doc.name || ''} downloaded successfully`,
       });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window?.URL?.createObjectURL(blob);
-        
-        // Créer un lien temporaire pour le téléchargement
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${doc.name || ''}.pdf`;
-        document?.body?.appendChild(link);
-        link.click();
-        document?.body?.removeChild(link);
-        
-        // Nettoyer l'URL
-        window?.URL?.revokeObjectURL(url);
-        
-        toast({
-          title: language === 'fr' ? 'Téléchargement réussi' : 'Download successful',
-          description: language === 'fr' ? `${doc.name || ''} téléchargé avec succès` : `${doc.name || ''} downloaded successfully`,
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
     } catch (error) {
       console.error('Document download error:', error);
       toast({
@@ -683,6 +644,80 @@ const DocumentsContracts = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialog de visualisation */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              {language === 'fr' ? 'Visualisation Document' : 'Document View'}: {selectedDocument?.name}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'fr' ? 'Document créé le' : 'Document created on'} {selectedDocument && new Date(selectedDocument.date).toLocaleDateString('fr-FR')}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedDocument && (
+            <div className="space-y-4">
+              {/* Informations du document */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-700">Type</h4>
+                  <Badge className={getStatusColor(selectedDocument.status)}>
+                    {selectedDocument.type === 'contract' ? t.contract :
+                     selectedDocument.type === 'brochure' ? t.brochure :
+                     selectedDocument.type === 'proposal' ? t.proposal :
+                     selectedDocument.type}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-700">Statut</h4>
+                  <Badge className={getStatusColor(selectedDocument.status)}>
+                    {selectedDocument.status === 'signed' ? t.signed :
+                     selectedDocument.status === 'pending' ? t.pending :
+                     selectedDocument.status === 'draft' ? t.draft : selectedDocument.status}
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-700">École</h4>
+                  <p className="text-sm">{selectedDocument.school}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-gray-700">Format</h4>
+                  <p className="text-sm">{selectedDocument.format} - {selectedDocument.size}</p>
+                </div>
+              </div>
+
+              {/* Contenu du document */}
+              <div>
+                <h4 className="font-semibold text-sm text-gray-700 mb-2">
+                  {language === 'fr' ? 'Contenu du Document' : 'Document Content'}
+                </h4>
+                <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
+                  <div className="prose prose-sm max-w-none">
+                    {(selectedDocument.content || selectedDocument.description || '').split('\n').map((paragraph: string, index: number) => (
+                      <p key={index} className="mb-2 whitespace-pre-wrap">{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+              {language === 'fr' ? 'Fermer' : 'Close'}
+            </Button>
+            {selectedDocument && (
+              <Button onClick={() => handleDownloadDocument(selectedDocument)}>
+                <Download className="w-4 h-4 mr-2" />
+                {t.download}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
