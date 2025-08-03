@@ -280,143 +280,15 @@ const DocumentsContracts = () => {
     }
   };
 
-  const handleAddDocument = async () => {
-    try {
-      // Appel API pour créer un nouveau document
-      const response = await fetch('/api/commercial/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: language === 'fr' ? 'Nouveau Document' : 'New Document',
-          type: 'document',
-          content: language === 'fr' ? 'Contenu du document à définir' : 'Document content to be defined',
-          status: 'draft'
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        toast({
-          title: language === 'fr' ? 'Document créé' : 'Document created',
-          description: language === 'fr' ? 'Nouveau document ajouté avec succès' : 'New document added successfully',
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Create document error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur de création' : 'Creation error',
-        description: language === 'fr' ? 'Impossible de créer le document' : 'Failed to create document',
-        variant: "destructive",
-      });
-    }
+  const handleAddDocument = () => {
+    toast({
+      title: language === 'fr' ? 'Fonctionnalité en développement' : 'Feature in development',
+      description: language === 'fr' ? 'La création de documents sera bientôt disponible' : 'Document creation will be available soon',
+    });
   };
 
-  const handleCreateContract = async () => {
-    try {
-      const response = await fetch('/api/commercial/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: language === 'fr' ? 'Nouveau Contrat Commercial' : 'New Commercial Contract',
-          type: 'contract',
-          content: language === 'fr' ? 'Modèle de contrat commercial personnalisé' : 'Custom commercial contract template',
-          status: 'draft'
-        }),
-      });
 
-      if (response.ok) {
-        toast({
-          title: language === 'fr' ? 'Contrat créé' : 'Contract created',
-          description: language === 'fr' ? 'Nouveau contrat prêt à personnaliser' : 'New contract ready for customization',
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Create contract error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur de création' : 'Creation error',
-        description: language === 'fr' ? 'Impossible de créer le contrat' : 'Failed to create contract',
-        variant: "destructive",
-      });
-    }
-  };
 
-  const handleCreateProposal = async () => {
-    try {
-      const response = await fetch('/api/commercial/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: language === 'fr' ? 'Nouvelle Proposition Commerciale' : 'New Commercial Proposal',
-          type: 'proposal',
-          content: language === 'fr' ? 'Proposition commerciale détaillée pour établissement éducatif' : 'Detailed commercial proposal for educational institution',
-          status: 'draft'
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: language === 'fr' ? 'Proposition créée' : 'Proposal created',
-          description: language === 'fr' ? 'Nouvelle proposition prête à personnaliser' : 'New proposal ready for customization',
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Create proposal error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur de création' : 'Creation error',
-        description: language === 'fr' ? 'Impossible de créer la proposition' : 'Failed to create proposal',
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCreateBrochure = async () => {
-    try {
-      const response = await fetch('/api/commercial/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: language === 'fr' ? 'Nouvelle Brochure Marketing' : 'New Marketing Brochure',
-          type: 'brochure',
-          content: language === 'fr' ? 'Brochure marketing pour présentation services Educafric' : 'Marketing brochure for Educafric services presentation',
-          status: 'draft'
-        }),
-      });
-
-      if (response.ok) {
-        toast({
-          title: language === 'fr' ? 'Brochure créée' : 'Brochure created',
-          description: language === 'fr' ? 'Nouvelle brochure prête à personnaliser' : 'New brochure ready for customization',
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Create brochure error:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur de création' : 'Creation error',
-        description: language === 'fr' ? 'Impossible de créer la brochure' : 'Failed to create brochure',
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleDeleteDocument = async (doc: any) => {
     try {
@@ -585,46 +457,49 @@ const DocumentsContracts = () => {
         ))}
       </div>
 
-      {/* Document Templates Quick Access */}
+      {/* Actions Rapides - Fonctionnelles */}
       <Card>
         <CardHeader>
           <h3 className="text-lg font-semibold">
-            {language === 'fr' ? 'Modèles Rapides' : 'Quick Templates'}
+            {language === 'fr' ? 'Actions Commerciales' : 'Commercial Actions'}
           </h3>
+          <p className="text-sm text-gray-600">
+            {language === 'fr' ? 'Outils pratiques pour vos activités commerciales' : 'Practical tools for your commercial activities'}
+          </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button 
               variant="outline" 
               className="flex items-center gap-2 h-auto p-4"
-              onClick={handleCreateContract}
+              onClick={() => window.open('mailto:?subject=EDUCAFRIC - Proposition Commerciale&body=Bonjour,%0D%0A%0D%0AJe vous présente EDUCAFRIC, la plateforme éducative révolutionnaire pour l\'Afrique.%0D%0A%0D%0ACordialement', '_blank')}
             >
               <FileText className="w-5 h-5 text-blue-600" />
               <div className="text-left">
-                <div className="font-medium">{language === 'fr' ? 'Nouveau Contrat' : 'New Contract'}</div>
-                <div className="text-xs text-gray-500">{language === 'fr' ? 'Créer contrat personnalisé' : 'Create custom contract'}</div>
+                <div className="font-medium">{language === 'fr' ? 'Email Commercial' : 'Commercial Email'}</div>
+                <div className="text-xs text-gray-500">{language === 'fr' ? 'Préparer proposition par email' : 'Prepare proposal via email'}</div>
               </div>
             </Button>
             <Button 
               variant="outline" 
               className="flex items-center gap-2 h-auto p-4"
-              onClick={handleCreateProposal}
+              onClick={() => handleDownloadDocument(documents.find(d => d.name.includes('GUIDE COMPLET'))!)}
             >
               <Building2 className="w-5 h-5 text-green-600" />
               <div className="text-left">
-                <div className="font-medium">{language === 'fr' ? 'Proposition' : 'Proposal'}</div>
-                <div className="text-xs text-gray-500">{language === 'fr' ? 'Proposition commerciale' : 'Commercial proposal'}</div>
+                <div className="font-medium">{language === 'fr' ? 'Guide Commercial' : 'Sales Guide'}</div>
+                <div className="text-xs text-gray-500">{language === 'fr' ? 'Télécharger guide complet' : 'Download complete guide'}</div>
               </div>
             </Button>
             <Button 
               variant="outline" 
               className="flex items-center gap-2 h-auto p-4"
-              onClick={handleCreateBrochure}
+              onClick={() => handleDownloadDocument(documents.find(d => d.type === 'brochure' && d.name.includes('Educafric 2024'))!)}
             >
               <Share className="w-5 h-5 text-purple-600" />
               <div className="text-left">
-                <div className="font-medium">{language === 'fr' ? 'Brochure' : 'Brochure'}</div>
-                <div className="text-xs text-gray-500">{language === 'fr' ? 'Matériel marketing' : 'Marketing material'}</div>
+                <div className="font-medium">{language === 'fr' ? 'Brochure 2024' : 'Brochure 2024'}</div>
+                <div className="text-xs text-gray-500">{language === 'fr' ? 'Matériel de présentation' : 'Presentation material'}</div>
               </div>
             </Button>
           </div>
