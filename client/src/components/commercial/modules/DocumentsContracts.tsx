@@ -502,14 +502,16 @@ const DocumentsContracts = () => {
         {(Array.isArray(filteredDocuments) ? filteredDocuments : []).map((doc) => (
           <Card key={doc.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
+              {/* Structure responsive pour mobile */}
+              <div className="space-y-4">
+                {/* Informations du document */}
+                <div className="flex items-start gap-4">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {getTypeIcon(doc.type)}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{doc.name || ''}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-900 break-words">{doc.name || ''}</h3>
                       <Badge className={getStatusColor(doc.status)}>
                         {doc.status === 'signed' ? t.signed : 
                          doc.status === 'pending' ? t.pending : 
@@ -519,11 +521,11 @@ const DocumentsContracts = () => {
                         {doc.format}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">{doc.description || ''}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <p className="text-sm text-gray-600 break-words">{doc.description || ''}</p>
+                    <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Building2 className="w-3 h-3" />
-                        {doc.school}
+                        <span className="break-words">{doc.school}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -533,12 +535,15 @@ const DocumentsContracts = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                {/* Boutons d'action - responsive */}
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 flex-1 sm:flex-none min-w-[100px]"
                     onClick={() => handleViewDocument(doc)}
+                    data-testid={`button-view-${doc.id}`}
                   >
                     <Eye className="w-3 h-3" />
                     {t.view}
@@ -546,8 +551,9 @@ const DocumentsContracts = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 flex-1 sm:flex-none min-w-[100px]"
                     onClick={() => handleDownloadDocument(doc)}
+                    data-testid={`button-download-${doc.id}`}
                   >
                     <Download className="w-3 h-3" />
                     {t.download}
@@ -555,8 +561,9 @@ const DocumentsContracts = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 flex-1 sm:flex-none min-w-[100px]"
                     onClick={() => handleShareDocument(doc)}
+                    data-testid={`button-share-${doc.id}`}
                   >
                     <Share className="w-3 h-3" />
                     {t.share}
@@ -564,8 +571,9 @@ const DocumentsContracts = () => {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="flex items-center gap-1 flex-1 sm:flex-none min-w-[100px] text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => handleDeleteDocument(doc)}
+                    data-testid={`button-delete-${doc.id}`}
                   >
                     <Trash2 className="w-3 h-3" />
                     {language === 'fr' ? 'Supprimer' : 'Delete'}
