@@ -5,13 +5,14 @@ import {
   bulletins, bulletinGrades, bulletinApprovals, messages, messageRecipients,
   teacherAbsences, teacherAbsenceNotifications,
   parentRequests, parentRequestResponses, parentRequestNotifications,
-  notificationSettings,
+  commercialContacts, notificationSettings,
   type User, type InsertUser, type School, type InsertSchool,
   type Class, type InsertClass, type Subject, type InsertSubject,
   type Grade, type InsertGrade, type Attendance, type InsertAttendance,
   type Homework, type InsertHomework, type Payment, type InsertPayment,
   type CommunicationLog, type TimetableSlot, type ParentStudentRelation,
   type CommercialDocument, type InsertCommercialDocument,
+  type CommercialContact, type InsertCommercialContact,
   type Message, type InsertMessage, type MessageRecipient, type InsertMessageRecipient,
   type TeacherAbsence, type InsertTeacherAbsence, type TeacherAbsenceNotification, type InsertTeacherAbsenceNotification,
   type ParentRequest, type InsertParentRequest, type ParentRequestResponse, type InsertParentRequestResponse,
@@ -51,9 +52,9 @@ export interface IStorage {
   convertLeadToSchool(leadId: number, commercialId: number): Promise<any>;
   
   // Commercial Contacts Management
-  getCommercialContacts(commercialId: number): Promise<any[]>;
-  createCommercialContact(commercialId: number, contactData: any): Promise<any>;
-  updateCommercialContact(contactId: number, updates: any): Promise<any>;
+  getCommercialContacts(commercialId: number): Promise<CommercialContact[]>;
+  createCommercialContact(commercialId: number, contactData: InsertCommercialContact): Promise<CommercialContact>;
+  updateCommercialContact(contactId: number, updates: Partial<InsertCommercialContact>): Promise<CommercialContact>;
   deleteCommercialContact(contactId: number): Promise<void>;
   
   // Commercial Payment Confirmation
@@ -4560,10 +4561,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getCommercialContacts(commercialId: number): Promise<any[]> {
+  async getCommercialContacts(commercialId: number): Promise<CommercialContact[]> {
     console.log(`[STORAGE] Starting getCommercialContacts for commercial ${commercialId}`);
     try {
-      const contacts: any[] = [];
+      const contacts = await this.db.select().from(commercialContacts)
+        .where(eq(commercialContacts.commercialId, commercialId))
+        .orderBy(desc(commercialContacts.updatedAt));
       
       console.log(`[COMMERCIAL_CONTACTS] ✅ Found ${contacts.length} contacts for commercial ${commercialId}`);
       return contacts;
@@ -7258,24 +7261,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Commercial Contacts Management
-  async createCommercialContact(commercialId: number, contactData: any): Promise<any> {
+  async createCommercialContact(commercialId: number, contactData: InsertCommercialContact): Promise<CommercialContact> {
     try {
-      const contactId = Math.floor(Math.random() * 10000);
-      const newContact = {
-        id: contactId,
-        commercialId,
-        name: contactData.name,
-        position: contactData.position,
-        school: contactData.school,
-        phone: contactData.phone,
-        email: contactData.email,
-        status: contactData.status || 'prospect',
-        priority: contactData.priority || 'medium',
-        notes: contactData.notes || '',
-        createdAt: new Date()
-      };
-
-      console.log(`[COMMERCIAL_CONTACT] Created contact ${contactId} by commercial ${commercialId}`);
+      const [newContact] = await this.db.insert(commercialContacts)
+        .values({
+          commercialId,
+          name: contactData.name,
+          position: contactData.position,
+          school: contactData.school,
+          phone: contactData.phone,
+          email: contactData.email,
+          status: contactData.status || 'prospect',
+          priority: contactData.priority || 'medium',
+          notes: contactData.notes || '',
+          lastContact: contactData.lastContact ? new Date(contactData.lastContact) : new Date(),
+          nextAction: contactData.nextAction || 'call',
+          rating: contactData.rating || 3
+        })
+        .returning();
+      
+      console.log(`[COMMERCIAL_CONTACT] Created contact ${newContact.id} by commercial ${commercialId}`);
       return newContact;
     } catch (error) {
       console.error('Error creating commercial contact:', error);
@@ -7283,10 +7288,18 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateCommercialContact(contactId: number, updates: any): Promise<any> {
+  async updateCommercialContact(contactId: number, updates: Partial<InsertCommercialContact>): Promise<CommercialContact> {
     try {
+      const [updatedContact] = await this.db.update(commercialContacts)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(commercialContacts.id, contactId))
+        .returning();
+      
       console.log(`[COMMERCIAL_CONTACT] Updated contact ${contactId}`);
-      return { id: contactId, ...updates };
+      return updatedContact;
     } catch (error) {
       console.error('Error updating commercial contact:', error);
       throw error;
@@ -7295,6 +7308,9 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCommercialContact(contactId: number): Promise<void> {
     try {
+      await this.db.delete(commercialContacts)
+        .where(eq(commercialContacts.id, contactId));
+      
       console.log(`[COMMERCIAL_CONTACT] Deleted contact ${contactId}`);
     } catch (error) {
       console.error('Error deleting commercial contact:', error);

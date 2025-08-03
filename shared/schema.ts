@@ -1462,3 +1462,46 @@ export const insertTeacherAbsenceActionSchema = createInsertSchema(teacherAbsenc
 
 export type InsertTeacherAbsenceData = z.infer<typeof insertTeacherAbsenceSchema>;
 export type InsertTeacherAbsenceActionData = z.infer<typeof insertTeacherAbsenceActionSchema>;
+
+// ===== COMMERCIAL CONTACTS SYSTEM =====
+export const commercialContacts = pgTable("commercial_contacts", {
+  id: serial("id").primaryKey(),
+  commercialId: integer("commercial_id").notNull(),
+  name: text("name").notNull(),
+  position: text("position"),
+  school: text("school"),
+  phone: text("phone"),
+  email: text("email"),
+  status: text("status").notNull().default("prospect"), // lead, prospect, client, inactive
+  priority: text("priority").notNull().default("medium"), // high, medium, low
+  lastContact: timestamp("last_contact"),
+  nextAction: text("next_action"), // call, email, meeting, followUp
+  notes: text("notes"),
+  rating: integer("rating").default(3), // 1-5 stars
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relations for commercial contacts
+export const commercialContactsRelations = relations(commercialContacts, ({ one }) => ({
+  commercial: one(users, {
+    fields: [commercialContacts.commercialId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schema for commercial contacts
+export const insertCommercialContactSchema = createInsertSchema(commercialContacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Name is required"),
+  status: z.enum(["lead", "prospect", "client", "inactive"]).default("prospect"),
+  priority: z.enum(["high", "medium", "low"]).default("medium"),
+  rating: z.number().min(1).max(5).optional(),
+});
+
+// Types for commercial contacts
+export type CommercialContact = typeof commercialContacts.$inferSelect;
+export type InsertCommercialContact = z.infer<typeof insertCommercialContactSchema>;
