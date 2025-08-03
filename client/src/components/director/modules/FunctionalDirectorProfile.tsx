@@ -223,9 +223,18 @@ const FunctionalDirectorProfile: React.FC = () => {
 
         <Tabs defaultValue="personal" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="personal">{t.personalInfo}</TabsTrigger>
-            <TabsTrigger value="professional">{t.professionalInfo}</TabsTrigger>
-            <TabsTrigger value="achievements">{t.achievements}</TabsTrigger>
+            <TabsTrigger value="personal" className="flex flex-col items-center gap-1 py-3" title={t.personalInfo}>
+              <User className="w-5 h-5" />
+              <span className="text-xs hidden sm:block">{t.personalInfo}</span>
+            </TabsTrigger>
+            <TabsTrigger value="professional" className="flex flex-col items-center gap-1 py-3" title={t.professionalInfo}>
+              <Building className="w-5 h-5" />
+              <span className="text-xs hidden sm:block">{t.professionalInfo}</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex flex-col items-center gap-1 py-3" title={t.achievements}>
+              <Award className="w-5 h-5" />
+              <span className="text-xs hidden sm:block">{t.achievements}</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Personal Information Tab */}
