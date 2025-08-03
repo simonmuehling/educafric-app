@@ -10,10 +10,14 @@ import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedStudentForm from '@/components/forms/EnhancedStudentForm';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 const StudentManagement: React.FC = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -151,59 +155,80 @@ const StudentManagement: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Données d'étudiants réalistes
-  const students = [
-    {
-      id: 1,
-      name: 'Marie Kamga',
-      class: '6ème A',
-      age: 12,
-      average: 16.5,
-      attendance: 95,
-      status: 'active',
-      email: 'marie.kamga@educafric.com'
+  // Fetch students data from API
+  const { data: students = [], isLoading, error } = useQuery({
+    queryKey: ['/api/administration/students'],
+    queryFn: async () => {
+      console.log('[STUDENT_MANAGEMENT] 🔍 Fetching students from API...');
+      const response = await fetch('/api/administration/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[STUDENT_MANAGEMENT] ❌ Failed to fetch students:', response.status);
+        throw new Error('Failed to fetch students');
+      }
+      const data = await response.json();
+      console.log('[STUDENT_MANAGEMENT] ✅ Students loaded:', data.length, 'students');
+      return data;
     },
-    {
-      id: 2,
-      name: 'Paul Mvondo',
-      class: '5ème B',
-      age: 13,
-      average: 14.2,
-      attendance: 89,
-      status: 'active',
-      email: 'paul.mvondo@educafric.com'
+    enabled: !!user,
+    retry: 3,
+    retryDelay: 1000
+  });
+
+  // Create student mutation
+  const createStudentMutation = useMutation({
+    mutationFn: async (studentData: any) => {
+      const response = await fetch('/api/administration/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(studentData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create student');
+      return response.json();
     },
-    {
-      id: 3,
-      name: 'Sophie Biya',
-      class: '4ème C',
-      age: 14,
-      average: 17.8,
-      attendance: 98,
-      status: 'active',
-      email: 'sophie.biya@educafric.com'
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève créé avec succès' : 'Student created successfully'
+      });
     },
-    {
-      id: 4,
-      name: 'Junior Essomba',
-      class: '3ème A',
-      age: 15,
-      average: 13.5,
-      attendance: 76,
-      status: 'inactive',
-      email: 'junior.essomba@educafric.com'
-    },
-    {
-      id: 5,
-      name: 'Fatima Nkomo',
-      class: '6ème B',
-      age: 12,
-      average: 15.9,
-      attendance: 92,
-      status: 'active',
-      email: 'fatima.nkomo@educafric.com'
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer l\'élève' : 'Failed to create student',
+        variant: 'destructive'
+      });
     }
-  ];
+  });
+
+  // Delete student mutation
+  const deleteStudentMutation = useMutation({
+    mutationFn: async (studentId: number) => {
+      const response = await fetch(`/api/administration/students/${studentId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete student');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève supprimé avec succès' : 'Student deleted successfully'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de supprimer l\'élève' : 'Failed to delete student',
+        variant: 'destructive'
+      });
+    }
+  });
 
   const filteredStudents = (Array.isArray(students) ? students : []).filter(student => {
     if (!student) return false;

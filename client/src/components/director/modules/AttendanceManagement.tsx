@@ -8,27 +8,78 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, UserCheck, Users, Download, FileText, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AttendanceManagement: React.FC = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Mock data for demonstration
-  const attendanceStats = {
-    present: 245,
-    absent: 18,
-    late: 7,
-    total: 270
-  };
+  // Fetch attendance stats from API
+  const { data: attendanceStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/attendance/stats', selectedDate],
+    queryFn: async () => {
+      console.log('[ATTENDANCE_MANAGEMENT] 🔍 Fetching attendance stats...');
+      const response = await fetch(`/api/attendance/stats?date=${selectedDate}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[ATTENDANCE_MANAGEMENT] ❌ Failed to fetch attendance stats');
+        throw new Error('Failed to fetch attendance stats');
+      }
+      const data = await response.json();
+      console.log('[ATTENDANCE_MANAGEMENT] ✅ Attendance stats loaded:', data);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
 
-  const classAttendance = [
-    { class: 'CE1 A', present: 28, absent: 2, late: 1, total: 31 },
-    { class: 'CE2 B', present: 25, absent: 3, late: 2, total: 30 },
-    { class: '3ème A', present: 32, absent: 1, late: 0, total: 33 },
-    { class: 'Terminale C', present: 29, absent: 2, late: 1, total: 32 }
-  ];
+  // Fetch class attendance from API
+  const { data: classAttendance = [], isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/attendance/by-class', selectedDate, selectedClass],
+    queryFn: async () => {
+      console.log('[ATTENDANCE_MANAGEMENT] 🔍 Fetching class attendance...');
+      let url = `/api/attendance/by-class?date=${selectedDate}`;
+      if (selectedClass && selectedClass !== 'all') {
+        url += `&class=${selectedClass}`;
+      }
+      const response = await fetch(url, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[ATTENDANCE_MANAGEMENT] ❌ Failed to fetch class attendance');
+        throw new Error('Failed to fetch class attendance');
+      }
+      const data = await response.json();
+      console.log('[ATTENDANCE_MANAGEMENT] ✅ Class attendance loaded:', data.length, 'classes');
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Mark attendance mutation
+  const markAttendanceMutation = useMutation({
+    mutationFn: async (attendanceData: any) => {
+      const response = await fetch('/api/attendance/mark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(attendanceData)
+      });
+      if (!response.ok) throw new Error('Failed to mark attendance');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/attendance/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/attendance/by-class'] });
+    }
+  });
 
   const handleExportReport = () => {
     toast({
@@ -45,6 +96,11 @@ const AttendanceManagement: React.FC = () => {
   };
 
   const handleMarkAttendance = () => {
+    markAttendanceMutation.mutate({
+      date: selectedDate,
+      classId: selectedClass,
+      records: [] // This would contain actual attendance records
+    });
     toast({
       title: language === 'fr' ? 'Présence enregistrée' : 'Attendance recorded',
       description: language === 'fr' ? 'Les présences ont été mises à jour avec succès.' : 'Attendance has been updated successfully.'
@@ -76,7 +132,7 @@ const AttendanceManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{language === 'fr' ? 'Présents' : 'Present'}</p>
-                <p className="text-2xl font-bold text-green-600">{attendanceStats.present}</p>
+                <p className="text-2xl font-bold text-green-600">{statsLoading ? '...' : (attendanceStats?.present || 0)}</p>
               </div>
               <UserCheck className="w-8 h-8 text-green-600" />
             </div>
@@ -88,7 +144,7 @@ const AttendanceManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{language === 'fr' ? 'Absents' : 'Absent'}</p>
-                <p className="text-2xl font-bold text-red-600">{attendanceStats.absent}</p>
+                <p className="text-2xl font-bold text-red-600">{statsLoading ? '...' : (attendanceStats?.absent || 0)}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-red-600" />
             </div>
@@ -100,7 +156,7 @@ const AttendanceManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{language === 'fr' ? 'En retard' : 'Late'}</p>
-                <p className="text-2xl font-bold text-orange-600">{attendanceStats.late}</p>
+                <p className="text-2xl font-bold text-orange-600">{statsLoading ? '...' : (attendanceStats?.late || 0)}</p>
               </div>
               <Clock className="w-8 h-8 text-orange-600" />
             </div>
@@ -112,7 +168,7 @@ const AttendanceManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">{language === 'fr' ? 'Total' : 'Total'}</p>
-                <p className="text-2xl font-bold text-blue-600">{attendanceStats.total}</p>
+                <p className="text-2xl font-bold text-blue-600">{statsLoading ? '...' : (attendanceStats?.total || 0)}</p>
               </div>
               <Users className="w-8 h-8 text-blue-600" />
             </div>
@@ -207,20 +263,36 @@ const AttendanceManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(Array.isArray(classAttendance) ? classAttendance : []).map((item, index) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="p-3 font-medium">{item.class}</td>
-                      <td className="p-3 text-green-600">{item.present}</td>
-                      <td className="p-3 text-red-600">{item.absent}</td>
-                      <td className="p-3 text-orange-600">{item.late}</td>
-                      <td className="p-3">{item.total}</td>
-                      <td className="p-3">
-                        <Badge variant={item.present / item.total > 0.9 ? 'default' : 'secondary'}>
-                          {Math.round((item.present / item.total) * 100)}%
-                        </Badge>
+                  {classesLoading ? (
+                    <tr>
+                      <td colSpan={6} className="p-6 text-center">
+                        <div className="animate-pulse text-gray-500">
+                          {language === 'fr' ? 'Chargement des données de présence...' : 'Loading attendance data...'}
+                        </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : (Array.isArray(classAttendance) ? classAttendance : []).length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-6 text-center text-gray-500">
+                        {language === 'fr' ? 'Aucune donnée de présence disponible' : 'No attendance data available'}
+                      </td>
+                    </tr>
+                  ) : (
+                    (Array.isArray(classAttendance) ? classAttendance : []).map((item, index) => (
+                      <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="p-3 font-medium">{item.class || item.className}</td>
+                        <td className="p-3 text-green-600">{item.present || 0}</td>
+                        <td className="p-3 text-red-600">{item.absent || 0}</td>
+                        <td className="p-3 text-orange-600">{item.late || 0}</td>
+                        <td className="p-3">{item.total || 0}</td>
+                        <td className="p-3">
+                          <Badge variant={item.total > 0 && (item.present / item.total) > 0.9 ? 'default' : 'secondary'}>
+                            {item.total > 0 ? Math.round((item.present / item.total) * 100) : 0}%
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

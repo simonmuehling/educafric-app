@@ -9,10 +9,14 @@ import {
   DollarSign, TrendingUp, CreditCard, FileText, Download, 
   Send, Users, AlertCircle, CheckCircle, Calendar, Bell
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 const FinancialManagement: React.FC = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [processing, setProcessing] = useState(false);
 
   const text = {
@@ -66,54 +70,111 @@ const FinancialManagement: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
+  // Fetch financial stats from API
+  const { data: financialData, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/financial/stats'],
+    queryFn: async () => {
+      console.log('[FINANCIAL_MANAGEMENT] 🔍 Fetching financial stats...');
+      const response = await fetch('/api/financial/stats', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FINANCIAL_MANAGEMENT] ❌ Failed to fetch financial stats');
+        throw new Error('Failed to fetch financial stats');
+      }
+      const data = await response.json();
+      console.log('[FINANCIAL_MANAGEMENT] ✅ Financial stats loaded:', data);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Fetch recent transactions from API
+  const { data: recentTransactions = [], isLoading: transactionsLoading } = useQuery({
+    queryKey: ['/api/financial/transactions'],
+    queryFn: async () => {
+      console.log('[FINANCIAL_MANAGEMENT] 🔍 Fetching recent transactions...');
+      const response = await fetch('/api/financial/transactions?limit=10', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FINANCIAL_MANAGEMENT] ❌ Failed to fetch transactions');
+        throw new Error('Failed to fetch transactions');
+      }
+      const data = await response.json();
+      console.log('[FINANCIAL_MANAGEMENT] ✅ Transactions loaded:', data.length);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
   const financialStats = [
     {
       title: t?.stats?.totalRevenue,
-      value: '2.4M CFA',
+      value: statsLoading ? '...' : (financialData?.totalRevenue || '0 CFA'),
       icon: <DollarSign className="w-5 h-5" />,
-      trend: { value: 12, isPositive: true },
+      trend: { value: financialData?.revenueTrend || 0, isPositive: (financialData?.revenueTrend || 0) > 0 },
       gradient: 'green' as const
     },
     {
       title: t?.stats?.pendingPayments,
-      value: '340K CFA',
+      value: statsLoading ? '...' : (financialData?.pendingPayments || '0 CFA'),
       icon: <CreditCard className="w-5 h-5" />,
-      trend: { value: 8, isPositive: false },
+      trend: { value: financialData?.pendingTrend || 0, isPositive: (financialData?.pendingTrend || 0) < 0 },
       gradient: 'orange' as const
     },
     {
       title: t?.stats?.monthlyIncome,
-      value: '800K CFA',
+      value: statsLoading ? '...' : (financialData?.monthlyIncome || '0 CFA'),
       icon: <TrendingUp className="w-5 h-5" />,
-      trend: { value: 15, isPositive: true },
+      trend: { value: financialData?.incomeTrend || 0, isPositive: (financialData?.incomeTrend || 0) > 0 },
       gradient: 'blue' as const
     },
     {
       title: t?.stats?.expenses,
-      value: '560K CFA',
+      value: statsLoading ? '...' : (financialData?.expenses || '0 CFA'),
       icon: <FileText className="w-5 h-5" />,
-      trend: { value: 5, isPositive: false },
+      trend: { value: financialData?.expensesTrend || 0, isPositive: (financialData?.expensesTrend || 0) < 0 },
       gradient: 'purple' as const
     }
   ];
 
-  const recentTransactions = [
-    { id: 1, student: 'Marie Kamga', amount: '45,000 CFA', type: 'Frais Scolarité', status: 'paid', date: '2025-01-24' },
-    { id: 2, student: 'Paul Mvondo', amount: '25,000 CFA', type: 'Frais Cantine', status: 'pending', date: '2025-01-23' },
-    { id: 3, student: 'Sophie Biya', amount: '60,000 CFA', type: 'Frais Complets', status: 'paid', date: '2025-01-22' },
-    { id: 4, student: 'Junior Essomba', amount: '35,000 CFA', type: 'Frais Transport', status: 'overdue', date: '2025-01-20' }
-  ];
+  // Process payments mutation
+  const processPaymentsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/financial/process-payments', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to process payments');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/financial/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/financial/transactions'] });
+      toast({
+        title: language === 'fr' ? 'Paiements Traités' : 'Payments Processed',
+        description: language === 'fr' ? `${data.processedCount || 12} paiements traités avec succès` : `${data.processedCount || 12} payments processed successfully`
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de traiter les paiements' : 'Failed to process payments',
+        variant: 'destructive'
+      });
+    }
+  });
 
   const handleProcessPayments = async () => {
     setProcessing(true);
-    // Simulation traitement des paiements
-    setTimeout(() => {
-      toast({
-        title: language === 'fr' ? 'Paiements Traités' : 'Payments Processed',
-        description: language === 'fr' ? '12 paiements traités avec succès' : '12 payments processed successfully'
-      });
+    try {
+      await processPaymentsMutation.mutateAsync();
+    } finally {
       setProcessing(false);
-    }, 2000);
+    }
   };
 
   const handleGenerateReport = () => {
@@ -228,28 +289,42 @@ const FinancialManagement: React.FC = () => {
             </h2>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {(Array.isArray(recentTransactions) ? recentTransactions : []).map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{transaction.student}</p>
-                      <p className="text-sm text-gray-600">{transaction.type}</p>
-                    </div>
+            {transactionsLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(Array.isArray(recentTransactions) ? recentTransactions : []).length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    {language === 'fr' ? 'Aucune transaction récente' : 'No recent transactions'}
                   </div>
-                  <div className="text-right space-y-1">
-                    <p className="font-bold text-lg">{transaction.amount}</p>
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(transaction.status)}
-                      <span className="text-xs text-gray-500">{transaction.date}</span>
+                ) : (
+                  (Array.isArray(recentTransactions) ? recentTransactions : []).map((transaction) => (
+                    <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{transaction.studentName || transaction.student}</p>
+                          <p className="text-sm text-gray-600">{transaction.type}</p>
+                        </div>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <p className="font-bold text-lg">{transaction.amount}</p>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(transaction.status)}
+                          <span className="text-xs text-gray-500">{transaction.date}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ))
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
