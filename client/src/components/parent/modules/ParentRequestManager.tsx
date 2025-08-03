@@ -56,19 +56,46 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const { data: requests, isLoading } = useQuery({
     queryKey: ['/api/parent-requests'],
     queryFn: async () => {
-      // For demo purposes, use the test endpoint
-      const response = await apiRequest('/api/parent-requests-test');
-      return response;
+      // For demo purposes, return mock data
+      return [
+        {
+          id: 1,
+          type: 'absence_request',
+          subject: 'Demande d\'absence pour rendez-vous médical',
+          description: 'Mon enfant a un rendez-vous médical important',
+          status: 'pending',
+          priority: 'medium',
+          createdAt: new Date().toISOString(),
+          studentId: 1
+        },
+        {
+          id: 2,
+          type: 'meeting',
+          subject: 'Rendez-vous avec le professeur',
+          description: 'Je souhaiterais discuter des résultats de mon enfant',
+          status: 'approved',
+          priority: 'high',
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          responseDate: new Date().toISOString(),
+          adminResponse: 'Rendez-vous confirmé pour vendredi 14h00',
+          studentId: 1
+        }
+      ];
     },
   });
 
   // Mutation pour créer une nouvelle demande
   const createRequestMutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
-      return await apiRequest('/api/parent-requests', {
+      // Mock API call - in production this would be a real API call
+      const response = await fetch('/api/parent-requests', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Failed to create request');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parent-requests'] });

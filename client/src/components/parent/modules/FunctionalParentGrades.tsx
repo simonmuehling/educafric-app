@@ -239,8 +239,8 @@ const FunctionalParentGrades: React.FC = () => {
   });
 
   // Get unique values for filters
-  const uniqueStudents = [...new Set((Array.isArray(grades) ? grades : []).map(g => g.studentName))];
-  const uniqueSubjects = [...new Set((Array.isArray(grades) ? grades : []).map(g => g.subject))];
+  const uniqueStudents = Array.from(new Set((Array.isArray(grades) ? grades : []).map(g => g.studentName)));
+  const uniqueSubjects = Array.from(new Set((Array.isArray(grades) ? grades : []).map(g => g.subject)));
 
   // Calculate statistics
   const totalGrades = (Array.isArray(filteredGrades) ? filteredGrades.length : 0);

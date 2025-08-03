@@ -254,7 +254,7 @@ const FunctionalParentAttendance: React.FC = () => {
   });
 
   // Get unique values for filters
-  const uniqueStudents = [...new Set((Array.isArray(attendance) ? attendance : []).map(a => a.studentName))];
+  const uniqueStudents = Array.from(new Set((Array.isArray(attendance) ? attendance : []).map(a => a.studentName)));
 
   // Calculate statistics
   const totalDays = (Array.isArray(filteredAttendance) ? filteredAttendance.length : 0);
