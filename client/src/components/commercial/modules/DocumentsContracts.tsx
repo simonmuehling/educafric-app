@@ -189,171 +189,227 @@ Contact: support@educafric.com | Tél: +237 XXX XXX XXX`
     },
     {
       id: 4,
-      name: 'Modele Contrat Standard EDUCAFRIC 2025',
+      name: 'Modele Contrat Partenariat Établissement EDUCAFRIC 2025',
       type: 'template',
       category: 'templates',
       school: 'Template general',
       date: '2025-02-01',
       status: 'finalized',
-      size: '1.2 MB',
+      size: '1.5 MB',
       format: 'PDF',
-      description: 'Modele de contrat complet et actualise pour nouveaux clients avec toutes les clauses legales',
-      content: `EDUCAFRIC - MODELE CONTRAT STANDARD 2025
-CONTRAT DE SERVICES EDUCATIFS NUMERIQUES
-Version Template Standardise - Fevrier 2025
+      description: 'Modèle de contrat de partenariat éducatif pour établissements scolaires avec approche collaborative',
+      content: `EDUCAFRIC - CONTRAT DE PARTENARIAT ÉDUCATIF 2025
+ACCORD DE COLLABORATION PÉDAGOGIQUE ET TECHNOLOGIQUE
+Version Partenariat Établissements - Février 2025
 
-=== PAGE 1/4 ===
+=== PRÉAMBULE ===
 
-PARTIES CONTRACTANTES
+NATURE DU PARTENARIAT
+Le présent accord établit un partenariat stratégique entre EDUCAFRIC et l'établissement scolaire partenaire dans le cadre de la transformation numérique de l'éducation en Afrique.
 
-FOURNISSEUR DE SERVICES:
-Nom: EDUCAFRIC
-Entite legale: AFRO METAVERSE MARKETING SARL
-Siège social: Yaounde, Cameroun
-Email: contact@educafric.com
-Telephone: +237 XXX XXX XXX
-Representant legal: [A COMPLETER], [FONCTION A COMPLETER]
+PARTENAIRES
 
-CLIENT:
-Nom de l'etablissement: [A COMPLETER]
-Type d'etablissement: [Ecole Publique/Privee/Centre Formation]
-Adresse complete: [A COMPLETER]
-Telephone: [A COMPLETER]
-Email: [A COMPLETER]
-Representant legal: [A COMPLETER]
-Fonction: [Directeur/Proprietaire/Responsable]
+EDUCAFRIC - PARTENAIRE TECHNOLOGIQUE:
+Entité juridique: AFRO METAVERSE MARKETING SARL
+Siège social: Yaoundé, Cameroun
+Secteur: Innovation éducative et technologies numériques
+Email: partenariats@educafric.com
+Téléphone: +237 XXX XXX XXX
+Représentant: [DIRECTEUR PARTENARIATS], Directeur des Partenariats Éducatifs
 
-OBJET DU CONTRAT
-Le present contrat definit les modalites de fourniture des services de la plateforme educative numerique EDUCAFRIC pour la gestion complete des activites scolaires.
+ÉTABLISSEMENT PARTENAIRE:
+Nom de l'établissement: [NOM DE L'ÉCOLE PARTENAIRE]
+Statut: [Public/Privé/Conventionné]
+Adresse: [ADRESSE COMPLÈTE]
+Directeur/Directrice: [NOM DU DIRECTEUR]
+Contact: [EMAIL ET TÉLÉPHONE]
+Effectifs: [NOMBRE D'ÉLÈVES] élèves, [NOMBRE] enseignants
 
-SERVICES INCLUS
-✓ Gestion complete eleves/enseignants/classes
-✓ Systeme bulletins numeriques camerounais
-✓ Communication multi-canaux (SMS/WhatsApp/Email)
-✓ Applications mobiles iOS/Android
-✓ Support technique 24h/7j
-✓ Formation equipe incluse
-✓ Sauvegardes automatiques
+VISION PARTENARIALE
+Ensemble, nous nous engageons à révolutionner l'expérience éducative africaine en combinant l'excellence pédagogique traditionnelle avec les innovations technologiques modernes.
 
-=== PAGE 2/4 ===
+OBJECTIFS STRATÉGIQUES COMMUNS
+✓ Amélioration de la qualité éducative par le numérique
+✓ Renforcement de la communication école-famille-communauté
+✓ Développement des compétences numériques du personnel
+✓ Optimisation de la gestion administrative et pédagogique
+✓ Promotion de l'innovation éducative en Afrique
+✓ Création d'un modèle de référence pour d'autres établissements
 
-PLANS TARIFAIRES
+=== ARTICLE 1 - CADRE DU PARTENARIAT ===
 
-PLAN ECOLE PUBLIQUE
-Prix: 25.000 CFA/mois (250.000 CFA/an)
-Capacite: Jusqu'a 200 eleves
-Services: Fonctionnalites de base + formation + 1000 SMS/mois
+1.1 MISSION ÉDUCATIVE COMMUNE
+Le partenariat vise à créer un écosystème éducatif numérique exemplaire qui servira de modèle pour la transformation digitale des établissements africains.
 
-PLAN ECOLE PRIVEE  
-Prix: 75.000 CFA/mois (750.000 CFA/an)
-Capacite: Jusqu'a 500 eleves
-Services: Plan Public + geolocalisation + comptabilite + branding
+1.2 DURÉE DU PARTENARIAT
+• Partenariat initial: 3 ans renouvelables
+• Phase pilote: 6 mois d'accompagnement renforcé
+• Évaluation semestrielle des résultats
+• Possibilité d'extension selon bilan de performance
 
-PLAN ENTERPRISE
-Prix: 150.000 CFA/mois (1.500.000 CFA/an)
-Capacite: Illimitee
-Services: Solution complete sur mesure + multi-campus
+1.3 TERRITOIRE DE COLLABORATION
+• Implémentation exclusive dans l'établissement partenaire
+• Possibilité d'extension aux établissements associés
+• Participation aux réseaux d'écoles EDUCAFRIC
+• Rayonnement régional comme école de référence
 
-MODALITES DE PAIEMENT
-✓ Orange Money / MTN Mobile Money
-✓ Cartes bancaires internationales
-✓ Virements bancaires
-✓ Periode essai: 30 jours gratuits
-✓ Paiement annuel: 15% reduction
+=== ARTICLE 2 - ENGAGEMENTS MUTUELS ===
 
-OBLIGATIONS PRINCIPALES
+2.1 ENGAGEMENTS D'EDUCAFRIC
 
-EDUCAFRIC s'engage à:
-• Disponibilite 99.5% minimum
-• Support < 4h ouvrables
-• Chiffrement SSL/TLS complet
-• Formation initiale incluse
-• Sauvegardes quotidiennes
+INNOVATION TECHNOLOGIQUE:
+• Mise à disposition de la plateforme EDUCAFRIC complète
+• Accès prioritaire aux nouvelles fonctionnalités
+• Personnalisation selon les besoins spécifiques
+• Interface bilingue français/anglais adaptée
 
-CLIENT s'engage à:
-• Designer 2 administrateurs maximum
-• Respecter conditions utilisation
-• Paiement selon echeancier
-• Faciliter formations
+ACCOMPAGNEMENT PÉDAGOGIQUE:
+• Formation approfondie de l'équipe dirigeante
+• Coaching personnalisé des enseignants
+• Ateliers mensuels d'innovation pédagogique
+• Certification EDUCAFRIC pour le personnel
 
-=== PAGE 3/4 ===
+SUPPORT TECHNIQUE PRIVILÉGIÉ:
+• Ligne directe support partenaires prioritaires
+• Intervention sur site si nécessaire
+• Maintenance préventive trimestrielle
+• Garantie uptime 99,7% avec compensation
 
-DUREE ET RESILIATION
-• Duree initiale: 12 mois minimum
-• Renouvellement automatique
-• Preavis resiliation: 30 jours
-• Export donnees garanti
+2.2 ENGAGEMENTS DE L'ÉTABLISSEMENT PARTENAIRE
 
-CONDITIONS RESILIATION
-Par EDUCAFRIC: Non-paiement 30+ jours, violation conditions
-Par CLIENT: Motif libre avec preavis 30 jours
+LEADERSHIP PÉDAGOGIQUE:
+• Nomination d'un coordinateur digital dédié
+• Participation active aux formations proposées
+• Feedback constructif pour amélioration continue
+• Partage d'expériences avec réseau partenaires
 
-PROPRIETE INTELLECTUELLE
-EDUCAFRIC: Code source, algorithmes, marques
-CLIENT: Donnees scolaires exclusives, export libre
+COMMUNICATION ET PROMOTION:
+• Autorisation d'utilisation comme référence client
+• Participation aux événements EDUCAFRIC
+• Témoignages et études de cas
+• Accueil de délégations d'autres établissements
 
-CONFIDENTIALITE
-Protection complete donnees eleves/parents selon GDPR
-Non-divulgation mutuelle informations sensibles
+=== ARTICLE 3 - CONDITIONS FINANCIÈRES PARTENARIALES ===
 
-RESPONSABILITES
-Limitation EDUCAFRIC: Maximum montant annuel paye
-Garantie disponibilite: 99.5% minimum
-Assurance RC professionnelle incluse
+3.1 MODÈLE ÉCONOMIQUE COLLABORATIF
+Le partenariat fonctionne sur un modèle gagnant-gagnant avec des conditions préférentielles reflétant l'engagement mutuel dans l'innovation éducative africaine.
 
-DROIT APPLICABLE
-Legislation camerounaise - Tribunaux Yaounde
-Langue officielle: Francais
-Mediation possible en cas litige
+3.2 TARIFICATION PARTENAIRE PRIVILÉGIÉ
+• Écoles publiques/conventionnées: 35.000 CFA/mois (350.000 CFA/an)
+• Écoles privées: 65.000 CFA/mois (650.000 CFA/an)
+• Établissements d'excellence: 95.000 CFA/mois (950.000 CFA/an)
+• Réduction partenaire stratégique: -25% sur tarifs standards
 
-=== PAGE 4/4 ===
+3.3 MODALITÉS DE PAIEMENT FLEXIBLES
+• Paiement semestriel avec 10% de réduction
+• Paiement annual avec 20% de réduction
+• Possibilité d'échelonnement personnalisé
+• Orange Money, MTN Mobile Money, virements bancaires
+• Période d'évaluation: 60 jours sans engagement
 
-CONDITIONS PARTICULIERES
-[Section personnalisable selon etablissement]
+3.4 INVESTISSEMENTS PARTAGÉS
+EDUCAFRIC investit dans:
+• Formation approfondie équipe (valeur 500.000 CFA)
+• Personnalisation interface aux couleurs de l'école
+• Développement fonctionnalités spécifiques demandées
+• Support marketing et communication
 
-Specifications client:
-• Nombre eleves: [A COMPLETER]
-• Nombre enseignants: [A COMPLETER]  
-• Niveaux: [A COMPLETER]
-• Modules specifiques: [A LISTER]
+L'ÉTABLISSEMENT investit dans:
+• Infrastructure réseau minimum requis
+• Équipement basique (tablettes/ordinateurs selon besoins)
+• Temps formation personnel
+• Promotion du partenariat dans son réseau
 
-IMPLEMENTATION (4 semaines)
-Semaine 1: Parametrage + import donnees
-Semaine 2: Formation equipe complete
-Semaine 3: Deploiement + accompagnement
-Semaine 4: Stabilisation + optimisation
+=== ARTICLE 4 - PROPRIÉTÉ INTELLECTUELLE ET INNOVATION ===
 
-CONTACTS SUPPORT
-Support: support@educafric.com / +237 XXX XXX XXX
-Commercial: commercial@educafric.com
-Technique: technique@educafric.com (24h/7j)
-Horaires: Lundi-Samedi 7h-20h
+4.1 DROITS ET PROPRIÉTÉS
+• EDUCAFRIC: Plateforme, code source, algorithmes, marque
+• ÉTABLISSEMENT: Données scolaires exclusives + méthodes pédagogiques
+• COMMUN: Innovations développées ensemble, retours d'expérience
 
-SIGNATURES
+4.2 CONFIDENTIALITÉ RENFORCÉE
+• Protection données élèves/parents selon standards internationaux
+• Clause de non-concurrence mutuelle sur le territoire
+• Partage sécurisé des bonnes pratiques dans le réseau EDUCAFRIC
 
-Pour EDUCAFRIC:
-Nom: [A COMPLETER]
-Fonction: [A COMPLETER]  
-Date: _______________
-Signature: _______________
-Cachet entreprise
+=== ARTICLE 5 - GOUVERNANCE ET SUIVI DU PARTENARIAT ===
 
-Pour le Client:
-Nom: [A COMPLETER]
-Fonction: [A COMPLETER]
-Date: _______________  
-Signature: _______________
-Cachet etablissement
+5.1 COMITÉ DE PILOTAGE
+Composition: 2 représentants EDUCAFRIC + 2 représentants établissement
+Réunions: Trimestrielles + réunions extraordinaires si besoin
+Missions: Suivi performance, ajustements, planification évolutions
 
-ANNEXES INCLUSES
-1. Conditions Generales Utilisation
-2. Politique Confidentialite  
-3. Guide Implementation
-4. Specifications Techniques
+5.2 INDICATEURS DE PERFORMANCE PARTAGÉS
+• Taux d'adoption par les enseignants: objectif 90%
+• Satisfaction parents (enquêtes): objectif 85%
+• Amélioration résultats scolaires: suivi sur 2 ans
+• Réduction temps administratif: objectif -40%
+
+=== ARTICLE 6 - ÉVOLUTION ET RENOUVELLEMENT DU PARTENARIAT ===
+
+6.1 MÉCANISMES D'ÉVOLUTION
+• Révision annuelle des termes selon performances
+• Possibilité d'upgrade vers statut "École Ambassadrice EDUCAFRIC"
+• Extension automatique si objectifs atteints à 80%
+• Négociation de nouvelles modalités selon besoins émergents
+
+6.2 CONDITIONS DE SORTIE AMIABLE
+• Préavis de 90 jours minimum pour fin de partenariat
+• Accompagnement migration données garantie 6 mois
+• Possibilité de reprendre le partenariat dans les 24 mois
+• Engagement de confidentialité permanent sur les innovations communes
+
+=== ARTICLE 7 - FEUILLE DE ROUTE D'IMPLÉMENTATION ===
+
+PHASE 1 - PRÉPARATION (Mois 1-2):
+• Audit infrastructure existante
+• Formation équipe dirigeante (40h)
+• Paramétrage personnalisé plateforme
+• Migration données existantes
+
+PHASE 2 - DÉPLOIEMENT (Mois 3-4):
+• Formation enseignants par vagues (80h total)
+• Mise en service progressive par niveaux
+• Accompagnement quotidien sur site
+• Tests et ajustements continus
+
+PHASE 3 - STABILISATION (Mois 5-6):
+• Formation parents et communication
+• Optimisation processus
+• Première évaluation partenariale
+• Planification développements futurs
+
+=== DISPOSITIONS FINALES ===
+
+DROIT APPLICABLE:
+Législation camerounaise - Tribunaux de Yaoundé compétents
+Langue officielle du contrat: Français
+Médiation préalable obligatoire en cas de différend
+
+ANNEXES TECHNIQUES:
+• Annexe A: Spécifications techniques détaillées
+• Annexe B: Plan de formation personnalisé
+• Annexe C: Indicateurs de performance et reporting
+• Annexe D: Charte qualité du partenariat
+
+=== SIGNATURES ===
+
+POUR EDUCAFRIC                           POUR L'ÉTABLISSEMENT PARTENAIRE
+AFRO METAVERSE MARKETING SARL
+
+_________________________              _________________________
+[NOM DU REPRÉSENTANT]                   [NOM DU DIRECTEUR]
+Directeur des Partenariats              Directeur de l'établissement
+Date: _______________                   Date: _______________
+Signature et cachet                     Signature et cachet
+
+
+Fait en deux exemplaires à ____________, le _______________
 
 ---
-EDUCAFRIC Platform v4.2.3 - www.educafric.com
-Template mis a jour: Fevrier 2025`
+Document généré par EDUCAFRIC Platform v4.2.3
+Contrat de Partenariat Éducatif - www.educafric.com
+"Ensemble, révolutionnons l'éducation africaine"`
     },
     {
       id: 5,
