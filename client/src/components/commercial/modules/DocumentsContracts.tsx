@@ -211,7 +211,7 @@ Entite legale: AFRO METAVERSE MARKETING SARL
 Siège social: Yaounde, Cameroun
 Email: contact@educafric.com
 Telephone: +237 XXX XXX XXX
-Representant legal: Simon MUENHE, Directeur General
+Representant legal: [A COMPLETER], [FONCTION A COMPLETER]
 
 CLIENT:
 Nom de l'etablissement: [A COMPLETER]
@@ -552,8 +552,8 @@ Disponible: 24h/7j
 SIGNATURES
 
 Pour EDUCAFRIC:
-Nom: Simon MUENHE
-Fonction: Directeur General
+Nom: [A COMPLETER]
+Fonction: [A COMPLETER]
 Date: _______________
 Signature: _______________
 Cachet entreprise
