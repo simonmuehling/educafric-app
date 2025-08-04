@@ -2,23 +2,64 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   BarChart3, TrendingUp, Download, Calendar,
   DollarSign, Users, Building2, Star,
-  FileText, PieChart, Activity
+  FileText, PieChart, Activity, RefreshCw,
+  AlertCircle
 } from 'lucide-react';
+
+interface ReportData {
+  totalRevenue: number;
+  newSchools: number;
+  conversionRate: number;
+  avgDealSize: number;
+  monthlyTrend: Array<{
+    month: string;
+    revenue: number;
+    schools: number;
+  }>;
+  topSchools: Array<{
+    name: string;
+    revenue: number;
+    students: number;
+  }>;
+}
 
 const FunctionalCommercialReports: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [reportType, setReportType] = useState('sales');
 
-  const { data: reportData, isLoading } = useQuery({
+  const { data: reportData, isLoading, error, refetch } = useQuery<ReportData>({
     queryKey: ['/api/commercial/reports', selectedPeriod, reportType],
-    enabled: !!user
+    queryFn: async () => {
+      console.log('[COMMERCIAL_REPORTS] 🔍 Fetching reports...');
+      const params = new URLSearchParams({
+        period: selectedPeriod,
+        type: reportType
+      });
+      
+      const response = await fetch(`/api/commercial/reports?${params.toString()}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        console.error('[COMMERCIAL_REPORTS] ❌ Failed to fetch reports');
+        throw new Error('Failed to fetch reports');
+      }
+      
+      const data = await response.json();
+      console.log('[COMMERCIAL_REPORTS] ✅ Reports loaded:', data);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
   });
 
   const text = {
@@ -88,32 +129,105 @@ const FunctionalCommercialReports: React.FC = () => {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">{t.loading}</span>
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+          <span className="text-gray-600">{t.loading}</span>
         </div>
       </div>
     );
   }
 
-  // Mock data for demonstration
-  const mockData = {
-    totalRevenue: 2450000,
-    newSchools: 8,
-    conversionRate: 24,
-    avgDealSize: 306250,
-    monthlyTrend: [
-      { month: 'Jan', revenue: 180000, schools: 2 },
-      { month: 'Fév', revenue: 220000, schools: 3 },
-      { month: 'Mar', revenue: 280000, schools: 4 },
-      { month: 'Avr', revenue: 320000, schools: 5 },
-      { month: 'Mai', revenue: 290000, schools: 3 },
-      { month: 'Jun', revenue: 350000, schools: 6 }
-    ],
-    topSchools: [
-      { name: 'École Excellence Yaoundé', revenue: 450000, students: 500 },
-      { name: 'Collège Bilingue Douala', revenue: 380000, students: 420 },
-      { name: 'École Primaire Bafoussam', revenue: 320000, students: 350 }
-    ]
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-8">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">
+            {language === 'fr' ? 'Erreur lors du chargement des rapports' : 'Error loading reports'}
+          </p>
+          <button 
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <RefreshCw className="w-4 h-4 mr-2 inline" />
+            {language === 'fr' ? 'Réessayer' : 'Retry'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Use API data or fallback to empty data structure
+  const data = reportData || {
+    totalRevenue: 0,
+    newSchools: 0,
+    conversionRate: 0,
+    avgDealSize: 0,
+    monthlyTrend: [],
+    topSchools: []
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const response = await fetch('/api/commercial/reports/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period: selectedPeriod, type: reportType }),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport-commercial-${selectedPeriod}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: language === 'fr' ? 'Export réussi' : 'Export successful',
+          description: language === 'fr' ? 'Rapport PDF téléchargé' : 'PDF report downloaded'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur d\'export' : 'Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter le rapport' : 'Failed to export report',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const response = await fetch('/api/commercial/reports/export/excel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period: selectedPeriod, type: reportType }),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `rapport-commercial-${selectedPeriod}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: language === 'fr' ? 'Export réussi' : 'Export successful',
+          description: language === 'fr' ? 'Rapport Excel téléchargé' : 'Excel report downloaded'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur d\'export' : 'Export error',
+        description: language === 'fr' ? 'Impossible d\'exporter le rapport' : 'Failed to export report',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
@@ -125,11 +239,11 @@ const FunctionalCommercialReports: React.FC = () => {
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportPDF}>
             <Download className="w-4 h-4 mr-2" />
             {t?.actions?.exportPDF}
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExportExcel}>
             <FileText className="w-4 h-4 mr-2" />
             {t?.actions?.exportExcel}
           </Button>
@@ -182,7 +296,7 @@ const FunctionalCommercialReports: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.metrics?.totalRevenue}</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {mockData.totalRevenue.toLocaleString()} CFA
+                  {data.totalRevenue.toLocaleString()} CFA
                 </p>
               </div>
             </div>
@@ -197,7 +311,7 @@ const FunctionalCommercialReports: React.FC = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.metrics?.newSchools}</p>
-                <p className="text-2xl font-bold text-blue-600">{mockData.newSchools}</p>
+                <p className="text-2xl font-bold text-blue-600">{data.newSchools}</p>
               </div>
             </div>
           </CardContent>
@@ -211,7 +325,7 @@ const FunctionalCommercialReports: React.FC = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.metrics?.conversionRate}</p>
-                <p className="text-2xl font-bold text-purple-600">{mockData.conversionRate}%</p>
+                <p className="text-2xl font-bold text-purple-600">{data.conversionRate}%</p>
               </div>
             </div>
           </CardContent>
@@ -226,7 +340,7 @@ const FunctionalCommercialReports: React.FC = () => {
               <div className="ml-3">
                 <p className="text-sm text-gray-600">{t?.metrics?.avgDealSize}</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {mockData.avgDealSize.toLocaleString()} CFA
+                  {data.avgDealSize.toLocaleString()} CFA
                 </p>
               </div>
             </div>
@@ -243,7 +357,7 @@ const FunctionalCommercialReports: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="h-64 flex items-end justify-between space-x-2">
-              {mockData.monthlyTrend.map((item, index) => (
+              {data.monthlyTrend.map((item, index) => (
                 <div key={index} className="flex flex-col items-center">
                   <div 
                     className="bg-blue-500 w-8 rounded-t"
@@ -266,7 +380,7 @@ const FunctionalCommercialReports: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockData.topSchools.map((school, index) => (
+              {data.topSchools.map((school, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div>
                     <div className="font-medium">{school.name || ''}</div>

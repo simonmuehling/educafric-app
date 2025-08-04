@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Card, CardContent, CardHeader, CardTitle 
@@ -14,12 +16,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MapPin, Smartphone, Users, Shield, Settings, BarChart3, 
   AlertTriangle, Eye, Zap, Clock, Battery, Map, Plus,
-  AlertCircle, CheckCircle, XCircle, Navigation, Home, BookOpen
+  AlertCircle, CheckCircle, XCircle, Navigation, Home, BookOpen,
+  RefreshCw
 } from 'lucide-react';
+
+interface GeolocationStats {
+  activeStudents: number;
+  totalStudents: number;
+  teachingZones: number;
+  completedSessions: number;
+}
+
+interface Student {
+  id: number;
+  studentName: string;
+  subject: string;
+  status: string;
+  lastUpdate: string;
+  location: string;
+}
+
+interface TeachingZone {
+  id: number;
+  name: string;
+  type: string;
+  coordinates: { lat: number; lng: number };
+  radius: number;
+  studentsToday: number;
+}
+
+interface Session {
+  id: number;
+  studentName: string;
+  subject: string;
+  startTime: string;
+  duration: string;
+  status: string;
+  location: string;
+}
 
 const FreelancerGeolocation = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [showAddZoneModal, setShowAddZoneModal] = useState(false);
   const [selectedCoordinates, setSelectedCoordinates] = useState<{lat: number, lng: number} | null>(null);
 
@@ -77,87 +117,116 @@ const FreelancerGeolocation = () => {
     absent: 'Absent'
   };
 
-  // Mock data pour démonstration
-  const mockData = {
-    stats: {
-      activeStudents: 5,
-      totalStudents: 12,
-      teachingZones: 6,
-      completedSessions: 24
+  // Fetch geolocation stats from API
+  const { data: stats, isLoading: statsLoading } = useQuery<GeolocationStats>({
+    queryKey: ['/api/freelancer/geolocation/stats'],
+    queryFn: async () => {
+      console.log('[FREELANCER_GEOLOCATION] 🔍 Fetching stats...');
+      const response = await fetch('/api/freelancer/geolocation/stats', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FREELANCER_GEOLOCATION] ❌ Failed to fetch stats');
+        throw new Error('Failed to fetch geolocation stats');
+      }
+      const data = await response.json();
+      console.log('[FREELANCER_GEOLOCATION] ✅ Stats loaded:', data);
+      return data;
     },
-    students: [
-      {
-        id: 1,
-        studentName: 'Paul Mvondo',
-        subject: 'Mathématiques',
-        status: 'inSession',
-        lastUpdate: 'Il y a 2 min',
-        location: 'Domicile Élève - Bastos'
-      },
-      {
-        id: 2,
-        studentName: 'Sophie Biya',
-        subject: 'Français',
-        status: 'completed',
-        lastUpdate: 'Il y a 30 min',
-        location: 'Bibliothèque Municipale'
-      },
-      {
-        id: 3,
-        studentName: 'Jean Mballa',
-        subject: 'Physique',
-        status: 'absent',
-        lastUpdate: 'Il y a 1h',
-        location: 'Centre de Cours Privés'
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Fetch students from API
+  const { data: students = [], isLoading: studentsLoading } = useQuery<Student[]>({
+    queryKey: ['/api/freelancer/geolocation/students'],
+    queryFn: async () => {
+      console.log('[FREELANCER_GEOLOCATION] 🔍 Fetching students...');
+      const response = await fetch('/api/freelancer/geolocation/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FREELANCER_GEOLOCATION] ❌ Failed to fetch students');
+        throw new Error('Failed to fetch students');
       }
-    ],
-    teachingZones: [
-      {
-        id: 1,
-        name: 'Centre de Cours Privés',
-        type: 'educational',
-        coordinates: { lat: 3.8480, lng: 11.5021 },
-        radius: 150,
-        studentsToday: 3
-      },
-      {
-        id: 2,
-        name: 'Domicile Élève - Bastos',
-        type: 'residential',
-        coordinates: { lat: 3.8580, lng: 11.5121 },
-        radius: 100,
-        studentsToday: 2
-      },
-      {
-        id: 3,
-        name: 'Bibliothèque Municipale',
-        type: 'educational',
-        coordinates: { lat: 3.8380, lng: 11.4921 },
-        radius: 200,
-        studentsToday: 1
+      const data = await response.json();
+      console.log('[FREELANCER_GEOLOCATION] ✅ Students loaded:', data.length);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Fetch teaching zones from API
+  const { data: teachingZones = [], isLoading: zonesLoading } = useQuery<TeachingZone[]>({
+    queryKey: ['/api/freelancer/geolocation/zones'],
+    queryFn: async () => {
+      console.log('[FREELANCER_GEOLOCATION] 🔍 Fetching zones...');
+      const response = await fetch('/api/freelancer/geolocation/zones', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FREELANCER_GEOLOCATION] ❌ Failed to fetch zones');
+        throw new Error('Failed to fetch teaching zones');
       }
-    ],
-    sessions: [
-      {
-        id: 1,
-        studentName: 'Paul Mvondo',
-        subject: 'Mathématiques',
-        startTime: '14:00',
-        duration: '2h',
-        status: 'inSession',
-        location: 'Domicile Élève'
-      },
-      {
-        id: 2,
-        studentName: 'Sophie Biya',
-        subject: 'Français',
-        startTime: '16:00',
-        duration: '1h30',
-        status: 'completed',
-        location: 'Bibliothèque'
+      const data = await response.json();
+      console.log('[FREELANCER_GEOLOCATION] ✅ Zones loaded:', data.length);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Fetch sessions from API
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery<Session[]>({
+    queryKey: ['/api/freelancer/geolocation/sessions'],
+    queryFn: async () => {
+      console.log('[FREELANCER_GEOLOCATION] 🔍 Fetching sessions...');
+      const response = await fetch('/api/freelancer/geolocation/sessions', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FREELANCER_GEOLOCATION] ❌ Failed to fetch sessions');
+        throw new Error('Failed to fetch sessions');
       }
-    ]
-  };
+      const data = await response.json();
+      console.log('[FREELANCER_GEOLOCATION] ✅ Sessions loaded:', data.length);
+      return data;
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Add teaching zone mutation
+  const addZoneMutation = useMutation({
+    mutationFn: async (zoneData: any) => {
+      const response = await fetch('/api/freelancer/geolocation/zones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(zoneData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to add zone');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/geolocation/zones'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/geolocation/stats'] });
+      setShowAddZoneModal(false);
+      setSelectedCoordinates(null);
+      toast({
+        title: language === 'fr' ? 'Zone ajoutée' : 'Zone added',
+        description: language === 'fr' ? 'Zone d\'enseignement créée avec succès' : 'Teaching zone created successfully'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer la zone' : 'Failed to create zone',
+        variant: 'destructive'
+      });
+    }
+  });
 
   const handleInteractiveSelection = () => {
     toast({
@@ -170,7 +239,7 @@ const FreelancerGeolocation = () => {
     setSelectedCoordinates({ lat: 3.8480, lng: 11.5021 });
   };
 
-  const handleAddZone = async () => {
+  const handleAddZone = () => {
     if (!selectedCoordinates) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -180,82 +249,28 @@ const FreelancerGeolocation = () => {
       return;
     }
 
-    try {
-      const response = await fetch('/api/freelancer/teaching-zones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Nouvelle Zone Cours',
-          type: 'teaching_center',
-          coordinates: selectedCoordinates,
-          radius: 100,
-          description: 'Zone d\'enseignement créée interactivement'
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        toast({
-          title: language === 'fr' ? 'Zone ajoutée' : 'Zone added',
-          description: language === 'fr' ? 
-            `Nouvelle zone d'enseignement créée avec position interactive` :
-            `New teaching zone created with interactive position`,
-        });
-        setShowAddZoneModal(false);
-        setSelectedCoordinates(null);
-      } else {
-        throw new Error('Failed to create zone');
-      }
-    } catch (error) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible de créer la zone' : 'Unable to create zone',
-        variant: 'destructive'
-      });
-    }
+    addZoneMutation.mutate({
+      name: 'Nouvelle Zone Cours',
+      type: 'teaching_center',
+      coordinates: selectedCoordinates,
+      radius: 100,
+      description: 'Zone d\'enseignement créée interactivement'
+    });
   };
 
-  const handleViewStudents = async () => {
-    try {
-      const response = await fetch('/api/freelancer/students');
-      if (response.ok) {
-        const students = await response.json();
-        const activeStudents = (Array.isArray(students) ? students : []).filter((s: any) => s.status === 'active' || s.status === 'in_session').length;
-        toast({
-          title: language === 'fr' ? 'Élèves Actifs' : 'Active Students',
-          description: language === 'fr' ? `${activeStudents} élèves connectés actuellement` : `${activeStudents} students currently connected`
-        });
-      } else {
-        throw new Error('Failed to fetch students');
-      }
-    } catch (error) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible de charger les élèves' : 'Unable to load students',
-        variant: 'destructive'
-      });
-    }
+  const handleViewStudents = () => {
+    const activeStudents = (Array.isArray(students) ? students : []).filter((s: any) => s.status === 'inSession' || s.status === 'active').length;
+    toast({
+      title: language === 'fr' ? 'Élèves Actifs' : 'Active Students',
+      description: language === 'fr' ? `${activeStudents} élèves connectés actuellement` : `${activeStudents} students currently connected`
+    });
   };
 
-  const handleConfigureZones = async () => {
-    try {
-      const response = await fetch('/api/freelancer/teaching-zones');
-      if (response.ok) {
-        const zones = await response.json();
-        toast({
-          title: language === 'fr' ? 'Zones Configurées' : 'Configured Zones',
-          description: language === 'fr' ? `${(Array.isArray(zones) ? zones.length : 0)} zones d'enseignement actives` : `${(Array.isArray(zones) ? zones.length : 0)} active teaching zones`
-        });
-      } else {
-        throw new Error('Failed to fetch zones');
-      }
-    } catch (error) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible de charger les zones' : 'Unable to load zones',
-        variant: 'destructive'
-      });
-    }
+  const handleConfigureZones = () => {
+    toast({
+      title: language === 'fr' ? 'Zones Configurées' : 'Configured Zones',
+      description: language === 'fr' ? `${(Array.isArray(teachingZones) ? teachingZones.length : 0)} zones d'enseignement actives` : `${(Array.isArray(teachingZones) ? teachingZones.length : 0)} active teaching zones`
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -283,6 +298,19 @@ const FreelancerGeolocation = () => {
       default: return <MapPin className="w-4 h-4 text-gray-500" />;
     }
   };
+
+  if (statsLoading || studentsLoading || zonesLoading || sessionsLoading) {
+    return (
+      <div className="space-y-6 p-6 bg-white">
+        <div className="text-center py-8">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">
+            {language === 'fr' ? 'Chargement des données géolocalisation...' : 'Loading geolocation data...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6 bg-white">
@@ -318,7 +346,7 @@ const FreelancerGeolocation = () => {
                 <Users className="h-8 w-8 text-blue-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.activeStudents}</p>
-                  <p className="text-2xl font-bold">{mockData?.stats?.activeStudents}</p>
+                  <p className="text-2xl font-bold">{stats?.activeStudents || 0}</p>
                 </div>
               </CardContent>
             </Card>
@@ -328,7 +356,7 @@ const FreelancerGeolocation = () => {
                 <Users className="h-8 w-8 text-green-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.totalStudents}</p>
-                  <p className="text-2xl font-bold">{mockData?.stats?.totalStudents}</p>
+                  <p className="text-2xl font-bold">{stats?.totalStudents || 0}</p>
                 </div>
               </CardContent>
             </Card>
@@ -338,7 +366,7 @@ const FreelancerGeolocation = () => {
                 <MapPin className="h-8 w-8 text-purple-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.teachingZones}</p>
-                  <p className="text-2xl font-bold">{mockData?.stats?.teachingZones}</p>
+                  <p className="text-2xl font-bold">{stats?.teachingZones || 0}</p>
                 </div>
               </CardContent>
             </Card>
@@ -348,7 +376,7 @@ const FreelancerGeolocation = () => {
                 <CheckCircle className="h-8 w-8 text-orange-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{t.completedSessions}</p>
-                  <p className="text-2xl font-bold">{mockData?.stats?.completedSessions}</p>
+                  <p className="text-2xl font-bold">{stats?.completedSessions || 0}</p>
                 </div>
               </CardContent>
             </Card>
@@ -356,7 +384,7 @@ const FreelancerGeolocation = () => {
         </TabsContent>
 
         <TabsContent value="students" className="space-y-4">
-          {(Array.isArray(mockData.students) ? mockData.students : []).map((student) => (
+          {(Array.isArray(students) ? students : []).map((student) => (
             <Card key={student.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -440,6 +468,7 @@ const FreelancerGeolocation = () => {
                     <Button 
                       className="flex-1" 
                       onClick={handleAddZone}
+                      disabled={addZoneMutation.isPending}
                     >
                       {t.save}
                     </Button>
@@ -459,7 +488,7 @@ const FreelancerGeolocation = () => {
             </Dialog>
           </div>
 
-          {(Array.isArray(mockData.teachingZones) ? mockData.teachingZones : []).map((zone) => (
+          {(Array.isArray(teachingZones) ? teachingZones : []).map((zone) => (
             <Card key={zone.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -485,7 +514,7 @@ const FreelancerGeolocation = () => {
         </TabsContent>
 
         <TabsContent value="sessions" className="space-y-4">
-          {(Array.isArray(mockData.sessions) ? mockData.sessions : []).map((session) => (
+          {(Array.isArray(sessions) ? sessions : []).map((session) => (
             <Card key={session.id}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
