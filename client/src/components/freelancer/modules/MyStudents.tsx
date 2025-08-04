@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/CardLayout';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, Lock, Crown, Star, BarChart3, MessageSquare, Calendar, BookOpen, TrendingUp } from 'lucide-react';

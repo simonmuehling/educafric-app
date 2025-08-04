@@ -34,6 +34,7 @@ const WhatsAppNotifications = () => {
   const [activeTab, setActiveTab] = useState('settings');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [notifications, setNotifications] = useState<WhatsAppNotification[]>([]);
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
 

@@ -9,7 +9,6 @@ import {
   BookOpen, MapPin, DollarSign, User, CheckCircle,
   RefreshCw, AlertCircle
 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/CardLayout';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/ModernCard';
 

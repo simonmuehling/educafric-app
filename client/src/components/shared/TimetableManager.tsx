@@ -6,7 +6,6 @@ import {
   Calendar, Clock, Plus, Edit3, Save, X, Users, 
   BookOpen, MapPin, AlertCircle, Check, Settings
 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/CardLayout';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/ModernCard';
 
@@ -171,7 +170,7 @@ const TimetableManager = () => {
 
     // Filter based on user role
     if (user?.role === 'Teacher') {
-      return (Array.isArray(baseSchedule) ? baseSchedule : []).filter(slot => slot.teacher === user.name);
+      return (Array.isArray(baseSchedule) ? baseSchedule : []).filter(slot => slot.teacher === (user.firstName || user.email || 'Teacher'));
     }
     
     return baseSchedule;
@@ -209,7 +208,7 @@ const TimetableManager = () => {
       startTime: '08:00',
       endTime: '09:00',
       subject: language === 'fr' ? 'Nouvelle Matière' : 'New Subject',
-      teacher: user?.name || 'Teacher',
+      teacher: user?.firstName || user?.email || 'Teacher',
       room: '101',
       class: '6ème A',
       students: 30
