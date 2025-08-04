@@ -11,54 +11,13 @@
 
 ## 🎯 VUE D'ENSEMBLE DU SYSTÈME
 
-### 8 RÔLES UTILISATEURS DISTINCTS
-- **👑 Site Admin** - Administration technique globale
+### 6 RÔLES UTILISATEURS PRINCIPAUX
 - **🏫 Admin École** - Gestion administrative école  
 - **👨‍💼 Directeur** - Direction pédagogique et stratégique
 - **👩‍🏫 Enseignant** - Gestion de classe et pédagogie
 - **👨‍👩‍👧‍👦 Parent** - Suivi enfants et communication
 - **🎓 Élève** - Apprentissage et suivi académique
-- **💼 Commercial** - Ventes et prospection
 - **🆓 Freelancer** - Enseignement indépendant
-
----
-
-## 👑 DASHBOARD SITE ADMIN
-### Administration Technique Complète
-
-#### 🔧 **MODULES PRINCIPAUX**
-
-**🖥️ GESTION SYSTÈME**
-- Monitoring performance en temps réel
-- Surveillance CPU, RAM, disque, réseau
-- Alertes automatiques incidents critiques
-- Gestion des sauvegardes automatiques
-
-**👥 GESTION UTILISATEURS GLOBALE**
-- Vue d'ensemble 10,000+ utilisateurs actifs
-- Recherche et filtrage multi-critères
-- Actions en masse (activation/désactivation)
-- Audit trail complet des actions
-
-**🏫 GESTION DES ÉCOLES**
-- Supervision 500+ écoles partenaires
-- Statistiques revenus par établissement
-- Monitoring utilisation par école
-- Configuration paramètres globaux
-
-**📊 RAPPORTS SYSTÈME**
-- Performance globale plateforme
-- Analyses d'utilisation détaillées
-- Rapports financiers consolidés
-- Métriques SLA et disponibilité
-
-#### 🎯 **INDICATEURS CLÉS**
-```
-📈 Uptime Système: 99.97%
-👥 Utilisateurs Actifs: 12,847
-🏫 Écoles Connectées: 523
-💰 Revenus Mois: 45,000,000 CFA
-```
 
 ---
 
@@ -253,45 +212,6 @@
 📈 Moyenne Générale: 15.4/20
 🏆 Badges Obtenus: 12
 📅 Devoirs en Retard: 0
-```
-
----
-
-## 💼 DASHBOARD COMMERCIAL
-### Ventes et Prospection CRM
-
-#### 💰 **MODULES COMMERCIAUX**
-
-**🎯 GESTION PROSPECTS**
-- Base de données écoles prospects
-- Pipeline de ventes structuré
-- Suivi interactions clients
-- Scoring automatique leads
-
-**📊 TABLEAU DE BORD VENTES**
-- KPIs commerciaux temps réel
-- Objectifs vs réalisations
-- Prévisions revenus
-- Analyses performances
-
-**💳 CONFIRMATION PAIEMENTS**
-- Validation paiements clients
-- Boutons Confirmer/Rejeter/Détails
-- Suivi transactions en attente
-- Historique mouvements financiers
-
-**📈 RAPPORTS COMMERCIAUX**
-- Statistiques ventes mensuelles
-- Export données PDF/Excel
-- Analyses conversion prospects
-- ROI par canal acquisition
-
-#### 🎯 **PERFORMANCE COMMERCIALE**
-```
-🏫 Écoles Prospects: 89
-💰 Ventes Mois: 15,000,000 CFA
-📊 Taux Conversion: 23%
-🎯 Objectif Atteint: 87%
 ```
 
 ---
