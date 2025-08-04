@@ -96,7 +96,70 @@ const DocumentsContracts = () => {
       size: '2.4 MB',
       format: 'PDF',
       description: 'Contrat annuel premium avec services étendus',
-      content: 'CONTRAT DE SERVICE EDUCAFRIC - École Primaire Bilingue de Yaoundé - Services de plateforme éducative complète avec formation et support technique.'
+      content: `CONTRAT DE SERVICE EDUCAFRIC
+École Primaire Bilingue de Yaoundé
+
+OBJET DU CONTRAT
+Le présent contrat définit les termes et conditions de fourniture des services de la plateforme éducative EDUCAFRIC à l'École Primaire Bilingue de Yaoundé pour l'année scolaire 2024-2025.
+
+SERVICES INCLUS
+
+1. PLATEFORME ÉDUCATIVE COMPLÈTE
+   • Accès illimité à tous les modules EDUCAFRIC
+   • Gestion académique intégrée (notes, bulletins, emplois du temps)
+   • Système de communication multi-canal (SMS, WhatsApp, Email)
+   • Outils de gestion financière et paiements
+
+2. FORMATION ET ACCOMPAGNEMENT
+   • Formation initiale du personnel (20 heures)
+   • Support technique 24/7 en français
+   • Mise à jour gratuite de la plateforme
+   • Assistance à la migration des données existantes
+
+3. MODULES PREMIUM ACTIVÉS
+   • Géolocalisation des élèves et personnel
+   • Rapports avancés et tableaux de bord
+   • Intégration Orange Money / MTN Mobile Money
+   • Système de notifications push avancé
+
+TARIFICATION
+Abonnement annuel: 65,000 CFA
+Paiement: Trimestriel (16,250 CFA par trimestre)
+Frais d'installation: 15,000 CFA (unique)
+
+ENGAGEMENTS EDUCAFRIC
+• Disponibilité service: 99.5%
+• Temps de réponse support: < 2 heures
+• Sauvegarde quotidienne des données
+• Conformité RGPD et sécurité des données
+
+ENGAGEMENTS ÉCOLE
+• Formation du personnel désigné
+• Respect des conditions d'utilisation
+• Paiement selon échéancier convenu
+• Communication des modifications organisationnelles
+
+DURÉE ET RÉSILIATION
+Durée: 12 mois renouvelable
+Préavis résiliation: 30 jours
+Transfert données: Gratuit en fin de contrat
+
+CONDITIONS PARTICULIÈRES
+• Nombre maximum d'utilisateurs: 150
+• Espace de stockage: 10 GB
+• Nombre de SMS inclus: 2,000/mois
+• Support prioritaire inclus
+
+Fait à Yaoundé, le 20 janvier 2024
+
+Pour EDUCAFRIC:                    Pour l'École:
+Simon MUENHE                       Directeur Académique
+Directeur Commercial               École Primaire Bilingue Yaoundé
+
+Signature: _________________      Signature: _________________
+
+EDUCAFRIC Platform v4.2.3
+Contact: support@educafric.com | Tél: +237 XXX XXX XXX`
     },
     {
       id: 2,
