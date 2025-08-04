@@ -963,66 +963,191 @@ www.educafric.com - Revolutionner l'education en Afrique`
       size: '2.8 MB',
       format: 'PDF',
       description: 'Présentation complète de tous les tableaux de bord utilisateurs EDUCAFRIC',
-      content: `PRÉSENTATION COMPLÈTE DES DASHBOARDS EDUCAFRIC 2025
+      content: `PRÉSENTATION DASHBOARDS EDUCAFRIC 2025
+Guide Complet des Interfaces Utilisateurs
 
-ARCHITECTURE UTILISATEURS
-EDUCAFRIC propose 6 rôles utilisateurs distincts, chacun avec son dashboard personnalisé et ses modules spécifiques.
+=== ARCHITECTURE UTILISATEURS ===
 
-1. SITE ADMIN (Administrateur Plateforme)
-   • Gestion globale de tous les utilisateurs
-   • Surveillance système et performance
-   • Configuration plateforme
-   • Statistiques globales
-   • Gestion des écoles partenaires
+EDUCAFRIC propose 4 profils principaux d'utilisateurs, chacun avec son dashboard personnalisé et ses modules spécifiques adaptés à ses besoins éducatifs.
 
-2. ADMIN ÉCOLE
-   • Gestion complète de l'établissement
-   • Configuration des classes et matières
-   • Gestion du personnel enseignant
-   • Rapports financiers école
-   • Paramètres institutionnels
+=== 1. DASHBOARD ENSEIGNANT ===
 
-3. DIRECTEUR
-   • Vue d'ensemble établissement
-   • Statistiques académiques
-   • Gestion pédagogique
-   • Rapports direction
-   • Communication institutionnelle
+MODULES DISPONIBLES:
 
-4. ENSEIGNANT
-   • Gestion des classes assignées
-   • Saisie notes et évaluations
-   • Gestion des devoirs
-   • Communication parents
-   • Emploi du temps personnel
+✓ MES CLASSES
+Fonction: Permet de gérer toutes les classes assignées à l'enseignant
+Usage: Visualisation des élèves, effectifs, répartition par matière
+Avantage: Suivi personnalisé de chaque classe
 
-5. PARENT
-   • Suivi enfants scolarisés
-   • Consultation notes et bulletins
-   • Communication enseignants
-   • Paiements frais scolaires
-   • Notifications importantes
+✓ SAISIE DES NOTES
+Fonction: Interface pour enregistrer les évaluations et examens
+Usage: Saisie rapide des notes par matière et par période
+Avantage: Calculs automatiques des moyennes et statistiques
 
-6. ÉLÈVE
-   • Consultation notes personnelles
-   • Emploi du temps
-   • Devoirs à rendre
-   • Ressources pédagogiques
-   • Communication école
+✓ EMPLOI DU TEMPS
+Fonction: Consultation et gestion du planning personnel
+Usage: Visualisation des créneaux d'enseignement, salles assignées
+Avantage: Organisation optimale du temps de travail
 
-7. FREELANCER
-   • Gestion projets éducatifs
-   • Outils création contenu
-   • Collaboration établissements
-   • Facturation services
-   • Portfolio professionnel
+✓ GESTION DEVOIRS
+Fonction: Création et suivi des devoirs donnés aux élèves
+Usage: Attribution de devoirs, fixation des échéances, corrections
+Avantage: Suivi pédagogique complet des travaux élèves
 
-8. COMMERCIAL
-   • Gestion prospects écoles
-   • Documents commerciaux
-   • Suivi ventes
-   • Rapports activité
-   • Outils démonstration
+✓ COMMUNICATION PARENTS
+Fonction: Interface directe pour échanger avec les familles
+Usage: Messages individuels, notifications de notes, alertes
+Avantage: Renforcement du lien école-famille
+
+✓ RAPPORTS DE CLASSE
+Fonction: Génération de statistiques et analyses de performance
+Usage: Rapports de notes, évolution des élèves, comparatifs
+Avantage: Outils d'aide à la décision pédagogique
+
+✓ RESSOURCES PÉDAGOGIQUES
+Fonction: Bibliothèque de contenus éducatifs partagés
+Usage: Accès aux supports de cours, exercices, évaluations
+Avantage: Mutualisation des ressources entre enseignants
+
+=== 2. DASHBOARD ÉLÈVE ===
+
+MODULES DISPONIBLES:
+
+✓ MES NOTES
+Fonction: Consultation de toutes les évaluations personnelles
+Usage: Visualisation des notes par matière, moyennes, évolution
+Avantage: Suivi autonome de la progression scolaire
+
+✓ EMPLOI DU TEMPS
+Fonction: Planning personnel des cours et activités
+Usage: Consultation des créneaux, salles, changements éventuels
+Avantage: Organisation personnelle et anticipation
+
+✓ DEVOIRS À RENDRE
+Fonction: Liste des travaux à effectuer avec échéances
+Usage: Suivi des devoirs assignés, statuts de rendu
+Avantage: Gestion efficace des obligations scolaires
+
+✓ BULLETINS NUMÉRIQUES
+Fonction: Accès aux bulletins officiels dématérialisés
+Usage: Consultation et téléchargement des bulletins trimestriels
+Avantage: Accès immédiat aux résultats officiels
+
+✓ COMMUNICATION
+Fonction: Messages avec enseignants et administration
+Usage: Reception d'informations, alertes, rappels importants
+Avantage: Connexion directe avec l'équipe éducative
+
+✓ RESSOURCES D'APPRENTISSAGE
+Fonction: Accès aux supports de cours et exercices
+Usage: Consultation de documents pédagogiques partagés
+Avantage: Révisions et approfondissements autonomes
+
+✓ CALENDRIER SCOLAIRE
+Fonction: Vue d'ensemble des événements et dates importantes
+Usage: Consultation des examens, vacances, événements école
+Avantage: Planification et anticipation des périodes clés
+
+=== 3. DASHBOARD PARENT ===
+
+MODULES DISPONIBLES:
+
+✓ SUIVI ENFANTS
+Fonction: Tableau de bord centralisé pour tous les enfants scolarisés
+Usage: Vue d'ensemble des résultats, comportement, assiduité
+Avantage: Monitoring complet de la scolarité familiale
+
+✓ CONSULTATION NOTES
+Fonction: Accès en temps réel aux évaluations des enfants
+Usage: Visualisation détaillée des notes par matière et période
+Avantage: Réactivité immédiate sur les résultats scolaires
+
+✓ COMMUNICATION ÉCOLE
+Fonction: Canal direct avec enseignants et administration
+Usage: Échanges sur la progression, comportement, besoins spéciaux
+Avantage: Partenariat éducatif renforcé
+
+✓ PAIEMENTS EN LIGNE
+Fonction: Gestion dématérialisée des frais de scolarité
+Usage: Paiements sécurisés MTN/Orange Money, suivi des échéances
+Avantage: Simplicité et traçabilité des transactions
+
+✓ GÉOLOCALISATION ENFANTS
+Fonction: Suivi de position en temps réel des enfants (optionnel)
+Usage: Monitoring sécurisé des trajets domicile-école
+Avantage: Sérénité et sécurité familiale
+
+✓ NOTIFICATIONS IMPORTANTES
+Fonction: Réception d'alertes personnalisées par SMS/WhatsApp
+Usage: Alertes absence, retard, urgences, événements
+Avantage: Réactivité immédiate aux situations importantes
+
+✓ CALENDRIER FAMILIAL
+Fonction: Planning intégré des événements scolaires familiaux
+Usage: Réunions parents, conseils de classe, événements
+Avantage: Organisation familiale optimisée
+
+=== 4. DASHBOARD FREELANCER ===
+
+MODULES DISPONIBLES:
+
+✓ PROJETS ÉDUCATIFS
+Fonction: Gestion de portefeuille de missions dans les écoles
+Usage: Suivi des contrats, échéances, livrables pédagogiques
+Avantage: Organisation professionnelle des interventions
+
+✓ CRÉATION DE CONTENU
+Fonction: Outils de développement de ressources éducatives
+Usage: Conception de cours, exercices, supports multimédia
+Avantage: Professionnalisation de l'offre pédagogique
+
+✓ COLLABORATION ÉCOLES
+Fonction: Interface de partenariat avec les établissements
+Usage: Négociation de missions, planning d'interventions
+Avantage: Extension du réseau professionnel éducatif
+
+✓ FACTURATION SERVICES
+Fonction: Gestion commerciale et comptable des prestations
+Usage: Émission de factures, suivi des paiements
+Avantage: Simplicité administrative et financière
+
+✓ PORTFOLIO PROFESSIONNEL
+Fonction: Vitrine des compétences et réalisations
+Usage: Présentation d'expertise, témoignages, références
+Avantage: Développement de la réputation professionnelle
+
+✓ FORMATION CONTINUE
+Fonction: Accès aux ressources de développement professionnel
+Usage: Webinaires, formations, mise à jour pédagogique
+Avantage: Maintien de l'excellence et de la compétitivité
+
+✓ RÉSEAU ÉDUCATIF
+Fonction: Communauté de freelancers et échanges professionnels
+Usage: Partage d'expériences, collaborations, recommandations
+Avantage: Enrichissement mutuel et opportunités business
+
+=== AVANTAGES TRANSVERSAUX ===
+
+TOUS LES DASHBOARDS BÉNÉFICIENT DE:
+• Interface bilingue français/anglais
+• Optimisation mobile complète
+• Notifications temps réel
+• Sécurisation des données
+• Synchronisation automatique
+• Support technique 24/7
+• Formation utilisateur incluse
+• Mises à jour gratuites
+
+=== TECHNOLOGIE MODERNE ===
+
+• Applications natives iOS/Android
+• Interface web responsive
+• Mode hors ligne disponible
+• Chiffrement bout-en-bout
+• Sauvegarde automatique cloud
+• Performance optimisée Afrique
+
+EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
 
 CARACTÉRISTIQUES TECHNIQUES
 • Interface responsive mobile-first
