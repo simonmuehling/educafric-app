@@ -195,13 +195,14 @@ Contact: support@educafric.com | Tél: +237 XXX XXX XXX`
       school: 'Template general',
       date: '2025-02-01',
       status: 'finalized',
-      size: '3.8 MB',
+      size: '1.2 MB',
       format: 'PDF',
       description: 'Modele de contrat complet et actualise pour nouveaux clients avec toutes les clauses legales',
       content: `EDUCAFRIC - MODELE CONTRAT STANDARD 2025
-
 CONTRAT DE SERVICES EDUCATIFS NUMERIQUES
 Version Template Standardise - Fevrier 2025
+
+=== PAGE 1/4 ===
 
 PARTIES CONTRACTANTES
 
@@ -223,337 +224,116 @@ Representant legal: [A COMPLETER]
 Fonction: [Directeur/Proprietaire/Responsable]
 
 OBJET DU CONTRAT
+Le present contrat definit les modalites de fourniture des services de la plateforme educative numerique EDUCAFRIC pour la gestion complete des activites scolaires.
 
-Le present contrat definit les modalites de fourniture des services de la plateforme educative numerique EDUCAFRIC a l'etablissement client pour la gestion complete de ses activites scolaires.
+SERVICES INCLUS
+✓ Gestion complete eleves/enseignants/classes
+✓ Systeme bulletins numeriques camerounais
+✓ Communication multi-canaux (SMS/WhatsApp/Email)
+✓ Applications mobiles iOS/Android
+✓ Support technique 24h/7j
+✓ Formation equipe incluse
+✓ Sauvegardes automatiques
 
-DESCRIPTION DES SERVICES
+=== PAGE 2/4 ===
 
-1. PLATEFORME DE GESTION ACADEMIQUE
-
-Gestion des Eleves:
-- Inscription et profils complets
-- Historique academique multi-annees
-- Suivi progression personnalise
-- Gestion des absences et retards
-- Communication automatisee avec parents
-
-Gestion des Enseignants:
-- Profils professionnels detailles
-- Attribution matieres et classes
-- Planning et emploi du temps
-- Suivi des absences
-- Evaluation des performances
-
-Gestion Administrative:
-- Classes et niveaux (SIL a Terminale)
-- Emplois du temps interactifs
-- Calendrier scolaire personnalise
-- Gestion des evenements
-- Rapports administratifs
-
-2. SYSTEME D'EVALUATION ET BULLETINS
-
-Notes et Evaluations:
-- Saisie notes par matiere
-- Calculs automatiques moyennes
-- Coefficients personnalisables
-- Appreciations enseignants
-- Validation directeur
-
-Bulletins Numeriques:
-- Templates officiels camerounais
-- Generation automatique PDF
-- Distribution email/SMS parents
-- Historique conservation securisee
-- Statistiques de classe
-
-3. COMMUNICATION INTEGREE
-
-Multi-canaux:
-- Messages directs enseignants-parents
-- Notifications SMS automatisees
-- WhatsApp Business integration
-- Emails personnalises
-- Notifications push mobile
-
-Contenus:
-- Absences et retards
-- Nouvelles notes
-- Evenements ecole
-- Rappels paiements
-- Alertes urgentes
-
-4. ACCES MOBILE ET TECHNOLOGIE
-
-Applications Natives:
-- iOS et Android optimisees
-- Interface intuitive francais/anglais
-- Mode hors ligne disponible
-- Synchronisation automatique
-- Notifications temps reel
-
-Technologies Avancees:
-- Geolocalisation securisee (optionnel)
-- Reconnaissance faciale (premium)
-- Intelligence artificielle predictive
-- Analytics avances
-- Integrations tierces
-
-PLANS TARIFAIRES ET SERVICES
+PLANS TARIFAIRES
 
 PLAN ECOLE PUBLIQUE
 Prix: 25.000 CFA/mois (250.000 CFA/an)
 Capacite: Jusqu'a 200 eleves
-Economie annuelle: 50.000 CFA
+Services: Fonctionnalites de base + formation + 1000 SMS/mois
 
-Services inclus:
-- Toutes fonctionnalites de base
-- Support technique dedie
-- Formation equipe (8 heures)
-- 1000 SMS/mois inclus
-- Sauvegarde quotidienne
-- Maintenance incluse
-
-PLAN ECOLE PRIVEE
+PLAN ECOLE PRIVEE  
 Prix: 75.000 CFA/mois (750.000 CFA/an)
 Capacite: Jusqu'a 500 eleves
-Economie annuelle: 150.000 CFA
-
-Services supplementaires:
-- Geolocalisation avancee
-- Systeme paiement integre
-- Comptabilite complete
-- Branding personnalise
-- Analytics IA
-- Support prioritaire 24/7
-- Formation etendue (40 heures)
+Services: Plan Public + geolocalisation + comptabilite + branding
 
 PLAN ENTERPRISE
 Prix: 150.000 CFA/mois (1.500.000 CFA/an)
 Capacite: Illimitee
-Solution sur mesure complete
-
-Services premium:
-- Multi-campus
-- Personnalisation totale
-- Integrations specifiques
-- Infrastructure dediee
-- Equipe support dediee
-- Developpements specifiques
+Services: Solution complete sur mesure + multi-campus
 
 MODALITES DE PAIEMENT
+✓ Orange Money / MTN Mobile Money
+✓ Cartes bancaires internationales
+✓ Virements bancaires
+✓ Periode essai: 30 jours gratuits
+✓ Paiement annuel: 15% reduction
 
-Methodes Acceptees:
-- Orange Money Cameroun
-- MTN Mobile Money
-- Cartes bancaires (Stripe)
-- Virements bancaires
-- Especes (agents locaux)
+OBLIGATIONS PRINCIPALES
 
-Conditions:
-- Paiement mensuel: 1er de chaque mois
-- Paiement annuel: 15% reduction
-- Periode essai: 30 jours gratuits
-- Retard: penalites 2% par mois
-- Resiliation: preavis 30 jours
+EDUCAFRIC s'engage à:
+• Disponibilite 99.5% minimum
+• Support < 4h ouvrables
+• Chiffrement SSL/TLS complet
+• Formation initiale incluse
+• Sauvegardes quotidiennes
 
-OBLIGATIONS DU FOURNISSEUR
+CLIENT s'engage à:
+• Designer 2 administrateurs maximum
+• Respecter conditions utilisation
+• Paiement selon echeancier
+• Faciliter formations
 
-Support Technique:
-- Disponibilite 24h/7j
-- Temps reponse: < 4h ouvrables
-- Resolution: < 24h ouvrables
-- Hotline francais dedicagee
-- Documentation complete
-
-Securite:
-- Chiffrement SSL/TLS
-- Sauvegardes quotidiennes
-- Protection donnees GDPR
-- Acces securise roles
-- Audit securite annuel
-
-Formation:
-- Formation initiale incluse
-- Documentation utilisateur
-- Tutoriels video
-- Webinaires mensuels
-- Support personnalise
-
-OBLIGATIONS DU CLIENT
-
-Utilisation:
-- Respecter conditions utilisation
-- Designer administrateurs (max 2)
-- Former personnel interne
-- Communiquer changements
-- Participer mises a jour
-
-Paiements:
-- Regler factures dans delais
-- Communiquer difficultes
-- Mettre a jour coordonnees
-- Respecter engagement duree
-
-Cooperation:
-- Faciliter formations
-- Fournir informations necessaires
-- Tester nouvelles fonctionnalites
-- Participer ameliorations
-
-PROPRIETE INTELLECTUELLE
-
-Droits EDUCAFRIC:
-- Code source plateforme
-- Algorithmes et methodes
-- Base donnees systeme
-- Marques et logos
-- Innovations techniques
-
-Droits Client:
-- Donnees scolaires exclusives
-- Droit exportation complete
-- Personnalisations specifiques
-- Contenus pedagogiques
-- Parametrages etablissement
-
-CONFIDENTIALITE
-
-Engagements Mutuels:
-- Non-divulgation informations
-- Protection donnees personnelles
-- Acces personnel autorise uniquement
-- Signalement incidents
-- Respect vie privee eleves
-
-Donnees Sensibles:
-- Informations eleves/parents
-- Resultats scolaires
-- Donnees financieres
-- Strategies pedagogiques
-- Informations strategiques
+=== PAGE 3/4 ===
 
 DUREE ET RESILIATION
+• Duree initiale: 12 mois minimum
+• Renouvellement automatique
+• Preavis resiliation: 30 jours
+• Export donnees garanti
 
-Duree Initiale:
-- Periode: 12 mois minimum
-- Renouvellement automatique
-- Tacite reconduction
-- Preavis resiliation: 30 jours
+CONDITIONS RESILIATION
+Par EDUCAFRIC: Non-paiement 30+ jours, violation conditions
+Par CLIENT: Motif libre avec preavis 30 jours
 
-Conditions Resiliation:
+PROPRIETE INTELLECTUELLE
+EDUCAFRIC: Code source, algorithmes, marques
+CLIENT: Donnees scolaires exclusives, export libre
 
-Par EDUCAFRIC:
-- Non-paiement (30 jours retard)
-- Violation conditions
-- Usage frauduleux
-- Preavis: 15 jours
-
-Par le Client:
-- Motif libre
-- Preavis ecrit 30 jours
-- Remboursement prorata
-- Export donnees garanti
+CONFIDENTIALITE
+Protection complete donnees eleves/parents selon GDPR
+Non-divulgation mutuelle informations sensibles
 
 RESPONSABILITES
+Limitation EDUCAFRIC: Maximum montant annuel paye
+Garantie disponibilite: 99.5% minimum
+Assurance RC professionnelle incluse
 
-Limitation EDUCAFRIC:
-- Maximum: montant annuel paye
-- Exclusion dommages indirects
-- Force majeure exclue
-- Assurance RC professionnelle
+DROIT APPLICABLE
+Legislation camerounaise - Tribunaux Yaounde
+Langue officielle: Francais
+Mediation possible en cas litige
 
-Garanties Service:
-- Disponibilite: 99.5% minimum
-- Performance: standards definis
-- Securite: protection adaptee
-- Evolution: mises a jour regulieres
-
-DISPOSITIONS LEGALES
-
-Droit Applicable:
-- Legislation camerounaise
-- Tribunaux Yaounde competents
-- Langue contrat: francais
-- Mediation possible
-
-Modifications:
-- Avenant ecrit obligatoire
-- Notification 30 jours
-- Droit refus modifications
-- Resiliation si desaccord
-
-Integralite:
-- Contrat complet et definitif
-- Annule accords anterieurs
-- Conditions generales web
-- Priorite version francaise
+=== PAGE 4/4 ===
 
 CONDITIONS PARTICULIERES
+[Section personnalisable selon etablissement]
 
-[Section a personnaliser selon client]
+Specifications client:
+• Nombre eleves: [A COMPLETER]
+• Nombre enseignants: [A COMPLETER]  
+• Niveaux: [A COMPLETER]
+• Modules specifiques: [A LISTER]
 
-Specificites etablissement:
-- Nombre eleves actuel: [A COMPLETER]
-- Nombre enseignants: [A COMPLETER]
-- Niveaux enseignes: [A COMPLETER]
-- Besoins specifiques: [A COMPLETER]
+IMPLEMENTATION (4 semaines)
+Semaine 1: Parametrage + import donnees
+Semaine 2: Formation equipe complete
+Semaine 3: Deploiement + accompagnement
+Semaine 4: Stabilisation + optimisation
 
-Parametrages demandes:
-- Couleurs etablissement: [A COMPLETER]
-- Logo personnalise: [OUI/NON]
-- Modules supplementaires: [A LISTER]
-- Integrations requises: [A DEFINIR]
-
-PLANNING IMPLEMENTATION
-
-Phase 1 - Preparation (Semaine 1):
-- Audit besoins detaille
-- Parametrage plateforme
-- Creation comptes utilisateurs
-- Import donnees existantes
-
-Phase 2 - Formation (Semaine 2):
-- Formation administrateurs
-- Formation enseignants
-- Formation secretariat
-- Tests fonctionnels
-
-Phase 3 - Deploiement (Semaine 3):
-- Mise en production
-- Accompagnement quotidien
-- Corrections eventuelles
-- Validation finale
-
-Phase 4 - Stabilisation (Semaine 4):
-- Support intensif
-- Optimisations
-- Formation complementaire
-- Bilan implementation
-
-CONTACTS ET SUPPORT
-
-EDUCAFRIC Support:
-Email: support@educafric.com
-Telephone: +237 XXX XXX XXX
-WhatsApp: +237 XXX XXX XXX
-Horaires: Lun-Sam 7h-20h
-
-Commercial:
-Email: commercial@educafric.com
-Responsable: [NOM COMMERCIAL]
-Telephone direct: [A COMPLETER]
-
-Technique:
-Email: technique@educafric.com
-Urgences: +237 XXX XXX XXX
-Disponible: 24h/7j
+CONTACTS SUPPORT
+Support: support@educafric.com / +237 XXX XXX XXX
+Commercial: commercial@educafric.com
+Technique: technique@educafric.com (24h/7j)
+Horaires: Lundi-Samedi 7h-20h
 
 SIGNATURES
 
 Pour EDUCAFRIC:
 Nom: [A COMPLETER]
-Fonction: [A COMPLETER]
+Fonction: [A COMPLETER]  
 Date: _______________
 Signature: _______________
 Cachet entreprise
@@ -561,21 +341,18 @@ Cachet entreprise
 Pour le Client:
 Nom: [A COMPLETER]
 Fonction: [A COMPLETER]
-Date: _______________
+Date: _______________  
 Signature: _______________
 Cachet etablissement
 
-ANNEXES
-
-Annexe 1: Conditions Generales Utilisation
-Annexe 2: Politique Confidentialite
-Annexe 3: Guide Implementation
-Annexe 4: Grille Tarifaire Complete
-Annexe 5: Specifications Techniques
+ANNEXES INCLUSES
+1. Conditions Generales Utilisation
+2. Politique Confidentialite  
+3. Guide Implementation
+4. Specifications Techniques
 
 ---
-Document genere par EDUCAFRIC Platform v4.2.3
-www.educafric.com - Revolutionner l'education en Afrique
+EDUCAFRIC Platform v4.2.3 - www.educafric.com
 Template mis a jour: Fevrier 2025`
     },
     {
