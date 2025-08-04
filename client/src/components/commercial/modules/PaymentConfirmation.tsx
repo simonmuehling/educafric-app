@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 import { DollarSign, Search, CheckCircle, Clock, AlertCircle, CreditCard, FileText, Calendar } from 'lucide-react';
 
 const PaymentConfirmation = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
   const text = {
     fr: {
@@ -174,6 +177,109 @@ const PaymentConfirmation = () => {
     return `${amount.toLocaleString()} ${currency}`;
   };
 
+  const handleConfirmPayment = async (paymentId: number) => {
+    setLoadingAction(`confirm-${paymentId}`);
+    try {
+      const response = await fetch(`/api/commercial/payments/${paymentId}/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          comment: 'Payment confirmed via admin panel'
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? 'Paiement confirmé' : 'Payment confirmed',
+          description: language === 'fr' ? 'Le paiement a été confirmé avec succès' : 'Payment has been confirmed successfully'
+        });
+        // In real implementation, refresh the payments list
+        window.location.reload();
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      console.error('Error confirming payment:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de confirmer le paiement' : 'Failed to confirm payment',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleRejectPayment = async (paymentId: number) => {
+    setLoadingAction(`reject-${paymentId}`);
+    try {
+      const response = await fetch(`/api/commercial/payments/${paymentId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          reason: 'Payment rejected via admin panel'
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? 'Paiement rejeté' : 'Payment rejected',
+          description: language === 'fr' ? 'Le paiement a été rejeté' : 'Payment has been rejected'
+        });
+        // In real implementation, refresh the payments list
+        window.location.reload();
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      console.error('Error rejecting payment:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de rejeter le paiement' : 'Failed to reject payment',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleViewDetails = async (paymentId: number) => {
+    setLoadingAction(`details-${paymentId}`);
+    try {
+      const response = await fetch(`/api/commercial/payments/${paymentId}/details`, {
+        credentials: 'include'
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // In real implementation, open a modal or navigate to details page
+        alert(`Détails du paiement:\n\nÉcole: ${result.payment.school}\nMontant: ${result.payment.amount} ${result.payment.currency}\nRéférence: ${result.payment.reference}\nContact: ${result.payment.contact}\nTéléphone: ${result.payment.phone}`);
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+      console.error('Error fetching payment details:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de charger les détails' : 'Failed to load details',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter(payment => {
     if (!payment) return false;
     const matchesSearch = payment?.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -237,29 +343,25 @@ const PaymentConfirmation = () => {
         {(Array.isArray(filteredPayments) ? filteredPayments : []).map((payment) => (
           <Card key={payment.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(payment.status)}
-                    {getMethodIcon(payment.method)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900">{payment.school}</h3>
-                      <Badge className={getStatusColor(payment.status)}>
-                        {payment.status === 'confirmed' ? t.confirmed : 
-                         payment.status === 'pending' ? t.pending : t.rejected}
-                      </Badge>
+              <div className="space-y-4">
+                {/* Top section with status and basic info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(payment.status)}
+                      {getMethodIcon(payment.method)}
                     </div>
-                    <p className="text-sm text-gray-600">{payment.description || ''}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>{t.reference}: {payment.reference}</span>
-                      <span>{t.date}: {payment.date}</span>
-                      <span>{payment.contact} - {payment.phone}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-gray-900">{payment.school}</h3>
+                        <Badge className={getStatusColor(payment.status)}>
+                          {payment.status === 'confirmed' ? t.confirmed : 
+                           payment.status === 'pending' ? t.pending : t.rejected}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{payment.description || ''}</p>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-lg font-bold text-gray-900">
                       {formatAmount(payment.amount, payment.currency)}
@@ -270,24 +372,54 @@ const PaymentConfirmation = () => {
                        payment.method === 'cash' ? t.cash : t.card}
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    {payment.status === 'pending' && (
-                      <>
-                        <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          {t.confirm}
-                        </Button>
-                        <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50">
-                          <AlertCircle className="w-3 h-3 mr-1" />
-                          {t.reject}
-                        </Button>
-                      </>
-                    )}
-                    <Button variant="outline" size="sm">
-                      <FileText className="w-3 h-3 mr-1" />
-                      {t.details}
-                    </Button>
+                </div>
+                
+                {/* Contact information and reference details */}
+                <div className="text-sm text-gray-500">
+                  <div className="flex items-center gap-4 mb-2">
+                    <span>{t.reference}: {payment.reference}</span>
+                    <span>{t.date}: {payment.date}</span>
                   </div>
+                  <div className="font-medium text-gray-700 mb-3">
+                    {language === 'fr' ? 'Payé par:' : 'Paid by:'} {payment.contact} - {payment.phone}
+                  </div>
+                </div>
+                
+                {/* Action buttons positioned below the contact information */}
+                <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  {payment.status === 'pending' && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-green-600 border-green-600 hover:bg-green-50"
+                        onClick={() => handleConfirmPayment(payment.id)}
+                        disabled={loadingAction === `confirm-${payment.id}`}
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        {loadingAction === `confirm-${payment.id}` ? (language === 'fr' ? 'En cours...' : 'Loading...') : t.confirm}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        onClick={() => handleRejectPayment(payment.id)}
+                        disabled={loadingAction === `reject-${payment.id}`}
+                      >
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {loadingAction === `reject-${payment.id}` ? (language === 'fr' ? 'En cours...' : 'Loading...') : t.reject}
+                      </Button>
+                    </>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewDetails(payment.id)}
+                    disabled={loadingAction === `details-${payment.id}`}
+                  >
+                    <FileText className="w-3 h-3 mr-1" />
+                    {loadingAction === `details-${payment.id}` ? (language === 'fr' ? 'Chargement...' : 'Loading...') : t.details}
+                  </Button>
                 </div>
               </div>
             </CardContent>

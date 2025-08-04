@@ -6261,6 +6261,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(payments);
   });
 
+  // Payment confirmation endpoints for Commercial/SiteAdmin users
+  app.post("/api/commercial/payments/:id/confirm", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const paymentId = req.params.id;
+      const { comment } = req.body;
+      
+      // In real implementation, update payment status in database
+      console.log(`[PAYMENT_CONFIRMATION] Payment ${paymentId} confirmed by ${(req.user as any).email}`);
+      
+      // Update payment status to confirmed
+      // await storage.updatePaymentStatus(paymentId, 'confirmed', (req.user as any).id, comment);
+      
+      res.json({
+        success: true,
+        message: 'Payment confirmed successfully',
+        paymentId,
+        confirmedBy: (req.user as any).email,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('[PAYMENT_CONFIRMATION] Error confirming payment:', error);
+      res.status(500).json({ message: 'Error confirming payment', error: error.message });
+    }
+  });
+
+  app.post("/api/commercial/payments/:id/reject", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const paymentId = req.params.id;
+      const { reason } = req.body;
+      
+      // In real implementation, update payment status in database
+      console.log(`[PAYMENT_CONFIRMATION] Payment ${paymentId} rejected by ${(req.user as any).email}`);
+      
+      // Update payment status to rejected
+      // await storage.updatePaymentStatus(paymentId, 'rejected', (req.user as any).id, reason);
+      
+      res.json({
+        success: true,
+        message: 'Payment rejected successfully',
+        paymentId,
+        rejectedBy: (req.user as any).email,
+        reason,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('[PAYMENT_CONFIRMATION] Error rejecting payment:', error);
+      res.status(500).json({ message: 'Error rejecting payment', error: error.message });
+    }
+  });
+
+  app.get("/api/commercial/payments/:id/details", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const paymentId = req.params.id;
+      
+      // In real implementation, fetch detailed payment info from database
+      const paymentDetails = {
+        id: paymentId,
+        school: 'École Primaire Bilingue Yaoundé',
+        amount: 250000,
+        currency: 'CFA',
+        status: 'pending',
+        method: 'bankTransfer',
+        reference: `BT-20240122-${paymentId.padStart(3, '0')}`,
+        type: 'subscription',
+        description: 'Abonnement Premium - Janvier 2024',
+        contact: 'Demo User',
+        phone: '+237 656 123 456',
+        email: 'demo@educafric.com',
+        submittedAt: '2024-01-22T10:30:00Z',
+        history: [
+          { action: 'submitted', timestamp: '2024-01-22T10:30:00Z', user: 'system' },
+          { action: 'pending_review', timestamp: '2024-01-22T10:31:00Z', user: 'system' }
+        ]
+      };
+      
+      res.json({
+        success: true,
+        payment: paymentDetails
+      });
+    } catch (error: any) {
+      console.error('[PAYMENT_DETAILS] Error fetching payment details:', error);
+      res.status(500).json({ message: 'Error fetching payment details', error: error.message });
+    }
+  });
+
   app.get("/api/commercial/documents", requireAuth, (req, res) => {
     if (!req.user || !['Commercial', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
       return res.status(403).json({ message: 'Commercial access required' });
