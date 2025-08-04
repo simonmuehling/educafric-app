@@ -415,6 +415,285 @@ Date: _________ Signature: ______________________
       content: 'GUIDE MARKETING DIGITAL EDUCAFRIC\n\nSTRATÉGIES POUR ÉCOLES AFRICAINES\n\n📱 APPROCHE DIGITALE LOCALE\n\nComment présenter EDUCAFRIC aux écoles africaines :\n\n1. IDENTIFIER LES BESOINS LOCAUX\n- Problèmes de gestion manuelle\n- Communication difficile avec les parents\n- Suivi des notes complexe\n- Absences non contrôlées\n\n2. ADAPTER LE DISCOURS\n- Économies réalisées (jusqu\'à 73%)\n- Simplicité d\'utilisation\n- Support en français/anglais\n- Compatible avec les réseaux africains\n\n3. DÉMONSTRATIONS PRATIQUES\n- Montrer le tableau de bord directeur\n- Simulation SMS/WhatsApp parents\n- Demo du bulletin numérique\n- Test de géolocalisation\n\n4. ARGUMENTS CLÉS\n- ROI prouvé dans 50+ écoles\n- Conformité éducation africaine\n- Paiement mobile money\n- Formation incluse\n\n5. OBJECTIONS COURANTES\n- "Trop cher" → Calcul d\'économies\n- "Trop compliqué" → Demo simple\n- "Pas adapté" → Exemples locaux\n- "Pas de connexion" → Mode hors ligne\n\nCONTACT SUPPORT: commercial@educafric.com'
     },
     {
+      id: 8,
+      name: 'PRÉSENTATION DASHBOARDS EDUCAFRIC 2025',
+      type: 'brochure',
+      category: 'brochures',
+      school: 'Documentation client',
+      date: '2025-02-01',
+      status: 'finalized',
+      size: '2.8 MB',
+      format: 'PDF',
+      description: 'Présentation complète de tous les tableaux de bord utilisateurs EDUCAFRIC',
+      content: `# EDUCAFRIC
+## Présentation des Tableaux de Bord Utilisateurs
+### Plateforme Éducative Révolutionnaire pour l'Afrique
+
+---
+
+# PRÉSENTATION COMPLÈTE DES DASHBOARDS
+**Version 4.2.3 - 2025**
+
+---
+
+## 🎯 VUE D'ENSEMBLE DU SYSTÈME
+
+### 6 RÔLES UTILISATEURS PRINCIPAUX
+- **🏫 Admin École** - Gestion administrative école  
+- **👨‍💼 Directeur** - Direction pédagogique et stratégique
+- **👩‍🏫 Enseignant** - Gestion de classe et pédagogie
+- **👨‍👩‍👧‍👦 Parent** - Suivi enfants et communication
+- **🎓 Élève** - Apprentissage et suivi académique
+- **🆓 Freelancer** - Enseignement indépendant
+
+---
+
+## 🏫 DASHBOARD ADMIN ÉCOLE
+### Gestion Administrative Complète
+
+#### 📚 **MODULES ADMINISTRATIFS**
+
+**🎓 GESTION ACADÉMIQUE**
+- Planning général de l'établissement
+- Gestion des classes et emplois du temps
+- Suivi global des notes et évaluations
+- Calendrier scolaire et événements
+
+**👥 GESTION PERSONNEL**
+- Dossiers enseignants et personnels
+- Planification des remplacements
+- Suivi des formations continues
+- Évaluations performances équipe
+
+**💰 GESTION FINANCIÈRE**
+- Suivi des frais de scolarité
+- Gestion des paiements parents
+- Budgets départements et projets
+- Rapports financiers détaillés
+
+**📊 TABLEAU DE BORD EXÉCUTIF**
+- KPIs établissement en temps réel
+- Alertes événements importants
+- Synthèse mensuelle activités
+- Comparaisons performance années
+
+#### 🎯 **MÉTRIQUES ÉTABLISSEMENT**
+```
+👨‍🎓 Enseignants: 45
+🎓 Élèves: 1,250
+📈 Taux Réussite: 92%
+💳 Paiements à Jour: 87%
+```
+
+---
+
+## 👨‍💼 DASHBOARD DIRECTEUR
+### Direction Pédagogique et Stratégique
+
+#### 🎯 **MODULES DIRECTORIAUX**
+
+**📚 SUPERVISION PÉDAGOGIQUE**
+- Vue d'ensemble programmes scolaires
+- Suivi progression pédagogique classes
+- Évaluations performances enseignants
+- Planification formations pédagogiques
+
+**📊 ANALYSES STRATÉGIQUES**
+- Statistiques réussite par matière
+- Comparaisons inter-classes
+- Tendances évolution notes
+- Prédictions orientations élèves
+
+**🤝 RELATIONS COMMUNAUTÉ**
+- Communication parents institutionnelle
+- Organisation événements établissement
+- Gestion partenariats extérieurs
+- Coordination avec autorités éducatives
+
+**📈 PILOTAGE ÉTABLISSEMENT**
+- Objectifs pédagogiques annuels
+- Indicateurs qualité enseignement
+- Projets d'amélioration continue
+- Validation budgets pédagogiques
+
+---
+
+## 👩‍🏫 DASHBOARD ENSEIGNANT
+### Gestion de Classe et Pédagogie
+
+#### 📝 **MODULES PÉDAGOGIQUES**
+
+**👥 GESTION DE CLASSE**
+- Liste élèves avec photos
+- Suivi présences quotidiennes
+- Notes et évaluations continues
+- Communication directe parents
+
+**📚 CONTENU PÉDAGOGIQUE**
+- Création et gestion cours
+- Devoirs et exercices numériques
+- Ressources pédagogiques partagées
+- Évaluations personnalisées
+
+**📊 SUIVI ACADÉMIQUE**
+- Carnet de notes électronique
+- Graphiques progression élèves
+- Alertes difficultés apprentissage
+- Rapports individualisés parents
+
+---
+
+## 👨‍👩‍👧‍👦 DASHBOARD PARENT
+### Suivi Enfants et Communication
+
+#### 👶 **MODULES PARENTAUX**
+
+**🎓 SUIVI ACADÉMIQUE ENFANTS**
+- Notes en temps réel par matière
+- Bulletins scolaires digitaux
+- Progression comparative classe
+- Alertes importantes scolaires
+
+**📅 VIE SCOLAIRE**
+- Emploi du temps enfants
+- Présences et absences
+- Devoirs et échéances
+- Événements et sorties
+
+**💬 COMMUNICATION ÉCOLE**
+- Messages enseignants directs
+- Notifications WhatsApp/SMS
+- Convocations et réunions
+- Actualités établissement
+
+---
+
+## 🎓 DASHBOARD ÉLÈVE
+### Apprentissage et Suivi Académique
+
+#### 📚 **MODULES ÉTUDIANT**
+
+**📖 MON PARCOURS SCOLAIRE**
+- Notes par matière et trimestre
+- Emploi du temps personnalisé
+- Progression et objectifs
+- Conseils orientation future
+
+**📝 DEVOIRS ET TRAVAUX**
+- Agenda devoirs numériques
+- Soumission travaux en ligne
+- Corrections et commentaires
+- Ressources supplémentaires
+
+---
+
+## 🆓 DASHBOARD FREELANCER
+### Enseignement Indépendant
+
+#### 🎓 **MODULES FREELANCE**
+
+**👥 GESTION ÉLÈVES PRIVÉS**
+- Liste élèves cours particuliers
+- Planning sessions personnalisées
+- Suivi progression individualisée
+- Communication parents dédiée
+
+**💰 GESTION ACTIVITÉ**
+- Tarifs et facturation cours
+- Suivi paiements élèves
+- Statistiques revenus mensuels
+- Gestion disponibilités
+
+---
+
+## 🔧 FONCTIONNALITÉS TRANSVERSALES
+
+### 📱 **COMMUNICATION INTÉGRÉE**
+- **WhatsApp Business API** notifications instantanées
+- **SMS Vonage** alertes critiques temps réel
+- **Email Hostinger** communications officielles
+- **Push Notifications** même application fermée
+
+### 💳 **PAIEMENTS AFRICAINS**
+- **Orange Money** intégration complète
+- **MTN Mobile Money** transactions natives
+- **Afriland First Bank** virements automatisés
+- **Stripe International** cartes crédit sécurisées
+
+### 🔒 **SÉCURITÉ AVANCÉE**
+- **Authentification 2FA** Google Authenticator
+- **Firebase OAuth** connexions sécurisées
+- **Détection d'Intrusion IDS** monitoring automatique
+- **Chiffrement AES-256** protection données
+
+### 🌍 **GÉOLOCALISATION**
+- **Suivi GPS temps réel** tablettes et smartphones
+- **Zones de sécurité** geofencing configurable
+- **Alertes d'urgence** parents et administrations
+- **Monitoring trajets** école-maison sécurisés
+
+---
+
+## 📊 MÉTRIQUES GLOBALES PLATEFORME
+
+### 🎯 **INDICATEURS CLÉS DE PERFORMANCE**
+```
+👥 Utilisateurs Totaux: 50,000+
+🏫 Écoles Partenaires: 500+
+💰 Transactions Mensuelles: 2,500,000,000 CFA
+📱 Sessions Quotidiennes: 25,000+
+⚡ Temps Réponse Moyen: <2 secondes
+🔒 Uptime Garanti: 99.9%
+🌍 Pays Couverts: 15 pays africains
+📊 Satisfaction Client: 4.7/5
+```
+
+---
+
+## 🎯 AVANTAGES CONCURRENTIELS
+
+### ✅ **POUR LES ÉCOLES**
+- **Économies:** Jusqu'à 73% vs solutions traditionnelles
+- **Intégration:** Solution tout-en-un complète
+- **Support:** Formation et assistance incluses
+- **Évolutivité:** Croissance avec l'établissement
+
+### ✅ **POUR LES PARENTS**
+- **Transparence:** Suivi temps réel enfants
+- **Communication:** Contact direct enseignants
+- **Simplicité:** Interface intuitive mobile
+- **Économique:** Tarifs adaptés contexte africain
+
+### ✅ **POUR LES ENSEIGNANTS**
+- **Efficacité:** Gestion classe simplifiée
+- **Pédagogie:** Outils modernes enseignement
+- **Communication:** Parents informés automatiquement
+- **Évolution:** Formation continue incluse
+
+---
+
+## 📞 CONTACTS ET SUPPORT
+
+**🏢 EDUCAFRIC - Siège Social**  
+Yaoundé, Cameroun
+
+**📧 SUPPORT TECHNIQUE**  
+support@educafric.com  
+Réponse garantie <24h
+
+**💼 ÉQUIPE COMMERCIALE**  
+commercial@educafric.com  
+WhatsApp: +237 656 200 472
+
+**🌐 SITE WEB**  
+https://educafric.com
+
+---
+
+*Document généré par EDUCAFRIC Platform v4.2.3*  
+*© 2025 EDUCAFRIC - Révolutionnons l'éducation en Afrique*`
+    },
+    {
       id: 7,
       name: 'GUIDE COMPLET EDUCAFRIC - Pour Commerciaux',
       type: 'brochure',
@@ -506,7 +785,7 @@ Date: _________ Signature: ______________________
         }
         
         // Pied de page
-        const pageCount = pdf.internal.getNumberOfPages();
+        const pageCount = (pdf as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
           pdf.setPage(i);
           pdf.setFontSize(8);
