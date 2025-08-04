@@ -607,57 +607,222 @@ Template mis a jour: Fevrier 2025`
     {
       id: 7,
       name: 'Guide Complet EDUCAFRIC - Pour Commerciaux',
-      type: 'brochure',
-      category: 'brochures',
+      type: 'guide',
+      category: 'guides',
       school: 'Document formation',
-      date: '2024-02-01',
+      date: '2025-02-01',
       status: 'finalized',
-      size: '5.2 MB',
+      size: '2.8 MB',
       format: 'PDF',
-      description: 'Guide complet pour équipe commerciale',
-      content: `GUIDE COMPLET EDUCAFRIC - FORMATION COMMERCIALE 2024
+      description: 'Guide complet non-technique EDUCAFRIC avec informations generales sur la plateforme',
+      content: `GUIDE COMPLET EDUCAFRIC
+Plateforme Educative Numerique Africaine - Version 2025
 
-PRÉSENTATION GÉNÉRALE
-EDUCAFRIC est la plateforme éducative révolutionnaire conçue spécifiquement pour l'Afrique. Notre solution complète répond aux défis uniques de l'éducation africaine en proposant des outils numériques adaptés aux réalités locales.
+PAGE 1 - PRESENTATION GENERALE
 
-FONCTIONNALITÉS PRINCIPALES
+QU'EST-CE QU'EDUCAFRIC ?
 
-1. GESTION ACADÉMIQUE COMPLÈTE
-   • Système de notes et bulletins personnalisables
-   • Gestion des emplois du temps avec adaptation climatique
-   • Suivi des présences en temps réel
-   • Gestion des devoirs et évaluations
+EDUCAFRIC est la solution educative complete pensee pour l'Afrique. Notre plateforme transforme la gestion scolaire traditionnelle en experience numerique moderne, accessible et securisee.
 
-2. COMMUNICATION INTÉGRÉE
-   • Notifications SMS via réseau local
-   • WhatsApp Business API
-   • Emails automatisés
-   • Notifications push PWA
+POUR QUI ?
+- Ecoles publiques et privees
+- Parents d'eleves 
+- Enseignants et repetiteurs
+- Eleves de tous niveaux
 
-3. GESTION FINANCIÈRE
-   • Intégration Orange Money / MTN Mobile Money
-   • Paiements Stripe internationaux
-   • Suivi des frais scolaires
-   • Rapports financiers détaillés
+FONCTIONNALITES PRINCIPALES
 
-STRATÉGIES DE VENTE
+GESTION SCOLAIRE COMPLETE
+- Inscription et profils eleves
+- Emplois du temps interactifs
+- Presence electronique quotidienne
+- Notes et bulletins automatises
+- Communication directe parents-enseignants
 
-Prix Compétitifs:
-• Parents: 1,000-1,500 CFA/mois
-• Écoles: 50,000-75,000 CFA/an
-• Freelancers: 25,000 CFA/an
+COMMUNICATION MODERNE
+- Messages instantanes ecole-famille
+- Notifications SMS internationales
+- Alertes automatiques (absences, notes, evenements)
+- Calendrier partage des activites
+- Support francais et anglais
 
-Arguments Clés:
-• Économies jusqu'à 73% comparé aux solutions traditionnelles
-• ROI démontré en moins de 6 mois
-• Support technique 24/7 en français
-• Adaptation aux réalités africaines
+ACCES MOBILE OPTIMISE
+- Applications iPhone et Android
+- Consultation hors ligne
+- Notifications temps reel
+- Interface simple et intuitive
+- Securite renforcee
 
-DÉMONSTRATION
-Utilisez notre environnement sandbox pour les démonstrations complètes avec données réalistes africaines.
+SUIVI SECURISE
+- Geolocalisation optionnelle des eleves
+- Zones de securite personnalisables
+- Alertes d'entree et sortie
+- Suivi trajets domicile-ecole
+- Notifications parents immediates
 
-Contact: commercial@educafric.com
-Version: 4.2.3 - 2024`
+TARIFS ACCESSIBLES AFRIQUE
+
+ECOLES PUBLIQUES
+25.000 CFA par mois
+- Jusqu'a 200 eleves inclus
+- Toutes fonctionnalites de base
+- Support technique inclus
+- Formation equipe 8 heures
+
+ECOLES PRIVEES  
+75.000 CFA par mois
+- Jusqu'a 500 eleves inclus
+- Fonctionnalites avancees
+- Geolocalisation complete
+- Support prioritaire 24/7
+- Formation etendue 40 heures
+
+PARENTS
+1.000 a 1.500 CFA par mois
+- Suivi complet enfant
+- Communications illimitees
+- Acces mobile total
+- Historique notes et absences
+
+REPETITEURS/ENSEIGNANTS PRIVES
+12.500 CFA par semestre
+- Gestion jusqu'a 50 eleves
+- Outils de suivi personnalise
+- Communication parents directe
+- Facturation automatisee
+
+METHODES DE PAIEMENT
+
+SOLUTIONS LOCALES AFRICAINES
+- Orange Money (Cameroun, Cote d'Ivoire, Mali, Senegal)
+- MTN Mobile Money (Cameroun, Ghana, Ouganda, Rwanda)
+- Moov Money (Benin, Burkina Faso, Togo)
+- Wave (Senegal, Cote d'Ivoire)
+
+PAIEMENTS INTERNATIONAUX
+- Cartes de credit Visa/Mastercard
+- Virements bancaires internationaux
+- PayPal pour clients diaspora
+- Western Union pour transferts
+
+COMMUNICATION INTERNATIONALE
+- SMS vers plus de 190 pays
+- Tarifs optimises Afrique
+- Notifications multilingues
+- Support WhatsApp Business
+
+PAGE 2 - AVANTAGES ET MISE EN PLACE
+
+POURQUOI CHOISIR EDUCAFRIC ?
+
+ECONOMIES REELLES
+- Reduction couts administratifs 70%
+- Economie papier et impression 80%
+- Gain temps gestion 60%
+- ROI positif des 6 premiers mois
+
+AVANTAGES TECHNOLOGIQUES
+- Pas d'installation logiciel
+- Acces internet simple
+- Sauvegardes automatiques
+- Mises a jour gratuites
+- Securite maximale
+
+SPECIFICITES AFRICAINES
+- Adapte aux programmes camerounais
+- Systeme SIL a Terminale
+- Calendrier scolaire local
+- Fetes et conges africains
+- Support clientele francophone
+
+FORMATION ET ACCOMPAGNEMENT
+
+MISE EN PLACE RAPIDE
+Semaine 1: Configuration plateforme
+Semaine 2: Formation utilisateurs  
+Semaine 3: Tests et ajustements
+Semaine 4: Lancement officiel
+
+FORMATION COMPLETE INCLUSE
+- Formation directeurs/administrateurs
+- Formation corps enseignant
+- Formation personnel secretariat
+- Formation utilisation parents
+- Documentation complete francais
+
+SUPPORT PERMANENT
+- Assistance technique 24h/7j
+- Hotline telephone francais
+- Support email prioritaire
+- Interventions a distance
+- Maintenance preventive
+
+RESULTATS CLIENTS
+
+TEMOIGNAGES ECOLES
+"Nos bulletins sont maintenant prets en 2 clics au lieu de 2 semaines"
+- Lycee Bilingue de Yaounde
+
+"Les parents sont enfin informes en temps reel"  
+- College Prive Saint-Joseph Douala
+
+"Fini les registres papier, tout est numerique et securise"
+- Ecole Publique de Bafoussam
+
+STATISTIQUES SATISFACTION
+- 95% ecoles satisfaites premiere annee
+- 87% renouvellement contrats
+- 92% parents recommandent solution
+- 78% reduction appels telephoniques
+
+DEMONSTRATION ET CONTACT
+
+ESSAI GRATUIT 30 JOURS
+- Acces complet toutes fonctionnalites
+- Donnees test realistiques
+- Formation initiale gratuite
+- Support complet inclus
+
+ENVIRONMENT DE DEMONSTRATION
+- Interface complete disponible
+- Donnees ecoles africaines reelles
+- Scenarios d'usage typiques
+- Tests toutes fonctionnalites
+
+CONTACTS SUPPORT
+
+Support Technique
+Email: support@educafric.com
+Telephone: +237 XXX XXX XXX
+Horaires: Lundi-Samedi 7h-20h
+
+Formation Utilisateurs  
+Email: formation@educafric.com
+Telephone: +237 XXX XXX XXX
+Disponible: Sur rendez-vous
+
+NEXT STEPS - DEMARRER AVEC EDUCAFRIC
+
+1. EVALUATION BESOINS
+- Analyse situation actuelle ecole
+- Definition objectifs numeriques
+- Evaluation nombre utilisateurs
+- Choix plan adapte
+
+2. DEMONSTRATION PERSONNALISEE
+- Presentation fonctionnalites cles
+- Tests scenarios reel ecole
+- Questions/reponses detaillees
+- Devis personnalise gratuit
+
+3. SIGNATURE ET LANCEMENT
+- Contrat adaptation besoins
+- Planning implementation 4 semaines
+- Formation equipes incluse
+- Go-live accompagne
+
+EDUCAFRIC - REVOLUTIONNER L'EDUCATION EN AFRIQUE
+www.educafric.com - Version Guide 2025`
     },
     {
       id: 8,
