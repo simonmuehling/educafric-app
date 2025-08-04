@@ -2,9 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Calendar, Clock, Plus, Edit3, Save, X, Users, 
-  BookOpen, MapPin, DollarSign, User, CheckCircle
+  BookOpen, MapPin, DollarSign, User, CheckCircle,
+  RefreshCw, AlertCircle
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/CardLayout';
 import { Button } from '@/components/ui/button';
@@ -25,6 +28,8 @@ interface TutoringSession {
 const FreelancerTimetable = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDay, setSelectedDay] = useState('monday');
   const [isEditing, setIsEditing] = useState(false);
   const [selectedSession, setSelectedSession] = useState<TutoringSession | null>(null);
@@ -94,64 +99,111 @@ const FreelancerTimetable = () => {
 
   const text = t[language as keyof typeof t];
 
-  // Sample freelancer tutoring sessions
-  const [tutoringSchedule, setTutoringSchedule] = useState<TutoringSession[]>([
-    {
-      id: '1',
-      day: 'monday',
-      startTime: '14:00',
-      endTime: '15:00',
-      subject: language === 'fr' ? 'Mathématiques' : 'Mathematics',
-      student: 'Jean Dupont',
-      location: language === 'fr' ? 'Domicile élève' : 'Student\'s home',
-      rate: 5000,
-      status: 'confirmed'
+  // Fetch tutoring schedule from API
+  const { data: tutoringSchedule = [], isLoading, error, refetch } = useQuery<TutoringSession[]>({
+    queryKey: ['/api/freelancer/schedule'],
+    queryFn: async () => {
+      console.log('[FREELANCER_TIMETABLE] 🔍 Fetching schedule...');
+      const response = await fetch('/api/freelancer/schedule', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[FREELANCER_TIMETABLE] ❌ Failed to fetch schedule');
+        throw new Error('Failed to fetch schedule');
+      }
+      const data = await response.json();
+      console.log('[FREELANCER_TIMETABLE] ✅ Schedule loaded:', data.length);
+      return data;
     },
-    {
-      id: '2',
-      day: 'monday',
-      startTime: '16:00',
-      endTime: '17:00',
-      subject: language === 'fr' ? 'Physique' : 'Physics',
-      student: 'Marie Kone',
-      location: language === 'fr' ? 'Bibliothèque' : 'Library',
-      rate: 4500,
-      status: 'confirmed'
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Add session mutation
+  const addSessionMutation = useMutation({
+    mutationFn: async (sessionData: Partial<TutoringSession>) => {
+      const response = await fetch('/api/freelancer/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to add session');
+      return response.json();
     },
-    {
-      id: '3',
-      day: 'tuesday',
-      startTime: '15:00',
-      endTime: '16:00',
-      subject: language === 'fr' ? 'Français' : 'French',
-      student: 'Paul Mbeki',
-      location: language === 'fr' ? 'Centre éducatif' : 'Education center',
-      rate: 4000,
-      status: 'pending'
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/schedule'] });
+      setIsEditing(false);
+      setSelectedSession(null);
+      toast({
+        title: language === 'fr' ? 'Séance ajoutée' : 'Session added',
+        description: language === 'fr' ? 'La séance a été ajoutée avec succès' : 'Session has been added successfully'
+      });
     },
-    {
-      id: '4',
-      day: 'wednesday',
-      startTime: '17:00',
-      endTime: '18:00',
-      subject: language === 'fr' ? 'Chimie' : 'Chemistry',
-      student: 'Sophie Lambert',
-      location: language === 'fr' ? 'Domicile répétiteur' : 'Tutor\'s home',
-      rate: 5500,
-      status: 'confirmed'
-    },
-    {
-      id: '5',
-      day: 'thursday',
-      startTime: '14:30',
-      endTime: '15:30',
-      subject: language === 'fr' ? 'Anglais' : 'English',
-      student: 'David Fofana',
-      location: language === 'fr' ? 'En ligne' : 'Online',
-      rate: 3500,
-      status: 'completed'
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'ajouter la séance' : 'Failed to add session',
+        variant: 'destructive'
+      });
     }
-  ]);
+  });
+
+  // Update session mutation
+  const updateSessionMutation = useMutation({
+    mutationFn: async (sessionData: TutoringSession) => {
+      const response = await fetch(`/api/freelancer/schedule/${sessionData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sessionData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to update session');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/schedule'] });
+      setIsEditing(false);
+      setSelectedSession(null);
+      toast({
+        title: language === 'fr' ? 'Séance modifiée' : 'Session updated',
+        description: language === 'fr' ? 'La séance a été modifiée avec succès' : 'Session has been updated successfully'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de modifier la séance' : 'Failed to update session',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete session mutation
+  const deleteSessionMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      const response = await fetch(`/api/freelancer/schedule/${sessionId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete session');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/freelancer/schedule'] });
+      toast({
+        title: language === 'fr' ? 'Séance supprimée' : 'Session deleted',
+        description: language === 'fr' ? 'La séance a été supprimée avec succès' : 'Session has been deleted successfully'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de supprimer la séance' : 'Failed to delete session',
+        variant: 'destructive'
+      });
+    }
+  });
 
   const getDaySessions = (day: string) => {
     return tutoringSchedule
@@ -170,7 +222,7 @@ const FreelancerTimetable = () => {
 
   const handleAddSession = () => {
     const newSession: TutoringSession = {
-      id: Date.now().toString(),
+      id: 'new',
       day: selectedDay,
       startTime: '14:00',
       endTime: '15:00',
@@ -193,16 +245,16 @@ const FreelancerTimetable = () => {
   const handleSaveSession = () => {
     if (!selectedSession) return;
     
-    const updatedSchedule = (Array.isArray(tutoringSchedule) ? tutoringSchedule : []).filter(session => session.id !== selectedSession.id);
-    updatedSchedule.push(selectedSession);
-    
-    setTutoringSchedule(updatedSchedule);
-    setIsEditing(false);
-    setSelectedSession(null);
+    if (selectedSession.id && selectedSession.id !== 'new') {
+      updateSessionMutation.mutate(selectedSession);
+    } else {
+      const newSession = { ...selectedSession, id: undefined };
+      addSessionMutation.mutate(newSession);
+    }
   };
 
   const handleDeleteSession = (sessionId: string) => {
-    setTutoringSchedule((Array.isArray(tutoringSchedule) ? tutoringSchedule : []).filter(session => session.id !== sessionId));
+    deleteSessionMutation.mutate(sessionId);
   };
 
   const TutoringSessionCard = ({ session }: { session: TutoringSession }) => (
@@ -256,6 +308,36 @@ const FreelancerTimetable = () => {
       </CardContent>
     </ModernCard>
   );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">
+            {language === 'fr' ? 'Chargement du planning...' : 'Loading schedule...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600">
+            {language === 'fr' ? 'Erreur lors du chargement' : 'Error loading schedule'}
+          </p>
+          <Button onClick={() => refetch()} className="mt-4">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Réessayer' : 'Retry'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const weeklyEarnings = (Array.isArray(tutoringSchedule) ? tutoringSchedule : []).reduce((total, session) => total + session.rate, 0);
 
@@ -385,7 +467,7 @@ const FreelancerTimetable = () => {
           <Card className="w-full max-w-md mx-4">
             <CardHeader>
               <h3 className="text-lg font-semibold">
-                {selectedSession?.id?.includes(Date.now().toString()) ? text.addSession : text.editSession}
+                {selectedSession?.id === 'new' ? text.addSession : text.editSession}
               </h3>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -450,9 +532,16 @@ const FreelancerTimetable = () => {
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <Button onClick={handleSaveSession} className="flex-1">
+                <Button 
+                  onClick={handleSaveSession} 
+                  disabled={addSessionMutation.isPending || updateSessionMutation.isPending}
+                  className="flex-1"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  {text.saveChanges}
+                  {(addSessionMutation.isPending || updateSessionMutation.isPending) 
+                    ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...')
+                    : text.saveChanges
+                  }
                 </Button>
                 <Button 
                   variant="outline" 

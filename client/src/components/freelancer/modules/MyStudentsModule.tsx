@@ -1,41 +1,74 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
-import { User, BookOpen, Clock, TrendingUp, MessageSquare, Eye } from 'lucide-react';
+import { User, BookOpen, Clock, TrendingUp, MessageSquare, Eye, RefreshCw, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+interface Student {
+  id: number;
+  name: string;
+  subject: string;
+  level: string;
+  sessionHours: number;
+  progress: number;
+  nextSession: string;
+}
 
 const MyStudentsModule = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
 
-  const students = [
-    {
-      id: 1,
-      name: 'Jean Mbarga',
-      subject: 'Mathématiques',
-      level: '5ème',
-      sessionHours: 24,
-      progress: 85,
-      nextSession: '2024-01-25 14h00'
+  // Fetch students data from API
+  const { data: students = [], isLoading, error, refetch } = useQuery<Student[]>({
+    queryKey: ['/api/freelancer/students'],
+    queryFn: async () => {
+      console.log('[MY_STUDENTS_MODULE] 🔍 Fetching students...');
+      const response = await fetch('/api/freelancer/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[MY_STUDENTS_MODULE] ❌ Failed to fetch students');
+        throw new Error('Failed to fetch students');
+      }
+      const data = await response.json();
+      console.log('[MY_STUDENTS_MODULE] ✅ Students loaded:', data.length);
+      return data;
     },
-    {
-      id: 2,
-      name: 'Marie Nkomo', 
-      subject: 'Français',
-      level: '3ème',
-      sessionHours: 18,
-      progress: 92,
-      nextSession: '2024-01-26 10h00'
-    },
-    {
-      id: 3,
-      name: 'Paul Kamga',
-      subject: 'Sciences',
-      level: 'Terminale',
-      sessionHours: 32,
-      progress: 78,
-      nextSession: '2024-01-25 16h00'
-    }
-  ];
+    enabled: !!user,
+    retry: 2
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">
+            {language === 'fr' ? 'Chargement des élèves...' : 'Loading students...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600">
+            {language === 'fr' ? 'Erreur lors du chargement' : 'Error loading students'}
+          </p>
+          <Button onClick={() => refetch()} className="mt-4">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Réessayer' : 'Retry'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
