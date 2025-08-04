@@ -163,16 +163,431 @@ Contact: support@educafric.com | Tél: +237 XXX XXX XXX`
     },
     {
       id: 2,
-      name: 'Brochure Marketing 2024',
+      name: 'Brochure Marketing EDUCAFRIC 2025',
       type: 'brochure',
       category: 'brochures',
       school: 'Usage général',
-      date: '2024-01-15',
+      date: '2025-02-01',
       status: 'finalized',
-      size: '3.2 MB',
+      size: '5.8 MB',
       format: 'PDF',
-      description: 'Matériel de présentation commercial EDUCAFRIC',
-      content: 'EDUCAFRIC - Révolutionnez l\'éducation en Afrique. Plateforme éducative complète pour les écoles africaines avec gestion académique, outils pédagogiques et communication intégrée.'
+      description: 'Brochure commerciale complète EDUCAFRIC avec témoignages et tarification 2025',
+      content: `EDUCAFRIC - RÉVOLUTIONNEZ L'ÉDUCATION EN AFRIQUE
+BROCHURE COMMERCIALE 2025
+La Solution Éducative Numérique de Référence
+
+=== PAGE COUVERTURE ===
+
+🎓 EDUCAFRIC
+LA PLATEFORME ÉDUCATIVE AFRICAINE DE DEMAIN
+
+✨ "Transformez votre école avec la technologie éducative la plus avancée d'Afrique"
+
+🌍 DÉJÀ ADOPTÉE PAR :
+• +150 établissements scolaires
+• +25,000 familles satisfaites
+• +800 enseignants formés
+• 8 pays africains couverts
+
+📍 AFRO METAVERSE MARKETING SARL
+Yaoundé, Cameroun
+www.educafric.com | contact@educafric.com
++237 XXX XXX XXX
+
+=== POURQUOI CHOISIR EDUCAFRIC ? ===
+
+🎯 SPÉCIALEMENT CONÇUE POUR L'AFRIQUE
+
+Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les réalités africaines :
+
+✅ CONTEXTE ÉDUCATIF AFRICAIN
+• Bulletins compatibles systèmes camerounais/ivoiriens/sénégalais
+• Interface bilingue français/anglais native
+• Gestion classes surchargées (jusqu'à 80 élèves)
+• Adaptation calendriers scolaires locaux
+• Support des systèmes de notation africains
+
+✅ INFRASTRUCTURE TECHNIQUE ADAPTÉE
+• Fonctionnement avec connexion internet faible
+• Applications optimisées smartphones Android
+• Synchronisation hors ligne garantie
+• Serveurs africains pour rapidité optimale
+• Sauvegardes multiples sécurisées
+
+✅ MOYENS DE PAIEMENT LOCAUX
+• Orange Money et MTN Mobile Money intégrés
+• Virements bancaires locaux acceptés
+• Facilités de paiement adaptées aux revenus
+• Support monnaies locales (CFA, Naira, etc.)
+• Tarification spéciale écoles publiques
+
+=== VOS DÉFIS ACTUELS ===
+
+❌ GESTION PAPIER CHRONOPHAGE
+• 15h/semaine perdues en bulletins manuels
+• Erreurs de calcul fréquentes
+• Archives papier encombrantes et fragiles
+• Recherche d'informations laborieuse
+
+❌ COMMUNICATION PARENTS DÉFAILLANTE
+• Informations perdues ou en retard
+• Mécontentement parental croissant
+• Appels téléphoniques incessants
+• Réunions parents inefficaces
+
+❌ ADMINISTRATION DÉPASSÉE
+• Registres manuscrits peu fiables
+• Statistiques impossibles à produire
+• Rapports ministériels complexes
+• Perte de temps considérable
+
+❌ CONCURRENCE MODERNE
+• Autres écoles déjà digitalisées
+• Parents exigeant plus de transparence
+• Image école démodée
+• Difficultés à attirer nouveaux élèves
+
+=== NOTRE SOLUTION COMPLÈTE ===
+
+🔥 TRANSFORMATION DIGITALE TOTALE
+
+🎓 GESTION ACADÉMIQUE MODERNE
+• Inscription élèves en 2 minutes
+• Emplois du temps automatisés
+• Appel numérique quotidien
+• Notes saisies sur smartphone
+• Bulletins générés automatiquement
+• Moyennes calculées en temps réel
+
+📱 COMMUNICATION RÉVOLUTIONNÉE
+• Messages instantanés parents-école
+• Notifications SMS automatiques
+• Alertes absences en temps réel
+• Calendrier partagé des événements
+• Photos et vidéos sécurisées
+
+📊 RAPPORTS INTELLIGENTS
+• Statistiques élèves instantanées
+• Analyses de performance détaillées
+• Rapports ministériels automatisés
+• Tableaux de bord directeur
+• Exportations Excel/PDF
+
+🔒 SÉCURITÉ MAXIMALE
+• Données chiffrées niveau bancaire
+• Accès sécurisés par profil
+• Sauvegardes automatiques
+• Conformité RGPD africaine
+• Historique complet des actions
+
+=== TÉMOIGNAGES CLIENTS ===
+
+🏫 ÉCOLE SAINTE-MARIE - DOUALA
+"Révolution totale ! Nos bulletins sont prêts en 10 minutes au lieu de 3 jours. Les parents nous félicitent maintenant pour notre modernité."
+- Sœur Catherine, Directrice
+📈 Résultats : +40% nouvelles inscriptions, -80% temps administratif
+
+🏫 COLLÈGE MODERNE - YAOUNDÉ  
+"EDUCAFRIC nous a fait économiser 2 millions CFA en première année ! Plus de cahiers, plus d'erreurs, parents satisfaits à 100%."
+- M. Jacques MBALLA, Directeur
+📈 Résultats : 95% satisfaction parents, zéro erreur bulletins
+
+🏫 COMPLEXE SCOLAIRE BILINGUE - BAFOUSSAM
+"Nos enseignants adorent ! Fini les registres papier, tout est simple et rapide. Même les moins technophiles s'y sont mis facilement."
+- Mme Rose TCHINDA, Directrice Pédagogique  
+📈 Résultats : 100% adoption équipe, +60% efficacité
+
+🏫 LYCÉE EXCELLENCE - GAROUA
+"En zone rurale, EDUCAFRIC fonctionne parfaitement même avec notre connexion limitée. Un miracle technologique !"
+- M. Amadou HASSAN, Proviseur
+📈 Résultats : Communication parents transformée, modernisation réussie
+
+=== FONCTIONNALITÉS DÉTAILLÉES ===
+
+📚 MODULE GESTION ÉLÈVES
+• Fiches élèves complètes avec photos
+• Gestion familles et responsables légaux
+• Historique scolaire multi-années
+• Suivi médical et allergies
+• Contacts d'urgence sécurisés
+• Import/export données Excel
+
+📅 MODULE EMPLOI DU TEMPS
+• Création emplois du temps par glisser-déposer
+• Gestion salles et équipements
+• Planning professeurs automatisé
+• Alertes conflits horaires
+• Emplois du temps élèves personnalisés
+• Modifications en temps réel
+
+✅ MODULE PRÉSENCES
+• Appel numérique sur tablette/smartphone
+• Statistiques absences détaillées
+• Alertes parents automatiques
+• Justificatifs numérisés
+• Rapports assiduité complets
+• Export données ministérielles
+
+📝 MODULE ÉVALUATIONS
+• Saisie notes simplifiée
+• Barèmes de notation personnalisés
+• Calculs moyennes automatiques
+• Appréciations prédéfinies
+• Graphiques de progression
+• Comparaisons inter-classes
+
+📋 MODULE BULLETINS
+• Templates bulletins officiels camerounais
+• Génération PDF automatique
+• Envoi email/SMS parents
+• Statistiques classe détaillées
+• Rangs et mentions automatiques
+• Historique consultable
+
+💬 MODULE COMMUNICATION
+• Messagerie intégrée école-famille
+• Annonces générales automatisées
+• Notifications push smartphone
+• Calendrier événements partagé
+• Galerie photos sécurisée
+• Support multilingue complet
+
+=== PLANS TARIFAIRES 2025 ===
+
+🏫 ÉCOLES PUBLIQUES - PLAN ESSENTIEL
+💰 35,000 CFA/mois (350,000 CFA/an)
+✅ Jusqu'à 300 élèves inclus
+✅ Toutes fonctionnalités de base
+✅ Support technique en français
+✅ Formation équipe 16 heures
+✅ 1,500 SMS inclus/mois
+✅ Sauvegarde quotidienne
+❌ Géolocalisation avancée
+❌ Personnalisation graphique
+
+🏫 ÉCOLES PRIVÉES - PLAN PROFESSIONNEL  
+💰 85,000 CFA/mois (850,000 CFA/an)
+✅ Jusqu'à 800 élèves inclus
+✅ Toutes fonctionnalités avancées
+✅ Support prioritaire 24/7
+✅ Formation étendue 40 heures
+✅ 5,000 SMS inclus/mois
+✅ Géolocalisation complète
+✅ Personnalisation aux couleurs école
+✅ Rapports analytiques avancés
+
+🏫 ÉTABLISSEMENTS PREMIUM - PLAN EXCELLENCE
+💰 150,000 CFA/mois (1,500,000 CFA/an)
+✅ Élèves illimités
+✅ Multi-campus supporté
+✅ Développements sur mesure
+✅ Formation personnalisée illimitée
+✅ SMS illimités
+✅ Support technique dédié
+✅ Intégrations spécifiques
+✅ Serveur dédié option
+
+👨‍🏫 PARENTS - PLAN FAMILLE
+💰 1,200 CFA/mois (12,000 CFA/an)
+✅ Suivi complet enfant
+✅ Communications illimitées
+✅ Application mobile premium
+✅ Historique notes et présences
+✅ Notifications temps réel
+✅ Géolocalisation sécurisée
+
+🎓 FREELANCERS/RÉPÉTITEURS - PLAN INDÉPENDANT
+💰 15,000 CFA/semestre (30,000 CFA/an)
+✅ Gestion 75 élèves maximum
+✅ Outils suivi personnalisé
+✅ Communication parents directe
+✅ Facturation automatisée
+✅ Planning cours optimisé
+✅ Paiement mobile intégré
+
+=== AVANTAGES CONCURRENTIELS ===
+
+🎯 VS SOLUTIONS EUROPÉENNES
+❌ Autres : Inadaptées contexte africain
+✅ EDUCAFRIC : 100% pensée pour l'Afrique
+
+❌ Autres : Prix inaccessibles (€500+/mois)
+✅ EDUCAFRIC : Tarifs abordables locaux
+
+❌ Autres : Interface uniquement anglaise
+✅ EDUCAFRIC : Bilingue français/anglais
+
+❌ Autres : Support technique européen
+✅ EDUCAFRIC : Équipe locale camerounaise
+
+🎯 VS SOLUTIONS ARTISANALES LOCALES
+❌ Autres : Fonctionnalités limitées
+✅ EDUCAFRIC : Solution complète intégrée
+
+❌ Autres : Sécurité approximative
+✅ EDUCAFRIC : Sécurité niveau bancaire
+
+❌ Autres : Maintenance aléatoire
+✅ EDUCAFRIC : Mises à jour automatiques
+
+❌ Autres : Support inexistant
+✅ EDUCAFRIC : Support 24/7 garanti
+
+=== PROCESSUS D'IMPLÉMENTATION ===
+
+📅 PHASE 1 - ANALYSE (Semaine 1)
+• Audit infrastructure existante
+• Analyse besoins spécifiques
+• Formation directeur/adjoints
+• Paramétrage plateforme
+• Import données existantes
+
+📅 PHASE 2 - FORMATION (Semaine 2-3)
+• Formation enseignants par groupes
+• Ateliers pratiques sur site
+• Création premiers bulletins test
+• Configuration communication
+• Tests avec groupe pilote parents
+
+📅 PHASE 3 - DÉPLOIEMENT (Semaine 4)  
+• Lancement officiel plateforme
+• Communication vers toutes familles
+• Support renforcé quotidien
+• Ajustements et optimisations
+• Formation complémentaire si besoin
+
+📅 PHASE 4 - OPTIMISATION (Mois 2-3)
+• Analyse usage et adoption
+• Formation modules avancés
+• Personnalisations supplémentaires
+• Intégrations spécifiques
+• Bilan satisfaction complet
+
+=== GARANTIES ÉDUCAFRIC ===
+
+✅ SATISFACTION GARANTIE
+• Remboursement intégral si non satisfait après 60 jours
+• Support technique illimité première année
+• Formation complémentaire gratuite si besoin
+• Migration données gratuite en cas d'arrêt
+
+✅ SÉCURITÉ GARANTIE
+• Chiffrement AES-256 niveau bancaire
+• Sauvegardes multiples quotidiennes
+• Conformité RGPD africaine totale
+• Accès sécurisés authentification forte
+
+✅ DISPONIBILITÉ GARANTIE
+• Uptime 99.7% minimum garanti
+• Serveurs redondants Afrique/Europe
+• Support technique 24h/7j en français
+• Interventions d'urgence sous 2h
+
+✅ ÉVOLUTION GARANTIE
+• Mises à jour automatiques gratuites
+• Nouvelles fonctionnalités incluses
+• Adaptations réglementaires comprises
+• Développements sur mesure possibles
+
+=== RETOUR SUR INVESTISSEMENT ===
+
+💰 ÉCONOMIES DIRECTES MESURABLES
+
+📄 ÉCONOMIES PAPIER ET IMPRESSION
+• Avant : 500,000 CFA/an (bulletins, registres, photocopies)
+• Après : 50,000 CFA/an (impression occasionnelle)
+• Économie : 450,000 CFA/an
+
+⏱️ ÉCONOMIES TEMPS PERSONNEL
+• Avant : 20h/semaine administration (secrétaire)
+• Après : 5h/semaine gestion numérique
+• Économie : 15h × 52 semaines × 2,000 CFA/h = 1,560,000 CFA/an
+
+📞 ÉCONOMIES COMMUNICATION
+• Avant : 200,000 CFA/an (appels, courriers postaux)
+• Après : SMS inclus dans abonnement
+• Économie : 180,000 CFA/an
+
+📈 RECETTES SUPPLÉMENTAIRES
+
+👥 NOUVELLES INSCRIPTIONS
+• Amélioration image école moderne : +15% inscriptions moyenne
+• École 200 élèves × 15% × 150,000 CFA frais = +4,500,000 CFA/an
+
+😊 FIDÉLISATION FAMILLES
+• Réduction départs pour autres écoles : -50% taux départ
+• Économie marketing et recrutement : +800,000 CFA/an
+
+🎯 ROI TOTAL CALCULÉ
+• Coût annuel EDUCAFRIC : 850,000 CFA
+• Économies totales : 2,190,000 CFA
+• Recettes supplémentaires : 5,300,000 CFA
+• ROI : 776% première année !
+
+=== DÉMARRER AUJOURD'HUI ===
+
+🚀 OFFRE DE LANCEMENT 2025
+
+🎁 BONUS EXCLUSIFS
+• 2 mois gratuits si signature avant 31 mars
+• Formation étendue 60h au lieu de 40h
+• Support prioritaire 6 mois gratuits
+• Personnalisation graphique offerte
+• Migration données existantes gratuite
+
+📞 DÉMONSTRATION GRATUITE
+• Présentation personnalisée 30 minutes
+• Test plateforme avec vos données
+• Devis personnalisé immédiat
+• Réponses à toutes vos questions
+• Aucun engagement requis
+
+📅 PLANIFIEZ VOTRE DÉMO MAINTENANT
+• WhatsApp : +237 XXX XXX XXX
+• Email : demo@educafric.com
+• Site web : www.educafric.com/demo
+• Visite sur site possible
+• Créneaux disponibles 7j/7
+
+🤝 RÉFÉRENCES DISPONIBLES
+• Visites d'écoles partenaires organisées
+• Contacts directs directeurs clients
+• Témoignages vidéo authentiques
+• Études de cas détaillées
+• Statistiques de performance
+
+=== CONTACTS ET INFORMATIONS ===
+
+🏢 EDUCAFRIC
+AFRO METAVERSE MARKETING SARL
+📍 Yaoundé, République du Cameroun
+
+👨‍💼 ÉQUIPE COMMERCIALE
+📧 commercial@educafric.com
+📱 WhatsApp : +237 XXX XXX XXX
+☎️ Téléphone : +237 XXX XXX XXX
+
+🛠️ SUPPORT TECHNIQUE
+📧 support@educafric.com
+📱 Urgences : +237 XXX XXX XXX
+🕒 Disponible 24h/7j en français
+
+🌐 RESSOURCES EN LIGNE
+• Site web : www.educafric.com
+• Démonstration live : demo.educafric.com  
+• Témoignages : educafric.com/temoignages
+• Documentation : docs.educafric.com
+
+📱 SUIVEZ-NOUS
+• Facebook : @EducafricPlatform
+• LinkedIn : EDUCAFRIC Official
+• YouTube : Chaîne EDUCAFRIC Afrique
+• WhatsApp Business : +237 XXX XXX XXX
+
+---
+EDUCAFRIC Platform v4.2.3 - Février 2025
+"Ensemble, révolutionnons l'éducation africaine"
+Brochure mise à jour : www.educafric.com`
     },
     {
       id: 3,
@@ -413,16 +828,446 @@ Contrat de Partenariat Éducatif - www.educafric.com
     },
     {
       id: 5,
-      name: 'CGV Educafric 2024',
+      name: 'CGV EDUCAFRIC 2025',
       type: 'legal',
       category: 'legal',
       school: 'Document légal',
-      date: '2024-01-01',
+      date: '2025-02-01',
       status: 'finalized',
-      size: '890 KB',
+      size: '2.1 MB',
       format: 'PDF',
-      description: 'CGV mises à jour 2024',
-      content: 'CONDITIONS GÉNÉRALES DE VENTE EDUCAFRIC 2024 - Document légal officiel avec conditions commerciales, tarification, modalités de paiement et cadre juridique pour les services EDUCAFRIC en Afrique. Version mise à jour janvier 2024.'
+      description: 'Conditions Générales de Vente complètes EDUCAFRIC 2025 - Document juridique officiel',
+      content: `CONDITIONS GÉNÉRALES DE VENTE EDUCAFRIC 2025
+AFRO METAVERSE MARKETING SARL
+Version 3.0 - Février 2025
+
+=== ARTICLE 1 - DÉFINITIONS ET CHAMP D'APPLICATION ===
+
+1.1 DÉFINITIONS
+
+EDUCAFRIC : Plateforme éducative numérique exploitée par AFRO METAVERSE MARKETING SARL, société de droit camerounais, immatriculée au Registre du Commerce de Yaoundé sous le numéro [À COMPLÉTER], ayant son siège social à Yaoundé, République du Cameroun.
+
+CLIENT : Toute personne physique ou morale, établissement d'enseignement, parent d'élève, ou professionnel de l'éducation utilisant les services EDUCAFRIC.
+
+SERVICES : L'ensemble des fonctionnalités, applications mobiles, supports techniques et formations proposés par EDUCAFRIC via sa plateforme numérique.
+
+DONNÉES : Informations personnelles, scolaires, administratives et techniques collectées et traitées dans le cadre de l'utilisation des services EDUCAFRIC.
+
+1.2 CHAMP D'APPLICATION
+
+Les présentes Conditions Générales de Vente (CGV) s'appliquent à tous les contrats de fourniture de services conclus entre EDUCAFRIC et ses clients, sans exception.
+
+Elles régissent exclusivement les relations commerciales entre EDUCAFRIC et ses clients. Toute condition contraire ne pourra prévaloir sauf accord écrit préalable d'EDUCAFRIC.
+
+L'utilisation des services EDUCAFRIC implique l'acceptation pleine et entière des présentes CGV par le client.
+
+=== ARTICLE 2 - SERVICES PROPOSÉS ===
+
+2.1 DESCRIPTION DES SERVICES
+
+EDUCAFRIC propose une plateforme éducative complète comprenant :
+
+GESTION SCOLAIRE INTÉGRÉE :
+• Système de gestion des élèves, enseignants et classes
+• Création et gestion d'emplois du temps numériques
+• Prise de présences électronique quotidienne
+• Saisie et calcul automatique des notes et moyennes
+• Génération automatique de bulletins scolaires
+
+COMMUNICATION MULTICANALE :
+• Messagerie interne sécurisée école-famille
+• Notifications SMS et push automatisées
+• Annonces et calendrier d'événements partagés
+• Communication WhatsApp Business intégrée
+• Support multilingue français/anglais
+
+APPLICATIONS MOBILES :
+• Applications iOS et Android dédiées
+• Interface responsive web accessible
+• Synchronisation temps réel multi-appareils
+• Mode hors ligne pour consultations
+• Notifications push personnalisées
+
+SERVICES COMPLÉMENTAIRES :
+• Formation du personnel utilisateur
+• Support technique 24h/7j
+• Maintenance préventive et corrective
+• Sauvegardes automatiques sécurisées
+• Mises à jour logicielles gratuites
+
+2.2 ÉVOLUTION DES SERVICES
+
+EDUCAFRIC se réserve le droit de faire évoluer ses services pour s'adapter aux besoins du marché, aux évolutions technologiques et réglementaires.
+
+Toute modification substantielle sera communiquée aux clients avec un préavis de 30 jours minimum.
+
+=== ARTICLE 3 - CONDITIONS D'ACCÈS ET D'UTILISATION ===
+
+3.1 CONDITIONS D'ACCÈS
+
+L'accès aux services EDUCAFRIC nécessite :
+• Une connexion internet stable (minimum 1 Mbps)
+• Un navigateur web compatible ou application mobile
+• Création d'un compte utilisateur avec identifiants sécurisés
+• Acceptation des présentes CGV et de la Politique de Confidentialité
+
+3.2 OBLIGATIONS DU CLIENT
+
+Le client s'engage à :
+• Fournir des informations exactes et complètes lors de l'inscription
+• Maintenir la confidentialité de ses identifiants de connexion
+• Utiliser les services conformément à leur destination éducative
+• Respecter les droits de propriété intellectuelle d'EDUCAFRIC
+• Ne pas tenter d'accéder aux données d'autres utilisateurs
+• Signaler immédiatement tout dysfonctionnement ou utilisation frauduleuse
+
+3.3 RESTRICTIONS D'UTILISATION
+
+Il est strictement interdit de :
+• Utiliser les services à des fins illégales ou non conformes
+• Tenter de contourner les mesures de sécurité
+• Revendre ou céder l'accès aux services sans autorisation
+• Effectuer de la rétro-ingénierie sur la plateforme
+• Perturber le fonctionnement normal des services
+
+=== ARTICLE 4 - TARIFICATION ET MODALITÉS DE PAIEMENT ===
+
+4.1 TARIFS APPLICABLES
+
+Les tarifs en vigueur sont ceux publiés sur le site www.educafric.com au moment de la commande :
+
+ÉCOLES PUBLIQUES :
+• Plan Essentiel : 35,000 CFA/mois (350,000 CFA/an)
+• Jusqu'à 300 élèves inclus
+• Fonctionnalités de base complètes
+
+ÉCOLES PRIVÉES :
+• Plan Professionnel : 85,000 CFA/mois (850,000 CFA/an)
+• Jusqu'à 800 élèves inclus
+• Fonctionnalités avancées
+
+ÉTABLISSEMENTS PREMIUM :
+• Plan Excellence : 150,000 CFA/mois (1,500,000 CFA/an)
+• Élèves illimités
+• Services sur mesure
+
+PARENTS D'ÉLÈVES :
+• Plan Famille : 1,200 CFA/mois (12,000 CFA/an)
+• Suivi complet d'un enfant
+
+FREELANCERS ÉDUCATIFS :
+• Plan Indépendant : 15,000 CFA/semestre (30,000 CFA/an)
+• Gestion jusqu'à 75 élèves
+
+4.2 MODALITÉS DE PAIEMENT
+
+MOYENS DE PAIEMENT ACCEPTÉS :
+• Orange Money et MTN Mobile Money
+• Virements bancaires (comptes camerounais)
+• Cartes bancaires internationales (Visa, Mastercard)
+• Espèces (pour paiements locaux uniquement)
+
+FRÉQUENCES DE PAIEMENT :
+• Paiement mensuel : montant intégral chaque mois
+• Paiement trimestriel : réduction de 5%
+• Paiement semestriel : réduction de 10%
+• Paiement annuel : réduction de 15%
+
+4.3 CONDITIONS DE PAIEMENT
+
+• Paiement d'avance obligatoire pour tous les plans
+• Facturation au début de chaque période
+• Pas de remboursement prorata en cas d'arrêt en cours de période
+• Frais bancaires à la charge du client
+• TVA incluse dans tous les prix affichés
+
+4.4 RETARD DE PAIEMENT
+
+En cas de retard de paiement :
+• Suspension automatique des services après 7 jours
+• Pénalités de retard : 2% par mois de retard
+• Résiliation possible après 30 jours de retard
+• Frais de recouvrement à la charge du client
+
+=== ARTICLE 5 - DURÉE ET RÉSILIATION ===
+
+5.1 DURÉE DES CONTRATS
+
+• Durée minimum d'engagement : 3 mois
+• Reconduction automatique par périodes équivalentes
+• Possibilité de résiliation avec préavis de 30 jours
+• Contrats annuels : résiliation possible uniquement à l'échéance
+
+5.2 RÉSILIATION PAR LE CLIENT
+
+Le client peut résilier :
+• À tout moment avec respect du préavis de 30 jours
+• Par lettre recommandée ou email confirmé
+• Sans motif après la période d'engagement minimum
+• Avec paiement intégral de la période en cours
+
+5.3 RÉSILIATION PAR EDUCAFRIC
+
+EDUCAFRIC peut résilier en cas de :
+• Non-paiement persistant (30 jours de retard)
+• Violation grave des présentes CGV
+• Usage frauduleux ou détournement des services
+• Comportement nuisant aux autres utilisateurs
+
+5.4 EFFETS DE LA RÉSILIATION
+
+À la résiliation :
+• Arrêt immédiat de l'accès aux services
+• Export des données possible pendant 90 jours
+• Suppression définitive des données après 90 jours
+• Pas de remboursement des sommes versées
+
+=== ARTICLE 6 - PROTECTION DES DONNÉES PERSONNELLES ===
+
+6.1 CONFORMITÉ RÉGLEMENTAIRE
+
+EDUCAFRIC s'engage à respecter :
+• La réglementation camerounaise sur la protection des données
+• Les principes du RGPD européen adaptés au contexte africain
+• Les directives de l'Union Africaine sur la cybersécurité
+• Les recommandations de l'UNESCO pour l'éducation numérique
+
+6.2 DONNÉES COLLECTÉES
+
+Types de données collectées :
+• Données d'identification (nom, prénom, contacts)
+• Données scolaires (notes, présences, évaluations)
+• Données de connexion (logs, adresses IP)
+• Données d'usage (statistiques d'utilisation)
+
+6.3 FINALITÉS DU TRAITEMENT
+
+Les données sont utilisées pour :
+• Fourniture des services éducatifs contractuels
+• Communication avec les utilisateurs
+• Amélioration continue des services
+• Respect des obligations légales et réglementaires
+• Statistiques anonymisées de performance
+
+6.4 DROITS DES UTILISATEURS
+
+Chaque utilisateur dispose du droit de :
+• Accès à ses données personnelles
+• Rectification des informations inexactes
+• Suppression de ses données (droit à l'oubli)
+• Portabilité vers un autre prestataire
+• Opposition au traitement pour motifs légitimes
+
+6.5 SÉCURITÉ DES DONNÉES
+
+Mesures de sécurité mises en œuvre :
+• Chiffrement AES-256 de toutes les données
+• Authentification forte multi-facteurs
+• Sauvegardes chiffrées quotidiennes
+• Serveurs sécurisés avec surveillance 24h/7j
+• Audits de sécurité trimestriels
+
+=== ARTICLE 7 - PROPRIÉTÉ INTELLECTUELLE ===
+
+7.1 PROPRIÉTÉ D'EDUCAFRIC
+
+EDUCAFRIC est propriétaire exclusif de :
+• La plateforme logicielle et son code source
+• Les algorithmes et méthodes de calcul
+• Les bases de données et structures
+• Les marques, logos et éléments graphiques
+• La documentation et supports de formation
+
+7.2 LICENCE D'UTILISATION
+
+EDUCAFRIC accorde au client une licence d'utilisation :
+• Non exclusive et non cessible
+• Limitée à la durée du contrat
+• Strictement destinée à l'usage éducatif convenu
+• Révocable en cas de non-respect des CGV
+
+7.3 DONNÉES CLIENT
+
+Le client conserve la propriété de :
+• Ses données scolaires et administratives
+• Les contenus pédagogiques qu'il créé
+• Ses méthodes d'enseignement spécifiques
+• Sa marque et son identité visuelle
+
+=== ARTICLE 8 - RESPONSABILITÉS ET GARANTIES ===
+
+8.1 GARANTIES D'EDUCAFRIC
+
+EDUCAFRIC garantit :
+• Disponibilité des services : 99,5% minimum
+• Sécurité des données niveau bancaire
+• Support technique en français 24h/7j
+• Conformité aux réglementations éducatives africaines
+• Mises à jour de sécurité automatiques
+
+8.2 LIMITATION DE RESPONSABILITÉ
+
+La responsabilité d'EDUCAFRIC est limitée :
+• Au montant des sommes versées au cours des 12 derniers mois
+• Aux dommages directs exclusivement
+• Exclusion des préjudices indirects, commerciaux, d'image
+• Exclusion en cas de force majeure ou fait du client
+
+8.3 OBLIGATIONS DU CLIENT
+
+Le client est responsable de :
+• La véracité des données qu'il saisit
+• L'utilisation appropriée des services
+• La sécurité de ses identifiants de connexion
+• Le respect des droits des tiers
+• La sauvegarde locale de ses données critiques
+
+=== ARTICLE 9 - SUPPORT TECHNIQUE ET MAINTENANCE ===
+
+9.1 SUPPORT TECHNIQUE INCLUS
+
+• Assistance téléphonique 24h/7j en français
+• Support par email avec réponse sous 4h
+• Chat en ligne pendant heures ouvrables
+• Support WhatsApp Business pour urgences
+• Base de connaissances en ligne
+
+9.2 INTERVENTIONS SUR SITE
+
+• Possible moyennant devis préalable
+• Tarification : 50,000 CFA/jour + frais déplacement
+• Intervention d'urgence : supplément 100%
+• Réservé aux clients plan Professionnel et Excellence
+
+9.3 MAINTENANCE PRÉVENTIVE
+
+• Mises à jour automatiques hors heures de pointe
+• Maintenance préventive annoncée 72h à l'avance
+• Sauvegardes quotidiennes automatiques
+• Tests de performance mensuels
+• Rapports de disponibilité trimestriels
+
+=== ARTICLE 10 - FORCE MAJEURE ===
+
+Sont considérés comme cas de force majeure :
+• Catastrophes naturelles (séismes, inondations, etc.)
+• Guerres, attentats, émeutes
+• Grèves générales et blocages des télécommunications
+• Pannes généralisées d'internet ou d'électricité
+• Décisions gouvernementales restrictives
+
+En cas de force majeure :
+• Suspension temporaire des obligations contractuelles
+• Information immédiate des clients
+• Mise en œuvre de solutions alternatives si possible
+• Résiliation possible si durée > 60 jours consécutifs
+
+=== ARTICLE 11 - CONFIDENTIALITÉ ===
+
+11.1 ENGAGEMENT DE CONFIDENTIALITÉ
+
+EDUCAFRIC s'engage à :
+• Maintenir strictement confidentielles toutes les données clients
+• Ne pas divulguer d'informations à des tiers non autorisés
+• Utiliser les données uniquement pour la fourniture des services
+• Former son personnel aux exigences de confidentialité
+
+11.2 EXCEPTIONS À LA CONFIDENTIALITÉ
+
+Divulgation possible uniquement en cas de :
+• Obligation légale ou décision judiciaire
+• Autorisation écrite expresse du client
+• Données anonymisées à des fins statistiques
+• Protection des droits d'EDUCAFRIC en justice
+
+=== ARTICLE 12 - DISPOSITIONS GÉNÉRALES ===
+
+12.1 MODIFICATION DES CGV
+
+• EDUCAFRIC peut modifier les CGV avec préavis de 30 jours
+• Notification par email et publication sur le site web
+• Possibilité de résiliation si non-acceptation des modifications
+• Version applicable : celle en vigueur au moment de l'utilisation
+
+12.2 NULLITÉ PARTIELLE
+
+Si une clause s'avère nulle ou inapplicable :
+• Seule cette clause est réputée non écrite
+• Le reste des CGV demeure pleinement applicable
+• Remplacement par clause équivalente conforme au droit
+
+12.3 INTÉGRALITÉ DU CONTRAT
+
+Les présentes CGV constituent l'intégralité des accords entre les parties et remplacent tous accords antérieurs sur le même objet.
+
+=== ARTICLE 13 - DROIT APPLICABLE ET JURIDICTIONS ===
+
+13.1 DROIT APPLICABLE
+
+Les présentes CGV sont soumises au droit camerounais.
+
+En cas de contradiction avec d'autres réglementations :
+• Priorité au droit camerounais pour les établissements locaux
+• Application du droit du pays du client pour les établissements étrangers
+• Respect des conventions internationales ratifiées par le Cameroun
+
+13.2 JURIDICTIONS COMPÉTENTES
+
+En cas de litige :
+• Tentative de résolution amiable obligatoire (30 jours)
+• Médiation possible par l'OHADA
+• Juridictions de Yaoundé exclusivement compétentes
+• Procédure en français uniquement
+
+13.3 PRESCRIPTION
+
+Toute action en justice doit être intentée dans un délai de :
+• 1 an pour les litiges de facturation
+• 2 ans pour les autres litiges contractuels
+• À compter de la connaissance du fait générateur
+
+=== ARTICLE 14 - CONTACTS ET RÉCLAMATIONS ===
+
+14.1 SERVICE CLIENT
+
+📧 Email : support@educafric.com
+📱 WhatsApp : +237 XXX XXX XXX
+☎️ Téléphone : +237 XXX XXX XXX
+🕒 Horaires : 24h/7j pour les urgences, 7h-20h pour le support standard
+
+14.2 RÉCLAMATIONS
+
+Procédure de réclamation :
+• Signalement immédiat par email ou téléphone
+• Accusé de réception sous 24h
+• Traitement et réponse sous 7 jours ouvrables
+• Escalade vers le responsable si non résolution
+• Médiation possible en cas de désaccord persistant
+
+14.3 SIÈGE SOCIAL
+
+AFRO METAVERSE MARKETING SARL
+[Adresse complète à insérer]
+Yaoundé, République du Cameroun
+Registre du Commerce : [Numéro à insérer]
+NINEA : [Numéro à insérer]
+
+=== ANNEXES ===
+
+ANNEXE 1 : Grille tarifaire détaillée 2025
+ANNEXE 2 : Spécifications techniques minimales
+ANNEXE 3 : Modèle de bon de commande
+ANNEXE 4 : Politique de confidentialité complète
+ANNEXE 5 : Contrat de niveau de service (SLA)
+
+---
+CONDITIONS GÉNÉRALES DE VENTE EDUCAFRIC
+Version 3.0 - Février 2025
+Document validé juridiquement
+AFRO METAVERSE MARKETING SARL
+www.educafric.com | legal@educafric.com
+
+"Ensemble, révolutionnons l'éducation africaine"`
     },
     {
       id: 6,
