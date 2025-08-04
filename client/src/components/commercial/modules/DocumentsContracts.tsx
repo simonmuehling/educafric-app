@@ -968,7 +968,7 @@ Guide Complet des Interfaces Utilisateurs
 
 === ARCHITECTURE UTILISATEURS ===
 
-EDUCAFRIC propose 4 profils principaux d'utilisateurs, chacun avec son dashboard personnalisé et ses modules spécifiques adaptés à ses besoins éducatifs.
+EDUCAFRIC propose 5 profils principaux d'utilisateurs, chacun avec son dashboard personnalisé et ses modules spécifiques adaptés à ses besoins éducatifs.
 
 === 1. DASHBOARD ENSEIGNANT ===
 
@@ -1009,7 +1009,56 @@ Fonction: Bibliothèque de contenus éducatifs partagés
 Usage: Accès aux supports de cours, exercices, évaluations
 Avantage: Mutualisation des ressources entre enseignants
 
-=== 2. DASHBOARD ÉLÈVE ===
+=== 2. DASHBOARD DIRECTEUR D'ÉCOLE ===
+
+MODULES DISPONIBLES:
+
+✓ GESTION ÉTABLISSEMENT
+Fonction: Administration complète de l'établissement scolaire
+Usage: Supervision générale, paramètres école, organisation pédagogique
+Avantage: Contrôle centralisé de toutes les activités scolaires
+
+✓ GESTION DU PERSONNEL
+Fonction: Administration des enseignants et personnel administratif
+Usage: Affectations, emplois du temps, évaluations de performance
+Avantage: Optimisation des ressources humaines de l'établissement
+
+✓ SUIVI ACADÉMIQUE GLOBAL
+Fonction: Vue d'ensemble des résultats scolaires par classe et matière
+Usage: Analyses statistiques, comparatifs de performance, tendances
+Avantage: Pilotage stratégique de la qualité éducative
+
+✓ GESTION FINANCIÈRE
+Fonction: Administration budgétaire et suivi des paiements
+Usage: Frais de scolarité, salaires, dépenses, rapports financiers
+Avantage: Maîtrise complète de la santé financière de l'école
+
+✓ COMMUNICATION INSTITUTIONNELLE
+Fonction: Interface avec parents, autorités éducatives et partenaires
+Usage: Messages officiels, rapports périodiques, communication de crise
+Avantage: Représentation efficace de l'établissement
+
+✓ TABLEAUX DE BORD DIRECTEUR
+Fonction: Indicateurs clés de performance (KPI) en temps réel
+Usage: Effectifs, taux de réussite, assiduité, satisfaction parents
+Avantage: Prise de décision basée sur des données précises
+
+✓ PLANIFICATION STRATÉGIQUE
+Fonction: Outils de développement et projets d'établissement
+Usage: Plans annuels, objectifs pédagogiques, projets d'amélioration
+Avantage: Vision à long terme et développement durable de l'école
+
+✓ GESTION DES INSCRIPTIONS
+Fonction: Administration des admissions et réinscriptions
+Usage: Processus d'inscription, validation dossiers, listes d'attente
+Avantage: Optimisation du processus administratif d'admission
+
+✓ SUPERVISION PÉDAGOGIQUE
+Fonction: Suivi de la qualité de l'enseignement et des programmes
+Usage: Évaluations enseignants, respect des programmes, innovations
+Avantage: Garantie de l'excellence pédagogique de l'établissement
+
+=== 3. DASHBOARD ÉLÈVE ===
 
 MODULES DISPONIBLES:
 
@@ -1048,7 +1097,7 @@ Fonction: Vue d'ensemble des événements et dates importantes
 Usage: Consultation des examens, vacances, événements école
 Avantage: Planification et anticipation des périodes clés
 
-=== 3. DASHBOARD PARENT ===
+=== 4. DASHBOARD PARENT ===
 
 MODULES DISPONIBLES:
 
@@ -1087,7 +1136,7 @@ Fonction: Planning intégré des événements scolaires familiaux
 Usage: Réunions parents, conseils de classe, événements
 Avantage: Organisation familiale optimisée
 
-=== 4. DASHBOARD FREELANCER ===
+=== 5. DASHBOARD FREELANCER ===
 
 MODULES DISPONIBLES:
 
