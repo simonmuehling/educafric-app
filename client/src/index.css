@@ -224,7 +224,7 @@
     box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 3px;
   }
 
-  /* Fix white background for all forms */
+  /* COMPREHENSIVE FORM STYLING - White backgrounds for all forms and inputs */
   form, 
   .form-container,
   .dialog-content,
@@ -233,18 +233,148 @@
   .homework-form,
   .assignment-form,
   .submission-form,
-  .settings-form {
-    @apply bg-white !important;
+  .settings-form,
+  .document-form,
+  .profile-form,
+  .payment-form,
+  .contact-form,
+  .search-form {
+    @apply bg-white shadow-sm border border-gray-200 rounded-lg !important;
   }
 
-  /* Ensure form cards have white backgrounds */
-  .form-card {
-    @apply bg-white p-6 rounded-lg shadow-sm !important;
+  /* All input fields with white backgrounds */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  textarea,
+  select,
+  .input-field,
+  [role="textbox"],
+  [role="combobox"] {
+    @apply bg-white border border-gray-300 rounded-md px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 !important;
   }
 
-  /* Dialog overlays */
-  .dialog-overlay {
+  /* DROPDOWN MENUS - White backgrounds */
+  .dropdown-menu,
+  .select-menu,
+  .context-menu,
+  [role="menu"],
+  [role="listbox"],
+  [data-radix-select-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-context-menu-content],
+  .command-menu,
+  .autocomplete-menu {
+    @apply bg-white border border-gray-200 rounded-lg shadow-lg !important;
+  }
+
+  /* Dropdown items */
+  .dropdown-item,
+  .select-item,
+  .menu-item,
+  [role="menuitem"],
+  [role="option"],
+  [data-radix-select-item],
+  [data-radix-dropdown-menu-item] {
+    @apply bg-white hover:bg-gray-50 px-3 py-2 rounded-md transition-colors !important;
+  }
+
+  /* NOTIFICATION STYLING - Colored backgrounds */
+  .notification,
+  .toast,
+  .alert,
+  [role="alert"],
+  [data-radix-toast-root],
+  .notification-container {
+    @apply rounded-lg shadow-lg border px-4 py-3 !important;
+  }
+
+  /* Success notifications */
+  .notification-success,
+  .toast-success,
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-800 !important;
+  }
+
+  /* Error notifications */
+  .notification-error,
+  .toast-error,
+  .alert-error,
+  .notification-destructive {
+    @apply bg-red-50 border-red-200 text-red-800 !important;
+  }
+
+  /* Warning notifications */
+  .notification-warning,
+  .toast-warning,
+  .alert-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800 !important;
+  }
+
+  /* Info notifications */
+  .notification-info,
+  .toast-info,
+  .alert-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800 !important;
+  }
+
+  /* Default notifications */
+  .notification-default,
+  .toast-default {
+    @apply bg-gray-50 border-gray-200 text-gray-800 !important;
+  }
+
+  /* Form cards and containers */
+  .form-card,
+  .card-form,
+  .form-section {
+    @apply bg-white p-6 rounded-lg shadow-sm border border-gray-200 !important;
+  }
+
+  /* Dialog and modal backgrounds */
+  .dialog-overlay,
+  .modal-overlay,
+  [data-radix-dialog-overlay] {
     @apply bg-black bg-opacity-50 !important;
+  }
+
+  .dialog-content,
+  .modal-content,
+  [data-radix-dialog-content] {
+    @apply bg-white rounded-lg shadow-xl border border-gray-200 !important;
+  }
+
+  /* Search bars and filters */
+  .search-bar,
+  .filter-bar,
+  .toolbar {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm !important;
+  }
+
+  /* Tab panels */
+  .tab-panel,
+  [role="tabpanel"],
+  [data-radix-tabs-content] {
+    @apply bg-white rounded-lg border border-gray-200 !important;
+  }
+
+  /* Ensure buttons in forms have proper styling */
+  .form-button,
+  form button,
+  form .button {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors !important;
+  }
+
+  .form-button-secondary,
+  .button-outline {
+    @apply bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2 rounded-md transition-colors !important;
   }
 
   /* Animated Button Style */
