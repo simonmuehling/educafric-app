@@ -495,7 +495,7 @@ const DocumentsContracts = () => {
       </Card>
 
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {selectedDocument && getTypeIcon(selectedDocument.type)}
@@ -521,9 +521,16 @@ const DocumentsContracts = () => {
               </div>
               
               {selectedDocument.content && (
-                <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-auto">
-                  <h4 className="font-medium mb-2">{language === 'fr' ? 'Contenu:' : 'Content:'}</h4>
-                  <div className="whitespace-pre-wrap text-sm">{selectedDocument.content}</div>
+                <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50 min-h-[400px] max-h-[500px] overflow-auto">
+                  <h4 className="font-semibold text-lg mb-4 text-blue-800">{language === 'fr' ? 'Contenu du Document:' : 'Document Content:'}</h4>
+                  <div className="whitespace-pre-wrap text-base leading-relaxed text-gray-800">{selectedDocument.content}</div>
+                </div>
+              )}
+              
+              {!selectedDocument.content && (
+                <div className="border-2 border-orange-200 rounded-lg p-6 bg-orange-50 text-center">
+                  <h4 className="font-medium text-orange-800 mb-2">{language === 'fr' ? 'Contenu non disponible' : 'Content not available'}</h4>
+                  <p className="text-orange-600">{language === 'fr' ? 'Ce document ne contient pas de contenu prévisualisable.' : 'This document does not contain previewable content.'}</p>
                 </div>
               )}
             </div>
