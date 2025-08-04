@@ -385,9 +385,125 @@ www.educafric.com`
     return matchesSearch && matchesCategory;
   });
 
-  const handleViewDocument = (doc: any) => {
-    setSelectedDocument(doc);
-    setIsViewDialogOpen(true);
+  const handleViewDocument = async (doc: any) => {
+    try {
+      // For mobile devices, generate and open PDF directly
+      const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // Generate PDF and open in new tab for mobile
+        const { jsPDF } = await import('jspdf');
+        const pdf = new jsPDF();
+        
+        // Header with EDUCAFRIC branding
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(59, 130, 246); // Blue color
+        pdf.text('EDUCAFRIC', 20, 25);
+        
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(0, 0, 0); // Black
+        pdf.text(doc.name || '', 20, 40);
+        
+        // Document metadata
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text(`Type: ${doc.type} | École: ${doc.school}`, 20, 55);
+        pdf.text(`Statut: ${doc.status} | Date: ${doc.date} | Taille: ${doc.size}`, 20, 62);
+        
+        // Description
+        if (doc.description) {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Description:', 20, 75);
+          pdf.setFont('helvetica', 'normal');
+          const descLines = pdf.splitTextToSize(doc.description, 170);
+          pdf.text(descLines, 20, 82);
+        }
+        
+        // Main content with proper formatting
+        if (doc.content) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(59, 130, 246); // Blue color for header
+          pdf.text('Contenu du document:', 20, 100);
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(0, 0, 0); // Black for content
+          
+          // Split content into lines and handle page breaks
+          const contentLines = pdf.splitTextToSize(doc.content, 170);
+          let yPosition = 110;
+          
+          contentLines.forEach((line: string) => {
+            if (yPosition > 270) { // Near bottom of page
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text(line, 20, yPosition);
+            yPosition += 5;
+          });
+        }
+        
+        // Footer on each page
+        const pageCount = pdf.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+          pdf.setFontSize(8);
+          pdf.setTextColor(128, 128, 128); // Gray
+          pdf.text(`Page ${i}/${pageCount} - EDUCAFRIC Platform v4.2.3`, 105, 285, { align: 'center' });
+          pdf.text('www.educafric.com - Plateforme éducative pour l\'Afrique', 105, 292, { align: 'center' });
+        }
+        
+        // Create blob and open in new window/tab
+        const pdfBlob = pdf.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        
+        // Open PDF in new window/tab
+        const newWindow = window.open(pdfUrl, '_blank');
+        if (newWindow) {
+          newWindow.document.title = doc.name || 'Document EDUCAFRIC';
+          
+          // Clean up URL after some time
+          setTimeout(() => {
+            URL.revokeObjectURL(pdfUrl);
+          }, 120000); // 2 minutes
+        } else {
+          // Fallback: download the PDF if popup is blocked
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = pdfUrl;
+          a.download = `${doc.name || 'document'}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(pdfUrl);
+        }
+        
+        toast({
+          title: language === 'fr' ? 'Document ouvert' : 'Document opened',
+          description: language === 'fr' ? `${doc.name || ''} ouvert dans un nouvel onglet` : `${doc.name || ''} opened in new tab`,
+        });
+        
+      } else {
+        // Desktop: Use dialog view
+        setSelectedDocument(doc);
+        setIsViewDialogOpen(true);
+      }
+      
+    } catch (error) {
+      console.error('Error opening document:', error);
+      // Fallback to dialog view
+      setSelectedDocument(doc);
+      setIsViewDialogOpen(true);
+      
+      toast({
+        title: language === 'fr' ? 'Ouverture alternative' : 'Alternative view',
+        description: language === 'fr' ? 'Document affiché dans une fenêtre modale' : 'Document displayed in modal window',
+      });
+    }
   };
 
   const handleDownloadDocument = async (doc: any) => {
