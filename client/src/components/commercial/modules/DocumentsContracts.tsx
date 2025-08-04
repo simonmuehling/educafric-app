@@ -153,7 +153,7 @@ CONDITIONS PARTICULIÈRES
 Fait à Yaoundé, le 20 janvier 2024
 
 Pour EDUCAFRIC:                    Pour l'École:
-Simon MUENHE                       Directeur Académique
+Simon ABANDA                       Directeur Académique
 Directeur Commercial               École Primaire Bilingue Yaoundé
 
 Signature: _________________      Signature: _________________
@@ -1161,7 +1161,7 @@ Adresse: Yaounde, Cameroun
 Email: contact@educafric.com
 Tel: +237 XXX XXX XXX
 
-Directeur General: Simon MUENHE
+Directeur General: Simon ABANDA
 Date: ________________
 Signature: ________________
 
