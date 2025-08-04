@@ -1148,18 +1148,6 @@ TOUS LES DASHBOARDS BÉNÉFICIENT DE:
 • Performance optimisée Afrique
 
 EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
-
-CARACTÉRISTIQUES TECHNIQUES
-• Interface responsive mobile-first
-• Thème africain coloré et moderne
-• Navigation intuitive
-• Performance optimisée
-• Sécurité renforcée
-
-Chaque dashboard est conçu pour maximiser l'efficacité et l'expérience utilisateur selon le rôle spécifique.
-
-EDUCAFRIC Platform v4.2.3 - 2025
-www.educafric.com`
     }
   ];
 
