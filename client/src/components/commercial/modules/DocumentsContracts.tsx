@@ -283,6 +283,357 @@ Version: 4.2.3 - 2024`
     },
     {
       id: 8,
+      name: 'CONTRAT PARTENARIAT ÉTABLISSEMENTS FREELANCERS 2025',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Document officiel',
+      date: '2025-01-30',
+      status: 'finalized',
+      size: '4.5 MB',
+      format: 'PDF',
+      description: 'Contrat officiel EDUCAFRIC pour établissements scolaires et freelancers éducatifs',
+      content: `EDUCAFRIC - CONTRAT DE PARTENARIAT ÉTABLISSEMENTS SCOLAIRES ET FREELANCERS 2025
+
+Document Information
+- Date de création: 30 janvier 2025
+- Version: 3.0 (Mise à jour Educafric)
+- Validité: Du 1er janvier 2025 au 31 décembre 2025
+- Destinataires: Directeurs d'École, Freelancers Éducatifs, Équipe Juridique
+- Objectif: Contrat officiel de partenariat Educafric pour établissements et répétiteurs
+
+🏛️ PRÉAMBULE
+
+Le présent contrat définit les modalités de partenariat entre EDUCAFRIC (exploité par AFRO METAVERSE MARKETING SARL) et les établissements scolaires ainsi que les freelancers éducatifs (répétiteurs) pour l'utilisation de la plateforme numérique éducative africaine.
+
+Parties Contractantes:
+- EDUCAFRIC : Plateforme éducative technologique
+- ÉTABLISSEMENTS SCOLAIRES : Écoles publiques, privées, confessionnelles
+- FREELANCERS ÉDUCATIFS : Répétiteurs indépendants, centres de formation
+
+Mission Educafric:
+Démocratiser l'accès aux technologies éducatives en Afrique et moderniser l'écosystème éducatif par l'innovation numérique.
+
+📋 ARTICLE 1 - OBJET DU CONTRAT
+
+1.1 Services Fournis par Educafric
+
+🎓 Plateforme de Gestion Scolaire Complète
+- Gestion des élèves: Inscription, profils, historique académique
+- Gestion des enseignants: Profils, matières, planning, absences
+- Classes et niveaux: Organisation SIL à Terminale (système camerounais)
+- Emploi du temps numérique: Création et consultation interactive
+- Présences électroniques: Appel numérique quotidien
+- Notes et évaluations: Saisie, calcul moyennes automatique
+
+📊 Système de Bulletins Numériques
+- Bulletins digitaux professionnels: Templates officiels camerounais
+- Calculs automatiques: Moyennes, rangs, appréciations
+- Export PDF: Bulletins formatés pour impression
+- Distribution automatique: Envoi parents par email/SMS
+- Historique complet: Conservation multi-années sécurisée
+
+💬 Communication École-Famille Intégrée
+- Messages directs: Communication enseignants ↔ parents
+- Notifications automatisées: Absences, notes, événements
+- Annonces école: Diffusion informations importantes
+- Calendrier événements: Réunions, examens, activités
+- Support multilingue: Français et anglais natif
+
+📱 Accès Mobile et Technologies Avancées
+- Applications natives: iOS et Android optimisées
+- Mode hors ligne: Consultation sans internet
+- Notifications push: Alertes temps réel
+- Géolocalisation: Suivi sécurisé élèves (optionnel)
+- WhatsApp Business: Communication automatisée
+
+📈 Rapports et Analytics
+- Tableaux de bord: Vue d'ensemble performance
+- Statistiques présences: Suivi assiduité détaillé
+- Analyses académiques: Performance par matière/niveau
+- Intelligence artificielle: Prédictions et recommandations
+- Rapports automatisés: Synthèses mensuelles directeur
+
+💰 ARTICLE 2 - TARIFICATION ET ABONNEMENTS
+
+2.1 Plans Établissements Scolaires
+
+🏫 Plan École Publique
+Prix: 25.000 CFA/mois (250.000 CFA/an)
+Élèves inclus: Jusqu'à 200 élèves
+Économie annuelle: 50.000 CFA (2 mois gratuits)
+
+✅ Fonctionnalités Incluses:
+- Gestion complète élèves/enseignants
+- Bulletins digitaux illimités
+- Communication parents automatisée
+- Emploi du temps interactif
+- Présences électroniques
+- Support technique dédié
+- Notifications SMS (1000/mois)
+- Formation équipe (8h incluses)
+
+📊 Tarification Progressive:
+- 0-200 élèves: 25.000 CFA/mois
+- 201-500 élèves: +100 CFA/élève/mois
+- 501-1000 élèves: +75 CFA/élève/mois
+- +1000 élèves: Tarif négocié
+
+🌟 Plan École Privée
+Prix: 75.000 CFA/mois (750.000 CFA/an)
+Élèves inclus: Jusqu'à 500 élèves
+Économie annuelle: 150.000 CFA (2 mois gratuits)
+
+✅ Tout du Plan Public +:
+- Géolocalisation sécurité élèves
+- Système paiement intégré
+- Module comptabilité avancé
+- Branding école personnalisé
+- Application mobile école
+- Analytics IA prédictive
+- Support prioritaire 24/7
+- Formation équipe (40h incluses)
+
+💼 Plan École Enterprise
+Prix: 150.000 CFA/mois (1.500.000 CFA/an)
+Élèves: Illimités
+Solution complète sur mesure
+
+✅ Solution Premium:
+- Toutes fonctionnalités incluses
+- Multi-campus sans limite
+- Personnalisation complète
+- Intégrations sur mesure
+- Infrastructure dédiée
+- Équipe support dédiée
+
+2.2 Plans Freelancers/Répétiteurs
+
+👨‍🏫 Plan Freelancer Standard
+Prix: 12.500 CFA/semestre (25.000 CFA/an)
+Élèves: Jusqu'à 50 élèves maximum
+
+✅ Fonctionnalités incluses:
+- Gestion élèves personnelle
+- Planning cours particuliers
+- Suivi progression individuelle
+- Communication parents directe
+- Facturation automatisée
+- Rapports de performance
+- Support technique email
+
+🎯 Plan Freelancer Pro
+Prix: 20.000 CFA/semestre (40.000 CFA/an)
+Élèves: Jusqu'à 150 élèves maximum
+
+✅ Tout du Standard +:
+- Géolocalisation cours (optionnel)
+- Multi-matières illimitées
+- Templates cours avancés
+- Analytics performance détaillées
+- Branding personnel
+- Support téléphonique prioritaire
+
+2.3 Modalités de Paiement
+
+💳 Méthodes de Paiement Acceptées:
+- Orange Money (Cameroun)
+- MTN Mobile Money (Cameroun)
+- Stripe (cartes internationales)
+- Virement bancaire (grandes écoles)
+- Espèces (agents locaux)
+
+📋 Conditions de Paiement:
+- Paiement mensuel: Débité automatiquement le 1er du mois
+- Paiement annuel: 15% de réduction appliquée
+- Période d'essai: 30 jours gratuits pour toutes les formules
+- Résiliation: Préavis de 30 jours requis
+
+⚖️ ARTICLE 3 - OBLIGATIONS ET RESPONSABILITÉS
+
+3.1 Obligations d'Educafric
+
+📞 Support Technique:
+- Support technique 24/7 en français
+- Temps de réponse: < 4 heures ouvrables
+- Formation initiale gratuite incluse
+- Mises à jour automatiques gratuites
+- Sauvegarde quotidienne des données
+- Garantie uptime 99.5%
+
+🔒 Sécurité et Confidentialité:
+- Chiffrement SSL/TLS obligatoire
+- Conformité GDPR et lois camerounaises
+- Protection données personnelles élèves
+- Accès sécurisé par rôles
+- Audit sécurité annuel
+- Plan de reprise d'activité
+
+3.2 Obligations du Partenaire
+
+📚 Établissements Scolaires:
+- Désigner 2 administrateurs maximum
+- Former le personnel à l'utilisation
+- Respecter les conditions d'utilisation
+- Paiement des frais dans les délais
+- Communication changements importants
+- Participation aux mises à jour critiques
+
+👨‍🏫 Freelancers:
+- Utilisation éthique de la plateforme
+- Respect de la propriété intellectuelle
+- Non-revente des accès
+- Mise à jour informations personnelles
+- Respect des horaires de maintenance
+
+📝 ARTICLE 4 - FORMATION ET ACCOMPAGNEMENT
+
+4.1 Formation Initiale
+
+🎓 Pour les Établissements:
+- Formation directeur/administrateurs: 8 heures
+- Formation enseignants: 16 heures
+- Formation secrétariat: 4 heures
+- Support documentation complète
+- Webinaires de perfectionnement mensuels
+
+👨‍🏫 Pour les Freelancers:
+- Session individuelle: 2 heures
+- Documentation pas-à-pas
+- Tutoriels vidéo français
+- Groupe WhatsApp support
+
+4.2 Support Continu
+
+📞 Canaux de Communication:
+- Email: support@educafric.com
+- WhatsApp: +237 XXX XXX XXX
+- Téléphone: +237 XXX XXX XXX
+- Chat en ligne: www.educafric.com
+
+⏰ Horaires de Support:
+- Lundi-Vendredi: 7h00-19h00 (GMT+1)
+- Samedi: 8h00-16h00 (GMT+1)
+- Urgences 24/7: numéro dédié
+
+💾 ARTICLE 5 - DONNÉES ET PROPRIÉTÉ INTELLECTUELLE
+
+5.1 Propriété des Données
+
+📊 Données Scolaires:
+- Propriété exclusive de l'établissement
+- Droit d'exportation complète
+- Suppression garantie à la résiliation
+- Accès lecture seule pour maintenance
+
+🔐 Données Educafric:
+- Code source: propriété Educafric
+- Base de données plateforme: propriété Educafric
+- Algorithmes IA: propriété Educafric
+- Templates: licence d'utilisation accordée
+
+5.2 Confidentialité
+
+🤐 Engagements Mutuels:
+- Non-divulgation informations sensibles
+- Protection données personnelles élèves/parents
+- Accès restreint personnel autorisé uniquement
+- Signalement incidents sécurité obligatoire
+
+⏱️ ARTICLE 6 - DURÉE ET RÉSILIATION
+
+6.1 Durée du Contrat
+
+📅 Période Contractuelle:
+- Durée initiale: 12 mois renouvelables
+- Renouvellement: Automatique sauf dénonciation
+- Préavis résiliation: 30 jours minimum
+- Période d'essai: 30 jours gratuits
+
+6.2 Conditions de Résiliation
+
+❌ Résiliation par Educafric:
+- Non-paiement: après 30 jours de retard
+- Violation conditions d'utilisation
+- Utilisation frauduleuse
+- Préavis: 15 jours minimum
+
+❌ Résiliation par le Partenaire:
+- Préavis écrit: 30 jours minimum
+- Motif non requis
+- Remboursement: au prorata temporis
+- Export données: garanti 90 jours
+
+🚨 ARTICLE 7 - RESPONSABILITÉS ET LIMITES
+
+7.1 Limitation de Responsabilité
+
+⚠️ Exclusions:
+- Dommages indirects ou consécutifs
+- Perte de bénéfices
+- Interruption d'activité
+- Force majeure (pannes électriques, etc.)
+
+💰 Plafond de Responsabilité:
+- Maximum: montant des frais annuels payés
+- Assurance responsabilité civile professionnelle
+- Couverture: 500.000.000 CFA
+
+7.2 Garanties de Service
+
+✅ Engagements Qualité:
+- Disponibilité plateforme: 99.5% minimum
+- Temps de réponse support: < 4h ouvrables
+- Résolution incidents: < 24h ouvrables
+- Maintenance préventive: annoncée 48h avant
+
+📋 ARTICLE 8 - DISPOSITIONS FINALES
+
+8.1 Droit Applicable
+
+⚖️ Juridiction:
+- Droit camerounais applicable
+- Tribunaux de Yaoundé compétents
+- Langue du contrat: français
+- Arbitrage possible si accord mutuel
+
+8.2 Modifications
+
+✏️ Évolutions Contractuelles:
+- Modifications par avenant écrit uniquement
+- Notification changements: 30 jours minimum
+- Droit de résiliation si refus modifications majeures
+
+8.3 Intégralité
+
+📑 Clause de Totalité:
+- Le présent contrat annule tous accords antérieurs
+- Conditions générales consultables sur www.educafric.com
+- Versions française et anglaise: version française prévaut
+
+📞 CONTACTS ET SIGNATURES
+
+EDUCAFRIC
+AFRO METAVERSE MARKETING SARL
+Adresse: Yaoundé, Cameroun
+Email: contact@educafric.com
+Tél: +237 XXX XXX XXX
+
+Directeur Général: Simon MUENHE
+Date: ________________
+Signature: ________________
+
+PARTENAIRE
+École/Freelancer: ________________
+Directeur/Responsable: ________________
+Date: ________________
+Signature: ________________
+
+---
+Document généré par EDUCAFRIC Platform v4.2.3
+www.educafric.com - Révolutionner l'éducation en Afrique`
+    },
+    {
+      id: 9,
       name: 'Présentation Dashboards EDUCAFRIC 2025',
       type: 'brochure',
       category: 'brochures',
