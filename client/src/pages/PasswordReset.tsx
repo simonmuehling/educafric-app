@@ -106,8 +106,8 @@ export default function PasswordReset() {
       await resetPassword(params?.token || '', password, confirmPassword);
       
       toast({
-        title: t('success?.auth?.passwordResetSuccess'),
-        description: t('success?.auth?.passwordResetSuccess'),
+        title: language === 'fr' ? 'Mot de passe réinitialisé' : 'Password reset successful',
+        description: language === 'fr' ? 'Votre mot de passe a été réinitialisé avec succès' : 'Your password has been reset successfully',
       });
       setLocation('/login');
     } catch (error) {
@@ -156,7 +156,10 @@ export default function PasswordReset() {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-transparent">
-            {isResetMode ? t('auth?.reset?.title') : t('auth?.forgot?.title')}
+            {isResetMode 
+              ? (language === 'fr' ? 'Nouveau mot de passe' : 'New Password') 
+              : (language === 'fr' ? 'Mot de passe oublié' : 'Forgot Password')
+            }
           </CardTitle>
           <div className="text-center mb-4">
             <p className="text-2xl font-bold bg-gradient-to-r from-orange-300 via-yellow-300 to-pink-300 bg-clip-text text-transparent">
@@ -168,8 +171,8 @@ export default function PasswordReset() {
           </div>
           <p className="text-white/80 text-sm">
             {isResetMode 
-              ? t('auth?.reset?.subtitle')
-              : t('auth?.forgot?.subtitle')
+              ? (language === 'fr' ? 'Créez un nouveau mot de passe sécurisé' : 'Create a new secure password')
+              : (language === 'fr' ? 'Entrez votre email ou numéro pour récupérer votre compte' : 'Enter your email or phone number to recover your account')
             }
           </p>
         </CardHeader>
@@ -229,12 +232,14 @@ export default function PasswordReset() {
               {/* Input Field Based on Recovery Method */}
               {recoveryMethod === 'email' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/90 font-medium">{t('auth?.fields?.email')}</Label>
+                  <Label htmlFor="email" className="text-white/90 font-medium">
+                    {language === 'fr' ? 'Adresse email' : 'Email address'}
+                  </Label>
                   <div className="relative">
                     <Input
                       id="email"
                       type="email"
-                      placeholder={t('auth?.placeholders?.email')}
+                      placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
                       value={email}
                       onChange={(e) => setEmail(e?.target?.value)}
                       className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
@@ -270,8 +275,9 @@ export default function PasswordReset() {
                 className="w-full bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 hover:from-orange-600 hover:via-pink-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300"
                 disabled={isRequestLoading}
               >
-                {isRequestLoading ? t('loading.sending') : 
-                  (recoveryMethod === 'email' 
+                {isRequestLoading 
+                  ? (language === 'fr' ? 'Envoi en cours...' : 'Sending...') 
+                  : (recoveryMethod === 'email' 
                     ? (language === 'fr' ? 'Envoyer par Email' : 'Send by Email')
                     : (language === 'fr' ? 'Envoyer par SMS' : 'Send by SMS')
                   )
@@ -285,19 +291,21 @@ export default function PasswordReset() {
                   onClick={() => setLocation('/login')}
                   className="text-white/90 hover:text-white underline hover:no-underline transition-all font-medium"
                 >
-                  {t('backToLogin')}
+                  {language === 'fr' ? 'Retour à la connexion' : 'Back to login'}
                 </Button>
               </div>
             </form>
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white/90 font-medium">{t('newPassword')}</Label>
+                <Label htmlFor="password" className="text-white/90 font-medium">
+                  {language === 'fr' ? 'Nouveau mot de passe' : 'New password'}
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={t('enterNewPasswordPlaceholder')}
+                    placeholder={language === 'fr' ? 'Saisissez votre nouveau mot de passe' : 'Enter your new password'}
                     value={password}
                     onChange={(e) => setPassword(e?.target?.value)}
                     className="pl-10 pr-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
@@ -319,12 +327,14 @@ export default function PasswordReset() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white/90 font-medium">{t('confirmNewPassword')}</Label>
+                <Label htmlFor="confirmPassword" className="text-white/90 font-medium">
+                  {language === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'}
+                </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder={t('confirmNewPasswordPlaceholder')}
+                    placeholder={language === 'fr' ? 'Confirmez votre nouveau mot de passe' : 'Confirm your new password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e?.target?.value)}
                     className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
@@ -339,7 +349,10 @@ export default function PasswordReset() {
                 className="w-full bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 hover:from-orange-600 hover:via-pink-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300"
                 disabled={isResetLoading}
               >
-                {isResetLoading ? t('resetting') : t('resetPasswordButton')}
+                {isResetLoading 
+                  ? (language === 'fr' ? 'Réinitialisation...' : 'Resetting...') 
+                  : (language === 'fr' ? 'Réinitialiser le mot de passe' : 'Reset password')
+                }
               </Button>
               
               <div className="text-center">
@@ -349,7 +362,7 @@ export default function PasswordReset() {
                   onClick={() => setLocation('/login')}
                   className="text-white/90 hover:text-white underline hover:no-underline transition-all font-medium"
                 >
-                  {t('backToLogin')}
+                  {language === 'fr' ? 'Retour à la connexion' : 'Back to login'}
                 </Button>
               </div>
             </form>
