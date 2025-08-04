@@ -174,7 +174,49 @@ const DocumentsContracts = () => {
       size: '5.2 MB',
       format: 'PDF',
       description: 'Guide complet pour équipe commerciale',
-      content: 'GUIDE COMPLET EDUCAFRIC - Formation commerciale complète avec présentation des fonctionnalités, tarifs et stratégies de vente pour l\'équipe commerciale.'
+      content: `GUIDE COMPLET EDUCAFRIC - FORMATION COMMERCIALE 2024
+
+PRÉSENTATION GÉNÉRALE
+EDUCAFRIC est la plateforme éducative révolutionnaire conçue spécifiquement pour l'Afrique. Notre solution complète répond aux défis uniques de l'éducation africaine en proposant des outils numériques adaptés aux réalités locales.
+
+FONCTIONNALITÉS PRINCIPALES
+
+1. GESTION ACADÉMIQUE COMPLÈTE
+   • Système de notes et bulletins personnalisables
+   • Gestion des emplois du temps avec adaptation climatique
+   • Suivi des présences en temps réel
+   • Gestion des devoirs et évaluations
+
+2. COMMUNICATION INTÉGRÉE
+   • Notifications SMS via réseau local
+   • WhatsApp Business API
+   • Emails automatisés
+   • Notifications push PWA
+
+3. GESTION FINANCIÈRE
+   • Intégration Orange Money / MTN Mobile Money
+   • Paiements Stripe internationaux
+   • Suivi des frais scolaires
+   • Rapports financiers détaillés
+
+STRATÉGIES DE VENTE
+
+Prix Compétitifs:
+• Parents: 1,000-1,500 CFA/mois
+• Écoles: 50,000-75,000 CFA/an
+• Freelancers: 25,000 CFA/an
+
+Arguments Clés:
+• Économies jusqu'à 73% comparé aux solutions traditionnelles
+• ROI démontré en moins de 6 mois
+• Support technique 24/7 en français
+• Adaptation aux réalités africaines
+
+DÉMONSTRATION
+Utilisez notre environnement sandbox pour les démonstrations complètes avec données réalistes africaines.
+
+Contact: commercial@educafric.com
+Version: 4.2.3 - 2024`
     },
     {
       id: 8,
@@ -187,7 +229,78 @@ const DocumentsContracts = () => {
       size: '2.8 MB',
       format: 'PDF',
       description: 'Présentation complète de tous les tableaux de bord utilisateurs EDUCAFRIC',
-      content: 'Documentation complète pour tous les tableaux de bord utilisateurs EDUCAFRIC. Présentation des 6 rôles utilisateurs principaux: Admin École, Directeur, Enseignant, Parent, Élève, et Freelancer. Chaque rôle dispose de modules spécifiques adaptés à ses besoins. Version 4.2.3 - 2025'
+      content: `PRÉSENTATION COMPLÈTE DES DASHBOARDS EDUCAFRIC 2025
+
+ARCHITECTURE UTILISATEURS
+EDUCAFRIC propose 6 rôles utilisateurs distincts, chacun avec son dashboard personnalisé et ses modules spécifiques.
+
+1. SITE ADMIN (Administrateur Plateforme)
+   • Gestion globale de tous les utilisateurs
+   • Surveillance système et performance
+   • Configuration plateforme
+   • Statistiques globales
+   • Gestion des écoles partenaires
+
+2. ADMIN ÉCOLE
+   • Gestion complète de l'établissement
+   • Configuration des classes et matières
+   • Gestion du personnel enseignant
+   • Rapports financiers école
+   • Paramètres institutionnels
+
+3. DIRECTEUR
+   • Vue d'ensemble établissement
+   • Statistiques académiques
+   • Gestion pédagogique
+   • Rapports direction
+   • Communication institutionnelle
+
+4. ENSEIGNANT
+   • Gestion des classes assignées
+   • Saisie notes et évaluations
+   • Gestion des devoirs
+   • Communication parents
+   • Emploi du temps personnel
+
+5. PARENT
+   • Suivi enfants scolarisés
+   • Consultation notes et bulletins
+   • Communication enseignants
+   • Paiements frais scolaires
+   • Notifications importantes
+
+6. ÉLÈVE
+   • Consultation notes personnelles
+   • Emploi du temps
+   • Devoirs à rendre
+   • Ressources pédagogiques
+   • Communication école
+
+7. FREELANCER
+   • Gestion projets éducatifs
+   • Outils création contenu
+   • Collaboration établissements
+   • Facturation services
+   • Portfolio professionnel
+
+8. COMMERCIAL
+   • Gestion prospects écoles
+   • Documents commerciaux
+   • Suivi ventes
+   • Rapports activité
+   • Outils démonstration
+
+CARACTÉRISTIQUES TECHNIQUES
+• Interface responsive mobile-first
+• Thème africain coloré et moderne
+• Navigation intuitive
+• Performance optimisée
+• Sécurité renforcée
+
+Chaque dashboard est conçu pour maximiser l'efficacité et l'expérience utilisateur selon le rôle spécifique.
+
+EDUCAFRIC Platform v4.2.3 - 2025
+www.educafric.com`
     }
   ];
 
@@ -209,98 +322,9 @@ const DocumentsContracts = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleViewDocument = async (doc: any) => {
-    try {
-      // Generate and open PDF directly
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF();
-      
-      // Header with EDUCAFRIC branding
-      pdf.setFontSize(20);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('EDUCAFRIC', 20, 25);
-      
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text(doc.name || '', 20, 40);
-      
-      // Document info
-      pdf.setFontSize(10);
-      pdf.text(`${t.type}: ${doc.type} | ${t.school}: ${doc.school}`, 20, 55);
-      pdf.text(`${t.status}: ${doc.status} | ${t.date}: ${doc.date} | ${t.size}: ${doc.size}`, 20, 62);
-      
-      // Description
-      if (doc.description) {
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Description:', 20, 75);
-        pdf.setFont('helvetica', 'normal');
-        const descLines = pdf.splitTextToSize(doc.description, 170);
-        pdf.text(descLines, 20, 82);
-      }
-      
-      // Main content
-      if (doc.content) {
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Contenu du document:', 20, 100);
-        
-        pdf.setFontSize(11);
-        pdf.setFont('helvetica', 'normal');
-        const contentLines = pdf.splitTextToSize(doc.content, 170);
-        pdf.text(contentLines, 20, 110);
-      }
-      
-      // Footer on each page
-      const pageCount = pdf.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        pdf.setPage(i);
-        pdf.setFontSize(8);
-        pdf.text(`Page ${i}/${pageCount} - Document généré par EDUCAFRIC Platform v4.2.3`, 105, 285, { align: 'center' });
-        pdf.text('www.educafric.com - Plateforme éducative pour l\'Afrique', 105, 292, { align: 'center' });
-      }
-      
-      // Create blob and open in new window
-      const pdfBlob = pdf.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      
-      // Open PDF in new window
-      const newWindow = window.open(pdfUrl, '_blank');
-      if (newWindow) {
-        newWindow.document.title = doc.name || 'Document EDUCAFRIC';
-        
-        // Clean up URL after some time
-        setTimeout(() => {
-          URL.revokeObjectURL(pdfUrl);
-        }, 60000);
-      } else {
-        // Fallback: download the PDF
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = pdfUrl;
-        a.download = `${doc.name || 'document'}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(pdfUrl);
-      }
-      
-      toast({
-        title: language === 'fr' ? 'Document ouvert' : 'Document opened',
-        description: language === 'fr' ? `${doc.name || ''} ouvert dans un nouvel onglet` : `${doc.name || ''} opened in new tab`,
-      });
-      
-    } catch (error) {
-      console.error('Error opening document:', error);
-      // Fallback to dialog view
-      setSelectedDocument(doc);
-      setIsViewDialogOpen(true);
-      
-      toast({
-        title: language === 'fr' ? 'Ouverture alternative' : 'Alternative view',
-        description: language === 'fr' ? 'Document affiché dans une fenêtre modale' : 'Document displayed in modal window',
-      });
-    }
+  const handleViewDocument = (doc: any) => {
+    setSelectedDocument(doc);
+    setIsViewDialogOpen(true);
   };
 
   const handleDownloadDocument = async (doc: any) => {
@@ -584,24 +608,26 @@ const DocumentsContracts = () => {
       </Card>
 
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0 pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-xl">
               {selectedDocument && getTypeIcon(selectedDocument.type)}
               {selectedDocument?.name}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base mt-2">
               {selectedDocument?.description}
             </DialogDescription>
           </DialogHeader>
           
           {selectedDocument && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="flex-1 overflow-hidden flex flex-col space-y-4 py-4">
+              {/* Document metadata */}
+              <div className="flex-shrink-0 grid grid-cols-3 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
                 <div><strong>{t.type}:</strong> {t[selectedDocument.type as keyof typeof t] || selectedDocument.type}</div>
                 <div><strong>{t.school}:</strong> {selectedDocument.school}</div>
                 <div><strong>{t.date}:</strong> {selectedDocument.date}</div>
                 <div><strong>{t.size}:</strong> {selectedDocument.size}</div>
+                <div><strong>Format:</strong> {selectedDocument.format}</div>
                 <div><strong>{t.status}:</strong> 
                   <Badge className={`ml-2 ${getStatusBadge(selectedDocument.status)} text-xs`}>
                     {t[selectedDocument.status as keyof typeof t] || selectedDocument.status}
@@ -609,23 +635,38 @@ const DocumentsContracts = () => {
                 </div>
               </div>
               
+              {/* Document content - main scrollable area */}
               {selectedDocument.content && (
-                <div className="border-2 border-blue-200 rounded-lg p-6 bg-blue-50 min-h-[400px] max-h-[500px] overflow-auto">
-                  <h4 className="font-semibold text-lg mb-4 text-blue-800">{language === 'fr' ? 'Contenu du Document:' : 'Document Content:'}</h4>
-                  <div className="whitespace-pre-wrap text-base leading-relaxed text-gray-800">{selectedDocument.content}</div>
+                <div className="flex-1 border-2 border-blue-200 rounded-lg bg-blue-50 overflow-hidden flex flex-col">
+                  <div className="flex-shrink-0 bg-blue-100 px-6 py-3 border-b border-blue-200">
+                    <h4 className="font-semibold text-lg text-blue-800">
+                      {language === 'fr' ? 'Contenu du Document:' : 'Document Content:'}
+                    </h4>
+                  </div>
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="whitespace-pre-wrap text-base leading-relaxed text-gray-800 min-h-0">
+                      {selectedDocument.content}
+                    </div>
+                  </div>
                 </div>
               )}
               
               {!selectedDocument.content && (
-                <div className="border-2 border-orange-200 rounded-lg p-6 bg-orange-50 text-center">
-                  <h4 className="font-medium text-orange-800 mb-2">{language === 'fr' ? 'Contenu non disponible' : 'Content not available'}</h4>
-                  <p className="text-orange-600">{language === 'fr' ? 'Ce document ne contient pas de contenu prévisualisable.' : 'This document does not contain previewable content.'}</p>
+                <div className="flex-1 border-2 border-orange-200 rounded-lg p-6 bg-orange-50 flex items-center justify-center">
+                  <div className="text-center">
+                    <h4 className="font-medium text-orange-800 mb-2">
+                      {language === 'fr' ? 'Contenu non disponible' : 'Content not available'}
+                    </h4>
+                    <p className="text-orange-600">
+                      {language === 'fr' ? 'Ce document ne contient pas de contenu prévisualisable.' : 'This document does not contain previewable content.'}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
               {language === 'fr' ? 'Fermer' : 'Close'}
             </Button>
