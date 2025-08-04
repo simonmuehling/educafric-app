@@ -209,9 +209,98 @@ const DocumentsContracts = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleViewDocument = (doc: any) => {
-    setSelectedDocument(doc);
-    setIsViewDialogOpen(true);
+  const handleViewDocument = async (doc: any) => {
+    try {
+      // Generate and open PDF directly
+      const { jsPDF } = await import('jspdf');
+      const pdf = new jsPDF();
+      
+      // Header with EDUCAFRIC branding
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('EDUCAFRIC', 20, 25);
+      
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(doc.name || '', 20, 40);
+      
+      // Document info
+      pdf.setFontSize(10);
+      pdf.text(`${t.type}: ${doc.type} | ${t.school}: ${doc.school}`, 20, 55);
+      pdf.text(`${t.status}: ${doc.status} | ${t.date}: ${doc.date} | ${t.size}: ${doc.size}`, 20, 62);
+      
+      // Description
+      if (doc.description) {
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Description:', 20, 75);
+        pdf.setFont('helvetica', 'normal');
+        const descLines = pdf.splitTextToSize(doc.description, 170);
+        pdf.text(descLines, 20, 82);
+      }
+      
+      // Main content
+      if (doc.content) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Contenu du document:', 20, 100);
+        
+        pdf.setFontSize(11);
+        pdf.setFont('helvetica', 'normal');
+        const contentLines = pdf.splitTextToSize(doc.content, 170);
+        pdf.text(contentLines, 20, 110);
+      }
+      
+      // Footer on each page
+      const pageCount = pdf.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.text(`Page ${i}/${pageCount} - Document généré par EDUCAFRIC Platform v4.2.3`, 105, 285, { align: 'center' });
+        pdf.text('www.educafric.com - Plateforme éducative pour l\'Afrique', 105, 292, { align: 'center' });
+      }
+      
+      // Create blob and open in new window
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      // Open PDF in new window
+      const newWindow = window.open(pdfUrl, '_blank');
+      if (newWindow) {
+        newWindow.document.title = doc.name || 'Document EDUCAFRIC';
+        
+        // Clean up URL after some time
+        setTimeout(() => {
+          URL.revokeObjectURL(pdfUrl);
+        }, 60000);
+      } else {
+        // Fallback: download the PDF
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = pdfUrl;
+        a.download = `${doc.name || 'document'}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(pdfUrl);
+      }
+      
+      toast({
+        title: language === 'fr' ? 'Document ouvert' : 'Document opened',
+        description: language === 'fr' ? `${doc.name || ''} ouvert dans un nouvel onglet` : `${doc.name || ''} opened in new tab`,
+      });
+      
+    } catch (error) {
+      console.error('Error opening document:', error);
+      // Fallback to dialog view
+      setSelectedDocument(doc);
+      setIsViewDialogOpen(true);
+      
+      toast({
+        title: language === 'fr' ? 'Ouverture alternative' : 'Alternative view',
+        description: language === 'fr' ? 'Document affiché dans une fenêtre modale' : 'Document displayed in modal window',
+      });
+    }
   };
 
   const handleDownloadDocument = async (doc: any) => {
