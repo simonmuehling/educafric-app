@@ -147,7 +147,8 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '890 KB',
       format: 'PDF',
-      description: 'CGV mises à jour 2024'
+      description: 'CGV mises à jour 2024',
+      content: 'CONDITIONS GÉNÉRALES DE VENTE EDUCAFRIC 2024 - Document légal officiel avec conditions commerciales, tarification, modalités de paiement et cadre juridique pour les services EDUCAFRIC en Afrique. Version mise à jour janvier 2024.'
     },
     {
       id: 6,
