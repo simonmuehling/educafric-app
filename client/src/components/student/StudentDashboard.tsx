@@ -225,12 +225,14 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   ];
 
   return (
-    <UnifiedIconDashboard
-      title={t.title || ''}
-      subtitle={t.subtitle}
-      modules={modules}
-      activeModule={currentActiveModule || activeModule}
-    />
+    <div data-testid="dashboard-overview">
+      <UnifiedIconDashboard
+        title={t.title || ''}
+        subtitle={t.subtitle}
+        modules={modules}
+        activeModule={currentActiveModule || activeModule}
+      />
+    </div>
   );
 };
 

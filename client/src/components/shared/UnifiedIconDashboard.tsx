@@ -51,13 +51,14 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Mobile-first compact grid - Max 3 items per row on mobile */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto" data-testid="main-navigation">
           {(Array.isArray(modules) ? modules : []).map((module, index) => (
             <div
               key={module.id}
               onClick={() => handleModuleClick(module.id)}
               className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"
               style={{ animationDelay: `${index * 50}ms` }}
+              data-testid={module.id === 'grades' ? 'student-grades' : module.id === 'assignments' ? 'student-homework' : `module-${module.id}`}
             >
               {/* Compact mobile layout */}
               <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2 h-full justify-center">

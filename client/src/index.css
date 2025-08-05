@@ -473,6 +473,85 @@
   .hero-section::before {
     content: '';
     position: absolute;
+  }
+}
+
+/* Mobile optimizations for authentication forms */
+@media (max-width: 768px) {
+  .mobile-input-field .relative {
+    position: relative;
+  }
+  
+  .mobile-touch-input {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+  
+  .mobile-password-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .input-icon {
+    pointer-events: none;
+  }
+}
+
+/* Tutorial overlay styles */
+.tutorial-overlay {
+  transition: all 0.3s ease-in-out;
+}
+
+.tutorial-highlight {
+  position: relative !important;
+  z-index: 1001 !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3) !important;
+  border-radius: 8px !important;
+  animation: tutorialPulse 2s infinite;
+}
+
+@keyframes tutorialPulse {
+  0% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.tutorial-spotlight {
+  background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.7) 70%);
+  pointer-events: none;
+}
+
+/* Tutorial card animations */
+.tutorial-card-enter {
+  opacity: 0;
+  transform: scale(0.9) translateY(-20px);
+}
+
+.tutorial-card-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: all 0.3s ease-out;
+}
+
+.tutorial-card-exit {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.tutorial-card-exit-active {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+  transition: all 0.3s ease-in;
     width: 200%;
     height: 200%;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
@@ -649,7 +728,6 @@
       @apply p-6 rounded-2xl;
     }
   }
-}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
