@@ -60,6 +60,8 @@ import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import WebInspector from "@/components/developer/WebInspector";
+import { TutorialOverlay } from "@/components/tutorial/TutorialOverlay";
+import { useTutorial } from "@/hooks/useTutorial";
 
 import { useState } from "react";
 
@@ -84,8 +86,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Main App Layout Component
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isVisible, completeTutorial, skipTutorial } = useTutorial();
 
   if (!isAuthenticated) {
     return (
@@ -108,6 +111,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
       {/* Web Inspector for debugging */}
       <WebInspector />
+      
+      {/* Tutorial Overlay */}
+      {user && (
+        <TutorialOverlay
+          isVisible={isVisible}
+          userRole={user.role || 'Student'}
+          onComplete={completeTutorial}
+          onSkip={skipTutorial}
+        />
+      )}
     </div>
   );
 }

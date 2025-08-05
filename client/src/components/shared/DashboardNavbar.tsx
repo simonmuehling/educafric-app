@@ -1,9 +1,10 @@
 import React from 'react';
 import { useLocation } from 'wouter';
-import { Home, LogOut, Globe } from 'lucide-react';
+import { Home, LogOut, Globe, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTutorial } from '@/hooks/useTutorial';
 import Logo from '@/components/Logo';
 
 interface DashboardNavbarProps {
@@ -20,17 +21,20 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   const { language, setLanguage } = useLanguage();
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
+  const { showTutorial } = useTutorial();
 
   const text = {
     fr: {
       home: 'Accueil',
       logout: 'Déconnexion',
-      switchLanguage: 'English'
+      switchLanguage: 'English',
+      tutorial: 'Tutoriel'
     },
     en: {
       home: 'Home',
       logout: 'Sign Out',
-      switchLanguage: 'Français'
+      switchLanguage: 'Français',
+      tutorial: 'Tutorial'
     }
   };
 
@@ -84,6 +88,18 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           <div className="flex items-center">
             {/* Mobile: Only essential buttons visible */}
             <div className="flex items-center space-x-1">
+              {/* Tutorial Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={showTutorial}
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 p-0 text-blue-600 hover:text-blue-700 rounded-full"
+                title={t.tutorial}
+                data-testid="notifications-center"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </Button>
+
               {/* Language Switch - Compact */}
               <Button
                 variant="ghost"
