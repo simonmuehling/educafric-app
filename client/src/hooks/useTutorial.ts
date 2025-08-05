@@ -76,9 +76,11 @@ export function useTutorial(): TutorialState {
   }, [user]);
 
   const showTutorial = () => {
-    console.log('[TUTORIAL] Manual tutorial trigger - showing tutorial');
+    console.log('[TUTORIAL] 🎯 Manual tutorial trigger - forcing tutorial to show');
     setIsVisible(true);
     setHasCompletedTutorial(false); // Allow manual restart
+    setCurrentStep(0); // Reset to first step
+    setTotalSteps(5); // Set reasonable total
   };
 
   const hideTutorial = () => {
