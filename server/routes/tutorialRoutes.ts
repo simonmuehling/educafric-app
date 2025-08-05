@@ -1,7 +1,14 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { TutorialService } from '../services/tutorialService';
-import { requireAuth } from '../middleware/auth';
+
+// Auth middleware (inline since path doesn't exist)
+const requireAuth = (req: any, res: any, next: any) => {
+  if (req.isAuthenticated && req.isAuthenticated() && req.user) {
+    return next();
+  }
+  res.status(401).json({ message: 'Authentication required' });
+};
 
 const router = Router();
 

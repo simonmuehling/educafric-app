@@ -20,6 +20,7 @@ interface TutorialOverlayProps {
   userRole: string;
   onComplete: () => void;
   onSkip: () => void;
+  onUpdateProgress?: (step: number, total: number) => void;
 }
 
 const getTutorialSteps = (userRole: string): TutorialStep[] => {
@@ -175,7 +176,7 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
   return [...commonSteps, ...(roleSpecificSteps[userRole] || [])];
 };
 
-export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: TutorialOverlayProps) {
+export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip, onUpdateProgress }: TutorialOverlayProps) {
   const { language } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -213,9 +214,12 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setIsAnimating(true);
+      const newStep = currentStep + 1;
       setTimeout(() => {
-        setCurrentStep(currentStep + 1);
+        setCurrentStep(newStep);
         setIsAnimating(false);
+        // Track progress with backend
+        onUpdateProgress?.(newStep, steps.length);
       }, 200);
     } else {
       onComplete();
@@ -267,20 +271,20 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
           : "top-12 left-1/2 transform -translate-x-1/2 sm:top-4 sm:left-auto sm:right-4 sm:transform-none",
         isAnimating && "opacity-50 scale-95"
       )}>
-        <Card className="tutorial-card w-64 sm:w-96 max-w-[85vw] sm:max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white backdrop-blur-sm">
-          <CardHeader className="pb-2 sm:pb-4 px-2 sm:px-6 py-2 sm:py-6">
+        <Card className="tutorial-card w-[90vw] sm:w-96 max-w-[90vw] sm:max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white backdrop-blur-sm">
+          <CardHeader className="pb-1 sm:pb-4 px-1.5 sm:px-6 py-1.5 sm:py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 sm:gap-3">
                 <div className="p-1 sm:p-2 bg-blue-100 rounded-lg">
-                  <div className="w-3 h-3 sm:w-5 sm:h-5">
+                  <div className="w-2.5 h-2.5 sm:w-5 sm:h-5">
                     {currentStepData?.icon}
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <CardTitle className="text-xs sm:text-lg font-bold text-gray-900 truncate leading-tight">
+                  <CardTitle className="text-[10px] sm:text-lg font-bold text-gray-900 truncate leading-tight">
                     {currentStepData?.title[language as 'en' | 'fr']}
                   </CardTitle>
-                  <p className="text-[10px] sm:text-sm text-gray-500 leading-tight">
+                  <p className="text-[8px] sm:text-sm text-gray-500 leading-tight">
                     {language === 'fr' ? 'Étape' : 'Step'} {currentStep + 1}/{steps.length}
                   </p>
                 </div>
@@ -292,19 +296,19 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
                 className="text-gray-500 hover:text-gray-700 flex-shrink-0 p-0.5 sm:p-2"
                 data-testid="tutorial-close"
               >
-                <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                <X className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </CardHeader>
           
-          <CardContent className="space-y-2 sm:space-y-6 px-2 sm:px-6 pb-2 sm:pb-6">
-            <p className="text-gray-700 leading-tight text-[10px] sm:text-sm">
+          <CardContent className="space-y-1 sm:space-y-6 px-1.5 sm:px-6 pb-1.5 sm:pb-6">
+            <p className="text-gray-700 leading-tight text-[8px] sm:text-sm">
               {currentStepData?.content[language as 'en' | 'fr']}
             </p>
 
             {/* Progress bar */}
             <div className="space-y-1 sm:space-y-2">
-              <div className="flex justify-between text-[9px] sm:text-sm text-gray-500">
+              <div className="flex justify-between text-[7px] sm:text-sm text-gray-500">
                 <span>{language === 'fr' ? 'Progression' : 'Progress'}</span>
                 <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
               </div>
@@ -323,7 +327,7 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
                   <Button
                     variant="outline"
                     onClick={handlePrevious}
-                    className="text-gray-600 text-[9px] sm:text-sm px-1 sm:px-3 py-0.5 sm:py-2 h-6 sm:h-auto"
+                    className="text-gray-600 text-[7px] sm:text-sm px-0.5 sm:px-3 py-0.5 sm:py-2 h-5 sm:h-auto"
                     data-testid="tutorial-previous"
                   >
                     <ChevronLeft className="h-2 w-2 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
@@ -337,7 +341,7 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
                 <Button
                   variant="ghost"
                   onClick={handleSkip}
-                  className="text-gray-500 text-[9px] sm:text-sm px-1 sm:px-3 py-0.5 sm:py-2 h-6 sm:h-auto"
+                  className="text-gray-500 text-[7px] sm:text-sm px-0.5 sm:px-3 py-0.5 sm:py-2 h-5 sm:h-auto"
                   data-testid="tutorial-skip"
                 >
                   <span className="hidden sm:inline">{language === 'fr' ? 'Passer le tutoriel' : 'Skip tutorial'}</span>
@@ -346,7 +350,7 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
                 
                 <Button
                   onClick={handleNext}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-[9px] sm:text-sm px-1 sm:px-3 py-0.5 sm:py-2 h-6 sm:h-auto"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-[7px] sm:text-sm px-0.5 sm:px-3 py-0.5 sm:py-2 h-5 sm:h-auto"
                   data-testid="tutorial-next"
                 >
                   {currentStep === steps.length - 1 
