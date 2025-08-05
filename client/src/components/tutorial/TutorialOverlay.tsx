@@ -244,7 +244,7 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
   return (
     <>
       {/* Overlay backdrop */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-1000 tutorial-overlay">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] tutorial-overlay">
         {/* Tutorial spotlight effect */}
         {highlightedElement && !isWelcomeStep && (
           <div 
@@ -261,13 +261,13 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
 
       {/* Tutorial card */}
       <div className={cn(
-        "fixed z-1001 transition-all duration-300",
+        "fixed z-[10000] transition-all duration-300",
         isWelcomeStep 
           ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" 
-          : "top-2 sm:top-4 right-2 sm:right-4",
+          : "top-16 left-1/2 transform -translate-x-1/2 sm:top-4 sm:left-auto sm:right-4 sm:transform-none",
         isAnimating && "opacity-50 scale-95"
       )}>
-        <Card className="w-80 sm:w-96 max-w-[95vw] sm:max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white/95 backdrop-blur-sm">
+        <Card className="tutorial-card w-72 sm:w-96 max-w-[90vw] sm:max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white backdrop-blur-sm">
           <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 py-3 sm:py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-3">

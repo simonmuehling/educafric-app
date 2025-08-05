@@ -508,7 +508,7 @@
 
 .tutorial-highlight {
   position: relative !important;
-  z-index: 1001 !important;
+  z-index: 10001 !important;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3) !important;
   border-radius: 8px !important;
   animation: tutorialPulse 2s infinite;
@@ -529,6 +529,12 @@
 .tutorial-spotlight {
   background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.7) 70%);
   pointer-events: none;
+}
+
+/* Tutorial card positioning and styling */
+.tutorial-card {
+  position: fixed !important;
+  z-index: 10000 !important;
 }
 
 /* Tutorial card animations */
