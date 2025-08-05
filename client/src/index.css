@@ -1041,4 +1041,17 @@ select:focus-visible {
   .toast-default {
     @apply bg-white border-slate-200 text-slate-900 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 shadow-xl backdrop-blur-sm;
   }
+  
+  /* Toast Close Button Enhancement - Always Visible White X */
+  [toast-close] {
+    @apply text-white opacity-100 bg-black/20 hover:bg-black/30 backdrop-blur-sm transition-all duration-200;
+  }
+  
+  [toast-close]:hover {
+    @apply scale-110 text-white bg-black/40;
+  }
+  
+  [toast-close] .lucide {
+    @apply drop-shadow-lg filter;
+  }
 }
