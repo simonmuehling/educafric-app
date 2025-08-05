@@ -57,16 +57,12 @@ export function useTutorial(): TutorialState {
           return () => clearTimeout(timer);
         }
       } catch (error) {
-        console.error('[TUTORIAL] Failed to get tutorial status:', error);
-        // Fall back to localStorage if backend is unavailable
-        const storageKey = `${TUTORIAL_STORAGE_KEY}_${user.id}_v${TUTORIAL_VERSION}`;
-        const completed = localStorage.getItem(storageKey);
-        const hasCompleted = completed === 'true';
-        
-        setHasCompletedTutorial(hasCompleted);
-        if (!hasCompleted) {
-          setTimeout(() => setIsVisible(true), 1500);
-        }
+        console.error('[TUTORIAL] Backend error, using fallback mode:', error);
+        // Always allow tutorial to be shown when backend fails
+        setHasCompletedTutorial(false);
+        setCurrentStep(0);
+        setTotalSteps(5);
+        console.log('[TUTORIAL] Fallback: Tutorial ready to be shown on manual trigger');
       } finally {
         setIsLoading(false);
       }

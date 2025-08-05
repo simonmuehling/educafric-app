@@ -60,10 +60,10 @@ import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import WebInspector from "@/components/developer/WebInspector";
-import { TutorialOverlay } from "@/components/tutorial/TutorialOverlay";
-import { useTutorial } from "@/hooks/useTutorial";
+import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 
 import { useState } from "react";
+import React from "react";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -88,7 +88,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isVisible, completeTutorial, skipTutorial } = useTutorial();
+  const [tutorialVisible, setTutorialVisible] = useState(false);
+
+  // Expose tutorial function globally
+  React.useEffect(() => {
+    (window as any).showTutorial = () => {
+      console.log('[TUTORIAL] 🚀 Global tutorial trigger activated!');
+      setTutorialVisible(true);
+    };
+    
+    return () => {
+      delete (window as any).showTutorial;
+    };
+  }, []);
 
   if (!isAuthenticated) {
     return (
@@ -114,11 +126,10 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       
       {/* Tutorial Overlay */}
       {user && (
-        <TutorialOverlay
-          isVisible={isVisible}
+        <SimpleTutorial
+          isVisible={tutorialVisible}
           userRole={user.role || 'Student'}
-          onComplete={completeTutorial}
-          onSkip={skipTutorial}
+          onClose={() => setTutorialVisible(false)}
         />
       )}
     </div>

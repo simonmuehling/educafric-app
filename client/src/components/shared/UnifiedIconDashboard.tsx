@@ -47,7 +47,14 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const renderIconGrid = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <DashboardNavbar title={title} subtitle={subtitle} />
+      <DashboardNavbar 
+        title={title} 
+        subtitle={subtitle} 
+        onTutorialClick={() => {
+          // Signal to parent components to show tutorial
+          if ((window as any).showTutorial) (window as any).showTutorial();
+        }}
+      />
       
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
         {/* Mobile-first compact grid - Max 3 items per row on mobile */}
@@ -87,7 +94,13 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <DashboardNavbar title={activeModuleData.label} />
+        <DashboardNavbar 
+          title={activeModuleData.label} 
+          onTutorialClick={() => {
+            // Signal to parent components to show tutorial
+            if ((window as any).showTutorial) (window as any).showTutorial();
+          }}
+        />
         
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
           {/* Mobile-optimized back button */}

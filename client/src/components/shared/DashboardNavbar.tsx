@@ -4,24 +4,26 @@ import { Home, LogOut, Globe, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTutorial } from '@/hooks/useTutorial';
+// import { useTutorial } from '@/hooks/useTutorial';
 import Logo from '@/components/Logo';
 
 interface DashboardNavbarProps {
   title?: string;
   subtitle?: string;
   showUserInfo?: boolean;
+  onTutorialClick?: () => void;
 }
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ 
   title, 
   subtitle, 
-  showUserInfo = true 
+  showUserInfo = true,
+  onTutorialClick 
 }) => {
   const { language, setLanguage } = useLanguage();
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
-  const { showTutorial } = useTutorial();
+  // const { showTutorial } = useTutorial();
 
   const text = {
     fr: {
@@ -92,9 +94,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  console.log('[TUTORIAL] Question mark icon clicked!');
-                  showTutorial();
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[TUTORIAL] 🎯 Question mark icon clicked!');
+                  onTutorialClick?.();
                 }}
                 className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 p-0 text-blue-600 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-colors duration-200"
                 title={t.tutorial}
