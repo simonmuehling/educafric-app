@@ -262,22 +262,24 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
       {/* Tutorial card */}
       <div className={cn(
         "fixed z-1001 transition-all duration-300",
-        isWelcomeStep ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" : "top-4 right-4",
+        isWelcomeStep 
+          ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" 
+          : "top-2 sm:top-4 right-2 sm:right-4",
         isAnimating && "opacity-50 scale-95"
       )}>
-        <Card className="w-96 max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="pb-4">
+        <Card className="w-80 sm:w-96 max-w-[95vw] sm:max-w-[90vw] shadow-2xl border-2 border-blue-200 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 py-3 sm:py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
                   {currentStepData?.icon}
                 </div>
-                <div>
-                  <CardTitle className="text-lg font-bold text-gray-900">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-sm sm:text-lg font-bold text-gray-900 truncate">
                     {currentStepData?.title[language as 'en' | 'fr']}
                   </CardTitle>
-                  <p className="text-sm text-gray-500">
-                    {language === 'fr' ? 'Étape' : 'Step'} {currentStep + 1} {language === 'fr' ? 'sur' : 'of'} {steps.length}
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    {language === 'fr' ? 'Étape' : 'Step'} {currentStep + 1}/{steps.length}
                   </p>
                 </div>
               </div>
@@ -285,28 +287,28 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
                 variant="ghost"
                 size="sm"
                 onClick={handleSkip}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 flex-shrink-0"
                 data-testid="tutorial-close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </CardHeader>
           
-          <CardContent className="space-y-6">
-            <p className="text-gray-700 leading-relaxed">
+          <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-3 sm:pb-6">
+            <p className="text-gray-700 leading-relaxed text-xs sm:text-sm">
               {currentStepData?.content[language as 'en' | 'fr']}
             </p>
 
             {/* Progress bar */}
             <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-xs sm:text-sm text-gray-500">
                 <span>{language === 'fr' ? 'Progression' : 'Progress'}</span>
                 <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 sm:h-2 rounded-full transition-all duration-500"
                   style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
                 />
               </div>
@@ -314,40 +316,42 @@ export function TutorialOverlay({ isVisible, userRole, onComplete, onSkip }: Tut
 
             {/* Navigation buttons */}
             <div className="flex justify-between items-center">
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 {currentStep > 0 && (
                   <Button
                     variant="outline"
                     onClick={handlePrevious}
-                    className="text-gray-600"
+                    className="text-gray-600 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                     data-testid="tutorial-previous"
                   >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    {language === 'fr' ? 'Précédent' : 'Previous'}
+                    <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className="hidden sm:inline">{language === 'fr' ? 'Précédent' : 'Previous'}</span>
+                    <span className="sm:hidden">{language === 'fr' ? 'Préc.' : 'Prev'}</span>
                   </Button>
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-1 sm:gap-2">
                 <Button
                   variant="ghost"
                   onClick={handleSkip}
-                  className="text-gray-500"
+                  className="text-gray-500 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                   data-testid="tutorial-skip"
                 >
-                  {language === 'fr' ? 'Passer le tutoriel' : 'Skip tutorial'}
+                  <span className="hidden sm:inline">{language === 'fr' ? 'Passer le tutoriel' : 'Skip tutorial'}</span>
+                  <span className="sm:hidden">{language === 'fr' ? 'Passer' : 'Skip'}</span>
                 </Button>
                 
                 <Button
                   onClick={handleNext}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
                   data-testid="tutorial-next"
                 >
                   {currentStep === steps.length - 1 
                     ? (language === 'fr' ? 'Terminer' : 'Finish')
                     : (language === 'fr' ? 'Suivant' : 'Next')
                   }
-                  {currentStep < steps.length - 1 && <ChevronRight className="h-4 w-4 ml-1" />}
+                  {currentStep < steps.length - 1 && <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />}
                 </Button>
               </div>
             </div>
