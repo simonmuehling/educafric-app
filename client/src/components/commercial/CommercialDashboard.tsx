@@ -144,7 +144,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <HelpCenter userType="commercial" />
+      component: <HelpCenter userType="school" />
     }
   ];
 

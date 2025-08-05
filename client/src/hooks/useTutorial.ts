@@ -30,10 +30,13 @@ export function useTutorial(): TutorialState {
   // Check tutorial status from backend
   useEffect(() => {
     if (!user) {
+      console.log('[TUTORIAL] No user found, hiding tutorial');
       setHasCompletedTutorial(true);
       setIsVisible(false);
       return;
     }
+
+    console.log('[TUTORIAL] User found:', user.role, 'Checking tutorial status...');
 
     const checkTutorialStatus = async () => {
       try {
@@ -73,7 +76,9 @@ export function useTutorial(): TutorialState {
   }, [user]);
 
   const showTutorial = () => {
+    console.log('[TUTORIAL] Manual tutorial trigger - showing tutorial');
     setIsVisible(true);
+    setHasCompletedTutorial(false); // Allow manual restart
   };
 
   const hideTutorial = () => {

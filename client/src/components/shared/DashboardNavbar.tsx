@@ -92,8 +92,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={showTutorial}
-                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 p-0 text-blue-600 hover:text-blue-700 rounded-full"
+                onClick={() => {
+                  console.log('[TUTORIAL] Question mark icon clicked!');
+                  showTutorial();
+                }}
+                className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 p-0 text-blue-600 hover:text-blue-700 rounded-full hover:bg-blue-50 transition-colors duration-200"
                 title={t.tutorial}
                 data-testid="tutorial-help-button"
               >
