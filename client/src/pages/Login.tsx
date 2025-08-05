@@ -363,7 +363,6 @@ export default function Login() {
                 {language === 'fr' ? 'Adresse E-mail' : 'Email Address'}
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500 input-icon" />
                 <Input
                   id="email"
                   name="email"
@@ -371,7 +370,7 @@ export default function Login() {
                   value={formData.email || ''}
                   onChange={handleInputChange}
                   placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
-                  className="pl-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
+                  className="px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                   required
                 />
               </div>
@@ -382,7 +381,6 @@ export default function Login() {
                 {language === 'fr' ? 'Mot de Passe' : 'Password'}
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500 input-icon" />
                 <Input
                   id="password"
                   name="password"
@@ -390,7 +388,7 @@ export default function Login() {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder={language === 'fr' ? 'Votre mot de passe' : 'Your password'}
-                  className="pl-10 pr-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
+                  className="px-4 pr-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                   required
                 />
                 <button
