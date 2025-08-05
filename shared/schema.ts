@@ -3,6 +3,9 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Import tutorial schema
+export * from "./tutorialSchema";
+
 // Core user system with multi-role support
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

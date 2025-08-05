@@ -95,7 +95,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 onClick={showTutorial}
                 className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 p-0 text-blue-600 hover:text-blue-700 rounded-full"
                 title={t.tutorial}
-                data-testid="notifications-center"
+                data-testid="tutorial-help-button"
               >
                 <HelpCircle className="w-4 h-4" />
               </Button>

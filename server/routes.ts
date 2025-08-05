@@ -9587,6 +9587,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Multi-role detection and management routes
   app.use('/api/auth', multiRoleRoutes);
+  
+  // Tutorial system routes
+  const { tutorialRoutes } = await import('./routes/tutorialRoutes');
+  app.use('/api/tutorial', tutorialRoutes);
+  console.log('[TUTORIAL] Tutorial routes registered successfully');
 
   // ===== STUDENT LIBRARY ROUTES =====
   app.get("/api/student/library", requireAuth, async (req, res) => {
