@@ -16,6 +16,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Project Status (Updated February 2025)
 
+**Mobile Login Experience Enhanced (February 5th, 2025):**
+- ✅ CRITICAL UX FIX: Enhanced notification system with visible colored backgrounds
+- ✅ Improved toast component with success, info, error, and warning variants
+- ✅ Fixed transparent notification issue with proper color schemes for light/dark themes
+- ✅ Enhanced mobile login form with clearer field labels (French/English)
+- ✅ Removed cluttering icons (envelope, lock) from Email and Password fields
+- ✅ Implemented mobile-optimized touch targets and typography
+- ✅ Added white, visible close button (X) for quick toast dismissal
+- ✅ Applied improvements to both Login and PasswordReset pages
+
 **Translation System Fixed (February 4th, 2025):**
 - ✅ CRITICAL FIX: Resolved all translation placeholders in PasswordReset.tsx
 - ✅ Replaced all t('...') placeholders with proper bilingual French/English text
