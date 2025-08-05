@@ -1020,4 +1020,25 @@ select:focus-visible {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
+  
+  /* Toast Notification Styles - Consolidated EDUCAFRIC Colors */
+  .toast-success {
+    @apply bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:border-green-600 dark:text-green-100 shadow-xl;
+  }
+  
+  .toast-error {
+    @apply bg-red-100 border-red-300 text-red-800 dark:bg-red-800 dark:border-red-600 dark:text-red-100 shadow-xl;
+  }
+  
+  .toast-info {
+    @apply bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-800 dark:border-blue-600 dark:text-blue-100 shadow-xl;
+  }
+  
+  .toast-warning {
+    @apply bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-800 dark:border-yellow-600 dark:text-yellow-100 shadow-xl;
+  }
+  
+  .toast-default {
+    @apply bg-white border-slate-200 text-slate-900 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 shadow-xl backdrop-blur-sm;
+  }
 }

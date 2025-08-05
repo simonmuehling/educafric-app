@@ -2929,6 +2929,8 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
         toast({
           title: language === 'fr' ? 'Document ouvert' : 'Document opened',
           description: language === 'fr' ? `${doc.name || ''} ouvert dans un nouvel onglet` : `${doc.name || ''} opened in new tab`,
+          variant: "success" as any,
+          className: "bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:border-green-600 dark:text-green-100",
         });
         
       } else {
@@ -2946,6 +2948,8 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
       toast({
         title: language === 'fr' ? 'Ouverture alternative' : 'Alternative view',
         description: language === 'fr' ? 'Document affiché dans une fenêtre modale' : 'Document displayed in modal window',
+        variant: "info" as any,
+        className: "bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-800 dark:border-blue-600 dark:text-blue-100",
       });
     }
   };
@@ -3003,11 +3007,15 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
       toast({
         title: language === 'fr' ? 'Document téléchargé' : 'Document downloaded',
         description: language === 'fr' ? `${doc.name || ''} téléchargé avec succès en ${doc.format}` : `${doc.name || ''} downloaded successfully as ${doc.format}`,
+        variant: "success" as any,
+        className: "bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:border-green-600 dark:text-green-100",
       });
     } catch (error) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Erreur lors du téléchargement' : 'Error during download',
+        variant: "destructive",
+        className: "bg-red-100 border-red-300 text-red-800 dark:bg-red-800 dark:border-red-600 dark:text-red-100",
       });
     }
   };
@@ -3030,12 +3038,16 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
         toast({
           title: language === 'fr' ? 'Lien copié' : 'Link copied',
           description: language === 'fr' ? 'Lien de partage copié dans le presse-papiers' : 'Share link copied to clipboard',
+          variant: "success" as any,
+          className: "bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:border-green-600 dark:text-green-100",
         });
       }
     } catch (error) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Erreur lors du partage' : 'Error during sharing',
+        variant: "destructive",
+        className: "bg-red-100 border-red-300 text-red-800 dark:bg-red-800 dark:border-red-600 dark:text-red-100",
       });
     }
   };
@@ -3053,6 +3065,8 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
         toast({
           title: language === 'fr' ? 'Document supprimé' : 'Document deleted',
           description: language === 'fr' ? `${doc.name || ''} supprimé avec succès` : `${doc.name || ''} deleted successfully`,
+          variant: "success" as any,
+          className: "bg-green-100 border-green-300 text-green-800 dark:bg-green-800 dark:border-green-600 dark:text-green-100",
         });
       } else {
         throw new Error('Failed to delete');
@@ -3061,6 +3075,8 @@ EDUCAFRIC 2025 - Révolutionnons l'éducation africaine ensemble`
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Erreur lors de la suppression' : 'Error during deletion',
+        variant: "destructive",
+        className: "bg-red-100 border-red-300 text-red-800 dark:bg-red-800 dark:border-red-600 dark:text-red-100",
       });
     }
   };
