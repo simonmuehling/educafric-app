@@ -231,9 +231,9 @@ export default function PasswordReset() {
 
               {/* Input Field Based on Recovery Method */}
               {recoveryMethod === 'email' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/90 font-medium">
-                    {language === 'fr' ? 'Adresse email' : 'Email address'}
+                <div className="space-y-2 mobile-input-field">
+                  <Label htmlFor="email" className="text-white/90 font-medium text-sm md:text-base">
+                    {language === 'fr' ? 'Adresse E-mail' : 'Email Address'}
                   </Label>
                   <div className="relative">
                     <Input
@@ -242,16 +242,16 @@ export default function PasswordReset() {
                       placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
                       value={email}
                       onChange={(e) => setEmail(e?.target?.value)}
-                      className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
+                      className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
                       required
                     />
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70" />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70 input-icon" />
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber" className="text-white/90 font-medium">
-                    {language === 'fr' ? 'Numéro de téléphone' : 'Phone Number'}
+                <div className="space-y-2 mobile-input-field">
+                  <Label htmlFor="phoneNumber" className="text-white/90 font-medium text-sm md:text-base">
+                    {language === 'fr' ? 'Numéro de Téléphone' : 'Phone Number'}
                   </Label>
                   <div className="relative">
                     <Input
@@ -260,10 +260,10 @@ export default function PasswordReset() {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e?.target?.value)}
                       placeholder={language === 'fr' ? '+237 6XX XXX XXX' : '+237 6XX XXX XXX'}
-                      className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
+                      className="pl-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
                       required
                     />
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70 input-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01?.986?.836l.74 4.435a1 1 0 01-.54 1.06l-1?.548?.773a11.037 11.037 0 006.105 6?.105l?.774-1.548a1 1 0 011.059-.54l4?.435?.74a1 1 0 01?.836?.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                     </svg>
                   </div>
@@ -297,9 +297,9 @@ export default function PasswordReset() {
             </form>
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-white/90 font-medium">
-                  {language === 'fr' ? 'Nouveau mot de passe' : 'New password'}
+              <div className="space-y-2 mobile-input-field">
+                <Label htmlFor="password" className="text-white/90 font-medium text-sm md:text-base">
+                  {language === 'fr' ? 'Nouveau Mot de Passe' : 'New Password'}
                 </Label>
                 <div className="relative">
                   <Input
@@ -308,14 +308,14 @@ export default function PasswordReset() {
                     placeholder={language === 'fr' ? 'Saisissez votre nouveau mot de passe' : 'Enter your new password'}
                     value={password}
                     onChange={(e) => setPassword(e?.target?.value)}
-                    className="pl-10 pr-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all"
+                    className="pl-10 pr-10 bg-white/20 border border-white/30 rounded-xl text-white placeholder:text-white/70 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all mobile-touch-input"
                     required
                   />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/70 input-icon" />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 mobile-password-toggle"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4 text-white/70" />

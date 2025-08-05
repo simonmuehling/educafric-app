@@ -358,41 +358,45 @@ export default function Login() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">{t('email')}</Label>
+            <div className="space-y-2 mobile-input-field">
+              <Label htmlFor="email" className="text-gray-700 font-medium text-sm md:text-base">
+                {language === 'fr' ? 'Adresse E-mail' : 'Email Address'}
+              </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-500 input-icon" />
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email || ''}
                   onChange={handleInputChange}
-                  placeholder={language === 'fr' ? 'vous@exemple.com' : 'you@example.com'}
-                  className="pl-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all"
+                  placeholder={language === 'fr' ? 'votre.email@exemple.com' : 'your.email@example.com'}
+                  className="pl-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-700 font-medium">{t('password')}</Label>
+            <div className="space-y-2 mobile-input-field">
+              <Label htmlFor="password" className="text-gray-700 font-medium text-sm md:text-base">
+                {language === 'fr' ? 'Mot de Passe' : 'Password'}
+              </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500 input-icon" />
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="••••••••"
-                  className="pl-10 pr-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all"
+                  placeholder={language === 'fr' ? 'Votre mot de passe' : 'Your password'}
+                  className="pl-10 pr-10 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all mobile-touch-input"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 h-4 w-4 text-gray-500 hover:text-gray-700 transition-colors"
+                  className="absolute right-3 top-3 h-4 w-4 text-gray-500 hover:text-gray-700 transition-colors mobile-password-toggle"
                   aria-label={showPassword ? (language === 'fr' ? 'Masquer le mot de passe' : 'Hide password') : (language === 'fr' ? 'Afficher le mot de passe' : 'Show password')}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

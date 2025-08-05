@@ -1054,4 +1054,28 @@ select:focus-visible {
   [toast-close] .lucide {
     @apply drop-shadow-lg filter;
   }
+  
+  /* Mobile Login Form Enhancements */
+  @media (max-width: 768px) {
+    .mobile-input-field input {
+      @apply text-base min-h-[44px] px-4 py-3;
+    }
+    
+    .mobile-input-field label {
+      @apply text-sm font-semibold text-gray-800;
+    }
+    
+    .mobile-input-field .input-icon {
+      @apply w-5 h-5 left-3 top-3.5;
+    }
+    
+    .mobile-password-toggle {
+      @apply w-5 h-5 right-3 top-3.5;
+    }
+    
+    /* Better touch targets for mobile */
+    .mobile-touch-input {
+      @apply min-h-[48px] text-base;
+    }
+  }
 }
