@@ -126,6 +126,19 @@ const SandboxLogin = () => {
       details: language === 'fr' ? 'Directeur des Études, 12 ans d\'expérience' : 'Academic Director, 12 years experience'
     },
     {
+      id: 'siteadmin',
+      name: 'EDUCAFRIC Admin',
+      realName: language === 'fr' ? 'Super Admin (EDUCAFRIC)' : 'Site Admin (EDUCAFRIC)',
+      email: 'sandbox.siteadmin@educafric.demo',
+      password: 'sandbox123',
+      icon: <Shield className="w-8 h-8" />,
+      color: 'bg-purple-600',
+      role: 'SiteAdmin',
+      description: language === 'fr' ? 'Gestion plateforme, SMS, système global, sécurité avancée' : 'Platform management, SMS, global system, advanced security',
+      modules: 15,
+      details: language === 'fr' ? 'Super Administrateur avec accès SMS et gestion globale' : 'Super Administrator with SMS access and global management'
+    },
+    {
       id: 'director',
       name: 'Dr. Christiane Fouda',
       realName: language === 'fr' ? 'Directrice (Dr. Christiane Fouda)' : 'Director (Dr. Christiane Fouda)',
@@ -168,7 +181,8 @@ const SandboxLogin = () => {
           Teacher: '/teacher',
           Freelancer: '/freelancer',
           Admin: '/admin',
-          Director: '/director'
+          Director: '/director',
+          SiteAdmin: '/admin'
         };
         
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
@@ -281,7 +295,7 @@ const SandboxLogin = () => {
           ))}
         </div>
 
-        {/* SMS Test Suite */}
+        {/* SMS Test Suite - Only for Site Admin */}
         <div className="mt-12">
           <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
             <CardHeader className="text-center">
@@ -290,11 +304,14 @@ const SandboxLogin = () => {
                 <CardTitle className="text-2xl text-orange-800">
                   {language === 'fr' ? 'Tests SMS EDUCAFRIC' : 'EDUCAFRIC SMS Testing'}
                 </CardTitle>
+                <Badge variant="secondary" className="ml-2">
+                  {language === 'fr' ? 'Admin Seulement' : 'Admin Only'}
+                </Badge>
               </div>
               <p className="text-orange-700">
                 {language === 'fr' 
-                  ? 'Testez les 24 modèles de SMS avec des données éducatives africaines réalistes'
-                  : 'Test all 24 SMS templates with realistic African educational data'
+                  ? 'Testez les 24 modèles de SMS avec des données éducatives africaines réalistes (Accès Admin requis)'
+                  : 'Test all 24 SMS templates with realistic African educational data (Admin access required)'
                 }
               </p>
             </CardHeader>

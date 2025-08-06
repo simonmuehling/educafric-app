@@ -4,14 +4,47 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageCircle, Send, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { MessageCircle, Send, CheckCircle, XCircle, Clock, Lock, Shield } from 'lucide-react';
 
 const SMSTestSuite = () => {
+  const { user } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState('+41768017000');
   const [language, setLanguage] = useState('en');
   const [delay, setDelay] = useState('2000');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
+
+  // Check if user is Site Admin
+  const isSiteAdmin = user?.role === 'SiteAdmin';
+
+  // If not Site Admin, show access denied message
+  if (!isSiteAdmin) {
+    return (
+      <Card className="border-red-200 bg-red-50">
+        <CardHeader className="text-center">
+          <CardTitle className="flex items-center justify-center gap-2 text-red-700">
+            <Lock className="w-5 h-5" />
+            SMS Testing Access Restricted
+          </CardTitle>
+          <CardDescription className="text-red-600">
+            SMS testing is restricted to Site Administrators only for security and cost management.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Shield className="w-4 h-4 text-red-500" />
+            <span className="text-sm text-red-600">
+              Current role: <strong>{user?.role || 'Not authenticated'}</strong>
+            </span>
+          </div>
+          <Badge variant="destructive" className="bg-red-100 text-red-700 border-red-300">
+            Site Admin Access Required
+          </Badge>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleTestAllSMS = async () => {
     if (!phoneNumber) {
@@ -41,7 +74,7 @@ const SMSTestSuite = () => {
       console.error('SMS test error:', error);
       setResults({
         success: false,
-        message: `Error: ${error.message}`,
+        message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         results: []
       });
     } finally {
