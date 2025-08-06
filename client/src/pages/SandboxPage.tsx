@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
-import UpdatedSandboxDashboard from '@/components/sandbox/UpdatedSandboxDashboard';
+import ConsolidatedSandboxDashboard from '@/components/sandbox/ConsolidatedSandboxDashboard';
 import { SandboxPremiumProvider } from '@/components/sandbox/SandboxPremiumProvider';
 
 const SandboxPage = () => {
@@ -27,7 +27,7 @@ const SandboxPage = () => {
 
   return (
     <SandboxPremiumProvider>
-      <UpdatedSandboxDashboard />
+      <ConsolidatedSandboxDashboard />
     </SandboxPremiumProvider>
   );
 };

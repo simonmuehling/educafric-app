@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import EnhancedSandboxDashboard from '@/components/sandbox/EnhancedSandboxDashboard';
+import ConsolidatedSandboxDashboard from '@/components/sandbox/ConsolidatedSandboxDashboard';
 import SandboxMonitor from '@/components/sandbox/SandboxMonitor';
 import APITester from '@/components/sandbox/APITester';
 import ComponentPlayground from '@/components/sandbox/ComponentPlayground';
@@ -48,7 +48,7 @@ const EnhancedSandbox = () => {
         </div>
 
         <TabsContent value="dashboard" className="mt-0 h-full">
-          <EnhancedSandboxDashboard />
+          <ConsolidatedSandboxDashboard />
         </TabsContent>
 
         <TabsContent value="monitor" className="mt-0 h-full">
