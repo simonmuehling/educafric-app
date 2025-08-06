@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSandboxPremium } from './SandboxPremiumProvider';
+import { SimpleTutorial } from '@/components/tutorial/SimpleTutorial';
 import { 
   Play, Code, Database, Users, Settings, TestTube, FileCode, Monitor, 
   Smartphone, Tablet, Globe, Zap, Shield, Clock, BarChart3, MessageSquare, 
@@ -41,10 +42,12 @@ const UpdatedSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('Teacher');
 
   const t = {
-    title: language === 'fr' ? 'Sandbox Educafric - Actualisé' : 'Educafric Sandbox - Updated',
-    subtitle: language === 'fr' ? 'Environnement de développement modernisé et optimisé' : 'Modernized and optimized development environment',
+    title: language === 'fr' ? 'Sandbox EDUCAFRIC 2025 - Actualisé' : 'EDUCAFRIC 2025 Sandbox - Updated',
+    subtitle: language === 'fr' ? 'Environnement de test avec tutoriel interactif basé sur la présentation 2025' : 'Testing environment with interactive tutorial based on 2025 presentation',
     overview: language === 'fr' ? 'Vue d\'ensemble' : 'Overview',
     realTimeStats: language === 'fr' ? 'Statistiques Temps Réel' : 'Real-time Statistics',
     systemHealth: language === 'fr' ? 'Santé du Système' : 'System Health',
@@ -64,7 +67,16 @@ const UpdatedSandboxDashboard = () => {
     good: language === 'fr' ? 'Bon' : 'Good',
     warning: language === 'fr' ? 'Attention' : 'Warning',
     version: language === 'fr' ? 'Version' : 'Version',
-    buildTime: language === 'fr' ? 'Temps de build' : 'Build time'
+    buildTime: language === 'fr' ? 'Temps de build' : 'Build time',
+    interactiveTutorial: language === 'fr' ? 'Tutoriel Interactif 2025' : 'Interactive Tutorial 2025',
+    roleBasedGuide: language === 'fr' ? 'Guide par Rôle' : 'Role-based Guide',
+    testTutorial: language === 'fr' ? 'Tester le Tutoriel' : 'Test Tutorial',
+    tutorialFeatures: language === 'fr' ? 'Fonctionnalités du Tutoriel' : 'Tutorial Features',
+    authenticContent: language === 'fr' ? 'Contenu Authentique' : 'Authentic Content',
+    multiRole: language === 'fr' ? 'Multi-rôles' : 'Multi-role',
+    bilingual: language === 'fr' ? 'Bilingue FR/EN' : 'Bilingual FR/EN',
+    mobileFirst: language === 'fr' ? 'Mobile-First' : 'Mobile-First',
+    presentation2025: language === 'fr' ? 'Basé sur Présentation 2025' : 'Based on 2025 Presentation'
   };
 
   // Simulation de métriques en temps réel
@@ -84,6 +96,14 @@ const UpdatedSandboxDashboard = () => {
     }, 3000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Permettre le déclenchement du tutoriel depuis l'extérieur
+  useEffect(() => {
+    (window as any).showTutorial = () => setShowTutorial(true);
+    return () => {
+      delete (window as any).showTutorial;
+    };
   }, []);
 
   const handleRefresh = async () => {
@@ -184,6 +204,15 @@ const UpdatedSandboxDashboard = () => {
   ];
 
   const sandboxModules = [
+    {
+      id: 'interactive-tutorial',
+      title: t.interactiveTutorial,
+      description: language === 'fr' ? 'Tutoriel basé sur la présentation EDUCAFRIC 2025 avec contenu spécifique aux rôles' : 'Tutorial based on EDUCAFRIC 2025 presentation with role-specific content',
+      icon: <Sparkles className="w-6 h-6" />,
+      status: 'new',
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      isNew: true
+    },
     {
       id: 'api-testing',
       title: language === 'fr' ? 'Tests API' : 'API Testing',
@@ -290,6 +319,98 @@ const UpdatedSandboxDashboard = () => {
           ))}
         </div>
 
+        {/* Tutorial EDUCAFRIC 2025 - Section spéciale */}
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              {t.interactiveTutorial}
+              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                Nouveau
+              </Badge>
+            </CardTitle>
+            <CardDescription>
+              {language === 'fr' 
+                ? 'Tutoriel basé sur la présentation officielle EDUCAFRIC 2025 avec contenu authentique pour chaque rôle utilisateur'
+                : 'Tutorial based on the official EDUCAFRIC 2025 presentation with authentic content for each user role'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              {[
+                { role: 'Teacher', modules: 8, color: 'text-blue-500' },
+                { role: 'Student', modules: 13, color: 'text-green-500' },
+                { role: 'Commercial', modules: 6, color: 'text-purple-500' },
+                { role: 'Parent', modules: 11, color: 'text-pink-500' }
+              ].map((item) => (
+                <div 
+                  key={item.role}
+                  className={`flex items-center gap-3 p-3 rounded-lg bg-white/60 backdrop-blur-sm cursor-pointer border-2 transition-all ${
+                    selectedRole === item.role ? 'border-purple-300 bg-purple-50' : 'border-transparent hover:border-gray-200'
+                  }`}
+                  onClick={() => setSelectedRole(item.role)}
+                >
+                  <Users className={`w-5 h-5 ${item.color}`} />
+                  <div>
+                    <p className="font-medium text-sm">{item.role}</p>
+                    <p className="text-xs text-muted-foreground">{item.modules} modules</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-sm">{t.tutorialFeatures}</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">{t.presentation2025}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">{t.multiRole}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">{t.bilingual}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm">{t.mobileFirst}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col justify-center space-y-3">
+                <div className="text-center">
+                  <p className="text-sm font-medium mb-2">
+                    {language === 'fr' ? 'Rôle sélectionné :' : 'Selected role:'}
+                  </p>
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                    {selectedRole}
+                  </Badge>
+                </div>
+                <Button 
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                  onClick={() => setShowTutorial(true)}
+                  data-testid="button-test-tutorial"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  {t.testTutorial}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  {language === 'fr' 
+                    ? 'Cliquez sur un rôle puis démarrez le tutoriel'
+                    : 'Click on a role then start the tutorial'
+                  }
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System Health */}
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader>
@@ -386,6 +507,13 @@ const UpdatedSandboxDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tutoriel Interactif */}
+      <SimpleTutorial 
+        isVisible={showTutorial}
+        userRole={selectedRole}
+        onClose={() => setShowTutorial(false)}
+      />
     </div>
   );
 };
