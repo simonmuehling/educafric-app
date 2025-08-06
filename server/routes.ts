@@ -49,6 +49,7 @@ import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import { hostingerMailService } from "./services/hostingerMailService";
 import { welcomeEmailService } from "./services/welcomeEmailService";
+import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 // Configuration routes handled inline
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
@@ -18462,6 +18463,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch absence reports' });
     }
   });
+
+  // Register Site Admin Routes
+  registerSiteAdminRoutes(app, requireAuth);
 
   return httpServer;
 }

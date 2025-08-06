@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,19 @@ import FunctionalSiteAdminSystemHealth from './modules/FunctionalSiteAdminSystem
 import FunctionalSiteAdminSettings from './modules/FunctionalSiteAdminSettings';
 import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
 import FunctionalSiteAdminDocuments from './modules/FunctionalSiteAdminDocuments';
+import AdminCommunication from './modules/AdminCommunication';
+import AnalyticsBusiness from './modules/AnalyticsBusiness';
+import CommercialManagement from './modules/CommercialManagement';
+import CommercialTeamManagement from './modules/CommercialTeamManagement';
+import ContentManagement from './modules/ContentManagement';
+import FirebaseIntegration from './modules/FirebaseIntegration';
+import MultiRoleManagement from './modules/MultiRoleManagement';
+import PaymentAdministration from './modules/PaymentAdministration';
+import PlatformManagement from './modules/PlatformManagement';
+import PreviewModule from './modules/PreviewModule';
+import SchoolManagement from './modules/SchoolManagement';
+import SecurityAudit from './modules/SecurityAudit';
+import UserManagement from './modules/UserManagement';
 
 interface PlatformStats {
   totalUsers: number;
@@ -255,52 +268,139 @@ const SiteAdminDashboard: React.FC = () => {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap justify-center md:grid md:grid-cols-7 h-auto md:h-auto md:w-auto bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-1 gap-1 md:gap-0">
+          <TabsList className="flex flex-wrap justify-start overflow-x-auto md:grid md:grid-cols-9 h-auto md:h-auto w-full bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-1 gap-0.5 md:gap-0 scrollbar-hide">
+            {/* Row 1 - Core Management */}
             <TabsTrigger 
               value="overview" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md text-xs" 
               title="Vue d'Ensemble"
             >
               <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Utilisateurs"
             >
               <Users className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
+              value="user-mgmt" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 rounded-md" 
+              title="Gestion Utilisateurs"
+            >
+              <UserCheck className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
               value="schools" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Écoles"
             >
               <School className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
+              value="school-mgmt" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 rounded-md" 
+              title="Management Écoles"
+            >
+              <Building2 className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
               value="documents" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
               title="Documents"
             >
               <FileText className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
+              value="content" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-700 rounded-md" 
+              title="Contenu"
+            >
+              <Megaphone className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="communication" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-pink-50 data-[state=active]:text-pink-700 rounded-md" 
+              title="Communication"
+            >
+              <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="commercial" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-yellow-50 data-[state=active]:text-yellow-700 rounded-md" 
+              title="Commercial"
+            >
+              <Briefcase className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            
+            {/* Row 2 - Advanced Features */}
+            <TabsTrigger 
+              value="commercial-team" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 rounded-md" 
+              title="Équipe Commerciale"
+            >
+              <Users className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="payments" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
+              title="Paiements"
+            >
+              <CreditCard className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700 rounded-md" 
+              title="Analytics"
+            >
+              <TrendingUp className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="multi-role" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 rounded-md" 
+              title="Multi-Rôles"
+            >
+              <Network className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="security" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-red-50 data-[state=active]:text-red-700 rounded-md" 
+              title="Sécurité"
+            >
+              <Lock className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="firebase" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 rounded-md" 
+              title="Firebase"
+            >
+              <Zap className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="platform" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-slate-50 data-[state=active]:text-slate-700 rounded-md" 
+              title="Plateforme"
+            >
+              <Database className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 rounded-md" 
+              title="Aperçu"
+            >
+              <Eye className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
               value="health" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Système"
             >
               <Activity className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
-              value="sms" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 rounded-md" 
-              title="Tests SMS"
-            >
-              <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-            </TabsTrigger>
-            <TabsTrigger 
               value="settings" 
-              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-gray-50 data-[state=active]:text-gray-700 rounded-md" 
               title="Configuration"
             >
               <Settings className="h-3 w-3 md:h-4 md:w-4" />
@@ -407,29 +507,64 @@ const SiteAdminDashboard: React.FC = () => {
             <FunctionalSiteAdminSchools />
           </TabsContent>
 
+          <TabsContent value="user-mgmt" className="mt-6">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="school-mgmt" className="mt-6">
+            <SchoolManagement />
+          </TabsContent>
+
           <TabsContent value="documents" className="mt-6">
             <FunctionalSiteAdminDocuments />
           </TabsContent>
 
-          <TabsContent value="health" className="mt-6">
-            <FunctionalSiteAdminSystemHealth />
+          <TabsContent value="content" className="mt-6">
+            <ContentManagement />
           </TabsContent>
 
-          <TabsContent value="sms" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-orange-600" />
-                  Tests SMS EDUCAFRIC
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-700">
-                    Site Admin Seulement
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SMSTestSuite />
-              </CardContent>
-            </Card>
+          <TabsContent value="communication" className="mt-6">
+            <AdminCommunication />
+          </TabsContent>
+
+          <TabsContent value="commercial" className="mt-6">
+            <CommercialManagement />
+          </TabsContent>
+
+          <TabsContent value="commercial-team" className="mt-6">
+            <CommercialTeamManagement />
+          </TabsContent>
+
+          <TabsContent value="payments" className="mt-6">
+            <PaymentAdministration />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <AnalyticsBusiness />
+          </TabsContent>
+
+          <TabsContent value="multi-role" className="mt-6">
+            <MultiRoleManagement />
+          </TabsContent>
+
+          <TabsContent value="security" className="mt-6">
+            <SecurityAudit />
+          </TabsContent>
+
+          <TabsContent value="firebase" className="mt-6">
+            <FirebaseIntegration />
+          </TabsContent>
+
+          <TabsContent value="platform" className="mt-6">
+            <PlatformManagement />
+          </TabsContent>
+
+          <TabsContent value="preview" className="mt-6">
+            <PreviewModule />
+          </TabsContent>
+
+          <TabsContent value="health" className="mt-6">
+            <FunctionalSiteAdminSystemHealth />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
