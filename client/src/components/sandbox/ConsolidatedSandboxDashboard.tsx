@@ -17,6 +17,7 @@ import {
 import APITester from './APITester';
 import ComponentPlayground from './ComponentPlayground';
 import FirebaseDeviceTest from './FirebaseDeviceTest';
+import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
 
 interface SystemMetrics {
@@ -241,6 +242,11 @@ const ConsolidatedSandboxDashboard = () => {
       id: 'device-testing',
       label: t.deviceTesting,
       icon: <Smartphone className="w-4 h-4" />
+    },
+    {
+      id: 'sms-testing',
+      label: language === 'fr' ? 'Tests SMS' : 'SMS Testing',
+      icon: <MessageSquare className="w-4 h-4" />
     }
   ];
 
@@ -475,6 +481,10 @@ const ConsolidatedSandboxDashboard = () => {
 
           <TabsContent value="device-testing">
             <FirebaseDeviceTest />
+          </TabsContent>
+
+          <TabsContent value="sms-testing">
+            <SMSTestSuite />
           </TabsContent>
         </Tabs>
       </div>

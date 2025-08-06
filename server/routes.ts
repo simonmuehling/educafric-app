@@ -5043,6 +5043,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // SMS Test Suite - Send All Available Templates
+  app.post("/api/sms/test-all-templates", async (req, res) => {
+    try {
+      const { phoneNumber, language = 'en', delay = 2000 } = req.body;
+      
+      if (!phoneNumber) {
+        return res.status(400).json({ message: 'Phone number required' });
+      }
+
+      console.log(`📱 Testing ALL SMS templates to ${phoneNumber}...`);
+      
+      // Mock user for testing
+      const testUser = {
+        id: 999,
+        phone: phoneNumber,
+        email: 'test@educafric.com',
+        firstName: 'Test',
+        lastName: 'User',
+        preferredLanguage: language
+      };
+
+      const notificationService = NotificationService.getInstance();
+      const results: any[] = [];
+      
+      // Define all available SMS templates with sample data
+      const templateTests = [
+        {
+          template: 'ABSENCE_ALERT',
+          data: { childName: 'Emma Kouamé', date: '2025-08-06', className: 'CM2 A' }
+        },
+        {
+          template: 'LATE_ARRIVAL',
+          data: { childName: 'Emma Kouamé', time: '08:15', className: 'CM2 A' }
+        },
+        {
+          template: 'NEW_GRADE',
+          data: { childName: 'Emma Kouamé', subject: 'Mathematics', grade: '16/20' }
+        },
+        {
+          template: 'LOW_GRADE_ALERT',
+          data: { childName: 'Emma Kouamé', subject: 'French', grade: '8/20' }
+        },
+        {
+          template: 'SCHOOL_FEES_DUE',
+          data: { childName: 'Emma Kouamé', amount: '25,000 CFA', dueDate: '2025-08-15' }
+        },
+        {
+          template: 'PAYMENT_CONFIRMED',
+          data: { childName: 'Emma Kouamé', amount: '25,000 CFA', reference: 'EDU-2025-001' }
+        },
+        {
+          template: 'EMERGENCY_ALERT',
+          data: { personName: 'Emma Kouamé', situation: 'Minor accident in playground' }
+        },
+        {
+          template: 'MEDICAL_INCIDENT',
+          data: { childName: 'Emma Kouamé', incident: 'Small cut on finger' }
+        },
+        {
+          template: 'SCHOOL_ANNOUNCEMENT',
+          data: { title: 'Parent-Teacher Meeting', date: '2025-08-10' }
+        },
+        {
+          template: 'PASSWORD_RESET',
+          data: { code: 'ABC123' }
+        },
+        {
+          template: 'HOMEWORK_REMINDER',
+          data: { childName: 'Emma Kouamé', subject: 'Science', dueDate: '2025-08-07' }
+        },
+        {
+          template: 'ZONE_ENTRY',
+          data: { childName: 'Emma Kouamé', zoneName: 'École Primaire Yaoundé', time: '07:45' }
+        },
+        {
+          template: 'ZONE_EXIT',
+          data: { childName: 'Emma Kouamé', zoneName: 'École Primaire Yaoundé', time: '16:30' }
+        },
+        {
+          template: 'SCHOOL_ARRIVAL',
+          data: { childName: 'Emma Kouamé', schoolName: 'École Primaire Yaoundé', time: '07:50' }
+        },
+        {
+          template: 'SCHOOL_DEPARTURE',
+          data: { childName: 'Emma Kouamé', schoolName: 'École Primaire Yaoundé', time: '16:25' }
+        },
+        {
+          template: 'HOME_ARRIVAL',
+          data: { childName: 'Emma Kouamé', time: '17:15' }
+        },
+        {
+          template: 'HOME_DEPARTURE',
+          data: { childName: 'Emma Kouamé', time: '07:30' }
+        },
+        {
+          template: 'LOCATION_ALERT',
+          data: { childName: 'Emma Kouamé', location: 'Centre Commercial', time: '15:45' }
+        },
+        {
+          template: 'SPEED_ALERT',
+          data: { childName: 'Emma Kouamé', speed: '65', location: 'Route de Douala' }
+        },
+        {
+          template: 'LOW_BATTERY',
+          data: { childName: 'Emma Kouamé', deviceType: 'Montre GPS', batteryLevel: '15' }
+        },
+        {
+          template: 'DEVICE_OFFLINE',
+          data: { childName: 'Emma Kouamé', deviceType: 'Tablette', lastSeen: '14:30' }
+        },
+        {
+          template: 'GPS_DISABLED',
+          data: { childName: 'Emma Kouamé', deviceType: 'Smartphone' }
+        },
+        {
+          template: 'PANIC_BUTTON',
+          data: { childName: 'Emma Kouamé', location: 'Parc Central', time: '16:45' }
+        },
+        {
+          template: 'SOS_LOCATION',
+          data: { childName: 'Emma Kouamé', coordinates: '3.8480°N, 11.5021°E', address: 'Avenue Kennedy, Yaoundé' }
+        }
+      ];
+
+      console.log(`🚀 Sending ${templateTests.length} SMS templates with ${delay}ms delays...`);
+
+      for (let i = 0; i < templateTests.length; i++) {
+        const test = templateTests[i];
+        
+        try {
+          const success = await notificationService.sendNotification({
+            type: 'sms',
+            recipient: testUser as any,
+            template: test.template,
+            data: test.data,
+            priority: 'urgent',
+            language: language as 'en' | 'fr'
+          });
+
+          results.push({
+            template: test.template,
+            success,
+            data: test.data,
+            order: i + 1
+          });
+
+          console.log(`📱 ${i + 1}/${templateTests.length} - ${test.template}: ${success ? '✅' : '❌'}`);
+
+          // Add delay between messages to avoid rate limiting
+          if (i < templateTests.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        } catch (error) {
+          console.error(`Error sending ${test.template}:`, error);
+          results.push({
+            template: test.template,
+            success: false,
+            error: error.message,
+            data: test.data,
+            order: i + 1
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.length - successCount;
+
+      res.json({
+        success: true,
+        message: `SMS test suite completed: ${successCount} sent, ${failureCount} failed`,
+        totalTemplates: templateTests.length,
+        successCount,
+        failureCount,
+        phoneNumber,
+        language,
+        vonageConfigured: !!(process.env.VONAGE_API_KEY && process.env.VONAGE_API_SECRET),
+        results
+      });
+
+    } catch (error: any) {
+      console.error('SMS test suite error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message,
+        vonageConfigured: !!(process.env.VONAGE_API_KEY && process.env.VONAGE_API_SECRET)
+      });
+    }
+  });
+
   // ===== PARENT-CHILD CONNECTION ROUTES =====
   
   // 1. Méthode Automatique - Invitation École
