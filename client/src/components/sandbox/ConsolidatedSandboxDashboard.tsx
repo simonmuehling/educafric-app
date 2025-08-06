@@ -243,11 +243,7 @@ const ConsolidatedSandboxDashboard = () => {
       label: t.deviceTesting,
       icon: <Smartphone className="w-4 h-4" />
     },
-    {
-      id: 'sms-testing',
-      label: language === 'fr' ? 'Tests SMS' : 'SMS Testing',
-      icon: <MessageSquare className="w-4 h-4" />
-    }
+
   ];
 
   return (
@@ -483,9 +479,7 @@ const ConsolidatedSandboxDashboard = () => {
             <FirebaseDeviceTest />
           </TabsContent>
 
-          <TabsContent value="sms-testing">
-            <SMSTestSuite />
-          </TabsContent>
+
         </Tabs>
       </div>
 

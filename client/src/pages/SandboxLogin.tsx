@@ -7,9 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown, MessageCircle
+  Settings, Shield, Play, TestTube, Zap, Crown
 } from 'lucide-react';
-import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
 
 const SandboxLogin = () => {
   const { language } = useLanguage();
@@ -295,31 +294,7 @@ const SandboxLogin = () => {
           ))}
         </div>
 
-        {/* SMS Test Suite - Only for Site Admin */}
-        <div className="mt-12">
-          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-            <CardHeader className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-2">
-                <MessageCircle className="w-6 h-6 text-orange-600" />
-                <CardTitle className="text-2xl text-orange-800">
-                  {language === 'fr' ? 'Tests SMS EDUCAFRIC' : 'EDUCAFRIC SMS Testing'}
-                </CardTitle>
-                <Badge variant="secondary" className="ml-2">
-                  {language === 'fr' ? 'Admin Seulement' : 'Admin Only'}
-                </Badge>
-              </div>
-              <p className="text-orange-700">
-                {language === 'fr' 
-                  ? 'Testez les 24 modèles de SMS avec des données éducatives africaines réalistes (Accès Admin requis)'
-                  : 'Test all 24 SMS templates with realistic African educational data (Admin access required)'
-                }
-              </p>
-            </CardHeader>
-            <CardContent>
-              <SMSTestSuite />
-            </CardContent>
-          </Card>
-        </div>
+
 
         {/* Footer Info */}
         <div className="mt-12 text-center">

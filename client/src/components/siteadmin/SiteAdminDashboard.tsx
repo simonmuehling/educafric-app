@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import FunctionalSiteAdminUsers from './modules/FunctionalSiteAdminUsers';
 import FunctionalSiteAdminSchools from './modules/FunctionalSiteAdminSchools';
 import FunctionalSiteAdminSystemHealth from './modules/FunctionalSiteAdminSystemHealth';
 import FunctionalSiteAdminSettings from './modules/FunctionalSiteAdminSettings';
+import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
 
 interface PlatformStats {
   totalUsers: number;
@@ -253,26 +254,48 @@ const SiteAdminDashboard: React.FC = () => {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
-            <TabsTrigger value="overview" className="flex items-center gap-1">
-              <BarChart3 className="h-4 w-4" />
-              Vue d'Ensemble
+          <TabsList className="grid w-full grid-cols-6 h-12 md:h-auto md:w-auto bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm">
+            <TabsTrigger 
+              value="overview" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              title="Vue d'Ensemble"
+            >
+              <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              Utilisateurs
+            <TabsTrigger 
+              value="users" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              title="Utilisateurs"
+            >
+              <Users className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </TabsTrigger>
-            <TabsTrigger value="schools" className="flex items-center gap-1">
-              <School className="h-4 w-4" />
-              Écoles
+            <TabsTrigger 
+              value="schools" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              title="Écoles"
+            >
+              <School className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </TabsTrigger>
-            <TabsTrigger value="health" className="flex items-center gap-1">
-              <Activity className="h-4 w-4" />
-              Système
+            <TabsTrigger 
+              value="health" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              title="Système"
+            >
+              <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1">
-              <Settings className="h-4 w-4" />
-              Configuration
+            <TabsTrigger 
+              value="sms" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700" 
+              title="Tests SMS"
+            >
+              <MessageSquare className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="settings" 
+              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              title="Configuration"
+            >
+              <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </TabsTrigger>
           </TabsList>
 
@@ -378,6 +401,23 @@ const SiteAdminDashboard: React.FC = () => {
 
           <TabsContent value="health" className="mt-6">
             <FunctionalSiteAdminSystemHealth />
+          </TabsContent>
+
+          <TabsContent value="sms" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-orange-600" />
+                  Tests SMS EDUCAFRIC
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                    Site Admin Seulement
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SMSTestSuite />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
