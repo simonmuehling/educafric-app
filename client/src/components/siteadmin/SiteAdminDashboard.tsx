@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import FunctionalSiteAdminSchools from './modules/FunctionalSiteAdminSchools';
 import FunctionalSiteAdminSystemHealth from './modules/FunctionalSiteAdminSystemHealth';
 import FunctionalSiteAdminSettings from './modules/FunctionalSiteAdminSettings';
 import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
+import FunctionalSiteAdminDocuments from './modules/FunctionalSiteAdminDocuments';
 
 interface PlatformStats {
   totalUsers: number;
@@ -254,48 +255,55 @@ const SiteAdminDashboard: React.FC = () => {
 
         {/* Main Navigation Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 h-12 md:h-auto md:w-auto bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm">
+          <TabsList className="flex flex-wrap justify-center md:grid md:grid-cols-7 h-auto md:h-auto md:w-auto bg-white/80 backdrop-blur-sm border border-gray-200 rounded-lg shadow-sm p-1 gap-1 md:gap-0">
             <TabsTrigger 
               value="overview" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Vue d'Ensemble"
             >
-              <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="users" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Utilisateurs"
             >
-              <Users className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <Users className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="schools" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Écoles"
             >
-              <School className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <School className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
+              value="documents" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
+              title="Documents"
+            >
+              <FileText className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="health" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Système"
             >
-              <Activity className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <Activity className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="sms" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 rounded-md" 
               title="Tests SMS"
             >
-              <MessageSquare className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
               value="settings" 
-              className="p-2 md:p-3 flex items-center justify-center min-w-0 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700" 
+              className="p-1.5 md:p-3 flex items-center justify-center min-w-[40px] md:min-w-0 h-10 md:h-auto data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 rounded-md" 
               title="Configuration"
             >
-              <Settings className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <Settings className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
           </TabsList>
 
@@ -397,6 +405,10 @@ const SiteAdminDashboard: React.FC = () => {
 
           <TabsContent value="schools" className="mt-6">
             <FunctionalSiteAdminSchools />
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-6">
+            <FunctionalSiteAdminDocuments />
           </TabsContent>
 
           <TabsContent value="health" className="mt-6">
