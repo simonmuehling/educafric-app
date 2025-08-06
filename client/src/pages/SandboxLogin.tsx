@@ -7,8 +7,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown
+  Settings, Shield, Play, TestTube, Zap, Crown, MessageCircle
 } from 'lucide-react';
+import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
 
 const SandboxLogin = () => {
   const { language } = useLanguage();
@@ -278,6 +279,29 @@ const SandboxLogin = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* SMS Test Suite */}
+        <div className="mt-12">
+          <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-2">
+                <MessageCircle className="w-6 h-6 text-orange-600" />
+                <CardTitle className="text-2xl text-orange-800">
+                  {language === 'fr' ? 'Tests SMS EDUCAFRIC' : 'EDUCAFRIC SMS Testing'}
+                </CardTitle>
+              </div>
+              <p className="text-orange-700">
+                {language === 'fr' 
+                  ? 'Testez les 24 modèles de SMS avec des données éducatives africaines réalistes'
+                  : 'Test all 24 SMS templates with realistic African educational data'
+                }
+              </p>
+            </CardHeader>
+            <CardContent>
+              <SMSTestSuite />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Footer Info */}
