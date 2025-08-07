@@ -145,7 +145,7 @@ Arguments de vente :
 • Amélioration de la communication école-famille
 • Traçabilité complète pour les autorités
 
-📋 BULLETINS DE NOTES
+BULLETINS DE NOTES
 
 Qu'est-ce que c'est ?
 Système complet de gestion des notes avec bulletins numériques adaptés au système éducatif africain.
@@ -162,7 +162,7 @@ Arguments de vente :
 • Amélioration de la satisfaction parentale
 • Modernisation de l'image de l'établissement
 
-💰 ARGUMENTS ÉCONOMIQUES
+ARGUMENTS ÉCONOMIQUES
 
 Retour sur Investissement :
 • École de 500 élèves : Économies de 2 000 000 FCFA/an
@@ -475,7 +475,7 @@ MODULE COMMUNICATION
 👨‍👩‍👧‍👦 PLANS PARENTS
 
 🏫 PARENTS ÉCOLE PUBLIQUE
-💰 1,000 CFA/mois • 12,000 CFA/an
+1,000 CFA/mois • 12,000 CFA/an
 ✅ Suivi individuel de l'élève
 ✅ Notifications temps réel (absences, notes)
 ✅ Géolocalisation GPS et zones de sécurité
@@ -485,7 +485,7 @@ MODULE COMMUNICATION
 ✅ Support bilingue français/anglais
 
 🏫 PARENTS ÉCOLE PRIVÉE
-💰 1,500 CFA/mois • 18,000 CFA/an
+1,500 CFA/mois • 18,000 CFA/an
 ✅ Toutes fonctionnalités école publique
 ✅ GPS avancé avec géofencing
 ✅ Bouton panique d'urgence
@@ -497,7 +497,7 @@ MODULE COMMUNICATION
 🏫 ÉCOLES - PLANS ANNUELS
 
 🏫 ÉCOLE PUBLIQUE
-💰 50,000 CFA/an
+50,000 CFA/an
 ✅ Étudiants illimités
 ✅ Gestion complète classes/matières
 ✅ Système d'appel avec notifications
@@ -507,7 +507,7 @@ MODULE COMMUNICATION
 ✅ Support technique prioritaire
 
 🏫 ÉCOLE PRIVÉE
-💰 100,000 CFA/an
+100,000 CFA/an
 ✅ Toutes fonctionnalités école publique
 ✅ Analyses avancées
 ✅ Rapports personnalisés
@@ -519,7 +519,7 @@ MODULE COMMUNICATION
 🎓 ENSEIGNANTS/RÉPÉTITEURS
 
 🏫 PLAN SEMESTRIEL
-💰 12,500 CFA/semestre (6 mois)
+12,500 CFA/semestre (6 mois)
 ✅ Interface cours particuliers
 ✅ Gestion planning
 ✅ Suivi académique personnalisé
@@ -527,7 +527,7 @@ MODULE COMMUNICATION
 ✅ Facturation intégrée
 
 🏫 PLAN ANNUEL
-💰 25,000 CFA/an (économie 2 mois)
+25,000 CFA/an (économie 2 mois)
 ✅ Toutes fonctionnalités semestrielles
 ✅ Base données étudiants étendue
 ✅ Outils planification avancés
@@ -536,19 +536,19 @@ MODULE COMMUNICATION
 📍 SERVICES GÉOLOCALISATION
 
 🏫 PARENTS GPS
-💰 1,000 CFA/mois • 12,000 CFA/an
+1,000 CFA/mois • 12,000 CFA/an
 ✅ Suivi enfants temps réel
 ✅ Alertes SMS automatiques
 ✅ Zones de sécurité configurables
 
 🏫 ÉCOLES GPS
-💰 25,000 CFA/an
+25,000 CFA/an
 ✅ Surveillance campus complète
 ✅ Suivi tous élèves
 ✅ Rapports de localisation
 
 🏫 FREELANCERS GPS
-💰 15,000 CFA/an
+15,000 CFA/an
 ✅ Suivi domicile élèves
 ✅ Calcul distances automatique
 ✅ Vérification présence sessions
