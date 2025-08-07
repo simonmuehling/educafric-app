@@ -26,11 +26,11 @@ allprojects {
     }
 }
 
-// Accept Java 21 as required by Capacitor modules
+// Use Java 17 for compatibility with GitHub Actions environment
 subprojects {
     tasks.withType(JavaCompile) {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
