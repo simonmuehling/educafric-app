@@ -6,7 +6,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 🏫 PLANS D'ABONNEMENT ÉCOLES
+## PLANS D'ABONNEMENT ÉCOLES
 
 ### Plan École Freemium
 **GRATUIT** - Parfait pour les écoles débutant leur transformation numérique
@@ -35,7 +35,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 👨‍👩‍👧‍👦 PLANS D'ABONNEMENT PARENTS
+## PLANS D'ABONNEMENT PARENTS
 
 ### Parents École Publique
 **1 000 CFA par mois**
@@ -60,7 +60,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 👨‍🏫 PLANS ENSEIGNANTS (RÉPÉTITEURS)
+## PLANS ENSEIGNANTS (RÉPÉTITEURS)
 
 ### Plan Semestriel
 **12 500 CFA par semestre**
@@ -80,7 +80,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 💼 AVANTAGES COMMERCIAUX
+## AVANTAGES COMMERCIAUX
 
 ### Pourquoi Choisir Educafric ?
 
@@ -107,7 +107,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 🎯 SEGMENTS DE MARCHÉ CIBLES
+## SEGMENTS DE MARCHÉ CIBLES
 
 ### Marchés Primaires
 1. **Écoles Privées** (500+ institutions au Cameroun)
@@ -123,7 +123,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 📈 PROJECTIONS DE VENTES
+## PROJECTIONS DE VENTES
 
 ### Objectifs Année 1 (Cameroun)
 - **Écoles**: 100 abonnements premium = 5 000 000 CFA
@@ -134,7 +134,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 🛡️ SUPPORT CLIENT & INTÉGRATION
+## SUPPORT CLIENT & INTÉGRATION
 
 ### Support d'Implémentation
 - Assistance de configuration gratuite pour tous les plans
@@ -150,7 +150,7 @@ Educafric est la plateforme technologique éducative leader en Afrique, offrant 
 
 ---
 
-## 📞 INFORMATIONS CONTACT VENTES
+## INFORMATIONS CONTACT VENTES
 
 **Responsable Équipe Commerciale**: M. Djomo
 **Email**: commercial@educafric.com

@@ -39,7 +39,7 @@ const FunctionalCommercialReports: React.FC = () => {
   const { data: reportData, isLoading, error, refetch } = useQuery<ReportData>({
     queryKey: ['/api/commercial/reports', selectedPeriod, reportType],
     queryFn: async () => {
-      console.log('[COMMERCIAL_REPORTS] 🔍 Fetching reports...');
+      console.log('[COMMERCIAL_REPORTS] Fetching reports...');
       const params = new URLSearchParams({
         period: selectedPeriod,
         type: reportType
@@ -50,12 +50,12 @@ const FunctionalCommercialReports: React.FC = () => {
       });
       
       if (!response.ok) {
-        console.error('[COMMERCIAL_REPORTS] ❌ Failed to fetch reports');
+        console.error('[COMMERCIAL_REPORTS] Failed to fetch reports');
         throw new Error('Failed to fetch reports');
       }
       
       const data = await response.json();
-      console.log('[COMMERCIAL_REPORTS] ✅ Reports loaded:', data);
+      console.log('[COMMERCIAL_REPORTS] Reports loaded:', data);
       return data;
     },
     enabled: !!user,

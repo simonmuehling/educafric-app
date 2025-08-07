@@ -6,7 +6,7 @@ Educafric is the leading African educational technology platform offering compre
 
 ---
 
-## 🏫 SCHOOL SUBSCRIPTION PLANS
+## SCHOOL SUBSCRIPTION PLANS
 
 ### Freemium School Plan
 **FREE** - Perfect for schools starting their digital transformation
@@ -35,7 +35,7 @@ Educafric is the leading African educational technology platform offering compre
 
 ---
 
-## 👨‍👩‍👧‍👦 PARENT SUBSCRIPTION PLANS
+## PARENT SUBSCRIPTION PLANS
 
 ### Public School Parents
 **1,000 CFA per month** (approx. $1.65 USD)

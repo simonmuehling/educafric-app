@@ -6,7 +6,7 @@ Educafric's geolocation system is a comprehensive tracking and safety solution s
 
 ---
 
-## 🌍 MAIN FEATURES
+## MAIN FEATURES
 
 ### Real-Time GPS Tracking
 - **Continuous Location**: 24/7 tracking with GPS precision

@@ -1,51 +1,51 @@
 # Guide des Notifications EDUCAFRIC / EDUCAFRIC Notifications Guide
 
-## 🇫🇷 FRANÇAIS
+## FRANÇAIS
 
 ### Vue d'Ensemble
 EDUCAFRIC utilise un système de communication intelligent qui vous garde informé selon l'importance de chaque situation. Nous utilisons deux types de notifications pour optimiser votre expérience et réduire les coûts.
 
 ### Types de Notifications
 
-#### 📱 MESSAGES SMS (Situations Urgentes)
+#### MESSAGES SMS (Situations Urgentes)
 Les SMS sont réservés aux situations nécessitant votre **attention immédiate** :
 
-**🚨 Urgences et Sécurité**
+**Urgences et Sécurité**
 - Bouton d'urgence SOS activé par votre enfant
 - Problème de sécurité à l'école
 - Évacuation d'urgence ou situation exceptionnelle
 
-**📍 Alertes Géolocalisation Critiques**
+**Alertes Géolocalisation Critiques**
 - Votre enfant a quitté une zone de sécurité
 - Perte du signal GPS de l'appareil
 - Mouvement nocturne inhabituel détecté
 
-**⚠️ Absences Non-Autorisées**
+**Absences Non-Autorisées**
 - Absence de votre enfant sans justification
 - Retard scolaire important
 - Non-présentation à un examen
 
-**💰 Paiements Urgents**
+**Paiements Urgents**
 - Échéance de frais scolaires critique
 - Risque de suspension pour impayés
 - Problème avec votre abonnement
 
-#### 📲 NOTIFICATIONS APPLICATION (Informations Quotidiennes)
+#### NOTIFICATIONS APPLICATION (Informations Quotidiennes)
 L'application EDUCAFRIC affiche les informations importantes mais non-urgentes :
 
-**📚 Vie Scolaire**
+**Vie Scolaire**
 - Nouvelles notes et bulletins
 - Devoirs et assignments créés
 - Emploi du temps modifié
 - Événements et activités parascolaires
 
-**👨‍🏫 Communication Enseignants**
+**Communication Enseignants**
 - Messages de la classe
 - Remarques sur le comportement
 - Convocations à des réunions
 - Informations pédagogiques
 
-**📊 Rapports et Statistiques**
+**Rapports et Statistiques**
 - Rapport hebdomadaire de présences
 - Moyennes et classements
 - Progrès académique de votre enfant

@@ -188,7 +188,7 @@ Système automatisé de suivi des présences avec notifications multi-canaux (SM
 - Amélioration de la communication école-famille
 - Traçabilité complète pour les autorités
 
-## 📋 BULLETINS DE NOTES
+## BULLETINS DE NOTES
 
 ### **Qu'est-ce que c'est ?**
 Système complet de gestion des notes avec bulletins numériques adaptés au système éducatif africain.
@@ -223,7 +223,7 @@ Système complet de gestion des notes avec bulletins numériques adaptés au sys
 - Amélioration de la satisfaction parentale
 - Modernisation de l'image de l'établissement
 
-## 💰 ARGUMENTS ÉCONOMIQUES GLOBAUX
+## ARGUMENTS ÉCONOMIQUES GLOBAUX
 
 ### **Retour sur Investissement :**
 - **École de 500 élèves** : Économies de 2 000 000 FCFA/an

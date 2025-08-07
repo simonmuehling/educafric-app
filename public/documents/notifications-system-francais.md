@@ -6,7 +6,7 @@ Educafric dispose d'un système de notifications avancé qui maintient tous les 
 
 ---
 
-## 📱 CANAUX DE COMMUNICATION
+## CANAUX DE COMMUNICATION
 
 ### SMS Automatiques
 - **Couverture Universelle**: Fonctionne sur tous les téléphones (smartphone et téléphone basique)
@@ -34,9 +34,9 @@ Educafric dispose d'un système de notifications avancé qui maintient tous les 
 
 ---
 
-## 🎯 TYPES DE NOTIFICATIONS PAR CONTEXTE
+## TYPES DE NOTIFICATIONS PAR CONTEXTE
 
-### 📚 NOTIFICATIONS ACADÉMIQUES
+### NOTIFICATIONS ACADÉMIQUES
 
 #### Pour les Parents
 1. **Notes et Résultats**: "Marie a obtenu 16/20 en Mathématiques - Trimestre 1"

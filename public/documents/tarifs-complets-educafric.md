@@ -1,6 +1,6 @@
-# 💰 TARIFS COMPLETS EDUCAFRIC - CAMEROUN 2025
+# TARIFS COMPLETS EDUCAFRIC - CAMEROUN 2025
 
-## 📍 TARIFS GÉOLOCALISATION
+## TARIFS GÉOLOCALISATION
 
 ### Parents - Géolocalisation
 - **Mensuel** : 1 000 CFA/mois (parent_geolocation_monthly)
@@ -20,7 +20,7 @@
 
 ---
 
-## 👨‍👩‍👧‍👦 TARIFS PARENTS
+## TARIFS PARENTS
 
 ### Plans Publics
 - **Public Mensuel** : 1 000 CFA/mois (parent_public_monthly)
@@ -36,7 +36,7 @@
 
 ---
 
-## 🏫 TARIFS ÉCOLES
+## TARIFS ÉCOLES
 
 ### Plans Standard
 - **École Publique** : 50 000 CFA/an (school_public)
@@ -51,7 +51,7 @@
 
 ---
 
-## 👨‍🏫 TARIFS FREELANCERS
+## TARIFS FREELANCERS
 
 ### Plans d'Abonnement
 - **Semestriel** : 12 500 CFA - 6 mois (freelancer_semester)
@@ -69,7 +69,7 @@
 
 ---
 
-## 📊 TABLEAU COMPARATIF GÉOLOCALISATION
+## TABLEAU COMPARATIF GÉOLOCALISATION
 
 | Profil     | Tarif        | Durée  | Fonctionnalités                           |
 |------------|--------------|--------|-------------------------------------------|
@@ -79,7 +79,7 @@
 
 ---
 
-## 🎯 CODES PRODUITS STRIPE
+## CODES PRODUITS STRIPE
 
 ### Géolocalisation
 - `parent_geolocation_monthly` - 1 000 CFA/mois

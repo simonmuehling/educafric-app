@@ -6,7 +6,7 @@ Educafric features an advanced notification system that keeps all educational st
 
 ---
 
-## 📱 COMMUNICATION CHANNELS
+## COMMUNICATION CHANNELS
 
 ### Automatic SMS
 - **Universal Coverage**: Works on all phones (smartphones and basic phones)

@@ -183,7 +183,7 @@ const CallsAppointments = () => {
       sender: 'Jean Kouassi',
       role: 'Commercial',
       time: '12:45',
-      message: 'Contrat Lycée Moderne signé ce matin ! 🎉',
+      message: 'Contrat Lycée Moderne signé ce matin !',
       type: 'success'
     }
   ];
