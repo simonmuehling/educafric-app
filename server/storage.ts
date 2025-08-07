@@ -5,7 +5,7 @@ import {
   bulletins, bulletinGrades, bulletinApprovals, messages, messageRecipients,
   teacherAbsences, teacherAbsenceNotifications,
   parentRequests, parentRequestResponses, parentRequestNotifications,
-  commercialContacts, notificationSettings,
+  commercialContacts, notificationSettings, notifications,
   type User, type InsertUser, type School, type InsertSchool,
   type Class, type InsertClass, type Subject, type InsertSubject,
   type Grade, type InsertGrade, type Attendance, type InsertAttendance,
@@ -17,7 +17,8 @@ import {
   type TeacherAbsence, type InsertTeacherAbsence, type TeacherAbsenceNotification, type InsertTeacherAbsenceNotification,
   type ParentRequest, type InsertParentRequest, type ParentRequestResponse, type InsertParentRequestResponse,
   type ParentRequestNotification, type InsertParentRequestNotification,
-  type NotificationSettings, type InsertNotificationSettings
+  type NotificationSettings, type InsertNotificationSettings,
+  type Notification, type InsertNotification
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count, sql, or } from "drizzle-orm";

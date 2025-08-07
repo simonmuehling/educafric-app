@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalDirectorProfile from './modules/FunctionalDirectorProfile';
@@ -29,6 +29,7 @@ import { FunctionalDirectorOverview } from './modules/FunctionalDirectorOverview
 import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers';
 import CommunicationsCenter from './modules/CommunicationsCenter';
 import SchoolConfigurationGuide from './modules/SchoolConfigurationGuide';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -104,6 +105,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Demandes Parents',
       geolocation: 'Géolocalisation',
       bulletinApproval: 'Validation Bulletins',
+      notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
       finances: 'Finances',
       reports: 'Rapports',
@@ -125,6 +127,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Parent Requests',
       geolocation: 'Geolocation',
       bulletinApproval: 'Bulletin Approval',
+      notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
       finances: 'Finances',
       reports: 'Reports',
@@ -297,6 +300,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <ClipboardList className="w-6 h-6" />,
       color: 'bg-cyan-500',
       component: <BulletinValidation />
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: <NotificationCenter userRole="Director" userId={1} />
     },
     {
       id: 'school-administrators',

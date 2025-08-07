@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
-  Settings, Clock, MapPin, FileText, HelpCircle
+  Settings, Clock, MapPin, FileText, HelpCircle, Bell
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalFreelancerProfile from './modules/FunctionalFreelancerProfile';
@@ -14,6 +14,7 @@ import FunctionalFreelancerResources from './modules/FunctionalFreelancerResourc
 import FreelancerCommunications from './modules/FreelancerCommunications';
 import FreelancerGeolocation from './modules/FreelancerGeolocation';
 import HelpCenter from '@/components/help/HelpCenter';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -38,6 +39,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       resources: 'Ressources',
       communications: 'Communications',
       geolocation: 'Géolocalisation',
+      notifications: 'Notifications',
       analytics: 'Analytics',  
       help: 'Aide'
     },
@@ -52,6 +54,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       resources: 'Resources',
       communications: 'Communications',
       geolocation: 'Geolocation',
+      notifications: 'Notifications',
       help: 'Help'
     }
   };
@@ -205,6 +208,13 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
           <FreelancerGeolocation />
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: <NotificationCenter userRole="Freelancer" userId={1} />
     },
     {
       id: 'help',

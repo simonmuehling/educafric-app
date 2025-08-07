@@ -49,6 +49,7 @@ import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import { hostingerMailService } from "./services/hostingerMailService";
 import { welcomeEmailService } from "./services/welcomeEmailService";
+import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 // Configuration routes handled inline
 // Student routes handled inline in this file
@@ -9706,6 +9707,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.use('/api/system-reports', systemReportsRoutes);
   } catch (error) {
     console.warn('[SYSTEM_REPORTS] Error registering system reports routes:', error);
+  }
+
+  // Notification routes
+  try {
+    setupNotificationRoutes(app);
+  } catch (error) {
+    console.warn('[NOTIFICATIONS] Error registering notification routes:', error);
   }
   console.log('[SYSTEM_REPORTS] System reports routes registered successfully');
 

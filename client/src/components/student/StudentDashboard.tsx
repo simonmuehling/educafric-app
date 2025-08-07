@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import StudentTimetable from './modules/StudentTimetable';
@@ -18,6 +18,7 @@ import StudentProgress from './modules/StudentProgress';
 // import StudentAchievements from './modules/StudentAchievements';
 import HelpCenter from '@/components/help/HelpCenter';
 import StudentSettings from './modules/StudentSettings';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -76,6 +77,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       messages: 'Messages',
       achievements: 'Réussites',
       profile: 'Profil',
+      notifications: 'Notifications',
       settings: 'Paramètres',
       help: 'Aide'
     },
@@ -91,6 +93,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       messages: 'Messages',
       achievements: 'Achievements',
       profile: 'Profile',
+      notifications: 'Notifications',
       settings: 'Settings',
       help: 'Help'
     }
@@ -193,6 +196,13 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-slate-500',
       component: <HelpCenter userType="student" />
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: <NotificationCenter userRole="Student" userId={1} />
     },
     {
       id: 'geolocation',

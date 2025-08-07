@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalTeacherClasses from './modules/FunctionalTeacherClasses';
@@ -16,6 +16,7 @@ import TeacherTimetable from './modules/TeacherTimetable';
 import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
 import TeacherMultiRoleSwitch from './modules/TeacherMultiRoleSwitch';
 import HelpCenter from '@/components/help/HelpCenter';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 interface TeacherDashboardProps {
   stats?: any;
@@ -84,6 +85,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       communications: 'Communications',
       profile: 'Profil',
       multirole: 'Multi-Rôles',
+      notifications: 'Notifications',
       help: 'Aide'
     },
     en: {
@@ -98,6 +100,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       reports: 'Report Cards',
       communications: 'Communications',
       profile: 'Profile',
+      notifications: 'Notifications',
       multirole: 'Multi-Roles',
       help: 'Help'
     }
@@ -186,6 +189,13 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
           </div>
         </div>
       </div>
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: <NotificationCenter userRole="Teacher" userId={1} />
     },
     {
       id: 'multirole',

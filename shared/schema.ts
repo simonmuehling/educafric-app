@@ -391,6 +391,7 @@ export type EnhancedBulletin = typeof bulletins.$inferSelect;
 export type EnhancedBulletinGrade = typeof bulletinGrades.$inferSelect;
 export type EnhancedBulletinVerification = typeof bulletinVerifications.$inferSelect;
 
+
 // Grades management
 export const grades = pgTable("grades", {
   id: serial("id").primaryKey(),
@@ -552,6 +553,60 @@ export const parentStudentRelations = pgTable("parent_student_relations", {
   isPrimary: boolean("is_primary").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Notifications system - Central notification management
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  recipientId: integer("recipient_id").notNull(),
+  recipientRole: text("recipient_role").notNull(), // Director, Teacher, Parent, Student, Freelancer
+  senderId: integer("sender_id"), // Who sent the notification (can be system)
+  senderRole: text("sender_role"), // Role of sender
+  
+  // Notification content
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // grade, attendance, homework, payment, announcement, meeting, emergency, system
+  priority: text("priority").default("medium"), // low, medium, high, urgent
+  category: text("category").notNull(), // academic, administrative, financial, security, communication
+  
+  // Notification status
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  
+  // Additional data and context
+  relatedEntityId: integer("related_entity_id"), // ID of related record (grade, homework, etc.)
+  relatedEntityType: text("related_entity_type"), // grade, homework, attendance, payment
+  schoolId: integer("school_id"),
+  classId: integer("class_id"),
+  studentId: integer("student_id"), // For parent notifications about specific child
+  
+  // Metadata
+  metadata: jsonb("metadata"), // Additional notification-specific data
+  actionRequired: boolean("action_required").default(false),
+  actionUrl: text("action_url"), // URL for action button
+  actionText: text("action_text"), // Text for action button
+  
+  // Delivery tracking
+  channels: text("channels").array(), // email, sms, push, whatsapp
+  deliveryStatus: jsonb("delivery_status"), // Status per channel
+  
+  // Scheduling
+  scheduledFor: timestamp("scheduled_for"),
+  expiresAt: timestamp("expires_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notification schemas
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Communication logs
 export const communicationLogs = pgTable("communication_logs", {

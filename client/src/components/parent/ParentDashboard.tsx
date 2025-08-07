@@ -26,6 +26,7 @@ import FunctionalParentPayments from './modules/FunctionalParentPayments';
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 import ParentRequestManager from './modules/ParentRequestManager';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -210,6 +211,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           <ParentGeolocation />
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: <NotificationCenter userRole="Parent" userId={1} />
     },
     {
       id: 'requests',
