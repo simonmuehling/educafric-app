@@ -99,7 +99,7 @@ const DocumentsContracts = () => {
       content: `GUIDE COMMERCIAL EDUCAFRIC - FONCTIONNALITÉS CLÉS
 GÉOLOCALISATION, ABSENCES & BULLETINS DE NOTES
 
-🌍 GÉOLOCALISATION
+GÉOLOCALISATION
 
 Qu'est-ce que c'est ?
 Un système de suivi GPS en temps réel pour la sécurité des élèves avec tablettes, montres connectées et smartphones.
@@ -122,7 +122,7 @@ Arguments de vente :
 • Conformité aux attentes modernes de sécurité
 • Différenciation concurrentielle forte
 
-📅 GESTION DES ABSENCES
+GESTION DES ABSENCES
 
 Qu'est-ce que c'est ?
 Système automatisé de suivi des présences avec notifications multi-canaux (SMS, WhatsApp, Email).
@@ -189,7 +189,7 @@ FREELANCERS/RÉPÉTITEURS :
 
 Support et formation inclus dans tous les plans
 
-📞 PROCHAINES ÉTAPES
+PROCHAINES ÉTAPES
 
 1. Démonstration live : Présentation de 30 minutes
 2. Période d'essai gratuite : 1 mois sans engagement
@@ -306,7 +306,7 @@ DÉJÀ ADOPTÉE PAR :
 • Plus de 800 enseignants formés
 • 8 pays africains couverts
 
-📍 AFRO METAVERSE MARKETING SARL
+AFRO METAVERSE MARKETING SARL
 Yaoundé, Cameroun
 www.educafric.com | contact@educafric.com
 +237 651 234 567
@@ -399,7 +399,7 @@ SÉCURITÉ MAXIMALE
 
 === NOTRE EXPERTISE RECONNUE ===
 
-🎯 SPÉCIALISTES DE L'ÉDUCATION AFRICAINE
+SPÉCIALISTES DE L'ÉDUCATION AFRICAINE
 EDUCAFRIC est développé par des experts qui comprennent les défis spécifiques de l'éducation en Afrique :
 
 ✅ ADAPTATION CULTURELLE COMPLÈTE
@@ -472,9 +472,9 @@ MODULE COMMUNICATION
 
 === TARIFICATION OFFICIELLE EDUCAFRIC 2025 ===
 
-👨‍👩‍👧‍👦 PLANS PARENTS
+PLANS PARENTS
 
-🏫 PARENTS ÉCOLE PUBLIQUE
+PARENTS ÉCOLE PUBLIQUE
 1,000 CFA/mois • 12,000 CFA/an
 ✅ Suivi individuel de l'élève
 ✅ Notifications temps réel (absences, notes)
@@ -484,7 +484,7 @@ MODULE COMMUNICATION
 ✅ Calendrier événements scolaires
 ✅ Support bilingue français/anglais
 
-🏫 PARENTS ÉCOLE PRIVÉE
+PARENTS ÉCOLE PRIVÉE
 1,500 CFA/mois • 18,000 CFA/an
 ✅ Toutes fonctionnalités école publique
 ✅ GPS avancé avec géofencing
@@ -494,9 +494,9 @@ MODULE COMMUNICATION
 ✅ Analyses détaillées
 ✅ Intégration WhatsApp Business
 
-🏫 ÉCOLES - PLANS ANNUELS
+ÉCOLES - PLANS ANNUELS
 
-🏫 ÉCOLE PUBLIQUE
+ÉCOLE PUBLIQUE
 50,000 CFA/an
 ✅ Étudiants illimités
 ✅ Gestion complète classes/matières
@@ -506,7 +506,7 @@ MODULE COMMUNICATION
 ✅ Dashboard administratif complet
 ✅ Support technique prioritaire
 
-🏫 ÉCOLE PRIVÉE
+ÉCOLE PRIVÉE
 100,000 CFA/an
 ✅ Toutes fonctionnalités école publique
 ✅ Analyses avancées
@@ -516,9 +516,9 @@ MODULE COMMUNICATION
 ✅ Support premium 24/7
 ✅ Personnalisation interface
 
-🎓 ENSEIGNANTS/RÉPÉTITEURS
+ENSEIGNANTS/RÉPÉTITEURS
 
-🏫 PLAN SEMESTRIEL
+PLAN SEMESTRIEL
 12,500 CFA/semestre (6 mois)
 ✅ Interface cours particuliers
 ✅ Gestion planning
@@ -526,41 +526,41 @@ MODULE COMMUNICATION
 ✅ Communication parents
 ✅ Facturation intégrée
 
-🏫 PLAN ANNUEL
+PLAN ANNUEL
 25,000 CFA/an (économie 2 mois)
 ✅ Toutes fonctionnalités semestrielles
 ✅ Base données étudiants étendue
 ✅ Outils planification avancés
 ✅ Support technique prioritaire
 
-📍 SERVICES GÉOLOCALISATION
+SERVICES GÉOLOCALISATION
 
-🏫 PARENTS GPS
+PARENTS GPS
 1,000 CFA/mois • 12,000 CFA/an
 ✅ Suivi enfants temps réel
 ✅ Alertes SMS automatiques
 ✅ Zones de sécurité configurables
 
-🏫 ÉCOLES GPS
+ÉCOLES GPS
 25,000 CFA/an
 ✅ Surveillance campus complète
 ✅ Suivi tous élèves
 ✅ Rapports de localisation
 
-🏫 FREELANCERS GPS
+FREELANCERS GPS
 15,000 CFA/an
 ✅ Suivi domicile élèves
 ✅ Calcul distances automatique
 ✅ Vérification présence sessions
 
-🎁 AVANTAGES FAMILIAUX
+AVANTAGES FAMILIAUX
 • 2 enfants : -20% sur abonnement
 • 3+ enfants : -40% sur abonnement
 • Paiement annuel : économie 2 mois
 
 === AVANTAGES CONCURRENTIELS ===
 
-🎯 VS SOLUTIONS EUROPÉENNES
+VS SOLUTIONS EUROPÉENNES
 ❌ Autres : Inadaptées contexte africain
 ✅ EDUCAFRIC : 100% pensée pour l'Afrique
 
@@ -573,7 +573,7 @@ MODULE COMMUNICATION
 ❌ Autres : Support technique européen
 ✅ EDUCAFRIC : Équipe locale camerounaise
 
-🎯 VS SOLUTIONS ARTISANALES LOCALES
+VS SOLUTIONS ARTISANALES LOCALES
 ❌ Autres : Fonctionnalités limitées
 ✅ EDUCAFRIC : Solution complète intégrée
 
@@ -588,28 +588,28 @@ MODULE COMMUNICATION
 
 === PROCESSUS D'IMPLÉMENTATION ===
 
-📅 PHASE 1 - ANALYSE (Semaine 1)
+PHASE 1 - ANALYSE (Semaine 1)
 • Audit infrastructure existante
 • Analyse besoins spécifiques
 • Formation directeur/adjoints
 • Paramétrage plateforme
 • Import données existantes
 
-📅 PHASE 2 - FORMATION (Semaine 2-3)
+PHASE 2 - FORMATION (Semaine 2-3)
 • Formation enseignants par groupes
 • Ateliers pratiques sur site
 • Création premiers bulletins test
 • Configuration communication
 • Tests avec groupe pilote parents
 
-📅 PHASE 3 - DÉPLOIEMENT (Semaine 4)  
+PHASE 3 - DÉPLOIEMENT (Semaine 4)  
 • Lancement officiel plateforme
 • Communication vers toutes familles
 • Support renforcé quotidien
 • Ajustements et optimisations
 • Formation complémentaire si besoin
 
-📅 PHASE 4 - OPTIMISATION (Mois 2-3)
+PHASE 4 - OPTIMISATION (Mois 2-3)
 • Analyse usage et adoption
 • Formation modules avancés
 • Personnalisations supplémentaires
