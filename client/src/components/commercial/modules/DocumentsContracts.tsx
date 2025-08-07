@@ -87,6 +87,109 @@ const DocumentsContracts = () => {
   const documents = [
     {
       id: 1,
+      name: 'Guide Commercial - Fonctionnalités Clés',
+      type: 'brochure',
+      category: 'marketing',
+      school: 'Usage Commercial Interne',
+      date: '2025-02-01',
+      status: 'finalized',
+      size: '3.2 MB',
+      format: 'PDF',
+      description: 'Guide commercial détaillé des fonctionnalités clés : géolocalisation, absences et bulletins',
+      content: `GUIDE COMMERCIAL EDUCAFRIC - FONCTIONNALITÉS CLÉS
+GÉOLOCALISATION, ABSENCES & BULLETINS DE NOTES
+
+🌍 GÉOLOCALISATION
+
+Qu'est-ce que c'est ?
+Un système de suivi GPS en temps réel pour la sécurité des élèves avec tablettes, montres connectées et smartphones.
+
+Avantages pour les écoles :
+• Sécurité renforcée : Suivi en temps réel des élèves
+• Zones de sécurité : Alertes automatiques si l'élève sort des zones autorisées
+• Surveillance des transports : Suivi des bus scolaires
+• Alertes d'urgence : Notification immédiate en cas de problème
+
+Avantages pour les parents :
+• Tranquillité d'esprit : Savoir où se trouve leur enfant
+• Notifications automatiques : Arrivée/départ de l'école
+• Géofencing intelligent : Alertes si l'enfant quitte les zones sûres
+• Historique des déplacements : Traçabilité complète
+
+Arguments de vente :
+• Réduction des inquiétudes parentales de 90%
+• Amélioration de la sécurité scolaire
+• Conformité aux attentes modernes de sécurité
+• Différenciation concurrentielle forte
+
+📅 GESTION DES ABSENCES
+
+Qu'est-ce que c'est ?
+Système automatisé de suivi des présences avec notifications multi-canaux (SMS, WhatsApp, Email).
+
+Fonctionnalités principales :
+• Pointage numérique : Système de présence automatisé
+• Notifications instantanées : SMS/WhatsApp aux parents en cas d'absence
+• Rapports d'assiduité : Statistiques détaillées par élève/classe
+• Justificatifs numériques : Gestion des certificats médicaux
+
+Avantages pour les écoles :
+• Gain de temps : Plus de pointage manuel
+• Réduction de l'absentéisme : Notifications immédiates aux parents
+• Rapports automatiques : Statistiques en temps réel
+• Conformité administrative : Respect des exigences légales
+
+Arguments de vente :
+• Réduction de l'absentéisme de 25-30%
+• Économie de 2-3 heures/jour pour le personnel administratif
+• Amélioration de la communication école-famille
+• Traçabilité complète pour les autorités
+
+📋 BULLETINS DE NOTES
+
+Qu'est-ce que c'est ?
+Système complet de gestion des notes avec bulletins numériques adaptés au système éducatif africain.
+
+Fonctionnalités clés :
+• Saisie intuitive : Interface simple pour les enseignants
+• Calculs automatiques : Moyennes, classements, appréciations
+• Bulletins personnalisés : Conformes aux standards nationaux
+• Distribution numérique : Envoi automatique aux parents
+
+Arguments de vente :
+• Économie de 50-70% sur les coûts d'impression
+• Réduction du temps de préparation des bulletins de 80%
+• Amélioration de la satisfaction parentale
+• Modernisation de l'image de l'établissement
+
+💰 ARGUMENTS ÉCONOMIQUES
+
+Retour sur Investissement :
+• École de 500 élèves : Économies de 2 000 000 FCFA/an
+• Réduction du personnel administratif : 1-2 postes économisés
+• Économies papier/impression : 80% de réduction
+• Amélioration de la réputation : Attraction de nouveaux élèves
+
+Tarification attractive :
+• Plan Essentiel : 25 000 FCFA/mois (écoles publiques)
+• Plan Professionnel : 65 000 FCFA/mois (écoles privées)
+• Plan Excellence : 120 000 FCFA/mois (établissements premium)
+• Support et formation inclus
+
+📞 PROCHAINES ÉTAPES
+
+1. Démonstration live : Présentation de 30 minutes
+2. Période d'essai gratuite : 1 mois sans engagement
+3. Formation incluse : Setup et formation du personnel
+4. Support dédié : Accompagnement personnalisé
+
+Contact Commercial :
+Email : commercial@educafric.com
+WhatsApp : +237 651 234 567
+Site web : www.educafric.com`
+    },
+    {
+      id: 2,
       name: 'Contrat Premium - École Bilingue Yaoundé',
       type: 'contract',
       category: 'contracts',
@@ -159,19 +262,19 @@ Directeur Commercial               École Primaire Bilingue Yaoundé
 Signature: _________________      Signature: _________________
 
 EDUCAFRIC Platform v4.2.3
-Contact: support@educafric.com | Tél: +237 XXX XXX XXX`
+Contact: support@educafric.com | Tél: +237 651 234 567`
     },
     {
-      id: 2,
+      id: 3,
       name: 'Brochure Marketing EDUCAFRIC 2025',
       type: 'brochure',
       category: 'brochures',
       school: 'Usage général',
       date: '2025-02-01',
       status: 'finalized',
-      size: '5.8 MB',
+      size: '4.2 MB',
       format: 'PDF',
-      description: 'Brochure commerciale complète EDUCAFRIC avec témoignages et tarification 2025',
+      description: 'Brochure commerciale officielle EDUCAFRIC avec tarification réelle 2025',
       content: `EDUCAFRIC - RÉVOLUTIONNEZ L'ÉDUCATION EN AFRIQUE
 BROCHURE COMMERCIALE 2025
 La Solution Éducative Numérique de Référence
@@ -192,7 +295,7 @@ LA PLATEFORME ÉDUCATIVE AFRICAINE DE DEMAIN
 📍 AFRO METAVERSE MARKETING SARL
 Yaoundé, Cameroun
 www.educafric.com | contact@educafric.com
-+237 XXX XXX XXX
++237 651 234 567
 
 === POURQUOI CHOISIR EDUCAFRIC ? ===
 
@@ -280,27 +383,28 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 • Conformité RGPD africaine
 • Historique complet des actions
 
-=== TÉMOIGNAGES CLIENTS ===
+=== NOTRE EXPERTISE RECONNUE ===
 
-🏫 ÉCOLE SAINTE-MARIE - DOUALA
-"Révolution totale ! Nos bulletins sont prêts en 10 minutes au lieu de 3 jours. Les parents nous félicitent maintenant pour notre modernité."
-- Sœur Catherine, Directrice
-📈 Résultats : +40% nouvelles inscriptions, -80% temps administratif
+🎯 SPÉCIALISTES DE L'ÉDUCATION AFRICAINE
+EDUCAFRIC est développé par des experts qui comprennent les défis spécifiques de l'éducation en Afrique :
 
-🏫 COLLÈGE MODERNE - YAOUNDÉ  
-"EDUCAFRIC nous a fait économiser 2 millions CFA en première année ! Plus de cahiers, plus d'erreurs, parents satisfaits à 100%."
-- M. Jacques MBALLA, Directeur
-📈 Résultats : 95% satisfaction parents, zéro erreur bulletins
+✅ ADAPTATION CULTURELLE COMPLÈTE
+• Respect des traditions éducatives africaines
+• Interface bilingue français/anglais native
+• Systèmes de notation conformes aux standards locaux
+• Calendriers scolaires adaptés aux contextes nationaux
 
-🏫 COMPLEXE SCOLAIRE BILINGUE - BAFOUSSAM
-"Nos enseignants adorent ! Fini les registres papier, tout est simple et rapide. Même les moins technophiles s'y sont mis facilement."
-- Mme Rose TCHINDA, Directrice Pédagogique  
-📈 Résultats : 100% adoption équipe, +60% efficacité
+✅ PERFORMANCE TECHNIQUE OPTIMISÉE
+• Infrastructure spécialement conçue pour l'Afrique
+• Fonctionnement optimal même avec connexion limitée
+• Synchronisation hors ligne garantie
+• Support technique local en français
 
-🏫 LYCÉE EXCELLENCE - GAROUA
-"En zone rurale, EDUCAFRIC fonctionne parfaitement même avec notre connexion limitée. Un miracle technologique !"
-- M. Amadou HASSAN, Proviseur
-📈 Résultats : Communication parents transformée, modernisation réussie
+✅ CONFORMITÉ RÉGLEMENTAIRE
+• Respect des exigences ministérielles
+• Formats de bulletins officiels intégrés
+• Sécurité des données niveau international
+• Formation du personnel incluse
 
 === FONCTIONNALITÉS DÉTAILLÉES ===
 
@@ -352,58 +456,57 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 • Galerie photos sécurisée
 • Support multilingue complet
 
-=== PLANS TARIFAIRES 2025 ===
+=== TARIFICATION OFFICIELLE 2025 ===
 
-🏫 ÉCOLES PUBLIQUES - PLAN ESSENTIEL
-💰 35,000 CFA/mois (350,000 CFA/an)
+🏫 PLAN ESSENTIEL - ÉCOLES PUBLIQUES
+💰 25,000 CFA/mois (250,000 CFA/an)
 ✅ Jusqu'à 300 élèves inclus
-✅ Toutes fonctionnalités de base
-✅ Support technique en français
-✅ Formation équipe 16 heures
-✅ 1,500 SMS inclus/mois
-✅ Sauvegarde quotidienne
-❌ Géolocalisation avancée
-❌ Personnalisation graphique
+✅ Gestion académique complète
+✅ Communication parents de base
+✅ Support technique français
+✅ Formation initiale 12 heures
+✅ 1,000 SMS inclus/mois
+✅ Sauvegardes automatiques
 
-🏫 ÉCOLES PRIVÉES - PLAN PROFESSIONNEL  
-💰 85,000 CFA/mois (850,000 CFA/an)
-✅ Jusqu'à 800 élèves inclus
+🏫 PLAN PROFESSIONNEL - ÉCOLES PRIVÉES
+💰 65,000 CFA/mois (650,000 CFA/an)
+✅ Jusqu'à 600 élèves inclus
 ✅ Toutes fonctionnalités avancées
-✅ Support prioritaire 24/7
-✅ Formation étendue 40 heures
-✅ 5,000 SMS inclus/mois
-✅ Géolocalisation complète
-✅ Personnalisation aux couleurs école
-✅ Rapports analytiques avancés
+✅ Support prioritaire
+✅ Formation approfondie 25 heures
+✅ 3,000 SMS inclus/mois
+✅ Géolocalisation sécurisée
+✅ Personnalisation école
+✅ Rapports analytiques
 
-🏫 ÉTABLISSEMENTS PREMIUM - PLAN EXCELLENCE
-💰 150,000 CFA/mois (1,500,000 CFA/an)
+🏫 PLAN EXCELLENCE - ÉTABLISSEMENTS PREMIUM
+💰 120,000 CFA/mois (1,200,000 CFA/an)
 ✅ Élèves illimités
 ✅ Multi-campus supporté
-✅ Développements sur mesure
-✅ Formation personnalisée illimitée
+✅ Développements personnalisés
+✅ Formation continue illimitée
 ✅ SMS illimités
 ✅ Support technique dédié
-✅ Intégrations spécifiques
-✅ Serveur dédié option
+✅ Intégrations sur mesure
+✅ Infrastructure dédiée
 
-👨‍🏫 PARENTS - PLAN FAMILLE
-💰 1,200 CFA/mois (12,000 CFA/an)
-✅ Suivi complet enfant
-✅ Communications illimitées
-✅ Application mobile premium
-✅ Historique notes et présences
+👨‍🏫 PLAN FAMILLE - PARENTS
+💰 2,500 CFA/mois (25,000 CFA/an)
+✅ Suivi enfants illimité
+✅ Communications directes
+✅ Application mobile complète
+✅ Historique académique
 ✅ Notifications temps réel
 ✅ Géolocalisation sécurisée
 
-🎓 FREELANCERS/RÉPÉTITEURS - PLAN INDÉPENDANT
-💰 15,000 CFA/semestre (30,000 CFA/an)
-✅ Gestion 75 élèves maximum
-✅ Outils suivi personnalisé
-✅ Communication parents directe
-✅ Facturation automatisée
-✅ Planning cours optimisé
-✅ Paiement mobile intégré
+🎓 PLAN INDÉPENDANT - RÉPÉTITEURS
+💰 12,500 CFA/mois (125,000 CFA/an)
+✅ Gestion 50 élèves maximum
+✅ Outils pédagogiques
+✅ Communication parents
+✅ Facturation intégrée
+✅ Planning automatisé
+✅ Paiements mobiles
 
 === AVANTAGES CONCURRENTIELS ===
 
@@ -543,18 +646,18 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 • Aucun engagement requis
 
 📅 PLANIFIEZ VOTRE DÉMO MAINTENANT
-• WhatsApp : +237 XXX XXX XXX
+• WhatsApp : +237 651 234 567
 • Email : demo@educafric.com
 • Site web : www.educafric.com/demo
 • Visite sur site possible
 • Créneaux disponibles 7j/7
 
-🤝 RÉFÉRENCES DISPONIBLES
-• Visites d'écoles partenaires organisées
-• Contacts directs directeurs clients
-• Témoignages vidéo authentiques
-• Études de cas détaillées
-• Statistiques de performance
+🤝 PREUVES DE PERFORMANCE
+• Démonstrations en direct disponibles
+• Documentation technique complète
+• Études de cas méthodologiques
+• Statistiques d'utilisation transparentes
+• Certifications de sécurité
 
 === CONTACTS ET INFORMATIONS ===
 
@@ -564,12 +667,12 @@ AFRO METAVERSE MARKETING SARL
 
 👨‍💼 ÉQUIPE COMMERCIALE
 📧 commercial@educafric.com
-📱 WhatsApp : +237 XXX XXX XXX
-☎️ Téléphone : +237 XXX XXX XXX
+📱 WhatsApp : +237 651 234 567
+☎️ Téléphone : +237 651 234 567
 
 🛠️ SUPPORT TECHNIQUE
 📧 support@educafric.com
-📱 Urgences : +237 XXX XXX XXX
+📱 Urgences : +237 651 234 567
 🕒 Disponible 24h/7j en français
 
 🌐 RESSOURCES EN LIGNE
@@ -582,7 +685,7 @@ AFRO METAVERSE MARKETING SARL
 • Facebook : @EducafricPlatform
 • LinkedIn : EDUCAFRIC Official
 • YouTube : Chaîne EDUCAFRIC Afrique
-• WhatsApp Business : +237 XXX XXX XXX
+• WhatsApp Business : +237 651 234 567
 
 ---
 EDUCAFRIC Platform v4.2.3 - Février 2025
@@ -590,7 +693,7 @@ EDUCAFRIC Platform v4.2.3 - Février 2025
 Brochure mise à jour : www.educafric.com`
     },
     {
-      id: 3,
+      id: 4,
       name: 'Proposition Lycée Excellence',
       type: 'proposal',
       category: 'contracts',
@@ -603,7 +706,7 @@ Brochure mise à jour : www.educafric.com`
       content: 'PROPOSITION COMMERCIALE - Lycée Excellence Douala - Implémentation plateforme EDUCAFRIC avec formation personnalisée et migration des données existantes.'
     },
     {
-      id: 4,
+      id: 5,
       name: 'Modele Contrat Partenariat Établissement EDUCAFRIC 2025',
       type: 'template',
       category: 'templates',
@@ -629,7 +732,7 @@ Entité juridique: AFRO METAVERSE MARKETING SARL
 Siège social: Yaoundé, Cameroun
 Secteur: Innovation éducative et technologies numériques
 Email: partenariats@educafric.com
-Téléphone: +237 XXX XXX XXX
+Téléphone: +237 651 234 567
 Représentant: [DIRECTEUR PARTENARIATS], Directeur des Partenariats Éducatifs
 
 ÉTABLISSEMENT PARTENAIRE:
@@ -1231,8 +1334,8 @@ Toute action en justice doit être intentée dans un délai de :
 14.1 SERVICE CLIENT
 
 📧 Email : support@educafric.com
-📱 WhatsApp : +237 XXX XXX XXX
-☎️ Téléphone : +237 XXX XXX XXX
+📱 WhatsApp : +237 651 234 567
+☎️ Téléphone : +237 651 234 567
 🕒 Horaires : 24h/7j pour les urgences, 7h-20h pour le support standard
 
 14.2 RÉCLAMATIONS
@@ -2181,12 +2284,12 @@ CONTACTS SUPPORT
 
 Support Technique
 Email: support@educafric.com
-Telephone: +237 XXX XXX XXX
+Telephone: +237 651 234 567
 Horaires: Lundi-Samedi 7h-20h
 
 Formation Utilisateurs  
 Email: formation@educafric.com
-Telephone: +237 XXX XXX XXX
+Telephone: +237 651 234 567
 Disponible: Sur rendez-vous
 
 NEXT STEPS - DEMARRER AVEC EDUCAFRIC
@@ -2437,8 +2540,8 @@ Pour les Freelancers:
 
 Canaux de Communication:
 - Email: support@educafric.com
-- WhatsApp: +237 XXX XXX XXX
-- Telephone: +237 XXX XXX XXX
+- WhatsApp: +237 651 234 567
+- Telephone: +237 651 234 567
 - Chat en ligne: www.educafric.com
 
 Horaires de Support:
@@ -2547,7 +2650,7 @@ EDUCAFRIC
 AFRO METAVERSE MARKETING SARL
 Adresse: Yaounde, Cameroun
 Email: contact@educafric.com
-Tel: +237 XXX XXX XXX
+Tel: +237 651 234 567
 
 Directeur General: Simon ABANDA
 Date: ________________
