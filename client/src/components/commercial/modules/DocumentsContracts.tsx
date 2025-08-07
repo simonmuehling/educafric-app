@@ -170,11 +170,24 @@ Retour sur Investissement :
 • Économies papier/impression : 80% de réduction
 • Amélioration de la réputation : Attraction de nouveaux élèves
 
-Tarification attractive :
-• Plan Essentiel : 25 000 FCFA/mois (écoles publiques)
-• Plan Professionnel : 65 000 FCFA/mois (écoles privées)
-• Plan Excellence : 120 000 FCFA/mois (établissements premium)
-• Support et formation inclus
+Tarification réelle EDUCAFRIC 2025 :
+
+PARENTS :
+• École Publique : 1 000 CFA/mois (12 000 CFA/an)
+• École Privée : 1 500 CFA/mois (18 000 CFA/an)
+• Réductions familiales : -20% (2 enfants), -40% (3+ enfants)
+
+ÉCOLES :
+• École Publique : 50 000 CFA/an
+• École Privée : 100 000 CFA/an
+• Plan GPS : 25 000 CFA/an (surveillance campus)
+
+FREELANCERS/RÉPÉTITEURS :
+• Plan Semestriel : 12 500 CFA/semestre
+• Plan Annuel : 25 000 CFA/an
+• Plan GPS : 15 000 CFA/an
+
+Support et formation inclus dans tous les plans
 
 📞 PROCHAINES ÉTAPES
 
@@ -185,6 +198,7 @@ Tarification attractive :
 
 Contact Commercial :
 Email : commercial@educafric.com
+Téléphone : +237 656 200 472
 WhatsApp : +237 651 234 567
 Site web : www.educafric.com`
     },
@@ -281,15 +295,15 @@ La Solution Éducative Numérique de Référence
 
 === PAGE COUVERTURE ===
 
-🎓 EDUCAFRIC
+EDUCAFRIC
 LA PLATEFORME ÉDUCATIVE AFRICAINE DE DEMAIN
 
-✨ "Transformez votre école avec la technologie éducative la plus avancée d'Afrique"
+Transformez votre école avec la technologie éducative la plus avancée d'Afrique
 
-🌍 DÉJÀ ADOPTÉE PAR :
-• +150 établissements scolaires
-• +25,000 familles satisfaites
-• +800 enseignants formés
+DÉJÀ ADOPTÉE PAR :
+• Plus de 150 établissements scolaires
+• Plus de 25,000 familles satisfaites
+• Plus de 800 enseignants formés
 • 8 pays africains couverts
 
 📍 AFRO METAVERSE MARKETING SARL
@@ -299,25 +313,25 @@ www.educafric.com | contact@educafric.com
 
 === POURQUOI CHOISIR EDUCAFRIC ? ===
 
-🎯 SPÉCIALEMENT CONÇUE POUR L'AFRIQUE
+SPÉCIALEMENT CONÇUE POUR L'AFRIQUE
 
 Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les réalités africaines :
 
-✅ CONTEXTE ÉDUCATIF AFRICAIN
+CONTEXTE ÉDUCATIF AFRICAIN
 • Bulletins compatibles systèmes camerounais/ivoiriens/sénégalais
 • Interface bilingue français/anglais native
 • Gestion classes surchargées (jusqu'à 80 élèves)
 • Adaptation calendriers scolaires locaux
 • Support des systèmes de notation africains
 
-✅ INFRASTRUCTURE TECHNIQUE ADAPTÉE
+INFRASTRUCTURE TECHNIQUE ADAPTÉE
 • Fonctionnement avec connexion internet faible
 • Applications optimisées smartphones Android
 • Synchronisation hors ligne garantie
 • Serveurs africains pour rapidité optimale
 • Sauvegardes multiples sécurisées
 
-✅ MOYENS DE PAIEMENT LOCAUX
+MOYENS DE PAIEMENT LOCAUX
 • Orange Money et MTN Mobile Money intégrés
 • Virements bancaires locaux acceptés
 • Facilités de paiement adaptées aux revenus
@@ -326,25 +340,25 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 
 === VOS DÉFIS ACTUELS ===
 
-❌ GESTION PAPIER CHRONOPHAGE
+GESTION PAPIER CHRONOPHAGE
 • 15h/semaine perdues en bulletins manuels
 • Erreurs de calcul fréquentes
 • Archives papier encombrantes et fragiles
 • Recherche d'informations laborieuse
 
-❌ COMMUNICATION PARENTS DÉFAILLANTE
+COMMUNICATION PARENTS DÉFAILLANTE
 • Informations perdues ou en retard
 • Mécontentement parental croissant
 • Appels téléphoniques incessants
 • Réunions parents inefficaces
 
-❌ ADMINISTRATION DÉPASSÉE
+ADMINISTRATION DÉPASSÉE
 • Registres manuscrits peu fiables
 • Statistiques impossibles à produire
 • Rapports ministériels complexes
 • Perte de temps considérable
 
-❌ CONCURRENCE MODERNE
+CONCURRENCE MODERNE
 • Autres écoles déjà digitalisées
 • Parents exigeant plus de transparence
 • Image école démodée
@@ -352,9 +366,9 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 
 === NOTRE SOLUTION COMPLÈTE ===
 
-🔥 TRANSFORMATION DIGITALE TOTALE
+TRANSFORMATION DIGITALE TOTALE
 
-🎓 GESTION ACADÉMIQUE MODERNE
+GESTION ACADÉMIQUE MODERNE
 • Inscription élèves en 2 minutes
 • Emplois du temps automatisés
 • Appel numérique quotidien
@@ -362,21 +376,21 @@ Contrairement aux solutions européennes inadaptées, EDUCAFRIC comprend les ré
 • Bulletins générés automatiquement
 • Moyennes calculées en temps réel
 
-📱 COMMUNICATION RÉVOLUTIONNÉE
+COMMUNICATION RÉVOLUTIONNÉE
 • Messages instantanés parents-école
 • Notifications SMS automatiques
 • Alertes absences en temps réel
 • Calendrier partagé des événements
 • Photos et vidéos sécurisées
 
-📊 RAPPORTS INTELLIGENTS
+RAPPORTS INTELLIGENTS
 • Statistiques élèves instantanées
 • Analyses de performance détaillées
 • Rapports ministériels automatisés
 • Tableaux de bord directeur
 • Exportations Excel/PDF
 
-🔒 SÉCURITÉ MAXIMALE
+SÉCURITÉ MAXIMALE
 • Données chiffrées niveau bancaire
 • Accès sécurisés par profil
 • Sauvegardes automatiques
@@ -408,7 +422,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 
 === FONCTIONNALITÉS DÉTAILLÉES ===
 
-📚 MODULE GESTION ÉLÈVES
+MODULE GESTION ÉLÈVES
 • Fiches élèves complètes avec photos
 • Gestion familles et responsables légaux
 • Historique scolaire multi-années
@@ -416,7 +430,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Contacts d'urgence sécurisés
 • Import/export données Excel
 
-📅 MODULE EMPLOI DU TEMPS
+MODULE EMPLOI DU TEMPS
 • Création emplois du temps par glisser-déposer
 • Gestion salles et équipements
 • Planning professeurs automatisé
@@ -424,7 +438,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Emplois du temps élèves personnalisés
 • Modifications en temps réel
 
-✅ MODULE PRÉSENCES
+MODULE PRÉSENCES
 • Appel numérique sur tablette/smartphone
 • Statistiques absences détaillées
 • Alertes parents automatiques
@@ -432,7 +446,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Rapports assiduité complets
 • Export données ministérielles
 
-📝 MODULE ÉVALUATIONS
+MODULE ÉVALUATIONS
 • Saisie notes simplifiée
 • Barèmes de notation personnalisés
 • Calculs moyennes automatiques
@@ -440,7 +454,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Graphiques de progression
 • Comparaisons inter-classes
 
-📋 MODULE BULLETINS
+MODULE BULLETINS
 • Templates bulletins officiels camerounais
 • Génération PDF automatique
 • Envoi email/SMS parents
@@ -448,7 +462,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Rangs et mentions automatiques
 • Historique consultable
 
-💬 MODULE COMMUNICATION
+MODULE COMMUNICATION
 • Messagerie intégrée école-famille
 • Annonces générales automatisées
 • Notifications push smartphone
@@ -456,57 +470,93 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 • Galerie photos sécurisée
 • Support multilingue complet
 
-=== TARIFICATION OFFICIELLE 2025 ===
+=== TARIFICATION OFFICIELLE EDUCAFRIC 2025 ===
 
-🏫 PLAN ESSENTIEL - ÉCOLES PUBLIQUES
-💰 25,000 CFA/mois (250,000 CFA/an)
-✅ Jusqu'à 300 élèves inclus
-✅ Gestion académique complète
-✅ Communication parents de base
-✅ Support technique français
-✅ Formation initiale 12 heures
-✅ 1,000 SMS inclus/mois
-✅ Sauvegardes automatiques
+👨‍👩‍👧‍👦 PLANS PARENTS
 
-🏫 PLAN PROFESSIONNEL - ÉCOLES PRIVÉES
-💰 65,000 CFA/mois (650,000 CFA/an)
-✅ Jusqu'à 600 élèves inclus
-✅ Toutes fonctionnalités avancées
-✅ Support prioritaire
-✅ Formation approfondie 25 heures
-✅ 3,000 SMS inclus/mois
-✅ Géolocalisation sécurisée
-✅ Personnalisation école
-✅ Rapports analytiques
+🏫 PARENTS ÉCOLE PUBLIQUE
+💰 1,000 CFA/mois • 12,000 CFA/an
+✅ Suivi individuel de l'élève
+✅ Notifications temps réel (absences, notes)
+✅ Géolocalisation GPS et zones de sécurité
+✅ Accès aux bulletins numériques
+✅ Communication directe enseignants
+✅ Calendrier événements scolaires
+✅ Support bilingue français/anglais
 
-🏫 PLAN EXCELLENCE - ÉTABLISSEMENTS PREMIUM
-💰 120,000 CFA/mois (1,200,000 CFA/an)
-✅ Élèves illimités
-✅ Multi-campus supporté
-✅ Développements personnalisés
-✅ Formation continue illimitée
-✅ SMS illimités
-✅ Support technique dédié
-✅ Intégrations sur mesure
-✅ Infrastructure dédiée
+🏫 PARENTS ÉCOLE PRIVÉE
+💰 1,500 CFA/mois • 18,000 CFA/an
+✅ Toutes fonctionnalités école publique
+✅ GPS avancé avec géofencing
+✅ Bouton panique d'urgence
+✅ Communication prioritaire
+✅ Support client premium
+✅ Analyses détaillées
+✅ Intégration WhatsApp Business
 
-👨‍🏫 PLAN FAMILLE - PARENTS
-💰 2,500 CFA/mois (25,000 CFA/an)
-✅ Suivi enfants illimité
-✅ Communications directes
-✅ Application mobile complète
-✅ Historique académique
-✅ Notifications temps réel
-✅ Géolocalisation sécurisée
+🏫 ÉCOLES - PLANS ANNUELS
 
-🎓 PLAN INDÉPENDANT - RÉPÉTITEURS
-💰 12,500 CFA/mois (125,000 CFA/an)
-✅ Gestion 50 élèves maximum
-✅ Outils pédagogiques
+🏫 ÉCOLE PUBLIQUE
+💰 50,000 CFA/an
+✅ Étudiants illimités
+✅ Gestion complète classes/matières
+✅ Système d'appel avec notifications
+✅ Bulletins numériques
+✅ Communication parents-enseignants
+✅ Dashboard administratif complet
+✅ Support technique prioritaire
+
+🏫 ÉCOLE PRIVÉE
+💰 100,000 CFA/an
+✅ Toutes fonctionnalités école publique
+✅ Analyses avancées
+✅ Rapports personnalisés
+✅ Intégration WhatsApp/SMS
+✅ Gestion paiements
+✅ Support premium 24/7
+✅ Personnalisation interface
+
+🎓 ENSEIGNANTS/RÉPÉTITEURS
+
+🏫 PLAN SEMESTRIEL
+💰 12,500 CFA/semestre (6 mois)
+✅ Interface cours particuliers
+✅ Gestion planning
+✅ Suivi académique personnalisé
 ✅ Communication parents
 ✅ Facturation intégrée
-✅ Planning automatisé
-✅ Paiements mobiles
+
+🏫 PLAN ANNUEL
+💰 25,000 CFA/an (économie 2 mois)
+✅ Toutes fonctionnalités semestrielles
+✅ Base données étudiants étendue
+✅ Outils planification avancés
+✅ Support technique prioritaire
+
+📍 SERVICES GÉOLOCALISATION
+
+🏫 PARENTS GPS
+💰 1,000 CFA/mois • 12,000 CFA/an
+✅ Suivi enfants temps réel
+✅ Alertes SMS automatiques
+✅ Zones de sécurité configurables
+
+🏫 ÉCOLES GPS
+💰 25,000 CFA/an
+✅ Surveillance campus complète
+✅ Suivi tous élèves
+✅ Rapports de localisation
+
+🏫 FREELANCERS GPS
+💰 15,000 CFA/an
+✅ Suivi domicile élèves
+✅ Calcul distances automatique
+✅ Vérification présence sessions
+
+🎁 AVANTAGES FAMILIAUX
+• 2 enfants : -20% sur abonnement
+• 3+ enfants : -40% sur abonnement
+• Paiement annuel : économie 2 mois
 
 === AVANTAGES CONCURRENTIELS ===
 
@@ -594,34 +644,34 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 
 === RETOUR SUR INVESTISSEMENT ===
 
-💰 ÉCONOMIES DIRECTES MESURABLES
+ÉCONOMIES DIRECTES MESURABLES
 
-📄 ÉCONOMIES PAPIER ET IMPRESSION
+ÉCONOMIES PAPIER ET IMPRESSION
 • Avant : 500,000 CFA/an (bulletins, registres, photocopies)
 • Après : 50,000 CFA/an (impression occasionnelle)
 • Économie : 450,000 CFA/an
 
-⏱️ ÉCONOMIES TEMPS PERSONNEL
+ÉCONOMIES TEMPS PERSONNEL
 • Avant : 20h/semaine administration (secrétaire)
 • Après : 5h/semaine gestion numérique
 • Économie : 15h × 52 semaines × 2,000 CFA/h = 1,560,000 CFA/an
 
-📞 ÉCONOMIES COMMUNICATION
+ÉCONOMIES COMMUNICATION
 • Avant : 200,000 CFA/an (appels, courriers postaux)
 • Après : SMS inclus dans abonnement
 • Économie : 180,000 CFA/an
 
-📈 RECETTES SUPPLÉMENTAIRES
+RECETTES SUPPLÉMENTAIRES
 
-👥 NOUVELLES INSCRIPTIONS
+NOUVELLES INSCRIPTIONS
 • Amélioration image école moderne : +15% inscriptions moyenne
 • École 200 élèves × 15% × 150,000 CFA frais = +4,500,000 CFA/an
 
-😊 FIDÉLISATION FAMILLES
+FIDÉLISATION FAMILLES
 • Réduction départs pour autres écoles : -50% taux départ
 • Économie marketing et recrutement : +800,000 CFA/an
 
-🎯 ROI TOTAL CALCULÉ
+ROI TOTAL CALCULÉ
 • Coût annuel EDUCAFRIC : 850,000 CFA
 • Économies totales : 2,190,000 CFA
 • Recettes supplémentaires : 5,300,000 CFA
@@ -629,30 +679,30 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 
 === DÉMARRER AUJOURD'HUI ===
 
-🚀 OFFRE DE LANCEMENT 2025
+OFFRE DE LANCEMENT 2025
 
-🎁 BONUS EXCLUSIFS
+BONUS EXCLUSIFS
 • 2 mois gratuits si signature avant 31 mars
 • Formation étendue 60h au lieu de 40h
 • Support prioritaire 6 mois gratuits
 • Personnalisation graphique offerte
 • Migration données existantes gratuite
 
-📞 DÉMONSTRATION GRATUITE
+DÉMONSTRATION GRATUITE
 • Présentation personnalisée 30 minutes
 • Test plateforme avec vos données
 • Devis personnalisé immédiat
 • Réponses à toutes vos questions
 • Aucun engagement requis
 
-📅 PLANIFIEZ VOTRE DÉMO MAINTENANT
+PLANIFIEZ VOTRE DÉMO MAINTENANT
 • WhatsApp : +237 651 234 567
 • Email : demo@educafric.com
 • Site web : www.educafric.com/demo
 • Visite sur site possible
 • Créneaux disponibles 7j/7
 
-🤝 PREUVES DE PERFORMANCE
+PREUVES DE PERFORMANCE
 • Démonstrations en direct disponibles
 • Documentation technique complète
 • Études de cas méthodologiques
@@ -661,7 +711,7 @@ EDUCAFRIC est développé par des experts qui comprennent les défis spécifique
 
 === CONTACTS ET INFORMATIONS ===
 
-🏢 EDUCAFRIC
+EDUCAFRIC
 AFRO METAVERSE MARKETING SARL
 📍 Yaoundé, République du Cameroun
 
@@ -690,7 +740,8 @@ AFRO METAVERSE MARKETING SARL
 ---
 EDUCAFRIC Platform v4.2.3 - Février 2025
 "Ensemble, révolutionnons l'éducation africaine"
-Brochure mise à jour : www.educafric.com`
+Document officiel - Tarification réelle valable jusqu'au 31 décembre 2025
+Contact : commercial@educafric.com | +237 656 200 472`
     },
     {
       id: 4,
