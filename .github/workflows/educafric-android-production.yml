@@ -1,0 +1,304 @@
+name: 🚀 EDUCAFRIC Android Production Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g., 4.2.4)'
+        required: true
+        default: '4.2.4'
+        type: string
+      version_code:
+        description: 'Version code (integer)'
+        required: true
+        default: '424'
+        type: string
+      build_type:
+        description: 'Build type to generate'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - both
+        - apk
+        - aab
+      release_notes:
+        description: 'Release notes for this build'
+        required: false
+        default: 'Bug fixes and performance improvements'
+        type: string
+
+env:
+  ANDROID_HOME: /opt/android-sdk
+  ANDROID_SDK_ROOT: /opt/android-sdk
+  JAVA_HOME: ${{ vars.JAVA_HOME_17_X64 || '/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.12+7/x64' }}
+
+jobs:
+  build-android:
+    name: 🏗️ Build EDUCAFRIC Android App
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: ⚡ Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: ☕ Setup JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: 🤖 Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: 11076708
+        
+    - name: 📦 Install Dependencies
+      run: |
+        npm ci
+        npm install -g @capacitor/cli
+        echo "✅ Dependencies installed successfully"
+        
+    - name: 🔧 Configure Environment
+      run: |
+        # Create production environment file
+        cat > .env << EOF
+        VITE_APP_TITLE=EDUCAFRIC
+        VITE_APP_VERSION=${{ github.event.inputs.version_name }}
+        VITE_ENVIRONMENT=production
+        VITE_FIREBASE_API_KEY=AIzaSyDemo_RealKeyShouldBeInSecrets
+        VITE_FIREBASE_PROJECT_ID=educafric-prod
+        VITE_FIREBASE_APP_ID=1:demo:android:educafric
+        VITE_STRIPE_PUBLIC_KEY=pk_live_demo
+        VITE_API_BASE_URL=https://educafric.app
+        EOF
+        echo "✅ Environment configured for production"
+        
+    - name: 🎨 Verify Logo Assets
+      run: |
+        echo "🔍 Verifying EDUCAFRIC logo assets..."
+        
+        # Check main logo files
+        ls -la public/educafric-logo-*.png || echo "⚠️ Main logos not found in public/"
+        
+        # Check Android app icon resources
+        echo "📱 Android app icons:"
+        find android/app/src/main/res -name "ic_launcher*.png" -o -name "ic_launcher*.xml" | head -10
+        
+        # Check splash screen resources
+        echo "🌟 Splash screen assets:"
+        find android/app/src/main/res -name "splash.png" | head -5
+        
+        # Copy additional logo assets if needed
+        if [ -f "client/public/educafric-logo-512.png" ]; then
+          cp client/public/educafric-logo-512.png android/app/src/main/assets/public/ 2>/dev/null || true
+        fi
+        
+        echo "✅ Logo verification complete"
+        
+    - name: 🏗️ Build Web Application
+      run: |
+        npm run build
+        echo "✅ Web application built successfully"
+        echo "📊 Build size:"
+        du -sh dist/
+        ls -la dist/
+        
+    - name: 🔢 Update Android Version
+      run: |
+        # Update version in build.gradle
+        sed -i "s/versionCode [0-9]*/versionCode ${{ github.event.inputs.version_code }}/" android/app/build.gradle
+        sed -i "s/versionName \"[^\"]*\"/versionName \"${{ github.event.inputs.version_name }}\"/" android/app/build.gradle
+        
+        # Update strings.xml version
+        sed -i "s/<string name=\"app_version\">Version [^<]*<\/string>/<string name=\"app_version\">Version ${{ github.event.inputs.version_name }}<\/string>/" android/app/src/main/res/values/strings.xml
+        
+        echo "✅ Android version updated to ${{ github.event.inputs.version_name }} (code: ${{ github.event.inputs.version_code }})"
+        
+        # Verify changes
+        grep -n "versionCode\|versionName" android/app/build.gradle
+        
+    - name: 🔄 Sync Capacitor
+      run: |
+        npx cap sync android --no-build
+        echo "✅ Capacitor sync completed"
+        
+        # Verify sync
+        ls -la android/app/src/main/assets/public/
+        
+    - name: 🔐 Setup Signing (Debug)
+      run: |
+        # Create debug keystore for testing builds
+        mkdir -p ~/.android
+        if [ ! -f ~/.android/debug.keystore ]; then
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=EDUCAFRIC Debug,O=Muehling Solutions,L=Douala,ST=Littoral,C=CM"
+        fi
+        echo "✅ Debug keystore ready"
+        
+    - name: 🔨 Build Android APK (Debug)
+      if: github.event.inputs.build_type == 'both' || github.event.inputs.build_type == 'apk'
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug --stacktrace --info
+        
+        # Verify APK was created
+        if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+          echo "✅ Debug APK built successfully"
+          ls -lh app/build/outputs/apk/debug/app-debug.apk
+        else
+          echo "❌ Debug APK build failed"
+          exit 1
+        fi
+        
+    - name: 📦 Build Android AAB (Release)
+      if: github.event.inputs.build_type == 'both' || github.event.inputs.build_type == 'aab'
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew bundleRelease --stacktrace --info
+        
+        # Verify AAB was created
+        if [ -f "app/build/outputs/bundle/release/app-release.aab" ]; then
+          echo "✅ Release AAB built successfully"
+          ls -lh app/build/outputs/bundle/release/app-release.aab
+        else
+          echo "❌ Release AAB build failed"
+          exit 1
+        fi
+        
+    - name: 📋 Generate Build Report
+      run: |
+        mkdir -p build-artifacts
+        
+        # Create comprehensive build report
+        cat > build-artifacts/BUILD_REPORT.md << EOF
+        # 🚀 EDUCAFRIC Android Build Report
+        
+        ## Build Information
+        - **Version:** ${{ github.event.inputs.version_name }}
+        - **Version Code:** ${{ github.event.inputs.version_code }}
+        - **Build Type:** ${{ github.event.inputs.build_type }}
+        - **Build Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        - **Commit:** ${{ github.sha }}
+        - **Branch:** ${{ github.ref_name }}
+        
+        ## Release Notes
+        ${{ github.event.inputs.release_notes }}
+        
+        ## Build Outputs
+        EOF
+        
+        # List all build outputs
+        echo "## 📱 Generated Files:" >> build-artifacts/BUILD_REPORT.md
+        find android/app/build/outputs -name "*.apk" -o -name "*.aab" | while read file; do
+          filename=$(basename "$file")
+          filesize=$(du -h "$file" | cut -f1)
+          echo "- **$filename** ($filesize)" >> build-artifacts/BUILD_REPORT.md
+        done
+        
+        echo "" >> build-artifacts/BUILD_REPORT.md
+        echo "## ✨ Key Features Included" >> build-artifacts/BUILD_REPORT.md
+        echo "- Multi-role authentication system (Teacher, Student, Parent, Commercial, Director, Site Admin)" >> build-artifacts/BUILD_REPORT.md
+        echo "- Bilingual interface (French/English) optimized for African education" >> build-artifacts/BUILD_REPORT.md
+        echo "- Document management with digital signatures and PDF generation" >> build-artifacts/BUILD_REPORT.md
+        echo "- Real-time geolocation tracking for student safety" >> build-artifacts/BUILD_REPORT.md
+        echo "- Integrated payment system with African mobile money support" >> build-artifacts/BUILD_REPORT.md
+        echo "- Multi-channel communications (SMS, WhatsApp, Email, Push Notifications)" >> build-artifacts/BUILD_REPORT.md
+        echo "- Comprehensive academic management and reporting" >> build-artifacts/BUILD_REPORT.md
+        echo "- Portrait-optimized mobile experience" >> build-artifacts/BUILD_REPORT.md
+        
+        echo "✅ Build report generated"
+        
+    - name: 📤 Upload Debug APK
+      if: (github.event.inputs.build_type == 'both' || github.event.inputs.build_type == 'apk') && success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: educafric-debug-v${{ github.event.inputs.version_name }}-${{ github.event.inputs.version_code }}
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+        compression-level: 0
+        
+    - name: 📤 Upload Release AAB
+      if: (github.event.inputs.build_type == 'both' || github.event.inputs.build_type == 'aab') && success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: educafric-release-v${{ github.event.inputs.version_name }}-${{ github.event.inputs.version_code }}
+        path: android/app/build/outputs/bundle/release/app-release.aab
+        retention-days: 90
+        compression-level: 0
+        
+    - name: 📤 Upload Build Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: educafric-build-report-v${{ github.event.inputs.version_name }}
+        path: build-artifacts/BUILD_REPORT.md
+        retention-days: 90
+        
+    - name: 📊 Create Job Summary
+      if: always()
+      run: |
+        echo "# 🚀 EDUCAFRIC Android Build Complete!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Build Details" >> $GITHUB_STEP_SUMMARY
+        echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Version | ${{ github.event.inputs.version_name }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Version Code | ${{ github.event.inputs.version_code }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Build Type | ${{ github.event.inputs.build_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Build Time | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "## ✅ Build Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 Ready for:" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.build_type }}" = "both" ] || [ "${{ github.event.inputs.build_type }}" = "apk" ]; then
+            echo "- **APK**: Direct installation and testing" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ github.event.inputs.build_type }}" = "both" ] || [ "${{ github.event.inputs.build_type }}" = "aab" ]; then
+            echo "- **AAB**: Google Play Store submission" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "## ❌ Build Status: FAILED" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the build logs above for detailed error information." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🎯 Download Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "Click on the 'Artifacts' section at the top of this page to download the built files." >> $GITHUB_STEP_SUMMARY
+
+    - name: 🔍 Build Diagnostics (On Failure)
+      if: failure()
+      run: |
+        echo "🔍 Build failed, running diagnostics..."
+        echo "" 
+        echo "=== Gradle Build Logs ==="
+        find android -name "*.log" -type f -exec echo "📄 {}" \; -exec head -50 {} \; 2>/dev/null || true
+        echo ""
+        echo "=== Build Directory Contents ==="
+        find android/app/build -type f -name "*.apk" -o -name "*.aab" | head -10
+        echo ""
+        echo "=== Android Environment ==="
+        echo "Android SDK: $ANDROID_HOME"
+        echo "Java Version: $(java -version 2>&1 | head -1)"
+        echo "Gradle Version:"
+        cd android && ./gradlew --version | head -5
