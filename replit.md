@@ -14,6 +14,11 @@ Preferred communication style: Simple, everyday language.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
 
+**RECENT UPDATES:**
+- Completed comprehensive sandbox button functionality fixes (August 2025)
+- All sandbox profile buttons now fully functional with proper onClick handlers
+- Created stakeholder Q&A guide for EDUCAFRIC presentations
+
 ## System Architecture
 
 ### Frontend Architecture
