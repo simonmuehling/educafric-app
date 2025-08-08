@@ -126,8 +126,8 @@ const SandboxLogin = () => {
     },
     {
       id: 'siteadmin',
-      name: 'System Admin',
-      realName: language === 'fr' ? 'Super Admin (Système)' : 'Site Admin (System)',
+      name: 'Platform Manager',
+      realName: language === 'fr' ? 'Gestionnaire Plateforme (Michel Kouam)' : 'Platform Manager (Michel Kouam)',
       email: 'sandbox.siteadmin@educafric.demo',
       password: 'sandbox123',
       icon: <Shield className="w-8 h-8" />,
@@ -135,7 +135,7 @@ const SandboxLogin = () => {
       role: 'SiteAdmin',
       description: language === 'fr' ? 'Gestion plateforme, SMS, système global, sécurité avancée' : 'Platform management, SMS, global system, advanced security',
       modules: 15,
-      details: language === 'fr' ? 'Super Administrateur avec accès SMS et gestion globale' : 'Super Administrator with SMS access and global management'
+      details: language === 'fr' ? 'Gestionnaire technique avec accès SMS et gestion globale' : 'Technical manager with SMS access and global management'
     },
     {
       id: 'director',
