@@ -13,6 +13,38 @@ const ComponentPlayground = () => {
   const { language } = useLanguage();
   const [selectedComponent, setSelectedComponent] = useState('buttons');
 
+  // Fonctions pour les boutons d'exemple
+  const handleDownload = () => {
+    console.log('Téléchargement...');
+    alert(language === 'fr' ? 'Téléchargement simulé' : 'Simulated download');
+  };
+
+  const handleUpload = () => {
+    console.log('Téléversement...');
+    alert(language === 'fr' ? 'Téléversement simulé' : 'Simulated upload');
+  };
+
+  const handleShare = () => {
+    console.log('Partage...');
+    alert(language === 'fr' ? 'Partage simulé' : 'Simulated share');
+  };
+
+  const handlePrimary = () => {
+    alert(language === 'fr' ? 'Bouton principal cliqué' : 'Primary button clicked');
+  };
+
+  const handleSecondary = () => {
+    alert(language === 'fr' ? 'Bouton secondaire cliqué' : 'Secondary button clicked');
+  };
+
+  const handleOutline = () => {
+    alert(language === 'fr' ? 'Bouton contour cliqué' : 'Outline button clicked');
+  };
+
+  const handleDestructive = () => {
+    alert(language === 'fr' ? 'Action destructive confirmée' : 'Destructive action confirmed');
+  };
+
   const components = [
     { id: 'buttons', label: language === 'fr' ? 'Boutons' : 'Buttons' },
     { id: 'cards', label: language === 'fr' ? 'Cartes' : 'Cards' },
@@ -30,16 +62,16 @@ const ComponentPlayground = () => {
           {language === 'fr' ? 'Boutons Principaux' : 'Primary Buttons'}
         </h4>
         <div className="flex flex-wrap gap-4">
-          <Button>
+          <Button onClick={handlePrimary} data-testid="button-primary">
             {language === 'fr' ? 'Bouton Principal' : 'Primary Button'}
           </Button>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleSecondary} data-testid="button-secondary">
             {language === 'fr' ? 'Bouton Secondaire' : 'Secondary Button'}
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleOutline} data-testid="button-outline">
             {language === 'fr' ? 'Bouton Contour' : 'Outline Button'}
           </Button>
-          <Button variant="destructive">
+          <Button variant="destructive" onClick={handleDestructive} data-testid="button-destructive">
             {language === 'fr' ? 'Bouton Destructif' : 'Destructive Button'}
           </Button>
         </div>
@@ -50,15 +82,15 @@ const ComponentPlayground = () => {
           {language === 'fr' ? 'Boutons avec Icônes' : 'Icon Buttons'}
         </h4>
         <div className="flex flex-wrap gap-4">
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={handleDownload} data-testid="button-download">
             <Download className="w-4 h-4" />
             {language === 'fr' ? 'Télécharger' : 'Download'}
           </Button>
-          <Button variant="secondary" className="flex items-center gap-2">
+          <Button variant="secondary" className="flex items-center gap-2" onClick={handleUpload} data-testid="button-upload">
             <Upload className="w-4 h-4" />
             {language === 'fr' ? 'Téléverser' : 'Upload'}
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleShare} data-testid="button-share">
             <Share className="w-4 h-4" />
             {language === 'fr' ? 'Partager' : 'Share'}
           </Button>
@@ -134,8 +166,8 @@ const ComponentPlayground = () => {
         <ModernStatsCard
           title={language === 'fr' ? 'Utilisateurs Actifs' : 'Active Users'}
           value="1,247"
-          trend="+12%"
-          color="green"
+          trend={{ value: 12, isPositive: true }}
+          gradient="green"
           icon={<User className="w-4 h-4" />}
         />
       </div>
@@ -238,29 +270,29 @@ const ComponentPlayground = () => {
         <ModernStatsCard
           title={language === 'fr' ? 'Revenus' : 'Revenue'}
           value="€45,231"
-          trend="+20.1%"
-          color="green"
+          trend={{ value: 20.1, isPositive: true }}
+          gradient="green"
           icon={<Download className="w-4 h-4" />}
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Utilisateurs' : 'Users'}
           value="2,350"
-          trend="+15%"
-          color="blue"
+          trend={{ value: 15, isPositive: true }}
+          gradient="blue"
           icon={<User className="w-4 h-4" />}
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Commandes' : 'Orders'}
           value="12,234"
-          trend="+8%"
-          color="purple"
+          trend={{ value: 8, isPositive: true }}
+          gradient="purple"
           icon={<Calendar className="w-4 h-4" />}
         />
         <ModernStatsCard
           title={language === 'fr' ? 'Taux de Conversion' : 'Conversion Rate'}
           value="3.2%"
-          trend="-2%"
-          color="orange"
+          trend={{ value: 2, isPositive: false }}
+          gradient="orange"
           icon={<Eye className="w-4 h-4" />}
         />
       </div>

@@ -50,6 +50,50 @@ const ConsolidatedSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
+  // Fonctions pour les boutons
+  const handleRunTests = () => {
+    console.log('Lancement des tests...');
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      console.log('Tests terminés');
+    }, 2000);
+  };
+
+  const handleExportLogs = () => {
+    console.log('Export des logs en cours...');
+    const logs = `EDUCAFRIC Sandbox Logs - ${new Date().toISOString()}\n`;
+    const blob = new Blob([logs], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `educafric-sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleVersionControl = () => {
+    console.log('Ouverture du contrôle de version...');
+    alert(language === 'fr' ? 'Contrôle de version - Version actuelle: 2.1.0' : 'Version Control - Current version: 2.1.0');
+  };
+
+  const handleConfiguration = () => {
+    console.log('Ouverture de la configuration...');
+    alert(language === 'fr' ? 'Configuration du Sandbox - Accès complet activé' : 'Sandbox Configuration - Full access enabled');
+  };
+
+  const refreshMetrics = () => {
+    setIsRefreshing(true);
+    setMetrics({
+      ...metrics,
+      apiCalls: metrics.apiCalls + Math.floor(Math.random() * 50),
+      responseTime: 85 + Math.floor(Math.random() * 30) - 15,
+      activeUsers: metrics.activeUsers + Math.floor(Math.random() * 5) - 2,
+      lastUpdate: new Date().toLocaleTimeString()
+    });
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
   const t = {
     title: language === 'fr' ? 'Sandbox EDUCAFRIC 2025 - Consolidé' : 'EDUCAFRIC 2025 Sandbox - Consolidated',
     subtitle: language === 'fr' ? 'Environnement de développement unifié avec tutoriel interactif' : 'Unified development environment with interactive tutorial',
@@ -348,21 +392,52 @@ const ConsolidatedSandboxDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-3">
-                  <Button variant="outline" className="bg-white/80 hover:bg-white">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/80 hover:bg-white"
+                    onClick={handleRunTests}
+                    disabled={isRefreshing}
+                    data-testid="button-run-tests"
+                  >
                     <Play className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Lancer Tests' : 'Run Tests'}
                   </Button>
-                  <Button variant="outline" className="bg-white/80 hover:bg-white">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/80 hover:bg-white"
+                    onClick={handleExportLogs}
+                    data-testid="button-export-logs"
+                  >
                     <Download className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Export Logs' : 'Export Logs'}
                   </Button>
-                  <Button variant="outline" className="bg-white/80 hover:bg-white">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/80 hover:bg-white"
+                    onClick={handleVersionControl}
+                    data-testid="button-version-control"
+                  >
                     <GitBranch className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Version Control' : 'Version Control'}
                   </Button>
-                  <Button variant="outline" className="bg-white/80 hover:bg-white">
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/80 hover:bg-white"
+                    onClick={handleConfiguration}
+                    data-testid="button-configuration"
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Configuration' : 'Configuration'}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="bg-white/80 hover:bg-white"
+                    onClick={refreshMetrics}
+                    disabled={isRefreshing}
+                    data-testid="button-refresh-metrics"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {language === 'fr' ? 'Actualiser' : 'Refresh'}
                   </Button>
                 </div>
               </CardContent>

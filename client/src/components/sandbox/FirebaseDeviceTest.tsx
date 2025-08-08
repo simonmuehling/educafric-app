@@ -146,7 +146,7 @@ const FirebaseDeviceTest = () => {
           </div>
         </div>
         
-        <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2">
+        <Button onClick={() => setShowAddModal(true)} className="flex items-center gap-2" data-testid="button-add-device">
           <Plus className="w-4 h-4" />
           {t.addDevice}
         </Button>

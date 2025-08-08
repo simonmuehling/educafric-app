@@ -48,6 +48,28 @@ const SandboxMonitor = () => {
 
   const [isMonitoring, setIsMonitoring] = useState(true);
 
+  // Fonctions pour les boutons
+  const handleRefreshMetrics = () => {
+    console.log('Actualisation des métriques...');
+    setMetrics(metrics.map(metric => ({
+      ...metric,
+      value: metric.value + Math.floor(Math.random() * 10) - 5,
+      lastUpdate: new Date()
+    })));
+  };
+
+  const handleExportData = () => {
+    console.log('Export des données en cours...');
+    const data = JSON.stringify(metrics, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sandbox-metrics-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const t = {
     title: language === 'fr' ? 'Moniteur Sandbox' : 'Sandbox Monitor',
     subtitle: language === 'fr' ? 'Surveillance système temps réel' : 'Real-time system monitoring',
@@ -141,11 +163,21 @@ const SandboxMonitor = () => {
           >
             {isMonitoring ? t.pause : t.resume}
           </Button>
-          <Button variant="outline" size="sm" data-testid="refresh-metrics">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefreshMetrics}
+            data-testid="refresh-metrics"
+          >
             <RefreshCw className="w-4 h-4 mr-2" />
             {t.refresh}
           </Button>
-          <Button variant="outline" size="sm" data-testid="export-data">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleExportData}
+            data-testid="export-data"
+          >
             <Download className="w-4 h-4 mr-2" />
             {t.export}
           </Button>
