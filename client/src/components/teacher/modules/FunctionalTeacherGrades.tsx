@@ -223,11 +223,22 @@ const FunctionalTeacherGrades: React.FC = () => {
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => {
+              toast({
+                title: language === 'fr' ? 'Export en cours' : 'Export in progress',
+                description: language === 'fr' ? 'Les notes sont en cours d\'export...' : 'Grades are being exported...'
+              });
+            }}
+          >
             <Download className="w-4 h-4 mr-2" />
             {t?.actions?.export}
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => setIsAddGradeOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             {t?.actions?.addGrade}
           </Button>

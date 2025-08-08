@@ -184,7 +184,10 @@ const FunctionalTeacherCommunications: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setSelectedTab('compose')}
+        >
           <Plus className="w-4 h-4 mr-2" />
           {t?.actions?.compose}
         </Button>
@@ -385,19 +388,47 @@ const FunctionalTeacherCommunications: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedTab('compose');
+                      // Logic pour nouveau message parent
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Nouveau message parent
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedTab('compose');
+                      // Logic pour annonce classe
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Annonce classe
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedTab('compose');
+                      // Logic pour message collègue
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Message collègue
                   </Button>
-                  <Button className="w-full justify-start" variant="outline">
+                  <Button 
+                    className="w-full justify-start" 
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedTab('compose');
+                      // Logic pour rapport direction
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Rapport direction
                   </Button>
