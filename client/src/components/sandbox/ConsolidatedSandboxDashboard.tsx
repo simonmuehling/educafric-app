@@ -62,12 +62,12 @@ const ConsolidatedSandboxDashboard = () => {
 
   const handleExportLogs = () => {
     console.log('Export des logs en cours...');
-    const logs = `EDUCAFRIC Sandbox Logs - ${new Date().toISOString()}\n`;
+    const logs = `Sandbox Logs - ${new Date().toISOString()}\n`;
     const blob = new Blob([logs], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `educafric-sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -95,7 +95,7 @@ const ConsolidatedSandboxDashboard = () => {
   };
 
   const t = {
-    title: language === 'fr' ? 'Sandbox EDUCAFRIC 2025 - Consolidé' : 'EDUCAFRIC 2025 Sandbox - Consolidated',
+    title: language === 'fr' ? 'Environnement de Développement - Consolidé' : 'Development Environment - Consolidated',
     subtitle: language === 'fr' ? 'Environnement de développement unifié avec tutoriel interactif' : 'Unified development environment with interactive tutorial',
     overview: language === 'fr' ? 'Vue d\'ensemble' : 'Overview',
     interactiveTutorial: language === 'fr' ? 'Tutoriel Interactif 2025' : 'Interactive Tutorial 2025',

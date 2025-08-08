@@ -126,8 +126,8 @@ const SandboxLogin = () => {
     },
     {
       id: 'siteadmin',
-      name: 'EDUCAFRIC Admin',
-      realName: language === 'fr' ? 'Super Admin (EDUCAFRIC)' : 'Site Admin (EDUCAFRIC)',
+      name: 'System Admin',
+      realName: language === 'fr' ? 'Super Admin (Système)' : 'Site Admin (System)',
       email: 'sandbox.siteadmin@educafric.demo',
       password: 'sandbox123',
       icon: <Shield className="w-8 h-8" />,

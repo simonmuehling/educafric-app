@@ -793,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       'sandbox.student@educafric.demo': { id: 9004, role: 'Student', name: 'Junior Kamga', email: 'sandbox.student@educafric.demo' },
       'sandbox.admin@educafric.demo': { id: 9005, role: 'Admin', name: 'Dr. Nguetsop Carine', email: 'sandbox.admin@educafric.demo' },
       'sandbox.director@educafric.demo': { id: 9006, role: 'Director', name: 'Prof. Atangana Michel', email: 'sandbox.director@educafric.demo' },
-      'sandbox.siteadmin@educafric.demo': { id: 9007, role: 'SiteAdmin', name: 'EDUCAFRIC Admin', email: 'sandbox.siteadmin@educafric.demo' }
+      'sandbox.siteadmin@educafric.demo': { id: 9007, role: 'SiteAdmin', name: 'System Admin', email: 'sandbox.siteadmin@educafric.demo' }
     };
     
     const account = sandboxAccounts[email as keyof typeof sandboxAccounts];
