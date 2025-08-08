@@ -130,7 +130,7 @@ const FirebaseDeviceTest = () => {
     );
   }
 
-  const devices = devicesData?.devices || [];
+  const devices = (devicesData as any)?.devices || [];
 
   return (
     <div className="space-y-6">
