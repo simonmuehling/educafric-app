@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
   Building2, Calendar, DollarSign, Target, UserCheck, Archive,
-  MessageSquare, Settings, HelpCircle
+  MessageSquare, Settings, HelpCircle, User
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import MySchoolsModule from './modules/MySchoolsModule';

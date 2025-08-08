@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
-  Settings, Clock, MapPin, FileText, HelpCircle, Bell
+  Settings, Clock, MapPin, FileText, HelpCircle, Bell, User
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalFreelancerProfile from './modules/FunctionalFreelancerProfile';

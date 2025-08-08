@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff, ArrowLeft, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
@@ -25,6 +26,7 @@ export default function Login() {
   const { login, register, isLoading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const { getErrorMessage } = useErrorMessages();
   // reCAPTCHA removed
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -249,6 +251,19 @@ export default function Login() {
         />
       )}
       
+      {/* Navigation Controls */}
+      <div className="absolute top-6 left-6 z-20">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setLocation('/')}
+          className="bg-white/80 hover:bg-white border-gray-200 text-gray-700 hover:text-gray-900 shadow-lg rounded-full px-4 py-2 transition-all duration-200"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {language === 'fr' ? 'Accueil' : 'Home'}
+        </Button>
+      </div>
+      
       {/* Language Toggle - Top Right */}
       <div className="absolute top-6 right-6 z-20">
         <MobileLanguageToggle />
@@ -456,7 +471,7 @@ export default function Login() {
 
 
 
-          <div className="text-center">
+          <div className="text-center space-y-3">
             <button
               type="button"
               onClick={() => {
@@ -470,6 +485,18 @@ export default function Login() {
                 : (language === 'fr' ? "Vous n'avez pas de compte ? Inscrivez-vous" : "Don't have an account? Sign up")
               }
             </button>
+            
+            <div className="pt-2 border-t border-gray-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation('/')}
+                className="text-gray-600 hover:text-gray-900 border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 transition-all duration-200"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Retour à l\'accueil' : 'Back to Home'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
