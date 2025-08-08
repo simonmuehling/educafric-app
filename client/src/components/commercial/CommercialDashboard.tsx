@@ -16,6 +16,7 @@ import CallsAppointments from './modules/CallsAppointments';
 import Messages from './modules/Messages';
 import WhatsAppManager from './modules/WhatsAppManager';
 import HelpCenter from '@/components/help/HelpCenter';
+import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import FunctionalCommercialSchools from './modules/FunctionalCommercialSchools';
 import FunctionalCommercialLeads from './modules/FunctionalCommercialLeads';
 import FunctionalCommercialReports from './modules/FunctionalCommercialReports';
@@ -138,6 +139,23 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-600',
       component: <FunctionalCommercialSettings />
+    },
+    {
+      id: 'multirole',
+      label: 'Multi-Rôles',
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: <UniversalMultiRoleSwitch 
+        currentUserRole="Commercial"
+        onRoleSwitch={(role) => {
+          console.log(`[COMMERCIAL_DASHBOARD] 🔄 Role switch requested: ${role}`);
+          if (role === 'Teacher') {
+            window.location.href = '/teacher';
+          } else if (role === 'Freelancer') {
+            window.location.href = '/freelancer';
+          }
+        }} 
+      />
     },
     {
       id: 'help',

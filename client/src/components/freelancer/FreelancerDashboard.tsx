@@ -14,6 +14,7 @@ import FunctionalFreelancerResources from './modules/FunctionalFreelancerResourc
 import FreelancerCommunications from './modules/FreelancerCommunications';
 import FreelancerGeolocation from './modules/FreelancerGeolocation';
 import HelpCenter from '@/components/help/HelpCenter';
+import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 
 // Import Premium components
@@ -215,6 +216,23 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
       component: <NotificationCenter userRole="Freelancer" userId={1} />
+    },
+    {
+      id: 'multirole',
+      label: 'Multi-Rôles',
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: <UniversalMultiRoleSwitch 
+        currentUserRole="Freelancer"
+        onRoleSwitch={(role) => {
+          console.log(`[FREELANCER_DASHBOARD] 🔄 Role switch requested: ${role}`);
+          if (role === 'Teacher') {
+            window.location.href = '/teacher';
+          } else if (role === 'Commercial') {
+            window.location.href = '/commercial';
+          }
+        }} 
+      />
     },
     {
       id: 'help',

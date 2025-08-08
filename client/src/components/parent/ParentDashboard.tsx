@@ -27,6 +27,7 @@ import FunctionalParentPayments from './modules/FunctionalParentPayments';
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 import ParentRequestManager from './modules/ParentRequestManager';
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -232,6 +233,23 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-500',
       component: <FunctionalParentProfile />
+    },
+    {
+      id: 'multirole',
+      label: 'Multi-Rôles',
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: <UniversalMultiRoleSwitch 
+        currentUserRole="Parent"
+        onRoleSwitch={(role) => {
+          console.log(`[PARENT_DASHBOARD] 🔄 Role switch requested: ${role}`);
+          if (role === 'Teacher') {
+            window.location.href = '/teacher';
+          } else if (role === 'Student') {
+            window.location.href = '/student';
+          }
+        }} 
+      />
     },
     {
       id: 'help',

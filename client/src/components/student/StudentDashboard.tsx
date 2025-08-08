@@ -19,6 +19,7 @@ import StudentProgress from './modules/StudentProgress';
 import HelpCenter from '@/components/help/HelpCenter';
 import StudentSettings from './modules/StudentSettings';
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -231,6 +232,23 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
           </div>
         </div>
       </div>
+    },
+    {
+      id: 'multirole',
+      label: 'Multi-Rôles',
+      icon: <User className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: <UniversalMultiRoleSwitch 
+        currentUserRole="Student"
+        onRoleSwitch={(role) => {
+          console.log(`[STUDENT_DASHBOARD] 🔄 Role switch requested: ${role}`);
+          if (role === 'Teacher') {
+            window.location.href = '/teacher';
+          } else if (role === 'Parent') {
+            window.location.href = '/parent';
+          }
+        }} 
+      />
     }
   ];
 
