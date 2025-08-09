@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { 
   Smartphone, 
   Watch, 
@@ -17,12 +17,14 @@ import {
   AlertTriangle,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Phone
 } from 'lucide-react';
 
 const DeviceConfigurationGuide = () => {
   const { language } = useLanguage();
   const [selectedDevice, setSelectedDevice] = useState('smartphone');
+  const [selectedTroubleshoot, setSelectedTroubleshoot] = useState('common');
 
   const text = {
     fr: {
@@ -390,58 +392,79 @@ const DeviceConfigurationGuide = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="common">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="common">Problèmes Courants</TabsTrigger>
-                <TabsTrigger value="firebase">Firebase</TabsTrigger>
-                <TabsTrigger value="support">Support</TabsTrigger>
-              </TabsList>
+            <div className="mb-4">
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant={selectedTroubleshoot === 'common' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-1 h-auto py-3 px-2"
+                  onClick={() => setSelectedTroubleshoot('common')}
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-xs">Problèmes</span>
+                </Button>
+                <Button
+                  variant={selectedTroubleshoot === 'firebase' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-1 h-auto py-3 px-2"
+                  onClick={() => setSelectedTroubleshoot('firebase')}
+                >
+                  <Wifi className="w-4 h-4" />
+                  <span className="text-xs">Firebase</span>
+                </Button>
+                <Button
+                  variant={selectedTroubleshoot === 'support' ? 'default' : 'outline'}
+                  className="flex flex-col items-center gap-1 h-auto py-3 px-2"
+                  onClick={() => setSelectedTroubleshoot('support')}
+                >
+                  <Phone className="w-4 h-4" />
+                  <span className="text-xs">Support</span>
+                </Button>
+              </div>
+            </div>
               
-              <TabsContent value="common" className="mt-4">
-                <div className="space-y-4">
-                  <div className="p-4 border-l-4 border-yellow-400 bg-yellow-50">
-                    <h4 className="font-semibold">GPS ne fonctionne pas</h4>
-                    <p className="text-sm mt-1">Vérifiez que les services de localisation sont activés et que l'app a les permissions nécessaires.</p>
-                  </div>
-                  <div className="p-4 border-l-4 border-red-400 bg-red-50">
-                    <h4 className="font-semibold">Batterie se vide rapidement</h4>
-                    <p className="text-sm mt-1">Désactivez l'optimisation batterie pour EDUCAFRIC et ajustez la fréquence de mise à jour.</p>
-                  </div>
-                  <div className="p-4 border-l-4 border-blue-400 bg-blue-50">
-                    <h4 className="font-semibold">Pas de connexion Firebase</h4>
-                    <p className="text-sm mt-1">Vérifiez votre connexion internet et les paramètres de firewall.</p>
+            {selectedTroubleshoot === 'common' && (
+              <div className="mt-4 space-y-4">
+                <div className="p-4 border-l-4 border-yellow-400 bg-yellow-50">
+                  <h4 className="font-semibold">GPS ne fonctionne pas</h4>
+                  <p className="text-sm mt-1">Vérifiez que les services de localisation sont activés et que l'app a les permissions nécessaires.</p>
+                </div>
+                <div className="p-4 border-l-4 border-red-400 bg-red-50">
+                  <h4 className="font-semibold">Batterie se vide rapidement</h4>
+                  <p className="text-sm mt-1">Désactivez l'optimisation batterie pour EDUCAFRIC et ajustez la fréquence de mise à jour.</p>
+                </div>
+                <div className="p-4 border-l-4 border-blue-400 bg-blue-50">
+                  <h4 className="font-semibold">Pas de connexion Firebase</h4>
+                  <p className="text-sm mt-1">Vérifiez votre connexion internet et les paramètres de firewall.</p>
+                </div>
+              </div>
+            )}
+            
+            {selectedTroubleshoot === 'firebase' && (
+              <div className="mt-4 space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">Configuration Firebase</h4>
+                  <div className="text-sm space-y-2">
+                    <p><strong>Project ID:</strong> educafric-geolocation</p>
+                    <p><strong>API Key:</strong> Configuré automatiquement</p>
+                    <p><strong>Database URL:</strong> Temps réel Firebase</p>
+                    <p><strong>Authentication:</strong> Google Sign-In activé</p>
                   </div>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="firebase" className="mt-4">
-                <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Configuration Firebase</h4>
-                    <div className="text-sm space-y-2">
-                      <p><strong>Project ID:</strong> educafric-geolocation</p>
-                      <p><strong>API Key:</strong> Configuré automatiquement</p>
-                      <p><strong>Database URL:</strong> Temps réel Firebase</p>
-                      <p><strong>Authentication:</strong> Google Sign-In activé</p>
-                    </div>
+              </div>
+            )}
+            
+            {selectedTroubleshoot === 'support' && (
+              <div className="mt-4 space-y-4">
+                <div className="text-center p-6 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">Besoin d'aide ?</h4>
+                  <p className="text-sm mb-4">Notre équipe support est disponible pour vous accompagner</p>
+                  <div className="space-y-2">
+                    <p className="text-sm"><strong>Email:</strong> support@educafric.com</p>
+                    <p className="text-sm"><strong>WhatsApp:</strong> +237 656 200 472</p>
+                    <p className="text-sm"><strong>Horaires:</strong> Lun-Ven 8h-18h (GMT+1)</p>
                   </div>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="support" className="mt-4">
-                <div className="space-y-4">
-                  <div className="text-center p-6 bg-blue-50 rounded-lg">
-                    <h4 className="font-semibold mb-2">Besoin d'aide ?</h4>
-                    <p className="text-sm mb-4">Notre équipe support est disponible pour vous accompagner</p>
-                    <div className="space-y-2">
-                      <p className="text-sm"><strong>Email:</strong> support@educafric.com</p>
-                      <p className="text-sm"><strong>WhatsApp:</strong> +237 656 200 472</p>
-                      <p className="text-sm"><strong>Horaires:</strong> Lun-Ven 8h-18h (GMT+1)</p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

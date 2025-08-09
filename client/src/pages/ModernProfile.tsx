@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Lock, Phone, Trash2 } from 'lucide-react';
+import { User, Lock, Phone, Trash2, Shield } from 'lucide-react';
 import { ModernFormWrapper, modernInputClasses, modernLabelClasses, modernButtonClasses } from '@/components/ui/ModernFormWrapper';
 import { cn } from '@/lib/utils';
 
@@ -134,10 +134,23 @@ export default function ModernProfile() {
       icon={User}
     >
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-          <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white/20">Profile</TabsTrigger>
-          <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-white/20">Security</TabsTrigger>
-        </TabsList>
+        {/* Mobile-friendly icon navigation */}
+        <div className="flex justify-center space-x-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-2">
+          <TabsTrigger 
+            value="profile" 
+            className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white/20 transition-all"
+          >
+            <User className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium hidden sm:block">Profil</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white/20 transition-all"
+          >
+            <Shield className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium hidden sm:block">Sécurité</span>
+          </TabsTrigger>
+        </div>
 
         <TabsContent value="profile">
           <form onSubmit={handleProfileSubmit} className="space-y-6">

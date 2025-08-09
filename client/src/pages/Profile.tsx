@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { User, Mail, Phone, Lock, Eye, EyeOff, Settings, Trash2, Upload } from 'lucide-react';
+import { User, Mail, Phone, Lock, Eye, EyeOff, Settings, Trash2, Upload, Shield } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function Profile() {
@@ -168,11 +168,30 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile">Profile Information</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="danger">Account Settings</TabsTrigger>
-        </TabsList>
+        {/* Mobile-friendly icon navigation */}
+        <div className="flex justify-center space-x-2 bg-gray-100 p-2 rounded-xl">
+          <TabsTrigger 
+            value="profile" 
+            className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+          >
+            <User className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium hidden sm:block">Profil</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+          >
+            <Shield className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium hidden sm:block">Sécurité</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="danger" 
+            className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all"
+          >
+            <Settings className="w-5 h-5 mb-1" />
+            <span className="text-xs font-medium hidden sm:block">Compte</span>
+          </TabsTrigger>
+        </div>
 
         <TabsContent value="profile">
           <Card className="educafric-card">
