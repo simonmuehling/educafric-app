@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save, MessageSquare, BarChart3, CheckSquare } from 'lucide-react';
+import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save, MessageSquare, BarChart3, CheckSquare, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,6 +53,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     generalAnnouncements: true
   });
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const text = {
     fr: {
       title: {
@@ -78,6 +81,10 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       newPassword: 'Nouveau mot de passe',
       confirmPassword: 'Confirmer le mot de passe',
       changePassword: 'Changer le mot de passe',
+      deleteAccount: 'Supprimer mon compte',
+      deleteAccountWarning: 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
+      confirmDelete: 'Confirmer la suppression',
+      cancel: 'Annuler',
       emailNotifications: 'Notifications Email',
       smsNotifications: 'Notifications SMS',
       whatsappNotifications: 'Notifications WhatsApp',
@@ -110,6 +117,10 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       newPassword: 'New Password',
       confirmPassword: 'Confirm Password',
       changePassword: 'Change Password',
+      deleteAccount: 'Delete my account',
+      deleteAccountWarning: 'This action is irreversible. All your data will be permanently deleted.',
+      confirmDelete: 'Confirm deletion',
+      cancel: 'Cancel',
       emailNotifications: 'Email Notifications',
       smsNotifications: 'SMS Notifications',
       whatsappNotifications: 'WhatsApp Notifications',
@@ -211,6 +222,35 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await fetch('/api/profile/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Compte supprimé",
+          description: "Votre compte a été supprimé avec succès.",
+        });
+        // Rediriger vers la page de connexion
+        window.location.href = '/login';
+      } else {
+        throw new Error('Erreur lors de la suppression');
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le compte.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -267,20 +307,16 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
               <div>
                 <Label htmlFor="email">{t.email}</Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => setProfileData({ 
-                      ...profileData, 
-                      email: e.target.value 
-                    })}
-                    className="pl-10"
-                    data-testid="input-email"
-                  />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={(e) => setProfileData({ 
+                    ...profileData, 
+                    email: e.target.value 
+                  })}
+                  data-testid="input-email"
+                />
               </div>
 
               <div>
@@ -551,12 +587,51 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
               </div>
               <Button 
                 onClick={handlePasswordChange} 
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-blue-600 hover:bg-blue-700"
                 data-testid="button-change-password"
               >
                 <Shield className="w-4 h-4 mr-2" />
                 {t.changePassword}
               </Button>
+
+              {/* Section Suppression de Compte */}
+              <div className="pt-6 mt-6 border-t border-gray-200">
+                <h3 className="text-lg font-medium text-red-900 mb-2">{t.deleteAccount}</h3>
+                <p className="text-sm text-gray-600 mb-4">{t.deleteAccountWarning}</p>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="destructive"
+                      className="bg-red-600 hover:bg-red-700"
+                      data-testid="button-delete-account"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t.deleteAccount}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t.deleteAccount}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t.deleteAccountWarning}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel data-testid="button-cancel-delete">
+                        {t.cancel}
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteAccount}
+                        className="bg-red-600 hover:bg-red-700"
+                        data-testid="button-confirm-delete"
+                      >
+                        {t.confirmDelete}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
