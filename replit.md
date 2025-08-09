@@ -21,6 +21,8 @@ Preferred communication style: Simple, everyday language.
 - Consolidated all commercial modules into UnifiedCommercialManagement.tsx (January 2025)
 - Unified commercial administration accessible to Site Admin (Simon.admin) with complete oversight
 - Removed duplicate commercial modules to eliminate confusion and improve maintainability
+- Created comprehensive commercial guide for freemium vs premium modules (February 2025)
+- Documented all premium feature gates and pricing structure for sales team
 
 ## System Architecture
 
