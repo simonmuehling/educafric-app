@@ -83,8 +83,9 @@ const DocumentsContracts = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Documents commerciaux réels EDUCAFRIC du dossier public/documents/
+  // Documents commerciaux réels EDUCAFRIC - Combinaison MD + PDF
   const documents = [
+    // Documents Markdown (MD) - Guides détaillés
     {
       id: 1,
       name: 'Kit de Prospection Educafric Complet',
@@ -152,7 +153,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 6,
-      name: 'Résumé Géolocalisation Français',
+      name: 'Géolocalisation Résumé Français',
       type: 'guide',
       category: 'technical',
       school: 'Documentation Technique',
@@ -178,6 +179,21 @@ const DocumentsContracts = () => {
     },
     {
       id: 8,
+      name: 'Tarifs Complets Educafric',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Documentation Officielle',
+      date: '2025-01-15',
+      status: 'finalized',
+      size: '9.1 KB',
+      format: 'MD',
+      url: '/documents/tarifs-complets-educafric.md',
+      description: 'Documentation complète des tarifs et plans EDUCAFRIC'
+    },
+
+    // Documents PDF - Originaux partagés
+    {
+      id: 11,
       name: 'Demande Établissement (PDF)',
       type: 'form',
       category: 'legal',
@@ -190,7 +206,7 @@ const DocumentsContracts = () => {
       description: 'Formulaire officiel de demande d\'adhésion pour établissements scolaires'
     },
     {
-      id: 9,
+      id: 12,
       name: 'Demande Ministre (PDF)',
       type: 'form',
       category: 'legal',
@@ -203,7 +219,7 @@ const DocumentsContracts = () => {
       description: 'Document officiel de demande ministérielle pour validation institutionnelle'
     },
     {
-      id: 10,
+      id: 13,
       name: 'Documentation Parents (PDF)',
       type: 'guide',
       category: 'marketing',
@@ -214,6 +230,45 @@ const DocumentsContracts = () => {
       format: 'PDF',
       url: '/documents/parents_1753390442002.pdf',
       description: 'Guide pour parents : fonctionnalités, tarifs, avantages géolocalisation et suivi scolaire'
+    },
+    {
+      id: 14,
+      name: 'Contrat Partenariat Établissements-Freelancers 2025',
+      type: 'contract',
+      category: 'legal',
+      school: 'Partenariats',
+      date: '2025-01-25',
+      status: 'finalized',
+      size: '2.5 MB',
+      format: 'PDF',
+      url: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf',
+      description: 'Contrat officiel de partenariat entre établissements scolaires et freelancers/répétiteurs'
+    },
+    {
+      id: 15,
+      name: 'Educafric - Document Commercial (PDF)',
+      type: 'brochure',
+      category: 'marketing',
+      school: 'Présentation Commerciale',
+      date: '2025-01-28',
+      status: 'finalized',
+      size: '270 KB',
+      format: 'PDF',
+      url: '/documents/Educafric_Document_Commercial.pdf',
+      description: 'Brochure commerciale améliorée Educafric avec argumentaires de vente complets'
+    },
+    {
+      id: 16,
+      name: 'Educafric - Présentation Officielle (PDF)',
+      type: 'presentation',
+      category: 'marketing',
+      school: 'Présentation Officielle',
+      date: '2025-01-28',
+      status: 'finalized',
+      size: '16.9 MB',
+      format: 'PDF',
+      url: '/documents/Educafric_Presentation.pdf',
+      description: 'Présentation officielle de la plateforme Educafric pour partenaires et investisseurs'
     }
   ];
 
@@ -230,11 +285,10 @@ const DocumentsContracts = () => {
   };
 
   const handleDownloadDocument = (doc: any) => {
-    // Ouvrir le document dans un nouvel onglet
     window.open(doc.url, '_blank');
     toast({
-      title: language === 'fr' ? 'Document téléchargé' : 'Document downloaded',
-      description: language === 'fr' ? `${doc.name} a été ouvert` : `${doc.name} has been opened`,
+      title: language === 'fr' ? 'Document ouvert' : 'Document opened',
+      description: language === 'fr' ? `${doc.name} a été ouvert dans un nouvel onglet` : `${doc.name} has been opened in a new tab`,
     });
   };
 
@@ -257,6 +311,7 @@ const DocumentsContracts = () => {
       case 'guide': return <FileText className="w-5 h-5 text-orange-600" />;
       case 'pricing': return <FileText className="w-5 h-5 text-red-600" />;
       case 'form': return <FileText className="w-5 h-5 text-indigo-600" />;
+      case 'presentation': return <FileText className="w-5 h-5 text-pink-600" />;
       default: return <FileText className="w-5 h-5 text-gray-600" />;
     }
   };
@@ -322,9 +377,14 @@ const DocumentsContracts = () => {
                     </CardDescription>
                   </div>
                 </div>
-                <Badge className={`text-xs ${getStatusColor(doc.status)}`}>
-                  {doc.status === 'finalized' ? 'Finalisé' : doc.status}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                  <Badge className={`text-xs ${getStatusColor(doc.status)}`}>
+                    {doc.status === 'finalized' ? 'Finalisé' : doc.status}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {doc.format}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -393,16 +453,19 @@ const DocumentsContracts = () => {
                   : `This document is accessible via the link: ${selectedDocument?.url}`
                 }
               </p>
-              {selectedDocument?.format === 'PDF' && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    {language === 'fr' 
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  {selectedDocument?.format === 'PDF' ? (
+                    language === 'fr' 
                       ? 'Cliquez sur "Télécharger" pour ouvrir ce document PDF dans un nouvel onglet.' 
                       : 'Click "Download" to open this PDF document in a new tab.'
-                    }
-                  </p>
-                </div>
-              )}
+                  ) : (
+                    language === 'fr' 
+                      ? 'Cliquez sur "Télécharger" pour consulter ce guide Markdown dans un nouvel onglet.' 
+                      : 'Click "Download" to view this Markdown guide in a new tab.'
+                  )}
+                </p>
+              </div>
             </div>
           </div>
           <DialogFooter>
