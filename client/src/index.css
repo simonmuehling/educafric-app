@@ -35,6 +35,8 @@
   /* Animation variables */
   --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
   --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animation-gentle: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Hide scrollbar for Site Admin tabs navigation */
@@ -80,6 +82,68 @@
 }
 
 @layer components {
+  /* MICRO INTERACTIONS - Enhanced UI Animations */
+  
+  /* Hover Lift Effect */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+    transform: translateY(0) scale(1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    @apply shadow-lg;
+  }
+  
+  /* Click Bounce Effect */
+  .click-bounce {
+    @apply transition-transform duration-150 ease-out;
+  }
+  .click-bounce:active {
+    transform: scale(0.95);
+  }
+  
+  /* Gradient Hover Animation */
+  .gradient-hover {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    background-size: 200% 200%;
+    @apply transition-all duration-300 ease-out;
+  }
+  .gradient-hover:hover {
+    background-position: 100% 0;
+    transform: translateY(-2px);
+    @apply shadow-lg;
+  }
+  
+  /* Shimmer Loading Effect */
+  .shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  
+  /* Focus Ring Animation */
+  .focus-ring {
+    @apply transition-all duration-200 ease-out;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  .focus-ring:focus {
+    @apply outline-none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+  }
+  
+  /* Card Tilt Effect */
+  .card-tilt {
+    @apply transition-all duration-300 ease-out;
+    transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  }
+  .card-tilt:hover {
+    transform: perspective(1000px) rotateX(-5deg) rotateY(5deg) translateY(-5px);
+    @apply shadow-xl;
+  }
   /* Mobile-optimized utility classes */
   .mobile-touch-target {
     @apply min-h-[44px] min-w-[44px];

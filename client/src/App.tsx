@@ -61,6 +61,7 @@ import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotific
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
+import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 
 import { useState } from "react";
 import React from "react";
@@ -145,6 +146,7 @@ function Router() {
       <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/ui-showcase" component={UIShowcase} />
+      <Route path="/micro-interactions" component={MicroInteractionsDemo} />
       <Route path="/currency-demo" component={CurrencyDemo} />
       
       {/* Protected Routes */}
