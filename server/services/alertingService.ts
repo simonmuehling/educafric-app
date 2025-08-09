@@ -46,7 +46,7 @@ export class AlertingService {
     
     // In production, integrate with:
     // - Vonage SMS (already configured)
-    // - Email services (SMTP/SendGrid)
+    // - Hostinger SMTP for emails
     // - Slack webhooks for dev team
     // - WhatsApp Business API
     console.log('[ALERTING] Alerting service initialized for Educafric security monitoring');

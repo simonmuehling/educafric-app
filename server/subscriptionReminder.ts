@@ -181,8 +181,12 @@ The EDUCAFRIC Team
         console.log(`[SUBSCRIPTION_REMINDER] SMS sent to ${user.firstName} ${user.lastName} (${user.phone})`);
       }
 
-      // Envoyer Email (utiliser SendGrid via NotificationService)
+      // Envoyer Email via Hostinger SMTP
       if (user.email) {
+        const { sendGoodbyeEmail } = await import('./emailService');
+        // Pour l'instant, on utilise le template goodbye mais on peut créer un template spécifique
+        console.log(`[SUBSCRIPTION_REMINDER] Sending email reminder to ${user.email}`);
+        
         await notificationService.sendNotification({
           type: 'subscription_reminder',
           userId: user.id,

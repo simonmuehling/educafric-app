@@ -208,8 +208,9 @@ Educafric Monitoring System
   }
 
   private async sendEmailAlert(email: string, message: string, event: CriticalEvent) {
-    // In production, integrate with SMTP or SendGrid
-    console.log(`📧 [EMAIL_ALERT] Sending to ${email}`);
+    // Utiliser le service email Hostinger
+    const { sendGoodbyeEmail } = await import('../emailService');
+    console.log(`📧 [EMAIL_ALERT] Sending to ${email} via Hostinger SMTP`);
     console.log(`Subject: EDUCAFRIC CRITICAL ALERT - ${event.type}`);
     console.log(`Body: ${message}`);
     

@@ -36,6 +36,7 @@ import {
 } from "./routes/geolocationRoutes";
 import { storage } from "./storage";
 import { sendGoodbyeEmail } from "./emailService";
+import { dailyReportService } from "./services/dailyReportService";
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema, updateProfileSchema } from "@shared/schemas";
 import { User } from "@shared/schema";
 import { z } from "zod";
@@ -19394,6 +19395,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Route pour envoyer le rapport quotidien immédiatement (pour les tests)
+  app.post("/api/reports/daily/send-now", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (!user || (user.role !== 'siteadmin' && user.role !== 'commercial')) {
+        return res.status(403).json({ message: 'Access denied - Admin or Commercial role required' });
+      }
+      
+      console.log(`[DAILY_REPORT] Manual daily report requested by user ${user.id}`);
+      
+      await dailyReportService.sendDailyReportNow();
+      
+      res.json({
+        success: true,
+        message: 'Rapport quotidien envoyé avec succès',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('[DAILY_REPORT] Error sending manual report:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur lors de l\'envoi du rapport quotidien' 
+      });
+    }
+  });
+
+  // Démarrer le service de rapport quotidien automatique
+  console.log('[DAILY_REPORT] Starting daily report service...');
+  dailyReportService.startDailyReporting();
 
   return httpServer;
 }
