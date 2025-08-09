@@ -50,15 +50,16 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
     });
   }
 
-  // In sandbox mode, ALL users get FULL premium access to ALL features
-  const hasFullAccess = isSandboxUser ? true : true; // SANDBOX: Always true for testing
-  
-  // For demonstration purposes: show premium overlays but allow instant access
+  // Vérification authentique des abonnements pour les vrais clients
   const _originalAccess = Boolean(
     (user as any)?.subscription === 'premium' ||
     (user as any)?.premiumFeatures ||
-    isSandboxUser // Sandbox users get premium access
+    (user as any)?.isPremium ||
+    false // Les vrais clients doivent avoir un abonnement valide
   );
+
+  // Séparation claire : Sandbox users vs Real customers
+  const hasFullAccess = isSandboxUser ? true : _originalAccess;
 
   const isPremiumFeature = (feature: string): boolean => {
     // In sandbox mode: Show premium features but allow testing
@@ -86,7 +87,7 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
   );
 
   // Premium unlocked detection (for backwards compatibility)
-  const isPremiumUnlocked = isSandboxUser ? true : hasFullAccess;
+  const isPremiumUnlocked = isSandboxUser ? true : _originalAccess;
 
   const getUserPlan = (): string => {
     if (!user) return 'free';
