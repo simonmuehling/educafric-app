@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalTeacherClasses from './modules/FunctionalTeacherClasses';
-import FunctionalTeacherAttendance from './modules/FunctionalTeacherAttendance';
+import AttendanceManagement from './modules/AttendanceManagement';
 import FunctionalTeacherGrades from './modules/FunctionalTeacherGrades';
 import FunctionalTeacherAssignments from './modules/FunctionalTeacherAssignments';
 import CreateEducationalContent from './modules/CreateEducationalContent';
@@ -128,7 +128,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.attendance,
       icon: <CheckSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <FunctionalTeacherAttendance />
+      component: <AttendanceManagement />
     },
     {
       id: 'grades',

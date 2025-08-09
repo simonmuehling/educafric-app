@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 
 interface SystemSettings {
   platform: {
@@ -56,127 +57,58 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: systemSettings, isLoading: systemLoading } = useQuery({
-    queryKey: ['/api/admin/system-settings'],
-    queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return {
-        platform: {
-          siteName: 'EDUCAFRIC Platform',
-          version: '4.2.3',
-          environment: 'production',
-          maintenance: false
-        },
-        features: {
-          registrationOpen: true,
-          paymentProcessing: true,
-          geoLocation: true,
-          whatsappIntegration: true,
-          smsNotifications: true
-        },
-        limits: {
-          maxUsersPerSchool: 1000,
-          maxSchoolsPerCommercial: 50,
-          apiRateLimit: 1000,
-          fileUploadLimit: 100
-        }
-      };
-    }
-  });
-
-  const { data: securitySettings, isLoading: securityLoading } = useQuery({
-    queryKey: ['/api/admin/security-settings'],
-    queryFn: async () => {
-      // Mock data for demonstration - replace with real API
-      return {
-        authentication: {
-          twoFactorRequired: true,
-          sessionTimeout: 8,
-          passwordMinLength: 8,
-          maxLoginAttempts: 5
-        },
-        permissions: {
-          strictRoleAccess: true,
-          adminApprovalRequired: false,
-          auditLogging: true
-        },
-        encryption: {
-          dataAtRest: true,
-          dataInTransit: true,
-          tokenExpiry: 24
-        }
-      };
-    }
-  });
-
-  const updateSystemMutation = useMutation({
-    mutationFn: async (settings: SystemSettings) => {
-      const response = await fetch('/api/admin/system-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(settings)
-      });
-      if (!response.ok) throw new Error('Failed to update system settings');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/system-settings'] });
-      toast({
-        title: "Succès",
-        description: "Paramètres système mis à jour avec succès",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la mise à jour des paramètres système",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const updateSecurityMutation = useMutation({
-    mutationFn: async (settings: SecuritySettings) => {
-      const response = await fetch('/api/admin/security-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(settings)
-      });
-      if (!response.ok) throw new Error('Failed to update security settings');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/security-settings'] });
-      toast({
-        title: "Succès",
-        description: "Paramètres de sécurité mis à jour avec succès",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la mise à jour des paramètres de sécurité",
-        variant: "destructive",
-      });
-    }
-  });
-
+  // Local state for editing
   const [localSystemSettings, setLocalSystemSettings] = useState<SystemSettings | null>(null);
   const [localSecuritySettings, setLocalSecuritySettings] = useState<SecuritySettings | null>(null);
 
+  // Queries
+  const { data: systemSettings, isLoading: loadingSystem } = useQuery({
+    queryKey: ['/api/admin/system-settings'],
+    queryFn: () => apiRequest('GET', '/api/admin/system-settings').then(res => res.json())
+  });
+
+  const { data: securitySettings, isLoading: loadingSecurity } = useQuery({
+    queryKey: ['/api/admin/security-settings'],
+    queryFn: () => apiRequest('GET', '/api/admin/security-settings').then(res => res.json())
+  });
+
+  // Initialize local state when data loads
   React.useEffect(() => {
     if (systemSettings && !localSystemSettings) {
-      setLocalSystemSettings(systemSettings || null);
+      setLocalSystemSettings(systemSettings);
     }
   }, [systemSettings, localSystemSettings]);
 
   React.useEffect(() => {
     if (securitySettings && !localSecuritySettings) {
-      setLocalSecuritySettings(securitySettings || null);
+      setLocalSecuritySettings(securitySettings);
     }
   }, [securitySettings, localSecuritySettings]);
+
+  // Mutations
+  const updateSystemMutation = useMutation({
+    mutationFn: (data: SystemSettings) => 
+      apiRequest('PUT', '/api/admin/system-settings', data).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/system-settings'] });
+      toast({
+        title: "Paramètres système mis à jour",
+        description: "Les paramètres ont été sauvegardés avec succès.",
+      });
+    }
+  });
+
+  const updateSecurityMutation = useMutation({
+    mutationFn: (data: SecuritySettings) => 
+      apiRequest('PUT', '/api/admin/security-settings', data).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/security-settings'] });
+      toast({
+        title: "Paramètres de sécurité mis à jour",
+        description: "Les paramètres ont été sauvegardés avec succès.",
+      });
+    }
+  });
 
   const handleSystemSave = () => {
     if (localSystemSettings) {
@@ -191,117 +123,162 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   };
 
   const handleSystemReset = () => {
-    setLocalSystemSettings(systemSettings || null);
+    setLocalSystemSettings(systemSettings);
+    toast({
+      title: "Paramètres réinitialisés",
+      description: "Les modifications ont été annulées.",
+    });
   };
 
   const handleSecurityReset = () => {
-    setLocalSecuritySettings(securitySettings || null);
+    setLocalSecuritySettings(securitySettings);
+    toast({
+      title: "Paramètres réinitialisés",
+      description: "Les modifications ont été annulées.",
+    });
   };
 
-  if (systemLoading || securityLoading) {
+  if (loadingSystem || loadingSecurity) {
     return (
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span>Chargement des paramètres...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
     );
   }
+
+  const tabConfig = [
+    { value: 'system', label: 'Système', icon: Settings },
+    { value: 'security', label: 'Sécurité', icon: Shield },
+    { value: 'database', label: 'Base de données', icon: Database },
+    { value: 'notifications', label: 'Notifications', icon: Bell }
+  ];
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5 text-blue-600" />
-          Configuration Système
+          <Settings className="h-6 w-6" />
+          Paramètres Site Admin
         </CardTitle>
       </CardHeader>
-
-      <CardContent className="p-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="system" className="flex items-center gap-1">
-              <Database className="h-4 w-4" />
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          {/* Mobile Icon Navigation */}
+          <MobileIconTabNavigation
+            tabs={tabConfig}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          
+          {/* Desktop Tab List */}
+          <TabsList className="hidden md:grid grid-cols-4 w-full">
+            <TabsTrigger value="system" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
               Système
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-1">
+            <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Sécurité
             </TabsTrigger>
-            <TabsTrigger value="features" className="flex items-center gap-1">
-              <Globe className="h-4 w-4" />
-              Fonctionnalités
+            <TabsTrigger value="database" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Base de données
             </TabsTrigger>
-            <TabsTrigger value="limits" className="flex items-center gap-1">
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
-              Limites
+              Notifications
             </TabsTrigger>
           </TabsList>
 
           {/* System Settings Tab */}
           <TabsContent value="system" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="siteName">Nom du Site</Label>
-                  <Input
-                    id="siteName"
-                    value={localSystemSettings?.platform?.siteName || ''}
-                    onChange={(e) => setLocalSystemSettings(prev => prev ? {
-                      ...prev,
-                      platform: { ...prev.platform, siteName: e.target.value }
-                    } : null)}
-                    data-testid="input-site-name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="version">Version</Label>
-                  <Input
-                    id="version"
-                    value={localSystemSettings?.platform?.version || ''}
-                    onChange={(e) => setLocalSystemSettings(prev => prev ? {
-                      ...prev,
-                      platform: { ...prev.platform, version: e.target.value }
-                    } : null)}
-                    data-testid="input-version"
-                  />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="environment">Environnement</Label>
-                  <select
-                    id="environment"
-                    value={localSystemSettings?.platform?.environment || ''}
-                    onChange={(e) => setLocalSystemSettings(prev => prev ? {
-                      ...prev,
-                      platform: { ...prev.platform, environment: e.target.value }
-                    } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    data-testid="select-environment"
-                  >
-                    <option value="development">Développement</option>
-                    <option value="staging">Test</option>
-                    <option value="production">Production</option>
-                  </select>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="maintenance"
-                    checked={localSystemSettings?.platform?.maintenance || false}
-                    onCheckedChange={(checked) => setLocalSystemSettings(prev => prev ? {
-                      ...prev,
-                      platform: { ...prev.platform, maintenance: checked }
-                    } : null)}
-                    data-testid="switch-maintenance"
-                  />
-                  <Label htmlFor="maintenance">Mode Maintenance</Label>
-                </div>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Configuration Plateforme</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="siteName">Nom du Site</Label>
+                    <Input
+                      id="siteName"
+                      value={localSystemSettings?.platform?.siteName || ''}
+                      onChange={(e) => setLocalSystemSettings(prev => prev ? {
+                        ...prev,
+                        platform: { ...prev.platform, siteName: e.target.value }
+                      } : null)}
+                      data-testid="input-site-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="version">Version</Label>
+                    <Input
+                      id="version"
+                      value={localSystemSettings?.platform?.version || ''}
+                      onChange={(e) => setLocalSystemSettings(prev => prev ? {
+                        ...prev,
+                        platform: { ...prev.platform, version: e.target.value }
+                      } : null)}
+                      data-testid="input-version"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="environment">Environnement</Label>
+                    <select
+                      id="environment"
+                      value={localSystemSettings?.platform?.environment || 'development'}
+                      onChange={(e) => setLocalSystemSettings(prev => prev ? {
+                        ...prev,
+                        platform: { ...prev.platform, environment: e.target.value }
+                      } : null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      data-testid="select-environment"
+                    >
+                      <option value="development">Development</option>
+                      <option value="staging">Staging</option>
+                      <option value="production">Production</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="maintenance"
+                      checked={localSystemSettings?.platform?.maintenance || false}
+                      onCheckedChange={(checked) => setLocalSystemSettings(prev => prev ? {
+                        ...prev,
+                        platform: { ...prev.platform, maintenance: checked }
+                      } : null)}
+                      data-testid="switch-maintenance"
+                    />
+                    <Label htmlFor="maintenance">Mode Maintenance</Label>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Fonctionnalités</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {Object.entries(localSystemSettings?.features || {}).map(([key, value]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <Switch
+                        id={key}
+                        checked={value}
+                        onCheckedChange={(checked) => setLocalSystemSettings(prev => prev ? {
+                          ...prev,
+                          features: { ...prev.features, [key]: checked }
+                        } : null)}
+                        data-testid={`switch-${key}`}
+                      />
+                      <Label htmlFor={key} className="capitalize">
+                        {key.replace(/([A-Z])/g, ' $1').trim()}
+                      </Label>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
+            
             <div className="flex space-x-2">
               <Button onClick={handleSystemSave} className="bg-blue-600 hover:bg-blue-700" data-testid="button-save-system">
                 <Save className="h-4 w-4 mr-2" />
@@ -347,68 +324,12 @@ const FunctionalSiteAdminSettings: React.FC = () => {
                       data-testid="input-session-timeout"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="passwordMinLength">Longueur Min. Mot de Passe</Label>
-                    <Input
-                      id="passwordMinLength"
-                      type="number"
-                      value={localSecuritySettings?.authentication?.passwordMinLength || 0}
-                      onChange={(e) => setLocalSecuritySettings(prev => prev ? {
-                        ...prev,
-                        authentication: { ...prev.authentication, passwordMinLength: parseInt(e.target.value) }
-                      } : null)}
-                      data-testid="input-password-min-length"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Permissions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="strictRoleAccess"
-                      checked={localSecuritySettings?.permissions?.strictRoleAccess || false}
-                      onCheckedChange={(checked) => setLocalSecuritySettings(prev => prev ? {
-                        ...prev,
-                        permissions: { ...prev.permissions, strictRoleAccess: checked }
-                      } : null)}
-                      data-testid="switch-strict-role-access"
-                    />
-                    <Label htmlFor="strictRoleAccess">Accès Strict par Rôle</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="adminApproval"
-                      checked={localSecuritySettings?.permissions?.adminApprovalRequired || false}
-                      onCheckedChange={(checked) => setLocalSecuritySettings(prev => prev ? {
-                        ...prev,
-                        permissions: { ...prev.permissions, adminApprovalRequired: checked }
-                      } : null)}
-                      data-testid="switch-admin-approval"
-                    />
-                    <Label htmlFor="adminApproval">Approbation Admin Requise</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="auditLogging"
-                      checked={localSecuritySettings?.permissions?.auditLogging || false}
-                      onCheckedChange={(checked) => setLocalSecuritySettings(prev => prev ? {
-                        ...prev,
-                        permissions: { ...prev.permissions, auditLogging: checked }
-                      } : null)}
-                      data-testid="switch-audit-logging"
-                    />
-                    <Label htmlFor="auditLogging">Journalisation Audit</Label>
-                  </div>
                 </CardContent>
               </Card>
             </div>
+            
             <div className="flex space-x-2">
-              <Button onClick={handleSecuritySave} className="bg-red-600 hover:bg-red-700" data-testid="button-save-security">
+              <Button onClick={handleSecuritySave} className="bg-blue-600 hover:bg-blue-700" data-testid="button-save-security">
                 <Save className="h-4 w-4 mr-2" />
                 Sauvegarder
               </Button>
@@ -419,63 +340,28 @@ const FunctionalSiteAdminSettings: React.FC = () => {
             </div>
           </TabsContent>
 
-          {/* Features Tab */}
-          <TabsContent value="features" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Fonctionnalités Plateforme</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(localSystemSettings?.features || {}).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <Switch
-                        id={key}
-                        checked={value}
-                        onCheckedChange={(checked) => setLocalSystemSettings(prev => prev ? {
-                          ...prev,
-                          features: { ...prev.features, [key]: checked }
-                        } : null)}
-                        data-testid={`switch-feature-${key}`}
-                      />
-                      <Label htmlFor={key} className="capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </Label>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+          {/* Database Tab */}
+          <TabsContent value="database" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Gestion Base de Données</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Configuration de la base de données disponible prochainement.</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* Limits Tab */}
-          <TabsContent value="limits" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Limites Système</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {Object.entries(localSystemSettings?.limits || {}).map(([key, value]) => (
-                    <div key={key}>
-                      <Label htmlFor={key} className="capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </Label>
-                      <Input
-                        id={key}
-                        type="number"
-                        value={value}
-                        onChange={(e) => setLocalSystemSettings(prev => prev ? {
-                          ...prev,
-                          limits: { ...prev.limits, [key]: parseInt(e.target.value) }
-                        } : null)}
-                        data-testid={`input-limit-${key}`}
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Paramètres Notifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Configuration des notifications disponible prochainement.</p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>

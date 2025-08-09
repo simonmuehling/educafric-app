@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -134,21 +135,31 @@ export default function ModernProfile() {
       icon={User}
     >
       <Tabs defaultValue="profile" className="space-y-6">
-        {/* Mobile-friendly icon navigation */}
-        <div className="flex justify-center space-x-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-2">
+        {/* Mobile Icon Navigation */}
+        <MobileIconTabNavigation
+          tabs={[
+            { value: 'profile', label: 'Profil', icon: User },
+            { value: 'security', label: 'Sécurité', icon: Shield }
+          ]}
+          activeTab="profile"
+          onTabChange={() => {}}
+        />
+        
+        {/* Desktop Tab Navigation - Hidden on Mobile */}
+        <div className="hidden md:flex justify-center space-x-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-2">
           <TabsTrigger 
             value="profile" 
             className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white/20 transition-all"
           >
             <User className="w-5 h-5 mb-1" />
-            <span className="text-xs font-medium hidden sm:block">Profil</span>
+            <span className="text-xs font-medium">Profil</span>
           </TabsTrigger>
           <TabsTrigger 
             value="security" 
             className="flex flex-col items-center p-3 rounded-lg data-[state=active]:bg-white/20 transition-all"
           >
             <Shield className="w-5 h-5 mb-1" />
-            <span className="text-xs font-medium hidden sm:block">Sécurité</span>
+            <span className="text-xs font-medium">Sécurité</span>
           </TabsTrigger>
         </div>
 
