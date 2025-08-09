@@ -83,8 +83,138 @@ const DocumentsContracts = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Mock documents data
+  // Documents commerciaux réels EDUCAFRIC
   const documents = [
+    {
+      id: 1,
+      name: 'Kit de Prospection Educafric Complet',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Usage Commercial',
+      date: '2025-08-09',
+      status: 'finalized',
+      size: '7.7 KB',
+      format: 'MD',
+      url: '/documents/kit-prospection-educafric-complet.md',
+      description: 'Kit complet de prospection pour commerciaux : scripts téléphone, argumentaires, messages WhatsApp, stratégies ciblage Douala/Yaoundé'
+    },
+    {
+      id: 2,
+      name: 'Guide Commercial Modules Premium/Freemium',
+      type: 'guide',
+      category: 'marketing', 
+      school: 'Équipe Commerciale',
+      date: '2025-08-09',
+      status: 'finalized',
+      size: '11.8 KB',
+      format: 'MD',
+      url: '/documents/guide-commercial-modules-premium-freemium.md',
+      description: 'Guide détaillé modules freemium vs premium : Écoles (6 modules bloqués), Parents (5 modules), Freelancers (8 modules) avec tarification réelle'
+    },
+    {
+      id: 3,
+      name: 'Tarifs et Plans Français',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Documentation Officielle',
+      date: '2025-01-15',
+      status: 'finalized',
+      size: '8.2 KB',
+      format: 'MD',
+      url: '/documents/tarifs-plans-francais.md',
+      description: 'Tarification officielle EDUCAFRIC en français : Parents (1000-1500 CFA/mois), Écoles (50000 CFA/an), Freelancers (12500-25000 CFA/an)'
+    },
+    {
+      id: 4,
+      name: 'Pricing Plans English',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Official Documentation',
+      date: '2025-01-15',
+      status: 'finalized',
+      size: '7.9 KB',
+      format: 'MD',
+      url: '/documents/pricing-plans-english.md',
+      description: 'Official EDUCAFRIC pricing in English: Parents, Schools, Freelancers with complete feature breakdown'
+    },
+    {
+      id: 5,
+      name: 'Guide Notifications Educafric',
+      type: 'guide',
+      category: 'technical',
+      school: 'Support Technique',
+      date: '2025-01-10',
+      status: 'finalized',
+      size: '4.9 KB',
+      format: 'MD',
+      url: '/documents/guide-notifications-educafric.md',
+      description: 'Guide complet système notifications : SMS, WhatsApp, Email, Push avec templates personnalisés'
+    },
+    {
+      id: 6,
+      name: 'Résumé Géolocalisation Français',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Technique',
+      date: '2025-01-08',
+      status: 'finalized',
+      size: '3.1 KB',
+      format: 'MD',
+      url: '/documents/geolocalisation-resume-francais.md',
+      description: 'Guide géolocalisation en français : GPS temps réel, zones sécurité, alertes, suivi élèves/personnel'
+    },
+    {
+      id: 7,
+      name: 'Geolocation Summary English',
+      type: 'guide',
+      category: 'technical',
+      school: 'Technical Documentation',
+      date: '2025-01-08',
+      status: 'finalized',
+      size: '2.8 KB',
+      format: 'MD',
+      url: '/documents/geolocation-summary-english.md',
+      description: 'Geolocation guide in English: Real-time GPS, security zones, alerts, student/staff tracking'
+    },
+    {
+      id: 8,
+      name: 'Demande Établissement (PDF)',
+      type: 'form',
+      category: 'legal',
+      school: 'Administration',
+      date: '2025-01-20',
+      status: 'finalized',
+      size: '2.1 MB',
+      format: 'PDF',
+      url: '/documents/Demande_Etablissement_1753390157502.pdf',
+      description: 'Formulaire officiel de demande d\'adhésion pour établissements scolaires'
+    },
+    {
+      id: 9,
+      name: 'Demande Ministre (PDF)',
+      type: 'form',
+      category: 'legal',
+      school: 'Ministère',
+      date: '2025-01-20',
+      status: 'finalized',
+      size: '1.8 MB',
+      format: 'PDF',
+      url: '/documents/Demande_ministre-8_1753390184314.pdf',
+      description: 'Document officiel de demande ministérielle pour validation institutionnelle'
+    },
+    {
+      id: 10,
+      name: 'Documentation Parents (PDF)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-01-22',
+      status: 'finalized',
+      size: '1.2 MB',
+      format: 'PDF',
+      url: '/documents/parents_1753390442002.pdf',
+      description: 'Guide pour parents : fonctionnalités, tarifs, avantages géolocalisation et suivi scolaire'
+    },
     {
       id: 1,
       name: 'Guide Commercial - Fonctionnalités Clés',
