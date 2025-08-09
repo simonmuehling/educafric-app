@@ -55,6 +55,7 @@ const CommercialDocumentManagement: React.FC = () => {
 
   // Check if user can create contracts (COO or specific emails)
   const canCreateContracts = user && (
+    user.email === 'nguetsopcarine12@icloud.com' ||
     user.email === 'carine.nguetsop@educafric.com' ||
     user.email === 'carine@educafric.com' ||
     user.email === 'nguetsop.carine@educafric.com' ||

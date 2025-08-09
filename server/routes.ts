@@ -7243,7 +7243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const multiRoleUsers = realMultiRoleUsers
         .filter(user => 
           user.secondaryRoles && user.secondaryRoles.length > 0 ||
-          user.email === 'carine.nguetsop@educafric.com' ||
+          user.email === 'nguetsopcarine12@icloud.com' ||
+        user.email === 'carine.nguetsop@educafric.com' ||
           ['Admin', 'Director'].includes(user.role)
         )
         .map(user => ({
@@ -12707,7 +12708,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user.role === 'SiteAdmin' ||
         user.role === 'Commercial' ||
         user.email === 'carine@educafric.com' ||
-        user.email === 'nguetsop.carine@educafric.com';
+        user.email === 'nguetsop.carine@educafric.com' ||
+        user.email === 'nguetsopcarine12@icloud.com';
       
       if (!hasAccess) {
         return res.status(403).json({
