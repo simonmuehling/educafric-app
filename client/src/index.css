@@ -1173,3 +1173,96 @@ select:focus-visible {
     }
   }
 }
+
+/* ==========================================
+   EDUCAFRIC MOBILE FORM OPTIMIZATION
+   Standards pour l'expérience utilisateur mobile
+   ========================================== */
+
+/* Styles pour défilement fluide global */
+.form-smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Modal overlay optimisé */
+.form-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* Container modal responsive */
+.form-modal-container {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 16px;
+}
+
+.form-modal-content {
+  width: 100%;
+  max-width: 640px;
+  margin: 32px auto 64px auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Header collant */
+.form-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 16px 16px 0 0;
+  padding: 16px;
+}
+
+/* Zone de contenu scrollable */
+.form-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Footer collant */
+.form-modal-footer {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 16px 16px;
+}
+
+/* Responsive mobile */
+@media (max-width: 640px) {
+  .form-modal-container {
+    padding: 8px;
+  }
+  
+  .form-modal-content {
+    margin: 16px auto 32px auto;
+  }
+  
+  .form-modal-body {
+    max-height: 75vh;
+  }
+  
+  .form-modal-header,
+  .form-modal-footer {
+    padding: 12px;
+  }
+}
