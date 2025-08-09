@@ -13,8 +13,7 @@ const DocumentsContracts = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
 
   const text = {
     fr: {
@@ -280,8 +279,22 @@ const DocumentsContracts = () => {
   });
 
   const handleViewDocument = (doc: any) => {
-    setSelectedDocument(doc);
-    setIsViewDialogOpen(true);
+    // For MD files, open PDF conversion directly
+    if (doc.format === 'MD') {
+      const pdfUrl = doc.url.replace('.md', '/pdf');
+      window.open(pdfUrl, '_blank');
+      toast({
+        title: language === 'fr' ? 'Document PDF ouvert' : 'PDF Document Opened',
+        description: language === 'fr' ? `${doc.name} a été converti en PDF et ouvert` : `${doc.name} has been converted to PDF and opened`,
+      });
+    } else {
+      // For PDF files, open directly
+      window.open(doc.url, '_blank');
+      toast({
+        title: language === 'fr' ? 'Document PDF ouvert' : 'PDF Document Opened',
+        description: language === 'fr' ? `${doc.name} a été ouvert dans un nouvel onglet` : `${doc.name} has been opened in a new tab`,
+      });
+    }
   };
 
   const handleDownloadDocument = (doc: any) => {
@@ -414,7 +427,7 @@ const DocumentsContracts = () => {
                   className="flex-1 text-xs"
                 >
                   <Eye className="w-3 h-3 mr-1" />
-                  {t.view}
+                  {language === 'fr' ? 'Voir PDF' : 'View PDF'}
                 </Button>
                 <Button
                   size="sm"
@@ -430,62 +443,7 @@ const DocumentsContracts = () => {
         ))}
       </div>
 
-      {/* View Document Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              {selectedDocument && getTypeIcon(selectedDocument.type)}
-              {selectedDocument?.name}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedDocument?.description}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span><strong>Type:</strong> {selectedDocument?.format}</span>
-                <span><strong>Taille:</strong> {selectedDocument?.size}</span>
-                <span><strong>Date:</strong> {selectedDocument?.date}</span>
-              </div>
-              <Button
-                onClick={() => selectedDocument && handleDownloadDocument(selectedDocument)}
-                size="sm"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {t.download}
-              </Button>
-            </div>
-            <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
-              <p className="text-sm text-gray-600">
-                {language === 'fr' 
-                  ? `Ce document est accessible via le lien : ${selectedDocument?.url}` 
-                  : `This document is accessible via the link: ${selectedDocument?.url}`
-                }
-              </p>
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700">
-                  {selectedDocument?.format === 'PDF' ? (
-                    language === 'fr' 
-                      ? 'Cliquez sur "Télécharger" pour ouvrir ce document PDF dans un nouvel onglet.' 
-                      : 'Click "Download" to open this PDF document in a new tab.'
-                  ) : (
-                    language === 'fr' 
-                      ? 'Cliquez sur "Télécharger" pour consulter ce guide Markdown converti en PDF dans un nouvel onglet.' 
-                      : 'Click "Download" to view this Markdown guide converted to PDF in a new tab.'
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
-              {language === 'fr' ? 'Fermer' : 'Close'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Empty State */}
       {filteredDocuments.length === 0 && (

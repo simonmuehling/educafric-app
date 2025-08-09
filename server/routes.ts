@@ -262,6 +262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (fileExtension === '.pdf') {
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
       } else if (fileExtension === '.html') {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
       } else {
@@ -335,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 </body>
 </html>`;
 
-      // Set headers for PDF response
+      // Set headers for HTML response (browser will render as printable PDF)
       res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.setHeader('Content-Disposition', `inline; filename="${baseName}.html"`);
       res.send(fullHtml);
