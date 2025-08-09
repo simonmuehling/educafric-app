@@ -297,15 +297,123 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="+237">🇨🇲 +237</SelectItem>
-                      <SelectItem value="+33">🇫🇷 +33</SelectItem>
-                      <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                      <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                      <SelectItem value="+49">🇩🇪 +49</SelectItem>
-                      <SelectItem value="+234">🇳🇬 +234</SelectItem>
-                      <SelectItem value="+225">🇨🇮 +225</SelectItem>
-                      <SelectItem value="+221">🇸🇳 +221</SelectItem>
-                      <SelectItem value="+250">🇷🇼 +250</SelectItem>
+                      {/* Afrique */}
+                      <SelectItem value="+213">🇩🇿 +213 Algérie</SelectItem>
+                      <SelectItem value="+244">🇦🇴 +244 Angola</SelectItem>
+                      <SelectItem value="+229">🇧🇯 +229 Bénin</SelectItem>
+                      <SelectItem value="+267">🇧🇼 +267 Botswana</SelectItem>
+                      <SelectItem value="+226">🇧🇫 +226 Burkina Faso</SelectItem>
+                      <SelectItem value="+257">🇧🇮 +257 Burundi</SelectItem>
+                      <SelectItem value="+237">🇨🇲 +237 Cameroun</SelectItem>
+                      <SelectItem value="+238">🇨🇻 +238 Cap-Vert</SelectItem>
+                      <SelectItem value="+236">🇨🇫 +236 Centrafrique</SelectItem>
+                      <SelectItem value="+235">🇹🇩 +235 Tchad</SelectItem>
+                      <SelectItem value="+269">🇰🇲 +269 Comores</SelectItem>
+                      <SelectItem value="+243">🇨🇩 +243 RD Congo</SelectItem>
+                      <SelectItem value="+242">🇨🇬 +242 Congo</SelectItem>
+                      <SelectItem value="+225">🇨🇮 +225 Côte d'Ivoire</SelectItem>
+                      <SelectItem value="+253">🇩🇯 +253 Djibouti</SelectItem>
+                      <SelectItem value="+20">🇪🇬 +20 Égypte</SelectItem>
+                      <SelectItem value="+240">🇬🇶 +240 Guinée Équatoriale</SelectItem>
+                      <SelectItem value="+291">🇪🇷 +291 Érythrée</SelectItem>
+                      <SelectItem value="+251">🇪🇹 +251 Éthiopie</SelectItem>
+                      <SelectItem value="+241">🇬🇦 +241 Gabon</SelectItem>
+                      <SelectItem value="+220">🇬🇲 +220 Gambie</SelectItem>
+                      <SelectItem value="+233">🇬🇭 +233 Ghana</SelectItem>
+                      <SelectItem value="+224">🇬🇳 +224 Guinée</SelectItem>
+                      <SelectItem value="+245">🇬🇼 +245 Guinée-Bissau</SelectItem>
+                      <SelectItem value="+254">🇰🇪 +254 Kenya</SelectItem>
+                      <SelectItem value="+266">🇱🇸 +266 Lesotho</SelectItem>
+                      <SelectItem value="+231">🇱🇷 +231 Libéria</SelectItem>
+                      <SelectItem value="+218">🇱🇾 +218 Libye</SelectItem>
+                      <SelectItem value="+261">🇲🇬 +261 Madagascar</SelectItem>
+                      <SelectItem value="+265">🇲🇼 +265 Malawi</SelectItem>
+                      <SelectItem value="+223">🇲🇱 +223 Mali</SelectItem>
+                      <SelectItem value="+222">🇲🇷 +222 Mauritanie</SelectItem>
+                      <SelectItem value="+230">🇲🇺 +230 Maurice</SelectItem>
+                      <SelectItem value="+212">🇲🇦 +212 Maroc</SelectItem>
+                      <SelectItem value="+258">🇲🇿 +258 Mozambique</SelectItem>
+                      <SelectItem value="+264">🇳🇦 +264 Namibie</SelectItem>
+                      <SelectItem value="+227">🇳🇪 +227 Niger</SelectItem>
+                      <SelectItem value="+234">🇳🇬 +234 Nigéria</SelectItem>
+                      <SelectItem value="+250">🇷🇼 +250 Rwanda</SelectItem>
+                      <SelectItem value="+239">🇸🇹 +239 São Tomé</SelectItem>
+                      <SelectItem value="+221">🇸🇳 +221 Sénégal</SelectItem>
+                      <SelectItem value="+248">🇸🇨 +248 Seychelles</SelectItem>
+                      <SelectItem value="+232">🇸🇱 +232 Sierra Leone</SelectItem>
+                      <SelectItem value="+252">🇸🇴 +252 Somalie</SelectItem>
+                      <SelectItem value="+27">🇿🇦 +27 Afrique du Sud</SelectItem>
+                      <SelectItem value="+211">🇸🇸 +211 Soudan du Sud</SelectItem>
+                      <SelectItem value="+249">🇸🇩 +249 Soudan</SelectItem>
+                      <SelectItem value="+268">🇸🇿 +268 Eswatini</SelectItem>
+                      <SelectItem value="+255">🇹🇿 +255 Tanzanie</SelectItem>
+                      <SelectItem value="+228">🇹🇬 +228 Togo</SelectItem>
+                      <SelectItem value="+216">🇹🇳 +216 Tunisie</SelectItem>
+                      <SelectItem value="+256">🇺🇬 +256 Ouganda</SelectItem>
+                      <SelectItem value="+260">🇿🇲 +260 Zambie</SelectItem>
+                      <SelectItem value="+263">🇿🇼 +263 Zimbabwe</SelectItem>
+                      
+                      {/* Europe */}
+                      <SelectItem value="+33">🇫🇷 +33 France</SelectItem>
+                      <SelectItem value="+49">🇩🇪 +49 Allemagne</SelectItem>
+                      <SelectItem value="+44">🇬🇧 +44 Royaume-Uni</SelectItem>
+                      <SelectItem value="+39">🇮🇹 +39 Italie</SelectItem>
+                      <SelectItem value="+34">🇪🇸 +34 Espagne</SelectItem>
+                      <SelectItem value="+31">🇳🇱 +31 Pays-Bas</SelectItem>
+                      <SelectItem value="+32">🇧🇪 +32 Belgique</SelectItem>
+                      <SelectItem value="+41">🇨🇭 +41 Suisse</SelectItem>
+                      <SelectItem value="+43">🇦🇹 +43 Autriche</SelectItem>
+                      <SelectItem value="+351">🇵🇹 +351 Portugal</SelectItem>
+                      <SelectItem value="+46">🇸🇪 +46 Suède</SelectItem>
+                      <SelectItem value="+47">🇳🇴 +47 Norvège</SelectItem>
+                      <SelectItem value="+45">🇩🇰 +45 Danemark</SelectItem>
+                      <SelectItem value="+358">🇫🇮 +358 Finlande</SelectItem>
+                      <SelectItem value="+48">🇵🇱 +48 Pologne</SelectItem>
+                      <SelectItem value="+420">🇨🇿 +420 République Tchèque</SelectItem>
+                      <SelectItem value="+36">🇭🇺 +36 Hongrie</SelectItem>
+                      <SelectItem value="+40">🇷🇴 +40 Roumanie</SelectItem>
+                      <SelectItem value="+359">🇧🇬 +359 Bulgarie</SelectItem>
+                      <SelectItem value="+30">🇬🇷 +30 Grèce</SelectItem>
+                      <SelectItem value="+353">🇮🇪 +353 Irlande</SelectItem>
+                      
+                      {/* Amérique */}
+                      <SelectItem value="+1">🇺🇸 +1 États-Unis/Canada</SelectItem>
+                      <SelectItem value="+52">🇲🇽 +52 Mexique</SelectItem>
+                      <SelectItem value="+55">🇧🇷 +55 Brésil</SelectItem>
+                      <SelectItem value="+54">🇦🇷 +54 Argentine</SelectItem>
+                      <SelectItem value="+56">🇨🇱 +56 Chili</SelectItem>
+                      <SelectItem value="+57">🇨🇴 +57 Colombie</SelectItem>
+                      <SelectItem value="+51">🇵🇪 +51 Pérou</SelectItem>
+                      <SelectItem value="+58">🇻🇪 +58 Venezuela</SelectItem>
+                      <SelectItem value="+593">🇪🇨 +593 Équateur</SelectItem>
+                      <SelectItem value="+591">🇧🇴 +591 Bolivie</SelectItem>
+                      <SelectItem value="+595">🇵🇾 +595 Paraguay</SelectItem>
+                      <SelectItem value="+598">🇺🇾 +598 Uruguay</SelectItem>
+                      
+                      {/* Asie */}
+                      <SelectItem value="+86">🇨🇳 +86 Chine</SelectItem>
+                      <SelectItem value="+91">🇮🇳 +91 Inde</SelectItem>
+                      <SelectItem value="+81">🇯🇵 +81 Japon</SelectItem>
+                      <SelectItem value="+82">🇰🇷 +82 Corée du Sud</SelectItem>
+                      <SelectItem value="+62">🇮🇩 +62 Indonésie</SelectItem>
+                      <SelectItem value="+60">🇲🇾 +60 Malaisie</SelectItem>
+                      <SelectItem value="+65">🇸🇬 +65 Singapour</SelectItem>
+                      <SelectItem value="+66">🇹🇭 +66 Thaïlande</SelectItem>
+                      <SelectItem value="+84">🇻🇳 +84 Vietnam</SelectItem>
+                      <SelectItem value="+63">🇵🇭 +63 Philippines</SelectItem>
+                      <SelectItem value="+92">🇵🇰 +92 Pakistan</SelectItem>
+                      <SelectItem value="+880">🇧🇩 +880 Bangladesh</SelectItem>
+                      <SelectItem value="+94">🇱🇰 +94 Sri Lanka</SelectItem>
+                      <SelectItem value="+98">🇮🇷 +98 Iran</SelectItem>
+                      <SelectItem value="+964">🇮🇶 +964 Irak</SelectItem>
+                      <SelectItem value="+90">🇹🇷 +90 Turquie</SelectItem>
+                      <SelectItem value="+972">🇮🇱 +972 Israël</SelectItem>
+                      <SelectItem value="+966">🇸🇦 +966 Arabie Saoudite</SelectItem>
+                      <SelectItem value="+971">🇦🇪 +971 Émirats Arabes Unis</SelectItem>
+                      
+                      {/* Océanie */}
+                      <SelectItem value="+61">🇦🇺 +61 Australie</SelectItem>
+                      <SelectItem value="+64">🇳🇿 +64 Nouvelle-Zélande</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input
