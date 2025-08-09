@@ -647,11 +647,11 @@ const DocumentManagement = () => {
                     <span>Modifié: {doc.lastModified}</span>
                   </div>
                   
-                  {doc.(Array.isArray(sharedWith) ? sharedWith.length : 0) > 0 && (
+                  {Array.isArray((doc as any).sharedWith) && (doc as any).sharedWith.length > 0 && (
                     <div className="mt-2">
                       <p className="text-xs text-gray-500 mb-1">Partagé avec:</p>
                       <div className="flex flex-wrap gap-1">
-                        {doc.sharedWith.map((email, idx) => (
+                        {((doc as any).sharedWith || []).map((email: string, idx: number) => (
                           <Badge key={idx} variant="secondary" className="text-xs">
                             {email}
                           </Badge>

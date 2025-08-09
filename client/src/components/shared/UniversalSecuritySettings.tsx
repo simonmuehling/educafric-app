@@ -102,7 +102,7 @@ export const UniversalSecuritySettings: React.FC<UniversalSecuritySettingsProps>
       return;
     }
 
-    if (passwordData.(Array.isArray(newPassword) ? newPassword.length : 0) < 8) {
+    if (passwordData.newPassword.length < 8) {
       toast({
         title: "Erreur", 
         description: "Le mot de passe doit contenir au moins 8 caractères",

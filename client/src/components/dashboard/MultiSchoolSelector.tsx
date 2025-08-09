@@ -132,7 +132,7 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-gray-500" />
             <span className="text-sm text-gray-600">
-              {schools.(Array.isArray(affiliatedSchools) ? affiliatedSchools.length : 0)} {language === 'fr' ? 'écoles' : 'schools'}
+              {Array.isArray(schools?.affiliatedSchools) ? schools.affiliatedSchools.length : 0} {language === 'fr' ? 'écoles' : 'schools'}
             </span>
           </div>
         </div>

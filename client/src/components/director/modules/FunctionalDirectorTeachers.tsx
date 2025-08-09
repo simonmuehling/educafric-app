@@ -173,7 +173,7 @@ export function FunctionalDirectorTeachers() {
                   )}
                 </div>
 
-                {teacher.subjects && teacher.(Array.isArray(subjects) ? subjects.length : 0) > 0 && (
+                {teacher.subjects && Array.isArray(teacher.subjects) && teacher.subjects.length > 0 && (
                   <div className="mb-4">
                     <div className="flex items-center text-sm text-gray-700 mb-2">
                       <BookOpen className="w-4 h-4 mr-2" />

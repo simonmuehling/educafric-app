@@ -449,7 +449,8 @@ const FunctionalTeacherGrades: React.FC = () => {
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

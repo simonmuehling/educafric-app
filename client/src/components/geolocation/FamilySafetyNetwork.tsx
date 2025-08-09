@@ -198,7 +198,7 @@ const FamilySafetyNetwork: React.FC = () => {
           }).then(response => response.json())
             .then(result => {
               console.log('Location updated:', result);
-              if (result.alerts && result.(Array.isArray(alerts) ? alerts.length : 0) > 0) {
+              if (result.alerts && Array.isArray(result.alerts) && result.alerts.length > 0) {
                 setAlerts(prev => [...result.alerts, ...prev]);
               }
             })

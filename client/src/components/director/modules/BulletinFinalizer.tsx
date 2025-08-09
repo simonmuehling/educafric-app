@@ -135,7 +135,7 @@ const BulletinFinalizer: React.FC = () => {
   };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event?.target?.files || event.target.(Array.isArray(files) ? files.length : 0) === 0) return;
+    if (!event?.target?.files || event.target.files.length === 0) return;
 
     const file = event?.target?.files[0];
     const formData = new FormData();
@@ -174,7 +174,7 @@ const BulletinFinalizer: React.FC = () => {
   };
 
   const handleSignatureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event?.target?.files || event.target.(Array.isArray(files) ? files.length : 0) === 0) return;
+    if (!event?.target?.files || event.target.files.length === 0) return;
 
     const file = event?.target?.files[0];
     const formData = new FormData();

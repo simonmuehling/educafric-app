@@ -373,7 +373,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                       </div>
                     )}
 
-                    {step.(Array.isArray(tips) ? tips.length : 0) > 0 && (
+                    {Array.isArray((step as any).tips) && (step as any).tips.length > 0 && (
                       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center gap-2 mb-3">
                           <Lightbulb className="w-5 h-5 text-blue-600" />
@@ -382,7 +382,7 @@ export default function UserGuide({ userType }: UserGuideProps) {
                           </span>
                         </div>
                         <ul className="space-y-2">
-                          {step.tips.map((tip, tipIndex) => (
+                          {((step as any).tips || []).map((tip: string, tipIndex: number) => (
                             <li key={tipIndex} className="flex items-start gap-2 text-blue-800">
                               <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                               <span className="text-sm">{tip}</span>

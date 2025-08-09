@@ -348,7 +348,7 @@ const FirebaseTwoFactorSetup = () => {
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Backup codes:</span>
             <span className="text-sm">
-              {twoFactorStatus.(Array.isArray(backupCodes) ? backupCodes.length : 0)} {t.backupCodesRemaining}
+              {Array.isArray(twoFactorStatus?.backupCodes) ? twoFactorStatus.backupCodes.length : 0} {t.backupCodesRemaining}
             </span>
           </div>
         </div>

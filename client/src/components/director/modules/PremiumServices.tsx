@@ -238,7 +238,7 @@ const PremiumServices = () => {
                   ))}
                   {service.features?.length > 3 && (
                     <Badge variant="secondary" className="text-xs">
-                      +{service.(Array.isArray(features) ? features.length : 0) - 3} autres
+                      +{Array.isArray(service.features) ? service.features.length - 3 : 0} autres
                     </Badge>
                   )}
                 </div>

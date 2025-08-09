@@ -279,7 +279,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   }
 
   // Signatures section
-  if (data.signatures && data.(Array.isArray(signatures) ? signatures.length : 0) > 0) {
+  if (data.signatures && Array.isArray(data.signatures) && data.signatures.length > 0) {
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(14);
     pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
