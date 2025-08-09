@@ -1,4 +1,5 @@
 // TEMPORARILY DISABLED - Using fixed version
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -350,103 +351,150 @@ const FunctionalTeacherGrades: React.FC = () => {
             </div>
           </div>
 
-          {/* Add Grade Modal */}
+          {/* Add Grade Form - Inline Expandable */}
           {isAddGradeOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                <h3 className="text-lg font-semibold mb-4">Ajouter une Note</h3>
-                <div className="space-y-4">
+            <div className="mt-6 p-6 bg-gray-50 rounded-lg border-2 border-green-200 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-green-700">📝 Nouveau Bulletin de Note</h3>
+                <Button 
+                  onClick={() => setIsAddGradeOpen(false)}
+                  variant="outline"
+                  size="sm"
+                >
+                  ✕ Fermer
+                </Button>
+              </div>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Élève ID</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium text-gray-700 mb-1">👨‍🎓 Nom de l'Élève</label>
+                    <select
                       value={gradeForm.studentId}
                       onChange={(e) => setGradeForm(prev => ({ ...prev, studentId: e.target.value }))}
-                      placeholder="ID de l'élève"
-                      className="w-full border rounded-md px-3 py-2"
-                    />
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="">Sélectionner un élève</option>
+                      <option value="1">Marie Ngozi (6ème A)</option>
+                      <option value="2">Paul Mbarga (6ème A)</option>
+                      <option value="3">Sarah Kameni (6ème B)</option>
+                      <option value="4">Jean Fouda (5ème A)</option>
+                      <option value="5">Grace Nkomo (5ème A)</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Matière ID</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium text-gray-700 mb-1">📚 Matière</label>
+                    <select
                       value={gradeForm.subjectId}
                       onChange={(e) => setGradeForm(prev => ({ ...prev, subjectId: e.target.value }))}
-                      placeholder="ID de la matière"
-                      className="w-full border rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="">Sélectionner une matière</option>
+                      <option value="math">Mathématiques</option>
+                      <option value="french">Français</option>
+                      <option value="science">Sciences</option>
+                      <option value="history">Histoire</option>
+                      <option value="geography">Géographie</option>
+                      <option value="english">Anglais</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">📊 Note obtenue</label>
+                    <input
+                      type="number"
+                      step="0.25"
+                      min="0"
+                      max="20"
+                      value={gradeForm.grade}
+                      onChange={(e) => setGradeForm(prev => ({ ...prev, grade: e.target.value }))}
+                      placeholder="Ex: 15.5"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-sm font-medium">Note</label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={gradeForm.grade}
-                        onChange={(e) => setGradeForm(prev => ({ ...prev, grade: e.target.value }))}
-                        placeholder="Ex: 15.5"
-                        className="w-full border rounded-md px-3 py-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Sur</label>
-                      <input
-                        type="number"
-                        value={gradeForm.total}
-                        onChange={(e) => setGradeForm(prev => ({ ...prev, total: e.target.value }))}
-                        placeholder="20"
-                        className="w-full border rounded-md px-3 py-2"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">📈 Sur total</label>
+                    <select
+                      value={gradeForm.total}
+                      onChange={(e) => setGradeForm(prev => ({ ...prev, total: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="20">Sur 20</option>
+                      <option value="10">Sur 10</option>
+                      <option value="100">Sur 100</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Devoir/Contrôle</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">⭐ Coefficient</label>
+                    <select
+                      value={gradeForm.coefficient || '1'}
+                      onChange={(e) => setGradeForm(prev => ({ ...prev, coefficient: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                      <option value="1">Coef 1</option>
+                      <option value="2">Coef 2</option>
+                      <option value="3">Coef 3</option>
+                      <option value="4">Coef 4</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">📝 Titre de l'évaluation</label>
                     <input
                       type="text"
                       value={gradeForm.assignment}
                       onChange={(e) => setGradeForm(prev => ({ ...prev, assignment: e.target.value }))}
-                      placeholder="Ex: Contrôle chapitre 1"
-                      className="w-full border rounded-md px-3 py-2"
+                      placeholder="Ex: Contrôle chapitre 1 - Les fractions"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Type d'évaluation</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">🎯 Type d'évaluation</label>
                     <select
                       value={gradeForm.type}
                       onChange={(e) => setGradeForm(prev => ({ ...prev, type: e.target.value }))}
-                      className="w-full border rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     >
-                      <option value="exam">Examen</option>
-                      <option value="homework">Devoir maison</option>
-                      <option value="quiz">Interrogation</option>
-                      <option value="participation">Participation</option>
+                      <option value="exam">🎯 Examen (Devoir surveillé)</option>
+                      <option value="homework">🏠 Devoir maison</option>
+                      <option value="quiz">⚡ Interrogation écrite</option>
+                      <option value="oral">🎤 Interrogation orale</option>
+                      <option value="participation">✋ Participation</option>
+                      <option value="project">📋 Projet/Exposé</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Commentaire</label>
-                    <textarea
-                      value={gradeForm.comment}
-                      onChange={(e) => setGradeForm(prev => ({ ...prev, comment: e.target.value }))}
-                      placeholder="Commentaire sur la note..."
-                      rows={3}
-                      className="w-full border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-4">
-                    <Button 
-                      onClick={handleAddGrade}
-                      disabled={addGradeMutation.isPending || !gradeForm.studentId || !gradeForm.grade || !gradeForm.assignment}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      {addGradeMutation.isPending ? 'Ajout...' : 'Ajouter la Note'}
-                    </Button>
-                    <Button 
-                      onClick={() => setIsAddGradeOpen(false)}
-                      variant="outline"
-                    >
-                      Annuler
-                    </Button>
-                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">💬 Commentaire pédagogique</label>
+                  <textarea
+                    value={gradeForm.comment}
+                    onChange={(e) => setGradeForm(prev => ({ ...prev, comment: e.target.value }))}
+                    placeholder="Commentaire sur la performance de l'élève, points forts, axes d'amélioration..."
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                  <Button 
+                    onClick={handleAddGrade}
+                    disabled={addGradeMutation.isPending || !gradeForm.studentId || !gradeForm.grade || !gradeForm.assignment}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium py-2"
+                  >
+                    {addGradeMutation.isPending ? (
+                      <>⏳ Enregistrement en cours...</>
+                    ) : (
+                      <>✅ Enregistrer la Note</>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={() => setIsAddGradeOpen(false)}
+                    variant="outline"
+                    className="px-6"
+                  >
+                    ❌ Annuler
+                  </Button>
+                </div>
                 </div>
               </div>
             </div>
