@@ -18,6 +18,9 @@ Preferred communication style: Simple, everyday language.
 - Completed comprehensive sandbox button functionality fixes (August 2025)
 - All sandbox profile buttons now fully functional with proper onClick handlers
 - Created stakeholder Q&A guide for EDUCAFRIC presentations
+- Consolidated all commercial modules into UnifiedCommercialManagement.tsx (January 2025)
+- Unified commercial administration accessible to Site Admin (Simon.admin) with complete oversight
+- Removed duplicate commercial modules to eliminate confusion and improve maintainability
 
 ## System Architecture
 
