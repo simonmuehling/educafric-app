@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSandboxPremium } from './SandboxPremiumProvider';
+import { useSandboxTranslation } from '@/lib/sandboxTranslations';
 import { SimpleTutorial } from '@/components/tutorial/SimpleTutorial';
 import { 
   Play, Code, Database, Users, Settings, TestTube, FileCode, Monitor, 
@@ -33,6 +34,7 @@ interface SystemMetrics {
 
 const ConsolidatedSandboxDashboard = () => {
   const { language } = useLanguage();
+  const translate = useSandboxTranslation(language as 'fr' | 'en');
   const { user } = useAuth();
   const { hasFullAccess, getUserPlan } = useSandboxPremium();
   const [activeTab, setActiveTab] = useState('overview');
@@ -50,19 +52,19 @@ const ConsolidatedSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  // Fonctions pour les boutons
+  // Fonctions pour les boutons avec traductions
   const handleRunTests = () => {
-    console.log('Lancement des tests...');
+    console.log(translate('runTests'));
     setIsRefreshing(true);
     setTimeout(() => {
       setIsRefreshing(false);
-      console.log('Tests terminés');
+      console.log(translate('testsCompleted'));
     }, 2000);
   };
 
   const handleExportLogs = () => {
-    console.log('Export des logs en cours...');
-    const logs = `Sandbox Logs - ${new Date().toISOString()}\n`;
+    console.log(translate('exportLogs'));
+    const logs = `${translate('title')} - ${new Date().toISOString()}\n`;
     const blob = new Blob([logs], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -176,46 +178,46 @@ const ConsolidatedSandboxDashboard = () => {
     const getStatus = () => {
       switch (type) {
         case 'uptime':
-          return value >= 99.5 ? t.excellent : value >= 98 ? t.good : t.warning;
+          return value >= 99.5 ? translate('excellent') : value >= 98 ? translate('good') : translate('warning');
         case 'memory':
-          return value <= 70 ? t.good : value <= 85 ? t.warning : 'Critical';
+          return value <= 70 ? translate('good') : value <= 85 ? translate('warning') : translate('critical');
         case 'response':
-          return value <= 100 ? t.excellent : value <= 200 ? t.good : t.warning;
+          return value <= 100 ? translate('excellent') : value <= 200 ? translate('good') : translate('warning');
         default:
-          return t.good;
+          return translate('good');
       }
     };
 
     const status = getStatus();
-    const variant = status === t.excellent || status === t.good ? 'default' : 'destructive';
+    const variant = status === translate('excellent') || status === translate('good') ? 'default' : 'destructive';
     
     return <Badge variant={variant}>{status}</Badge>;
   };
 
   const quickStats = [
     {
-      title: language === 'fr' ? 'Appels API' : 'API Calls',
+      title: translate('apiCalls'),
       value: metrics.apiCalls.toString(),
       trend: '+23%',
       icon: <Code className="w-5 h-5" />,
       color: 'from-blue-500 to-blue-600'
     },
     {
-      title: language === 'fr' ? 'Temps Réponse' : 'Response Time',
+      title: translate('responseTime'),
       value: `${metrics.responseTime}ms`,
       trend: '-12%',
       icon: <Clock className="w-5 h-5" />,
       color: 'from-green-500 to-green-600'
     },
     {
-      title: language === 'fr' ? 'Disponibilité' : 'Uptime',
+      title: translate('uptime'),
       value: `${metrics.uptime.toFixed(1)}%`,
       trend: '+0.2%',
       icon: <Activity className="w-5 h-5" />,
       color: 'from-purple-500 to-purple-600'
     },
     {
-      title: language === 'fr' ? 'Erreurs' : 'Errors',
+      title: translate('errors'),
       value: metrics.errors.toString(),
       trend: '-45%',
       icon: <AlertTriangle className="w-5 h-5" />,
