@@ -86,29 +86,64 @@ Educafric propose un **modèle freemium** stratégique permettant aux clients de
 
 ---
 
-## 👨‍👩‍👧‍👦 PARENTS : PLANS D'ABONNEMENT
+## 👨‍👩‍👧‍👦 PARENTS : FREEMIUM vs PREMIUM
 
-### 🎒 **PARENTS ÉCOLE PUBLIQUE (1,000 CFA/mois)**
-*Plan accessible pour familles d'écoles publiques*
+### 💚 **MODULES FREEMIUM PARENTS (GRATUITS)**
+*Modules accessibles sans abonnement payant*
 
-**Fonctionnalités Incluses :**
-- ✅ Suivi des progrès académiques de l'enfant
-- ✅ Notifications SMS pour notes et présences
-- ✅ Communication directe avec les enseignants
-- ✅ Accès aux devoirs assignés et échéances
-- ✅ Suivi GPS basique pour sécurité enfant
-- ✅ Bulletins numériques simplifiés
+**Modules Inclus Gratuitement :**
+- ✅ **Mes Enfants** : Vue d'ensemble basique des enfants scolarisés
+- ✅ **Notifications** : Alertes et messages simples de l'école
+- ✅ **Demandes Parents** : Formulaires de contact avec école
+- ✅ **Aide** : Support standard et documentation
 
-### 🏫 **PARENTS ÉCOLE PRIVÉE (1,500 CFA/mois)**
-*Plan premium avec fonctionnalités avancées*
+**Limitations Freemium :**
+- Pas de communication directe enseignants
+- Bulletins simplifiés uniquement
+- Pas de géolocalisation
+- Pas de paiements en ligne
+- Support technique basique
 
-**Toutes fonctionnalités École Publique PLUS :**
-- 🔥 **Analyses améliorées** : Rapports détaillés avec graphiques
-- 🔥 **Support client prioritaire** : Assistance dédiée 7j/7
-- 🔥 **Suivi GPS avancé** : Historique détaillé des positions + zones de sécurité
-- 🔥 **Intégration WhatsApp Business** : Communication enrichie
-- 🔥 **Système notification premium** : Alertes personnalisées et urgences
-- 🔥 **Rapports prédictifs** : Analyse des tendances de performance
+### 🔥 **MODULES PREMIUM PARENTS (Abonnement Requis)**
+
+#### **PLAN ÉCOLE PUBLIQUE (1,000 CFA/mois)** - 5 modules premium :
+
+**🔒 1. Messages Enseignants**
+- Communication directe avec les enseignants
+- Notifications push instantanées
+- Historique complet des conversations
+- Pièces jointes et photos
+
+**🔒 2. Bulletins & Notes Détaillés**
+- Bulletins avec graphiques détaillés
+- Analyse de progression par matière
+- Comparaison avec la moyenne de classe
+- Téléchargement PDF professionnel
+
+**🔒 3. Suivi Présence Avancé**
+- Alertes absence en temps réel
+- Historique de présence détaillé
+- Justification d'absence en ligne
+- Rapport mensuel automatique
+
+**🔒 4. Gestion Paiements**
+- Paiements Orange Money & MTN
+- Historique complet des factures
+- Rappels automatiques d'échéance
+- Reçus PDF téléchargeables
+
+**🔒 5. Géolocalisation Premium**
+- Suivi GPS temps réel de votre enfant
+- Zones de sécurité personnalisées
+- Alertes d'arrivée/départ école
+- Historique des déplacements
+
+#### **PLAN ÉCOLE PRIVÉE (1,500 CFA/mois)** - Toutes fonctionnalités Premium PLUS :
+- 🔥 **Analyses comportementales avancées**
+- 🔥 **Support client prioritaire 7j/7**
+- 🔥 **Intégration WhatsApp Business**
+- 🔥 **Alertes d'urgence instantanées**
+- 🔥 **Rapports prédictifs de performance**
 
 ### 💰 **REMISES FAMILIALES**
 - **2 enfants** : 20% de remise sur abonnement total
@@ -116,38 +151,82 @@ Educafric propose un **modèle freemium** stratégique permettant aux clients de
 
 ---
 
-## 🎓 FREELANCERS/ENSEIGNANTS : PLANS PROFESSIONNELS
+## 🎓 FREELANCERS : FREEMIUM vs PREMIUM
 
-### 📖 **PLAN SEMESTRIEL (12,500 CFA/semestre)**
-*Parfait pour missions d'enseignement courtes*
+### 💚 **MODULES FREEMIUM FREELANCERS (GRATUITS)**
+*Modules accessibles sans abonnement payant*
 
-**Modules Inclus :**
-- ✅ Outils complets de gestion de classe
-- ✅ Système de communication avec parents
-- ✅ Suivi et rapport des notes détaillés
-- ✅ Suivi des paiements pour cours particuliers
-- ✅ Planning et calendrier des cours
-- ✅ Interface de tutorat basique
+**Modules Inclus Gratuitement :**
+- ✅ **Paramètres** : Configuration profil freelancer basique
+- ✅ **Notifications** : Alertes et messages simples
+- ✅ **Multi-Rôles** : Changement de rôle utilisateur
+- ✅ **Aide** : Support standard et documentation
 
-### 📈 **PLAN ANNUEL (25,000 CFA/an)**
-*Économie de 2 mois - Solution professionnelle complète*
+**Limitations Freemium :**
+- Pas de gestion d'étudiants avancée
+- Pas de planification professionnelle
+- Pas de facturation automatisée
+- Pas d'outils pédagogiques premium
+- Support technique basique
 
-**Toutes fonctionnalités semestrielles PLUS :**
-- 🔥 **Gestion améliorée base étudiants** : Profils enrichis illimités
-- 🔥 **Outils avancés planification** : IA pour optimisation emploi du temps
-- 🔥 **Support technique prioritaire** : Assistance dédiée 24h/24
-- 🔥 **Analytics de performance** : Rapports détaillés sur réussite élèves
-- 🔥 **Intégration écoles partenaires** : Accès réseau écoles Educafric
-- 🔥 **Certification premium** : Badge qualité sur profil
+### 🔥 **MODULES PREMIUM FREELANCERS (Abonnement Requis)**
 
-### 🛰️ **OPTION GPS FREELANCER (12,000 CFA/an)**
-*Module spécialisé géolocalisation*
+#### **PLAN SEMESTRIEL (12,500 CFA/semestre)** - 8 modules premium :
 
-**Fonctionnalités Géolocalisation :**
-- ✅ Suivi localisation élèves pendant sessions
-- ✅ Vérification de présence géolocalisée
-- ✅ Surveillance sécuritaire renforcée
-- ✅ Rapports de localisation détaillés pour parents
+**🔒 1. Gestion Étudiants Premium**
+- Accès à toutes les écoles partenaires
+- Profil d'étudiant détaillé avec historique
+- Système de notation avancé
+- Communication directe avec parents
+
+**🔒 2. Sessions d'Enseignement**
+- Planification illimitée de sessions
+- Outils pédagogiques intégrés
+- Enregistrement des progressions
+- Rapports détaillés par session
+
+**🔒 3. Gestion Financière**
+- Facturation automatisée
+- Suivi des paiements temps réel
+- Rapports fiscaux mensuels
+- Paiements Orange Money & MTN
+
+**🔒 4. Planning Professionnel**
+- Calendrier synchronisé multi-écoles
+- Gestion des disponibilités avancée
+- Rappels automatiques de cours
+- Optimisation des trajets
+
+**🔒 5. Ressources Pédagogiques**
+- Bibliothèque de cours premium
+- Outils de création de contenu
+- Partage sécurisé avec étudiants
+- Templates professionnels
+
+**🔒 6. Communication Professionnelle**
+- Messagerie directe avec écoles
+- Notifications WhatsApp intégrées
+- Rapports de progression automatiques
+- Support client prioritaire
+
+**🔒 7. Géolocalisation Pro**
+- Optimisation d'itinéraires multi-écoles
+- Suivi kilométrique automatique
+- Zones d'intervention personnalisées
+- Calcul des frais de déplacement
+
+**🔒 8. Analytics Avancés**
+- Rapports de performance détaillés
+- Analyses prédictives de réussite
+- Métriques d'engagement étudiants
+- ROI par école partenaire
+
+#### **PLAN ANNUEL (25,000 CFA/an)** - Tous modules premium PLUS :
+- 🔥 **Support technique prioritaire 24h/24**
+- 🔥 **Certification premium Educafric**
+- 🔥 **Accès exclusif au réseau écoles premium**
+- 🔥 **Outils marketing et prospection intégrés**
+- 🔥 **Formation continue et webinaires exclusifs**
 
 ---
 
