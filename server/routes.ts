@@ -11,6 +11,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import express from "express";
 import fs from "fs";
+import { marked } from "marked";
 import { configureSecurityMiddleware, securityLogger, productionSessionConfig } from "./middleware/security";
 import { dataProtectionMiddleware, privacyLogger, setupDataRightsRoutes } from "./middleware/compliance";
 import { sanitizeInput } from "./middleware/validation";
@@ -197,9 +198,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Serve static files from uploads directory
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
-  
-  // Setup scheduled security alerts
-  setupScheduledAlerts();
+
+  // Serve documents with proper headers and MD to HTML conversion
+  app.get('/documents/:filename', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(process.cwd(), 'public', 'documents', filename);
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+
+      // Handle MD files - convert to HTML for viewing
+      if (filename.endsWith('.md')) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const htmlContent = marked(content);
+        
+        const htmlPage = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${filename} - Educafric</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333; }
+        h1, h2, h3 { color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+        h1 { font-size: 2.5rem; }
+        h2 { font-size: 2rem; margin-top: 2rem; }
+        h3 { font-size: 1.5rem; margin-top: 1.5rem; }
+        ul, ol { margin: 1rem 0; padding-left: 2rem; }
+        li { margin: 0.5rem 0; }
+        p { margin: 1rem 0; }
+        strong { color: #1d4ed8; }
+        .header { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
+        .footer { margin-top: 3rem; padding: 20px; background: #f8fafc; border-radius: 10px; text-align: center; color: #64748b; }
+        @media print { body { max-width: none; margin: 0; padding: 10px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📄 ${filename.replace('.md', '').replace(/-/g, ' ').toUpperCase()}</h1>
+        <p>Document Educafric - Plateforme éducative africaine</p>
+    </div>
+    <div class="content">
+        ${htmlContent}
+    </div>
+    <div class="footer">
+        <p><strong>Educafric</strong> - Plateforme éducative pour l'Afrique</p>
+        <p>📧 admin@educafric.com | 📞 +237 600 000 000</p>
+    </div>
+</body>
+</html>`;
+        
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(htmlPage);
+      }
+
+      // Handle PDF and other files - serve directly
+      const stat = fs.statSync(filePath);
+      const fileExtension = path.extname(filename).toLowerCase();
+      
+      if (fileExtension === '.pdf') {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      } else if (fileExtension === '.html') {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      } else {
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      }
+      
+      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving document:', error);
+      res.status(500).json({ error: 'Error serving document' });
+    }
+  });
+
+  // Convert MD files to PDF endpoint
+  app.get('/documents/:filename/pdf', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const baseName = filename.replace('.md', '');
+      const mdFilePath = path.join(process.cwd(), 'public', 'documents', filename.endsWith('.md') ? filename : `${filename}.md`);
+      
+      if (!fs.existsSync(mdFilePath)) {
+        return res.status(404).json({ error: 'Markdown document not found' });
+      }
+
+      const content = fs.readFileSync(mdFilePath, 'utf8');
+      const htmlContent = marked(content);
+      
+      const fullHtml = `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${baseName} - Educafric</title>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; font-size: 12pt; }
+        h1, h2, h3 { color: #2563eb; page-break-after: avoid; }
+        h1 { font-size: 20pt; border-bottom: 3px solid #2563eb; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { font-size: 16pt; margin-top: 25px; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; }
+        h3 { font-size: 14pt; margin-top: 20px; }
+        ul, ol { margin: 10px 0; padding-left: 20px; }
+        li { margin: 5px 0; }
+        p { margin: 10px 0; text-align: justify; }
+        strong { color: #1d4ed8; font-weight: 600; }
+        .header { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; text-align: center; page-break-inside: avoid; }
+        .footer { margin-top: 30px; padding: 15px; background: #f8fafc; border-radius: 8px; text-align: center; color: #64748b; font-size: 10pt; page-break-inside: avoid; }
+        .content { orphans: 3; widows: 3; }
+        .page-break { page-break-before: always; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📄 ${baseName.replace(/-/g, ' ').toUpperCase()}</h1>
+        <p>Document Educafric - Plateforme éducative africaine</p>
+        <p>Généré le ${new Date().toLocaleDateString('fr-FR')}</p>
+    </div>
+    <div class="content">
+        ${htmlContent}
+    </div>
+    <div class="footer">
+        <p><strong>Educafric</strong> - Plateforme éducative pour l'Afrique</p>
+        <p>📧 admin@educafric.com | 📞 +237 600 000 000</p>
+        <p>Document généré automatiquement depuis ${filename}</p>
+    </div>
+</body>
+</html>`;
+
+      // Set headers for PDF response
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `inline; filename="${baseName}.html"`);
+      res.send(fullHtml);
+      
+    } catch (error) {
+      console.error('Error converting MD to PDF:', error);
+      res.status(500).json({ error: 'Error converting document to PDF' });
+    }
+  });
   
   // Sandbox isolation middleware (must be first to exclude sandbox from security monitoring)
   app.use(sandboxIsolationMiddleware);

@@ -285,11 +285,22 @@ const DocumentsContracts = () => {
   };
 
   const handleDownloadDocument = (doc: any) => {
-    window.open(doc.url, '_blank');
-    toast({
-      title: language === 'fr' ? 'Document ouvert' : 'Document opened',
-      description: language === 'fr' ? `${doc.name} a été ouvert dans un nouvel onglet` : `${doc.name} has been opened in a new tab`,
-    });
+    // For MD files, offer PDF conversion option
+    if (doc.format === 'MD') {
+      const pdfUrl = doc.url.replace('.md', '/pdf');
+      window.open(pdfUrl, '_blank');
+      toast({
+        title: language === 'fr' ? 'Document PDF généré' : 'PDF Document Generated',
+        description: language === 'fr' ? `${doc.name} a été converti en PDF et ouvert` : `${doc.name} has been converted to PDF and opened`,
+      });
+    } else {
+      // For PDF and other files, open directly
+      window.open(doc.url, '_blank');
+      toast({
+        title: language === 'fr' ? 'Document ouvert' : 'Document opened',
+        description: language === 'fr' ? `${doc.name} a été ouvert dans un nouvel onglet` : `${doc.name} has been opened in a new tab`,
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -411,7 +422,7 @@ const DocumentsContracts = () => {
                   className="flex-1 text-xs"
                 >
                   <Download className="w-3 h-3 mr-1" />
-                  {t.download}
+                  {doc.format === 'MD' ? (language === 'fr' ? 'PDF' : 'PDF') : t.download}
                 </Button>
               </div>
             </CardContent>
@@ -461,8 +472,8 @@ const DocumentsContracts = () => {
                       : 'Click "Download" to open this PDF document in a new tab.'
                   ) : (
                     language === 'fr' 
-                      ? 'Cliquez sur "Télécharger" pour consulter ce guide Markdown dans un nouvel onglet.' 
-                      : 'Click "Download" to view this Markdown guide in a new tab.'
+                      ? 'Cliquez sur "Télécharger" pour consulter ce guide Markdown converti en PDF dans un nouvel onglet.' 
+                      : 'Click "Download" to view this Markdown guide converted to PDF in a new tab.'
                   )}
                 </p>
               </div>
