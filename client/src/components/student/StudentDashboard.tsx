@@ -17,7 +17,7 @@ import StudentProgress from './modules/StudentProgress';
 
 // import StudentAchievements from './modules/StudentAchievements';
 import HelpCenter from '@/components/help/HelpCenter';
-import StudentSettings from './modules/StudentSettings';
+import StudentProfile from './modules/StudentProfile';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 
@@ -179,17 +179,10 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     },
     {
       id: 'profile',
-      label: t.profile,
+      label: 'PROFIL',
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <FunctionalStudentProfile />
-    },
-    {
-      id: 'settings',
-      label: t.settings,
-      icon: <Settings className="w-6 h-6" />,
-      color: 'bg-gray-500',
-      component: <StudentSettings />
+      component: <StudentProfile />
     },
     {
       id: 'help',

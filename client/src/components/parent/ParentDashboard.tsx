@@ -10,7 +10,7 @@ import {
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import ChildrenManagement from './modules/ChildrenManagement';
 import ParentCommunicationsBidirectional from './modules/ParentCommunicationsBidirectional';
-import FunctionalParentProfile from './modules/FunctionalParentProfile';
+import ParentProfile from './modules/ParentProfile';
 import { WhatsAppNotifications } from './modules/WhatsAppNotifications';
 
 import { ParentGeolocation } from './modules/ParentGeolocation';
@@ -228,11 +228,11 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       component: <ParentRequestManager />
     },
     {
-      id: 'settings',
-      label: t.settings,
-      icon: <Settings className="w-6 h-6" />,
+      id: 'profile',
+      label: 'PROFIL',
+      icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <FunctionalParentProfile />
+      component: <ParentProfile />
     },
     {
       id: 'multirole',

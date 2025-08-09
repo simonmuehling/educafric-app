@@ -200,7 +200,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     {
       id: 'multirole',
       label: t.multirole,
-      icon: <User className="w-6 h-6" />,
+      icon: <Users className="w-6 h-6" />,
       color: 'bg-purple-600',
       component: <UniversalMultiRoleSwitch 
         currentUserRole="Teacher"
@@ -216,9 +216,9 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       />
     },
     {
-      id: 'settings',
-      label: 'Paramètres',
-      icon: <Settings className="w-6 h-6" />,
+      id: 'profile',
+      label: 'PROFIL',
+      icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
       component: <FunctionalTeacherProfile />
     },
