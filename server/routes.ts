@@ -37,6 +37,8 @@ import { storage } from "./storage";
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema, updateProfileSchema } from "@shared/schemas";
 import { User } from "@shared/schema";
 import { z } from "zod";
+import { stripeService, subscriptionPlans } from './services/stripeService';
+import { subscriptionManager } from './services/subscriptionManager';
 
 // Define AuthenticatedUser type for type safety
 interface AuthenticatedUser extends User {
@@ -18935,6 +18937,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch absence reports' });
     }
   });
+
+  // ===== STRIPE PAYMENT API ROUTES =====
+  
+  // Get available subscription plans
+  app.get("/api/stripe/plans", requireAuth, async (req, res) => {
+    console.log('[STRIPE_API] Getting subscription plans');
+    try {
+      const { category } = req.query;
+      let plans = subscriptionPlans;
+      
+      if (category) {
+        plans = plans.filter(plan => plan.category === category);
+      }
+      
+      console.log(`[STRIPE_API] ✅ Returning ${plans.length} plans`);
+      res.json({ success: true, plans });
+    } catch (error: any) {
+      console.error('[STRIPE_API] ❌ Error fetching plans:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+  
+  // Create payment intent for one-time payment
+  app.post("/api/stripe/create-payment-intent", requireAuth, async (req, res) => {
+    console.log('[STRIPE_API] Creating payment intent');
+    try {
+      const { planId } = req.body;
+      const user = req.user as any;
+      
+      if (!planId) {
+        return res.status(400).json({ success: false, message: 'Plan ID is required' });
+      }
+      
+      const paymentIntent = await stripeService.createPaymentIntent(planId, user.id);
+      
+      console.log(`[STRIPE_API] ✅ Payment intent created: ${paymentIntent.id}`);
+      res.json({
+        success: true,
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error('[STRIPE_API] ❌ Error creating payment intent:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+  
+  // Stripe webhooks endpoint
+  app.post("/api/stripe/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+    console.log('[STRIPE_WEBHOOK] Received webhook');
+    try {
+      const signature = req.headers['stripe-signature'] as string;
+      
+      if (!signature) {
+        console.error('[STRIPE_WEBHOOK] ❌ Missing stripe signature');
+        return res.status(400).json({ error: 'Missing stripe signature' });
+      }
+      
+      await stripeService.handleWebhook(signature, req.body);
+      
+      console.log('[STRIPE_WEBHOOK] ✅ Webhook processed successfully');
+      res.json({ received: true });
+    } catch (error: any) {
+      console.error('[STRIPE_WEBHOOK] ❌ Webhook error:', error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Check subscription status
+  app.get("/api/stripe/subscription-status", requireAuth, async (req, res) => {
+    console.log('[STRIPE_API] Checking subscription status');
+    try {
+      const user = req.user as any;
+      const status = await stripeService.checkSubscriptionStatus(user.id);
+      
+      console.log(`[STRIPE_API] ✅ Status checked for user ${user.id}: ${status.isActive}`);
+      res.json({ success: true, ...status });
+    } catch (error: any) {
+      console.error('[STRIPE_API] ❌ Error checking subscription status:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
+  console.log('[STRIPE_API] ✅ Stripe payment routes registered successfully');
+
+  // Initialize subscription manager
+  subscriptionManager.init();
 
   // Register Site Admin Routes
   registerSiteAdminRoutes(app, requireAuth);

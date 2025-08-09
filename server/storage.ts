@@ -21,7 +21,7 @@ import {
   type Notification, type InsertNotification
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, sql, or } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, sql, or, lt, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // ===== DELEGATE ADMINISTRATORS INTERFACE =====
@@ -883,11 +883,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserSubscription(id: number, subscriptionData: { subscriptionStatus: string; stripeSubscriptionId: string; planId: string; planName: string }): Promise<User> {
+    const now = new Date();
     const [user] = await db.update(users)
       .set({ 
         subscriptionStatus: subscriptionData.subscriptionStatus,
         stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
-        updatedAt: new Date()
+        subscriptionPlan: subscriptionData.planName,
+        updatedAt: now
       })
       .where(eq(users.id, id))
       .returning();
@@ -898,6 +900,96 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`[STORAGE] User subscription updated: ${user.email} -> ${subscriptionData.subscriptionStatus} (${subscriptionData.planName})`);
     return user;
+  }
+
+  async updateUserStripeCustomerId(id: number, stripeCustomerId: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({ 
+        stripeCustomerId,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    console.log(`[STORAGE] User Stripe customer ID updated: ${user.email} -> ${stripeCustomerId}`);
+    return user;
+  }
+
+  async getExpiredSubscriptions(): Promise<User[]> {
+    const now = new Date();
+    const expiredUsers = await db.select()
+      .from(users)
+      .where(
+        and(
+          eq(users.subscriptionStatus, 'active'),
+          lt(users.subscriptionEnd, now.toISOString())
+        )
+      );
+    
+    console.log(`[STORAGE] Found ${expiredUsers.length} expired subscriptions`);
+    return expiredUsers;
+  }
+
+  async getUsersExpiringInDays(days: number): Promise<User[]> {
+    const now = new Date();
+    const targetDate = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+    
+    const expiringUsers = await db.select()
+      .from(users)
+      .where(
+        and(
+          eq(users.subscriptionStatus, 'active'),
+          gte(users.subscriptionEnd, now.toISOString()),
+          lte(users.subscriptionEnd, targetDate.toISOString())
+        )
+      );
+    
+    console.log(`[STORAGE] Found ${expiringUsers.length} subscriptions expiring in ${days} days`);
+    return expiringUsers;
+  }
+
+  async getSubscriptionStats(): Promise<{
+    active: number;
+    expired: number;
+    cancelled: number;
+    revenueThisWeek: number;
+    revenueThisMonth: number;
+    totalRevenue: number;
+    newSubscriptionsThisWeek: number;
+    expiringNextWeek: number;
+  }> {
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const monthAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+    const weekFromNow = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+
+    const allUsers = await db.select().from(users);
+    
+    const stats = {
+      active: allUsers.filter(u => u.subscriptionStatus === 'active').length,
+      expired: allUsers.filter(u => u.subscriptionStatus === 'expired').length,
+      cancelled: allUsers.filter(u => u.subscriptionStatus === 'cancelled').length,
+      revenueThisWeek: 0, // TODO: Calculer à partir des paiements
+      revenueThisMonth: 0, // TODO: Calculer à partir des paiements
+      totalRevenue: 0, // TODO: Calculer à partir des paiements
+      newSubscriptionsThisWeek: allUsers.filter(u => 
+        u.subscriptionStatus === 'active' && 
+        new Date(u.createdAt) > weekAgo
+      ).length,
+      expiringNextWeek: allUsers.filter(u => 
+        u.subscriptionStatus === 'active' && 
+        u.subscriptionEnd && 
+        new Date(u.subscriptionEnd) <= weekFromNow &&
+        new Date(u.subscriptionEnd) > now
+      ).length
+    };
+    
+    console.log(`[STORAGE] Subscription stats:`, stats);
+    return stats;
   }
 
   async getSchool(id: number): Promise<School | undefined> {
