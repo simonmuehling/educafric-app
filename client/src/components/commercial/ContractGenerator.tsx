@@ -164,7 +164,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contrat de Partenariat Commercial - EduConnect Africa</title>
+    <title>Contrat de Partenariat Commercial - EDUCAFRIC</title>
     <style>
         @page { size: A4; margin: 20mm; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; font-size: 11pt; }
@@ -191,14 +191,14 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
 <body>
     <div class="header">
         <h1>CONTRAT DE PARTENARIAT COMMERCIAL</h1>
-        <p>EduConnect Africa - Afro Metaverse Marketing SARL</p>
+        <p>EDUCAFRIC - Afro Metaverse Marketing SARL</p>
     </div>
 
     <div class="legal-info">
         <h3>INFORMATIONS LÉGALES</h3>
         <p><strong>Propriétaire de la marque :</strong> Afro Metaverse Marketing SARL</p>
         <p><strong>Siège social :</strong> Douala, Cameroun</p>
-        <p><strong>Marque déposée :</strong> EduConnect Africa - Brevet de droit d'auteur enregistré à l'OAPI du Cameroun</p>
+        <p><strong>Marque déposée :</strong> EDUCAFRIC - Brevet de droit d'auteur enregistré à l'OAPI du Cameroun</p>
         <p><strong>Téléphone :</strong> +237 656 200 472 | <strong>Email :</strong> info@educafric.com</p>
     </div>
 
@@ -208,7 +208,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
             <div class="party-box">
                 <div class="party-title">L'ENTREPRISE</div>
                 <p><strong>Afro Metaverse Marketing SARL</strong><br>
-                Propriétaire de la marque EduConnect Africa<br>
+                Propriétaire de la marque EDUCAFRIC<br>
                 Adresse : Douala, Cameroun<br>
                 Téléphone : +237 656 200 472<br>
                 Email : info@educafric.com<br>
@@ -228,7 +228,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
 
     <div class="article">
         <h2>ARTICLE 1 - OBJET DU CONTRAT</h2>
-        <p>Ce contrat établit un partenariat commercial pour la promotion et la vente des services de la plateforme de gestion éducative EduConnect Africa auprès des écoles et institutions éducatives.</p>
+        <p>Ce contrat établit un partenariat commercial pour la promotion et la vente des services de la plateforme de gestion éducative EDUCAFRIC auprès des écoles et institutions éducatives.</p>
         
         <div class="highlight-box">
             <h3>Territoire d'intervention</h3>
@@ -295,7 +295,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
     ${data.hasNonCompete ? `
     <div class="article">
         <h2>ARTICLE 5 - CLAUSE DE NON-CONCURRENCE</h2>
-        <p>Pendant la durée du contrat et <strong>${data.nonCompetePeriod} mois</strong> après sa résiliation, LE PARTENAIRE s'engage à ne pas travailler pour des concurrents directs d'EduConnect Africa.</p>
+        <p>Pendant la durée du contrat et <strong>${data.nonCompetePeriod} mois</strong> après sa résiliation, LE PARTENAIRE s'engage à ne pas travailler pour des concurrents directs d'EDUCAFRIC.</p>
     </div>` : ''}
 
     <div class="article">
@@ -304,7 +304,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
             <ul>
                 <li>Toutes les informations échangées sont strictement confidentielles</li>
                 <li>La propriété intellectuelle reste avec L'ENTREPRISE</li>
-                <li>L'usage de la marque EduConnect Africa nécessite une autorisation écrite</li>
+                <li>L'usage de la marque EDUCAFRIC nécessite une autorisation écrite</li>
                 <li>Protection sous brevet OAPI et législation OHADA</li>
             </ul>
         </div>
@@ -329,7 +329,7 @@ const ContractGenerator: React.FC<ContractGeneratorProps> = ({
     </div>
 
     <div class="footer">
-        <p>EduConnect Africa - Contrat généré automatiquement le ${currentDate}</p>
+        <p>EDUCAFRIC - Contrat généré automatiquement le ${currentDate}</p>
         <p>Afro Metaverse Marketing SARL - Douala, Cameroun - +237 656 200 472</p>
     </div>
 </body>

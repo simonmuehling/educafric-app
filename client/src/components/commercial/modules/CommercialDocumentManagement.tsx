@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
+import ContractGenerator from '../ContractGenerator';
 
 interface CommercialDocument {
   id: number;
@@ -50,6 +51,16 @@ const CommercialDocumentManagement: React.FC = () => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
   const [shareMessage, setShareMessage] = useState('');
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
+
+  // Check if user can create contracts (COO or specific emails)
+  const canCreateContracts = user && (
+    user.email === 'carine.nguetsop@educafric.com' ||
+    user.email === 'carine@educafric.com' ||
+    user.email === 'nguetsop.carine@educafric.com' ||
+    user.email?.includes('carine') ||
+    user.role === 'SiteAdmin'
+  );
 
   const text = {
     fr: {
@@ -73,6 +84,8 @@ const CommercialDocumentManagement: React.FC = () => {
       documentShared: 'Document partagé avec succès',
       documentDeleted: 'Document supprimé',
       confirmDelete: 'Êtes-vous sûr de vouloir supprimer ce document ?',
+      createContract: 'Créer Contrat',
+      contractCreated: 'Contrat créé avec succès',
       cancel: 'Annuler',
       close: 'Fermer',
       noDocuments: 'Aucun document trouvé',
@@ -118,7 +131,9 @@ const CommercialDocumentManagement: React.FC = () => {
       draft: 'Draft',
       finalized: 'Finalized',
       sent: 'Sent',
-      signed: 'Signed'
+      signed: 'Signed',
+      createContract: 'Create Contract',
+      contractCreated: 'Contract created successfully'
     }
   };
 
@@ -304,6 +319,15 @@ const CommercialDocumentManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
+        {canCreateContracts && (
+          <Button 
+            onClick={() => setIsContractDialogOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {t.createContract}
+          </Button>
+        )}
       </div>
 
       {/* Documents Table */}
@@ -525,6 +549,21 @@ const CommercialDocumentManagement: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Contract Generator Dialog */}
+      {canCreateContracts && (
+        <ContractGenerator
+          isOpen={isContractDialogOpen}
+          onClose={() => setIsContractDialogOpen(false)}
+          onContractGenerated={(contractData) => {
+            toast({
+              title: t.contractCreated,
+              description: `Contrat créé pour ${contractData.partnerName}`,
+            });
+            queryClient.invalidateQueries({ queryKey: ['/api/commercial/documents'] });
+          }}
+        />
+      )}
     </div>
   );
 };
