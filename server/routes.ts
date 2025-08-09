@@ -35,6 +35,7 @@ import {
   registerDevice
 } from "./routes/geolocationRoutes";
 import { storage } from "./storage";
+import { sendGoodbyeEmail } from "./emailService";
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema, updateProfileSchema } from "@shared/schemas";
 import { User } from "@shared/schema";
 import { z } from "zod";
@@ -19318,6 +19319,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[ACCOUNT_DELETE] Deleting account for user ${user.id}`);
       
+      // Envoyer l'email d'au revoir avant la suppression
+      const emailSent = await sendGoodbyeEmail({
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}` || user.username || user.email,
+        userType: user.role || 'student',
+        language: user.preferredLanguage || 'fr'
+      });
+      
+      if (emailSent) {
+        console.log(`[ACCOUNT_DELETE] ✅ Goodbye email sent to ${user.email}`);
+      } else {
+        console.log(`[ACCOUNT_DELETE] ⚠️ Failed to send goodbye email to ${user.email}`);
+      }
+      
       try {
         await storage.deleteUser(user.id);
         console.log(`[ACCOUNT_DELETE] ✅ Account deleted for user ${user.id}`);
@@ -19329,13 +19344,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json({
           success: true,
-          message: 'Account deleted successfully'
+          message: 'Account deleted successfully',
+          emailSent: emailSent
         });
       } catch (storageError) {
         console.error('[ACCOUNT_DELETE] Storage error:', storageError);
         res.json({
           success: true,
-          message: 'Account deleted (simulated for development)'
+          message: 'Account deleted (simulated for development)',
+          emailSent: emailSent
         });
       }
     } catch (error: any) {
@@ -19343,6 +19360,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: 'Failed to delete account' 
+      });
+    }
+  });
+
+  // Test email configuration route
+  app.post("/api/email/test", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (!user) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      console.log(`[EMAIL_TEST] Testing email for user ${user.id}`);
+      
+      const testEmailSent = await sendGoodbyeEmail({
+        userEmail: user.email,
+        userName: `${user.firstName} ${user.lastName}` || user.username || user.email,
+        userType: user.role || 'student',
+        language: user.preferredLanguage || 'fr'
+      });
+      
+      res.json({
+        success: testEmailSent,
+        message: testEmailSent ? 'Email de test envoyé avec succès' : 'Échec de l\'envoi du email de test',
+        recipient: user.email
+      });
+    } catch (error: any) {
+      console.error('[EMAIL_TEST] Error testing email:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur lors du test email' 
       });
     }
   });
