@@ -6,7 +6,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-07-30.basil',
 });
 
 export interface SubscriptionPlan {
@@ -142,7 +142,7 @@ export class StripeService {
     try {
       const user = await storage.getUserById(userId);
       
-      if (user.stripeCustomerId) {
+      if (user && user.stripeCustomerId) {
         console.log(`[STRIPE] Retrieving existing customer: ${user.stripeCustomerId}`);
         return await stripe.customers.retrieve(user.stripeCustomerId) as Stripe.Customer;
       }
