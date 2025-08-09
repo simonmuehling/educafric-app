@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save } from 'lucide-react';
+import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save, MessageSquare, BarChart3, CheckSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     lastName: user?.lastName || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    countryCode: '+237',
     gender: user?.gender || '',
     address: '',
     dateOfBirth: ''
@@ -126,11 +127,35 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     { value: 'notifications', label: t.notifications, icon: Bell }
   ];
 
-  const handleProfileSave = () => {
-    toast({
-      title: "Profil mis à jour",
-      description: "Vos informations ont été sauvegardées avec succès.",
-    });
+  const handleProfileSave = async () => {
+    try {
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...profileData,
+          phone: `${profileData.countryCode}${profileData.phone}`
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Profil mis à jour",
+          description: "Vos informations ont été sauvegardées avec succès.",
+        });
+      } else {
+        throw new Error('Erreur lors de la sauvegarde');
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder le profil.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePasswordChange = () => {
@@ -155,11 +180,35 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     });
   };
 
-  const handleNotificationSave = () => {
-    toast({
-      title: "Notifications mises à jour",
-      description: "Vos préférences de notification ont été sauvegardées.",
-    });
+  const handleNotificationSave = async () => {
+    try {
+      const response = await fetch('/api/notifications/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...notificationSettings,
+          phone: `${profileData.countryCode}${profileData.phone}`
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Notifications mises à jour",
+          description: "Vos préférences de notification ont été sauvegardées.",
+        });
+      } else {
+        throw new Error('Erreur lors de la sauvegarde');
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder les préférences de notification.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -237,9 +286,28 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
               <div>
                 <Label htmlFor="phone">{t.phone}</Label>
                 <div className="flex">
-                  <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
-                    +237
-                  </span>
+                  <Select 
+                    value={profileData.countryCode || '+237'} 
+                    onValueChange={(value) => setProfileData({ 
+                      ...profileData, 
+                      countryCode: value 
+                    })}
+                  >
+                    <SelectTrigger className="w-24 rounded-r-none border-r-0" data-testid="select-country-code">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+237">🇨🇲 +237</SelectItem>
+                      <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                      <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                      <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                      <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                      <SelectItem value="+234">🇳🇬 +234</SelectItem>
+                      <SelectItem value="+225">🇨🇮 +225</SelectItem>
+                      <SelectItem value="+221">🇸🇳 +221</SelectItem>
+                      <SelectItem value="+250">🇷🇼 +250</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Input
                     id="phone"
                     type="tel"
@@ -395,8 +463,11 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="emailNotifs">{t.emailNotifications}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  <Label htmlFor="emailNotifs" className="font-medium">{t.emailNotifications}</Label>
+                </div>
                 <Switch
                   id="emailNotifs"
                   checked={notificationSettings.emailNotifications}
@@ -406,11 +477,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       emailNotifications: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-email-notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="smsNotifs">{t.smsNotifications}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Phone className="w-5 h-5 text-green-600" />
+                  <Label htmlFor="smsNotifs" className="font-medium">{t.smsNotifications}</Label>
+                </div>
                 <Switch
                   id="smsNotifs"
                   checked={notificationSettings.smsNotifications}
@@ -420,11 +495,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       smsNotifications: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-sms-notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="whatsappNotifs">{t.whatsappNotifications}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-5 h-5 text-green-500" />
+                  <Label htmlFor="whatsappNotifs" className="font-medium">{t.whatsappNotifications}</Label>
+                </div>
                 <Switch
                   id="whatsappNotifs"
                   checked={notificationSettings.whatsappNotifications}
@@ -434,11 +513,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       whatsappNotifications: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-whatsapp-notifications"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="gradeUpdates">{t.gradeUpdates}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-orange-600" />
+                  <Label htmlFor="gradeUpdates" className="font-medium">{t.gradeUpdates}</Label>
+                </div>
                 <Switch
                   id="gradeUpdates"
                   checked={notificationSettings.gradeUpdates}
@@ -448,11 +531,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       gradeUpdates: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-grade-updates"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="attendanceAlerts">{t.attendanceAlerts}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <CheckSquare className="w-5 h-5 text-purple-600" />
+                  <Label htmlFor="attendanceAlerts" className="font-medium">{t.attendanceAlerts}</Label>
+                </div>
                 <Switch
                   id="attendanceAlerts"
                   checked={notificationSettings.attendanceAlerts}
@@ -462,11 +549,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       attendanceAlerts: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-attendance-alerts"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="generalAnnouncements">{t.generalAnnouncements}</Label>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-blue-500" />
+                  <Label htmlFor="generalAnnouncements" className="font-medium">{t.generalAnnouncements}</Label>
+                </div>
                 <Switch
                   id="generalAnnouncements"
                   checked={notificationSettings.generalAnnouncements}
@@ -476,6 +567,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                       generalAnnouncements: checked 
                     })
                   }
+                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-gray-300"
                   data-testid="switch-general-announcements"
                 />
               </div>
