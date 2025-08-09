@@ -93,6 +93,21 @@ export const schools = pgTable("schools", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Delegate Administrators - System for managing up to 2 delegated school administrators  
+export const delegateAdministrators = pgTable("delegate_administrators", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull(), // Must be an existing teacher
+  schoolId: integer("school_id").notNull(),
+  adminLevel: text("admin_level").notNull(), // 'assistant' (8 permissions) or 'limited' (3 permissions)
+  permissions: text("permissions").array(), // Array of permission strings
+  status: text("status").default("active"), // active, inactive, suspended
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedBy: integer("assigned_by").notNull(), // Director who assigned
+  lastActiveAt: timestamp("last_active_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Academic year and terms
 export const academicYears = pgTable("academic_years", {
   id: serial("id").primaryKey(),

@@ -24,6 +24,13 @@ import { db } from "./db";
 import { eq, and, desc, asc, like, count, sql, or } from "drizzle-orm";
 
 export interface IStorage {
+  // ===== DELEGATE ADMINISTRATORS INTERFACE =====
+  getDelegateAdministrators(schoolId: number): Promise<any[]>;
+  addDelegateAdministrator(data: { teacherId: number; schoolId: number; adminLevel: string; assignedBy: number }): Promise<any>;
+  removeDelegateAdministrator(adminId: number, schoolId: number): Promise<void>;
+  updateDelegateAdministratorPermissions(adminId: number, permissions: string[], schoolId: number): Promise<void>;
+  getAvailableTeachersForAdmin(schoolId: number): Promise<any[]>;
+  
   // ===== SCHOOL ADMINISTRATION INTERFACE =====
   getAdministrationStats(schoolId: number): Promise<any>;
   getAdministrationTeachers(schoolId: number): Promise<any[]>;
@@ -38,6 +45,8 @@ export interface IStorage {
   createParent(data: any): Promise<any>;
   updateParent(id: number, data: any): Promise<any>;
   deleteParent(id: number): Promise<void>;
+  getSchoolStudents(schoolId: number): Promise<any[]>;
+  getSchoolParents(schoolId: number): Promise<any[]>;
   // ===== COMMERCIAL MODULES INTERFACE EXTENSION =====
   // Commercial Schools Management
   getCommercialSchools(commercialId: number): Promise<any[]>;
@@ -438,10 +447,226 @@ export interface IStorage {
   getCommunicationsOverview(schoolId: number): Promise<any>;
   getSchoolMessages(schoolId: number): Promise<any[]>;
   sendSchoolMessage(messageData: any): Promise<any>;
+
 }
 
 export class DatabaseStorage implements IStorage {
   roleAffiliations: any[] = []; // In-memory storage for now
+
+  // ===== DELEGATE ADMINISTRATORS IMPLEMENTATION =====
+  async getDelegateAdministrators(schoolId: number): Promise<any[]> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Getting administrators for school ${schoolId}`);
+    try {
+      // For now, return mock data - implement with actual database later
+      return [
+        {
+          id: 1,
+          teacherId: 2,
+          teacherName: 'Marie Dubois',
+          email: 'marie.dubois@educafric.com',
+          phone: '+237655123456',
+          adminLevel: 'assistant',
+          permissions: [
+            'teacher-management',
+            'student-management', 
+            'class-management',
+            'attendance-management',
+            'bulletin-validation',
+            'parent-communication',
+            'reports-generation',
+            'geolocation-access'
+          ],
+          status: 'active',
+          assignedAt: '2024-01-15'
+        }
+      ];
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      return [];
+    }
+  }
+
+  async addDelegateAdministrator(data: { teacherId: number; schoolId: number; adminLevel: string; assignedBy: number }): Promise<any> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Adding administrator:`, data);
+    try {
+      // Mock implementation - replace with actual database insert
+      const newAdmin = {
+        id: Date.now(),
+        ...data,
+        teacherName: 'New Administrator',
+        email: 'admin@educafric.com',
+        phone: '+237655000000',
+        permissions: data.adminLevel === 'assistant' ? [
+          'teacher-management',
+          'student-management', 
+          'class-management',
+          'attendance-management',
+          'bulletin-validation',
+          'parent-communication',
+          'reports-generation',
+          'geolocation-access'
+        ] : [
+          'attendance-management',
+          'parent-communication',
+          'reports-generation'
+        ],
+        status: 'active',
+        assignedAt: new Date().toISOString()
+      };
+      return newAdmin;
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      throw error;
+    }
+  }
+
+  async removeDelegateAdministrator(adminId: number, schoolId: number): Promise<void> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Removing administrator ${adminId} from school ${schoolId}`);
+    try {
+      // Mock implementation - replace with actual database delete
+      console.log('Administrator removed successfully');
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      throw error;
+    }
+  }
+
+  async updateDelegateAdministratorPermissions(adminId: number, permissions: string[], schoolId: number): Promise<void> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Updating permissions for administrator ${adminId}:`, permissions);
+    try {
+      // Mock implementation - replace with actual database update
+      console.log('Permissions updated successfully');
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      throw error;
+    }
+  }
+
+  async getAvailableTeachersForAdmin(schoolId: number): Promise<any[]> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Getting available teachers for school ${schoolId}`);
+    try {
+      // Mock implementation - return sample teachers
+      return [
+        {
+          id: 1,
+          firstName: 'Jean',
+          lastName: 'Kamga',
+          email: 'jean.kamga@educafric.com',
+          phone: '+237655111111',
+          subjects: ['Mathématiques', 'Physique'],
+          hireDate: '2023-09-01'
+        },
+        {
+          id: 2,
+          firstName: 'Marie',
+          lastName: 'Dubois',
+          email: 'marie.dubois@educafric.com',
+          phone: '+237655123456',
+          subjects: ['Français', 'Histoire'],
+          hireDate: '2023-08-15'
+        },
+        {
+          id: 3,
+          firstName: 'Paul',
+          lastName: 'Ndongo',
+          email: 'paul.ndongo@educafric.com',
+          phone: '+237655222222',
+          subjects: ['Anglais', 'Géographie'],
+          hireDate: '2024-01-10'
+        }
+      ];
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      return [];
+    }
+  }
+
+  async getSchoolStudents(schoolId: number): Promise<any[]> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Getting students for school ${schoolId}`);
+    try {
+      // Mock implementation - return sample students
+      return [
+        {
+          id: 1,
+          firstName: 'Alice',
+          lastName: 'Mbarga',
+          email: 'alice.mbarga@student.educafric.com',
+          phone: '+237655333333',
+          classId: 1,
+          className: '6ème A',
+          parentInfo: {
+            name: 'Michel Mbarga',
+            phone: '+237655444444',
+            email: 'michel.mbarga@parent.educafric.com'
+          }
+        },
+        {
+          id: 2,
+          firstName: 'David',
+          lastName: 'Nkomo',
+          classId: 1,
+          className: '6ème A',
+          parentInfo: {
+            name: 'Claire Nkomo',
+            phone: '+237655555555',
+            email: 'claire.nkomo@parent.educafric.com'
+          }
+        }
+      ];
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      return [];
+    }
+  }
+
+  async getSchoolParents(schoolId: number): Promise<any[]> {
+    console.log(`[DELEGATE_ADMIN_STORAGE] Getting parents for school ${schoolId}`);
+    try {
+      // Mock implementation - return sample parents
+      return [
+        {
+          id: 1,
+          firstName: 'Michel',
+          lastName: 'Mbarga',
+          email: 'michel.mbarga@parent.educafric.com',
+          phone: '+237655444444',
+          children: [
+            {
+              id: 1,
+              firstName: 'Alice',
+              lastName: 'Mbarga',
+              classId: 1,
+              className: '6ème A'
+            }
+          ],
+          status: 'active',
+          subscriptionStatus: 'premium'
+        },
+        {
+          id: 2,
+          firstName: 'Claire',
+          lastName: 'Nkomo',
+          email: 'claire.nkomo@parent.educafric.com',
+          phone: '+237655555555',
+          children: [
+            {
+              id: 2,
+              firstName: 'David',
+              lastName: 'Nkomo',
+              classId: 1,
+              className: '6ème A'
+            }
+          ],
+          status: 'active',
+          subscriptionStatus: 'basic'
+        }
+      ];
+    } catch (error) {
+      console.error('[DELEGATE_ADMIN_STORAGE] Error:', error);
+      return [];
+    }
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;

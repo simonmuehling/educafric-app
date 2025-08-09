@@ -16184,6 +16184,211 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== DELEGATE ADMINISTRATORS API ROUTES =====
+  
+  // Get delegate administrators for a school (max 2)
+  app.get('/api/delegate-administrators', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] GET /delegate-administrators');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const schoolId = currentUser.schoolId || 1;
+
+      // Get delegate administrators with teacher info
+      const delegateAdmins = await storage.getDelegateAdministrators(schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Found ${delegateAdmins.length} delegate administrators for school ${schoolId}`);
+      res.json(delegateAdmins);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch delegate administrators' });
+    }
+  });
+
+  // Add new delegate administrator
+  app.post('/api/delegate-administrators', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] POST /delegate-administrators');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const { teacherId, adminLevel } = req.body;
+
+      if (!teacherId || !adminLevel) {
+        return res.status(400).json({ message: 'teacherId and adminLevel are required' });
+      }
+
+      if (!['assistant', 'limited'].includes(adminLevel)) {
+        return res.status(400).json({ message: 'adminLevel must be "assistant" or "limited"' });
+      }
+
+      const schoolId = currentUser.schoolId || 1;
+
+      // Check if we already have 2 administrators
+      const existingAdmins = await storage.getDelegateAdministrators(schoolId);
+      if (existingAdmins.length >= 2) {
+        return res.status(400).json({ message: 'Maximum 2 delegate administrators allowed' });
+      }
+
+      // Check if teacher is already an administrator
+      const isAlreadyAdmin = existingAdmins.some(admin => admin.teacherId === parseInt(teacherId));
+      if (isAlreadyAdmin) {
+        return res.status(400).json({ message: 'Teacher is already a delegate administrator' });
+      }
+
+      const newAdmin = await storage.addDelegateAdministrator({
+        teacherId: parseInt(teacherId),
+        schoolId,
+        adminLevel,
+        assignedBy: currentUser.id
+      });
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Added delegate administrator: teacher ${teacherId} as ${adminLevel}`);
+      res.status(201).json(newAdmin);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to add delegate administrator' });
+    }
+  });
+
+  // Remove delegate administrator
+  app.delete('/api/delegate-administrators/:id', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] DELETE /delegate-administrators/:id');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const adminId = parseInt(req.params.id);
+      const schoolId = currentUser.schoolId || 1;
+
+      await storage.removeDelegateAdministrator(adminId, schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Removed delegate administrator ${adminId}`);
+      res.json({ message: 'Delegate administrator removed successfully' });
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to remove delegate administrator' });
+    }
+  });
+
+  // Update delegate administrator permissions
+  app.put('/api/delegate-administrators/:id/permissions', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] PUT /delegate-administrators/:id/permissions');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const adminId = parseInt(req.params.id);
+      const { permissions } = req.body;
+      const schoolId = currentUser.schoolId || 1;
+
+      if (!Array.isArray(permissions)) {
+        return res.status(400).json({ message: 'permissions must be an array' });
+      }
+
+      await storage.updateDelegateAdministratorPermissions(adminId, permissions, schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Updated permissions for delegate administrator ${adminId}`);
+      res.json({ message: 'Permissions updated successfully' });
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to update permissions' });
+    }
+  });
+
+  // Get teachers available for delegate administration
+  app.get('/api/administration/teachers', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] GET /administration/teachers');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const schoolId = currentUser.schoolId || 1;
+
+      const teachers = await storage.getAvailableTeachersForAdmin(schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Found ${teachers.length} teachers available for administration`);
+      res.json(teachers);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch teachers' });
+    }
+  });
+
+  // Get administration statistics
+  app.get('/api/administration/stats', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] GET /administration/stats');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const schoolId = currentUser.schoolId || 1;
+
+      const stats = await storage.getAdministrationStats(schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Retrieved administration stats for school ${schoolId}`);
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch administration stats' });
+    }
+  });
+
+  // Get students for administration
+  app.get('/api/administration/students', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] GET /administration/students');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const schoolId = currentUser.schoolId || 1;
+
+      const students = await storage.getSchoolStudents(schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Found ${students.length} students for administration`);
+      res.json(students);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch students' });
+    }
+  });
+
+  // Get parents for administration
+  app.get('/api/administration/parents', requireAuth, async (req, res) => {
+    console.log('[DELEGATE_ADMIN_API] GET /administration/parents');
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Director access required' });
+      }
+
+      const currentUser = req.user as any;
+      const schoolId = currentUser.schoolId || 1;
+
+      const parents = await storage.getSchoolParents(schoolId);
+
+      console.log(`[DELEGATE_ADMIN_API] ✅ Found ${parents.length} parents for administration`);
+      res.json(parents);
+    } catch (error: any) {
+      console.error('[DELEGATE_ADMIN_API] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch parents' });
+    }
+  });
+
   // ===== SCHOOL ADMINISTRATORS SYSTEM API ROUTES =====
   
   // Get school administrators

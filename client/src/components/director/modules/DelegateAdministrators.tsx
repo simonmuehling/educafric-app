@@ -191,22 +191,16 @@ const DelegateAdministrators: React.FC = () => {
 
   // Fetch administrators
   const { data: administrators = [], isLoading: adminsLoading } = useQuery({
-    queryKey: ['/api/school-administrators'],
+    queryKey: ['/api/delegate-administrators'],
     queryFn: async () => {
-      // Mock data for now - replace with real API call
-      return [
-        {
-          id: 1,
-          teacherId: 2,
-          teacherName: 'Marie Dubois',
-          email: 'marie.dubois@educafric.com',
-          phone: '+237655123456',
-          adminLevel: 'assistant' as const,
-          permissions: availablePermissions.assistant,
-          status: 'active' as const,
-          assignedAt: '2024-01-15'
-        }
-      ] as Administrator[];
+      try {
+        const response = await fetch('/api/delegate-administrators', { credentials: 'include' });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching administrators:', error);
+        return [];
+      }
     },
   });
 
@@ -288,12 +282,15 @@ const DelegateAdministrators: React.FC = () => {
   // Add administrator mutation
   const addAdministratorMutation = useMutation({
     mutationFn: async (data: { teacherId: string; adminLevel: string }) => {
-      // Mock implementation - replace with real API call
-      console.log('Adding administrator:', data);
-      return { success: true, id: Date.now() };
+      const response = await apiRequest('/api/delegate-administrators', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-administrators'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/delegate-administrators'] });
       setShowAddAdminModal(false);
       setNewAdminData({ teacherId: '', adminLevel: 'assistant' });
       toast({
@@ -301,10 +298,10 @@ const DelegateAdministrators: React.FC = () => {
         description: language === 'fr' ? 'Administrateur ajouté avec succès' : 'Administrator added successfully'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding administrator',
+        description: error.message || (language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding administrator'),
         variant: 'destructive'
       });
     }
@@ -313,21 +310,22 @@ const DelegateAdministrators: React.FC = () => {
   // Remove administrator mutation
   const removeAdministratorMutation = useMutation({
     mutationFn: async (adminId: number) => {
-      // Mock implementation - replace with real API call
-      console.log('Removing administrator:', adminId);
-      return { success: true };
+      const response = await apiRequest(`/api/delegate-administrators/${adminId}`, {
+        method: 'DELETE',
+      });
+      return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school-administrators'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/delegate-administrators'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Administrateur supprimé avec succès' : 'Administrator removed successfully'
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Erreur lors de la suppression' : 'Error removing administrator',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la suppression' : 'Error removing administrator'),
         variant: 'destructive'
       });
     }
@@ -469,6 +467,7 @@ const DelegateAdministrators: React.FC = () => {
                   <Button 
                     onClick={handleAddAdministrator}
                     disabled={addAdministratorMutation.isPending}
+                    data-testid="button-save-administrator"
                   >
                     {addAdministratorMutation.isPending ? (
                       <>
