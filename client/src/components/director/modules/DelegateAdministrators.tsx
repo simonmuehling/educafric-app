@@ -86,6 +86,9 @@ const DelegateAdministrators: React.FC = () => {
     adminLevel: 'assistant'
   });
   const [editPermissions, setEditPermissions] = useState<string[]>([]);
+  const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [showAddParentModal, setShowAddParentModal] = useState(false);
 
   const text = {
     fr: {
@@ -282,11 +285,7 @@ const DelegateAdministrators: React.FC = () => {
   // Add administrator mutation
   const addAdministratorMutation = useMutation({
     mutationFn: async (data: { teacherId: string; adminLevel: string }) => {
-      const response = await apiRequest('/api/delegate-administrators', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest('/api/delegate-administrators', 'POST', data);
       return response;
     },
     onSuccess: () => {
@@ -310,9 +309,7 @@ const DelegateAdministrators: React.FC = () => {
   // Remove administrator mutation
   const removeAdministratorMutation = useMutation({
     mutationFn: async (adminId: number) => {
-      const response = await apiRequest(`/api/delegate-administrators/${adminId}`, {
-        method: 'DELETE',
-      });
+      const response = await apiRequest(`/api/delegate-administrators/${adminId}`, 'DELETE');
       return response;
     },
     onSuccess: () => {
@@ -357,6 +354,31 @@ const DelegateAdministrators: React.FC = () => {
     if (confirm(t.confirm)) {
       removeAdministratorMutation.mutate(adminId);
     }
+  };
+
+  // Quick Actions handlers
+  const handleAddTeacher = () => {
+    setShowAddTeacherModal(true);
+    toast({
+      title: language === 'fr' ? 'Ajouter Enseignant' : 'Add Teacher',
+      description: language === 'fr' ? 'Fonctionnalité d\'ajout d\'enseignant en cours d\'implémentation' : 'Add teacher functionality in development',
+    });
+  };
+
+  const handleAddStudent = () => {
+    setShowAddStudentModal(true);
+    toast({
+      title: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
+      description: language === 'fr' ? 'Fonctionnalité d\'ajout d\'élève en cours d\'implémentation' : 'Add student functionality in development',
+    });
+  };
+
+  const handleAddParent = () => {
+    setShowAddParentModal(true);
+    toast({
+      title: language === 'fr' ? 'Ajouter Parent' : 'Add Parent',
+      description: language === 'fr' ? 'Fonctionnalité d\'ajout de parent en cours d\'implémentation' : 'Add parent functionality in development',
+    });
   };
 
   const getPermissionBadges = (permissions: string[]) => {
@@ -433,7 +455,7 @@ const DelegateAdministrators: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {Array.isArray(availableTeachers) ? availableTeachers.filter((teacher: Teacher) => 
-                          !administrators.find(admin => admin.teacherId === teacher.id)
+                          !administrators.find((admin: Administrator) => admin.teacherId === teacher.id)
                         ).map((teacher: Teacher) => (
                           <SelectItem key={teacher.id} value={teacher.id.toString()}>
                             {teacher.firstName} {teacher.lastName}
@@ -503,7 +525,7 @@ const DelegateAdministrators: React.FC = () => {
                 </CardContent>
               </Card>
             ) : (
-              administrators.map((admin) => (
+              administrators.map((admin: Administrator) => (
                 <Card key={admin.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between">
@@ -647,7 +669,12 @@ const DelegateAdministrators: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="flex items-center space-x-2 h-auto p-4">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center space-x-2 h-auto p-4"
+                  onClick={handleAddTeacher}
+                  data-testid="button-add-teacher"
+                >
                   <UserPlus className="w-5 h-5" />
                   <div className="text-left">
                     <div className="font-medium">{t.addTeacher}</div>
@@ -655,7 +682,12 @@ const DelegateAdministrators: React.FC = () => {
                   </div>
                 </Button>
                 
-                <Button variant="outline" className="flex items-center space-x-2 h-auto p-4">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center space-x-2 h-auto p-4"
+                  onClick={handleAddStudent}
+                  data-testid="button-add-student"
+                >
                   <Plus className="w-5 h-5" />
                   <div className="text-left">
                     <div className="font-medium">{t.addStudent}</div>
@@ -663,7 +695,12 @@ const DelegateAdministrators: React.FC = () => {
                   </div>
                 </Button>
                 
-                <Button variant="outline" className="flex items-center space-x-2 h-auto p-4">
+                <Button 
+                  variant="outline" 
+                  className="flex items-center space-x-2 h-auto p-4"
+                  onClick={handleAddParent}
+                  data-testid="button-add-parent"
+                >
                   <Heart className="w-5 h-5" />
                   <div className="text-left">
                     <div className="font-medium">{t.addParent}</div>
