@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface GuideStep {
   id: string;
@@ -34,6 +35,7 @@ interface UserGuideProps {
 
 export default function UserGuide({ userType }: UserGuideProps) {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [activeGuide, setActiveGuide] = useState('quick-start');
 
   const getGuideContent = () => {
@@ -406,7 +408,16 @@ export default function UserGuide({ userType }: UserGuideProps) {
                               </p>
                             </div>
                           </div>
-                          <Button variant="outline">
+                          <Button 
+                            variant="outline"
+                            onClick={() => {
+                              toast({
+                                title: language === 'fr' ? 'Tutoriel vidéo' : 'Video tutorial',
+                                description: language === 'fr' ? 'Ouverture du tutoriel vidéo...' : 'Opening video tutorial...',
+                              });
+                            }}
+                            data-testid="button-watch-tutorial"
+                          >
                             <ExternalLink className="w-4 h-4 mr-2" />
                             {language === 'fr' ? 'Regarder' : 'Watch'}
                           </Button>
@@ -427,19 +438,49 @@ export default function UserGuide({ userType }: UserGuideProps) {
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-4">
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Guide PDF' : 'PDF Guide',
+                        description: language === 'fr' ? 'Téléchargement du guide PDF...' : 'Downloading PDF guide...',
+                      });
+                    }}
+                    data-testid="button-download-pdf-guide"
+                  >
                     <Download className="w-6 h-6" />
                     <span className="text-sm">
                       {language === 'fr' ? 'Guide PDF' : 'PDF Guide'}
                     </span>
                   </Button>
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Vidéos' : 'Videos',
+                        description: language === 'fr' ? 'Accès aux tutoriels vidéo...' : 'Accessing video tutorials...',
+                      });
+                    }}
+                    data-testid="button-access-videos"
+                  >
                     <PlayCircle className="w-6 h-6" />
                     <span className="text-sm">
                       {language === 'fr' ? 'Vidéos' : 'Videos'}
                     </span>
                   </Button>
-                  <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto p-4 flex flex-col items-center gap-2"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Support' : 'Support',
+                        description: language === 'fr' ? 'Ouverture du centre de support...' : 'Opening support center...',
+                      });
+                    }}
+                    data-testid="button-open-support"
+                  >
                     <Users className="w-6 h-6" />
                     <span className="text-sm">
                       {language === 'fr' ? 'Support' : 'Support'}

@@ -86,12 +86,9 @@ const AccountManagement = () => {
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (data: ChangePasswordData) => {
-      return apiRequest('/api/auth/change-password', {
-        method: 'PUT',
-        body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword
-        })
+      return apiRequest('/api/auth/change-password', 'PUT', {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
       });
     },
     onSuccess: () => {
@@ -117,9 +114,7 @@ const AccountManagement = () => {
   // Delete account mutation
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/auth/delete-account', {
-        method: 'DELETE'
-      });
+      return apiRequest('/api/auth/delete-account', 'DELETE');
     },
     onSuccess: () => {
       toast({

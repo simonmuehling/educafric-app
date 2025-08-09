@@ -66,7 +66,7 @@ const CommunicationsSystem: React.FC<CommunicationsSystemProps> = ({ userRole })
   });
 
   // Fetch messages
-  const { data: messages = [], isLoading: messagesLoading } = useQuery({
+  const { data: messages = [], isLoading } = useQuery({
     queryKey: ['/api/messages', activeTab, filterCategory, searchTerm],
     queryFn: async () => {
       const params = new URLSearchParams({ 
@@ -154,6 +154,16 @@ const CommunicationsSystem: React.FC<CommunicationsSystemProps> = ({ userRole })
     }
 
     sendMessageMutation.mutate(newMessage);
+  };
+
+  const handleMessageClick = (message: Message) => {
+    setSelectedMessage(message);
+    setShowMessageModal(true);
+    
+    // Mark as read if not already read
+    if (!message.isRead) {
+      markAsReadMutation.mutate(message.id);
+    }
   };
 
   const handleViewMessage = (message: Message) => {
@@ -727,15 +737,45 @@ const CommunicationsSystem: React.FC<CommunicationsSystemProps> = ({ userRole })
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: t.reply,
+                        description: language === 'fr' ? 'Fonctionnalité de réponse en développement' : 'Reply feature in development',
+                      });
+                    }}
+                    data-testid="button-reply-message"
+                  >
                     <Reply className="w-4 h-4 mr-2" />
                     {t.reply}
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: t.forward,
+                        description: language === 'fr' ? 'Fonctionnalité de transfert en développement' : 'Forward feature in development',
+                      });
+                    }}
+                    data-testid="button-forward-message"
+                  >
                     <Forward className="w-4 h-4 mr-2" />
                     {t.forward}
                   </Button>
-                  <Button variant="outline" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => {
+                      toast({
+                        title: t.archive,
+                        description: language === 'fr' ? 'Message archivé avec succès' : 'Message archived successfully',
+                      });
+                    }}
+                    data-testid="button-archive-message"
+                  >
                     <Archive className="w-4 h-4 mr-2" />
                     {t.archive}
                   </Button>
