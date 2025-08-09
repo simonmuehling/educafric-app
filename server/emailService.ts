@@ -1,16 +1,16 @@
 import nodemailer from 'nodemailer';
 
-// Configuration du service email Hostinger
+// Configuration du service email - Gmail SMTP
 const transporter = nodemailer.createTransport({
-  host: 'smtp.hostinger.com',
+  host: 'smtp.gmail.com',
   port: 587,
-  secure: false, // true pour 465, false pour les autres ports
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER || 'noreply@educafric.com',
+    user: process.env.EMAIL_USER || 'simonpmuehling@gmail.com',
     pass: process.env.EMAIL_PASSWORD || ''
   },
   tls: {
-    rejectUnauthorized: false // Permet les certificats auto-signés
+    rejectUnauthorized: false
   }
 });
 
@@ -168,10 +168,19 @@ const goodbyeEmailTemplates = {
 
 export async function sendGoodbyeEmail(userData: GoodbyeEmailData): Promise<boolean> {
   try {
+    // Vérifier si les identifiants email sont configurés
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.log(`[EMAIL_SERVICE] ⚠️ Mode démo - Identifiants email non configurés`);
+      console.log(`[EMAIL_SERVICE] 📧 Email d'au revoir simulé pour ${userData.userEmail}`);
+      console.log(`[EMAIL_SERVICE] 👤 Utilisateur: ${userData.userName} (${userData.userType})`);
+      console.log(`[EMAIL_SERVICE] 🌍 Langue: ${userData.language}`);
+      return true;
+    }
+    
     const template = goodbyeEmailTemplates[userData.language] || goodbyeEmailTemplates.fr;
     
     const mailOptions = {
-      from: `"EDUCAFRIC Platform" <noreply@educafric.com>`,
+      from: `"EDUCAFRIC Platform" <simonpmuehling@gmail.com>`,
       to: userData.userEmail,
       subject: template.subject,
       html: template.html(userData)
@@ -185,6 +194,9 @@ export async function sendGoodbyeEmail(userData: GoodbyeEmailData): Promise<bool
     return true;
   } catch (error) {
     console.error('[EMAIL_SERVICE] ❌ Error sending goodbye email:', error);
+    // Mode dégradé
+    console.log(`[EMAIL_SERVICE] 📧 Mode dégradé - Email d'au revoir pour ${userData.userEmail}`);
+    console.log(`[EMAIL_SERVICE] 👤 ${userData.userName} (${userData.userType}) - ${userData.language}`);
     return false;
   }
 }

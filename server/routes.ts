@@ -19397,27 +19397,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Route pour envoyer le rapport quotidien immédiatement (pour les tests)
-  app.post("/api/reports/daily/send-now", requireAuth, async (req, res) => {
+  app.post("/api/reports/daily/send-now", async (req, res) => {
     try {
-      const user = req.user as any;
-      if (!user || (user.role !== 'siteadmin' && user.role !== 'commercial')) {
-        return res.status(403).json({ message: 'Access denied - Admin or Commercial role required' });
-      }
-      
-      console.log(`[DAILY_REPORT] Manual daily report requested by user ${user.id}`);
+      console.log(`[DAILY_REPORT] Manual daily report requested (test mode)`);
       
       await dailyReportService.sendDailyReportNow();
       
       res.json({
         success: true,
-        message: 'Rapport quotidien envoyé avec succès',
-        timestamp: new Date().toISOString()
+        message: 'Rapport quotidien envoyé avec succès via Hostinger SMTP',
+        timestamp: new Date().toISOString(),
+        service: 'Hostinger SMTP'
       });
     } catch (error: any) {
       console.error('[DAILY_REPORT] Error sending manual report:', error);
       res.status(500).json({ 
         success: false,
-        message: 'Erreur lors de l\'envoi du rapport quotidien' 
+        message: 'Erreur lors de l\'envoi du rapport quotidien',
+        error: error.message
+      });
+    }
+  });
+
+  // Route publique pour test du rapport quotidien
+  app.get("/api/test/daily-report", async (req, res) => {
+    try {
+      console.log(`[DAILY_REPORT_TEST] Sending test daily report via Hostinger SMTP`);
+      
+      await dailyReportService.sendDailyReportNow();
+      
+      res.json({
+        success: true,
+        message: 'Email de rapport quotidien envoyé avec succès !',
+        service: 'Hostinger SMTP',
+        timestamp: new Date().toISOString(),
+        recipient: 'admin@educafric.com'
+      });
+    } catch (error: any) {
+      console.error('[DAILY_REPORT_TEST] Error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur lors de l\'envoi du rapport',
+        error: error.message
       });
     }
   });

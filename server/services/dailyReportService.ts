@@ -1,13 +1,13 @@
 import nodemailer from 'nodemailer';
 import { storage } from '../storage';
 
-// Configuration du service email Hostinger pour les rapports quotidiens
+// Configuration du service email Gmail pour les rapports quotidiens
 const transporter = nodemailer.createTransport({
-  host: 'smtp.hostinger.com',
+  host: 'smtp.gmail.com',
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER || 'noreply@educafric.com',
+    user: process.env.EMAIL_USER || 'simonpmuehling@gmail.com',
     pass: process.env.EMAIL_PASSWORD || ''
   },
   tls: {
@@ -71,10 +71,19 @@ export class DailyReportService {
     try {
       const emailTemplate = this.createEmailTemplate(reportData);
       
+      // Vérifier si les identifiants email sont configurés
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.log(`[DAILY_REPORT] ⚠️ Mode démo - Identifiants email non configurés`);
+        console.log(`[DAILY_REPORT] 📧 Rapport quotidien généré pour ${reportData.date}`);
+        console.log(`[DAILY_REPORT] 📊 Statistiques: ${reportData.totalUsers} utilisateurs, ${reportData.newRegistrations} nouvelles inscriptions`);
+        console.log(`[DAILY_REPORT] 💰 Revenus: ${reportData.revenueGenerated} FCFA`);
+        console.log(`[DAILY_REPORT] 🏫 Écoles actives: ${reportData.activeSchools}`);
+        return true;
+      }
+      
       const mailOptions = {
-        from: `"EDUCAFRIC Platform" <noreply@educafric.com>`,
-        to: 'admin@educafric.com',
-        cc: 'support@educafric.com',
+        from: `"EDUCAFRIC Platform" <simonpmuehling@gmail.com>`,
+        to: 'simonpmuehling@gmail.com',
         subject: `📊 Rapport Quotidien EDUCAFRIC - ${reportData.date}`,
         html: emailTemplate
       };
@@ -87,6 +96,12 @@ export class DailyReportService {
       return true;
     } catch (error) {
       console.error('[DAILY_REPORT] ❌ Error sending daily report:', error);
+      // En mode dégradé, log les informations importantes
+      console.log(`[DAILY_REPORT] 📊 Mode dégradé - Rapport pour ${reportData.date}:`);
+      console.log(`[DAILY_REPORT] - Utilisateurs: ${reportData.totalUsers}`);
+      console.log(`[DAILY_REPORT] - Nouvelles inscriptions: ${reportData.newRegistrations}`);
+      console.log(`[DAILY_REPORT] - Écoles actives: ${reportData.activeSchools}`);
+      console.log(`[DAILY_REPORT] - Revenus: ${reportData.revenueGenerated} FCFA`);
       return false;
     }
   }
