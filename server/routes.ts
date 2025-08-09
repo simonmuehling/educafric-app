@@ -3580,7 +3580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      // Demo documents data
+      // Demo documents data + Sales Kits
       const documentsData = [
         {
           id: 1,
@@ -3617,6 +3617,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           createdAt: "2024-12-10T09:15:00Z",
           updatedAt: "2024-12-20T16:45:00Z"
+        },
+        // ===== KITS DE PROSPECTION COMMERCIALE =====
+        {
+          id: 3,
+          userId: (req.user as any).id,
+          title: "Kit de Prospection Complet EDUCAFRIC",
+          content: "Kit complet de prospection pour les commerciaux - Stratégies, argumentaires et approches pour Douala et Yaoundé",
+          type: "sales_kit",
+          status: "active",
+          language: "fr",
+          category: "prospection",
+          downloadUrl: "/attached_assets/KIT_PROSPECTION_EDUCAFRIC_COMPLET.md",
+          createdAt: "2025-01-29T10:00:00Z",
+          updatedAt: "2025-01-29T10:00:00Z"
+        },
+        {
+          id: 4,
+          userId: (req.user as any).id,
+          title: "Scripts Commerciaux EDUCAFRIC",
+          content: "Scripts détaillés pour approche téléphonique et emails de première approche",
+          type: "sales_kit",
+          status: "active",
+          language: "fr",
+          category: "scripts",
+          downloadUrl: "/attached_assets/SCRIPTS_COMMERCIAUX_EDUCAFRIC.md",
+          createdAt: "2025-01-29T10:00:00Z",
+          updatedAt: "2025-01-29T10:00:00Z"
+        },
+        {
+          id: 5,
+          userId: (req.user as any).id,
+          title: "Fiches Argumentaires EDUCAFRIC",
+          content: "Arguments détaillés pour chaque objection client et présentation des avantages",
+          type: "sales_kit",
+          status: "active",
+          language: "fr",
+          category: "argumentaires",
+          downloadUrl: "/attached_assets/FICHES_ARGUMENTAIRES_EDUCAFRIC.md",
+          createdAt: "2025-01-29T10:00:00Z",
+          updatedAt: "2025-01-29T10:00:00Z"
+        },
+        {
+          id: 6,
+          userId: (req.user as any).id,
+          title: "Contenu Flyers EDUCAFRIC",
+          content: "Contenu marketing pour flyers et supports de communication commerciale",
+          type: "sales_kit",
+          status: "active",
+          language: "fr",
+          category: "marketing",
+          downloadUrl: "/attached_assets/FLYERS_EDUCAFRIC_CONTENT.md",
+          createdAt: "2025-01-29T10:00:00Z",
+          updatedAt: "2025-01-29T10:00:00Z"
         }
       ];
       
@@ -3717,6 +3770,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[DOCUMENT_CREATE] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to create document' });
+    }
+  });
+
+  // ===== SITE ADMIN COMMERCIAL MANAGEMENT API ROUTES =====
+
+  // Get all commercials for site admin
+  app.get("/api/site-admin/commercials", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 SiteAdminCommercials route REACHED! User:`, req.user?.id);
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, (req.user as any)?.role);
+        return res.status(403).json({ message: 'Site admin access required' });
+      }
+      
+      // Mock commercials data
+      const commercials = [
+        {
+          id: 10,
+          firstName: 'Demo',
+          lastName: 'Commercial',
+          email: 'commercial.demo@test.educafric.com',
+          phone: '+237655123456',
+          region: 'Douala/Yaoundé',
+          status: 'active',
+          joinDate: '2024-01-15',
+          totalSchools: 8,
+          activeDeals: 3,
+          revenue: 2500000,
+          lastActivity: '2025-01-29'
+        },
+        {
+          id: 11,
+          firstName: 'Marie',
+          lastName: 'Kamga',
+          email: 'marie.kamga@educafric.com',
+          phone: '+237655234567',
+          region: 'Bafoussam',
+          status: 'active',
+          joinDate: '2024-03-10',
+          totalSchools: 5,
+          activeDeals: 2,
+          revenue: 1800000,
+          lastActivity: '2025-01-28'
+        }
+      ];
+      
+      console.log(`[SITE_ADMIN_COMMERCIALS] ✅ Found ${commercials.length} commercials`);
+      res.json(commercials);
+    } catch (error: any) {
+      console.error('[SITE_ADMIN_COMMERCIALS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch commercials' });
+    }
+  });
+
+  // Get commercial activities
+  app.get("/api/site-admin/commercial-activities/:commercialId", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 CommercialActivities route REACHED! Commercial:`, req.params.commercialId);
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site admin access required' });
+      }
+      
+      const { commercialId } = req.params;
+      
+      // Mock activities data
+      const activities = [
+        {
+          id: 1,
+          commercialId: parseInt(commercialId),
+          type: 'call',
+          description: 'Appel de prospection - École Bilingue Yaoundé',
+          schoolName: 'École Bilingue de Yaoundé',
+          date: '2025-01-29 10:30',
+          status: 'completed'
+        },
+        {
+          id: 2,
+          commercialId: parseInt(commercialId),
+          type: 'visit',
+          description: 'Visite de démonstration EDUCAFRIC',
+          schoolName: 'Collège Moderne Douala',
+          date: '2025-01-28 14:00',
+          status: 'completed'
+        },
+        {
+          id: 3,
+          commercialId: parseInt(commercialId),
+          type: 'proposal',
+          description: 'Envoi proposition commerciale',
+          schoolName: 'Institut Supérieur Bafoussam',
+          date: '2025-01-27 16:15',
+          status: 'sent'
+        }
+      ];
+      
+      console.log(`[COMMERCIAL_ACTIVITIES] ✅ Found ${activities.length} activities for commercial ${commercialId}`);
+      res.json(activities);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_ACTIVITIES] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch commercial activities' });
+    }
+  });
+
+  // Get commercial appointments
+  app.get("/api/site-admin/commercial-appointments/:commercialId", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 CommercialAppointments route REACHED! Commercial:`, req.params.commercialId);
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site admin access required' });
+      }
+      
+      const { commercialId } = req.params;
+      
+      // Mock appointments data
+      const appointments = [
+        {
+          id: 1,
+          commercialId: parseInt(commercialId),
+          schoolName: 'École Internationale Douala',
+          contactPerson: 'Dr. Mbeki Jean',
+          date: '2025-01-30',
+          time: '10:00',
+          type: 'demo',
+          status: 'scheduled',
+          notes: 'Démonstration complète du système'
+        },
+        {
+          id: 2,
+          commercialId: parseInt(commercialId),
+          schoolName: 'Lycée Technique Yaoundé',
+          contactPerson: 'Mme Fouda Marie',
+          date: '2025-02-02',
+          time: '14:30',
+          type: 'negotiation',
+          status: 'scheduled',
+          notes: 'Négociation finale du contrat'
+        }
+      ];
+      
+      console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Found ${appointments.length} appointments for commercial ${commercialId}`);
+      res.json(appointments);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_APPOINTMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch commercial appointments' });
+    }
+  });
+
+  // Get commercial documents
+  app.get("/api/site-admin/commercial-documents/:commercialId", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! Commercial:`, req.params.commercialId);
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site admin access required' });
+      }
+      
+      const { commercialId } = req.params;
+      
+      // Mock documents data - Include sales kits
+      const documents = [
+        {
+          id: 1,
+          commercialId: parseInt(commercialId),
+          title: 'Proposition École Bilingue Yaoundé',
+          type: 'proposal',
+          status: 'sent',
+          createdAt: '2025-01-15T10:00:00Z'
+        },
+        {
+          id: 2,
+          commercialId: parseInt(commercialId),
+          title: 'Contrat Collège Moderne Douala',
+          type: 'contract',
+          status: 'signed',
+          createdAt: '2025-01-10T14:00:00Z'
+        },
+        {
+          id: 3,
+          commercialId: parseInt(commercialId),
+          title: 'Kit de Prospection Complet EDUCAFRIC',
+          type: 'sales_kit',
+          status: 'active',
+          createdAt: '2025-01-29T10:00:00Z'
+        },
+        {
+          id: 4,
+          commercialId: parseInt(commercialId),
+          title: 'Scripts Commerciaux EDUCAFRIC',
+          type: 'sales_kit',
+          status: 'active',
+          createdAt: '2025-01-29T10:00:00Z'
+        }
+      ];
+      
+      console.log(`[COMMERCIAL_DOCUMENTS] ✅ Found ${documents.length} documents for commercial ${commercialId}`);
+      res.json(documents);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_DOCUMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch commercial documents' });
     }
   });
 

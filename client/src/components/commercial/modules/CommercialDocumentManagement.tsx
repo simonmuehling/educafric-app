@@ -23,9 +23,11 @@ interface CommercialDocument {
   userId: number;
   title: string;
   content: string;
-  type: 'contract' | 'proposal' | 'quote' | 'brochure';
-  status: 'draft' | 'finalized' | 'sent' | 'signed';
+  type: 'contract' | 'proposal' | 'quote' | 'brochure' | 'sales_kit';
+  status: 'draft' | 'finalized' | 'sent' | 'signed' | 'active';
   language: string;
+  category?: string;
+  downloadUrl?: string;
   clientInfo?: {
     name: string;
     email: string;
@@ -122,212 +124,21 @@ const CommercialDocumentManagement: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Query pour récupérer les documents - simulation avec données de test
+  // Query pour récupérer les documents - API réelle
   const { data: documents = [], isLoading, error } = useQuery({
     queryKey: ['/api/commercial/documents'],
     queryFn: async () => {
-      // Simulation avec données de test pour l'instant
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return [
-        {
-          id: 1,
-          userId: user?.id || 1,
-          title: "Guide Commercial - Fonctionnalités Clés",
-          content: `# Guide Commercial EDUCAFRIC
-## Fonctionnalités Clés : Géolocalisation, Absences & Bulletins
-
-## 🌍 GÉOLOCALISATION
-
-### **Qu'est-ce que c'est ?**
-Un système de suivi GPS en temps réel pour la sécurité des élèves avec tablettes, montres connectées et smartphones.
-
-### **Avantages pour les écoles :**
-- **Sécurité renforcée** : Suivi en temps réel des élèves
-- **Zones de sécurité** : Alertes automatiques si l'élève sort des zones autorisées
-- **Surveillance des transports** : Suivi des bus scolaires
-- **Alertes d'urgence** : Notification immédiate en cas de problème
-
-### **Avantages pour les parents :**
-- **Tranquillité d'esprit** : Savoir où se trouve leur enfant
-- **Notifications automatiques** : Arrivée/départ de l'école
-- **Géofencing intelligent** : Alertes si l'enfant quitte les zones sûres
-- **Historique des déplacements** : Traçabilité complète
-
-### **Arguments de vente :**
-- Réduction des inquiétudes parentales de **90%**
-- Amélioration de la sécurité scolaire
-- Conformité aux attentes modernes de sécurité
-- Différenciation concurrentielle forte
-
-## 📅 GESTION DES ABSENCES
-
-### **Qu'est-ce que c'est ?**
-Système automatisé de suivi des présences avec notifications multi-canaux (SMS, WhatsApp, Email).
-
-### **Fonctionnalités principales :**
-- **Pointage numérique** : Système de présence automatisé
-- **Notifications instantanées** : SMS/WhatsApp aux parents en cas d'absence
-- **Rapports d'assiduité** : Statistiques détaillées par élève/classe
-- **Justificatifs numériques** : Gestion des certificats médicaux
-
-### **Avantages pour les écoles :**
-- **Gain de temps** : Plus de pointage manuel
-- **Réduction de l'absentéisme** : Notifications immédiates aux parents
-- **Rapports automatiques** : Statistiques en temps réel
-- **Conformité administrative** : Respect des exigences légales
-
-### **Avantages pour les parents :**
-- **Information immédiate** : SMS dès qu'un enfant est absent
-- **Suivi de l'assiduité** : Historique complet des présences
-- **Justification simplifiée** : Upload de certificats via mobile
-- **Communication directe** : Contact facile avec l'administration
-
-### **Arguments de vente :**
-- Réduction de l'absentéisme de **25-30%**
-- Économie de **2-3 heures/jour** pour le personnel administratif
-- Amélioration de la communication école-famille
-- Traçabilité complète pour les autorités
-
-## BULLETINS DE NOTES
-
-### **Qu'est-ce que c'est ?**
-Système complet de gestion des notes avec bulletins numériques adaptés au système éducatif africain.
-
-### **Fonctionnalités clés :**
-- **Saisie intuitive** : Interface simple pour les enseignants
-- **Calculs automatiques** : Moyennes, classements, appréciations
-- **Bulletins personnalisés** : Conformes aux standards nationaux
-- **Distribution numérique** : Envoi automatique aux parents
-
-### **Avantages pour les enseignants :**
-- **Interface simple** : Saisie rapide des notes
-- **Calculs automatiques** : Plus d'erreurs de calcul
-- **Gain de temps** : Génération automatique des bulletins
-- **Suivi personnalisé** : Graphiques de progression par élève
-
-### **Avantages pour les parents :**
-- **Accès immédiat** : Consultation 24h/7j des notes
-- **Suivi en temps réel** : Notes disponibles dès la saisie
-- **Graphiques de progression** : Évolution visuelle des performances
-- **Historique complet** : Conservation de tous les bulletins
-
-### **Avantages pour l'administration :**
-- **Rapports automatiques** : Statistiques par classe/matière
-- **Archivage numérique** : Conservation sécurisée des données
-- **Impression à la demande** : Bulletins papier si nécessaire
-- **Conformité officielle** : Respect des formats ministériels
-
-### **Arguments de vente :**
-- Économie de **50-70%** sur les coûts d'impression
-- Réduction du temps de préparation des bulletins de **80%**
-- Amélioration de la satisfaction parentale
-- Modernisation de l'image de l'établissement
-
-## ARGUMENTS ÉCONOMIQUES GLOBAUX
-
-### **Retour sur Investissement :**
-- **École de 500 élèves** : Économies de 2 000 000 FCFA/an
-- **Réduction du personnel administratif** : 1-2 postes économisés
-- **Économies papier/impression** : 80% de réduction
-- **Amélioration de la réputation** : Attraction de nouveaux élèves
-
-### **Tarification attractive :**
-- **Forfait mensuel** : À partir de 5 000 FCFA/mois
-- **Pas d'installation** : Plateforme cloud prête à l'emploi
-- **Support inclus** : Formation et assistance technique
-- **Évolutif** : S'adapte à la croissance de l'école
-
-## 🎯 ARGUMENTS DE CLOSING
-
-### **Urgence :**
-- "La concurrence adopte déjà ces technologies"
-- "Les parents exigent plus de transparence et de sécurité"
-- "Le ministère encourage la digitalisation"
-
-### **Exclusivité :**
-- "Premier système complet adapté au contexte africain"
-- "Multilingue français/anglais"
-- "Compatible avec les méthodes de paiement locales"
-
-### **Preuves sociales :**
-- "Déjà adopté par X écoles au Cameroun"
-- "Témoignages de directeurs satisfaits"
-- "Réduction prouvée de l'absentéisme"
-
-## 📞 PROCHAINES ÉTAPES
-
-1. **Démonstration live** : Présentation de 30 minutes
-2. **Période d'essai gratuite** : 1 mois sans engagement
-3. **Formation incluse** : Setup et formation du personnel
-4. **Support dédié** : Accompagnement personnalisé`,
-          type: "brochure" as const,
-          status: "finalized" as const,
-          language: "fr",
-          clientInfo: {
-            name: "Usage Commercial Interne",
-            email: "commercial@educafric.com",
-            institution: "EDUCAFRIC",
-            address: "Cameroun"
-          },
-          createdAt: "2024-12-24T00:00:00Z",
-          updatedAt: "2024-12-24T00:00:00Z"
-        },
-        {
-          id: 2,
-          userId: user?.id || 1,
-          title: "Proposition École Bilingue Yaoundé",
-          content: "Proposition commerciale détaillée pour l'implémentation d'EDUCAFRIC à l'École Bilingue de Yaoundé. Cette proposition inclut l'analyse des besoins, la solution technique proposée, et les modalités de mise en œuvre.",
-          type: "proposal" as const,
-          status: "sent" as const,
-          language: "fr",
-          clientInfo: {
-            name: "École Bilingue de Yaoundé",
-            email: "direction@ecolebilingueyaounde.cm",
-            phone: "+237 222 345 678",
-            institution: "École Bilingue de Yaoundé",
-            address: "Yaoundé, Cameroun"
-          },
-          createdAt: "2024-12-15T10:30:00Z",
-          updatedAt: "2024-12-15T14:20:00Z"
-        },
-        {
-          id: 3,
-          userId: user?.id || 1,
-          title: "Contrat Collège Moderne Douala",
-          content: "Contrat de service pour l'intégration complète de la plateforme EDUCAFRIC au Collège Moderne de Douala. Le contrat couvre la formation des enseignants, l'installation technique et le support continu.",
-          type: "contract" as const,
-          status: "signed" as const,
-          language: "fr",
-          clientInfo: {
-            name: "Collège Moderne Douala",
-            email: "admin@collegemoderndouala.cm",
-            phone: "+237 233 456 789",
-            institution: "Collège Moderne Douala",
-            address: "Douala, Cameroun"
-          },
-          createdAt: "2024-12-10T09:15:00Z",
-          updatedAt: "2024-12-20T16:45:00Z"
-        },
-        {
-          id: 4,
-          userId: user?.id || 1,
-          title: "Devis Lycée Technique Bafoussam",
-          content: "Devis détaillé pour l'équipement numérique et l'intégration d'EDUCAFRIC au Lycée Technique de Bafoussam. Inclut matériel, licences et formation.",
-          type: "quote" as const,
-          status: "finalized" as const,
-          language: "fr",
-          clientInfo: {
-            name: "Lycée Technique Bafoussam",
-            email: "proviseur@lyceebafousam.cm",
-            phone: "+237 233 567 890",
-            institution: "Lycée Technique Bafoussam",
-            address: "Bafoussam, Cameroun"
-          },
-          createdAt: "2024-12-05T14:20:00Z",
-          updatedAt: "2024-12-05T14:20:00Z"
+      try {
+        const response = await fetch('/api/commercial/documents', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
         }
-      ];
-    },
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching commercial documents:', error);
+        return [];
+      }
+    }
   });
 
   // Mutation pour supprimer un document
@@ -428,7 +239,16 @@ Système complet de gestion des notes avec bulletins numériques adaptés au sys
       draft: { color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="w-3 h-3" /> },
       finalized: { color: 'bg-blue-100 text-blue-800', icon: <CheckCircle className="w-3 h-3" /> },
       sent: { color: 'bg-green-100 text-green-800', icon: <Mail className="w-3 h-3" /> },
-      signed: { color: 'bg-purple-100 text-purple-800', icon: <CheckCircle className="w-3 h-3" /> }
+      signed: { color: 'bg-purple-100 text-purple-800', icon: <CheckCircle className="w-3 h-3" /> },
+      active: { color: 'bg-emerald-100 text-emerald-800', icon: <CheckCircle className="w-3 h-3" /> }
+    };
+
+    const statusLabels = {
+      draft: t.draft || 'Brouillon',
+      finalized: t.finalized || 'Finalisé',
+      sent: t.sent || 'Envoyé',
+      signed: t.signed || 'Signé',
+      active: 'Actif'
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
@@ -436,7 +256,7 @@ Système complet de gestion des notes avec bulletins numériques adaptés au sys
     return (
       <Badge className={`${config.color} flex items-center gap-1`}>
         {config.icon}
-        {t[status as keyof typeof t] || status}
+        {statusLabels[status as keyof typeof statusLabels] || status}
       </Badge>
     );
   };
@@ -446,12 +266,21 @@ Système complet de gestion des notes avec bulletins numériques adaptés au sys
       contract: 'bg-red-100 text-red-800',
       proposal: 'bg-blue-100 text-blue-800',
       quote: 'bg-green-100 text-green-800',
-      brochure: 'bg-purple-100 text-purple-800'
+      brochure: 'bg-purple-100 text-purple-800',
+      sales_kit: 'bg-violet-100 text-violet-800'
+    };
+
+    const typeLabels = {
+      contract: t.contract || 'Contrat',
+      proposal: t.proposal || 'Proposition',
+      quote: t.quote || 'Devis',
+      brochure: t.brochure || 'Brochure',
+      sales_kit: 'Kit Commercial'
     };
 
     return (
       <Badge className={typeConfig[type as keyof typeof typeConfig] || typeConfig.proposal}>
-        {t[type as keyof typeof t] || type}
+        {typeLabels[type as keyof typeof typeLabels] || type}
       </Badge>
     );
   };

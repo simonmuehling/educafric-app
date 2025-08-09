@@ -28,6 +28,7 @@ import PreviewModule from './modules/PreviewModule';
 import SchoolManagement from './modules/SchoolManagement';
 import SecurityAudit from './modules/SecurityAudit';
 import UserManagement from './modules/UserManagement';
+import CommercialProfileManager from './modules/CommercialProfileManager';
 
 interface PlatformStats {
   totalUsers: number;
@@ -343,6 +344,13 @@ const SiteAdminDashboard: React.FC = () => {
               <Users className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
+              value="commercial-profiles" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 rounded-md" 
+              title="Profils Commerciaux"
+            >
+              <UserCheck className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
               value="payments" 
               className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 rounded-md" 
               title="Paiements"
@@ -533,6 +541,10 @@ const SiteAdminDashboard: React.FC = () => {
 
           <TabsContent value="commercial-team" className="mt-6">
             <CommercialTeamManagement />
+          </TabsContent>
+
+          <TabsContent value="commercial-profiles" className="mt-6">
+            <CommercialProfileManager />
           </TabsContent>
 
           <TabsContent value="payments" className="mt-6">
