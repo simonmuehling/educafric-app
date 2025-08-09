@@ -288,7 +288,8 @@ Gardez ce document en lieu sûr!
       {/* Two-Factor Authentication */}
       <SimpleTwoFactorDemo language={language} />
 
-        {/* Recovery Methods */}
+      {/* Recovery Methods */}
+      <ModernCard className="p-6">
         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
           <h4 className="font-medium text-yellow-800 mb-3 flex items-center gap-2">
             <Key className="w-4 h-4" />
