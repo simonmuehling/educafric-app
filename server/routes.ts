@@ -37,6 +37,12 @@ import { storage } from "./storage";
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema, updateProfileSchema } from "@shared/schemas";
 import { User } from "@shared/schema";
 import { z } from "zod";
+
+// Define AuthenticatedUser type for type safety
+interface AuthenticatedUser extends User {
+  name?: string;
+  username?: string;
+}
 import { registerTrackingRoutes } from "./routes/tracking";
 import { NotificationService } from "./services/notificationService";
 import speakeasy from "speakeasy";
