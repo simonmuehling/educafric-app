@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   CalendarDays, 
   Clock, 
@@ -96,6 +101,7 @@ const TeacherAbsenceManager: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('current');
   const [selectedAbsence, setSelectedAbsence] = useState<TeacherAbsence | null>(null);
   const [showQuickActions, setShowQuickActions] = useState<number | null>(null);
+  const [showAbsenceForm, setShowAbsenceForm] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch teacher absences
@@ -172,6 +178,218 @@ const TeacherAbsenceManager: React.FC = () => {
 
   const handleQuickAction = async (absenceId: number, actionType: string, actionData: any = {}) => {
     performActionMutation.mutate({ absenceId, actionType, actionData });
+  };
+
+  // Create teacher absence mutation
+  const createAbsenceMutation = useMutation({
+    mutationFn: async (absenceData: any) => {
+      const response = await apiRequest('/api/teacher-absences', 'POST', absenceData);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences-stats'] });
+      setShowAbsenceForm(false);
+      toast({
+        title: "Absence déclarée",
+        description: "L'absence de l'enseignant a été déclarée avec succès.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Échec de la déclaration d'absence",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleDeclareAbsence = () => {
+    setShowAbsenceForm(true);
+  };
+
+  const handleSubmitAbsence = (absenceData: any) => {
+    createAbsenceMutation.mutate(absenceData);
+  };
+
+  // Teacher Absence Form Component
+  const AbsenceDeclarationForm = () => {
+    const [formData, setFormData] = useState({
+      teacherId: '',
+      teacherName: '',
+      classId: '',
+      subjectId: '',
+      absenceDate: '',
+      startTime: '',
+      endTime: '',
+      reason: '',
+      reasonCategory: 'other',
+      isPlanned: false,
+      priority: 'medium'
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      // Validate required fields
+      if (!formData.teacherName || !formData.absenceDate || !formData.startTime || !formData.endTime || !formData.reason) {
+        toast({
+          title: "Champs requis",
+          description: "Veuillez remplir tous les champs obligatoires.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const absenceData = {
+        ...formData,
+        teacherId: parseInt(formData.teacherId) || 1, // Default for demo
+        classId: parseInt(formData.classId) || 1,     // Default for demo
+        subjectId: parseInt(formData.subjectId) || 1, // Default for demo
+        status: 'reported',
+        totalAffectedStudents: 30, // Will be calculated on backend
+        affectedClasses: [{
+          classId: parseInt(formData.classId) || 1,
+          className: 'Classe Demo',
+          subjectId: parseInt(formData.subjectId) || 1,
+          subjectName: 'Matière Demo',
+          period: `${formData.startTime}-${formData.endTime}`
+        }]
+      };
+
+      handleSubmitAbsence(absenceData);
+    };
+
+    return (
+      <Dialog open={showAbsenceForm} onOpenChange={setShowAbsenceForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Déclarer une absence enseignant</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="teacherName">Nom de l'enseignant *</Label>
+              <Input
+                id="teacherName"
+                value={formData.teacherName}
+                onChange={(e) => setFormData(prev => ({ ...prev, teacherName: e.target.value }))}
+                placeholder="Ex: Marie Dubois"
+                required
+                data-testid="input-teacher-name"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="absenceDate">Date d'absence *</Label>
+                <Input
+                  id="absenceDate"
+                  type="date"
+                  value={formData.absenceDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, absenceDate: e.target.value }))}
+                  required
+                  data-testid="input-absence-date"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priorité</Label>
+                <Select 
+                  value={formData.priority} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                >
+                  <SelectTrigger data-testid="select-priority">
+                    <SelectValue placeholder="Priorité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Faible</SelectItem>
+                    <SelectItem value="medium">Moyenne</SelectItem>
+                    <SelectItem value="high">Élevée</SelectItem>
+                    <SelectItem value="urgent">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="startTime">Heure début *</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                  required
+                  data-testid="input-start-time"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">Heure fin *</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                  required
+                  data-testid="input-end-time"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reasonCategory">Catégorie de motif</Label>
+              <Select 
+                value={formData.reasonCategory} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, reasonCategory: value }))}
+              >
+                <SelectTrigger data-testid="select-reason-category">
+                  <SelectValue placeholder="Sélectionner une catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="medical">Médical</SelectItem>
+                  <SelectItem value="personal">Personnel</SelectItem>
+                  <SelectItem value="official">Officiel</SelectItem>
+                  <SelectItem value="emergency">Urgence</SelectItem>
+                  <SelectItem value="training">Formation</SelectItem>
+                  <SelectItem value="other">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">Motif de l'absence *</Label>
+              <Textarea
+                id="reason"
+                value={formData.reason}
+                onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
+                placeholder="Ex: Consultation médicale urgente"
+                required
+                data-testid="textarea-reason"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowAbsenceForm(false)}
+                data-testid="button-cancel-absence"
+              >
+                Annuler
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createAbsenceMutation.isPending}
+                data-testid="button-submit-absence"
+              >
+                {createAbsenceMutation.isPending ? 'Déclaration...' : 'Déclarer'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   const formatDateTime = (dateStr: string, timeStr?: string) => {
@@ -309,7 +527,12 @@ const TeacherAbsenceManager: React.FC = () => {
         <TabsContent value="current" className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Absences en cours de traitement</h3>
-            <Button size="sm" className="flex items-center space-x-2">
+            <Button 
+              size="sm" 
+              className="flex items-center space-x-2"
+              onClick={handleDeclareAbsence}
+              data-testid="button-declare-absence"
+            >
               <Plus className="w-4 h-4" />
               <span>Déclarer absence</span>
             </Button>
@@ -626,6 +849,9 @@ const TeacherAbsenceManager: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Teacher Absence Declaration Form Dialog */}
+      <AbsenceDeclarationForm />
     </div>
   );
 };
