@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ContractGenerator from '@/components/commercial/ContractGenerator';
 import { 
   Briefcase, 
   Users, 
@@ -91,6 +92,7 @@ const UnifiedCommercialManagement: React.FC = () => {
   const [selectedCommercial, setSelectedCommercial] = useState<Commercial | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
 
   // Queries
   const { data: commercials = [], isLoading: loadingCommercials } = useQuery({
@@ -221,19 +223,29 @@ const UnifiedCommercialManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestion Commerciale Unifiée</h1>
           <p className="text-gray-600 mt-1">Administration complète de l'équipe commerciale EDUCAFRIC</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter Commercial
-        </Button>
+        <div className="flex space-x-3">
+          <Button 
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => setIsContractDialogOpen(true)}
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Créer Contrat
+          </Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter Commercial
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="team">Équipe</TabsTrigger>
           <TabsTrigger value="activities">Activités</TabsTrigger>
           <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="contracts">Contrats</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -590,7 +602,58 @@ const UnifiedCommercialManagement: React.FC = () => {
             </Card>
           )}
         </TabsContent>
+
+        {/* Contracts Tab */}
+        <TabsContent value="contracts" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Contrats Commerciaux
+                </div>
+                <Button 
+                  onClick={() => setIsContractDialogOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouveau Contrat
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Gestion des Contrats</h3>
+                <p className="text-gray-600 mb-4">
+                  Créez et gérez les contrats commerciaux pour vos partenaires
+                </p>
+                <Button 
+                  onClick={() => setIsContractDialogOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Créer le premier contrat
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Contract Generator Dialog */}
+      <ContractGenerator
+        isOpen={isContractDialogOpen}
+        onClose={() => setIsContractDialogOpen(false)}
+        commercialId={selectedCommercial?.id}
+        onContractGenerated={(contractData) => {
+          toast({
+            title: 'Contrat créé',
+            description: `Contrat commercial généré pour ${contractData.partnerName}`,
+          });
+          // Ici vous pouvez ajouter la logique pour sauvegarder en base
+        }}
+      />
     </div>
   );
 };
