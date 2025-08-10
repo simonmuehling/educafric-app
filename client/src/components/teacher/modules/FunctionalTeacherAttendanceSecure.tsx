@@ -8,6 +8,8 @@ import { Calendar, Users, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useEducafricSubmit } from '@/hooks/useSingleSubmit';
+import { useTeacherMultiSchool } from '@/contexts/TeacherMultiSchoolContext';
+import SchoolSelector from '@/components/shared/SchoolSelector';
 
 interface Student {
   id: number;
@@ -30,6 +32,7 @@ export default function FunctionalTeacherAttendanceSecure() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { wrap, submitting, getIdempotencyKey } = useEducafricSubmit();
+  const { selectedSchoolId, currentSchool } = useTeacherMultiSchool();
   
   const [selectedClass, setSelectedClass] = useState<number | null>(null);
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -37,7 +40,7 @@ export default function FunctionalTeacherAttendanceSecure() {
   
   // Requête pour récupérer les classes de l'enseignant
   const { data: classes, isLoading: loadingClasses } = useQuery({
-    queryKey: ['/api/teacher/classes'],
+    queryKey: ['/api/teacher/classes', selectedSchoolId],
     enabled: true
   });
   

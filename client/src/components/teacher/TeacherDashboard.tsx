@@ -17,6 +17,7 @@ import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import HelpCenter from '@/components/help/HelpCenter';
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
 
 interface TeacherDashboardProps {
   stats?: any;
@@ -232,12 +233,14 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   ];
 
   return (
-    <UnifiedIconDashboard
-      title={t.title || ''}
-      subtitle={t.subtitle}
-      modules={modules}
-      activeModule={currentActiveModule}
-    />
+    <TeacherMultiSchoolProvider>
+      <UnifiedIconDashboard
+        title={t.title || ''}
+        subtitle={t.subtitle}
+        modules={modules}
+        activeModule={currentActiveModule}
+      />
+    </TeacherMultiSchoolProvider>
   );
 };
 

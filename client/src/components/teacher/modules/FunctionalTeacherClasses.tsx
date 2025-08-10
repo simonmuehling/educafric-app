@@ -13,6 +13,8 @@ import {
   Eye, Edit, Settings, BarChart3, TrendingUp,
   UserPlus, Mail, Download, CheckCircle
 } from 'lucide-react';
+import { useTeacherMultiSchool } from '@/contexts/TeacherMultiSchoolContext';
+import SchoolSelector from '@/components/shared/SchoolSelector';
 
 interface TeacherClass {
   id: number;
@@ -33,11 +35,12 @@ const FunctionalTeacherClasses: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { selectedSchoolId, currentSchool } = useTeacherMultiSchool();
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Fetch teacher classes data from PostgreSQL API
   const { data: classes = [], isLoading } = useQuery<TeacherClass[]>({
-    queryKey: ['/api/teacher/classes'],
+    queryKey: ['/api/teacher/classes', selectedSchoolId],
     enabled: !!user
   });
 
@@ -118,6 +121,8 @@ const FunctionalTeacherClasses: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
+      <SchoolSelector />
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
