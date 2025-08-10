@@ -3,11 +3,13 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import NotificationTester from '@/components/sandbox/NotificationTester';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown
+  Settings, Shield, Play, TestTube, Zap, Crown, Bell
 } from 'lucide-react';
 
 const SandboxLogin = () => {
@@ -208,8 +210,23 @@ const SandboxLogin = () => {
           </div>
         </div>
 
-        {/* Profile Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Main Tabs */}
+        <Tabs defaultValue="profiles" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+            <TabsTrigger value="profiles" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              {language === 'fr' ? 'Profils de Test' : 'Test Profiles'}
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              {language === 'fr' ? 'Test Notifications' : 'Notification Testing'}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profiles" className="space-y-6">
+
+            {/* Profile Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(Array.isArray(sandboxProfiles) ? sandboxProfiles : []).map((profile) => (
             <Card 
               key={profile.id} 
@@ -267,9 +284,13 @@ const SandboxLogin = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
+            </div>
+          </TabsContent>
 
-
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationTester />
+          </TabsContent>
+        </Tabs>
 
         {/* Footer Info */}
         <div className="mt-12 text-center">
