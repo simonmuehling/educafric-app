@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSandboxPremium } from './SandboxPremiumProvider';
 import { useSandboxTranslation } from '@/lib/sandboxTranslations';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Play, Code, Database, Users, Settings, TestTube, FileCode, Monitor, 
   Smartphone, Tablet, Globe, Zap, Shield, Clock, BarChart3, MessageSquare, 
@@ -35,6 +37,7 @@ const BilingualSandboxDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const [metrics, setMetrics] = useState<SystemMetrics>({
     apiCalls: 1247,
@@ -47,32 +50,84 @@ const BilingualSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  // Actions handlers avec traductions
+  // Fetch real sandbox metrics
+  const { data: sandboxMetrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['/api/sandbox/metrics'],
+    enabled: !!user,
+    refetchInterval: 5000
+  });
+
+  // Mutation pour exécuter les tests sandbox
+  const runTestsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/run-tests', 'POST', {
+        testSuite: 'full',
+        includeIntegration: true
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ['/api/sandbox/metrics'] });
+      toast({
+        title: translate('runTests'),
+        description: language === 'fr' 
+          ? `Tests complétés: ${data?.passedTests || 0}/${data?.totalTests || 0} réussis`
+          : `Tests completed: ${data?.passedTests || 0}/${data?.totalTests || 0} passed`,
+        duration: 3000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'exécuter les tests' : 'Failed to run tests',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Mutation pour l'export des logs
+  const exportLogsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/export-logs', 'POST', {
+        format: 'txt',
+        includeMetrics: true,
+        dateRange: '7d'
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      const blob = new Blob([data.content || 'Sandbox logs exported'], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: translate('exportLogs'),
+        description: language === 'fr' ? 'Logs exportés avec succès' : 'Logs exported successfully',
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'exporter les logs' : 'Failed to export logs',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Actions handlers avec mutations backend
   const handleRunTests = () => {
-    toast({
-      title: translate('runTests'),
-      description: translate('testsCompleted'),
-      duration: 2000,
-    });
+    runTestsMutation.mutate();
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 2000);
   };
 
   const handleExportLogs = () => {
-    const logs = `${translate('title')} - ${new Date().toISOString()}\n`;
-    const blob = new Blob([logs], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    
-    toast({
-      title: translate('exportLogs'),
-      description: translate('logsExported'),
-      duration: 2000,
-    });
+    exportLogsMutation.mutate();
   };
 
   const handleLanguageToggle = () => {

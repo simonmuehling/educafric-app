@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Activity, AlertTriangle, CheckCircle, Clock, Cpu, 
   Database, Globe, HardDrive, MemoryStick, Network, 
@@ -30,6 +33,15 @@ interface LogEntry {
 
 const SandboxMonitor = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Query pour les métriques système en temps réel
+  const { data: systemMetrics, isLoading } = useQuery({
+    queryKey: ['/api/sandbox/system-metrics'],
+    refetchInterval: 3000
+  });
+
   const [metrics, setMetrics] = useState<SystemMetric[]>([
     { name: 'CPU Usage', value: 45, unit: '%', status: 'good', trend: 'stable', lastUpdate: new Date() },
     { name: 'Memory', value: 68, unit: '%', status: 'warning', trend: 'up', lastUpdate: new Date() },
@@ -48,26 +60,81 @@ const SandboxMonitor = () => {
 
   const [isMonitoring, setIsMonitoring] = useState(true);
 
-  // Fonctions pour les boutons
+  // Mutation pour actualiser les métriques
+  const refreshMetricsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/refresh-metrics', 'POST', {
+        includeSystemInfo: true,
+        includePerformance: true
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ['/api/sandbox/system-metrics'] });
+      toast({
+        title: language === 'fr' ? 'Métriques actualisées' : 'Metrics refreshed',
+        description: language === 'fr' ? 'Données système mises à jour avec succès' : 'System data updated successfully',
+        duration: 2000,
+      });
+      
+      // Mettre à jour les métriques locales avec les données réelles
+      if (data.metrics) {
+        setMetrics(data.metrics.map((metric: any) => ({
+          ...metric,
+          lastUpdate: new Date()
+        })));
+      }
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'actualiser les métriques' : 'Failed to refresh metrics',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Mutation pour exporter les données
+  const exportDataMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/export-metrics', 'POST', {
+        format: 'json',
+        includeHistory: true,
+        dateRange: '24h'
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      const blob = new Blob([JSON.stringify(data.metrics, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sandbox-metrics-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: language === 'fr' ? 'Export réussi' : 'Export successful',
+        description: language === 'fr' ? 'Métriques exportées avec succès' : 'Metrics exported successfully',
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'exporter les données' : 'Failed to export data',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Fonctions pour les boutons avec connexions backend
   const handleRefreshMetrics = () => {
-    console.log('Actualisation des métriques...');
-    setMetrics(metrics.map(metric => ({
-      ...metric,
-      value: metric.value + Math.floor(Math.random() * 10) - 5,
-      lastUpdate: new Date()
-    })));
+    refreshMetricsMutation.mutate();
   };
 
   const handleExportData = () => {
-    console.log('Export des données en cours...');
-    const data = JSON.stringify(metrics, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sandbox-metrics-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    exportDataMutation.mutate();
   };
 
   const t = {

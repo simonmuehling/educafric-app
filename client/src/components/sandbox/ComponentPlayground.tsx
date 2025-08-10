@@ -2,6 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { 
   Settings, Bell, User, Calendar, Download, 
@@ -11,38 +14,109 @@ import {
 
 const ComponentPlayground = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedComponent, setSelectedComponent] = useState('buttons');
 
-  // Fonctions pour les boutons d'exemple
+  // Query pour les données de démonstration en temps réel
+  const { data: playgroundData } = useQuery({
+    queryKey: ['/api/sandbox/playground-data'],
+    refetchInterval: 10000
+  });
+
+  // Mutations pour les actions des boutons avec backend réel
+  const downloadMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/demo-download', 'POST', {
+        fileType: 'sample',
+        format: 'json'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Téléchargement réussi' : 'Download successful',
+        description: language === 'fr' ? 'Fichier de démonstration téléchargé' : 'Demo file downloaded',
+        duration: 2000,
+      });
+    }
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/demo-upload', 'POST', {
+        fileName: 'demo.json',
+        fileSize: 1024
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Upload réussi' : 'Upload successful',
+        description: language === 'fr' ? 'Fichier de démonstration uploadé' : 'Demo file uploaded',
+        duration: 2000,
+      });
+    }
+  });
+
+  const shareMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/demo-share', 'POST', {
+        shareType: 'playground',
+        targetAudience: 'developers'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Partage réussi' : 'Share successful',
+        description: language === 'fr' ? 'Lien de démonstration généré' : 'Demo link generated',
+        duration: 2000,
+      });
+    }
+  });
+
+  // Fonctions pour les boutons d'exemple avec connexions backend
   const handleDownload = () => {
-    console.log('Téléchargement...');
-    alert(language === 'fr' ? 'Téléchargement simulé' : 'Simulated download');
+    downloadMutation.mutate();
   };
 
   const handleUpload = () => {
-    console.log('Téléversement...');
-    alert(language === 'fr' ? 'Téléversement simulé' : 'Simulated upload');
+    uploadMutation.mutate();
   };
 
   const handleShare = () => {
-    console.log('Partage...');
-    alert(language === 'fr' ? 'Partage simulé' : 'Simulated share');
+    shareMutation.mutate();
   };
 
   const handlePrimary = () => {
-    alert(language === 'fr' ? 'Bouton principal cliqué' : 'Primary button clicked');
+    toast({
+      title: language === 'fr' ? 'Bouton principal' : 'Primary button',
+      description: language === 'fr' ? 'Action principale exécutée' : 'Primary action executed',
+      duration: 1500,
+    });
   };
 
   const handleSecondary = () => {
-    alert(language === 'fr' ? 'Bouton secondaire cliqué' : 'Secondary button clicked');
+    toast({
+      title: language === 'fr' ? 'Bouton secondaire' : 'Secondary button',
+      description: language === 'fr' ? 'Action secondaire exécutée' : 'Secondary action executed',
+      duration: 1500,
+    });
   };
 
   const handleOutline = () => {
-    alert(language === 'fr' ? 'Bouton contour cliqué' : 'Outline button clicked');
+    toast({
+      title: language === 'fr' ? 'Bouton contour' : 'Outline button',
+      description: language === 'fr' ? 'Action contour exécutée' : 'Outline action executed',
+      duration: 1500,
+    });
   };
 
   const handleDestructive = () => {
-    alert(language === 'fr' ? 'Action destructive confirmée' : 'Destructive action confirmed');
+    toast({
+      title: language === 'fr' ? 'Action destructive' : 'Destructive action',
+      description: language === 'fr' ? 'Action critique confirmée' : 'Critical action confirmed',
+      variant: 'destructive',
+      duration: 1500,
+    });
   };
 
   const components = [

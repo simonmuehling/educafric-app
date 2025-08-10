@@ -8,6 +8,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSandboxPremium } from './SandboxPremiumProvider';
 import { useSandboxTranslation } from '@/lib/sandboxTranslations';
 import { SimpleTutorial } from '@/components/tutorial/SimpleTutorial';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Play, Code, Database, Users, Settings, TestTube, FileCode, Monitor, 
   Smartphone, Tablet, Globe, Zap, Shield, Clock, BarChart3, MessageSquare, 
@@ -37,6 +40,8 @@ const ConsolidatedSandboxDashboard = () => {
   const translate = useSandboxTranslation(language as 'fr' | 'en');
   const { user } = useAuth();
   const { hasFullAccess, getUserPlan } = useSandboxPremium();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('overview');
   const [showTutorial, setShowTutorial] = useState(false);
   const [selectedRole, setSelectedRole] = useState('Teacher');
@@ -52,26 +57,84 @@ const ConsolidatedSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  // Fonctions pour les boutons avec traductions
+  // Query pour les métriques sandbox en temps réel
+  const { data: sandboxMetrics, isLoading } = useQuery({
+    queryKey: ['/api/sandbox/overview'],
+    enabled: !!user,
+    refetchInterval: 5000
+  });
+
+  // Mutation pour exécuter les tests complets
+  const runTestsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/run-full-tests', 'POST', {
+        includeIntegration: true,
+        modules: ['api', 'ui', 'database', 'notifications']
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      queryClient.invalidateQueries({ queryKey: ['/api/sandbox/overview'] });
+      toast({
+        title: translate('runTests'),
+        description: language === 'fr' 
+          ? `Tests complétés: ${data?.summary?.passed || 0} réussis, ${data?.summary?.failed || 0} échoués`
+          : `Tests completed: ${data?.summary?.passed || 0} passed, ${data?.summary?.failed || 0} failed`,
+        duration: 3000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'exécuter les tests' : 'Failed to run tests',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Mutation pour l'export des logs complets
+  const exportLogsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/sandbox/export-full-logs', 'POST', {
+        includeMetrics: true,
+        includeErrors: true,
+        dateRange: '7d'
+      });
+    },
+    onSuccess: async (response) => {
+      const data = await response.json();
+      const blob = new Blob([data.content || 'Sandbox logs'], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sandbox-full-logs-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: translate('exportLogs'),
+        description: language === 'fr' ? 'Logs exportés avec succès' : 'Logs exported successfully',
+        duration: 2000,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'exporter les logs' : 'Failed to export logs',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Fonctions pour les boutons avec mutations backend réelles
   const handleRunTests = () => {
-    console.log(translate('runTests'));
+    runTestsMutation.mutate();
     setIsRefreshing(true);
-    setTimeout(() => {
-      setIsRefreshing(false);
-      console.log(translate('testsCompleted'));
-    }, 2000);
+    setTimeout(() => setIsRefreshing(false), 2000);
   };
 
   const handleExportLogs = () => {
-    console.log(translate('exportLogs'));
-    const logs = `${translate('title')} - ${new Date().toISOString()}\n`;
-    const blob = new Blob([logs], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sandbox-logs-${new Date().toISOString().split('T')[0]}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    exportLogsMutation.mutate();
   };
 
   const handleVersionControl = () => {

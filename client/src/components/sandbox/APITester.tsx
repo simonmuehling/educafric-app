@@ -1,6 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Play, Copy, Clock, CheckCircle, XCircle } from 'lucide-react';
 
 interface APIResponse {
@@ -12,6 +16,8 @@ interface APIResponse {
 
 const APITester = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [endpoint, setEndpoint] = useState('/api/auth/me');
   const [method, setMethod] = useState('GET');
   const [requestBody, setRequestBody] = useState('');
@@ -108,9 +114,38 @@ const APITester = () => {
     }
   };
 
+  // Mutation pour tester les API endpoints avec vrai backend
+  const testApiMutation = useMutation({
+    mutationFn: async ({ endpoint, method, body, headers }: { endpoint: string, method: string, body: any, headers: any }) => {
+      return await apiRequest(endpoint, method as any, body, headers);
+    },
+    onSuccess: (response, variables) => {
+      const responseTime = Date.now() - startTime;
+      setResponse({
+        status: response.status || 200,
+        statusText: response.statusText || 'OK',
+        data: response,
+        responseTime
+      });
+      setLoading(false);
+    },
+    onError: (error: any, variables) => {
+      const responseTime = Date.now() - startTime;
+      setResponse({
+        status: error.status || 500,
+        statusText: error.statusText || 'Error',
+        data: { error: error.message || 'Request failed' },
+        responseTime
+      });
+      setLoading(false);
+    }
+  });
+
+  let startTime = 0;
+
   const sendRequest = async () => {
     setLoading(true);
-    const startTime = Date.now();
+    startTime = Date.now();
     
     try {
       let parsedHeaders = {};
@@ -132,29 +167,14 @@ const APITester = () => {
         }
       }
 
-      const options: RequestInit = {
+      // Use mutation for real backend testing
+      testApiMutation.mutate({
+        endpoint,
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          ...parsedHeaders
-        },
-        credentials: 'include'
-      };
-
-      if (parsedBody) {
-        options.body = JSON.stringify(parsedBody);
-      }
-
-      const res = await fetch(endpoint, options);
-      const data = await res.json();
-      const responseTime = Date.now() - startTime;
-
-      setResponse({
-        status: res.status,
-        statusText: res.statusText,
-        data,
-        responseTime
+        body: parsedBody,
+        headers: parsedHeaders
       });
+      
     } catch (error) {
       const responseTime = Date.now() - startTime;
       setResponse({
@@ -163,7 +183,6 @@ const APITester = () => {
         data: { error: error instanceof Error ? error.message : 'Unknown error' },
         responseTime
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -171,6 +190,11 @@ const APITester = () => {
   const copyResponse = () => {
     if (response) {
       navigator?.clipboard?.writeText(JSON.stringify(response.data, null, 2));
+      toast({
+        title: language === 'fr' ? 'Copié!' : 'Copied!',
+        description: language === 'fr' ? 'Réponse copiée dans le presse-papiers' : 'Response copied to clipboard',
+        duration: 2000,
+      });
     }
   };
 
