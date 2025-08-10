@@ -41,6 +41,7 @@ const EnhancedTeacherCommunications: React.FC = () => {
   const [showCompose, setShowCompose] = useState(false);
   const [composeData, setComposeData] = useState({
     type: 'parent',
+    schoolId: '',
     recipientIds: [] as number[],
     subject: '',
     content: '',
@@ -60,13 +61,15 @@ const EnhancedTeacherCommunications: React.FC = () => {
       toStudents: 'Aux élèves',
       toTeachers: 'Aux collègues',
       toDirection: 'À la direction',
+      selectSchool: 'Sélectionner l\'établissement',
+      allSchools: 'Tous les établissements',
       selectRecipients: 'Sélectionner destinataires',
-      allParentsMyClass: 'Tous les parents de ma classe',
+      allParentsMyClass: 'Tous les parents de mes classes',
       specificParents: 'Parents spécifiques',
-      allStudentsMyClass: 'Tous les élèves de ma classe',
+      allStudentsMyClass: 'Tous les élèves de mes classes',
       specificStudents: 'Élèves spécifiques',
-      allTeachers: 'Tous les enseignants',
-      direction: 'Direction de l\'école',
+      allTeachers: 'Tous les collègues enseignants',
+      direction: 'Direction de l\'établissement',
       subject: 'Sujet',
       content: 'Contenu du message',
       priority: 'Priorité',
@@ -101,12 +104,14 @@ const EnhancedTeacherCommunications: React.FC = () => {
       toStudents: 'To students',
       toTeachers: 'To colleagues',
       toDirection: 'To administration',
+      selectSchool: 'Select school',
+      allSchools: 'All schools',
       selectRecipients: 'Select recipients',
-      allParentsMyClass: 'All parents in my class',
+      allParentsMyClass: 'All parents in my classes',
       specificParents: 'Specific parents',
-      allStudentsMyClass: 'All students in my class',
+      allStudentsMyClass: 'All students in my classes',
       specificStudents: 'Specific students',
-      allTeachers: 'All teachers',
+      allTeachers: 'All teacher colleagues',
       direction: 'School administration',
       subject: 'Subject',
       content: 'Message content',
@@ -146,7 +151,19 @@ const EnhancedTeacherCommunications: React.FC = () => {
     }
   });
 
-  // Fetch teacher's classes and students
+  // Fetch teacher's schools and classes
+  const { data: teacherSchools = [] } = useQuery({
+    queryKey: ['/api/teacher/schools'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/schools', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch schools');
+      return response.json();
+    }
+  });
+
+  // Fetch teacher's classes across all schools
   const { data: myClasses = [] } = useQuery({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
@@ -182,14 +199,14 @@ const EnhancedTeacherCommunications: React.FC = () => {
     }
   });
 
-  // Fetch all teachers in school
+  // Fetch all teachers across all schools where this teacher works
   const { data: teachers = [] } = useQuery({
-    queryKey: ['/api/teachers/school'],
+    queryKey: ['/api/teacher/colleagues'],
     queryFn: async () => {
-      const response = await fetch('/api/teachers/school', {
+      const response = await fetch('/api/teacher/colleagues', {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch teachers');
+      if (!response.ok) throw new Error('Failed to fetch colleagues');
       return response.json();
     }
   });
@@ -215,6 +232,7 @@ const EnhancedTeacherCommunications: React.FC = () => {
       setShowCompose(false);
       setComposeData({
         type: 'parent',
+        schoolId: '',
         recipientIds: [],
         subject: '',
         content: '',
@@ -273,7 +291,7 @@ const EnhancedTeacherCommunications: React.FC = () => {
     sendMessageMutation.mutate({
       ...composeData,
       senderId: user?.id,
-      senderName: user?.name || 'Teacher',
+      senderName: (user as any)?.name || 'Teacher',
       senderRole: 'Teacher'
     });
   };
@@ -281,25 +299,40 @@ const EnhancedTeacherCommunications: React.FC = () => {
   const getRecipientOptions = () => {
     switch (composeData.type) {
       case 'parent':
-        return parents.map((parent: any) => ({
-          id: parent.id,
-          name: parent.name,
-          label: `${parent.name} (Parent de ${parent.studentName})`
-        }));
+        const parentOptions = [
+          { id: 'all-parents', name: 'Tous les parents', label: t.allParentsMyClass },
+          ...parents.map((parent: any) => ({
+            id: parent.id,
+            name: parent.name,
+            label: `${parent.name} (Parent de ${parent.studentName})`
+          }))
+        ];
+        return parentOptions;
       case 'student':
-        return students.map((student: any) => ({
-          id: student.id,
-          name: student.name,
-          label: `${student.name} (${student.className})`
-        }));
+        const studentOptions = [
+          { id: 'all-students', name: 'Tous les élèves', label: t.allStudentsMyClass },
+          ...students.map((student: any) => ({
+            id: student.id,
+            name: student.name,
+            label: `${student.name} (${student.className})`
+          }))
+        ];
+        return studentOptions;
       case 'teacher':
-        return teachers.map((teacher: any) => ({
-          id: teacher.id,
-          name: teacher.name,
-          label: `${teacher.name} (${teacher.subject})`
-        }));
+        const teacherOptions = [
+          { id: 'all-teachers', name: 'Tous les enseignants', label: t.allTeachers },
+          ...teachers.map((teacher: any) => ({
+            id: teacher.id,
+            name: teacher.name,
+            label: `${teacher.name} (${teacher.subject || teacher.schoolName})`
+          }))
+        ];
+        return teacherOptions;
       case 'direction':
-        return [{ id: 'direction', name: 'Direction', label: t.direction }];
+        return [
+          { id: 'direction-main', name: 'Direction principale', label: 'Direction de l\'école principale' },
+          { id: 'all-directions', name: 'Toutes les directions', label: 'Directions de tous les établissements' }
+        ];
       default:
         return [];
     }
@@ -432,6 +465,26 @@ const EnhancedTeacherCommunications: React.FC = () => {
               
               <div className="space-y-4">
                 <div>
+                  <label className="block text-sm font-medium mb-2">{t.selectSchool}</label>
+                  <Select 
+                    value={composeData.schoolId} 
+                    onValueChange={(value) => setComposeData({...composeData, schoolId: value, recipientIds: []})}
+                  >
+                    <SelectTrigger data-testid="select-school">
+                      <SelectValue placeholder={t.selectSchool} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t.allSchools}</SelectItem>
+                      {teacherSchools.map((school: any) => (
+                        <SelectItem key={school.id} value={school.id.toString()}>
+                          {school.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium mb-2">{t.messageType}</label>
                   <Select 
                     value={composeData.type} 
@@ -453,7 +506,14 @@ const EnhancedTeacherCommunications: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">{t.selectRecipients}</label>
                   <Select 
                     value={composeData.recipientIds[0]?.toString() || ''} 
-                    onValueChange={(value) => setComposeData({...composeData, recipientIds: [parseInt(value)]})}
+                    onValueChange={(value) => {
+                      // Handle special group selections
+                      if (value.startsWith('all-') || value.includes('direction')) {
+                        setComposeData({...composeData, recipientIds: [value as any]});
+                      } else {
+                        setComposeData({...composeData, recipientIds: [parseInt(value)]});
+                      }
+                    }}
                   >
                     <SelectTrigger data-testid="select-recipients">
                       <SelectValue placeholder={t.selectRecipients} />
@@ -461,7 +521,9 @@ const EnhancedTeacherCommunications: React.FC = () => {
                     <SelectContent>
                       {getRecipientOptions().map((option: any) => (
                         <SelectItem key={option.id} value={option.id.toString()}>
-                          {option.label}
+                          <span className={option.id.toString().startsWith('all-') ? 'font-semibold text-blue-600' : ''}>
+                            {option.label}
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>

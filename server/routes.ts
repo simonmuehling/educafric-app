@@ -2152,6 +2152,247 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multi-school teacher API routes
+  app.get("/api/teacher/schools", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Teacher', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Teacher access required' });
+      }
+      
+      const currentUser = req.user as any;
+      
+      // For sandbox mode, return sample schools where teacher works
+      if (currentUser.id === 46) {
+        const schools = [
+          {
+            id: 1,
+            name: 'École Primaire Saint-Joseph',
+            location: 'Yaoundé, Cameroun',
+            role: 'Enseignant Mathématiques'
+          },
+          {
+            id: 2,
+            name: 'Complexe Scolaire Bilingue Excellence',
+            location: 'Douala, Cameroun',
+            role: 'Enseignant Sciences'
+          }
+        ];
+        
+        console.log(`[TEACHER_SCHOOLS] ✅ Retrieved ${schools.length} schools for teacher`);
+        return res.json(schools);
+      }
+      
+      res.json([]);
+    } catch (error: any) {
+      console.error('[TEACHER_SCHOOLS] Error getting schools:', error);
+      res.status(500).json({ message: 'Failed to get schools' });
+    }
+  });
+
+  app.get("/api/teacher/parents", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Teacher', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Teacher access required' });
+      }
+      
+      const currentUser = req.user as any;
+      
+      // For sandbox mode, return sample parents from teacher's classes
+      if (currentUser.id === 46) {
+        const parents = [
+          {
+            id: 1,
+            name: 'Mme Julie Kameni',
+            email: 'julie.kameni@example.com',
+            phone: '+237698123456',
+            studentName: 'Junior Kameni',
+            className: 'CM2 A',
+            schoolName: 'École Saint-Joseph'
+          },
+          {
+            id: 2,
+            name: 'M. Paul Mbarga',
+            email: 'paul.mbarga@example.com',
+            phone: '+237677654321',
+            studentName: 'Marie Mbarga',
+            className: 'CM1 B',
+            schoolName: 'École Saint-Joseph'
+          },
+          {
+            id: 3,
+            name: 'Mme Sophie Onana',
+            email: 'sophie.onana@example.com',
+            phone: '+237655987654',
+            studentName: 'Alex Onana',
+            className: '6ème A',
+            schoolName: 'Complexe Excellence'
+          }
+        ];
+        
+        console.log(`[TEACHER_PARENTS] ✅ Retrieved ${parents.length} parents for teacher`);
+        return res.json(parents);
+      }
+      
+      res.json([]);
+    } catch (error: any) {
+      console.error('[TEACHER_PARENTS] Error getting parents:', error);
+      res.status(500).json({ message: 'Failed to get parents' });
+    }
+  });
+
+  app.get("/api/teacher/students", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Teacher', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Teacher access required' });
+      }
+      
+      const currentUser = req.user as any;
+      
+      // For sandbox mode, return sample students from teacher's classes
+      if (currentUser.id === 46) {
+        const students = [
+          {
+            id: 1,
+            name: 'Junior Kameni',
+            email: 'junior.kameni@student.example.com',
+            className: 'CM2 A',
+            schoolName: 'École Saint-Joseph',
+            parentName: 'Mme Julie Kameni'
+          },
+          {
+            id: 2,
+            name: 'Marie Mbarga',
+            email: 'marie.mbarga@student.example.com',
+            className: 'CM1 B',
+            schoolName: 'École Saint-Joseph',
+            parentName: 'M. Paul Mbarga'
+          },
+          {
+            id: 3,
+            name: 'Alex Onana',
+            email: 'alex.onana@student.example.com',
+            className: '6ème A',
+            schoolName: 'Complexe Excellence',
+            parentName: 'Mme Sophie Onana'
+          }
+        ];
+        
+        console.log(`[TEACHER_STUDENTS] ✅ Retrieved ${students.length} students for teacher`);
+        return res.json(students);
+      }
+      
+      res.json([]);
+    } catch (error: any) {
+      console.error('[TEACHER_STUDENTS] Error getting students:', error);
+      res.status(500).json({ message: 'Failed to get students' });
+    }
+  });
+
+  app.get("/api/teacher/colleagues", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Teacher', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Teacher access required' });
+      }
+      
+      const currentUser = req.user as any;
+      
+      // For sandbox mode, return sample colleagues across all schools
+      if (currentUser.id === 46) {
+        const colleagues = [
+          {
+            id: 4,
+            name: 'Mme Marie Ntamack',
+            email: 'marie.ntamack@example.com',
+            subject: 'Français',
+            schoolName: 'École Saint-Joseph'
+          },
+          {
+            id: 5,
+            name: 'M. Jean Nkomo',
+            email: 'jean.nkomo@example.com',
+            subject: 'Histoire-Géo',
+            schoolName: 'École Saint-Joseph'
+          },
+          {
+            id: 6,
+            name: 'Mme Sylvie Esso',
+            email: 'sylvie.esso@example.com',
+            subject: 'Anglais',
+            schoolName: 'Complexe Excellence'
+          }
+        ];
+        
+        console.log(`[TEACHER_COLLEAGUES] ✅ Retrieved ${colleagues.length} colleagues for teacher`);
+        return res.json(colleagues);
+      }
+      
+      res.json([]);
+    } catch (error: any) {
+      console.error('[TEACHER_COLLEAGUES] Error getting colleagues:', error);
+      res.status(500).json({ message: 'Failed to get colleagues' });
+    }
+  });
+
+  app.post("/api/teacher/communications/send", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Teacher', 'Admin', 'Director', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Teacher access required' });
+      }
+      
+      const currentUser = req.user as any;
+      const messageData = req.body;
+      
+      console.log(`[TEACHER_SEND_MESSAGE] Teacher ${currentUser.id} sending message:`, {
+        type: messageData.type,
+        schoolId: messageData.schoolId,
+        recipientIds: messageData.recipientIds,
+        subject: messageData.subject,
+        priority: messageData.priority
+      });
+      
+      // For sandbox mode, simulate message sending with notifications
+      if (currentUser.id === 46) {
+        const newMessage = {
+          id: Date.now(),
+          senderId: currentUser.id,
+          senderName: messageData.senderName,
+          senderRole: 'Teacher',
+          type: messageData.type,
+          schoolId: messageData.schoolId,
+          recipientIds: messageData.recipientIds,
+          subject: messageData.subject,
+          content: messageData.content,
+          priority: messageData.priority,
+          status: 'sent',
+          sentAt: new Date().toISOString()
+        };
+        
+        // Send notifications to recipients
+        await NotificationService.sendNotification({
+          type: 'teacher_message',
+          title: `Message de ${messageData.senderName}`,
+          message: `Nouveau message: ${messageData.subject}`,
+          recipients: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
+          schoolId: messageData.schoolId || 1,
+          priority: messageData.priority === 'urgent' ? 'high' : 'medium',
+          data: { 
+            messageId: newMessage.id,
+            senderRole: 'Teacher',
+            messageType: messageData.type
+          }
+        });
+        
+        console.log(`[TEACHER_SEND_MESSAGE] ✅ Message sent successfully`);
+        return res.json({ success: true, message: newMessage });
+      }
+      
+      res.json({ success: true, message: 'Message sent successfully' });
+    } catch (error: any) {
+      console.error('[TEACHER_SEND_MESSAGE] Error sending message:', error);
+      res.status(500).json({ message: 'Failed to send message' });
+    }
+  });
+
   // ===== FREELANCER MODULE ROUTES - POSTGRESQL IMPLEMENTATION =====
 
   // 1. FREELANCER STUDENTS ROUTE
