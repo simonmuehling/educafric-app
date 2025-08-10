@@ -266,16 +266,17 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       variant={selectedTab === key ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setSelectedTab(key)}
+                      data-testid={`button-tab-${key}`}
                     >
                       {label}
                     </Button>
                   ))}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" data-testid="button-search-messages">
                     <Search className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" data-testid="button-filter-messages">
                     <Filter className="w-4 h-4" />
                   </Button>
                 </div>
@@ -374,14 +375,14 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   </div>
                   
                   <div className="flex space-x-2 pt-4">
-                    <Button size="sm" className="flex-1">
+                    <Button size="sm" className="flex-1" data-testid={`button-reply-${selectedMessage.id}`}>
                       <Reply className="w-4 h-4 mr-2" />
                       {t?.actions?.reply}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" data-testid={`button-forward-${selectedMessage.id}`}>
                       <Forward className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" data-testid={`button-archive-${selectedMessage.id}`}>
                       <Archive className="w-4 h-4" />
                     </Button>
                   </div>
@@ -395,6 +396,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       setSelectedTab('compose');
                       // Logic pour nouveau message parent
                     }}
+                    data-testid="button-compose-parent-message"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Nouveau message parent
@@ -406,6 +408,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       setSelectedTab('compose');
                       // Logic pour annonce classe
                     }}
+                    data-testid="button-compose-class-announcement"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Annonce classe
@@ -417,6 +420,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       setSelectedTab('compose');
                       // Logic pour message collègue
                     }}
+                    data-testid="button-compose-colleague-message"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Message collègue
@@ -428,6 +432,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
                       setSelectedTab('compose');
                       // Logic pour rapport direction
                     }}
+                    data-testid="button-compose-director-report"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Rapport direction

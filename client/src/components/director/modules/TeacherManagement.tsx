@@ -388,6 +388,7 @@ const TeacherManagement: React.FC = () => {
                           setSelectedTeacher(teacher);
                           setShowViewModal(true);
                         }}
+                        data-testid={`button-view-teacher-${teacher.id}`}
                       >
                         <Eye className="w-4 h-4 mr-1" />
                         {language === 'fr' ? 'Voir' : 'View'}
@@ -408,6 +409,7 @@ const TeacherManagement: React.FC = () => {
                           });
                           setShowEditModal(true);
                         }}
+                        data-testid={`button-edit-teacher-${teacher.id}`}
                       >
                         <Edit className="w-4 h-4 mr-1" />
                         {language === 'fr' ? 'Modifier' : 'Edit'}
@@ -422,6 +424,7 @@ const TeacherManagement: React.FC = () => {
                           }
                         }}
                         disabled={deleteTeacherMutation?.isPending}
+                        data-testid={`button-delete-teacher-${teacher.id}`}
                       >
                         <Trash2 className="w-4 h-4 mr-1" />
                         {language === 'fr' ? 'Supprimer' : 'Delete'}

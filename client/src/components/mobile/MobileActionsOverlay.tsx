@@ -41,6 +41,7 @@ const MobileActionsOverlay: React.FC<MobileActionsOverlayProps> = ({
             onClick={action.onClick}
             variant={action.variant || 'default'}
             className={`${action.color || 'bg-blue-600 hover:bg-blue-700'} text-white`}
+            data-testid={`button-${action.id}`}
           >
             {action.icon}
             <span className="ml-2">{action.label}</span>
@@ -65,6 +66,7 @@ const MobileActionsOverlay: React.FC<MobileActionsOverlayProps> = ({
               onClick={action.onClick}
               variant={action.variant || 'default'}
               className={`${action.color || 'bg-blue-600 hover:bg-blue-700'} text-white h-12 text-sm flex items-center justify-center`}
+              data-testid={`button-mobile-${action.id}`}
             >
               {action.icon}
               <span className="ml-2 text-xs">{action.label}</span>
@@ -76,6 +78,7 @@ const MobileActionsOverlay: React.FC<MobileActionsOverlayProps> = ({
               onClick={() => setOverlayOpen(true)}
               variant="outline"
               className="h-12 border-2 border-dashed border-gray-300 text-gray-600 flex items-center justify-center"
+              data-testid="button-more-actions"
             >
               <ChevronDown className="w-4 h-4 mr-2" />
               <span className="text-xs">Plus d'actions (+{(Array.isArray(actions) ? actions.length : 0) - maxVisibleButtons})</span>
@@ -96,6 +99,7 @@ const MobileActionsOverlay: React.FC<MobileActionsOverlayProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0"
+                  data-testid="button-close-overlay"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -112,6 +116,7 @@ const MobileActionsOverlay: React.FC<MobileActionsOverlayProps> = ({
                   }}
                   variant={action.variant || 'default'}
                   className={`${action.color || 'bg-blue-600 hover:bg-blue-700'} text-white w-full h-14 text-base flex items-center justify-start px-4`}
+                  data-testid={`button-overlay-${action.id}`}
                 >
                   {action.icon}
                   <span className="ml-3">{action.label}</span>

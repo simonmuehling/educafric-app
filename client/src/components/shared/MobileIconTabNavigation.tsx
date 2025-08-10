@@ -36,6 +36,7 @@ const MobileIconTabNavigation: React.FC<MobileIconTabProps> = ({
                   ? "bg-blue-600 text-white hover:bg-blue-700" 
                   : "bg-white hover:bg-gray-100"
               )}
+              data-testid={`button-tab-${tab.value}`}
             >
               <IconComponent className="w-6 h-6" />
               <span className="font-medium">{tab.label}</span>

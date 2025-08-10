@@ -586,6 +586,7 @@ const StudentManagement: React.FC = () => {
                           setSelectedStudent(student);
                           setShowViewModal(true);
                         }}
+                        data-testid={`button-view-student-${student.id}`}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -610,6 +611,7 @@ const StudentManagement: React.FC = () => {
                           });
                           setShowEditModal(true);
                         }}
+                        data-testid={`button-edit-student-${student.id}`}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -625,6 +627,7 @@ const StudentManagement: React.FC = () => {
                             });
                           }
                         }}
+                        data-testid={`button-delete-student-${student.id}`}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
