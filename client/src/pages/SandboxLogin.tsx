@@ -17,6 +17,7 @@ const SandboxLogin = () => {
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const [isLogging, setIsLogging] = useState<string | null>(null);
+  const [showNotificationTester, setShowNotificationTester] = useState(false);
 
   const text = {
     fr: {
@@ -127,10 +128,30 @@ const SandboxLogin = () => {
       modules: 13,
       details: language === 'fr' ? 'Directrice Générale, Doctorat en Éducation' : 'General Director, PhD in Education'
     },
+    {
+      id: 'notifications',
+      name: language === 'fr' ? 'Test Notifications' : 'Notifications Testing',
+      realName: language === 'fr' ? 'Centre de Test Notifications' : 'Notification Testing Center',
+      email: '',
+      password: '',
+      icon: <Bell className="w-8 h-8" />,
+      color: 'bg-red-500',
+      role: 'NotificationTester',
+      description: language === 'fr' ? 'Test complet des notifications Email, SMS, WhatsApp et Push avec templates prédéfinis' : 'Complete testing for Email, SMS, WhatsApp and Push notifications with predefined templates',
+      modules: 4,
+      details: language === 'fr' ? 'Email, SMS, WhatsApp, Push • Templates • Historique' : 'Email, SMS, WhatsApp, Push • Templates • History',
+      isSpecial: true
+    },
 
   ];
 
   const handleSandboxLogin = async (profile: typeof sandboxProfiles[0]) => {
+    // Special handling for notification tester
+    if (profile.id === 'notifications') {
+      setShowNotificationTester(true);
+      return;
+    }
+
     setIsLogging(profile.id);
     
     try {
@@ -210,21 +231,37 @@ const SandboxLogin = () => {
           </div>
         </div>
 
-        {/* Main Tabs */}
-        <Tabs defaultValue="profiles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
-            <TabsTrigger value="profiles" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              {language === 'fr' ? 'Profils de Test' : 'Test Profiles'}
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              {language === 'fr' ? 'Test Notifications' : 'Notification Testing'}
-            </TabsTrigger>
-          </TabsList>
+        {/* Conditional Content */}
+        {showNotificationTester ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center text-white shadow-lg">
+                  <Bell className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                    {language === 'fr' ? 'Centre de Test Notifications' : 'Notification Testing Center'}
+                  </h2>
+                  <p className="text-gray-600">
+                    {language === 'fr' ? 'Test complet des systèmes de notifications' : 'Complete notification systems testing'}
+                  </p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowNotificationTester(false)}
+                className="flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                {language === 'fr' ? 'Retour aux Profils' : 'Back to Profiles'}
+              </Button>
+            </div>
+            <NotificationTester />
+          </div>
+        ) : (
 
-          <TabsContent value="profiles" className="space-y-6">
-
+          <div className="space-y-6">
             {/* Profile Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(Array.isArray(sandboxProfiles) ? sandboxProfiles : []).map((profile) => (
@@ -274,6 +311,11 @@ const SandboxLogin = () => {
                       <TestTube className="w-4 h-4 mr-2 animate-spin" />
                       {language === 'fr' ? 'Connexion...' : 'Connecting...'}
                     </>
+                  ) : profile.id === 'notifications' ? (
+                    <>
+                      <Bell className="w-4 h-4 mr-2" />
+                      {language === 'fr' ? 'Ouvrir Test Notifications' : 'Open Notification Testing'}
+                    </>
                   ) : (
                     <>
                       <Play className="w-4 h-4 mr-2" />
@@ -285,12 +327,8 @@ const SandboxLogin = () => {
             </Card>
           ))}
             </div>
-          </TabsContent>
-
-          <TabsContent value="notifications" className="space-y-6">
-            <NotificationTester />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
 
         {/* Footer Info */}
         <div className="mt-12 text-center">
