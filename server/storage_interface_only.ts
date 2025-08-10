@@ -455,7 +455,4 @@ export interface IStorage {
   getCommunicationsOverview(schoolId: number): Promise<any>;
   getSchoolMessages(schoolId: number): Promise<any[]>;
   sendSchoolMessage(messageData: any): Promise<any>;
-
 }
-
-export class DatabaseStorage implements IStorage {}

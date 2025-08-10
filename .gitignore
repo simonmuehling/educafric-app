@@ -15,3 +15,10 @@ backups/
 # Exclude files larger than 100MB
 **/*backup*.tar.gz
 **/*BACKUP*.tar.gz
+# Old workflow files cleanup
+.github/workflows/android-release.yml
+.github/workflows/ci.yml
+.github/workflows/educafric-android-production.yml
+.github/workflows/fixed-*.yml
+.github/workflows/robust-*.yml
+.github/workflows/simple-*.yml
