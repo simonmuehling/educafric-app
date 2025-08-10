@@ -345,6 +345,11 @@ const ConsolidatedSandboxDashboard = () => {
       icon: <FileCode className="w-4 h-4" />
     },
     {
+      id: 'communication',
+      label: language === 'fr' ? 'Communication' : 'Communication',
+      icon: <MessageSquare className="w-4 h-4" />
+    },
+    {
       id: 'monitoring',
       label: t.monitoring,
       icon: <Activity className="w-4 h-4" />
@@ -353,8 +358,7 @@ const ConsolidatedSandboxDashboard = () => {
       id: 'device-testing',
       label: t.deviceTesting,
       icon: <Smartphone className="w-4 h-4" />
-    },
-
+    }
   ];
 
   return (
@@ -422,10 +426,6 @@ const ConsolidatedSandboxDashboard = () => {
                 <span className="hidden md:inline">{tab.label}</span>
               </TabsTrigger>
             ))}
-            <TabsTrigger value="communication" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden md:inline">{language === 'fr' ? 'Communication' : 'Communication'}</span>
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
