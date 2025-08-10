@@ -8498,8 +8498,8 @@ export class DatabaseStorage implements IStorage {
 
   async getPlatformStatistics(): Promise<any> {
     try {
-      const totalUsers = await db.select({ count: sql`count(*)` }).from(this.users);
-      const totalSchools = await db.select({ count: sql`count(*)` }).from(this.schools);
+      const totalUsers = await db.select({ count: sql`count(*)` }).from(users);
+      const totalSchools = await db.select({ count: sql`count(*)` }).from(schools);
       
       return {
         totalUsers: totalUsers[0]?.count || 0,
