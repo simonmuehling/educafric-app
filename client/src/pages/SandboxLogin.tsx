@@ -111,19 +111,7 @@ const SandboxLogin = () => {
       details: language === 'fr' ? 'Répétiteur de Junior, spécialiste examens' : 'Junior\'s tutor, exam specialist'
     },
 
-    {
-      id: 'admin',
-      name: 'Joseph Atangana',
-      realName: language === 'fr' ? 'Admin École (Joseph Atangana)' : 'School Admin (Joseph Atangana)',
-      email: 'sandbox.admin@educafric.demo',
-      password: 'sandbox123',
-      icon: <Settings className="w-8 h-8" />,
-      color: 'bg-red-500',
-      role: 'Admin',
-      description: t?.features?.admin,
-      modules: 13,
-      details: language === 'fr' ? 'Directeur des Études, 12 ans d\'expérience' : 'Academic Director, 12 years experience'
-    },
+
     {
       id: 'director',
       name: 'Dr. Christiane Fouda',

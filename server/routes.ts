@@ -949,7 +949,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       'sandbox.teacher@educafric.demo': { id: 9002, role: 'Teacher', name: 'Paul Mvondo', email: 'sandbox.teacher@educafric.demo' },
       'sandbox.freelancer@educafric.demo': { id: 9003, role: 'Freelancer', name: 'Sophie Biya', email: 'sandbox.freelancer@educafric.demo' },
       'sandbox.student@educafric.demo': { id: 9004, role: 'Student', name: 'Junior Kamga', email: 'sandbox.student@educafric.demo' },
-      'sandbox.admin@educafric.demo': { id: 9005, role: 'Admin', name: 'Dr. Nguetsop Carine', email: 'sandbox.admin@educafric.demo' },
+
       'sandbox.director@educafric.demo': { id: 9006, role: 'Director', name: 'Prof. Atangana Michel', email: 'sandbox.director@educafric.demo' },
 
     };
@@ -993,6 +993,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       { id: 2, subject: 'Français', title: 'Dissertation littéraire', description: 'Analyse de "Une si longue lettre"', dueDate: '2025-02-01', status: 'pending' },
       { id: 3, subject: 'Sciences', title: 'Rapport expérience', description: 'Expérience de chimie', dueDate: '2025-01-30', status: 'pending' }
     ]);
+  });
+
+  // Sandbox Communication Tester Route
+  app.post("/api/sandbox/test-communication", (req, res) => {
+    const { type, recipient, subject, message, isTest } = req.body;
+    console.log(`🏖️ Sandbox Communication Test: ${type} to ${recipient}`);
+    
+    // Simulate successful communication test
+    const testResult = {
+      success: true,
+      type,
+      recipient,
+      subject: subject || `Test ${type.toUpperCase()}`,
+      message,
+      status: 'sent',
+      timestamp: new Date().toISOString(),
+      testId: Date.now().toString(),
+      details: {
+        provider: type === 'email' ? 'Hostinger SMTP' : type === 'sms' ? 'Vonage SMS' : 'WhatsApp Business API',
+        deliveryTime: Math.random() * 2 + 0.5 + 's',
+        sandbox: true
+      }
+    };
+    
+    // Simulate processing delay
+    setTimeout(() => {
+      res.json(testResult);
+    }, 1000 + Math.random() * 1000);
   });
 
   app.get("/api/sandbox/mirror/subjects", (req, res) => {
