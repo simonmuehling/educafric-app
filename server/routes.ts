@@ -19420,6 +19420,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route de contrôle des duplications
+  app.get('/api/admin/duplication-analysis', requireAuth, async (req, res) => {
+    try {
+      const { duplicationController } = await import('./services/duplicationController');
+      const analysis = await duplicationController.runDuplicationAnalysis();
+      
+      res.json({
+        success: true,
+        analysis,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('[DUPLICATION_API] Error running analysis:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+  
+  // Route de correction automatique des duplications
+  app.post('/api/admin/auto-fix-duplications', requireAuth, async (req, res) => {
+    try {
+      const { duplicationController } = await import('./services/duplicationController');
+      const analysis = await duplicationController.runDuplicationAnalysis();
+      const autoFix = await duplicationController.autoFixDuplications(analysis);
+      
+      res.json({
+        success: true,
+        fixed: autoFix.fixed,
+        errors: autoFix.errors,
+        details: autoFix.details,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('[DUPLICATION_API] Error auto-fixing:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+  
+  // Route de génération de rapport de duplication
+  app.get('/api/admin/duplication-report', requireAuth, async (req, res) => {
+    try {
+      const { duplicationController } = await import('./services/duplicationController');
+      const report = await duplicationController.generateDuplicationReport();
+      
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.send(report);
+    } catch (error: any) {
+      console.error('[DUPLICATION_API] Error generating report:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   // Route publique pour test du rapport quotidien
   app.get("/api/test/daily-report", async (req, res) => {
     try {
