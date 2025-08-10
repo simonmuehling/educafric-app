@@ -34,15 +34,20 @@ export const tutorialSteps = pgTable("tutorial_steps", {
 });
 
 // Zod schemas for validation
-export const insertTutorialProgressSchema = createInsertSchema(tutorialProgress).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertTutorialProgressSchema = z.object({
+  userId: z.number(),
+  tutorialId: z.string(),
+  currentStep: z.number().default(0),
+  isCompleted: z.boolean().default(false),
+  completedSteps: z.array(z.number()).default([]),
 });
 
-export const insertTutorialStepSchema = createInsertSchema(tutorialSteps).omit({
-  id: true,
-  createdAt: true,
+export const insertTutorialStepSchema = z.object({
+  progressId: z.number(),
+  stepNumber: z.number(),
+  stepId: z.string(),
+  isCompleted: z.boolean().default(false),
+  timeSpent: z.number().optional(),
 });
 
 // Types

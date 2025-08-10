@@ -342,22 +342,37 @@ export const schoolBranding = pgTable("school_branding", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Insert schemas for API validation 
-export const insertBulletinSchema = createInsertSchema(bulletins).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
+// Insert schemas for API validation using simplified approach
+export const insertBulletinSchema = z.object({
+  schoolId: z.number(),
+  academicYearId: z.number(),
+  studentId: z.number(),
+  classId: z.number(),
+  termId: z.number(),
+  status: z.string().default("draft"),
+  generalAverage: z.number().optional(),
+  classRank: z.number().optional(),
+  totalStudentsInClass: z.number().optional(),
 });
 
-export const insertBulletinGradeSchema = createInsertSchema(bulletinGrades).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
+export const insertBulletinGradeSchema = z.object({
+  bulletinId: z.number(),
+  subjectId: z.number(),
+  grade: z.number().min(0).max(20),
+  coefficient: z.number().min(0.1),
+  points: z.number().optional(),
+  teacherComment: z.string().optional(),
+  status: z.string().default("pending"),
 });
 
-export const insertBulletinApprovalSchema = createInsertSchema(bulletinApprovals).omit({
-  id: true,
-  timestamp: true
+export const insertBulletinApprovalSchema = z.object({
+  bulletinId: z.number(),
+  userId: z.number(),
+  action: z.string(),
+  previousStatus: z.string().optional(),
+  newStatus: z.string().optional(),
+  comments: z.string().optional(),
+  metadata: z.any().optional(),
 }).partial();
 
 // Type definitions
@@ -374,31 +389,27 @@ export type InsertBulletinGrade = z.infer<typeof insertBulletinGradeSchema>;
 export type InsertBulletinApproval = z.infer<typeof insertBulletinApprovalSchema>;
 
 // Enhanced Bulletin System Zod Schemas for new QR/3D verification system
-export const enhancedBulletinSchema = createInsertSchema(bulletins, {
+export const enhancedBulletinSchema = z.object({
+  schoolId: z.number(),
+  academicYearId: z.number(),
+  studentId: z.number(),
   generalAverage: z.number().min(0).max(20),
   classRank: z.number().min(1),
   totalStudentsInClass: z.number().min(1),
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
 });
 
-export const enhancedBulletinGradeSchema = createInsertSchema(bulletinGrades, {
+export const enhancedBulletinGradeSchema = z.object({
+  bulletinId: z.number(),
+  subjectId: z.number(),
   grade: z.number().min(0).max(20),
   coefficient: z.number().min(0.1).max(10),
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
 });
 
-export const enhancedBulletinVerificationSchema = createInsertSchema(bulletinVerifications, {
+export const enhancedBulletinVerificationSchema = z.object({
+  bulletinId: z.number(),
+  parentId: z.number(),
   verificationType: z.enum(['qr_scan', 'code_entry', 'manual_check']),
   success: z.boolean(),
-}).omit({
-  id: true,
-  timestamp: true,
 });
 
 // Type exports for enhanced bulletin system
@@ -614,13 +625,19 @@ export const notifications = pgTable("notifications", {
 });
 
 // Notification schemas
-export const insertNotificationSchema = createInsertSchema(notifications).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
 
 export type Notification = typeof notifications.$inferSelect;
+// Missing insertNotificationSchema - define it
+export const insertNotificationSchema = z.object({
+  userId: z.number(),
+  type: z.string(),
+  title: z.string(),
+  message: z.string(),
+  data: z.any().optional(),
+  isRead: z.boolean().default(false),
+  priority: z.string().default("normal"),
+});
+
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Communication logs
@@ -942,26 +959,9 @@ export const africanScheduleConfigSchema = z.object({
 });
 
 // Insert schemas for API validation
-export const insertTimetableSchema = createInsertSchema(timetables).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
 
-export const insertTimetableTemplateSchema = createInsertSchema(timetableTemplates).omit({
-  id: true,
-  usageCount: true,
-  createdAt: true,
-  updatedAt: true
-});
 
 // Homework Submission Schema with File Upload Support
-export const insertHomeworkSubmissionSchema = createInsertSchema(homeworkSubmissions).omit({
-  id: true,
-  submittedAt: true,
-  lastModifiedAt: true,
-  teacherGradedAt: true
-});
 
 export const homeworkSubmissionFileSchema = z.object({
   type: z.enum(['image', 'document', 'video', 'audio', 'other']),
@@ -977,6 +977,24 @@ export const homeworkSubmissionSchema = z.object({
   submissionText: z.string().max(5000, 'Texte de soumission trop long').optional(),
   attachments: z.array(homeworkSubmissionFileSchema).max(5, 'Maximum 5 fichiers autorisés').optional(),
   submissionSource: z.enum(['web', 'mobile', 'camera']).default('web')
+});
+
+// Missing timetable schemas - define them
+export const insertTimetableSchema = z.object({
+  classId: z.number(),
+  teacherId: z.number(),
+  subjectId: z.number(),
+  dayOfWeek: z.number(),
+  startTime: z.string(),
+  endTime: z.string(),
+  room: z.string().optional(),
+});
+
+export const insertTimetableTemplateSchema = z.object({
+  schoolId: z.number(),
+  name: z.string(),
+  academicYearId: z.number(),
+  isActive: z.boolean().default(true),
 });
 
 export type InsertTimetableData = z.infer<typeof insertTimetableSchema>;
@@ -1476,11 +1494,10 @@ export type ParentRequestNotification = typeof parentRequestNotifications.$infer
 export type InsertParentRequestNotification = typeof parentRequestNotifications.$inferInsert;
 
 // Parent Request Validation Schemas
-export const insertParentRequestSchema = createInsertSchema(parentRequests).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
+export const insertParentRequestSchema = z.object({
+  schoolId: z.number(),
+  parentId: z.number(),
+  studentId: z.number().optional(),
   type: z.enum(["absence_request", "permission", "complaint", "information", "meeting", "document", "other"]),
   category: z.enum(["academic", "administrative", "health", "disciplinary", "transportation", "other"]),
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
@@ -1489,10 +1506,9 @@ export const insertParentRequestSchema = createInsertSchema(parentRequests).omit
   description: z.string().min(10, "Description must be at least 10 characters"),
 });
 
-export const insertParentRequestResponseSchema = createInsertSchema(parentRequestResponses).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertParentRequestResponseSchema = z.object({
+  requestId: z.number(),
+  responderId: z.number(),
   responseType: z.enum(["approval", "rejection", "clarification", "information"]),
   response: z.string().min(1, "Response is required"),
 });
@@ -1509,11 +1525,9 @@ export type MonthlyAbsenceReport = typeof monthlyAbsenceReports.$inferSelect;
 export type InsertMonthlyAbsenceReport = typeof monthlyAbsenceReports.$inferInsert;
 
 // Teacher Absence Validation Schemas
-export const insertTeacherAbsenceSchema = createInsertSchema(teacherAbsences).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
+export const insertTeacherAbsenceSchema = z.object({
+  teacherId: z.number(),
+  schoolId: z.number(),
   reason: z.string().min(1, "Reason is required"),
   reasonCategory: z.enum(["medical", "personal", "emergency", "official", "other"]),
   status: z.enum(["reported", "notified", "substitute_assigned", "resolved", "archived"]),
@@ -1523,10 +1537,8 @@ export const insertTeacherAbsenceSchema = createInsertSchema(teacherAbsences).om
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format"),
 });
 
-export const insertTeacherAbsenceActionSchema = createInsertSchema(teacherAbsenceActions).omit({
-  id: true,
-  createdAt: true,
-}).extend({
+export const insertTeacherAbsenceActionSchema = z.object({
+  absenceId: z.number(),
   actionType: z.enum(["notify_parents", "notify_students", "assign_substitute", "mark_resolved", "generate_report"]),
   targetAudience: z.enum(["parents", "students", "admin", "all"]).optional(),
   notificationMethod: z.enum(["sms", "email", "whatsapp", "push"]).optional(),
@@ -1564,14 +1576,17 @@ export const commercialContactsRelations = relations(commercialContacts, ({ one 
 }));
 
 // Insert schema for commercial contacts
-export const insertCommercialContactSchema = createInsertSchema(commercialContacts).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
+export const insertCommercialContactSchema = z.object({
+  commercialId: z.number(),
   name: z.string().min(1, "Name is required"),
+  position: z.string().optional(),
+  school: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
   status: z.enum(["lead", "prospect", "client", "inactive"]).default("prospect"),
   priority: z.enum(["high", "medium", "low"]).default("medium"),
+  nextAction: z.string().optional(),
+  notes: z.string().optional(),
   rating: z.number().min(1).max(5).optional(),
 });
 
