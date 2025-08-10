@@ -41,7 +41,7 @@ class SystemReportService {
 
     this.isInitialized = true;
     console.log('[SYSTEM_REPORTS] Automated system reporting initialized - reports at 3am and 10pm (Africa/Douala)');
-    console.log('[SYSTEM_REPORTS] Target email: admin@educafric.com');
+    console.log('[SYSTEM_REPORTS] Target email: simonpmuehling@gmail.com');
   }
 
   async sendScheduledReport(reportType: string): Promise<void> {
@@ -52,7 +52,7 @@ class SystemReportService {
       const success = await hostingerMailService.sendSystemReport(metrics);
       
       if (success) {
-        console.log(`[SYSTEM_REPORTS] ${reportType} sent successfully to admin@educafric.com`);
+        console.log(`[SYSTEM_REPORTS] ${reportType} sent successfully to simonpmuehling@gmail.com`);
       } else {
         console.error(`[SYSTEM_REPORTS] Failed to send ${reportType}`);
       }
@@ -169,7 +169,7 @@ class SystemReportService {
         '03:00 daily (Africa/Douala)',
         '22:00 daily (Africa/Douala)'
       ],
-      targetEmail: 'admin@educafric.com'
+      targetEmail: 'simonpmuehling@gmail.com'
     };
   }
 
