@@ -196,7 +196,20 @@ const FunctionalTeacherCommunications: React.FC = () => {
         </div>
         <Button 
           className="bg-blue-600 hover:bg-blue-700"
-          onClick={() => setSelectedTab('compose')}
+          onClick={() => {
+            setShowCompose(true);
+            setComposeData({
+              type: 'new-message',
+              to: '',
+              subject: '',
+              message: ''
+            });
+            toast({
+              title: language === 'fr' ? 'Nouveau message' : 'New Message',
+              description: language === 'fr' ? 'Composer un nouveau message' : 'Compose new message'
+            });
+          }}
+          data-testid="button-new-message"
         >
           <Plus className="w-4 h-4 mr-2" />
           {t?.actions?.compose}
