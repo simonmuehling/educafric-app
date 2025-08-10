@@ -120,13 +120,14 @@ const SubscriptionReminderTest = () => {
         userId: parseInt(testUserId)
       });
 
-      if (response.success) {
+      const data = await response.json();
+      if (data.success) {
         toast({
           title: t.reminderSent,
           description: t.reminderSentDesc,
         });
       } else {
-        throw new Error(response.message);
+        throw new Error(data.message);
       }
     } catch (error) {
       console.error('Error testing reminder:', error);
@@ -144,7 +145,8 @@ const SubscriptionReminderTest = () => {
     setIsCheckingStatus(true);
     try {
       const response = await apiRequest('GET', '/api/subscription/status');
-      setSubscriptionStatus(response);
+      const data = await response.json();
+      setSubscriptionStatus(data);
       
       toast({
         title: t.statusLoaded,
@@ -170,15 +172,16 @@ const SubscriptionReminderTest = () => {
         paymentIntentId: 'test_renewal_' + Date.now()
       });
 
-      if (response.success) {
+      const data = await response.json();
+      if (data.success) {
         toast({
           title: "Renouvellement testé",
-          description: response.message,
+          description: data.message,
         });
         // Recharger le statut
         handleCheckStatus();
       } else {
-        throw new Error(response.message);
+        throw new Error(data.message);
       }
     } catch (error) {
       console.error('Error testing renewal:', error);

@@ -133,7 +133,7 @@ const FirebaseIntegrationTest = () => {
       status: 'enabled',
       icon: <Shield className="w-6 h-6 text-blue-600" />,
       testFunction: async () => {
-        const status = await firebaseAuth2FA.get2FAStatus();
+        const status = await firebaseAuth2FA.get2FAConfig(1);
         setServiceResults(prev => ({
           ...prev,
           authentication: { status: status ? 'configured' : 'available', data: status }

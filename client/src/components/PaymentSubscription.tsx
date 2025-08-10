@@ -12,8 +12,7 @@ export default function PaymentSubscription() {
   const { t } = useLanguage();
 
   const { data: payments, isLoading } = useQuery({
-    queryKey: ['/api/payments'],
-    queryParams: { schoolId: user?.schoolId },
+    queryKey: ['/api/payments', user?.schoolId],
     enabled: !!user?.schoolId,
   });
 
@@ -105,7 +104,11 @@ export default function PaymentSubscription() {
         {/* Manage Payments Button */}
         <Button 
           className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-          onClick={() => window?.location?.href = '/demo#pricing'}
+          onClick={() => {
+            if (window?.location) {
+              window.location.href = '/demo#pricing';
+            }
+          }}
         >
           <CreditCard className="h-4 w-4 mr-2" />
           {t('managePayments')}

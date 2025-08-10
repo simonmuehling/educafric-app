@@ -43,8 +43,9 @@ export default function TwoFactorSetup() {
   const fetchStatus = async () => {
     try {
       setIsLoading(true);
-      const response = await apiRequest('/api/auth/2fa/status');
-      setStatus(response.data);
+      const response = await apiRequest('GET', '/api/auth/2fa/status');
+      const data = await response.json();
+      setStatus(data);
     } catch (error) {
       setError('Failed to fetch 2FA status');
       console.error('2FA status error:', error);
@@ -58,10 +59,9 @@ export default function TwoFactorSetup() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await apiRequest('/api/auth/2fa/setup', {
-        method: 'POST'
-      });
-      setSetupData(response.data);
+      const response = await apiRequest('POST', '/api/auth/2fa/setup');
+      const data = await response.json();
+      setSetupData(data);
       setStep('setup');
       toast({
         title: "2FA Setup Initialized",
@@ -85,11 +85,7 @@ export default function TwoFactorSetup() {
     try {
       setIsLoading(true);
       setError(null);
-      await apiRequest('/api/auth/2fa/enable', {
-        method: 'POST',
-        body: JSON.stringify({ verificationCode }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await apiRequest('POST', '/api/auth/2fa/enable', { verificationCode });
       
       setStep('complete');
       toast({
@@ -109,11 +105,7 @@ export default function TwoFactorSetup() {
   const disableTwoFactor = async (password: string, code: string) => {
     try {
       setIsLoading(true);
-      await apiRequest('/api/auth/2fa/disable', {
-        method: 'POST',
-        body: JSON.stringify({ password, verificationCode: code }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await apiRequest('POST', '/api/auth/2fa/disable', { password, verificationCode: code });
       
       toast({
         title: "2FA Disabled",

@@ -27,7 +27,7 @@ interface MultiSchoolSelectorProps {
 }
 
 export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelectorProps) {
-  const { language, text } = useLanguage();
+  const { language } = useLanguage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [switching, setSwitching] = useState(false);
@@ -41,7 +41,8 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
     setLoading(true);
     try {
       const response = await apiRequest('GET', `/api/auth/teacher-schools/${userId}`);
-      setSchools(response);
+      const data = await response.json();
+      setSchools(data);
     } catch (error) {
       console.error('Erreur chargement écoles enseignant:', error);
       toast({
@@ -63,20 +64,22 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
         schoolId: parseInt(schoolId.toString())
       });
       
+      const data = await response.json();
+      
       setSchools(prev => prev ? {
         ...prev,
-        currentSchool: response.currentSchool
+        currentSchool: data.currentSchool
       } : null);
       
       if (onSchoolChange) {
-        onSchoolChange(response.currentSchool);
+        onSchoolChange(data.currentSchool);
       }
       
       toast({
         title: language === 'fr' ? 'École changée' : 'School Changed',
         description: language === 'fr' 
-          ? `Maintenant connecté à ${response?.currentSchool?.name}` 
-          : `Now connected to ${response?.currentSchool?.name}`,
+          ? `Maintenant connecté à ${data?.currentSchool?.name}` 
+          : `Now connected to ${data?.currentSchool?.name}`,
       });
       
     } catch (error) {

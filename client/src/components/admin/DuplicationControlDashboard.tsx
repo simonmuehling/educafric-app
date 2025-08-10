@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -58,20 +58,25 @@ export default function DuplicationControlDashboard() {
   const { data: analysisData, isLoading: loadingAnalysis, refetch: refetchAnalysis } = useQuery({
     queryKey: ['/api/admin/duplication-analysis'],
     enabled: false, // Démarrage manuel
-    onSuccess: (data) => {
-      setLastAnalysis(data.analysis);
-    }
   });
+
+  // Handle analysis data updates
+  useEffect(() => {
+    if (analysisData && typeof analysisData === 'object') {
+      setLastAnalysis(analysisData as DuplicationAnalysis);
+    }
+  }, [analysisData]);
   
   // Mutation pour la correction automatique
   const autoFixMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest('POST', '/api/admin/auto-fix-duplications');
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
+      const data = await response.json();
       toast({
         title: "✅ Corrections appliquées",
-        description: `${response.fixed} duplications corrigées automatiquement`,
+        description: `${data.fixed} duplications corrigées automatiquement`,
       });
       
       // Relancer l'analyse après correction
@@ -127,7 +132,7 @@ export default function DuplicationControlDashboard() {
     await reportMutation.mutateAsync();
   });
   
-  const analysis = lastAnalysis || analysisData?.analysis;
+  const analysis = lastAnalysis || (analysisData ? analysisData as DuplicationAnalysis : null);
   
   return (
     <div className="space-y-6 p-6">

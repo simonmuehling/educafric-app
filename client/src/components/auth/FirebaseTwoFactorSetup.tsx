@@ -143,7 +143,7 @@ const FirebaseTwoFactorSetup = () => {
 
   const loadTwoFactorStatus = async () => {
     try {
-      const status = await firebaseAuth2FA.get2FAStatus();
+      const status = await firebaseAuth2FA.get2FAConfig(1);
       setTwoFactorStatus(status);
     } catch (error) {
       console.error('Failed to load 2FA status:', error);
@@ -184,8 +184,12 @@ const FirebaseTwoFactorSetup = () => {
       if (!recaptchaContainer) {
         const container = document.createElement('div');
         container.id = 'recaptcha-container';
-        container?.style?.display = 'none';
-        document?.body?.appendChild(container);
+        if (container.style) {
+          container.style.display = 'none';
+        }
+        if (document.body) {
+          document.body.appendChild(container);
+        }
       }
 
       const formattedPhone = formatPhoneNumber(phoneNumber);
@@ -244,7 +248,7 @@ const FirebaseTwoFactorSetup = () => {
       
       if (verifyResult.success) {
         // Enable MFA and get backup codes
-        const enableResult = await firebaseAuth2FA.enableMFA(formatPhoneNumber(phoneNumber));
+        const enableResult = await firebaseAuth2FA.enable2FA(1, formatPhoneNumber(phoneNumber));
         
         if (enableResult.success && enableResult.backupCodes) {
           setBackupCodes(enableResult.backupCodes);
@@ -279,7 +283,7 @@ const FirebaseTwoFactorSetup = () => {
     setIsLoading(true);
     
     try {
-      const result = await firebaseAuth2FA.disableMFA();
+      const result = await firebaseAuth2FA.disable2FA(1);
       
       if (result.success) {
         setTwoFactorStatus(null);
