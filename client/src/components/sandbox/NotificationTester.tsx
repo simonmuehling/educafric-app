@@ -101,10 +101,33 @@ const NotificationTester = () => {
   // Mutation for sending test notifications
   const testNotificationMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('/api/sandbox/test-notification', 'POST', data);
-      return await response.json();
+      console.log('Sending notification test:', data);
+      try {
+        const response = await fetch('/api/sandbox/test-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Response data:', result);
+        return result;
+      } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+      }
     },
     onSuccess: (result, variables) => {
+      console.log('Mutation success:', result);
       const newTest: NotificationTest = {
         id: Date.now().toString(),
         type: variables.type,
