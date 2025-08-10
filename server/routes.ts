@@ -2794,15 +2794,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/teachers", requireAuth, async (req, res) => {
+  app.post("/api/teachers", requireAuth, autoIdempotency, async (req, res) => {
     try {
       if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
         return res.status(403).json({ message: 'School administration access required' });
       }
       
-      const teacherData = req.body;
+      const { name, email, phone, subjects, classLevel } = req.body;
+      
+      // Split name into first and last name
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const teacherData = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        subjects: subjects ? subjects.split(',').map((s: string) => s.trim()) : [],
+        schoolId: 1, // Default school ID
+        hireDate: new Date().toISOString()
+      };
+      
       const newTeacher = await storage.createTeacher(teacherData);
-      console.log(`[TEACHERS_API] ✅ Created teacher: ${newTeacher.firstName} ${newTeacher.lastName}`);
+      
+      // Send notification about teacher creation
+      await NotificationService.sendNotification({
+        type: 'teacher_added',
+        title: 'Nouvel Enseignant Ajouté',
+        message: `${firstName} ${lastName} a été ajouté comme enseignant`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { teacherId: newTeacher.id }
+      });
+      
+      console.log(`[TEACHERS_API] ✅ Created teacher: ${firstName} ${lastName}`);
       res.json(newTeacher);
     } catch (error: any) {
       console.error('[TEACHERS_API] Error creating teacher:', error);
@@ -2867,15 +2895,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/students", requireAuth, async (req, res) => {
+  app.post("/api/students", requireAuth, autoIdempotency, async (req, res) => {
     try {
       if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
         return res.status(403).json({ message: 'School administration access required' });
       }
       
-      const studentData = req.body;
+      const { name, email, phone, classLevel, parentEmail } = req.body;
+      
+      // Split name into first and last name
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const studentData = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        classId: 1, // Default class ID - could be mapped from classLevel
+        schoolId: 1, // Default school ID
+        parentEmail,
+        enrollmentDate: new Date().toISOString()
+      };
+      
       const newStudent = await storage.createStudent(studentData);
-      console.log(`[STUDENTS_API] ✅ Created student: ${newStudent.firstName} ${newStudent.lastName}`);
+      
+      // Send notification about student creation
+      await NotificationService.sendNotification({
+        type: 'student_added',
+        title: 'Nouvel Élève Inscrit',
+        message: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { studentId: newStudent.id }
+      });
+      
+      console.log(`[STUDENTS_API] ✅ Created student: ${firstName} ${lastName}`);
       res.json(newStudent);
     } catch (error: any) {
       console.error('[STUDENTS_API] Error creating student:', error);
@@ -2913,6 +2970,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[STUDENTS_API] Error deleting student:', error);
       res.status(500).json({ message: 'Failed to delete student' });
+    }
+  });
+
+  // PARENTS CRUD ROUTES
+  app.get("/api/parents", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'School administration access required' });
+      }
+      
+      const parents = await storage.getAdministrationParents(1); // Use school ID from user context
+      console.log(`[PARENTS_API] ✅ Retrieved ${parents.length} parents`);
+      res.json(parents);
+    } catch (error: any) {
+      console.error('[PARENTS_API] Error getting parents:', error);
+      res.status(500).json({ message: 'Failed to get parents' });
+    }
+  });
+
+  app.post("/api/parents", requireAuth, autoIdempotency, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'School administration access required' });
+      }
+      
+      const { name, email, phone, children } = req.body;
+      
+      // Split name into first and last name
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const parentData = {
+        firstName,
+        lastName,
+        email,
+        phone,
+        children: children || [],
+        schoolId: 1, // Default school ID
+        registrationDate: new Date().toISOString()
+      };
+      
+      const newParent = await storage.createParent(parentData);
+      
+      // Send notification about parent creation
+      await NotificationService.sendNotification({
+        type: 'parent_added',
+        title: 'Nouveau Parent Enregistré',
+        message: `${firstName} ${lastName} a été enregistré comme parent`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { parentId: newParent.id }
+      });
+      
+      console.log(`[PARENTS_API] ✅ Created parent: ${firstName} ${lastName}`);
+      res.json(newParent);
+    } catch (error: any) {
+      console.error('[PARENTS_API] Error creating parent:', error);
+      res.status(500).json({ message: 'Failed to create parent' });
+    }
+  });
+
+  app.put("/api/parents/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'School administration access required' });
+      }
+      
+      const { id } = req.params;
+      const updates = req.body;
+      const updatedParent = await storage.updateParent(parseInt(id), updates);
+      console.log(`[PARENTS_API] ✅ Updated parent ID: ${id}`);
+      res.json(updatedParent);
+    } catch (error: any) {
+      console.error('[PARENTS_API] Error updating parent:', error);
+      res.status(500).json({ message: 'Failed to update parent' });
+    }
+  });
+
+  app.delete("/api/parents/:id", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'School administration access required' });
+      }
+      
+      const { id } = req.params;
+      await storage.deleteParent(parseInt(id));
+      console.log(`[PARENTS_API] ✅ Deleted parent ID: ${id}`);
+      res.json({ success: true, message: 'Parent deleted successfully' });
+    } catch (error: any) {
+      console.error('[PARENTS_API] Error deleting parent:', error);
+      res.status(500).json({ message: 'Failed to delete parent' });
     }
   });
 

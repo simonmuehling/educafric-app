@@ -356,29 +356,149 @@ const DelegateAdministrators: React.FC = () => {
     }
   };
 
+  // Form states for adding users
+  const [newTeacherData, setNewTeacherData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subjects: '',
+    classLevel: ''
+  });
+  
+  const [newStudentData, setNewStudentData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    classLevel: '',
+    parentEmail: ''
+  });
+  
+  const [newParentData, setNewParentData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    children: [] as string[]
+  });
+
+  // Add Teacher mutation
+  const addTeacherMutation = useMutation({
+    mutationFn: async (data: typeof newTeacherData) => {
+      const response = await apiRequest('/api/teachers', 'POST', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
+      setShowAddTeacherModal(false);
+      setNewTeacherData({ name: '', email: '', phone: '', subjects: '', classLevel: '' });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Enseignant ajouté avec succès' : 'Teacher added successfully'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding teacher'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Add Student mutation
+  const addStudentMutation = useMutation({
+    mutationFn: async (data: typeof newStudentData) => {
+      const response = await apiRequest('/api/students', 'POST', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      setShowAddStudentModal(false);
+      setNewStudentData({ name: '', email: '', phone: '', classLevel: '', parentEmail: '' });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève ajouté avec succès' : 'Student added successfully'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding student'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Add Parent mutation
+  const addParentMutation = useMutation({
+    mutationFn: async (data: typeof newParentData) => {
+      const response = await apiRequest('/api/parents', 'POST', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
+      setShowAddParentModal(false);
+      setNewParentData({ name: '', email: '', phone: '', children: [] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Parent ajouté avec succès' : 'Parent added successfully'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de l\'ajout' : 'Error adding parent'),
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Quick Actions handlers
   const handleAddTeacher = () => {
     setShowAddTeacherModal(true);
-    toast({
-      title: language === 'fr' ? 'Ajouter Enseignant' : 'Add Teacher',
-      description: language === 'fr' ? 'Fonctionnalité d\'ajout d\'enseignant en cours d\'implémentation' : 'Add teacher functionality in development',
-    });
   };
 
   const handleAddStudent = () => {
     setShowAddStudentModal(true);
-    toast({
-      title: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
-      description: language === 'fr' ? 'Fonctionnalité d\'ajout d\'élève en cours d\'implémentation' : 'Add student functionality in development',
-    });
   };
 
   const handleAddParent = () => {
     setShowAddParentModal(true);
-    toast({
-      title: language === 'fr' ? 'Ajouter Parent' : 'Add Parent',
-      description: language === 'fr' ? 'Fonctionnalité d\'ajout de parent en cours d\'implémentation' : 'Add parent functionality in development',
-    });
+  };
+
+  const handleSubmitTeacher = () => {
+    if (!newTeacherData.name || !newTeacherData.email) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Nom et email sont requis' : 'Name and email are required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    addTeacherMutation.mutate(newTeacherData);
+  };
+
+  const handleSubmitStudent = () => {
+    if (!newStudentData.name || !newStudentData.classLevel) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Nom et classe sont requis' : 'Name and class are required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    addStudentMutation.mutate(newStudentData);
+  };
+
+  const handleSubmitParent = () => {
+    if (!newParentData.name || !newParentData.email) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Nom et email sont requis' : 'Name and email are required',
+        variant: 'destructive'
+      });
+      return;
+    }
+    addParentMutation.mutate(newParentData);
   };
 
   const getPermissionBadges = (permissions: string[]) => {
@@ -755,6 +875,246 @@ const DelegateAdministrators: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Teacher Modal */}
+      {showAddTeacherModal && (
+        <Dialog open={showAddTeacherModal} onOpenChange={setShowAddTeacherModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{language === 'fr' ? 'Ajouter un Enseignant' : 'Add Teacher'}</DialogTitle>
+              <DialogDescription>
+                {language === 'fr' ? 'Enregistrer un nouvel enseignant dans le système' : 'Register a new teacher in the system'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="teacher-name">{language === 'fr' ? 'Nom complet' : 'Full Name'}</Label>
+                <Input
+                  id="teacher-name"
+                  value={newTeacherData.name}
+                  onChange={(e) => setNewTeacherData({...newTeacherData, name: e.target.value})}
+                  placeholder={language === 'fr' ? 'Nom de l\'enseignant' : 'Teacher name'}
+                  data-testid="input-teacher-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="teacher-email">{language === 'fr' ? 'Email' : 'Email'}</Label>
+                <Input
+                  id="teacher-email"
+                  type="email"
+                  value={newTeacherData.email}
+                  onChange={(e) => setNewTeacherData({...newTeacherData, email: e.target.value})}
+                  placeholder={language === 'fr' ? 'email@example.com' : 'email@example.com'}
+                  data-testid="input-teacher-email"
+                />
+              </div>
+              <div>
+                <Label htmlFor="teacher-phone">{language === 'fr' ? 'Téléphone' : 'Phone'}</Label>
+                <Input
+                  id="teacher-phone"
+                  value={newTeacherData.phone}
+                  onChange={(e) => setNewTeacherData({...newTeacherData, phone: e.target.value})}
+                  placeholder={language === 'fr' ? '+237 xxx xxx xxx' : '+237 xxx xxx xxx'}
+                  data-testid="input-teacher-phone"
+                />
+              </div>
+              <div>
+                <Label htmlFor="teacher-subjects">{language === 'fr' ? 'Matières' : 'Subjects'}</Label>
+                <Input
+                  id="teacher-subjects"
+                  value={newTeacherData.subjects}
+                  onChange={(e) => setNewTeacherData({...newTeacherData, subjects: e.target.value})}
+                  placeholder={language === 'fr' ? 'Mathématiques, Français' : 'Mathematics, French'}
+                  data-testid="input-teacher-subjects"
+                />
+              </div>
+              <div>
+                <Label htmlFor="teacher-class">{language === 'fr' ? 'Niveau de classe' : 'Class Level'}</Label>
+                <Input
+                  id="teacher-class"
+                  value={newTeacherData.classLevel}
+                  onChange={(e) => setNewTeacherData({...newTeacherData, classLevel: e.target.value})}
+                  placeholder={language === 'fr' ? 'CE1, CM2, 6ème' : 'CE1, CM2, 6ème'}
+                  data-testid="input-teacher-class"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddTeacherModal(false)}>
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                onClick={handleSubmitTeacher}
+                disabled={addTeacherMutation.isPending}
+                data-testid="button-submit-teacher"
+              >
+                {addTeacherMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {language === 'fr' ? 'Ajout...' : 'Adding...'}</>
+                ) : (
+                  <>{language === 'fr' ? 'Ajouter' : 'Add'}</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add Student Modal */}
+      {showAddStudentModal && (
+        <Dialog open={showAddStudentModal} onOpenChange={setShowAddStudentModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{language === 'fr' ? 'Ajouter un Élève' : 'Add Student'}</DialogTitle>
+              <DialogDescription>
+                {language === 'fr' ? 'Inscrire un nouvel élève dans l\'école' : 'Register a new student in the school'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="student-name">{language === 'fr' ? 'Nom complet' : 'Full Name'}</Label>
+                <Input
+                  id="student-name"
+                  value={newStudentData.name}
+                  onChange={(e) => setNewStudentData({...newStudentData, name: e.target.value})}
+                  placeholder={language === 'fr' ? 'Nom de l\'élève' : 'Student name'}
+                  data-testid="input-student-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="student-email">{language === 'fr' ? 'Email (optionnel)' : 'Email (optional)'}</Label>
+                <Input
+                  id="student-email"
+                  type="email"
+                  value={newStudentData.email}
+                  onChange={(e) => setNewStudentData({...newStudentData, email: e.target.value})}
+                  placeholder={language === 'fr' ? 'email@example.com' : 'email@example.com'}
+                  data-testid="input-student-email"
+                />
+              </div>
+              <div>
+                <Label htmlFor="student-phone">{language === 'fr' ? 'Téléphone (optionnel)' : 'Phone (optional)'}</Label>
+                <Input
+                  id="student-phone"
+                  value={newStudentData.phone}
+                  onChange={(e) => setNewStudentData({...newStudentData, phone: e.target.value})}
+                  placeholder={language === 'fr' ? '+237 xxx xxx xxx' : '+237 xxx xxx xxx'}
+                  data-testid="input-student-phone"
+                />
+              </div>
+              <div>
+                <Label htmlFor="student-class">{language === 'fr' ? 'Classe' : 'Class'}</Label>
+                <Input
+                  id="student-class"
+                  value={newStudentData.classLevel}
+                  onChange={(e) => setNewStudentData({...newStudentData, classLevel: e.target.value})}
+                  placeholder={language === 'fr' ? 'CE1, CM2, 6ème' : 'CE1, CM2, 6ème'}
+                  data-testid="input-student-class"
+                />
+              </div>
+              <div>
+                <Label htmlFor="student-parent">{language === 'fr' ? 'Email du parent' : 'Parent Email'}</Label>
+                <Input
+                  id="student-parent"
+                  type="email"
+                  value={newStudentData.parentEmail}
+                  onChange={(e) => setNewStudentData({...newStudentData, parentEmail: e.target.value})}
+                  placeholder={language === 'fr' ? 'parent@example.com' : 'parent@example.com'}
+                  data-testid="input-student-parent"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddStudentModal(false)}>
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                onClick={handleSubmitStudent}
+                disabled={addStudentMutation.isPending}
+                data-testid="button-submit-student"
+              >
+                {addStudentMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {language === 'fr' ? 'Ajout...' : 'Adding...'}</>
+                ) : (
+                  <>{language === 'fr' ? 'Ajouter' : 'Add'}</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Add Parent Modal */}
+      {showAddParentModal && (
+        <Dialog open={showAddParentModal} onOpenChange={setShowAddParentModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{language === 'fr' ? 'Ajouter un Parent' : 'Add Parent'}</DialogTitle>
+              <DialogDescription>
+                {language === 'fr' ? 'Enregistrer un nouveau parent dans le système' : 'Register a new parent in the system'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="parent-name">{language === 'fr' ? 'Nom complet' : 'Full Name'}</Label>
+                <Input
+                  id="parent-name"
+                  value={newParentData.name}
+                  onChange={(e) => setNewParentData({...newParentData, name: e.target.value})}
+                  placeholder={language === 'fr' ? 'Nom du parent' : 'Parent name'}
+                  data-testid="input-parent-name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parent-email">{language === 'fr' ? 'Email' : 'Email'}</Label>
+                <Input
+                  id="parent-email"
+                  type="email"
+                  value={newParentData.email}
+                  onChange={(e) => setNewParentData({...newParentData, email: e.target.value})}
+                  placeholder={language === 'fr' ? 'parent@example.com' : 'parent@example.com'}
+                  data-testid="input-parent-email"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parent-phone">{language === 'fr' ? 'Téléphone' : 'Phone'}</Label>
+                <Input
+                  id="parent-phone"
+                  value={newParentData.phone}
+                  onChange={(e) => setNewParentData({...newParentData, phone: e.target.value})}
+                  placeholder={language === 'fr' ? '+237 xxx xxx xxx' : '+237 xxx xxx xxx'}
+                  data-testid="input-parent-phone"
+                />
+              </div>
+              <div>
+                <Label htmlFor="parent-children">{language === 'fr' ? 'Enfants (emails séparés par virgule)' : 'Children (emails separated by comma)'}</Label>
+                <Input
+                  id="parent-children"
+                  value={newParentData.children.join(', ')}
+                  onChange={(e) => setNewParentData({...newParentData, children: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+                  placeholder={language === 'fr' ? 'enfant1@example.com, enfant2@example.com' : 'child1@example.com, child2@example.com'}
+                  data-testid="input-parent-children"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAddParentModal(false)}>
+                {language === 'fr' ? 'Annuler' : 'Cancel'}
+              </Button>
+              <Button 
+                onClick={handleSubmitParent}
+                disabled={addParentMutation.isPending}
+                data-testid="button-submit-parent"
+              >
+                {addParentMutation.isPending ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {language === 'fr' ? 'Ajout...' : 'Adding...'}</>
+                ) : (
+                  <>{language === 'fr' ? 'Ajouter' : 'Add'}</>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
