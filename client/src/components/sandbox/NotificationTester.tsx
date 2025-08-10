@@ -252,7 +252,7 @@ const NotificationTester = () => {
 
       {/* Notification Type Tabs */}
       <Tabs value={activeTestType} onValueChange={setActiveTestType} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-slate-800 border shadow-sm">
+        <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-100 border shadow-sm">
           <TabsTrigger value="email" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
             {t.email}
