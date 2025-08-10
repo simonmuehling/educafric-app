@@ -233,7 +233,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
       relationship: 'mother',
       address: formData.address, // Pre-fill with student address
       profession: '',
-      isPrimary: (Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) === 0 // First parent is primary by default
+      isPrimary: (Array.isArray(formData.parents) ? formData.parents.length : 0) === 0 // First parent is primary by default
     };
     
     setFormData({
@@ -285,7 +285,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
       return false;
     }
 
-    if ((Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) === 0) {
+    if ((Array.isArray(formData.parents) ? formData.parents.length : 0) === 0) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: t.atLeastOneParent,
@@ -518,7 +518,7 @@ const EnhancedStudentForm: React.FC<EnhancedStudentFormProps> = ({
                         >
                           {showParentDetails[parent.id || `${index}`] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </Button>
-                        {(Array.isArray(formData.parents) ? (Array.isArray(parents) ? parents.length : 0) : 0) > 1 && (
+                        {(Array.isArray(formData.parents) ? formData.parents.length : 0) > 1 && (
                           <Button
                             onClick={() => removeParent(index)}
                             variant="ghost"

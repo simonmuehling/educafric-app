@@ -164,31 +164,31 @@ const PremiumServices = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <ModernStatsCard
           title={t.activeDevices}
-          value={services.find(s => s.id === 'geolocation')?.activeDevices?.toString() || '0'}
+          value={services.find((s: any) => s.id === 'geolocation')?.activeDevices?.toString() || '0'}
           icon={<Smartphone className="w-5 h-5" />}
           trend={{ value: 12, isPositive: true }}
           gradient="blue"
         />
         <ModernStatsCard
           title={t.trackedStudents}
-          value={services.find(s => s.id === 'geolocation')?.trackedStudents?.toString() || '0'}
+          value={services.find((s: any) => s.id === 'geolocation')?.trackedStudents?.toString() || '0'}
           icon={<Users className="w-5 h-5" />}
           trend={{ value: 8, isPositive: true }}
           gradient="green"
         />
         <ModernStatsCard
-          title={t.alertsSent}
-          value={(Array.isArray(services) ? services : []).reduce((sum, s) => sum + (s.alertsSent || 0), 0).toString()}
+          title={(t as any).alertsSent || 'Alerts Sent'}
+          value={(Array.isArray(services) ? services : []).reduce((sum, s: any) => sum + (s.alertsSent || 0), 0).toString()}
           icon={<AlertTriangle className="w-5 h-5" />}
           trend={{ value: 5, isPositive: false }}
           gradient="orange"
         />
         <ModernStatsCard
-          title={t.batteryAlerts}
-          value={services.find(s => s.id === 'geolocation')?.batteryAlerts?.toString() || '0'}
+          title={(t as any).batteryAlerts || 'Battery Alerts'}
+          value={services.find((s: any) => s.id === 'geolocation')?.batteryAlerts?.toString() || '0'}
           icon={<Zap className="w-5 h-5" />}
           trend={{ value: 2, isPositive: false }}
-          gradient="red"
+          gradient="orange"
         />
       </div>
 
@@ -231,7 +231,7 @@ const PremiumServices = () => {
               <div className="mb-4">
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Fonctionnalités:</h4>
                 <div className="flex flex-wrap gap-1">
-                  {service.features?.slice(0, 3).map((feature, index) => (
+                  {service.features?.slice(0, 3).map((feature: any, index: number) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {feature}
                     </Badge>
@@ -307,14 +307,14 @@ const PremiumServices = () => {
                   onClick={() => setSelectedService(service.id)}
                 >
                   <Eye className="w-4 h-4 mr-2" />
-                  {t.viewDetails}
+                  {(t as any).viewDetails}
                 </Button>
                 <Button 
                   size="sm"
                   className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
                   <Settings className="w-4 h-4 mr-2" />
-                  {t.configure}
+                  {(t as any).configure}
                 </Button>
               </div>
 
@@ -338,7 +338,7 @@ const PremiumServices = () => {
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">
-                Détails - {services.find(s => s.id === selectedService)?.name}
+                Détails - {services.find((s: any) => s.id === selectedService)?.name}
               </h3>
               <Button 
                 variant="ghost" 

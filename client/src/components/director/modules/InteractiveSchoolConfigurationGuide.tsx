@@ -288,7 +288,7 @@ const InteractiveSchoolConfigurationGuide = () => {
     // Détecter les éléments configurés basé sur les données locales
     const completed = [];
     
-    if (user?.schoolName && user?.email) completed.push('school-info');
+    if ((user as any)?.schoolName && user?.email) completed.push('school-info');
     if (localStorage.getItem('teachersConfigured')) completed.push('teachers');
     if (localStorage.getItem('classesConfigured')) completed.push('classes');
     if (localStorage.getItem('studentsConfigured')) completed.push('students');

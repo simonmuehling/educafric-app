@@ -269,7 +269,7 @@ const FreelancerTimetable = () => {
                 {session.subject}
               </div>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(session.status)}`}>
-                {text[session.status as keyof typeof text]}
+                {(text as any)[session.status]}
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-600">

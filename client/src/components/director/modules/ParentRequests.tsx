@@ -237,7 +237,7 @@ const ParentRequests = () => {
       value: rejectedRequests.toString(),
       icon: <XCircle className="w-5 h-5" />,
       trend: { value: 1, isPositive: false },
-      gradient: 'red' as const
+      gradient: 'pink' as const
     }
   ];
 

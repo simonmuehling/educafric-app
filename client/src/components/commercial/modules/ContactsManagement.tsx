@@ -521,7 +521,7 @@ const ContactsManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-                    {contact?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {contact?.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
