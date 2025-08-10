@@ -45,7 +45,7 @@ export default function FunctionalTeacherAttendanceSecure() {
   });
   
   // Requête pour récupérer les élèves de la classe sélectionnée
-  const { data: students, isLoading: loadingStudents } = useQuery({
+  const { data: students = [], isLoading: loadingStudents } = useQuery<Student[]>({
     queryKey: ['/api/teacher/students', selectedClass],
     enabled: !!selectedClass
   });
@@ -63,7 +63,11 @@ export default function FunctionalTeacherAttendanceSecure() {
         headers['Idempotency-Key'] = idempotencyKey;
       }
       
-      return await apiRequest('POST', '/api/teacher/attendance', data, { headers });
+      return await apiRequest('/api/teacher/attendance', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: (response) => {
       toast({
@@ -108,7 +112,7 @@ export default function FunctionalTeacherAttendanceSecure() {
       return;
     }
     
-    if (!students || students.length === 0) {
+    if (!students || !Array.isArray(students) || students.length === 0) {
       toast({
         title: "⚠️ Aucun élève",
         description: "Aucun élève trouvé dans cette classe",
@@ -120,7 +124,7 @@ export default function FunctionalTeacherAttendanceSecure() {
     const attendancePayload: AttendanceData = {
       classId: selectedClass,
       date: attendanceDate,
-      students: students.map((student: Student) => ({
+      students: (students as Student[]).map((student: Student) => ({
         studentId: student.id,
         present: attendanceData[student.id] ?? false,
         note: attendanceData[student.id] ? 'Présent' : 'Absent'
@@ -143,10 +147,10 @@ export default function FunctionalTeacherAttendanceSecure() {
   
   // Fonction pour marquer tous présents/absents
   const markAllStudents = (present: boolean) => {
-    if (submitting || !students) return;
+    if (submitting || !students || !Array.isArray(students)) return;
     
     const newData: Record<number, boolean> = {};
-    students.forEach((student: Student) => {
+    (students as Student[]).forEach((student: Student) => {
       newData[student.id] = present;
     });
     setAttendanceData(newData);
@@ -157,11 +161,13 @@ export default function FunctionalTeacherAttendanceSecure() {
     });
   };
   
-  const presentCount = students ? students.filter((s: Student) => attendanceData[s.id]).length : 0;
-  const totalStudents = students?.length || 0;
+  const presentCount = Array.isArray(students) ? (students as Student[]).filter((s: Student) => attendanceData[s.id]).length : 0;
+  const totalStudents = Array.isArray(students) ? students.length : 0;
   
   return (
     <div className="space-y-6">
+      <SchoolSelector />
+      
       {/* En-tête avec statut de sécurité */}
       <Card className="border-green-200 bg-green-50 dark:bg-green-950">
         <CardHeader>
@@ -197,7 +203,7 @@ export default function FunctionalTeacherAttendanceSecure() {
                 disabled={submitting}
               >
                 <option value="">Sélectionner une classe</option>
-                {classes?.map((cls: any) => (
+                {(classes as any[])?.map((cls: any) => (
                   <option key={cls.id} value={cls.id}>
                     {cls.name} - {cls.level}
                   </option>
@@ -263,7 +269,7 @@ export default function FunctionalTeacherAttendanceSecure() {
             
             {/* Liste des élèves */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {students.map((student: Student) => (
+              {(students as Student[]).map((student: Student) => (
                 <div
                   key={student.id}
                   className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
