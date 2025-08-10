@@ -419,7 +419,7 @@ const ConsolidatedSandboxDashboard = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
+          <TabsList className="flex w-full flex-wrap gap-1 h-auto p-1">
             {sandboxTabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
                 {tab.icon}
