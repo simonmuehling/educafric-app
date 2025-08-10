@@ -23,6 +23,7 @@ import ComponentPlayground from './ComponentPlayground';
 import FirebaseDeviceTest from './FirebaseDeviceTest';
 import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
+import CommunicationTester from './CommunicationTester';
 
 
 interface SystemMetrics {
@@ -414,14 +415,17 @@ const ConsolidatedSandboxDashboard = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
             {sandboxTabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
                 {tab.icon}
                 <span className="hidden md:inline">{tab.label}</span>
               </TabsTrigger>
             ))}
-
+            <TabsTrigger value="communication" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden md:inline">{language === 'fr' ? 'Communication' : 'Communication'}</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -621,7 +625,9 @@ const ConsolidatedSandboxDashboard = () => {
             <FirebaseDeviceTest />
           </TabsContent>
 
-
+          <TabsContent value="communication">
+            <CommunicationTester />
+          </TabsContent>
 
         </Tabs>
       </div>
