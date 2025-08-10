@@ -277,11 +277,43 @@ const FunctionalFreelancerStudents: React.FC = () => {
                 id: 'add-student',
                 label: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
                 icon: <UserCheck className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
-                    description: language === 'fr' ? 'Ouverture du formulaire d\'ajout' : 'Opening add student form',
-                  });
+                onClick: async () => {
+                  console.log('[FREELANCER_STUDENTS] 👤 Adding new student...');
+                  try {
+                    // Mock student data for demo
+                    const studentData = {
+                      firstName: 'Nouveau',
+                      lastName: 'Élève',
+                      level: 'Seconde',
+                      subject: 'Mathématiques',
+                      parentContact: '+237 6 90 000 000'
+                    };
+                    
+                    const response = await fetch('/api/freelancer/students', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ studentData })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                      toast({
+                        title: language === 'fr' ? 'Élève ajouté' : 'Student Added',
+                        description: language === 'fr' ? `${studentData.firstName} ${studentData.lastName} ajouté avec succès` : `${studentData.firstName} ${studentData.lastName} added successfully`
+                      });
+                    } else {
+                      throw new Error(result.message);
+                    }
+                  } catch (error) {
+                    console.error('[FREELANCER_STUDENTS] Error adding student:', error);
+                    toast({
+                      title: language === 'fr' ? 'Erreur' : 'Error',
+                      description: language === 'fr' ? 'Impossible d\'ajouter l\'élève' : 'Unable to add student',
+                      variant: 'destructive'
+                    });
+                  }
                 },
                 color: 'bg-blue-600 hover:bg-blue-700'
               },
@@ -289,11 +321,43 @@ const FunctionalFreelancerStudents: React.FC = () => {
                 id: 'schedule-session',
                 label: language === 'fr' ? 'Programmer Cours' : 'Schedule Session',
                 icon: <Clock className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Planification' : 'Scheduling',
-                    description: language === 'fr' ? 'Module de planification ouvert' : 'Scheduling module opened',
-                  });
+                onClick: async () => {
+                  console.log('[FREELANCER_STUDENTS] 📅 Scheduling session...');
+                  try {
+                    // Mock session data for demo
+                    const sessionData = {
+                      studentId: 1,
+                      date: '2025-08-15',
+                      time: '14:00',
+                      duration: 60,
+                      subject: 'Mathématiques'
+                    };
+                    
+                    const response = await fetch('/api/freelancer/sessions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify(sessionData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                      toast({
+                        title: language === 'fr' ? 'Séance programmée' : 'Session Scheduled',
+                        description: language === 'fr' ? `Séance du ${sessionData.date} à ${sessionData.time}` : `Session for ${sessionData.date} at ${sessionData.time}`
+                      });
+                    } else {
+                      throw new Error(result.message);
+                    }
+                  } catch (error) {
+                    console.error('[FREELANCER_STUDENTS] Error scheduling session:', error);
+                    toast({
+                      title: language === 'fr' ? 'Erreur' : 'Error',
+                      description: language === 'fr' ? 'Impossible de programmer la séance' : 'Unable to schedule session',
+                      variant: 'destructive'
+                    });
+                  }
                 },
                 color: 'bg-green-600 hover:bg-green-700'
               },

@@ -19443,6 +19443,290 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================================================================
+  // ROUTES POUR FONCTIONNALITÉS PROFESSEUR
+  // ========================================================================================
+
+  // Récupérer les classes d'un enseignant
+  app.get("/api/teacher/classes", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'teacher') {
+        return res.status(403).json({ message: 'Access denied - Teacher role required' });
+      }
+
+      const classes = await storage.getTeacherClasses(user.id);
+      res.json(classes);
+    } catch (error: any) {
+      console.error('[TEACHER_API] Error fetching classes:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des classes' });
+    }
+  });
+
+  // Prendre les présences pour une classe
+  app.post("/api/teacher/attendance", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'teacher') {
+        return res.status(403).json({ message: 'Access denied - Teacher role required' });
+      }
+
+      const { classId, attendanceData } = req.body;
+      const result = await storage.recordAttendance(user.id, classId, attendanceData);
+      
+      res.json({
+        success: true,
+        message: 'Présences enregistrées avec succès',
+        attendanceId: result.id
+      });
+    } catch (error: any) {
+      console.error('[TEACHER_API] Error recording attendance:', error);
+      res.status(500).json({ message: 'Erreur lors de l\'enregistrement des présences' });
+    }
+  });
+
+  // Gérer les notes pour une classe
+  app.post("/api/teacher/grades", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'teacher') {
+        return res.status(403).json({ message: 'Access denied - Teacher role required' });
+      }
+
+      const { studentId, classId, subject, grade, gradeType } = req.body;
+      const result = await storage.recordGrade(user.id, studentId, classId, subject, grade, gradeType);
+      
+      res.json({
+        success: true,
+        message: 'Note enregistrée avec succès',
+        gradeId: result.id
+      });
+    } catch (error: any) {
+      console.error('[TEACHER_API] Error recording grade:', error);
+      res.status(500).json({ message: 'Erreur lors de l\'enregistrement de la note' });
+    }
+  });
+
+  // ========================================================================================
+  // ROUTES POUR FONCTIONNALITÉS ÉLÈVE
+  // ========================================================================================
+
+  // Récupérer les cours d'un élève
+  app.get("/api/student/classes", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'student') {
+        return res.status(403).json({ message: 'Access denied - Student role required' });
+      }
+
+      const classes = await storage.getStudentClasses(user.id);
+      res.json(classes);
+    } catch (error: any) {
+      console.error('[STUDENT_API] Error fetching classes:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des cours' });
+    }
+  });
+
+  // Récupérer les devoirs d'un élève
+  app.get("/api/student/assignments", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'student') {
+        return res.status(403).json({ message: 'Access denied - Student role required' });
+      }
+
+      const assignments = await storage.getStudentAssignments(user.id);
+      res.json(assignments);
+    } catch (error: any) {
+      console.error('[STUDENT_API] Error fetching assignments:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des devoirs' });
+    }
+  });
+
+  // Récupérer les notes d'un élève
+  app.get("/api/student/grades", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'student') {
+        return res.status(403).json({ message: 'Access denied - Student role required' });
+      }
+
+      const grades = await storage.getStudentGrades(user.id);
+      res.json(grades);
+    } catch (error: any) {
+      console.error('[STUDENT_API] Error fetching grades:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des notes' });
+    }
+  });
+
+  // ========================================================================================
+  // ROUTES POUR FONCTIONNALITÉS PARENT
+  // ========================================================================================
+
+  // Récupérer les enfants d'un parent
+  app.get("/api/parent/children", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'parent') {
+        return res.status(403).json({ message: 'Access denied - Parent role required' });
+      }
+
+      const children = await storage.getParentChildren(user.id);
+      res.json(children);
+    } catch (error: any) {
+      console.error('[PARENT_API] Error fetching children:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des enfants' });
+    }
+  });
+
+  // Récupérer les notes de tous les enfants
+  app.get("/api/parent/grades", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'parent') {
+        return res.status(403).json({ message: 'Access denied - Parent role required' });
+      }
+
+      const grades = await storage.getParentChildrenGrades(user.id);
+      res.json(grades);
+    } catch (error: any) {
+      console.error('[PARENT_API] Error fetching children grades:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des notes' });
+    }
+  });
+
+  // Récupérer les présences de tous les enfants
+  app.get("/api/parent/attendance", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'parent') {
+        return res.status(403).json({ message: 'Access denied - Parent role required' });
+      }
+
+      const attendance = await storage.getParentChildrenAttendance(user.id);
+      res.json(attendance);
+    } catch (error: any) {
+      console.error('[PARENT_API] Error fetching children attendance:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des présences' });
+    }
+  });
+
+  // ========================================================================================
+  // ROUTES POUR FONCTIONNALITÉS FREELANCER
+  // ========================================================================================
+
+  // Récupérer les élèves d'un freelancer
+  app.get("/api/freelancer/students", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'freelancer') {
+        return res.status(403).json({ message: 'Access denied - Freelancer role required' });
+      }
+
+      const students = await storage.getFreelancerStudents(user.id);
+      res.json(students);
+    } catch (error: any) {
+      console.error('[FREELANCER_API] Error fetching students:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des élèves' });
+    }
+  });
+
+  // Ajouter un élève pour un freelancer
+  app.post("/api/freelancer/students", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'freelancer') {
+        return res.status(403).json({ message: 'Access denied - Freelancer role required' });
+      }
+
+      const { studentData } = req.body;
+      const result = await storage.addFreelancerStudent(user.id, studentData);
+      
+      res.json({
+        success: true,
+        message: 'Élève ajouté avec succès',
+        studentId: result.id
+      });
+    } catch (error: any) {
+      console.error('[FREELANCER_API] Error adding student:', error);
+      res.status(500).json({ message: 'Erreur lors de l\'ajout de l\'élève' });
+    }
+  });
+
+  // Programmer une séance pour un freelancer
+  app.post("/api/freelancer/sessions", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'freelancer') {
+        return res.status(403).json({ message: 'Access denied - Freelancer role required' });
+      }
+
+      const { studentId, sessionData } = req.body;
+      const result = await storage.scheduleFreelancerSession(user.id, studentId, sessionData);
+      
+      res.json({
+        success: true,
+        message: 'Séance programmée avec succès',
+        sessionId: result.id
+      });
+    } catch (error: any) {
+      console.error('[FREELANCER_API] Error scheduling session:', error);
+      res.status(500).json({ message: 'Erreur lors de la programmation de la séance' });
+    }
+  });
+
+  // ========================================================================================
+  // ROUTES POUR FONCTIONNALITÉS DIRECTEUR
+  // ========================================================================================
+
+  // Récupérer toutes les classes de l'école
+  app.get("/api/director/classes", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'school') {
+        return res.status(403).json({ message: 'Access denied - Director role required' });
+      }
+
+      const classes = await storage.getSchoolClasses(user.schoolId || user.id);
+      res.json(classes);
+    } catch (error: any) {
+      console.error('[DIRECTOR_API] Error fetching school classes:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des classes' });
+    }
+  });
+
+  // Récupérer tous les enseignants de l'école
+  app.get("/api/director/teachers", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'school') {
+        return res.status(403).json({ message: 'Access denied - Director role required' });
+      }
+
+      const teachers = await storage.getSchoolTeachers(user.schoolId || user.id);
+      res.json(teachers);
+    } catch (error: any) {
+      console.error('[DIRECTOR_API] Error fetching school teachers:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des enseignants' });
+    }
+  });
+
+  // Récupérer tous les élèves de l'école
+  app.get("/api/director/students", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as AuthenticatedUser;
+      if (user.role !== 'school') {
+        return res.status(403).json({ message: 'Access denied - Director role required' });
+      }
+
+      const students = await storage.getSchoolStudents(user.schoolId || user.id);
+      res.json(students);
+    } catch (error: any) {
+      console.error('[DIRECTOR_API] Error fetching school students:', error);
+      res.status(500).json({ message: 'Erreur lors de la récupération des élèves' });
+    }
+  });
+
   // Démarrer le service de rapport quotidien automatique
   console.log('[DAILY_REPORT] Starting daily report service...');
   dailyReportService.startDailyReporting();

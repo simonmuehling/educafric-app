@@ -293,11 +293,32 @@ const FunctionalStudentClasses: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
-                          toast({
-                            title: language === 'fr' ? 'Détails du cours' : 'Class Details',
-                            description: language === 'fr' ? `Affichage des détails de ${classItem.name || ''}` : `Showing details for ${classItem.name || ''}`
-                          });
+                        onClick={async () => {
+                          console.log('[STUDENT_CLASSES] 👁️ Loading class details...');
+                          try {
+                            const response = await fetch('/api/student/classes', {
+                              method: 'GET',
+                              credentials: 'include'
+                            });
+                            
+                            if (response.ok) {
+                              const classData = await response.json();
+                              console.log('[STUDENT_CLASSES] Class details loaded:', classData.length, 'classes');
+                              toast({
+                                title: language === 'fr' ? 'Détails du cours' : 'Class Details',
+                                description: language === 'fr' ? `Détails chargés pour ${classItem.name || ''}` : `Details loaded for ${classItem.name || ''}`
+                              });
+                            } else {
+                              throw new Error('Failed to load class details');
+                            }
+                          } catch (error) {
+                            console.error('[STUDENT_CLASSES] Error loading details:', error);
+                            toast({
+                              title: language === 'fr' ? 'Erreur' : 'Error',
+                              description: language === 'fr' ? 'Impossible de charger les détails' : 'Unable to load details',
+                              variant: 'destructive'
+                            });
+                          }
                         }}
                         data-testid={`button-view-details-${classItem.id}`}
                       >
@@ -307,13 +328,39 @@ const FunctionalStudentClasses: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
-                          const event = new CustomEvent('switchToHomework', { detail: { classId: classItem.id, className: classItem.name } });
-                          window.dispatchEvent(event);
-                          toast({
-                            title: language === 'fr' ? 'Devoirs' : 'Assignments',
-                            description: language === 'fr' ? `Affichage des devoirs de ${classItem.name || ''}` : `Showing assignments for ${classItem.name || ''}`
-                          });
+                        onClick={async () => {
+                          console.log('[STUDENT_CLASSES] 📝 Loading assignments...');
+                          try {
+                            const response = await fetch('/api/student/assignments', {
+                              method: 'GET',
+                              credentials: 'include'
+                            });
+                            
+                            if (response.ok) {
+                              const assignments = await response.json();
+                              console.log('[STUDENT_CLASSES] Assignments loaded:', assignments.length, 'assignments');
+                              
+                              // Navigate to homework module
+                              const event = new CustomEvent('switchToHomework', { 
+                                detail: { classId: classItem.id, className: classItem.name } 
+                              });
+                              window.dispatchEvent(event);
+                              
+                              toast({
+                                title: language === 'fr' ? 'Devoirs chargés' : 'Assignments Loaded',
+                                description: language === 'fr' ? `${assignments.length} devoirs trouvés` : `${assignments.length} assignments found`
+                              });
+                            } else {
+                              throw new Error('Failed to load assignments');
+                            }
+                          } catch (error) {
+                            console.error('[STUDENT_CLASSES] Error loading assignments:', error);
+                            toast({
+                              title: language === 'fr' ? 'Erreur' : 'Error',
+                              description: language === 'fr' ? 'Impossible de charger les devoirs' : 'Unable to load assignments',
+                              variant: 'destructive'
+                            });
+                          }
                         }}
                         data-testid={`button-view-assignments-${classItem.id}`}
                       >
