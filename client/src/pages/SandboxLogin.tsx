@@ -125,19 +125,6 @@ const SandboxLogin = () => {
       details: language === 'fr' ? 'Directeur des Études, 12 ans d\'expérience' : 'Academic Director, 12 years experience'
     },
     {
-      id: 'siteadmin',
-      name: 'Michel Kouam',
-      realName: language === 'fr' ? 'Administrateur Système (Michel Kouam)' : 'System Administrator (Michel Kouam)',
-      email: 'sandbox.siteadmin@educafric.demo',
-      password: 'sandbox123',
-      icon: <Shield className="w-8 h-8" />,
-      color: 'bg-purple-600',
-      role: 'SiteAdmin',
-      description: language === 'fr' ? 'Gestion plateforme, SMS, système global, sécurité avancée' : 'Platform management, SMS, global system, advanced security',
-      modules: 15,
-      details: language === 'fr' ? 'Administrateur système avec accès SMS et gestion globale' : 'System administrator with SMS access and global management'
-    },
-    {
       id: 'director',
       name: 'Dr. Christiane Fouda',
       realName: language === 'fr' ? 'Directrice (Dr. Christiane Fouda)' : 'Director (Dr. Christiane Fouda)',

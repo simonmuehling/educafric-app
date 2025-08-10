@@ -23,7 +23,7 @@ import ComponentPlayground from './ComponentPlayground';
 import FirebaseDeviceTest from './FirebaseDeviceTest';
 import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
-import NotificationTestInterface from './NotificationTestInterface';
+
 
 interface SystemMetrics {
   apiCalls: number;
@@ -414,17 +414,14 @@ const ConsolidatedSandboxDashboard = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
             {sandboxTabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
                 {tab.icon}
                 <span className="hidden md:inline">{tab.label}</span>
               </TabsTrigger>
             ))}
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="w-4 h-4" />
-              <span className="hidden md:inline">{language === 'fr' ? 'Notifications' : 'Notifications'}</span>
-            </TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -624,9 +621,7 @@ const ConsolidatedSandboxDashboard = () => {
             <FirebaseDeviceTest />
           </TabsContent>
 
-          <TabsContent value="notifications">
-            <NotificationTestInterface />
-          </TabsContent>
+
 
         </Tabs>
       </div>
