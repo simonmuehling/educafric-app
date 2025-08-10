@@ -169,11 +169,11 @@ const BulletinManager = () => {
   // Mutation pour créer un bulletin
   const createBulletinMutation = useMutation({
     mutationFn: async (bulletinData: any) => {
-      return await apiRequest('/api/bulletin/create', 'POST', bulletinData);
+      return await apiRequest('/api/bulletins/create', 'POST', bulletinData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bulletin'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/teacher/bulletin'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bulletins'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/bulletins'] });
       toast({
         title: language === 'fr' ? 'Bulletin créé' : 'Report card created',
         description: language === 'fr' ? 'Le bulletin a été créé et publié avec succès' : 'Report card has been created and published successfully'
@@ -191,11 +191,11 @@ const BulletinManager = () => {
   // Mutation pour télécharger un bulletin
   const downloadBulletinMutation = useMutation({
     mutationFn: async (downloadData: any) => {
-      return await apiRequest('/api/bulletin/download', 'POST', downloadData);
+      return await apiRequest('/api/bulletins/download', 'POST', downloadData);
     },
-    onSuccess: (data) => {
+    onSuccess: async (response) => {
       // Créer et télécharger le PDF
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

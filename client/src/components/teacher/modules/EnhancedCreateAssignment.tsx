@@ -192,10 +192,10 @@ const EnhancedCreateAssignment = () => {
   // Mutation pour créer un assignment
   const createAssignmentMutation = useMutation({
     mutationFn: async (assignmentData: FormData) => {
-      return await apiRequest('/api/assignments', 'POST', assignmentData);
+      return await apiRequest('/api/homework', 'POST', assignmentData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/homework'] });
       queryClient.invalidateQueries({ queryKey: ['/api/teacher/assignments'] });
       toast({
         title: language === 'fr' ? 'Devoir créé!' : 'Assignment created!',
