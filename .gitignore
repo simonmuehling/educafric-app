@@ -5,3 +5,13 @@ dist/
 attached_assets/
 backups/
 .env
+*.lock
+.git/index.lock
+.git/config.lock
+# Large files to prevent GitHub upload issues
+*.zip
+*.rar
+*.7z
+# Exclude files larger than 100MB
+**/*backup*.tar.gz
+**/*BACKUP*.tar.gz
