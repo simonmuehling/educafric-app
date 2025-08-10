@@ -1,256 +1,393 @@
-# 🔍 EDUCAFRIC - Guide de Prévention des Duplications
+# Guide Anti-Duplication Educafric
+*Adapté pour PostgreSQL + Drizzle + Express + React*
 
-## Vue d'ensemble
+## 1. Base de Données : Contraintes UNIQUE + UPSERT
 
-Ce système complet de prévention des duplications permet de maintenir la qualité du code et d'éviter les pertes de fichiers dans le projet EDUCAFRIC. Il détecte automatiquement les duplications à tous les niveaux : composants, fonctions, styles, et logique métier.
+### Contraintes Uniques dans le Schema Drizzle
 
-## 📁 Structure des Scripts
+```typescript
+// shared/schema.ts - Contraintes anti-duplication
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull().unique(), // UNIQUE sur email
+  phone: text('phone').unique(), // UNIQUE sur téléphone
+  username: text('username').notNull().unique(), // UNIQUE sur nom utilisateur
+}, (table) => ({
+  // Index composites pour éviter duplications complexes
+  schoolUserIdx: uniqueIndex('school_user_idx').on(table.schoolId, table.email),
+}));
 
-```
-scripts/
-├── eliminate-duplications.js     # Script principal d'analyse et correction
-├── duplication-config.json       # Configuration détaillée
-├── watch-duplications.js         # Surveillance en temps réel
-├── eslint-duplication-rules.js   # Règles ESLint personnalisées
-└── run-duplication-analysis.sh   # Script complet avec rapport
-```
-
-## 🚀 Scripts Disponibles
-
-### 1. Analyse des Duplications (Mode Aperçu)
-```bash
-node scripts/eliminate-duplications.js --dry-run
-```
-- ✅ Analyse complète sans modifications
-- 📊 Rapport détaillé des duplications trouvées
-- 💡 Recommandations d'amélioration
-
-### 2. Correction Automatique
-```bash
-node scripts/eliminate-duplications.js --fix
-```
-- 🔧 Corrige automatiquement les duplications détectées
-- 💾 Crée des sauvegardes avant modification
-- 📁 Consolide les fichiers similaires
-
-### 3. Surveillance en Temps Réel
-```bash
-node scripts/watch-duplications.js
-```
-- 👀 Surveille les modifications en temps réel
-- ⚡ Détection immédiate des nouvelles duplications
-- 🔔 Alertes automatiques
-
-### 4. Surveillance avec Correction Automatique
-```bash
-node scripts/watch-duplications.js --auto-fix
-```
-- 🤖 Correction automatique en temps réel
-- 🛡️ Prévention active des duplications
-
-### 5. Analyse Complète avec Rapport
-```bash
-bash scripts/run-duplication-analysis.sh
-```
-- 📈 Analyse complète avec statistiques
-- 📊 Génération de rapports HTML et texte
-- ⚙️ Configuration ESLint automatique
-
-## 🎯 Types de Duplications Détectées
-
-### 1. Composants React
-- **Seuil de similarité**: 85%
-- **Correction**: Consolidation automatique
-- **Localisation**: `client/src/components/consolidated/`
-
-Exemple de duplication détectée :
-```tsx
-// Avant (2 fichiers similaires)
-const UserCard1 = ({ user }) => ( ... )
-const UserCard2 = ({ user }) => ( ... )
-
-// Après consolidation
-const ConsolidatedUserCard = ({ user }) => ( ... )
+export const classes = pgTable('classes', {
+  id: serial('id').primaryKey(),
+  schoolId: integer('school_id').references(() => schools.id),
+  name: text('name').notNull(),
+  level: text('level').notNull(),
+}, (table) => ({
+  // Pas deux classes avec même nom dans même école
+  schoolClassIdx: uniqueIndex('school_class_idx').on(table.schoolId, table.name, table.level),
+}));
 ```
 
-### 2. Fonctions Utilitaires
-- **Seuil de similarité**: 90%
-- **Correction**: Centralisation dans `utils/`
-- **Auto-import**: Mise à jour automatique des imports
+### UPSERT avec Drizzle (INSERT ... ON CONFLICT)
 
-### 3. Styles CSS
-- **Seuil de similarité**: 95%
-- **Correction**: Variables CSS centralisées
-- **Optimisation**: Réduction de la taille du bundle
+```typescript
+// server/storage.ts - Méthodes anti-duplication
+async createUserSafe(userData: InsertUser): Promise<User> {
+  return await db.insert(users)
+    .values(userData)
+    .onConflictDoUpdate({
+      target: users.email,
+      set: {
+        updatedAt: new Date(),
+        // Mise à jour des champs non-critiques seulement
+        phone: userData.phone,
+      }
+    })
+    .returning();
+}
 
-### 4. Logique Métier
-- **Patterns détectés**: useState, useEffect, conditions
-- **Suggestions**: Hooks personnalisés
-- **Abstraction**: Services réutilisables
+async createClassSafe(classData: InsertClass): Promise<Class> {
+  return await db.insert(classes)
+    .values(classData)
+    .onConflictDoUpdate({
+      target: [classes.schoolId, classes.name, classes.level],
+      set: {
+        updatedAt: new Date(),
+        description: classData.description,
+      }
+    })
+    .returning();
+}
+```
 
-## 📊 Configuration Avancée
+## 2. API Express : Clés d'Idempotence + Verrous Redis
 
-### Fichier de Configuration
-Le fichier `scripts/duplication-config.json` permet de personnaliser :
+### Middleware d'Idempotence
 
-```json
-{
-  "thresholds": {
-    "component": { "similarity": 85, "autoFix": true },
-    "function": { "similarity": 90, "autoFix": true },
-    "style": { "similarity": 95, "autoFix": true }
-  },
-  "consolidation": {
-    "components": { "outputDir": "client/src/components/consolidated" },
-    "functions": { "outputFile": "client/src/utils/consolidated.ts" }
+```typescript
+// server/middleware/idempotency.ts
+import { createClient } from 'redis';
+
+const redis = createClient({ url: process.env.REDIS_URL });
+await redis.connect();
+
+export function idempotency(windowSec = 120) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const key = req.get('Idempotency-Key');
+    if (!key) return next();
+    
+    const cacheKey = `educafric:idem:${req.path}:${key}`;
+    const cached = await redis.get(cacheKey);
+    
+    if (cached) {
+      const { status, body, headers } = JSON.parse(cached);
+      res.set(headers || {});
+      return res.status(status).json(body);
+    }
+    
+    // Capture de la réponse
+    const originalSend = res.json.bind(res);
+    res.json = (body: any) => {
+      const payload = JSON.stringify({
+        status: res.statusCode,
+        body,
+        headers: res.getHeaders()
+      });
+      redis.setEx(cacheKey, windowSec, payload);
+      return originalSend(body);
+    };
+    
+    next();
+  };
+}
+```
+
+### Routes Critiques avec Idempotence
+
+```typescript
+// server/routes.ts - Application sur routes sensibles
+app.post('/api/student/enrollment', 
+  requireAuth, 
+  idempotency(300), // 5 minutes pour inscriptions
+  async (req, res) => {
+    // Inscription sécurisée sans doublon
+  }
+);
+
+app.post('/api/teacher/grades', 
+  requireAuth, 
+  idempotency(60), // 1 minute pour notes
+  async (req, res) => {
+    // Saisie de notes sans doublon
+  }
+);
+```
+
+### Verrous Redis pour Opérations Concurrentes
+
+```typescript
+// server/utils/lockManager.ts
+export async function withLock<T>(
+  lockKey: string, 
+  ttlMs: number, 
+  operation: () => Promise<T>
+): Promise<T> {
+  const fullKey = `educafric:lock:${lockKey}`;
+  const acquired = await redis.set(fullKey, '1', { NX: true, PX: ttlMs });
+  
+  if (!acquired) {
+    throw new Error('Operation already in progress');
+  }
+  
+  try {
+    return await operation();
+  } finally {
+    await redis.del(fullKey);
+  }
+}
+
+// Usage dans les routes critiques
+app.post('/api/teacher/attendance', async (req, res) => {
+  const { classId, date } = req.body;
+  
+  await withLock(`attendance:${classId}:${date}`, 30000, async () => {
+    // Prise de présence unique par classe/jour
+    const attendance = await storage.recordAttendance(classId, date, req.body.students);
+    res.json(attendance);
+  });
+});
+```
+
+## 3. Frontend React : Anti Double-Submit
+
+### Hook useSingleSubmit Amélioré
+
+```typescript
+// client/src/hooks/useSingleSubmit.ts
+import { useRef, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+export function useSingleSubmit() {
+  const [submitting, setSubmitting] = useState(false);
+  const submitRef = useRef(false);
+  const idempotencyKey = useRef<string | null>(null);
+  
+  const wrap = <T extends any[]>(fn: (...args: T) => Promise<any>) => {
+    return async (...args: T) => {
+      if (submitRef.current) return;
+      
+      submitRef.current = true;
+      setSubmitting(true);
+      idempotencyKey.current = uuidv4();
+      
+      try {
+        const result = await fn(...args);
+        return result;
+      } finally {
+        setSubmitting(false);
+        // Délai de sécurité avant réactivation
+        setTimeout(() => {
+          submitRef.current = false;
+          idempotencyKey.current = null;
+        }, 2000);
+      }
+    };
+  };
+  
+  return { 
+    wrap, 
+    submitting, 
+    getIdempotencyKey: () => idempotencyKey.current 
+  };
+}
+```
+
+### Composants avec Protection Anti-Duplication
+
+```typescript
+// client/src/components/teacher/modules/FunctionalTeacherGrades.tsx
+export default function FunctionalTeacherGrades() {
+  const { wrap, submitting, getIdempotencyKey } = useSingleSubmit();
+  const { toast } = useToast();
+  
+  const handleSubmitGrades = wrap(async (gradeData: GradeData) => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    const idempotencyKey = getIdempotencyKey();
+    if (idempotencyKey) {
+      headers['Idempotency-Key'] = idempotencyKey;
+    }
+    
+    const response = await apiRequest('POST', '/api/teacher/grades', gradeData, {
+      headers
+    });
+    
+    toast({
+      title: "Notes enregistrées",
+      description: "Les notes ont été sauvegardées avec succès",
+    });
+  });
+  
+  return (
+    <Button 
+      disabled={submitting} 
+      onClick={() => handleSubmitGrades(formData)}
+    >
+      {submitting ? 'Enregistrement...' : 'Enregistrer Notes'}
+    </Button>
+  );
+}
+```
+
+## 4. Uploads : Déduplication par Hash
+
+```typescript
+// server/services/uploadService.ts
+import crypto from 'crypto';
+
+function calculateHash(buffer: Buffer): string {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+export async function handleFileUpload(file: Buffer, metadata: any) {
+  const hash = calculateHash(file);
+  
+  // Vérifier si fichier existe déjà
+  const existing = await storage.findFileByHash(hash);
+  if (existing) {
+    return {
+      id: existing.id,
+      url: existing.url,
+      deduplicated: true,
+      message: 'Fichier déjà existant'
+    };
+  }
+  
+  // Sauvegarder nouveau fichier
+  const savedFile = await storage.saveFile({
+    hash,
+    data: file,
+    metadata,
+    size: file.length
+  });
+  
+  return {
+    id: savedFile.id,
+    url: savedFile.url,
+    deduplicated: false,
+    message: 'Nouveau fichier sauvegardé'
+  };
+}
+```
+
+## 5. Notifications : Anti-Spam
+
+```typescript
+// server/services/notificationService.ts
+export class NotificationService {
+  private static instance: NotificationService;
+  
+  async sendNotificationSafe(
+    userId: number, 
+    type: string, 
+    content: string,
+    throttleMinutes = 5
+  ) {
+    const throttleKey = `notification:${userId}:${type}`;
+    const lastSent = await redis.get(throttleKey);
+    
+    if (lastSent) {
+      const timeDiff = Date.now() - parseInt(lastSent);
+      if (timeDiff < throttleMinutes * 60 * 1000) {
+        return { throttled: true, message: 'Notification throttled' };
+      }
+    }
+    
+    // Envoyer notification
+    const result = await this.sendNotification(userId, type, content);
+    
+    // Marquer timestamp
+    await redis.setEx(throttleKey, throttleMinutes * 60, Date.now().toString());
+    
+    return result;
   }
 }
 ```
 
-### Patterns Spécifiques EDUCAFRIC
-Le système priorise les fichiers du projet éducatif :
-- **Dashboards utilisateur**: Teacher, Student, Parent, Director
-- **Logique métier**: Utils, hooks, services
-- **Composants partagés**: UI, common
+## 6. Tests d'Intégration Anti-Duplication
 
-## 🔧 Intégration ESLint
-
-### Rules Personnalisées
-```javascript
-// .eslintrc.js
-{
-  "extends": ["./scripts/eslint-duplication-rules.js"],
-  "rules": {
-    "educafric/no-duplicate-components": "warn",
-    "educafric/no-duplicate-hooks": "error",
-    "educafric/no-duplicate-utilities": "warn"
-  }
-}
+```typescript
+// tests/integration/antiDuplication.test.ts
+describe('Anti-Duplication System', () => {
+  test('prevents duplicate user creation with same email', async () => {
+    const userData = {
+      email: 'test@educafric.com',
+      username: 'testuser',
+      password: 'password123'
+    };
+    
+    const user1 = await request(app)
+      .post('/api/auth/register')
+      .send(userData);
+    
+    const user2 = await request(app)
+      .post('/api/auth/register')
+      .send(userData);
+    
+    expect(user1.status).toBe(201);
+    expect(user2.status).toBe(409); // Conflict
+    
+    const userCount = await storage.getUserCountByEmail(userData.email);
+    expect(userCount).toBe(1);
+  });
+  
+  test('idempotency prevents duplicate grade submissions', async () => {
+    const idempotencyKey = uuidv4();
+    const gradeData = { studentId: 1, subject: 'Math', grade: 85 };
+    
+    const response1 = await request(app)
+      .post('/api/teacher/grades')
+      .set('Idempotency-Key', idempotencyKey)
+      .send(gradeData);
+    
+    const response2 = await request(app)
+      .post('/api/teacher/grades')
+      .set('Idempotency-Key', idempotencyKey)
+      .send(gradeData);
+    
+    expect(response1.status).toBe(201);
+    expect(response2.status).toBe(201);
+    expect(response1.body).toEqual(response2.body);
+    
+    const gradeCount = await storage.getGradeCount(gradeData);
+    expect(gradeCount).toBe(1);
+  });
+});
 ```
 
-### Détection en Temps Réel
-- Alertes lors de l'écriture de code
-- Suggestions d'amélioration
-- Liens vers fichiers existants
+## Plan d'Implémentation Éducafric
 
-## 📈 Métriques et Rapports
+### Phase 1 : Base de Données (Immédiat)
+1. ✅ Ajouter contraintes UNIQUE aux tables critiques
+2. ✅ Migrer les méthodes de création vers UPSERT
+3. ✅ Script de nettoyage des doublons existants
 
-### Statistiques Générées
-- 📁 **Fichiers analysés**: Nombre total de fichiers scannés
-- 🔍 **Duplications trouvées**: Par type et niveau de similarité
-- 🔧 **Corrections appliquées**: Nombre et impact
-- 💾 **Espace récupéré**: Réduction de la taille du code
+### Phase 2 : API (Cette semaine)
+1. ✅ Implémenter middleware d'idempotence
+2. ✅ Ajouter verrous Redis pour opérations critiques
+3. ✅ Protection des routes sensibles (inscriptions, notes, présences)
 
-### Rapport HTML
-Le script génère un rapport HTML complet avec :
-- Graphiques de répartition
-- Liste détaillée des duplications
-- Recommandations personnalisées
-- Historique des corrections
+### Phase 3 : Frontend (Cette semaine)
+1. ✅ Hook useSingleSubmit dans tous les formulaires
+2. ✅ Clés d'idempotence automatiques
+3. ✅ Debounce pour champs de recherche/validation
 
-## 🛡️ Sécurité et Sauvegardes
-
-### Sauvegardes Automatiques
-Avant toute correction, le système :
-1. 📦 Crée une sauvegarde complète
-2. 🗂️ Archive dans `backups/duplication-fix-YYYYMMDD-HHMMSS/`
-3. ✅ Permet la restauration en cas de problème
-
-### Mode Sécurisé
-```bash
-# Analyse uniquement (aucune modification)
-bash scripts/run-duplication-analysis.sh --dry-run
-
-# Avec sauvegarde automatique
-bash scripts/run-duplication-analysis.sh --fix
-```
-
-## 🔄 Automatisation CI/CD
-
-### Pre-commit Hook
-```bash
-# Dans package.json
-"husky": {
-  "hooks": {
-    "pre-commit": "node scripts/eliminate-duplications.js --dry-run"
-  }
-}
-```
-
-### Pipeline CI
-```yaml
-# .github/workflows/duplications.yml
-- name: Check Duplications
-  run: node scripts/eliminate-duplications.js --dry-run
-- name: Generate Report
-  run: bash scripts/run-duplication-analysis.sh --report
-```
-
-## 💡 Meilleures Pratiques
-
-### 1. Utilisation Recommandée
-- 🕐 **Quotidien**: Surveillance en mode watch
-- 📅 **Hebdomadaire**: Analyse complète avec rapport
-- 🚀 **Avant release**: Correction automatique complète
-
-### 2. Workflow de Développement
-```bash
-# Au début du développement
-node scripts/watch-duplications.js &
-
-# Pendant le développement
-# (surveillance automatique active)
-
-# Avant commit
-bash scripts/run-duplication-analysis.sh --dry-run
-
-# Si duplications trouvées
-bash scripts/run-duplication-analysis.sh --fix
-```
-
-### 3. Révision de Code
-- ✅ Vérifier le rapport de duplications
-- 📊 Analyser les métriques de qualité
-- 🔍 Valider les consolidations proposées
-
-## 🆘 Dépannage
-
-### Problèmes Courants
-
-#### Erreur ES Modules
-```bash
-# Si erreur "require is not defined"
-# Les scripts utilisent maintenant import/export (ES modules)
-```
-
-#### Permissions de Fichiers
-```bash
-# Rendre les scripts exécutables
-chmod +x scripts/*.sh
-```
-
-#### Dépendances Manquantes
-```bash
-# Installation automatique des dépendances
-npm install chokidar --save-dev
-```
-
-### Support et Documentation
-- 📖 **Configuration**: `scripts/duplication-config.json`
-- 🔧 **Personnalisation**: Modifier les seuils et patterns
-- 📞 **Support**: Voir les logs détaillés avec `--verbose`
-
-## 🎯 Résultats Attendus
-
-Avec ce système, le projet EDUCAFRIC bénéficie de :
-
-✅ **Réduction des duplications** de 60-80%  
-✅ **Amélioration de la maintenabilité** du code  
-✅ **Prévention des pertes de fichiers**  
-✅ **Optimisation de la taille du bundle**  
-✅ **Standardisation de l'architecture**  
-✅ **Détection proactive des problèmes**  
+### Phase 4 : Tests (Prochaine semaine)
+1. ✅ Tests d'intégration anti-duplication
+2. ✅ Tests de charge sur endpoints critiques
+3. ✅ Monitoring des duplications en production
 
 ---
-
-*Ce système de prévention des duplications est spécialement conçu pour le projet EDUCAFRIC et ses besoins spécifiques en terme de qualité de code et de maintenabilité.*
+*Guide adapté spécifiquement pour l'architecture Educafric*
