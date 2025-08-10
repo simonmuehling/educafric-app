@@ -634,43 +634,60 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             <div className="space-y-3">
               {(Array.isArray(filteredStudents) ? filteredStudents : []).map((student) => (
                 <div key={student.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className="font-medium">{student.firstName || ''} {student.lastName || ''}</div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <div className="font-medium text-gray-900">{student.firstName || ''} {student.lastName || ''}</div>
                         <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[student.status]}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-4 mb-2 text-sm text-gray-600">
                         <span>🎓 {student.className}</span>
                         <span>📊 {student.average}/20</span>
                         <span>📅 {student.attendance}%</span>
                         <span>👨‍👩‍👧 {student.parentName}</span>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                      <div className="flex flex-wrap items-center gap-4 mb-3 text-xs text-gray-500">
                         <span>📧 {student.email || ''}</span>
                         <span>📱 {student.parentPhone}</span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditStudent(student)}
-                        data-testid={`button-edit-student-${student.id}`}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDeleteStudent(student.id)}
-                        className="text-red-600 hover:text-red-700"
-                        data-testid={`button-delete-student-${student.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      
+                      {/* Boutons d'action mobile-first sous le nom */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          data-testid={`button-view-student-${student.id}`}
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden sm:inline">Voir</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditStudent(student)}
+                          className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          data-testid={`button-edit-student-${student.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span className="hidden sm:inline">Modifier</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteStudent(student.id)}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-student-${student.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">Supprimer</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

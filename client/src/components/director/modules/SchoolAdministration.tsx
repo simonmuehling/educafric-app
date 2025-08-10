@@ -585,15 +585,17 @@ const SchoolAdministration: React.FC = () => {
 
               <div className="space-y-3">
                 {(Array.isArray(filteredTeachers) ? filteredTeachers.length : 0) > 0 ? (Array.isArray(filteredTeachers) ? filteredTeachers : []).map((teacher: any) => (
-                  <div key={String(teacher?.id) || "N/A"} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div key={String(teacher?.id) || "N/A"} className="p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <GraduationCap className="w-5 h-5 text-blue-600" />
                       </div>
-                      <div>
-                        <h4 className="font-medium">{String(teacher?.firstName) || "N/A"} {String(teacher?.lastName) || "N/A"}</h4>
-                        <p className="text-sm text-gray-600">{String(teacher?.email) || "N/A"}</p>
-                        <div className="flex gap-2 mt-1">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900">{String(teacher?.firstName) || "N/A"} {String(teacher?.lastName) || "N/A"}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{String(teacher?.email) || "N/A"}</p>
+                        
+                        {/* Matières enseignées */}
+                        <div className="flex flex-wrap gap-2 mb-3">
                           {Array.isArray(teacher.subjects) ? (Array.isArray(teacher.subjects) ? teacher.subjects : []).map((subject: string) => (
                             <Badge key={subject} variant="secondary" className="text-xs">
                               {subject}
@@ -604,18 +606,38 @@ const SchoolAdministration: React.FC = () => {
                             </Badge>
                           )}
                         </div>
+                        
+                        {/* Boutons d'action mobile-first sous le nom */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            data-testid={`button-view-teacher-${teacher?.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.view) || "Voir"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            data-testid={`button-edit-teacher-${teacher?.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.edit) || "Modifier"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-teacher-${teacher?.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.delete) || "Supprimer"}</span>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 )) : (
@@ -713,29 +735,49 @@ const SchoolAdministration: React.FC = () => {
 
               <div className="space-y-3">
                 {(Array.isArray(filteredStudents) ? filteredStudents.length : 0) > 0 ? (Array.isArray(filteredStudents) ? filteredStudents : []).map((student: any) => (
-                  <div key={String(student?.id) || "N/A"} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <div key={String(student?.id) || "N/A"} className="p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Users className="w-5 h-5 text-green-600" />
                       </div>
-                      <div>
-                        <h4 className="font-medium">{String(student?.firstName) || "N/A"} {String(student?.lastName) || "N/A"}</h4>
-                        <p className="text-sm text-gray-600">{String(currentLang?.class) || "N/A"}: {String(student?.className) || "N/A"}</p>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900">{String(student?.firstName) || "N/A"} {String(student?.lastName) || "N/A"}</h4>
+                        <p className="text-sm text-gray-600">{String(currentLang?.class) || "Classe"}: {String(student?.className) || "N/A"}</p>
                         {student.parentInfo && (
-                          <p className="text-xs text-gray-500">Parent: {String(student?.parentInfo?.name) || "N/A"}</p>
+                          <p className="text-xs text-gray-500 mb-3">Parent: {String(student?.parentInfo?.name) || "N/A"}</p>
                         )}
+                        
+                        {/* Boutons d'action mobile-first sous le nom */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            data-testid={`button-view-student-${student?.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.view) || "Voir"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            data-testid={`button-edit-student-${student?.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.edit) || "Modifier"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-student-${student?.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.delete) || "Supprimer"}</span>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 )) : (
@@ -833,15 +875,17 @@ const SchoolAdministration: React.FC = () => {
 
               <div className="space-y-3">
                 {(Array.isArray(filteredParents) ? filteredParents.length : 0) > 0 ? (Array.isArray(filteredParents) ? filteredParents : []).map((parent: any) => (
-                  <div key={String(parent?.id) || "N/A"} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                  <div key={String(parent?.id) || "N/A"} className="p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
                         <Heart className="w-5 h-5 text-purple-600" />
                       </div>
-                      <div>
-                        <h4 className="font-medium">{String(parent?.firstName) || "N/A"} {String(parent?.lastName) || "N/A"}</h4>
-                        <p className="text-sm text-gray-600">{String(parent?.email) || "N/A"}</p>
-                        <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900">{String(parent?.firstName) || "N/A"} {String(parent?.lastName) || "N/A"}</h4>
+                        <p className="text-sm text-gray-600 mb-2">{String(parent?.email) || "N/A"}</p>
+                        
+                        {/* Status et enfants */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
                           <Badge variant={parent.status === 'active' ? 'default' : 'secondary'}>
                             {parent.status === 'active' ? currentLang.active : currentLang.inactive}
                           </Badge>
@@ -849,15 +893,38 @@ const SchoolAdministration: React.FC = () => {
                             {Array.isArray(parent.children) ? (Array.isArray(parent.children) ? parent.children.length : 0) : 0} {Array.isArray(parent.children) && (Array.isArray(parent.children) ? parent.children.length : 0) === 1 ? 'enfant' : 'enfants'}
                           </span>
                         </div>
+                        
+                        {/* Boutons d'action mobile-first sous le nom */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            data-testid={`button-view-parent-${parent?.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.view) || "Voir"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            data-testid={`button-edit-parent-${parent?.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.edit) || "Modifier"}</span>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            data-testid={`button-delete-parent-${parent?.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">{String(currentLang?.delete) || "Supprimer"}</span>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
                     </div>
                   </div>
                 )) : (

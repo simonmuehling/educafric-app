@@ -613,43 +613,60 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
             <div className="space-y-3">
               {(Array.isArray(filteredTeachers) ? filteredTeachers : []).map((teacher) => (
                 <div key={teacher.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <div className="font-medium">{teacher.name || ''}</div>
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <div className="font-medium text-gray-900">{teacher.name || ''}</div>
                         <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
                           {text.status[teacher.status]}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-4 mb-2 text-sm text-gray-600">
                         <span>📚 {teacher.subjects.join(', ')}</span>
                         <span>🎓 {teacher.qualification}</span>
                         <span>⏰ {teacher.experience} ans</span>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                      <div className="flex flex-wrap items-center gap-4 mb-3 text-xs text-gray-500">
                         <span>📧 {teacher.email || ''}</span>
                         <span>📱 {teacher.phone}</span>
                         <span>🏫 {teacher.classes.join(', ')}</span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditTeacher(teacher)}
-                        data-testid={`button-edit-teacher-${teacher.id}`}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeleteTeacher(teacher.id)}
-                        className="text-red-600 hover:text-red-700"
-                        data-testid={`button-delete-teacher-${teacher.id}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      
+                      {/* Boutons d'action mobile-first sous le nom */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          data-testid={`button-view-teacher-${teacher.id}`}
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden sm:inline">{text.buttons.view}</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditTeacher(teacher)}
+                          className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          data-testid={`button-edit-teacher-${teacher.id}`}
+                        >
+                          <Edit className="w-4 h-4" />
+                          <span className="hidden sm:inline">{text.buttons.edit}</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDeleteTeacher(teacher.id)}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          data-testid={`button-delete-teacher-${teacher.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <span className="hidden sm:inline">{text.buttons.delete}</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
