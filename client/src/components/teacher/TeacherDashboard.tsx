@@ -11,7 +11,7 @@ import FunctionalTeacherGrades from './modules/FunctionalTeacherGrades';
 import FunctionalTeacherAssignments from './modules/FunctionalTeacherAssignments';
 import CreateEducationalContent from './modules/CreateEducationalContent';
 import ReportCardManagement from './modules/ReportCardManagement';
-import FunctionalTeacherCommunications from './modules/FunctionalTeacherCommunications';
+import EnhancedTeacherCommunications from './modules/EnhancedTeacherCommunications';
 import TeacherTimetable from './modules/TeacherTimetable';
 import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
@@ -163,7 +163,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <FunctionalTeacherCommunications />
+      component: <EnhancedTeacherCommunications />
     },
 
     {
