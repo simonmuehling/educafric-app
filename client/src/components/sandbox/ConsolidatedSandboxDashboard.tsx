@@ -24,6 +24,7 @@ import FirebaseDeviceTest from './FirebaseDeviceTest';
 import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
 import CommunicationTester from './CommunicationTester';
+import NotificationTester from './NotificationTester';
 
 
 interface SystemMetrics {
@@ -355,6 +356,11 @@ const ConsolidatedSandboxDashboard = () => {
       icon: <Activity className="w-4 h-4" />
     },
     {
+      id: 'notifications',
+      label: language === 'fr' ? 'Notifications' : 'Notifications',
+      icon: <Bell className="w-4 h-4" />
+    },
+    {
       id: 'device-testing',
       label: t.deviceTesting,
       icon: <Smartphone className="w-4 h-4" />
@@ -627,6 +633,10 @@ const ConsolidatedSandboxDashboard = () => {
 
           <TabsContent value="communication">
             <CommunicationTester />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationTester />
           </TabsContent>
 
         </Tabs>

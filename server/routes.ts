@@ -1023,6 +1023,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }, 1000 + Math.random() * 1000);
   });
 
+  // Dedicated Notification Tester Route
+  app.post("/api/sandbox/test-notification", (req, res) => {
+    const { type, recipient, subject, message, template, targetRole, priority, title } = req.body;
+    console.log(`🔔 Sandbox Notification Test: ${type} to ${recipient || targetRole}`);
+    
+    // Simulate realistic notification testing with more detailed response
+    const notificationResult = {
+      success: Math.random() > 0.1, // 90% success rate for realism
+      type,
+      recipient: recipient || `${targetRole} users`,
+      subject: subject || title,
+      message,
+      template: template || 'custom',
+      status: Math.random() > 0.1 ? 'sent' : 'failed',
+      timestamp: new Date().toISOString(),
+      testId: `test_${Date.now()}`,
+      deliveryTime: `${(Math.random() * 3 + 0.8).toFixed(1)}s`,
+      details: {
+        provider: {
+          email: 'Hostinger SMTP (Sandbox)',
+          sms: 'Vonage SMS Gateway (Test)',
+          whatsapp: 'WhatsApp Business API (Sandbox)',
+          push: 'Firebase Cloud Messaging (Test)'
+        }[type] || 'Unknown Provider',
+        priority: priority || 'normal',
+        targetRole: targetRole || 'specific',
+        retryAttempts: Math.random() > 0.95 ? 1 : 0,
+        sandbox: true,
+        cost: {
+          email: '0.001 CFA',
+          sms: '25 CFA',
+          whatsapp: '15 CFA',
+          push: '0 CFA'
+        }[type] || '0 CFA'
+      },
+      analytics: {
+        deliveryRate: Math.random() * 10 + 90,
+        openRate: type === 'email' ? Math.random() * 30 + 20 : null,
+        clickRate: type === 'email' ? Math.random() * 5 + 2 : null,
+        readRate: ['sms', 'whatsapp'].includes(type) ? Math.random() * 20 + 80 : null
+      }
+    };
+    
+    // Simulate realistic processing delay based on type
+    const processingDelay = {
+      email: 800 + Math.random() * 1200,
+      sms: 1500 + Math.random() * 2000,
+      whatsapp: 1200 + Math.random() * 1800,
+      push: 500 + Math.random() * 800
+    }[type] || 1000;
+    
+    setTimeout(() => {
+      res.json(notificationResult);
+    }, processingDelay);
+  });
+
   app.get("/api/sandbox/mirror/subjects", (req, res) => {
     console.log('🏖️ Sandbox Subjects API');
     res.json([
