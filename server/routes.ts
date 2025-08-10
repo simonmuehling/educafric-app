@@ -1083,6 +1083,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(teachers);
   });
 
+  // Enhanced teacher management routes with full CRUD and blocking functionality
+  app.put("/api/teachers/:id", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const updatedTeacher = await storage.updateTeacher(parseInt(id), updates);
+      
+      // Send notification about teacher update
+      await NotificationService.sendNotification({
+        type: 'teacher_updated',
+        title: 'Enseignant Modifié',
+        message: `${updatedTeacher.firstName} ${updatedTeacher.lastName} - Informations mises à jour`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { teacherId: updatedTeacher.id, changes: Object.keys(updates) }
+      });
+      
+      console.log(`[TEACHERS_API] ✅ Updated teacher: ${updatedTeacher.firstName} ${updatedTeacher.lastName}`);
+      res.json(updatedTeacher);
+    } catch (error: any) {
+      console.error('[TEACHERS_API] Error updating teacher:', error);
+      res.status(500).json({ message: 'Failed to update teacher' });
+    }
+  });
+
+  app.delete("/api/teachers/:id", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteTeacher(parseInt(id));
+      
+      // Send notification about teacher deletion
+      await NotificationService.sendNotification({
+        type: 'teacher_deleted',
+        title: 'Enseignant Supprimé',
+        message: `Enseignant supprimé avec toutes ses relations école`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { teacherId: parseInt(id) }
+      });
+      
+      console.log(`[TEACHERS_API] ✅ Deleted teacher ID: ${id}`);
+      res.json({ message: 'Teacher deleted successfully' });
+    } catch (error: any) {
+      console.error('[TEACHERS_API] Error deleting teacher:', error);
+      res.status(500).json({ message: 'Failed to delete teacher' });
+    }
+  });
+
+  app.post("/api/teachers/:id/block", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
+      
+      // Send notification about user blocking
+      await NotificationService.sendNotification({
+        type: 'user_blocked',
+        title: 'Accès Bloqué',
+        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { userId: blockedUser.id, reason }
+      });
+      
+      console.log(`[USER_MANAGEMENT] ✅ Blocked user access: ${blockedUser.firstName} ${blockedUser.lastName}`);
+      res.json({ message: 'User access blocked successfully', user: blockedUser });
+    } catch (error: any) {
+      console.error('[USER_MANAGEMENT] Error blocking user:', error);
+      res.status(500).json({ message: 'Failed to block user access' });
+    }
+  });
+
+  app.post("/api/teachers/:id/unblock", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      
+      const unblockedUser = await storage.unblockUserAccess(parseInt(id));
+      
+      // Send notification about user unblocking
+      await NotificationService.sendNotification({
+        type: 'user_unblocked',
+        title: 'Accès Rétabli',
+        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { userId: unblockedUser.id }
+      });
+      
+      console.log(`[USER_MANAGEMENT] ✅ Unblocked user access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
+      res.json({ message: 'User access restored successfully', user: unblockedUser });
+    } catch (error: any) {
+      console.error('[USER_MANAGEMENT] Error unblocking user:', error);
+      res.status(500).json({ message: 'Failed to unblock user access' });
+    }
+  });
+
   app.post("/api/teachers", requireAuth, async (req, res) => {
     if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
       return res.status(403).json({ message: 'School administration access required' });
@@ -2948,8 +3067,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { id } = req.params;
       const updates = req.body;
+      
       const updatedStudent = await storage.updateStudent(parseInt(id), updates);
-      console.log(`[STUDENTS_API] ✅ Updated student ID: ${id}`);
+      
+      // Send notification about student update
+      await NotificationService.sendNotification({
+        type: 'student_updated',
+        title: 'Élève Modifié',
+        message: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { studentId: updatedStudent.id, changes: Object.keys(updates) }
+      });
+      
+      console.log(`[STUDENTS_API] ✅ Updated student: ${updatedStudent.firstName} ${updatedStudent.lastName}`);
       res.json(updatedStudent);
     } catch (error: any) {
       console.error('[STUDENTS_API] Error updating student:', error);
@@ -2964,12 +3096,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { id } = req.params;
+      
       await storage.deleteStudent(parseInt(id));
+      
+      // Send notification about student deletion
+      await NotificationService.sendNotification({
+        type: 'student_deleted',
+        title: 'Élève Supprimé',
+        message: `Élève supprimé avec toutes ses relations école`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { studentId: parseInt(id) }
+      });
+      
       console.log(`[STUDENTS_API] ✅ Deleted student ID: ${id}`);
       res.json({ success: true, message: 'Student deleted successfully' });
     } catch (error: any) {
       console.error('[STUDENTS_API] Error deleting student:', error);
       res.status(500).json({ message: 'Failed to delete student' });
+    }
+  });
+
+  app.post("/api/students/:id/block", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
+      
+      // Send notification about student blocking
+      await NotificationService.sendNotification({
+        type: 'student_blocked',
+        title: 'Élève Bloqué',
+        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { userId: blockedUser.id, reason }
+      });
+      
+      console.log(`[STUDENT_MANAGEMENT] ✅ Blocked student access: ${blockedUser.firstName} ${blockedUser.lastName}`);
+      res.json({ message: 'Student access blocked successfully', user: blockedUser });
+    } catch (error: any) {
+      console.error('[STUDENT_MANAGEMENT] Error blocking student:', error);
+      res.status(500).json({ message: 'Failed to block student access' });
+    }
+  });
+
+  app.post("/api/students/:id/unblock", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      
+      const unblockedUser = await storage.unblockUserAccess(parseInt(id));
+      
+      // Send notification about student unblocking
+      await NotificationService.sendNotification({
+        type: 'student_unblocked',
+        title: 'Élève Débloqué',
+        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { userId: unblockedUser.id }
+      });
+      
+      console.log(`[STUDENT_MANAGEMENT] ✅ Unblocked student access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
+      res.json({ message: 'Student access restored successfully', user: unblockedUser });
+    } catch (error: any) {
+      console.error('[STUDENT_MANAGEMENT] Error unblocking student:', error);
+      res.status(500).json({ message: 'Failed to unblock student access' });
     }
   });
 
@@ -3041,8 +3245,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { id } = req.params;
       const updates = req.body;
+      
       const updatedParent = await storage.updateParent(parseInt(id), updates);
-      console.log(`[PARENTS_API] ✅ Updated parent ID: ${id}`);
+      
+      // Send notification about parent update
+      await NotificationService.sendNotification({
+        type: 'parent_updated',
+        title: 'Parent Modifié',
+        message: `${updatedParent.firstName} ${updatedParent.lastName} - Informations mises à jour`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { parentId: updatedParent.id, changes: Object.keys(updates) }
+      });
+      
+      console.log(`[PARENTS_API] ✅ Updated parent: ${updatedParent.firstName} ${updatedParent.lastName}`);
       res.json(updatedParent);
     } catch (error: any) {
       console.error('[PARENTS_API] Error updating parent:', error);
@@ -3057,12 +3274,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { id } = req.params;
+      
       await storage.deleteParent(parseInt(id));
+      
+      // Send notification about parent deletion
+      await NotificationService.sendNotification({
+        type: 'parent_deleted',
+        title: 'Parent Supprimé',
+        message: `Parent supprimé avec toutes ses relations école`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { parentId: parseInt(id) }
+      });
+      
       console.log(`[PARENTS_API] ✅ Deleted parent ID: ${id}`);
       res.json({ success: true, message: 'Parent deleted successfully' });
     } catch (error: any) {
       console.error('[PARENTS_API] Error deleting parent:', error);
       res.status(500).json({ message: 'Failed to delete parent' });
+    }
+  });
+
+  app.post("/api/parents/:id/block", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      
+      const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
+      
+      // Send notification about parent blocking
+      await NotificationService.sendNotification({
+        type: 'parent_blocked',
+        title: 'Parent Bloqué',
+        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'high',
+        data: { userId: blockedUser.id, reason }
+      });
+      
+      console.log(`[PARENT_MANAGEMENT] ✅ Blocked parent access: ${blockedUser.firstName} ${blockedUser.lastName}`);
+      res.json({ message: 'Parent access blocked successfully', user: blockedUser });
+    } catch (error: any) {
+      console.error('[PARENT_MANAGEMENT] Error blocking parent:', error);
+      res.status(500).json({ message: 'Failed to block parent access' });
+    }
+  });
+
+  app.post("/api/parents/:id/unblock", requireAuth, async (req, res) => {
+    if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+      return res.status(403).json({ message: 'School administration access required' });
+    }
+    
+    try {
+      const { id } = req.params;
+      
+      const unblockedUser = await storage.unblockUserAccess(parseInt(id));
+      
+      // Send notification about parent unblocking
+      await NotificationService.sendNotification({
+        type: 'parent_unblocked',
+        title: 'Parent Débloqué',
+        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        recipients: [(req.user as any).id],
+        schoolId: 1,
+        priority: 'medium',
+        data: { userId: unblockedUser.id }
+      });
+      
+      console.log(`[PARENT_MANAGEMENT] ✅ Unblocked parent access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
+      res.json({ message: 'Parent access restored successfully', user: unblockedUser });
+    } catch (error: any) {
+      console.error('[PARENT_MANAGEMENT] Error unblocking parent:', error);
+      res.status(500).json({ message: 'Failed to unblock parent access' });
     }
   });
 

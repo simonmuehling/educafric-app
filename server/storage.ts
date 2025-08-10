@@ -39,6 +39,8 @@ export interface IStorage {
   createTeacher(data: any): Promise<any>;
   updateTeacher(id: number, data: any): Promise<any>;
   deleteTeacher(id: number): Promise<void>;
+  blockUserAccess(userId: number, reason: string): Promise<any>;
+  unblockUserAccess(userId: number): Promise<any>;
   createStudent(data: any): Promise<any>;
   updateStudent(id: number, data: any): Promise<any>;
   deleteStudent(id: number): Promise<void>;
@@ -1550,6 +1552,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTeacher(id: number, updates: Partial<User>): Promise<User> {
+    // Check if status is being changed to blocked/suspended
+    if (updates.status && ['suspended', 'blocked', 'inactive'].includes(updates.status)) {
+      // Log the status change for school relation management
+      console.log(`[TEACHER_STATUS] Teacher ${id} status changed to ${updates.status} - Access revoked immediately`);
+    }
+    
     const [teacher] = await db
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
@@ -1564,6 +1572,180 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTeacher(id: number): Promise<void> {
+    // Get teacher details before deletion for logging
+    const [teacher] = await db.select().from(users).where(eq(users.id, id));
+    
+    if (teacher) {
+      console.log(`[TEACHER_DELETE] Removing teacher ${teacher.firstName} ${teacher.lastName} and all school relations`);
+      
+      // Remove from all classes and subjects
+      await db.delete(subjects).where(eq(subjects.teacherId, id));
+      await db.delete(classes).where(eq(classes.teacherId, id));
+      
+      // Remove teacher absence records
+      await db.delete(teacherAbsences).where(eq(teacherAbsences.teacherId, id));
+      
+      // Update grades to remove teacher assignment but keep records
+      await db.update(grades)
+        .set({ teacherId: null, updatedAt: new Date() })
+        .where(eq(grades.teacherId, id));
+    }
+    
+    // Finally delete the teacher
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async blockUserAccess(userId: number, reason: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        status: 'suspended',
+        blockedAt: new Date(),
+        blockReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    console.log(`[USER_BLOCKED] User ${user.firstName} ${user.lastName} blocked. Reason: ${reason}`);
+    return user;
+  }
+
+  async unblockUserAccess(userId: number): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        status: 'active',
+        blockedAt: null,
+        blockReason: null,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    console.log(`[USER_UNBLOCKED] User ${user.firstName} ${user.lastName} access restored`);
+    return user;
+  }
+
+  async createStudent(studentData: any): Promise<User> {
+    const [student] = await db
+      .insert(users)
+      .values({
+        ...studentData,
+        role: 'Student',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return student;
+  }
+
+  async updateStudent(id: number, updates: Partial<User>): Promise<User> {
+    // Check if status is being changed to blocked/suspended
+    if (updates.status && ['suspended', 'blocked', 'inactive'].includes(updates.status)) {
+      console.log(`[STUDENT_STATUS] Student ${id} status changed to ${updates.status} - School access revoked`);
+    }
+    
+    const [student] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!student) {
+      throw new Error('Student not found');
+    }
+    
+    return student;
+  }
+
+  async deleteStudent(id: number): Promise<void> {
+    // Get student details before deletion for logging
+    const [student] = await db.select().from(users).where(eq(users.id, id));
+    
+    if (student) {
+      console.log(`[STUDENT_DELETE] Removing student ${student.firstName} ${student.lastName} and all relations`);
+      
+      // Remove parent-student relationships
+      await db.delete(parentStudentRelations).where(eq(parentStudentRelations.studentId, id));
+      
+      // Remove student from enrollments
+      await db.delete(enrollments).where(eq(enrollments.studentId, id));
+      
+      // Remove grades but keep for historical records (soft delete)
+      await db.update(grades)
+        .set({ studentId: null, updatedAt: new Date() })
+        .where(eq(grades.studentId, id));
+      
+      // Remove attendance records
+      await db.delete(attendance).where(eq(attendance.studentId, id));
+      
+      // Remove homework submissions
+      await db.delete(homeworkSubmissions).where(eq(homeworkSubmissions.studentId, id));
+    }
+    
+    // Finally delete the student
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async createParent(parentData: any): Promise<User> {
+    const [parent] = await db
+      .insert(users)
+      .values({
+        ...parentData,
+        role: 'Parent',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return parent;
+  }
+
+  async updateParent(id: number, updates: Partial<User>): Promise<User> {
+    // Check if status is being changed to blocked/suspended
+    if (updates.status && ['suspended', 'blocked', 'inactive'].includes(updates.status)) {
+      console.log(`[PARENT_STATUS] Parent ${id} status changed to ${updates.status} - School access revoked`);
+    }
+    
+    const [parent] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    
+    if (!parent) {
+      throw new Error('Parent not found');
+    }
+    
+    return parent;
+  }
+
+  async deleteParent(id: number): Promise<void> {
+    // Get parent details before deletion for logging
+    const [parent] = await db.select().from(users).where(eq(users.id, id));
+    
+    if (parent) {
+      console.log(`[PARENT_DELETE] Removing parent ${parent.firstName} ${parent.lastName} and all relations`);
+      
+      // Remove parent-student relationships
+      await db.delete(parentStudentRelations).where(eq(parentStudentRelations.parentId, id));
+      
+      // Remove communication logs
+      await db.delete(communicationLogs).where(eq(communicationLogs.recipientId, id));
+      
+      // Remove parent requests
+      await db.delete(parentRequests).where(eq(parentRequests.parentId, id));
+    }
+    
+    // Finally delete the parent
     await db.delete(users).where(eq(users.id, id));
   }
 

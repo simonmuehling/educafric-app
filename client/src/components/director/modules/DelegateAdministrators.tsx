@@ -514,34 +514,214 @@ const DelegateAdministrators: React.FC = () => {
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [showAllParents, setShowAllParents] = useState(false);
 
-  // Delete handlers
-  const handleDeleteTeacher = (teacherId: number) => {
-    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet enseignant ?' : 'Are you sure you want to delete this teacher?')) {
-      // API call would go here
+  // Update mutations
+  const updateTeacherMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest(`/api/teachers/${id}`, 'PUT', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
+      setShowEditTeacherModal(false);
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Enseignant supprimé avec succès' : 'Teacher deleted successfully'
+        description: language === 'fr' ? 'Enseignant modifié avec succès' : 'Teacher updated successfully'
       });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la modification' : 'Error updating teacher'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const updateStudentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest(`/api/students/${id}`, 'PUT', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      setShowEditStudentModal(false);
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève modifié avec succès' : 'Student updated successfully'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la modification' : 'Error updating student'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const updateParentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest(`/api/parents/${id}`, 'PUT', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
+      setShowEditParentModal(false);
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Parent modifié avec succès' : 'Parent updated successfully'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la modification' : 'Error updating parent'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete mutations
+  const deleteTeacherMutation = useMutation({
+    mutationFn: async (teacherId: number) => {
+      const response = await apiRequest(`/api/teachers/${teacherId}`, 'DELETE');
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Enseignant supprimé avec toutes ses relations école' : 'Teacher deleted with all school relations'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting teacher'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const deleteStudentMutation = useMutation({
+    mutationFn: async (studentId: number) => {
+      const response = await apiRequest(`/api/students/${studentId}`, 'DELETE');
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève supprimé avec toutes ses relations école' : 'Student deleted with all school relations'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting student'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const deleteParentMutation = useMutation({
+    mutationFn: async (parentId: number) => {
+      const response = await apiRequest(`/api/parents/${parentId}`, 'DELETE');
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Parent supprimé avec toutes ses relations école' : 'Parent deleted with all school relations'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting parent'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Block/Unblock mutations
+  const blockUserMutation = useMutation({
+    mutationFn: async ({ id, type, reason }: { id: number; type: 'teachers' | 'students' | 'parents'; reason: string }) => {
+      const response = await apiRequest(`/api/${type}/${id}/block`, 'POST', { reason });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Accès utilisateur bloqué avec effet immédiat' : 'User access blocked with immediate effect'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors du blocage' : 'Error blocking user'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const unblockUserMutation = useMutation({
+    mutationFn: async ({ id, type }: { id: number; type: 'teachers' | 'students' | 'parents' }) => {
+      const response = await apiRequest(`/api/${type}/${id}/unblock`, 'POST');
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/students'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/administration/parents'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Accès utilisateur rétabli avec effet immédiat' : 'User access restored with immediate effect'
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors du déblocage' : 'Error unblocking user'),
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete handlers
+  const handleDeleteTeacher = (teacherId: number) => {
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet enseignant et toutes ses relations école ?' : 'Are you sure you want to delete this teacher and all school relations?')) {
+      deleteTeacherMutation.mutate(teacherId);
     }
   };
 
   const handleDeleteStudent = (studentId: number) => {
-    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet élève ?' : 'Are you sure you want to delete this student?')) {
-      // API call would go here
-      toast({
-        title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Élève supprimé avec succès' : 'Student deleted successfully'
-      });
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet élève et toutes ses relations école ?' : 'Are you sure you want to delete this student and all school relations?')) {
+      deleteStudentMutation.mutate(studentId);
     }
   };
 
   const handleDeleteParent = (parentId: number) => {
-    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce parent ?' : 'Are you sure you want to delete this parent?')) {
-      // API call would go here
-      toast({
-        title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' ? 'Parent supprimé avec succès' : 'Parent deleted successfully'
-      });
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce parent et toutes ses relations école ?' : 'Are you sure you want to delete this parent and all school relations?')) {
+      deleteParentMutation.mutate(parentId);
+    }
+  };
+
+  // Block/Unblock handlers
+  const handleBlockUser = (id: number, type: 'teachers' | 'students' | 'parents') => {
+    const reason = prompt(language === 'fr' ? 'Raison du blocage (optionnel):' : 'Reason for blocking (optional):') || 'Bloqué par l\'administration';
+    if (confirm(language === 'fr' ? 'Bloquer l\'accès de cet utilisateur à l\'école ?' : 'Block this user\'s access to the school?')) {
+      blockUserMutation.mutate({ id, type, reason });
+    }
+  };
+
+  const handleUnblockUser = (id: number, type: 'teachers' | 'students' | 'parents') => {
+    if (confirm(language === 'fr' ? 'Rétablir l\'accès de cet utilisateur à l\'école ?' : 'Restore this user\'s access to the school?')) {
+      unblockUserMutation.mutate({ id, type });
     }
   };
 
