@@ -641,6 +641,13 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                           variant="outline" 
                           size="sm"
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => {
+                            setSelectedTeacher(teacher);
+                            toast({
+                              title: 'Profil enseignant',
+                              description: `Consultation du profil de ${teacher.name}`
+                            });
+                          }}
                           data-testid={`button-view-teacher-${teacher.id}`}
                         >
                           <Eye className="w-4 h-4" />

@@ -613,6 +613,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              setSelectedUser(teacher);
+                              toast({
+                                title: language === 'fr' ? 'Profil enseignant' : 'Teacher profile',
+                                description: language === 'fr' ? `Consultation du profil de ${teacher?.firstName} ${teacher?.lastName}` : `Viewing profile of ${teacher?.firstName} ${teacher?.lastName}`
+                              });
+                            }}
                             data-testid={`button-view-teacher-${teacher?.id}`}
                           >
                             <Eye className="w-4 h-4" />
@@ -622,6 +629,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => {
+                              setSelectedUser(teacher);
+                              toast({
+                                title: language === 'fr' ? 'Modification enseignant' : 'Edit teacher',
+                                description: language === 'fr' ? `Ouverture du formulaire de modification pour ${teacher?.firstName} ${teacher?.lastName}` : `Opening edit form for ${teacher?.firstName} ${teacher?.lastName}`
+                              });
+                            }}
                             data-testid={`button-edit-teacher-${teacher?.id}`}
                           >
                             <Edit className="w-4 h-4" />
@@ -631,6 +645,11 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm(language === 'fr' ? `Êtes-vous sûr de vouloir supprimer ${teacher?.firstName} ${teacher?.lastName} ?` : `Are you sure you want to delete ${teacher?.firstName} ${teacher?.lastName}?`)) {
+                                deleteTeacherMutation.mutate(Number(teacher?.id));
+                              }
+                            }}
                             data-testid={`button-delete-teacher-${teacher?.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -753,6 +772,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              setSelectedUser(student);
+                              toast({
+                                title: language === 'fr' ? 'Profil élève' : 'Student profile',
+                                description: language === 'fr' ? `Consultation du profil de ${student?.firstName} ${student?.lastName}` : `Viewing profile of ${student?.firstName} ${student?.lastName}`
+                              });
+                            }}
                             data-testid={`button-view-student-${student?.id}`}
                           >
                             <Eye className="w-4 h-4" />
@@ -762,6 +788,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => {
+                              setSelectedUser(student);
+                              toast({
+                                title: language === 'fr' ? 'Modification élève' : 'Edit student',
+                                description: language === 'fr' ? `Ouverture du formulaire de modification pour ${student?.firstName} ${student?.lastName}` : `Opening edit form for ${student?.firstName} ${student?.lastName}`
+                              });
+                            }}
                             data-testid={`button-edit-student-${student?.id}`}
                           >
                             <Edit className="w-4 h-4" />
@@ -771,6 +804,11 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm(language === 'fr' ? `Êtes-vous sûr de vouloir supprimer ${student?.firstName} ${student?.lastName} ?` : `Are you sure you want to delete ${student?.firstName} ${student?.lastName}?`)) {
+                                deleteStudentMutation.mutate(Number(student?.id));
+                              }
+                            }}
                             data-testid={`button-delete-student-${student?.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -900,6 +938,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              setSelectedUser(parent);
+                              toast({
+                                title: language === 'fr' ? 'Profil parent' : 'Parent profile',
+                                description: language === 'fr' ? `Consultation du profil de ${parent?.firstName} ${parent?.lastName}` : `Viewing profile of ${parent?.firstName} ${parent?.lastName}`
+                              });
+                            }}
                             data-testid={`button-view-parent-${parent?.id}`}
                           >
                             <Eye className="w-4 h-4" />
@@ -909,6 +954,13 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => {
+                              setSelectedUser(parent);
+                              toast({
+                                title: language === 'fr' ? 'Modification parent' : 'Edit parent',
+                                description: language === 'fr' ? `Ouverture du formulaire de modification pour ${parent?.firstName} ${parent?.lastName}` : `Opening edit form for ${parent?.firstName} ${parent?.lastName}`
+                              });
+                            }}
                             data-testid={`button-edit-parent-${parent?.id}`}
                           >
                             <Edit className="w-4 h-4" />
@@ -918,6 +970,11 @@ const SchoolAdministration: React.FC = () => {
                             variant="outline" 
                             size="sm" 
                             className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => {
+                              if (confirm(language === 'fr' ? `Êtes-vous sûr de vouloir supprimer ${parent?.firstName} ${parent?.lastName} ?` : `Are you sure you want to delete ${parent?.firstName} ${parent?.lastName}?`)) {
+                                deleteParentMutation.mutate(Number(parent?.id));
+                              }
+                            }}
                             data-testid={`button-delete-parent-${parent?.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
