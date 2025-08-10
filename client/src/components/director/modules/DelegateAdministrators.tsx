@@ -501,6 +501,50 @@ const DelegateAdministrators: React.FC = () => {
     addParentMutation.mutate(newParentData);
   };
 
+  // User editing states
+  const [showEditTeacherModal, setShowEditTeacherModal] = useState(false);
+  const [showEditStudentModal, setShowEditStudentModal] = useState(false);
+  const [showEditParentModal, setShowEditParentModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedParent, setSelectedParent] = useState<any>(null);
+  
+  // View all states
+  const [showAllTeachers, setShowAllTeachers] = useState(false);
+  const [showAllStudents, setShowAllStudents] = useState(false);
+  const [showAllParents, setShowAllParents] = useState(false);
+
+  // Delete handlers
+  const handleDeleteTeacher = (teacherId: number) => {
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet enseignant ?' : 'Are you sure you want to delete this teacher?')) {
+      // API call would go here
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Enseignant supprimé avec succès' : 'Teacher deleted successfully'
+      });
+    }
+  };
+
+  const handleDeleteStudent = (studentId: number) => {
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cet élève ?' : 'Are you sure you want to delete this student?')) {
+      // API call would go here
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Élève supprimé avec succès' : 'Student deleted successfully'
+      });
+    }
+  };
+
+  const handleDeleteParent = (parentId: number) => {
+    if (confirm(language === 'fr' ? 'Êtes-vous sûr de vouloir supprimer ce parent ?' : 'Are you sure you want to delete this parent?')) {
+      // API call would go here
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Parent supprimé avec succès' : 'Parent deleted successfully'
+      });
+    }
+  };
+
   const getPermissionBadges = (permissions: string[]) => {
     return permissions.map((permission, index) => (
       <Badge key={index} variant="outline" className="text-xs">
@@ -831,48 +875,282 @@ const DelegateAdministrators: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Activity Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BarChart3 className="w-5 h-5" />
-                <span>Activité Récente</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <UserCheck className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Enseignants actifs aujourd'hui</p>
-                      <p className="text-sm text-gray-600">Dernière connexion dans les 24h</p>
-                    </div>
+          {/* User Management Tables */}
+          <div className="space-y-6">
+            {/* Teachers Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <UserCheck className="w-5 h-5" />
+                    <span>Gestion des Enseignants</span>
                   </div>
-                  <Badge variant="outline" className="bg-blue-50">
-                    {Math.floor(Math.random() * 10) + 5}
-                  </Badge>
+                  <Badge variant="outline">{teachers.length} enseignants</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {teachers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <UserCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Aucun enseignant enregistré</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {teachers.slice(0, showAllTeachers ? teachers.length : 3).map((teacher: any) => (
+                        <div key={teacher.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="p-2 bg-blue-100 rounded-lg">
+                              <User className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{teacher.firstName} {teacher.lastName}</p>
+                              <p className="text-sm text-gray-600">{teacher.email}</p>
+                              <p className="text-xs text-gray-500">Matières: {teacher.subjects?.join(', ') || 'Non spécifiées'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={teacher.status === 'active' ? 'default' : 'secondary'}>
+                              {teacher.status === 'active' ? 'Actif' : 'Inactif'}
+                            </Badge>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedTeacher(teacher);
+                                setShowEditTeacherModal(true);
+                              }}
+                              data-testid={`button-edit-teacher-${teacher.id}`}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteTeacher(teacher.id)}
+                              data-testid={`button-delete-teacher-${teacher.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {teachers.length > 3 && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setShowAllTeachers(!showAllTeachers)}
+                          data-testid="button-view-all-teachers"
+                        >
+                          {showAllTeachers ? 'Voir moins' : `Voir tous les enseignants (${teachers.length})`}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <GraduationCap className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Élèves présents aujourd'hui</p>
-                      <p className="text-sm text-gray-600">Taux de présence</p>
-                    </div>
+              </CardContent>
+            </Card>
+
+            {/* Students Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <GraduationCap className="w-5 h-5" />
+                    <span>Gestion des Élèves</span>
                   </div>
-                  <Badge variant="outline" className="bg-green-50">
-                    {Math.floor(Math.random() * 20) + 80}%
-                  </Badge>
+                  <Badge variant="outline">{students.length} élèves</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {students.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <GraduationCap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Aucun élève inscrit</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {students.slice(0, showAllStudents ? students.length : 3).map((student: any) => (
+                        <div key={student.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                              <User className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{student.firstName} {student.lastName}</p>
+                              <p className="text-sm text-gray-600">{student.email}</p>
+                              <p className="text-xs text-gray-500">Classe: {student.class} • Parent: {student.parentName}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
+                              {student.status === 'active' ? 'Actif' : 'Inactif'}
+                            </Badge>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStudent(student);
+                                setShowEditStudentModal(true);
+                              }}
+                              data-testid={`button-edit-student-${student.id}`}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteStudent(student.id)}
+                              data-testid={`button-delete-student-${student.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {students.length > 3 && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setShowAllStudents(!showAllStudents)}
+                          data-testid="button-view-all-students"
+                        >
+                          {showAllStudents ? 'Voir moins' : `Voir tous les élèves (${students.length})`}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Parents Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Heart className="w-5 h-5" />
+                    <span>Gestion des Parents</span>
+                  </div>
+                  <Badge variant="outline">{parents.length} parents</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {parents.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <Heart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Aucun parent enregistré</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {parents.slice(0, showAllParents ? parents.length : 3).map((parent: any) => (
+                        <div key={parent.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <div className="p-2 bg-green-100 rounded-lg">
+                              <User className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{parent.firstName} {parent.lastName}</p>
+                              <p className="text-sm text-gray-600">{parent.email}</p>
+                              <p className="text-xs text-gray-500">Enfants: {parent.children?.join(', ') || 'Non spécifiés'}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={parent.status === 'active' ? 'default' : 'secondary'}>
+                              {parent.status === 'active' ? 'Actif' : 'Inactif'}
+                            </Badge>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedParent(parent);
+                                setShowEditParentModal(true);
+                              }}
+                              data-testid={`button-edit-parent-${parent.id}`}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Modifier
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleDeleteParent(parent.id)}
+                              data-testid={`button-delete-parent-${parent.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Supprimer
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {parents.length > 3 && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setShowAllParents(!showAllParents)}
+                          data-testid="button-view-all-parents"
+                        >
+                          {showAllParents ? 'Voir moins' : `Voir tous les parents (${parents.length})`}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Activité Récente</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <UserCheck className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Enseignants actifs aujourd'hui</p>
+                        <p className="text-sm text-gray-600">Dernière connexion dans les 24h</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-blue-50">
+                      {Math.floor(Math.random() * 10) + 5}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <GraduationCap className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Élèves présents aujourd'hui</p>
+                        <p className="text-sm text-gray-600">Taux de présence</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50">
+                      {Math.floor(Math.random() * 20) + 80}%
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
