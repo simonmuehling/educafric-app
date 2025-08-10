@@ -101,16 +101,16 @@ const NotificationTester = () => {
   // Mutation for sending test notifications
   const testNotificationMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/sandbox/test-notification', 'POST', data);
+      const response = await apiRequest('/api/sandbox/test-notification', 'POST', data);
+      return await response.json();
     },
-    onSuccess: async (response, variables) => {
-      const result = await response.json();
+    onSuccess: (result, variables) => {
       const newTest: NotificationTest = {
         id: Date.now().toString(),
         type: variables.type,
         status: result.success ? 'sent' : 'failed',
-        recipient: variables.recipient,
-        subject: variables.subject,
+        recipient: variables.recipient || variables.targetRole,
+        subject: variables.subject || variables.title,
         message: variables.message,
         timestamp: new Date().toLocaleTimeString(),
         deliveryTime: result.deliveryTime
@@ -126,7 +126,8 @@ const NotificationTester = () => {
         variant: result.success ? 'default' : 'destructive'
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Notification test error:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Impossible d\'envoyer le test' : 'Failed to send test',
