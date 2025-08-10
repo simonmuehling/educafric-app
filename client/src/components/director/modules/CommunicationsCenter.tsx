@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ const CommunicationsCenter: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [communicationsHistory, setCommunicationsHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Load communications history from API
   useEffect(() => {
@@ -192,7 +194,8 @@ const CommunicationsCenter: React.FC = () => {
     fetchCommunications();
   }, []);
 
-  const handleSendMessage = async () => {
+  // Function to show confirmation dialog
+  const handleSendMessage = () => {
     if (!messageText.trim()) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
@@ -202,6 +205,12 @@ const CommunicationsCenter: React.FC = () => {
       return;
     }
 
+    // Show confirmation dialog instead of sending immediately
+    setShowConfirmDialog(true);
+  };
+
+  // Actual send function after confirmation
+  const confirmSendMessage = async () => {
     setSending(true);
     
     try {
@@ -238,6 +247,7 @@ const CommunicationsCenter: React.FC = () => {
         });
         
         setMessageText('');
+        setShowConfirmDialog(false);
         
         // Reload communications history after sending message
         try {
@@ -642,6 +652,42 @@ const CommunicationsCenter: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer l\'envoi du message' : 'Confirm Message Send'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' ? 
+                'Êtes-vous sûr de vouloir envoyer ce message ?' : 
+                'Are you sure you want to send this message?'}
+              <br />
+              <br />
+              <strong>{language === 'fr' ? 'Destinataires' : 'Recipients'}:</strong> {selectedRecipient}
+              <br />
+              <strong>{language === 'fr' ? 'Type' : 'Type'}:</strong> {t.messageTypes[messageType as keyof typeof t.messageTypes]}
+              <br />
+              <strong>{language === 'fr' ? 'Message' : 'Message'}:</strong> {messageText.substring(0, 100)}{messageText.length > 100 ? '...' : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSendMessage} disabled={sending}>
+              {sending ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                </>
+              ) : (
+                language === 'fr' ? 'Confirmer l\'envoi' : 'Confirm Send'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

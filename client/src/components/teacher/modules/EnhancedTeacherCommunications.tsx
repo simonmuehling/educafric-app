@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ModernStatsCard } from '@/components/ui/ModernCard';
 import { 
   MessageSquare, Send, Users, User, School, Mail, Phone,
@@ -47,6 +48,7 @@ const EnhancedTeacherCommunications: React.FC = () => {
     content: '',
     priority: 'normal' as 'normal' | 'urgent'
   });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const translations = {
     fr: {
@@ -77,6 +79,11 @@ const EnhancedTeacherCommunications: React.FC = () => {
       urgent: 'Urgent',
       send: 'Envoyer',
       cancel: 'Annuler',
+      confirmSend: 'Confirmer l\'envoi',
+      confirmMessage: 'Êtes-vous sûr de vouloir envoyer ce message ?',
+      recipientCount: 'destinataire(s)',
+      messageWillBeSent: 'Ce message sera envoyé à',
+      confirm: 'Confirmer',
       reply: 'Répondre',
       forward: 'Transférer',
       archive: 'Archiver',
@@ -120,6 +127,11 @@ const EnhancedTeacherCommunications: React.FC = () => {
       urgent: 'Urgent',
       send: 'Send',
       cancel: 'Cancel',
+      confirmSend: 'Confirm Send',
+      confirmMessage: 'Are you sure you want to send this message?',
+      recipientCount: 'recipient(s)',
+      messageWillBeSent: 'This message will be sent to',
+      confirm: 'Confirm',
       reply: 'Reply',
       forward: 'Forward',
       archive: 'Archive',
@@ -230,6 +242,7 @@ const EnhancedTeacherCommunications: React.FC = () => {
         description: language === 'fr' ? 'Votre message a été envoyé et les destinataires seront notifiés' : 'Your message has been sent and recipients will be notified'
       });
       setShowCompose(false);
+      setShowConfirmDialog(false);
       setComposeData({
         type: 'parent',
         schoolId: '',
@@ -288,6 +301,12 @@ const EnhancedTeacherCommunications: React.FC = () => {
       return;
     }
 
+    // Ouvrir le dialogue de confirmation au lieu d'envoyer directement
+    setShowConfirmDialog(true);
+  };
+
+  // Fonction pour confirmer l'envoi
+  const confirmSendMessage = () => {
     sendMessageMutation.mutate({
       ...composeData,
       senderId: user?.id,
@@ -591,6 +610,38 @@ const EnhancedTeacherCommunications: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.confirmSend}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t.confirmMessage}
+              <br />
+              <br />
+              <strong>{t.messageWillBeSent} {composeData.recipientIds.length} {t.recipientCount}</strong>
+              <br />
+              <strong>{language === 'fr' ? 'Sujet' : 'Subject'}:</strong> {composeData.subject}
+              <br />
+              <strong>{language === 'fr' ? 'Type' : 'Type'}:</strong> {composeData.type === 'parent' ? t.toParents : composeData.type === 'student' ? t.toStudents : composeData.type === 'teacher' ? t.toTeachers : t.toDirection}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSendMessage} disabled={sendMessageMutation.isPending}>
+              {sendMessageMutation.isPending ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                </>
+              ) : (
+                t.confirm
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

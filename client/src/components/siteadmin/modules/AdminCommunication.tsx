@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function AdminCommunication() {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ export default function AdminCommunication() {
   const [messageType, setMessageType] = useState('commercial');
   const [message, setMessage] = useState('');
   const [priority, setPriority] = useState('normal');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: conversations, isLoading: loadingConversations } = useQuery({
     queryKey: ['/api/admin/communications/conversations'],
@@ -37,6 +39,7 @@ export default function AdminCommunication() {
         description: "Votre message a été envoyé avec succès",
       });
       setMessage('');
+      setShowConfirmDialog(false);
       queryClient.invalidateQueries({ queryKey: ['/api/admin/communications'] });
     },
     onError: () => {
@@ -58,13 +61,18 @@ export default function AdminCommunication() {
       return;
     }
 
+    // Show confirmation dialog instead of sending immediately
+    setShowConfirmDialog(true);
+  };
+
+  const confirmSendMessage = () => {
     sendMessageMutation.mutate({
       type: messageType,
       message: message.trim(),
       priority,
       timestamp: new Date().toISOString()
     });
-  };
+  };;
 
   const messageTypes = [
     { value: 'commercial', label: 'Équipe Commerciale', icon: <Briefcase className="w-4 h-4" />, color: 'blue' },
@@ -351,6 +359,31 @@ export default function AdminCommunication() {
           </ModernCard>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l'envoi du message</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir envoyer ce message ?
+              <br />
+              <br />
+              <strong>Type:</strong> {messageType}
+              <br />
+              <strong>Priorité:</strong> {priority}
+              <br />
+              <strong>Message:</strong> {message.substring(0, 100)}{message.length > 100 ? '...' : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSendMessage} disabled={sendMessageMutation.isPending}>
+              {sendMessageMutation.isPending ? 'Envoi...' : 'Confirmer l\'envoi'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
