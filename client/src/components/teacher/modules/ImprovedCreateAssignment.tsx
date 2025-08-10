@@ -11,6 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ImprovedCreateAssignment = () => {
   const { language } = useLanguage();
@@ -32,6 +42,7 @@ const ImprovedCreateAssignment = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -283,7 +294,10 @@ const ImprovedCreateAssignment = () => {
       });
       return;
     }
+    setShowConfirmDialog(true);
+  };
 
+  const confirmCreateAssignment = async () => {
     try {
       const formData = new FormData();
       formData.append('title', assignment.title);
@@ -325,6 +339,7 @@ const ImprovedCreateAssignment = () => {
       });
       setMediaFiles([]);
       deleteAudio();
+      setShowConfirmDialog(false);
       
     } catch (error) {
       toast({
@@ -332,6 +347,7 @@ const ImprovedCreateAssignment = () => {
         description: language === 'fr' ? 'Impossible de créer le devoir' : 'Failed to create assignment',
         variant: 'destructive'
       });
+      setShowConfirmDialog(false);
     }
   };
 
@@ -608,6 +624,38 @@ const ImprovedCreateAssignment = () => {
             </div>
           </div>
         </ModernCard>
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {language === 'fr' ? 'Confirmer la création du devoir' : 'Confirm Assignment Creation'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {language === 'fr' ? 'Êtes-vous sûr de vouloir créer ce devoir ? Cette action enverra des notifications aux élèves.' : 'Are you sure you want to create this assignment? This action will send notifications to students.'}
+                <br /><br />
+                <strong>{language === 'fr' ? 'Titre:' : 'Title:'}</strong> {assignment.title}
+                <br />
+                <strong>{language === 'fr' ? 'Classe:' : 'Class:'}</strong> {assignment.class}
+                <br />
+                <strong>{language === 'fr' ? 'Matière:' : 'Subject:'}</strong> {assignment.subject}
+                <br />
+                <strong>{language === 'fr' ? 'Échéance:' : 'Due Date:'}</strong> {assignment.dueDate} {assignment.dueTime}
+                <br />
+                <strong>{language === 'fr' ? 'Fichiers attachés:' : 'Attached Files:'}</strong> {mediaFiles.length}
+                <br />
+                <strong>{language === 'fr' ? 'Instructions audio:' : 'Audio Instructions:'}</strong> {recordedAudio ? (language === 'fr' ? 'Oui' : 'Yes') : (language === 'fr' ? 'Non' : 'No')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmCreateAssignment}>
+                {language === 'fr' ? 'Créer le devoir' : 'Create Assignment'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

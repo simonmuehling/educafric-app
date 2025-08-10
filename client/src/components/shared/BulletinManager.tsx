@@ -4,10 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Download, Eye, Plus, Calendar, Award, BarChart3, User } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BulletinManager = () => {
   const { language } = useLanguage();
   const [selectedTerm, setSelectedTerm] = useState('T1-2025');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [bulletinAction, setBulletinAction] = useState<{type: string, student?: any, bulletin?: any}>({type: ''});
 
   const text = {
     fr: {
@@ -145,22 +157,31 @@ const BulletinManager = () => {
   };
 
   const handleCreateBulletin = () => {
-    // Interface de création directe
-    const newBulletin = {
-      id: Date.now(),
-      student: 'Nouvel Élève',
-      class: '6ème',
-      average: 0,
-      rank: 0,
-      status: 'draft',
-      subjects: [],
-      behavior: 'satisfactory',
-      attendance: 0,
-      comments: ''
-    };
-    
-    console.log('✅ Nouveau bulletin créé:', newBulletin.id);
-    setSelectedTerm('T1-2025'); // Active automatiquement le terme courant
+    setBulletinAction({type: 'create'});
+    setShowConfirmDialog(true);
+  };
+
+  const confirmBulletinAction = () => {
+    if (bulletinAction.type === 'create') {
+      const newBulletin = {
+        id: Date.now(),
+        student: 'Nouvel Élève',
+        class: '6ème',
+        average: 0,
+        rank: 0,
+        status: 'draft',
+        subjects: [],
+        behavior: 'satisfactory',
+        attendance: 0,
+        comments: ''
+      };
+      console.log('✅ Nouveau bulletin créé:', newBulletin.id);
+      setSelectedTerm('T1-2025');
+    } else if (bulletinAction.type === 'download' && bulletinAction.student) {
+      handleDownloadBulletinConfirmed(bulletinAction.student);
+    }
+    setShowConfirmDialog(false);
+    setBulletinAction({type: ''});
   };
 
   const handleViewBulletin = (bulletinId: number) => {
@@ -173,10 +194,12 @@ const BulletinManager = () => {
   };
 
   const handleDownloadBulletin = (studentName: string) => {
-    // Génération PDF en arrière-plan
+    setBulletinAction({type: 'download', student: studentName});
+    setShowConfirmDialog(true);
+  };
+
+  const handleDownloadBulletinConfirmed = (studentName: string) => {
     console.log('⬇️ Téléchargement bulletin PDF:', studentName);
-    
-    // Simulation génération PDF
     setTimeout(() => {
       const blob = new Blob([`Bulletin de ${studentName} - ${selectedTerm}`], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -360,6 +383,45 @@ const BulletinManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer l\'action' : 'Confirm Action'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {bulletinAction.type === 'create' && (
+                language === 'fr' ? 
+                'Êtes-vous sûr de vouloir créer un nouveau bulletin ? Cette action notifiera les parents et élèves concernés.' : 
+                'Are you sure you want to create a new report card? This action will notify parents and students.'
+              )}
+              {bulletinAction.type === 'download' && (
+                <>
+                  {language === 'fr' ? 
+                    'Êtes-vous sûr de vouloir télécharger ce bulletin en PDF ? Cette action sera enregistrée dans les logs.' : 
+                    'Are you sure you want to download this report card as PDF? This action will be logged.'
+                  }
+                  <br /><br />
+                  <strong>{language === 'fr' ? 'Élève:' : 'Student:'}</strong> {bulletinAction.student}
+                  <br />
+                  <strong>{language === 'fr' ? 'Période:' : 'Period:'}</strong> {selectedTerm}
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBulletinAction}>
+              {bulletinAction.type === 'create' ? 
+                (language === 'fr' ? 'Créer le bulletin' : 'Create Report Card') : 
+                (language === 'fr' ? 'Télécharger' : 'Download')
+              }
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

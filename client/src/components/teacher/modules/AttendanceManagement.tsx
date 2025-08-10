@@ -6,6 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, CheckCircle, XCircle, Clock, Search, Filter, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const AttendanceManagement = () => {
   const { language } = useLanguage();
@@ -13,6 +23,8 @@ const AttendanceManagement = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedClass, setSelectedClass] = useState('6eme-A');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [attendanceData, setAttendanceData] = useState<any>(null);
 
   const text = {
     fr: {
@@ -102,12 +114,24 @@ const AttendanceManagement = () => {
   };
 
   const saveAttendance = () => {
+    setAttendanceData({
+      date: selectedDate,
+      class: selectedClass,
+      students: filteredStudents,
+      stats: stats
+    });
+    setShowConfirmDialog(true);
+  };
+
+  const confirmSaveAttendance = () => {
     toast({
       title: language === 'fr' ? 'Présences sauvegardées' : 'Attendance saved',
       description: language === 'fr' ? 
         `Les présences du ${selectedDate} ont été enregistrées` : 
         `Attendance for ${selectedDate} has been recorded`,
     });
+    setShowConfirmDialog(false);
+    setAttendanceData(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -310,6 +334,42 @@ const AttendanceManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'fr' ? 'Confirmer l\'enregistrement des présences' : 'Confirm Attendance Recording'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'fr' ? 'Êtes-vous sûr de vouloir enregistrer les présences ? Cette action enverra des notifications automatiques aux parents pour les absences et retards.' : 'Are you sure you want to record attendance? This action will send automatic notifications to parents for absences and late arrivals.'}
+              <br /><br />
+              {attendanceData && (
+                <>
+                  <strong>{language === 'fr' ? 'Date:' : 'Date:'}</strong> {attendanceData.date}
+                  <br />
+                  <strong>{language === 'fr' ? 'Classe:' : 'Class:'}</strong> {attendanceData.class}
+                  <br />
+                  <strong>{language === 'fr' ? 'Présents:' : 'Present:'}</strong> {attendanceData.stats.present}
+                  <br />
+                  <strong>{language === 'fr' ? 'Absents:' : 'Absent:'}</strong> {attendanceData.stats.absent}
+                  <br />
+                  <strong>{language === 'fr' ? 'Retards:' : 'Late:'}</strong> {attendanceData.stats.late}
+                  <br />
+                  <strong>{language === 'fr' ? 'Notifications à envoyer:' : 'Notifications to send:'}</strong> {attendanceData.stats.absent + attendanceData.stats.late}
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'fr' ? 'Annuler' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSaveAttendance}>
+              {language === 'fr' ? 'Confirmer l\'enregistrement' : 'Confirm Recording'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

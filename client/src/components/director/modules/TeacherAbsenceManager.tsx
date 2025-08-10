@@ -29,6 +29,16 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TeacherAbsence {
   id: number;
@@ -102,6 +112,8 @@ const TeacherAbsenceManager: React.FC = () => {
   const [selectedAbsence, setSelectedAbsence] = useState<TeacherAbsence | null>(null);
   const [showQuickActions, setShowQuickActions] = useState<number | null>(null);
   const [showAbsenceForm, setShowAbsenceForm] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAbsenceData, setPendingAbsenceData] = useState<any>(null);
   const queryClient = useQueryClient();
 
   // Fetch teacher absences
@@ -209,7 +221,16 @@ const TeacherAbsenceManager: React.FC = () => {
   };
 
   const handleSubmitAbsence = (absenceData: any) => {
-    createAbsenceMutation.mutate(absenceData);
+    setPendingAbsenceData(absenceData);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmAbsenceSubmission = () => {
+    if (pendingAbsenceData) {
+      createAbsenceMutation.mutate(pendingAbsenceData);
+      setShowConfirmDialog(false);
+      setPendingAbsenceData(null);
+    }
   };
 
   // Teacher Absence Form Component
@@ -852,6 +873,38 @@ const TeacherAbsenceManager: React.FC = () => {
 
       {/* Teacher Absence Declaration Form Dialog */}
       <AbsenceDeclarationForm />
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la déclaration d'absence</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir déclarer cette absence ? Cette action enverra des notifications automatiques aux parents, élèves et administration.
+              <br /><br />
+              {pendingAbsenceData && (
+                <>
+                  <strong>Enseignant:</strong> {pendingAbsenceData.teacherName}
+                  <br />
+                  <strong>Date:</strong> {pendingAbsenceData.absenceDate}
+                  <br />
+                  <strong>Période:</strong> {pendingAbsenceData.startTime} - {pendingAbsenceData.endTime}
+                  <br />
+                  <strong>Raison:</strong> {pendingAbsenceData.reason}
+                  <br />
+                  <strong>Élèves affectés:</strong> ~{pendingAbsenceData.totalAffectedStudents || 30} élèves
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmAbsenceSubmission} disabled={createAbsenceMutation.isPending}>
+              {createAbsenceMutation.isPending ? 'Déclaration...' : 'Confirmer la déclaration'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
