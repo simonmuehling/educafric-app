@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { toast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +25,7 @@ import {
 
 const EnhancedCreateAssignment = () => {
   const { language } = useLanguage();
+  const queryClient = useQueryClient();
   const [assignment, setAssignment] = useState({
     title: '',
     description: '',
@@ -186,36 +189,79 @@ const EnhancedCreateAssignment = () => {
     setShowConfirmDialog(true);
   };
 
-  const confirmCreateAssignment = () => {
-    const assignmentData = {
-      ...assignment,
-      mediaFiles: (Array.isArray(mediaFiles) ? mediaFiles.length : 0),
-      hasAudio: !!audioUrl,
-      createdAt: new Date().toISOString()
-    };
+  // Mutation pour créer un assignment
+  const createAssignmentMutation = useMutation({
+    mutationFn: async (assignmentData: FormData) => {
+      return await apiRequest('/api/assignments', 'POST', assignmentData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/assignments'] });
+      toast({
+        title: language === 'fr' ? 'Devoir créé!' : 'Assignment created!',
+        description: language === 'fr' 
+          ? `"${assignment.title || ''}" créé avec succès et notifications envoyées`
+          : `"${assignment.title || ''}" created successfully and notifications sent`
+      });
+      
+      // Reset form
+      setAssignment({
+        title: '',
+        description: '',
+        subject: '',
+        class: '',
+        dueDate: '',
+        dueTime: '',
+        type: '',
+        instructions: ''
+      });
+      setMediaFiles([]);
+      setAudioUrl(null);
+      setRecordingTime(0);
+      setShowConfirmDialog(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer le devoir' : 'Failed to create assignment',
+        variant: 'destructive'
+      });
+      setShowConfirmDialog(false);
+    }
+  });
 
-    toast({
-      title: language === 'fr' ? 'Devoir créé!' : 'Assignment created!',
-      description: language === 'fr' 
-        ? `"${assignment.title || ''}" créé avec ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} fichier(s) et ${audioUrl ? '1 audio' : '0 audio'}`
-        : `"${assignment.title || ''}" created with ${(Array.isArray(mediaFiles) ? mediaFiles.length : 0)} file(s) and ${audioUrl ? '1 audio' : '0 audio'}`
-    });
-
-    // Reset form
-    setAssignment({
-      title: '',
-      description: '',
-      subject: '',
-      class: '',
-      dueDate: '',
-      dueTime: '',
-      type: '',
-      instructions: ''
-    });
-    setMediaFiles([]);
-    setAudioUrl(null);
-    setRecordingTime(0);
-    setShowConfirmDialog(false);
+  const confirmCreateAssignment = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('title', assignment.title);
+      formData.append('description', assignment.description);
+      formData.append('subject', assignment.subject);
+      formData.append('class', assignment.class);
+      formData.append('dueDate', assignment.dueDate);
+      formData.append('dueTime', assignment.dueTime);
+      formData.append('type', assignment.type);
+      formData.append('instructions', assignment.instructions);
+      
+      // Ajouter les fichiers
+      mediaFiles.forEach((file, index) => {
+        formData.append(`file_${index}`, file);
+      });
+      
+      // Ajouter l'audio si disponible (blob audio depuis l'enregistrement)
+      if (audioUrl) {
+        const audioBlob = await fetch(audioUrl).then(r => r.blob());
+        formData.append('audio_instructions', audioBlob, 'instructions.webm');
+      }
+      
+      createAssignmentMutation.mutate(formData);
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de préparer les données' : 'Failed to prepare data',
+        variant: 'destructive'
+      });
+      setShowConfirmDialog(false);
+    }
   };
 
   const formatTime = (seconds: number) => {

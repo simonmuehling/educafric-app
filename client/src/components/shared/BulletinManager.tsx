@@ -14,9 +14,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 const BulletinManager = () => {
   const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedTerm, setSelectedTerm] = useState('T1-2025');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [bulletinAction, setBulletinAction] = useState<{type: string, student?: any, bulletin?: any}>({type: ''});
@@ -161,24 +166,71 @@ const BulletinManager = () => {
     setShowConfirmDialog(true);
   };
 
+  // Mutation pour créer un bulletin
+  const createBulletinMutation = useMutation({
+    mutationFn: async (bulletinData: any) => {
+      return await apiRequest('/api/bulletin/create', 'POST', bulletinData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bulletin'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/bulletin'] });
+      toast({
+        title: language === 'fr' ? 'Bulletin créé' : 'Report card created',
+        description: language === 'fr' ? 'Le bulletin a été créé et publié avec succès' : 'Report card has been created and published successfully'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer le bulletin' : 'Failed to create report card',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Mutation pour télécharger un bulletin
+  const downloadBulletinMutation = useMutation({
+    mutationFn: async (downloadData: any) => {
+      return await apiRequest('/api/bulletin/download', 'POST', downloadData);
+    },
+    onSuccess: (data) => {
+      // Créer et télécharger le PDF
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bulletin_${bulletinAction.student}_${selectedTerm}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: language === 'fr' ? 'Bulletin téléchargé' : 'Report card downloaded',
+        description: language === 'fr' ? 'Le fichier PDF a été téléchargé' : 'PDF file has been downloaded'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de télécharger le bulletin' : 'Failed to download report card',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const confirmBulletinAction = () => {
     if (bulletinAction.type === 'create') {
-      const newBulletin = {
-        id: Date.now(),
-        student: 'Nouvel Élève',
-        class: '6ème',
-        average: 0,
-        rank: 0,
-        status: 'draft',
-        subjects: [],
-        behavior: 'satisfactory',
-        attendance: 0,
-        comments: ''
-      };
-      console.log('✅ Nouveau bulletin créé:', newBulletin.id);
-      setSelectedTerm('T1-2025');
+      createBulletinMutation.mutate({
+        term: selectedTerm,
+        action: 'create_bulletin'
+      });
     } else if (bulletinAction.type === 'download' && bulletinAction.student) {
-      handleDownloadBulletinConfirmed(bulletinAction.student);
+      downloadBulletinMutation.mutate({
+        student: bulletinAction.student,
+        term: selectedTerm,
+        action: 'download_pdf'
+      });
     }
     setShowConfirmDialog(false);
     setBulletinAction({type: ''});

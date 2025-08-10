@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const FunctionalTeacherCommunications: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState<string>('inbox');
   const [selectedMessage, setSelectedMessage] = useState<Communication | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -45,6 +47,30 @@ const FunctionalTeacherCommunications: React.FC = () => {
   const { data: communications = [], isLoading } = useQuery<Communication[]>({
     queryKey: ['/api/teacher/communications'],
     enabled: !!user
+  });
+
+  // Mutation pour envoyer des messages
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      return await apiRequest('/api/communications/send', 'POST', messageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/communications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/communications'] });
+      toast({
+        title: language === 'fr' ? 'Message envoyé' : 'Message sent',
+        description: language === 'fr' ? 'Votre message a été envoyé avec succès et notifications envoyées' : 'Your message has been sent successfully and notifications sent'
+      });
+      setShowCompose(false);
+      setComposeData({ type: '', to: '', subject: '', message: '' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'envoyer le message' : 'Failed to send message',
+        variant: 'destructive'
+      });
+    }
   });
 
   const text = {
@@ -639,18 +665,24 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   </Button>
                   <Button
                     onClick={() => {
-                      toast({
-                        title: language === 'fr' ? 'Message envoyé' : 'Message sent',
-                        description: language === 'fr' ? 'Votre message a été envoyé avec succès' : 'Your message has been sent successfully'
+                      sendMessageMutation.mutate({
+                        to: composeData.to,
+                        subject: composeData.subject,
+                        message: composeData.message,
+                        type: composeData.type || 'message',
+                        priority: 'medium',
+                        sendNotifications: true
                       });
-                      setShowCompose(false);
-                      setComposeData({ type: '', to: '', subject: '', message: '' });
                     }}
+                    disabled={sendMessageMutation.isPending}
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                     data-testid="button-send-compose"
                   >
                     <Send className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Envoyer' : 'Send'}
+                    {sendMessageMutation.isPending ? 
+                      (language === 'fr' ? 'Envoi...' : 'Sending...') : 
+                      (language === 'fr' ? 'Envoyer' : 'Send')
+                    }
                   </Button>
                 </div>
               </div>

@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, CheckCircle, XCircle, Clock, Search, Filter, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +22,7 @@ import {
 const AttendanceManagement = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedClass, setSelectedClass] = useState('6eme-A');
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,15 +105,37 @@ const AttendanceManagement = () => {
     student.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Mutation pour mettre à jour le statut d'un élève
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({studentId, status}: {studentId: number, status: string}) => {
+      return await apiRequest('/api/attendance/update-status', 'PATCH', {
+        studentId,
+        status,
+        date: selectedDate,
+        class: selectedClass,
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/attendance'] });
+      toast({
+        title: language === 'fr' ? 'Présence mise à jour' : 'Attendance updated',
+        description: language === 'fr' ? 
+          `Statut mis à jour pour l'élève` : 
+          `Status updated for student`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de mettre à jour le statut' : 'Failed to update status',
+        variant: 'destructive'
+      });
+    }
+  });
+
   const updateStudentStatus = (studentId: number, newStatus: string) => {
-    const currentTime = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    // Ici on mettrait à jour la base de données
-    toast({
-      title: language === 'fr' ? 'Présence mise à jour' : 'Attendance updated',
-      description: language === 'fr' ? 
-        `Statut mis à jour pour l'élève` : 
-        `Status updated for student`,
-    });
+    updateStatusMutation.mutate({studentId, status: newStatus});
   };
 
   const saveAttendance = () => {
@@ -123,15 +148,47 @@ const AttendanceManagement = () => {
     setShowConfirmDialog(true);
   };
 
+  // Mutation pour sauvegarder les présences
+  const saveAttendanceMutation = useMutation({
+    mutationFn: async (attendanceData: any) => {
+      return await apiRequest('/api/attendance', 'POST', attendanceData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/attendance'] });
+      toast({
+        title: language === 'fr' ? 'Présences sauvegardées' : 'Attendance saved',
+        description: language === 'fr' ? 
+          `Les présences du ${selectedDate} ont été enregistrées et notifications envoyées` : 
+          `Attendance for ${selectedDate} has been recorded and notifications sent`,
+      });
+      setShowConfirmDialog(false);
+      setAttendanceData(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de sauvegarder les présences' : 'Failed to save attendance',
+        variant: 'destructive'
+      });
+      setShowConfirmDialog(false);
+    }
+  });
+
   const confirmSaveAttendance = () => {
-    toast({
-      title: language === 'fr' ? 'Présences sauvegardées' : 'Attendance saved',
-      description: language === 'fr' ? 
-        `Les présences du ${selectedDate} ont été enregistrées` : 
-        `Attendance for ${selectedDate} has been recorded`,
-    });
-    setShowConfirmDialog(false);
-    setAttendanceData(null);
+    if (attendanceData) {
+      saveAttendanceMutation.mutate({
+        date: attendanceData.date,
+        class: attendanceData.class,
+        students: attendanceData.students.map((student: any) => ({
+          id: student.id,
+          name: student.name,
+          status: student.status,
+          time: student.time
+        })),
+        stats: attendanceData.stats
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
