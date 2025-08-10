@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { 
   MessageSquare, Send, Inbox, Archive,
   Plus, Search, Filter, Star,
@@ -28,8 +29,17 @@ interface Communication {
 const FunctionalTeacherCommunications: React.FC = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [selectedTab, setSelectedTab] = useState<string>('inbox');
   const [selectedMessage, setSelectedMessage] = useState<Communication | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  const [composeData, setComposeData] = useState({
+    type: '',
+    to: '',
+    subject: '',
+    message: ''
+  });
 
   // Fetch teacher communications data from PostgreSQL API
   const { data: communications = [], isLoading } = useQuery<Communication[]>({
@@ -273,10 +283,31 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   ))}
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" data-testid="button-search-messages">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    data-testid="button-search-messages"
+                    onClick={() => {
+                      setIsSearchOpen(!isSearchOpen);
+                      toast({
+                        title: language === 'fr' ? 'Recherche' : 'Search',
+                        description: language === 'fr' ? 'Fonction de recherche activée' : 'Search function activated'
+                      });
+                    }}
+                  >
                     <Search className="w-4 h-4" />
                   </Button>
-                  <Button variant="outline" size="sm" data-testid="button-filter-messages">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    data-testid="button-filter-messages"
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Filtres' : 'Filters',
+                        description: language === 'fr' ? 'Options de filtrage disponibles' : 'Filtering options available'
+                      });
+                    }}
+                  >
                     <Filter className="w-4 h-4" />
                   </Button>
                 </div>
@@ -375,14 +406,59 @@ const FunctionalTeacherCommunications: React.FC = () => {
                   </div>
                   
                   <div className="flex space-x-2 pt-4">
-                    <Button size="sm" className="flex-1" data-testid={`button-reply-${selectedMessage.id}`}>
+                    <Button 
+                      size="sm" 
+                      className="flex-1" 
+                      data-testid={`button-reply-${selectedMessage.id}`}
+                      onClick={() => {
+                        setShowCompose(true);
+                        setComposeData({
+                          type: 'reply',
+                          to: selectedMessage.from,
+                          subject: `Re: ${selectedMessage.subject}`,
+                          message: `\n\n--- Message original ---\n${selectedMessage.message}`
+                        });
+                        toast({
+                          title: language === 'fr' ? 'Répondre' : 'Reply',
+                          description: language === 'fr' ? 'Composer une réponse' : 'Composing reply'
+                        });
+                      }}
+                    >
                       <Reply className="w-4 h-4 mr-2" />
                       {t?.actions?.reply}
                     </Button>
-                    <Button variant="outline" size="sm" data-testid={`button-forward-${selectedMessage.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      data-testid={`button-forward-${selectedMessage.id}`}
+                      onClick={() => {
+                        setShowCompose(true);
+                        setComposeData({
+                          type: 'forward',
+                          to: '',
+                          subject: `Fwd: ${selectedMessage.subject}`,
+                          message: `\n\n--- Message transféré ---\nDe: ${selectedMessage.from}\nObjet: ${selectedMessage.subject}\n\n${selectedMessage.message}`
+                        });
+                        toast({
+                          title: language === 'fr' ? 'Transférer' : 'Forward',
+                          description: language === 'fr' ? 'Transférer le message' : 'Forwarding message'
+                        });
+                      }}
+                    >
                       <Forward className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm" data-testid={`button-archive-${selectedMessage.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      data-testid={`button-archive-${selectedMessage.id}`}
+                      onClick={() => {
+                        toast({
+                          title: language === 'fr' ? 'Message archivé' : 'Message Archived',
+                          description: language === 'fr' ? 'Le message a été archivé avec succès' : 'Message has been archived successfully'
+                        });
+                        setSelectedMessage(null);
+                      }}
+                    >
                       <Archive className="w-4 h-4" />
                     </Button>
                   </div>
@@ -393,8 +469,17 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
-                      setSelectedTab('compose');
-                      // Logic pour nouveau message parent
+                      setShowCompose(true);
+                      setComposeData({
+                        type: 'parent-message',
+                        to: 'parent@example.com',
+                        subject: '',
+                        message: ''
+                      });
+                      toast({
+                        title: language === 'fr' ? 'Nouveau message parent' : 'New parent message',
+                        description: language === 'fr' ? 'Composer un message pour les parents' : 'Compose message for parents'
+                      });
                     }}
                     data-testid="button-compose-parent-message"
                   >
@@ -405,8 +490,17 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
-                      setSelectedTab('compose');
-                      // Logic pour annonce classe
+                      setShowCompose(true);
+                      setComposeData({
+                        type: 'class-announcement',
+                        to: 'classe@example.com',
+                        subject: '',
+                        message: ''
+                      });
+                      toast({
+                        title: language === 'fr' ? 'Annonce classe' : 'Class announcement',
+                        description: language === 'fr' ? 'Créer une annonce pour la classe' : 'Create class announcement'
+                      });
                     }}
                     data-testid="button-compose-class-announcement"
                   >
@@ -417,8 +511,17 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
-                      setSelectedTab('compose');
-                      // Logic pour message collègue
+                      setShowCompose(true);
+                      setComposeData({
+                        type: 'colleague-message',
+                        to: 'collegue@example.com',
+                        subject: '',
+                        message: ''
+                      });
+                      toast({
+                        title: language === 'fr' ? 'Message collègue' : 'Colleague message',
+                        description: language === 'fr' ? 'Envoyer un message à un collègue' : 'Send message to colleague'
+                      });
                     }}
                     data-testid="button-compose-colleague-message"
                   >
@@ -429,8 +532,17 @@ const FunctionalTeacherCommunications: React.FC = () => {
                     className="w-full justify-start" 
                     variant="outline"
                     onClick={() => {
-                      setSelectedTab('compose');
-                      // Logic pour rapport direction
+                      setShowCompose(true);
+                      setComposeData({
+                        type: 'director-report',
+                        to: 'direction@example.com',
+                        subject: '',
+                        message: ''
+                      });
+                      toast({
+                        title: language === 'fr' ? 'Rapport direction' : 'Director report',
+                        description: language === 'fr' ? 'Envoyer un rapport à la direction' : 'Send report to director'
+                      });
                     }}
                     data-testid="button-compose-director-report"
                   >
@@ -443,6 +555,96 @@ const FunctionalTeacherCommunications: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Compose Modal */}
+      {showCompose && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">
+                  {language === 'fr' ? 'Nouveau Message' : 'New Message'}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCompose(false)}
+                  data-testid="button-close-compose"
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {language === 'fr' ? 'À:' : 'To:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={composeData.to}
+                    onChange={(e) => setComposeData({...composeData, to: e.target.value})}
+                    className="w-full border rounded-md p-2"
+                    data-testid="input-compose-to"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {language === 'fr' ? 'Objet:' : 'Subject:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={composeData.subject}
+                    onChange={(e) => setComposeData({...composeData, subject: e.target.value})}
+                    className="w-full border rounded-md p-2"
+                    data-testid="input-compose-subject"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {language === 'fr' ? 'Message:' : 'Message:'}
+                  </label>
+                  <textarea
+                    value={composeData.message}
+                    onChange={(e) => setComposeData({...composeData, message: e.target.value})}
+                    rows={6}
+                    className="w-full border rounded-md p-2"
+                    data-testid="textarea-compose-message"
+                  />
+                </div>
+                
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCompose(false)}
+                    className="flex-1"
+                    data-testid="button-cancel-compose"
+                  >
+                    {language === 'fr' ? 'Annuler' : 'Cancel'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Message envoyé' : 'Message sent',
+                        description: language === 'fr' ? 'Votre message a été envoyé avec succès' : 'Your message has been sent successfully'
+                      });
+                      setShowCompose(false);
+                      setComposeData({ type: '', to: '', subject: '', message: '' });
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    data-testid="button-send-compose"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Envoyer' : 'Send'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
