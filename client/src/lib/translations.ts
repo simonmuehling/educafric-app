@@ -251,6 +251,42 @@ export const translations = {
       swipeHint: "Glissez pour plus d'options"
     },
 
+    // 📍 Géolocalisation et Sécurité des Enfants
+    geolocation: {
+      title: "Suivi de Localisation des Enfants",
+      subtitle: "Surveillance en temps réel et gestion de sécurité",
+      overview: "Aperçu",
+      children: "Enfants", 
+      safeZones: "Zones de Sécurité",
+      alerts: "Alertes",
+      realTimeTracking: "Suivi Temps Réel",
+      activeDevices: "Appareils Actifs",
+      safeZonesCount: "Zones de Sécurité",
+      todayAlerts: "Alertes d'Aujourd'hui",
+      status: "Statut",
+      batteryLevel: "Niveau de Batterie",
+      lastSeen: "Dernière Vue",
+      viewMap: "Voir sur la Carte",
+      configureTracking: "Configurer Suivi",
+      addSafeZone: "Ajouter Zone Sécurisée",
+      modifySafeZone: "Modifier Zone",
+      resolveAlert: "Résoudre",
+      recentAlerts: "Alertes Récentes",
+      noAlerts: "Aucune alerte trouvée",
+      safe: "En Sécurité",
+      at_school: "À l'École",
+      in_transit: "En Transit",
+      unknown: "Inconnu",
+      home: "Maison",
+      school: "École",
+      relative: "Membre de la Famille",
+      activity: "Centre d'Activités",
+      emergency: "Urgence",
+      zone_exit: "Sortie de Zone",
+      zone_enter: "Entrée de Zone",
+      low_battery: "Batterie Faible"
+    },
+
     // 🔔 Notifications - Multi-channel
     notifications: {
       settings: "Paramètres de Notifications",
@@ -605,6 +641,42 @@ export const translations = {
       performanceOverview: "Performance Overview",
       thisMonth: "This Month",
       chartPlaceholder: "Chart data will be displayed here"
+    },
+
+    // 📍 Geolocation & Child Safety
+    geolocation: {
+      title: "Child Location Tracking",
+      subtitle: "Real-time monitoring and safety management",
+      overview: "Overview",
+      children: "Children",
+      safeZones: "Safe Zones", 
+      alerts: "Alerts",
+      realTimeTracking: "Real-time Tracking",
+      activeDevices: "Active Devices",
+      safeZonesCount: "Safe Zones",
+      todayAlerts: "Today's Alerts",
+      status: "Status",
+      batteryLevel: "Battery Level",
+      lastSeen: "Last Seen",
+      viewMap: "View on Map",
+      configureTracking: "Configure Tracking",
+      addSafeZone: "Add Safe Zone",
+      modifySafeZone: "Modify Zone",
+      resolveAlert: "Resolve",
+      recentAlerts: "Recent Alerts",
+      noAlerts: "No alerts found",
+      safe: "Safe",
+      at_school: "At School", 
+      in_transit: "In Transit",
+      unknown: "Unknown",
+      home: "Home",
+      school: "School",
+      relative: "Family Member",
+      activity: "Activity Center",
+      emergency: "Emergency",
+      zone_exit: "Zone Exit",
+      zone_enter: "Zone Entry",
+      low_battery: "Low Battery"
     },
 
     // 🔔 Notifications - Multi-channel

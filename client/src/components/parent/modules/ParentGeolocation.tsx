@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { translations } from '@/lib/translations';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -52,83 +53,15 @@ interface GeolocationAlert {
 }
 
 export const ParentGeolocation = () => {
-  const { language } = useLanguage();
+  const { currentLanguage } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedChild, setSelectedChild] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddZone, setShowAddZone] = useState(false);
 
-  const text = {
-    fr: {
-      title: 'Géolocalisation Enfants',
-      subtitle: 'Suivez la localisation de vos enfants en temps réel pour leur sécurité',
-      overview: 'Vue d\'ensemble',
-      children: 'Enfants',
-      safeZones: 'Zones Sécurisées',
-      alerts: 'Alertes',
-      devices: 'Appareils',
-      realTimeTracking: 'Suivi Temps Réel',
-      batteryLevel: 'Niveau Batterie',
-      lastSeen: 'Dernière Position',
-      status: 'Statut',
-      addSafeZone: 'Ajouter Zone Sécurisée',
-      zoneName: 'Nom de la Zone',
-      zoneType: 'Type de Zone',
-      home: 'Maison',
-      school: 'École',
-      relative: 'Famille',
-      activity: 'Activité',
-      radius: 'Rayon (mètres)',
-      createZone: 'Créer Zone',
-      recentAlerts: 'Alertes Récentes',
-      noAlerts: 'Aucune alerte',
-      viewMap: 'Voir sur Carte',
-      emergency: 'Urgence',
-      safe: 'En sécurité',
-      atSchool: 'À l\'école',
-      inTransit: 'En transit',
-      unknown: 'Position inconnue',
-      activeDevices: 'Appareils Actifs',
-      safeZonesCount: 'Zones Configurées',
-      todayAlerts: 'Alertes Aujourd\'hui'
-    },
-    en: {
-      title: 'Children Geolocation',
-      subtitle: 'Track your children\'s location in real-time for their safety',
-      overview: 'Overview',
-      children: 'Children',
-      safeZones: 'Safe Zones',
-      alerts: 'Alerts',
-      devices: 'Devices',
-      realTimeTracking: 'Real-Time Tracking',
-      batteryLevel: 'Battery Level',
-      lastSeen: 'Last Position',
-      status: 'Status',
-      addSafeZone: 'Add Safe Zone',
-      zoneName: 'Zone Name',
-      zoneType: 'Zone Type',
-      home: 'Home',
-      school: 'School',
-      relative: 'Family',
-      activity: 'Activity',
-      radius: 'Radius (meters)',
-      createZone: 'Create Zone',
-      recentAlerts: 'Recent Alerts',
-      noAlerts: 'No alerts',
-      viewMap: 'View on Map',
-      emergency: 'Emergency',
-      safe: 'Safe',
-      atSchool: 'At school',
-      inTransit: 'In transit',
-      unknown: 'Unknown location',
-      activeDevices: 'Active Devices',
-      safeZonesCount: 'Configured Zones',
-      todayAlerts: 'Today\'s Alerts'
-    }
-  };
-
-  const t = text[language as keyof typeof text];
+  // Use proper translations from translation system
+  const t = translations[currentLanguage].geolocation;
 
   // Real API calls using TanStack Query - Complete Storage-Route-API-Frontend Chain
   const { data: childrenData = [], isLoading: childrenLoading } = useQuery<Child[]>({
