@@ -1677,6 +1677,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Student Geolocation API Endpoints
+  app.get('/api/student/geolocation/safe-zones', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      console.log(`[STUDENT_GEOLOCATION] 🎓 Getting safe zones for student: ${(user as any).email}`);
+
+      // Mock safe zones data that would be synchronized from parent settings
+      const studentSafeZones = [
+        {
+          id: 1,
+          name: 'École Primaire Central',
+          type: 'school',
+          radius: 200,
+          active: true,
+          createdBy: 7, // Parent ID
+          updatedAt: new Date().toISOString(),
+          description: 'Zone scolaire principale',
+          scheduleActive: true,
+          schedule: {
+            weekdays: ['mon', 'tue', 'wed', 'thu', 'fri'],
+            startTime: '07:00',
+            endTime: '17:00'
+          }
+        },
+        {
+          id: 2,
+          name: 'Maison',
+          type: 'home',
+          radius: 100,
+          active: true,
+          createdBy: 7,
+          updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+          description: 'Zone résidentielle familiale',
+          scheduleActive: false
+        }
+      ];
+
+      res.json(studentSafeZones);
+    } catch (error) {
+      console.error('[STUDENT_GEOLOCATION] Get safe zones failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get safe zones' });
+    }
+  });
+
+  app.get('/api/student/geolocation/device-status', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      console.log(`[STUDENT_GEOLOCATION] 📱 Getting device status for student: ${(user as any).email}`);
+
+      // Mock device status that would be real device data
+      const deviceStatus = {
+        id: 'STU001',
+        name: 'Mon Smartphone',
+        type: 'smartphone',
+        batteryLevel: 78,
+        gpsEnabled: true,
+        lastUpdate: new Date().toISOString(),
+        isActive: true,
+        currentLocation: {
+          latitude: 4.0511,
+          longitude: 9.7679,
+          address: 'École Primaire Central, Douala',
+          inSafeZone: true,
+          safeZoneName: 'École Primaire Central'
+        }
+      };
+
+      res.json(deviceStatus);
+    } catch (error) {
+      console.error('[STUDENT_GEOLOCATION] Get device status failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get device status' });
+    }
+  });
+
+  app.get('/api/student/geolocation/notifications', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      console.log(`[STUDENT_GEOLOCATION] 🔔 Getting notifications for student: ${(user as any).email}`);
+
+      // Mock notifications about zone changes
+      const notifications = [
+        {
+          id: 1,
+          type: 'safe_zone_updated',
+          title: 'Zone de sécurité modifiée',
+          message: 'Vos parents ont modifié la zone "École Primaire Central"',
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          read: false,
+          details: {
+            zoneName: 'École Primaire Central',
+            changes: ['radius', 'schedule'],
+            updatedBy: 'Papa'
+          }
+        },
+        {
+          id: 2,
+          type: 'safe_zone_created',
+          title: 'Nouvelle zone de sécurité',
+          message: 'Une nouvelle zone "Chez Grand-mère" a été ajoutée',
+          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          read: true,
+          details: {
+            zoneName: 'Chez Grand-mère',
+            type: 'relative',
+            createdBy: 'Maman'
+          }
+        }
+      ];
+
+      res.json(notifications);
+    } catch (error) {
+      console.error('[STUDENT_GEOLOCATION] Get notifications failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get notifications' });
+    }
+  });
+
   // Premium Services Management API Endpoints
   app.get("/api/premium-services", requireAuth, (req, res) => {
     if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
