@@ -53,6 +53,7 @@ import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import { hostingerMailService } from "./services/hostingerMailService";
 import { welcomeEmailService } from "./services/welcomeEmailService";
+import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 // Configuration routes handled inline
@@ -21793,6 +21794,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message });
     }
   });
+
+  // Sandbox Autoscale routes
+  app.get('/api/sandbox/autoscale/metrics', requireAuth, autoscaleRoutes.getMetrics);
+  app.post('/api/sandbox/autoscale/refresh', requireAuth, autoscaleRoutes.forceRefresh);
+  app.get('/api/sandbox/autoscale/status', requireAuth, autoscaleRoutes.getStatus);
 
   return httpServer;
 }

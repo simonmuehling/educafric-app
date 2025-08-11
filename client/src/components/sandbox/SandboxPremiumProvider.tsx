@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SandboxPremiumContextType {
@@ -7,6 +7,8 @@ interface SandboxPremiumContextType {
   getUserPlan: () => string;
   isPremiumUnlocked: boolean;
   isEnhancedUser: boolean;
+  lastRefresh: Date;
+  refreshSandbox: () => void;
 }
 
 const SandboxPremiumContext = createContext<SandboxPremiumContextType | null>(null);
@@ -25,6 +27,10 @@ interface SandboxPremiumProviderProps {
 
 export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ children }) => {
   const { user } = useAuth();
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [contextKey, setContextKey] = useState(0);
+  const refreshIntervalRef = useRef<NodeJS.Timeout>();
+  const duplicateCheckRef = useRef<Set<string>>(new Set());
 
   // Sandbox mode detection - comprehensive check
   const isSandboxUser = Boolean(
@@ -36,17 +42,64 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
     (typeof window !== 'undefined' && window.location?.pathname.includes('/sandbox'))
   );
 
-  // Debug logging for sandbox detection
+  // Autoscale refresh function to prevent duplications
+  const refreshSandbox = () => {
+    const now = new Date();
+    setLastRefresh(now);
+    setContextKey(prev => prev + 1);
+    
+    // Clear duplicate tracking
+    duplicateCheckRef.current.clear();
+    
+    // Force component re-render to clear any stale data
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sandbox-refresh'));
+    }
+    
+    console.log('🔄 Sandbox Autoscale: Refreshed at', now.toLocaleTimeString());
+  };
+
+  // Auto-refresh every 5 minutes to prevent duplications
+  useEffect(() => {
+    if (isSandboxUser) {
+      refreshIntervalRef.current = setInterval(() => {
+        refreshSandbox();
+      }, 5 * 60 * 1000); // 5 minutes
+
+      // Initial refresh on mount after a small delay to avoid render issues
+      const timeoutId = setTimeout(() => {
+        refreshSandbox();
+      }, 100);
+
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [isSandboxUser]);
+
+  // Prevent duplicate logging
+  const logOnce = (key: string, logFn: () => void) => {
+    if (!duplicateCheckRef.current.has(key)) {
+      duplicateCheckRef.current.add(key);
+      logFn();
+    }
+  };
+
+  // Debug logging for sandbox detection (deduplicated)
   if (user && import.meta.env.DEV) {
-    console.log('🔬 Sandbox Detection:', {
-      email: user.email,
-      isSandboxUser,
-      sandboxMode: (user as any)?.sandboxMode,
-      emailCheck: {
-        hasSandbox: user?.email?.includes('sandbox.'),
-        hasDemo: user?.email?.includes('.demo@'),
-        hasTest: user?.email?.includes('test?.educafric?.com')
-      }
+    logOnce(`sandbox-detection-${user.id}`, () => {
+      console.log('🔬 Sandbox Detection:', {
+        email: user.email,
+        isSandboxUser,
+        emailCheck: {
+          hasSandbox: user?.email?.includes('sandbox.'),
+          hasDemo: user?.email?.includes('.demo@'),
+          hasTest: user?.email?.includes('test.educafric.com')
+        }
+      });
     });
   }
 
@@ -130,21 +183,25 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
       user?.role === 'Admin' || 
       user?.role === 'Director'
     ),
+    lastRefresh,
+    refreshSandbox,
   };
 
-  // Debug logging for final context values
+  // Debug logging for final context values (deduplicated)
   if (user && import.meta.env.DEV) {
-    console.log('🎯 Sandbox Context Values:', {
-      hasFullAccess,
-      isPremiumUnlocked: value.isPremiumUnlocked,
-      isEnhancedUser: value.isEnhancedUser,
-      getUserPlan: getUserPlan(),
-      isSandboxUser
+    logOnce(`sandbox-context-${user.id}-${contextKey}`, () => {
+      console.log('🎯 Sandbox Context Values:', {
+        hasFullAccess,
+        isPremiumUnlocked: value.isPremiumUnlocked,
+        isEnhancedUser: value.isEnhancedUser,
+        getUserPlan: getUserPlan(),
+        isSandboxUser
+      });
     });
   }
 
   return (
-    <SandboxPremiumContext.Provider value={value}>
+    <SandboxPremiumContext.Provider key={contextKey} value={value}>
       {children}
     </SandboxPremiumContext.Provider>
   );

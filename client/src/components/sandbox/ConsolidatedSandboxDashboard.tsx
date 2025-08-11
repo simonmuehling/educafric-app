@@ -25,6 +25,8 @@ import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
 import CommunicationTester from './CommunicationTester';
 import NotificationTester from './NotificationTester';
+import { SandboxAutoscaleIndicator } from './SandboxAutoscaleIndicator';
+import { AutoscaleServerIntegration } from './AutoscaleServerIntegration';
 
 
 interface SystemMetrics {
@@ -401,6 +403,12 @@ const ConsolidatedSandboxDashboard = () => {
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             {t.refresh}
           </Button>
+        </div>
+
+        {/* Autoscale System */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SandboxAutoscaleIndicator showNextRefresh={true} />
+          <AutoscaleServerIntegration />
         </div>
 
         {/* Quick Stats */}
