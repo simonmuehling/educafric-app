@@ -117,7 +117,7 @@ const APITester = () => {
   // Mutation pour tester les API endpoints avec vrai backend
   const testApiMutation = useMutation({
     mutationFn: async ({ endpoint, method, body, headers }: { endpoint: string, method: string, body: any, headers: any }) => {
-      return await apiRequest(endpoint, method as any, body, headers);
+      return await apiRequest(endpoint, method as any, body);
     },
     onSuccess: (response, variables) => {
       const responseTime = Date.now() - startTime;

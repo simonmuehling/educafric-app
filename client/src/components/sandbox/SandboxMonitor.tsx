@@ -36,10 +36,11 @@ const SandboxMonitor = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Query pour les métriques système en temps réel
+  // Query pour les métriques système en temps réel avec vraies données backend
   const { data: systemMetrics, isLoading } = useQuery({
     queryKey: ['/api/sandbox/system-metrics'],
-    refetchInterval: 3000
+    refetchInterval: 2000,
+    staleTime: 500
   });
 
   const [metrics, setMetrics] = useState<SystemMetric[]>([
@@ -60,19 +61,21 @@ const SandboxMonitor = () => {
 
   const [isMonitoring, setIsMonitoring] = useState(true);
 
-  // Mutation pour actualiser les métriques
+  // Mutation pour actualiser les métriques avec vraies données
   const refreshMetricsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/sandbox/refresh-metrics', 'POST', {
+      return await apiRequest('/api/sandbox/refresh-comprehensive-metrics', 'POST', {
         includeSystemInfo: true,
-        includePerformance: true
+        includePerformance: true,
+        includeRealTimeData: true,
+        timestamp: Date.now()
       });
     },
     onSuccess: async (response) => {
       const data = await response.json();
       queryClient.invalidateQueries({ queryKey: ['/api/sandbox/system-metrics'] });
       toast({
-        title: language === 'fr' ? 'Métriques actualisées' : 'Metrics refreshed',
+        title: language === 'fr' ? 'Métriques système actualisées' : 'System metrics refreshed',
         description: language === 'fr' ? 'Données système mises à jour avec succès' : 'System data updated successfully',
         duration: 2000,
       });

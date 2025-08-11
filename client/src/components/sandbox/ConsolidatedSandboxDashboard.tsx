@@ -60,19 +60,21 @@ const ConsolidatedSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  // Query pour les métriques sandbox en temps réel
+  // Query pour les métriques sandbox en temps réel avec vraies données backend
   const { data: sandboxMetrics, isLoading } = useQuery({
-    queryKey: ['/api/sandbox/overview'],
+    queryKey: ['/api/sandbox/metrics'],
     enabled: !!user,
-    refetchInterval: 5000
+    refetchInterval: 3000,
+    staleTime: 1000
   });
 
-  // Mutation pour exécuter les tests complets
+  // Mutation pour exécuter les tests complets avec vraies données
   const runTestsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/sandbox/run-full-tests', 'POST', {
+      return await apiRequest('/api/sandbox/run-comprehensive-tests', 'POST', {
         includeIntegration: true,
-        modules: ['api', 'ui', 'database', 'notifications']
+        modules: ['api', 'ui', 'database', 'notifications', 'performance'],
+        environment: 'sandbox'
       });
     },
     onSuccess: async (response) => {
