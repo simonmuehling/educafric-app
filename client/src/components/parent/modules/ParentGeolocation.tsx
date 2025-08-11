@@ -133,23 +133,8 @@ export const ParentGeolocation = () => {
   });
 
   const handleModifyZone = useStableCallback((zone: SafeZone) => {
-    console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
-    fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ 
-        action: 'modify_zone',
-        updates: { name: zone.name, active: !zone.active }
-      })
-    }).then(response => {
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
-        console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
-      }
-    }).catch(error => {
-      console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
-    });
+    console.log(`[PARENT_GEOLOCATION] ✏️ Opening modify modal for safe zone ${zone.id}: ${zone.name || ''}`);
+    setShowEditZone({show: true, zone});
   });
 
   const handleAddSafeZone = useStableCallback(() => {
@@ -625,11 +610,11 @@ export const ParentGeolocation = () => {
               </h3>
             </CardHeader>
             <CardContent>
-              {(Array.isArray(alertsData) ? alertsData.length : 0) === 0 ? (
+              {alerts.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">{t.noAlerts}</p>
               ) : (
                 <div className="space-y-3">
-                  {(Array.isArray(alertsData) ? alertsData : []).map(alert => (
+                  {alerts.map(alert => (
                     <div key={alert.id} className="flex items-start gap-3 p-3 border rounded-lg">
                       <div className="mt-1">
                         {getAlertIcon(alert.type)}
@@ -1354,6 +1339,137 @@ export const ParentGeolocation = () => {
                   }}
                 >
                   Enregistrer Configuration
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Edition Zone de Sécurité */}
+      {showEditZone.show && showEditZone.zone && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Modifier la Zone de Sécurité</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowEditZone({show: false, zone: null})}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form className="space-y-4" onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const zoneData = {
+                  name: formData.get('name') as string,
+                  type: formData.get('type') as string,
+                  radius: parseInt(formData.get('radius') as string),
+                  active: formData.get('active') === 'on'
+                };
+                
+                console.log('[PARENT_GEOLOCATION] 💾 Updating zone:', showEditZone.zone?.id, zoneData);
+                
+                // API call to update zone
+                fetch(`/api/parent/geolocation/safe-zones/${showEditZone.zone?.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ 
+                    action: 'modify_zone',
+                    updates: zoneData
+                  })
+                }).then(response => {
+                  if (response.ok) {
+                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+                    console.log(`[PARENT_GEOLOCATION] ✅ Zone ${showEditZone.zone?.name} updated successfully`);
+                    setShowEditZone({show: false, zone: null});
+                  }
+                }).catch(error => {
+                  console.error('[PARENT_GEOLOCATION] Update zone error:', error);
+                });
+              }}>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Nom de la zone</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    defaultValue={showEditZone.zone.name}
+                    className="w-full p-3 border rounded-lg" 
+                    required 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Type de zone</label>
+                  <select 
+                    name="type" 
+                    defaultValue={showEditZone.zone.type}
+                    className="w-full p-3 border rounded-lg"
+                  >
+                    <option value="home">🏠 Domicile</option>
+                    <option value="school">🏫 École</option>
+                    <option value="relative">👥 Famille</option>
+                    <option value="activity">🎯 Activité</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rayon de sécurité (mètres)</label>
+                  <input 
+                    type="number" 
+                    name="radius" 
+                    defaultValue={showEditZone.zone.radius}
+                    min="10" 
+                    max="5000" 
+                    className="w-full p-3 border rounded-lg" 
+                    required 
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-medium">Zone active</label>
+                    <p className="text-sm text-gray-600">Active la surveillance pour cette zone</p>
+                  </div>
+                  <input 
+                    type="checkbox" 
+                    name="active" 
+                    defaultChecked={showEditZone.zone.active}
+                    className="rounded" 
+                  />
+                </div>
+
+              </form>
+            </div>
+            
+            {/* Footer fixe avec boutons d'action */}
+            <div className="sticky bottom-0 bg-white p-6 pt-4 border-t flex-shrink-0">
+              <div className="flex gap-3">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowEditZone({show: false, zone: null})}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  onClick={() => {
+                    const form = document.querySelector('form') as HTMLFormElement;
+                    if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  Sauvegarder
                 </Button>
               </div>
             </div>
