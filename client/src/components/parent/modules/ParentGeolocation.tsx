@@ -53,15 +53,15 @@ interface GeolocationAlert {
 }
 
 export const ParentGeolocation = () => {
-  const { currentLanguage } = useLanguage();
+  const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedChild, setSelectedChild] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddZone, setShowAddZone] = useState(false);
 
-  // Use proper translations from translation system
-  const t = translations[currentLanguage].geolocation;
+  // Use proper translations from translation system with safe fallback
+  const t = translations[language === 'fr' ? 'fr' : 'en'].geolocation;
 
   // Real API calls using TanStack Query - Complete Storage-Route-API-Frontend Chain
   const { data: childrenData = [], isLoading: childrenLoading } = useQuery<Child[]>({
