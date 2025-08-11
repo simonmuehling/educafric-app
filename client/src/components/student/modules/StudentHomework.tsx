@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -155,13 +156,13 @@ const StudentHomework: React.FC = () => {
     return hw.status === filterStatus;
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = useStableCallback(() => {
     if (!selectedHomework || !submissionText.trim()) return;
     submitHomeworkMutation.mutate({
       id: selectedHomework.id,
       submission: submissionText
     });
-  };
+  });
 
   if (isLoading) {
     return (

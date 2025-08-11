@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -68,7 +69,7 @@ const TimetableConfiguration: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.className || !formData.day || !formData.timeSlot || !formData.subject || !formData.teacher || !formData.room) {
@@ -110,7 +111,7 @@ const TimetableConfiguration: React.FC = () => {
         variant: 'destructive'
       });
     }
-  };
+  });
 
   const handleEdit = (entry: TimetableEntry) => {
     setEditingEntry(entry);

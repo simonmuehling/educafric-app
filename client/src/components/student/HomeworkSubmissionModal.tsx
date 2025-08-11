@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -168,7 +169,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
     setSelectedFiles(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = useStableCallback(() => {
     if (!homework) return;
     
     if (!submissionText.trim() && selectedFiles.length === 0) {
@@ -190,7 +191,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
     });
 
     submitHomeworkMutation.mutate(formData);
-  };
+  });
 
   const handleClose = () => {
     setSubmissionText('');

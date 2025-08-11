@@ -15,6 +15,7 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useStableCallback } from '@/hooks/useStableCallback';
 
 // Contact form schema
 const contactFormSchema = z.object({
@@ -179,13 +180,13 @@ const ContactsManagement = () => {
     }
   });
 
-  const onSubmit = (data: ContactFormData) => {
+  const onSubmit = useStableCallback((data: ContactFormData) => {
     if (editingContact) {
       updateContactMutation.mutate({ ...data, id: editingContact.id });
     } else {
       createContactMutation.mutate(data);
     }
-  };
+  });
 
   const handleEdit = (contact: any) => {
     setEditingContact(contact);

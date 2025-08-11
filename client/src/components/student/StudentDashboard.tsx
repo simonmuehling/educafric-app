@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
   BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell
@@ -29,41 +30,26 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
 
-  // Add event listeners for navigation from child components (if needed in future)
-  useEffect(() => {
-    const handleSwitchToTimetable = () => {
-      console.log('[STUDENT_DASHBOARD] 📅 Event received: switchToTimetable');
-      setCurrentActiveModule('timetable');
-    };
+  // Stable event handlers that survive server restarts
+  useStableEventHandler(() => {
+    console.log('[STUDENT_DASHBOARD] 📅 Event received: switchToTimetable');
+    setCurrentActiveModule('timetable');
+  }, 'switchToTimetable');
 
-    const handleSwitchToGrades = () => {
-      console.log('[STUDENT_DASHBOARD] 📊 Event received: switchToGrades');
-      setCurrentActiveModule('grades');
-    };
+  useStableEventHandler(() => {
+    console.log('[STUDENT_DASHBOARD] 📊 Event received: switchToGrades');
+    setCurrentActiveModule('grades');
+  }, 'switchToGrades');
 
-    const handleSwitchToMessages = () => {
-      console.log('[STUDENT_DASHBOARD] 💬 Event received: switchToMessages');
-      setCurrentActiveModule('messages');
-    };
+  useStableEventHandler(() => {
+    console.log('[STUDENT_DASHBOARD] 💬 Event received: switchToMessages');
+    setCurrentActiveModule('messages');
+  }, 'switchToMessages');
 
-    const handleSwitchToAttendance = () => {
-      console.log('[STUDENT_DASHBOARD] 📋 Event received: switchToAttendance');
-      setCurrentActiveModule('attendance');
-    };
-
-    // Register event listeners
-    window.addEventListener('switchToTimetable', handleSwitchToTimetable);
-    window.addEventListener('switchToGrades', handleSwitchToGrades);
-    window.addEventListener('switchToMessages', handleSwitchToMessages);
-    window.addEventListener('switchToAttendance', handleSwitchToAttendance);
-
-    return () => {
-      window.removeEventListener('switchToTimetable', handleSwitchToTimetable);
-      window.removeEventListener('switchToGrades', handleSwitchToGrades);
-      window.removeEventListener('switchToMessages', handleSwitchToMessages);
-      window.removeEventListener('switchToAttendance', handleSwitchToAttendance);
-    };
-  }, []);
+  useStableEventHandler(() => {
+    console.log('[STUDENT_DASHBOARD] 📋 Event received: switchToAttendance');
+    setCurrentActiveModule('attendance');
+  }, 'switchToAttendance');
 
   const text = {
     fr: {

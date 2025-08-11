@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, Search, Filter, UserCheck, UserX, Shield } from 'lucide-react';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -94,19 +95,19 @@ const FunctionalSiteAdminUsers: React.FC = () => {
     return matchesSearch && matchesRole;
   }) || [];
 
-  const handleDeleteUser = (userId: number) => {
+  const handleDeleteUser = useStableCallback((userId: number) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
       deleteUserMutation.mutate(userId);
     }
-  };
+  });
 
-  const handleToggleStatus = (user: PlatformUser) => {
+  const handleToggleStatus = useStableCallback((user: PlatformUser) => {
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
     updateUserMutation.mutate({
       userId: user.id,
       updates: { status: newStatus }
     });
-  };
+  });
 
   const getRoleBadgeColor = (role: string) => {
     const colors: { [key: string]: string } = {

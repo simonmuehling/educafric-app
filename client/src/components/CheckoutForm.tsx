@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CreditCard, Lock, Zap } from 'lucide-react';
@@ -53,7 +54,7 @@ export default function CheckoutForm({
 
   const t = text[language];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!stripe || !elements) {
@@ -84,7 +85,7 @@ export default function CheckoutForm({
     } finally {
       setProcessing(false);
     }
-  };
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,7 +71,7 @@ const CreateAssignment = () => {
   const classes = ['6ème A', '6ème B', '5ème A', '5ème B', '4ème A', '4ème B'];
   const types = [t.homework, t.classwork, t.project, t.test];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useStableCallback((e: React.FormEvent) => {
     e.preventDefault();
     // Simulate assignment creation
     alert(language === 'fr' 
@@ -88,7 +89,7 @@ const CreateAssignment = () => {
       type: '',
       instructions: ''
     });
-  };
+  });
 
   return (
     <Card className="max-w-4xl mx-auto">

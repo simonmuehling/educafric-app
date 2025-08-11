@@ -15,6 +15,7 @@ import { Plus, Send, Clock, CheckCircle, XCircle, AlertCircle, FileText, Calenda
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
+import { useStableCallback } from '@/hooks/useStableCallback';
 
 // Schema pour la validation des demandes
 const requestSchema = z.object({
@@ -115,9 +116,9 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     },
   });
 
-  const onSubmit = (data: RequestFormData) => {
+  const onSubmit = useStableCallback((data: RequestFormData) => {
     createRequestMutation.mutate(data);
-  };
+  });
 
   // Types de demandes avec leurs icônes et descriptions
   const requestTypes = {

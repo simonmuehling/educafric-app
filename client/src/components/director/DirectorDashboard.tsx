@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
@@ -41,53 +42,53 @@ interface DirectorDashboardProps {
 const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) => {
   const { language } = useLanguage();
 
-  // Add event listeners for Quick Actions navigation from SchoolSettings
-  useEffect(() => {
-    const handleQuickActions = (event: CustomEvent) => {
-      console.log(`[DIRECTOR_DASHBOARD] 🔥 Received event: ${event.type}`);
-      
-      const moduleMap: { [key: string]: string } = {
-        'switchToTimetable': 'timetable',
-        'switchToTeacherManagement': 'teachers', 
-        'switchToTeacher-management': 'teachers',
-        'switchToClassManagement': 'classes',
-        'switchToClass-management': 'classes',
-        'switchToCommunications': 'communications',
-        'switchToSettings': 'settings',
-        'switchToAdministrators': 'administrators',
-        'switchToStudent-management': 'students',
-        'switchToAttendance-management': 'attendance',
-        'switchToGeolocation': 'geolocation',
-        'switchToSubscription': 'subscription'
-      };
-      
-      const moduleId = moduleMap[event.type];
-      if (moduleId) {
-        console.log(`[DIRECTOR_DASHBOARD] ✅ Mapping ${event.type} → ${moduleId}`);
-        // Trigger module switch in UnifiedIconDashboard
-        const moduleEvent = new CustomEvent('switchModule', { detail: { moduleId } });
-        window.dispatchEvent(moduleEvent);
-      } else {
-        console.log(`[DIRECTOR_DASHBOARD] ❌ No mapping found for event: ${event.type}`);
-      }
+  // Stable callback for handling quick actions
+  const stableHandleQuickActions = useStableCallback((event: CustomEvent) => {
+    console.log(`[DIRECTOR_DASHBOARD] 🔥 Received event: ${event.type}`);
+    
+    const moduleMap: { [key: string]: string } = {
+      'switchToTimetable': 'timetable',
+      'switchToTeacherManagement': 'teachers', 
+      'switchToTeacher-management': 'teachers',
+      'switchToClassManagement': 'classes',
+      'switchToClass-management': 'classes',
+      'switchToCommunications': 'communications',
+      'switchToSettings': 'settings',
+      'switchToAdministrators': 'administrators',
+      'switchToStudent-management': 'students',
+      'switchToAttendance-management': 'attendance',
+      'switchToGeolocation': 'geolocation',
+      'switchToSubscription': 'subscription'
     };
+    
+    const moduleId = moduleMap[event.type];
+    if (moduleId) {
+      console.log(`[DIRECTOR_DASHBOARD] ✅ Mapping ${event.type} → ${moduleId}`);
+      const moduleEvent = new CustomEvent('switchModule', { detail: { moduleId } });
+      window.dispatchEvent(moduleEvent);
+    } else {
+      console.log(`[DIRECTOR_DASHBOARD] ❌ No mapping found for event: ${event.type}`);
+    }
+  });
 
-    // Register all quick action events from SchoolSettings
+  // Register stable event handlers for all quick actions
+  useEffect(() => {
     const eventTypes = [
       'switchToTimetable', 'switchToTeacherManagement', 'switchToClassManagement', 'switchToCommunications',
       'switchToSettings', 'switchToAdministrators', 'switchToStudent-management', 'switchToAttendance-management',
       'switchToGeolocation', 'switchToSubscription'
     ];
+    
     eventTypes.forEach(eventType => {
-      window.addEventListener(eventType, handleQuickActions as EventListener);
+      window.addEventListener(eventType, stableHandleQuickActions as EventListener);
     });
 
     return () => {
       eventTypes.forEach(eventType => {
-        window.removeEventListener(eventType, handleQuickActions as EventListener);
+        window.removeEventListener(eventType, stableHandleQuickActions as EventListener);
       });
     };
-  }, []);
+  }, [stableHandleQuickActions]);
 
   const text = {
     fr: {

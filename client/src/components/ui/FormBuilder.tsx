@@ -1,5 +1,6 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
@@ -79,13 +80,13 @@ export function FormBuilder({
     }, {} as Record<string, any>)
   });
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = useStableCallback(async (data: any) => {
     try {
       await onSubmit(data);
     } catch (error) {
       console.error('[FormBuilder] Submission error:', error);
     }
-  };
+  });
 
   const renderField = (field: FormField) => {
     const error = form?.formState?.errors[field.id];

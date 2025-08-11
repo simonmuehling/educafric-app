@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, X, Filter } from 'lucide-react';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -47,11 +48,11 @@ export function MobileCompactSearch({
     onSearch?.('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useStableCallback((e: React.FormEvent) => {
     e.preventDefault();
     onSearch?.(query);
     setIsExpanded(false);
-  };
+  });
 
   if (!isExpanded) {
     return (

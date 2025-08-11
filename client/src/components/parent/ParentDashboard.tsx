@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,
   Calendar, FileText, Clock, Bell, DollarSign,
@@ -37,34 +38,21 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
 
-  // Add event listeners for navigation from child components
-  useEffect(() => {
-    const handleSwitchToGrades = () => {
-      console.log('[PARENT_DASHBOARD] 📊 Event received: switchToGrades');
-      setCurrentActiveModule('grades');
-    };
+  // Stable event handlers that survive server restarts
+  useStableEventHandler(() => {
+    console.log('[PARENT_DASHBOARD] 📊 Event received: switchToGrades');
+    setCurrentActiveModule('grades');
+  }, 'switchToGrades');
 
-    const handleSwitchToAttendance = () => {
-      console.log('[PARENT_DASHBOARD] 📋 Event received: switchToAttendance');
-      setCurrentActiveModule('attendance');
-    };
+  useStableEventHandler(() => {
+    console.log('[PARENT_DASHBOARD] 📋 Event received: switchToAttendance');
+    setCurrentActiveModule('attendance');
+  }, 'switchToAttendance');
 
-    const handleSwitchToMessages = () => {
-      console.log('[PARENT_DASHBOARD] 💬 Event received: switchToMessages');
-      setCurrentActiveModule('messages');
-    };
-
-    // Register event listeners
-    window.addEventListener('switchToGrades', handleSwitchToGrades);
-    window.addEventListener('switchToAttendance', handleSwitchToAttendance);
-    window.addEventListener('switchToMessages', handleSwitchToMessages);
-
-    return () => {
-      window.removeEventListener('switchToGrades', handleSwitchToGrades);
-      window.removeEventListener('switchToAttendance', handleSwitchToAttendance);
-      window.removeEventListener('switchToMessages', handleSwitchToMessages);
-    };
-  }, []);
+  useStableEventHandler(() => {
+    console.log('[PARENT_DASHBOARD] 💬 Event received: switchToMessages');
+    setCurrentActiveModule('messages');
+  }, 'switchToMessages');
   
   const text = {
     fr: {
