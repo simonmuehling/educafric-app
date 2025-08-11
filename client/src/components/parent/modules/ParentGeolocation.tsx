@@ -141,6 +141,81 @@ export const ParentGeolocation = () => {
     setShowAddZone(true);
   });
 
+  // Additional stable callback handlers to prevent hooks rule violations
+  const handleTabClick = useStableCallback((tabId: string) => {
+    setActiveTab(tabId);
+  });
+
+  const handleViewChildMap = useStableCallback((child: Child) => {
+    console.log(`[PARENT_GEOLOCATION] 🗺️ View ${child.name || ''} on map`);
+    fetch(`/api/parent/geolocation/children/${child.id}/location`, {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      if (response.ok) {
+        const locationData = await response.json();
+        console.log(`[PARENT_GEOLOCATION] ✅ Location data for ${child.name}:`, locationData);
+        window.dispatchEvent(new CustomEvent('openChildMap', { 
+          detail: { child, locationData } 
+        }));
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] View map error:', error);
+    });
+  });
+
+  const handleConfigureChildTracking = useStableCallback((child: Child) => {
+    console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name || ''}`);
+    fetch(`/api/parent/geolocation/children/${child.id}/configure`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ action: 'configure_tracking' })
+    }).then(response => {
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
+        console.log(`[PARENT_GEOLOCATION] ✅ Successfully configured tracking for ${child.name || ''}`);
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] Configure tracking error:', error);
+    });
+  });
+
+  const handleViewAlertLocation = useStableCallback((alert: GeolocationAlert) => {
+    console.log(`[PARENT_GEOLOCATION] 🗺️ View alert location for ${alert.childName}`);
+    fetch(`/api/parent/geolocation/alerts/${alert.id}/location`, {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      if (response.ok) {
+        const alertLocationData = await response.json();
+        console.log(`[PARENT_GEOLOCATION] ✅ Alert location data:`, alertLocationData);
+        window.dispatchEvent(new CustomEvent('openAlertMap', { 
+          detail: { alert, alertLocationData } 
+        }));
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] View alert location error:', error);
+    });
+  });
+
+  const handleAcknowledgeAlert = useStableCallback((alert: GeolocationAlert) => {
+    console.log(`[PARENT_GEOLOCATION] ✅ Acknowledging alert ${alert.id}: ${alert.message}`);
+    fetch(`/api/parent/geolocation/alerts/${alert.id}/acknowledge`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ acknowledged: true })
+    }).then(response => {
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
+        console.log(`[PARENT_GEOLOCATION] ✅ Successfully acknowledged alert`);
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] Acknowledge alert error:', error);
+    });
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'safe': return 'bg-green-100 text-green-700';
@@ -201,7 +276,7 @@ export const ParentGeolocation = () => {
               <Button
                 key={tab.id}
                 variant={activeTab === tab.id ? "default" : "outline"}
-                onClick={useStableCallback(() => setActiveTab(tab.id))}
+                onClick={() => handleTabClick(tab.id)}
                 className="flex items-center gap-2 md:gap-2"
                 title={tab.label}
               >
@@ -308,25 +383,7 @@ export const ParentGeolocation = () => {
                       variant="outline" 
                       size="sm"
                       className="w-full mt-3"
-                      onClick={useStableCallback(() => {
-                        console.log(`[PARENT_GEOLOCATION] 🗺️ View ${child.name || ''} on map`);
-                        // Call real API to get detailed location and show on map
-                        fetch(`/api/parent/geolocation/children/${child.id}/location`, {
-                          method: 'GET',
-                          credentials: 'include'
-                        }).then(async response => {
-                          if (response.ok) {
-                            const locationData = await response.json();
-                            console.log(`[PARENT_GEOLOCATION] ✅ Location data for ${child.name}:`, locationData);
-                            // In a real app, this would open a map modal or navigate to map page
-                            window.dispatchEvent(new CustomEvent('openChildMap', { 
-                              detail: { child, locationData } 
-                            }));
-                          }
-                        }).catch(error => {
-                          console.error('[PARENT_GEOLOCATION] View map error:', error);
-                        });
-                      })}
+                      onClick={() => handleViewChildMap(child)}
                     >
                       <MapPin className="w-4 h-4 mr-2" />
                       {t.viewMap}
@@ -387,23 +444,7 @@ export const ParentGeolocation = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={useStableCallback(() => {
-                      console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name || ''}`);
-                      // Call real API to configure child tracking
-                      fetch(`/api/parent/geolocation/children/${child.id}/configure`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ action: 'configure_tracking' })
-                      }).then(response => {
-                        if (response.ok) {
-                          queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
-                          console.log(`[PARENT_GEOLOCATION] ✅ Successfully configured tracking for ${child.name || ''}`);
-                        }
-                      }).catch(error => {
-                        console.error('[PARENT_GEOLOCATION] Configure tracking error:', error);
-                      });
-                    })}
+                    onClick={() => handleConfigureChildTracking(child)}
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     Configurer Suivi
@@ -528,24 +569,7 @@ export const ParentGeolocation = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={useStableCallback(() => {
-                              console.log(`[PARENT_GEOLOCATION] 🗺️ View alert location on map for ${alert.childName}`);
-                              // Call API to get alert location details
-                              fetch(`/api/parent/geolocation/alerts/${alert.id}/location`, {
-                                method: 'GET',
-                                credentials: 'include'
-                              }).then(async response => {
-                                if (response.ok) {
-                                  const alertLocation = await response.json();
-                                  console.log(`[PARENT_GEOLOCATION] ✅ Alert location data:`, alertLocation);
-                                  window.dispatchEvent(new CustomEvent('openAlertMap', { 
-                                    detail: { alert, alertLocation } 
-                                  }));
-                                }
-                              }).catch(error => {
-                                console.error('[PARENT_GEOLOCATION] View alert map error:', error);
-                              });
-                            })}
+                            onClick={() => handleViewAlertLocation(alert)}
                           >
                             <MapPin className="w-3 h-3 mr-1" />
                             {t.viewMap}
@@ -554,21 +578,7 @@ export const ParentGeolocation = () => {
                             <Button 
                               variant="default" 
                               size="sm"
-                              onClick={useStableCallback(() => {
-                                console.log(`[PARENT_GEOLOCATION] ✅ Marking alert ${alert.id} as resolved`);
-                                // Call API to resolve alert
-                                fetch(`/api/parent/geolocation/alerts/${alert.id}/resolve`, {
-                                  method: 'POST',
-                                  credentials: 'include'
-                                }).then(response => {
-                                  if (response.ok) {
-                                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
-                                    console.log(`[PARENT_GEOLOCATION] ✅ Alert resolved successfully`);
-                                  }
-                                }).catch(error => {
-                                  console.error('[PARENT_GEOLOCATION] Resolve alert error:', error);
-                                });
-                              })}
+                              onClick={() => handleAcknowledgeAlert(alert)}
                             >
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Résoudre
