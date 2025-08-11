@@ -45,6 +45,32 @@ export interface IStorage {
   deleteParent(id: number): Promise<void>;
   getSchoolStudents(schoolId: number): Promise<any[]>;
   getSchoolParents(schoolId: number): Promise<any[]>;
+  
+  // Student-specific grade and attendance methods
+  getStudentGrades(studentId: number): Promise<any[]>;
+  getStudentAttendance(studentId: number): Promise<any[]>;
+  
+  // Teacher-specific methods
+  getTeacherClasses(teacherId: number): Promise<any[]>;
+  getTeacherStudents(teacherId: number): Promise<any[]>;
+  
+  // Class management methods
+  getClassesBySchool(schoolId: number): Promise<any[]>;
+  getClass(classId: number): Promise<any | null>;
+  createClass(classData: any): Promise<any>;
+  updateClass(classId: number, updates: any): Promise<any>;
+  deleteClass(classId: number): Promise<void>;
+  getSubjectsByClass(classId: number): Promise<any[]>;
+  
+  // Grade management methods
+  getGradesBySchool(schoolId: number): Promise<any[]>;
+  getGradesByClass(classId: number): Promise<any[]>;
+  getGradesBySubject(subjectId: number): Promise<any[]>;
+  getGrade(gradeId: number): Promise<any | null>;
+  createGrade(gradeData: any): Promise<any>;
+  updateGrade(gradeId: number, updates: any): Promise<any>;
+  deleteGrade(gradeId: number): Promise<void>;
+  getGradeStatsByClass(classId: number): Promise<any>;
 
   // ===== BASIC USER MANAGEMENT =====
   createUser(user: any): Promise<User>;
@@ -225,6 +251,28 @@ export class DatabaseStorage implements IStorage {
   async createStudent(data: any): Promise<any> { return data; }
   async updateStudent(id: number, data: any): Promise<any> { return data; }
   async deleteStudent(id: number): Promise<void> {}
+  async getStudentGrades(studentId: number): Promise<any[]> { return []; }
+  async getStudentAttendance(studentId: number): Promise<any[]> { return []; }
+  async getTeacherClasses(teacherId: number): Promise<any[]> { return []; }
+  async getTeacherStudents(teacherId: number): Promise<any[]> { return []; }
+  
+  // Class management implementations
+  async getClassesBySchool(schoolId: number): Promise<any[]> { return []; }
+  async getClass(classId: number): Promise<any | null> { return null; }
+  async createClass(classData: any): Promise<any> { return classData; }
+  async updateClass(classId: number, updates: any): Promise<any> { return updates; }
+  async deleteClass(classId: number): Promise<void> {}
+  async getSubjectsByClass(classId: number): Promise<any[]> { return []; }
+  
+  // Grade management implementations
+  async getGradesBySchool(schoolId: number): Promise<any[]> { return []; }
+  async getGradesByClass(classId: number): Promise<any[]> { return []; }
+  async getGradesBySubject(subjectId: number): Promise<any[]> { return []; }
+  async getGrade(gradeId: number): Promise<any | null> { return null; }
+  async createGrade(gradeData: any): Promise<any> { return gradeData; }
+  async updateGrade(gradeId: number, updates: any): Promise<any> { return updates; }
+  async deleteGrade(gradeId: number): Promise<void> {}
+  async getGradeStatsByClass(classId: number): Promise<any> { return {}; }
   async createParent(data: any): Promise<any> { return data; }
   async updateParent(id: number, data: any): Promise<any> { return data; }
   async deleteParent(id: number): Promise<void> {}
