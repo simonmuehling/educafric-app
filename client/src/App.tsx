@@ -65,6 +65,7 @@ import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
 import { SchoolGeolocationPage } from "@/pages/SchoolGeolocationPage";
+import RoleBasedGeolocationPage from "@/components/shared/RoleBasedGeolocationPage";
 
 import { useState } from "react";
 import React from "react";
@@ -328,13 +329,13 @@ function Router() {
       
       <Route path="/geolocation">
         <ProtectedRoute>
-          <SchoolGeolocationPage />
+          <RoleBasedGeolocationPage />
         </ProtectedRoute>
       </Route>
       
       <Route path="/school-geolocation">
         <ProtectedRoute>
-          <SchoolGeolocationPage />
+          <RoleBasedGeolocationPage />
         </ProtectedRoute>
       </Route>
       
