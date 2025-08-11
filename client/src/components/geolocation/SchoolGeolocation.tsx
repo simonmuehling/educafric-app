@@ -120,6 +120,17 @@ const roleConfig = {
     canManageSafeZones: true,
     canViewAlerts: true,
     canManageEmergencyContacts: true
+  },
+  Freelancer: {
+    title: 'Géolocalisation - Services Freelance',
+    description: 'Offre de services géolocalisation aux écoles africaines',
+    color: 'from-indigo-500 to-purple-500',
+    icon: Users,
+    showStudentSelection: false,
+    canManageDevices: false,
+    canManageSafeZones: false,
+    canViewAlerts: false,
+    canManageEmergencyContacts: false
   }
 };
 
@@ -128,6 +139,21 @@ interface SchoolGeolocationProps {
   userId: number;
   schoolId: number;
 }
+
+const trackingConfigSchema = z.object({
+  childName: z.string().min(1, 'Nom de l\'enfant requis'),
+  location: z.string().min(1, 'Lieu requis'),
+  address: z.string().min(1, 'Adresse requise'),
+  latitude: z.string().min(1, 'Latitude requise'),
+  longitude: z.string().min(1, 'Longitude requise'),
+  startDate: z.string().min(1, 'Date de début requise'),
+  endDate: z.string().min(1, 'Date de fin requise'),
+  startTime: z.string().min(1, 'Heure de début requise'),
+  endTime: z.string().min(1, 'Heure de fin requise'),
+  days: z.array(z.enum(['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'])).min(1, 'Au moins un jour requis'),
+  isActive: z.boolean().default(true),
+  alertRadius: z.number().min(10, 'Rayon minimum 10m').max(1000, 'Rayon maximum 1000m').default(100)
+});
 
 export { SchoolGeolocation };
 
@@ -143,6 +169,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   const [showSafeZoneDialog, setShowSafeZoneDialog] = useState(false);
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
 
   // Fetch school statistics
   const { data: schoolStats } = useQuery({
@@ -204,6 +231,17 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
       radius: 100,
       alertOnEntry: false,
       alertOnExit: true
+    }
+  });
+
+  // Schedule form for parents
+  const scheduleForm = useForm({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: {
+      startTime: '08:00',
+      endTime: '17:00',
+      days: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
+      isActive: true
     }
   });
 
@@ -400,11 +438,13 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4">
+          <TabsList className={`grid w-full ${userRole === 'Parent' ? 'grid-cols-5' : userRole === 'Freelancer' ? 'grid-cols-2' : 'grid-cols-4'} lg:${userRole === 'Parent' ? 'grid-cols-5' : userRole === 'Freelancer' ? 'grid-cols-2' : 'grid-cols-4'}`}>
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="zones">Zones Sécurisées</TabsTrigger>
-            <TabsTrigger value="alerts">Alertes</TabsTrigger>
-            <TabsTrigger value="devices">Appareils</TabsTrigger>
+            {userRole !== 'Freelancer' && <TabsTrigger value="zones">Zones Sécurisées</TabsTrigger>}
+            {userRole !== 'Freelancer' && <TabsTrigger value="alerts">Alertes</TabsTrigger>}
+            {userRole !== 'Freelancer' && <TabsTrigger value="devices">Appareils</TabsTrigger>}
+            {userRole === 'Parent' && <TabsTrigger value="schedule">Horaires</TabsTrigger>}
+            {userRole === 'Freelancer' && <TabsTrigger value="services">Services</TabsTrigger>}
           </TabsList>
 
           {/* Overview Tab */}
@@ -774,6 +814,109 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               })}
             </div>
           </TabsContent>
+
+          {/* Schedule Tab - Parent Only */}
+          {userRole === 'Parent' && (
+            <TabsContent value="schedule" className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold">Configuration Horaires</h3>
+                <p className="text-sm text-muted-foreground">Définir les heures de surveillance géolocalisation</p>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Horaires de Surveillance</CardTitle>
+                  <CardDescription>Configurez quand la géolocalisation doit être active</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Heure de début</label>
+                        <Input data-testid="input-start-time" type="time" defaultValue="08:00" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Heure de fin</label>
+                        <Input data-testid="input-end-time" type="time" defaultValue="17:00" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Jours actifs</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map(day => (
+                          <div key={day} className="flex items-center space-x-2">
+                            <Switch data-testid={`switch-${day.toLowerCase()}`} defaultChecked={day !== 'Samedi' && day !== 'Dimanche'} />
+                            <label className="text-sm">{day}</label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <Button data-testid="button-save-schedule" className="w-full bg-purple-500 hover:bg-purple-600">
+                      Enregistrer Horaires
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          {/* Services Tab - Freelancer Only */}
+          {userRole === 'Freelancer' && (
+            <TabsContent value="services" className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold">Services Géolocalisation</h3>
+                <p className="text-sm text-muted-foreground">Solutions pour écoles africaines</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="bg-gradient-to-br from-indigo-50 to-purple-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Shield className="h-5 w-5" />
+                      <span>Package École Basique</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-2xl font-bold text-indigo-600">15€/mois</div>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Jusqu'à 50 élèves</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>5 zones de sécurité</span>
+                      </li>
+                    </ul>
+                    <Button data-testid="button-basic-package" className="w-full">Proposer ce Package</Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Users className="h-5 w-5" />
+                      <span>Package École Premium</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-2xl font-bold text-purple-600">35€/mois</div>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Élèves illimités</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Zones illimitées</span>
+                      </li>
+                    </ul>
+                    <Button data-testid="button-premium-package" className="w-full bg-purple-600 hover:bg-purple-700">Proposer ce Package</Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
