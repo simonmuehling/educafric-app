@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -54,71 +55,82 @@ const UpdatedSandboxDashboard = () => {
     staleTime: 1000
   });
 
-  // Tests sandbox complets
+  // Tests sandbox complets avec callback stable
+  const stableRunFullTests = useStableCallback(async () => {
+    return await apiRequest('/api/sandbox/run-comprehensive-tests', 'POST', {
+      modules: ['auth', 'database', 'api', 'performance', 'security'],
+      environment: 'sandbox',
+      includeRealTimeData: true
+    });
+  });
+
+  const stableOnTestsSuccess = useStableCallback(async (response: any) => {
+    const data = await response.json();
+    queryClient.invalidateQueries({ queryKey: ['/api/sandbox/real-time-metrics'] });
+    toast({
+      title: language === 'fr' ? 'Tests complets exécutés' : 'Full tests completed',
+      description: language === 'fr' 
+        ? `${data?.results?.passed || 0} réussis / ${data?.results?.total || 0} tests`
+        : `${data?.results?.passed || 0} passed / ${data?.results?.total || 0} tests`,
+    });
+  });
+
   const runFullTestsMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('/api/sandbox/run-comprehensive-tests', 'POST', {
-        modules: ['auth', 'database', 'api', 'performance', 'security'],
-        environment: 'sandbox',
-        includeRealTimeData: true
-      });
-    },
-    onSuccess: async (response) => {
-      const data = await response.json();
-      queryClient.invalidateQueries({ queryKey: ['/api/sandbox/real-time-metrics'] });
-      toast({
-        title: language === 'fr' ? 'Tests complets exécutés' : 'Full tests completed',
-        description: language === 'fr' 
-          ? `${data?.results?.passed || 0} réussis / ${data?.results?.total || 0} tests`
-          : `${data?.results?.passed || 0} passed / ${data?.results?.total || 0} tests`,
-      });
-    }
+    mutationFn: stableRunFullTests,
+    onSuccess: stableOnTestsSuccess
   });
 
-  // Export des données sandbox
+  // Export des données sandbox avec callback stable
+  const stableExportData = useStableCallback(async () => {
+    return await apiRequest('/api/sandbox/export-complete-data', 'POST', {
+      includeMetrics: true,
+      includeLogs: true,
+      includeTests: true,
+      timeRange: '24h'
+    });
+  });
+
+  const stableOnExportSuccess = useStableCallback(async (response: any) => {
+    const data = await response.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sandbox-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: language === 'fr' ? 'Export réussi' : 'Export successful',
+      description: language === 'fr' ? 'Données sandbox exportées' : 'Sandbox data exported',
+    });
+  });
+
   const exportSandboxDataMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('/api/sandbox/export-complete-data', 'POST', {
-        includeMetrics: true,
-        includeLogs: true,
-        includeTests: true,
-        timeRange: '24h'
-      });
-    },
-    onSuccess: async (response) => {
-      const data = await response.json();
-      // Créer le fichier de téléchargement
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sandbox-export-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      
-      toast({
-        title: language === 'fr' ? 'Export réussi' : 'Export successful',
-        description: language === 'fr' ? 'Données sandbox exportées' : 'Sandbox data exported',
-      });
-    }
+    mutationFn: stableExportData,
+    onSuccess: stableOnExportSuccess
   });
 
-  // Réinitialisation complète du sandbox
+  // Réinitialisation complète du sandbox avec callback stable
+  const stableResetSandbox = useStableCallback(async () => {
+    return await apiRequest('/api/sandbox/complete-reset', 'POST', {
+      resetData: true,
+      resetMetrics: true,
+      resetCache: true
+    });
+  });
+
+  const stableOnResetSuccess = useStableCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['/api/sandbox/real-time-metrics'] });
+    toast({
+      title: language === 'fr' ? 'Sandbox réinitialisé' : 'Sandbox reset',
+      description: language === 'fr' ? 'Environnement complètement réinitialisé' : 'Environment completely reset',
+    });
+  });
+
   const resetSandboxMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('/api/sandbox/complete-reset', 'POST', {
-        resetData: true,
-        resetMetrics: true,
-        resetCache: true
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/sandbox/real-time-metrics'] });
-      toast({
-        title: language === 'fr' ? 'Sandbox réinitialisé' : 'Sandbox reset',
-        description: language === 'fr' ? 'Environnement complètement réinitialisé' : 'Environment completely reset',
-      });
-    }
+    mutationFn: stableResetSandbox,
+    onSuccess: stableOnResetSuccess
   });
 
   const renderOverviewTab = () => (
@@ -199,7 +211,7 @@ const UpdatedSandboxDashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              onClick={() => runFullTestsMutation.mutate()}
+              onClick={useStableCallback(() => runFullTestsMutation.mutate())}
               disabled={runFullTestsMutation.isPending}
               className="w-full"
             >
@@ -240,7 +252,7 @@ const UpdatedSandboxDashboard = () => {
           <CardContent className="space-y-3">
             <Button 
               variant="outline" 
-              onClick={() => exportSandboxDataMutation.mutate()}
+              onClick={useStableCallback(() => exportSandboxDataMutation.mutate())}
               disabled={exportSandboxDataMutation.isPending}
               className="w-full"
             >
@@ -250,13 +262,13 @@ const UpdatedSandboxDashboard = () => {
             
             <Button 
               variant="outline" 
-              onClick={() => {
+              onClick={useStableCallback(() => {
                 queryClient.invalidateQueries({ queryKey: ['/api/sandbox/real-time-metrics'] });
                 toast({
                   title: language === 'fr' ? 'Actualisé' : 'Refreshed',
                   description: language === 'fr' ? 'Métriques mises à jour' : 'Metrics updated',
                 });
-              }}
+              })}
               className="w-full"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -265,7 +277,7 @@ const UpdatedSandboxDashboard = () => {
             
             <Button 
               variant="destructive" 
-              onClick={() => resetSandboxMutation.mutate()}
+              onClick={useStableCallback(() => resetSandboxMutation.mutate())}
               disabled={resetSandboxMutation.isPending}
               className="w-full"
             >
@@ -303,7 +315,7 @@ const UpdatedSandboxDashboard = () => {
           </Badge>
           <Button
             variant="outline"
-            onClick={() => setActiveTab(activeTab === 'overview' ? 'testing' : 'overview')}
+            onClick={useStableCallback(() => setActiveTab(activeTab === 'overview' ? 'testing' : 'overview'))}
           >
             <Languages className="h-4 w-4 mr-2" />
             {language === 'fr' ? 'Changer vue' : 'Switch View'}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
   MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell
@@ -28,49 +29,31 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState<string>(activeModule || '');
 
-  // Event listeners for navigation between modules
-  useEffect(() => {
-    const handleSwitchToAttendance = () => {
-      console.log('[TEACHER_DASHBOARD] 📋 Event received: switchToAttendance');
-      setCurrentActiveModule('attendance');
-    };
+  // Stable event handlers that survive server restarts
+  useStableEventHandler(() => {
+    console.log('[TEACHER_DASHBOARD] 📋 Event received: switchToAttendance');
+    setCurrentActiveModule('attendance');
+  }, 'switchToAttendance');
 
-    const handleSwitchToGrades = () => {
-      console.log('[TEACHER_DASHBOARD] 📊 Event received: switchToGrades');
-      setCurrentActiveModule('grades');
-    };
+  useStableEventHandler(() => {
+    console.log('[TEACHER_DASHBOARD] 📊 Event received: switchToGrades');
+    setCurrentActiveModule('grades');
+  }, 'switchToGrades');
 
-    const handleSwitchToCommunications = () => {
-      console.log('[TEACHER_DASHBOARD] 💬 Event received: switchToCommunications');
-      setCurrentActiveModule('communications');
-    };
+  useStableEventHandler(() => {
+    console.log('[TEACHER_DASHBOARD] 💬 Event received: switchToCommunications');
+    setCurrentActiveModule('communications');
+  }, 'switchToCommunications');
 
-    const handleSwitchToClasses = () => {
-      console.log('[TEACHER_DASHBOARD] 👥 Event received: switchToClasses');
-      setCurrentActiveModule('classes');
-    };
+  useStableEventHandler(() => {
+    console.log('[TEACHER_DASHBOARD] 👥 Event received: switchToClasses');
+    setCurrentActiveModule('classes');
+  }, 'switchToClasses');
 
-    const handleSwitchToTimetable = () => {
-      console.log('[TEACHER_DASHBOARD] 📅 Event received: switchToTimetable');
-      setCurrentActiveModule('timetable');
-    };
-
-    // Add event listeners
-    window.addEventListener('switchToAttendance', handleSwitchToAttendance);
-    window.addEventListener('switchToGrades', handleSwitchToGrades);
-    window.addEventListener('switchToCommunications', handleSwitchToCommunications);
-    window.addEventListener('switchToClasses', handleSwitchToClasses);
-    window.addEventListener('switchToTimetable', handleSwitchToTimetable);
-
-    return () => {
-      // Cleanup event listeners
-      window.removeEventListener('switchToAttendance', handleSwitchToAttendance);
-      window.removeEventListener('switchToGrades', handleSwitchToGrades);
-      window.removeEventListener('switchToCommunications', handleSwitchToCommunications);
-      window.removeEventListener('switchToClasses', handleSwitchToClasses);
-      window.removeEventListener('switchToTimetable', handleSwitchToTimetable);
-    };
-  }, []);
+  useStableEventHandler(() => {
+    console.log('[TEACHER_DASHBOARD] 📅 Event received: switchToTimetable');
+    setCurrentActiveModule('timetable');
+  }, 'switchToTimetable');
 
   const text = {
     fr: {
