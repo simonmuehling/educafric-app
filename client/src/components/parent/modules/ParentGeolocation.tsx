@@ -77,20 +77,25 @@ export const ParentGeolocation = () => {
   const t = translations[language === 'fr' ? 'fr' : 'en'].geolocation;
 
   // Real API calls using TanStack Query - Complete Storage-Route-API-Frontend Chain
-  const { data: childrenData = [], isLoading: childrenLoading } = useQuery<Child[]>({
+  const { data: childrenData, isLoading: childrenLoading } = useQuery<Child[]>({
     queryKey: ['/api/parent/geolocation/children'],
     enabled: !!user
   });
 
-  const { data: safeZonesData = [], isLoading: zonesLoading } = useQuery<SafeZone[]>({
+  const { data: safeZonesData, isLoading: zonesLoading } = useQuery<SafeZone[]>({
     queryKey: ['/api/parent/geolocation/safe-zones'],
     enabled: !!user
   });
 
-  const { data: alertsData = [], isLoading: alertsLoading } = useQuery<GeolocationAlert[]>({
+  const { data: alertsData, isLoading: alertsLoading } = useQuery<GeolocationAlert[]>({
     queryKey: ['/api/parent/geolocation/alerts'],
     enabled: !!user
   });
+
+  // Safe data with fallbacks
+  const children = childrenData || [];
+  const safeZones = safeZonesData || [];
+  const alerts = alertsData || [];
 
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
@@ -388,7 +393,7 @@ export const ParentGeolocation = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-blue-600">{t.activeDevices}</p>
-                  <p className="text-2xl font-bold text-blue-900">{(Array.isArray(childrenData) ? childrenData.length : 0)}</p>
+                  <p className="text-2xl font-bold text-blue-900">{children.length}</p>
                 </div>
                 <Smartphone className="w-8 h-8 text-blue-500" />
               </div>
@@ -398,7 +403,7 @@ export const ParentGeolocation = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-green-600">{t.safeZonesCount}</p>
-                  <p className="text-2xl font-bold text-green-900">{(Array.isArray(safeZonesData) ? safeZonesData.length : 0)}</p>
+                  <p className="text-2xl font-bold text-green-900">{safeZones.length}</p>
                 </div>
                 <Shield className="w-8 h-8 text-green-500" />
               </div>
@@ -408,7 +413,7 @@ export const ParentGeolocation = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-orange-600">{t.todayAlerts}</p>
-                  <p className="text-2xl font-bold text-orange-900">{(Array.isArray(alertsData) ? alertsData : []).filter(a => !a.resolved).length}</p>
+                  <p className="text-2xl font-bold text-orange-900">{alerts.filter(a => !a.resolved).length}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-orange-500" />
               </div>
@@ -425,7 +430,7 @@ export const ParentGeolocation = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(Array.isArray(childrenData) ? childrenData : []).map(child => (
+                {children.map(child => (
                   <div key={child.id} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -551,7 +556,7 @@ export const ParentGeolocation = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(Array.isArray(safeZonesData) ? safeZonesData : []).map(zone => (
+            {safeZones.map(zone => (
               <Card key={zone.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -1177,9 +1182,9 @@ export const ParentGeolocation = () => {
 
       {/* Modal Configuration Enfant */}
       {showConfigureChild.show && showConfigureChild.child && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-            <div className="sticky top-0 bg-white p-6 pb-4 border-b">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Configuration du suivi - {showConfigureChild.child.name}</h3>
                 <Button 
@@ -1192,7 +1197,7 @@ export const ParentGeolocation = () => {
               </div>
             </div>
             
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto flex-1">
               <form className="space-y-6" onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
@@ -1326,20 +1331,31 @@ export const ParentGeolocation = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4">
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => setShowConfigureChild({show: false, child: null})}
-                  >
-                    Annuler
-                  </Button>
-                  <Button type="submit" className="flex-1">
-                    Enregistrer Configuration
-                  </Button>
-                </div>
               </form>
+            </div>
+            
+            {/* Footer fixe avec boutons d'action */}
+            <div className="sticky bottom-0 bg-white p-6 pt-4 border-t flex-shrink-0">
+              <div className="flex gap-3">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowConfigureChild({show: false, child: null})}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="flex-1"
+                  onClick={() => {
+                    const form = document.querySelector('form') as HTMLFormElement;
+                    if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  Enregistrer Configuration
+                </Button>
+              </div>
             </div>
           </div>
         </div>
