@@ -126,7 +126,7 @@ export class SubscriptionReminderService {
    * Envoie le rappel d'abonnement (SMS + Email)
    */
   private async sendSubscriptionReminder(user: User, daysLeft: number) {
-    const isFrencBg = user.preferredLanguage === 'fr' || language === 'fr';
+    const isFrencBg = user.preferredLanguage === 'fr';
     
     // Messages bilingues
     const messages = {
@@ -177,7 +177,11 @@ The EDUCAFRIC Team
       
       // Envoyer SMS si numéro disponible
       if (user.phone) {
-        await notificationService.sendSMS(user.phone, messages[lang].sms);
+        await notificationService.sendNotification({
+          type: 'sms',
+          message: messages[lang].sms,
+          data: { userId: user.id, phone: user.phone, title: 'Subscription Reminder' }
+        });
         console.log(`[SUBSCRIPTION_REMINDER] SMS sent to ${user.firstName} ${user.lastName} (${user.phone})`);
       }
 
@@ -188,14 +192,14 @@ The EDUCAFRIC Team
         console.log(`[SUBSCRIPTION_REMINDER] Sending email reminder to ${user.email}`);
         
         await notificationService.sendNotification({
-          type: 'subscription_reminder',
-          userId: user.id,
-          title: messages[lang].emailSubject,
+          type: 'email',
           message: messages[lang].emailBody,
           data: {
+            userId: user.id,
             subscriptionPlan: user.subscriptionPlan,
             subscriptionEnd: user.subscriptionEnd,
-            daysLeft: daysLeft
+            daysLeft: daysLeft,
+            title: messages[lang].emailSubject
           }
         });
         console.log(`[SUBSCRIPTION_REMINDER] Email sent to ${user.firstName} ${user.lastName} (${user.email})`);
@@ -216,7 +220,7 @@ The EDUCAFRIC Team
     message: string; 
   }> {
     try {
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         throw new Error('User not found');
       }
@@ -243,12 +247,10 @@ The EDUCAFRIC Team
         subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
       }
 
-      // Mettre à jour l'utilisateur
-      await storage.updateUserSubscription(userId, {
+      // Mettre à jour l'utilisateur avec les champs disponibles
+      await storage.updateUser(userId, {
         subscriptionStatus: 'active',
-        stripeSubscriptionId: paymentIntentId,
-        planId: newPlan,
-        planName: newPlan
+        stripeSubscriptionId: paymentIntentId
       });
 
       // Mettre à jour les dates de subscription (si cette méthode existe)
@@ -292,7 +294,7 @@ The EDUCAFRIC Team
    */
   public async testReminderSystem(userId: number): Promise<{ success: boolean; message: string }> {
     try {
-      const user = await storage.getUser(userId);
+      const user = await storage.getUserById(userId);
       if (!user) {
         return { success: false, message: 'User not found' };
       }
@@ -301,11 +303,9 @@ The EDUCAFRIC Team
       const testSubscriptionEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       
       // Mettre à jour le statut d'abonnement pour le test
-      await storage.updateUserSubscription(userId, {
+      await storage.updateUser(userId, {
         subscriptionStatus: 'active',
-        stripeSubscriptionId: 'test_subscription_' + userId,
-        planId: 'test-plan',
-        planName: 'Test Plan'
+        stripeSubscriptionId: 'test_subscription_' + userId
       });
 
       // Envoyer le rappel de test
