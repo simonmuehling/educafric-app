@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ModernCard } from '@/components/ui/ModernCard';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { 
   MapPin, Shield, Smartphone, Battery, AlertTriangle, 
   Clock, Navigation, Home, School, CheckCircle, 
@@ -223,7 +224,7 @@ export const ParentGeolocation = () => {
               <Button
                 key={tab.id}
                 variant={activeTab === tab.id ? "default" : "outline"}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={useStableCallback(() => setActiveTab(tab.id))}
                 className="flex items-center gap-2 md:gap-2"
                 title={tab.label}
               >
@@ -386,11 +387,23 @@ export const ParentGeolocation = () => {
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => {
+                    onClick={useStableCallback(() => {
                       console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name || ''}`);
-                      // This would typically open a configuration modal
-                      queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
-                    }}
+                      // Call real API to configure child tracking
+                      fetch(`/api/parent/geolocation/children/${child.id}/configure`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ action: 'configure_tracking' })
+                      }).then(response => {
+                        if (response.ok) {
+                          queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
+                          console.log(`[PARENT_GEOLOCATION] ✅ Successfully configured tracking for ${child.name || ''}`);
+                        }
+                      }).catch(error => {
+                        console.error('[PARENT_GEOLOCATION] Configure tracking error:', error);
+                      });
+                    })}
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     Configurer Suivi
@@ -407,7 +420,10 @@ export const ParentGeolocation = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t.safeZones}</h3>
-            <Button onClick={() => setShowAddZone(true)}>
+            <Button onClick={useStableCallback(() => {
+              console.log('[PARENT_GEOLOCATION] 🔧 Opening add safe zone modal...');
+              setShowAddZone(true);
+            })}>
               <Plus className="w-4 h-4 mr-2" />
               {t.addSafeZone}
             </Button>
@@ -449,11 +465,26 @@ export const ParentGeolocation = () => {
                     variant="outline" 
                     size="sm" 
                     className="w-full mt-3"
-                    onClick={() => {
+                    onClick={useStableCallback(() => {
                       console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
-                      // This would typically open an edit modal
-                      queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
-                    }}
+                      // Call real API to modify safe zone
+                      fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ 
+                          action: 'modify_zone',
+                          updates: { name: zone.name, active: !zone.active }
+                        })
+                      }).then(response => {
+                        if (response.ok) {
+                          queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+                          console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
+                        }
+                      }).catch(error => {
+                        console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
+                      });
+                    })}
                   >
                     <Settings className="w-4 h-4 mr-2" />
                     Modifier
