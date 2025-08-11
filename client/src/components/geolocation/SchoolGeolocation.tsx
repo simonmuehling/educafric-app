@@ -1329,7 +1329,7 @@ export default function SchoolGeolocation() {
             <div className="space-y-6">
               <Card data-testid="emergency-protocol">
                 <CardHeader>
-                  <CardTitle>{t.emergencyProtocol}</CardTitle>
+                  <CardTitle>{language === 'fr' ? 'Protocole d\'Urgence' : 'Emergency Protocol'}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Alert>
