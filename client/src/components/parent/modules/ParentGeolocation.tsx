@@ -97,6 +97,50 @@ export const ParentGeolocation = () => {
     }
   });
 
+  // Stable callback handlers - moved to top level to avoid hooks rule violations
+  const handleViewZoneMap = useStableCallback((zone: SafeZone) => {
+    console.log(`[PARENT_GEOLOCATION] 🗺️ View safe zone ${zone.name || ''} on map`);
+    fetch(`/api/parent/geolocation/safe-zones/${zone.id}/map`, {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      if (response.ok) {
+        const zoneMapData = await response.json();
+        console.log(`[PARENT_GEOLOCATION] ✅ Zone map data:`, zoneMapData);
+        window.dispatchEvent(new CustomEvent('openSafeZoneMap', { 
+          detail: { zone, zoneMapData } 
+        }));
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] View zone map error:', error);
+    });
+  });
+
+  const handleModifyZone = useStableCallback((zone: SafeZone) => {
+    console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
+    fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ 
+        action: 'modify_zone',
+        updates: { name: zone.name, active: !zone.active }
+      })
+    }).then(response => {
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+        console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
+    });
+  });
+
+  const handleAddSafeZone = useStableCallback(() => {
+    console.log('[PARENT_GEOLOCATION] 🔧 Opening add safe zone modal...');
+    setShowAddZone(true);
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'safe': return 'bg-green-100 text-green-700';
@@ -376,10 +420,7 @@ export const ParentGeolocation = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">{t.safeZones}</h3>
-            <Button onClick={useStableCallback(() => {
-              console.log('[PARENT_GEOLOCATION] 🔧 Opening add safe zone modal...');
-              setShowAddZone(true);
-            })}>
+            <Button onClick={handleAddSafeZone}>
               <Plus className="w-4 h-4 mr-2" />
               {t.addSafeZone}
             </Button>
@@ -422,24 +463,7 @@ export const ParentGeolocation = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={useStableCallback(() => {
-                        console.log(`[PARENT_GEOLOCATION] 🗺️ View safe zone ${zone.name || ''} on map`);
-                        // Call API to show safe zone on map
-                        fetch(`/api/parent/geolocation/safe-zones/${zone.id}/map`, {
-                          method: 'GET',
-                          credentials: 'include'
-                        }).then(async response => {
-                          if (response.ok) {
-                            const zoneMapData = await response.json();
-                            console.log(`[PARENT_GEOLOCATION] ✅ Zone map data:`, zoneMapData);
-                            window.dispatchEvent(new CustomEvent('openSafeZoneMap', { 
-                              detail: { zone, zoneMapData } 
-                            }));
-                          }
-                        }).catch(error => {
-                          console.error('[PARENT_GEOLOCATION] View zone map error:', error);
-                        });
-                      })}
+                      onClick={() => handleViewZoneMap(zone)}
                     >
                       <MapPin className="w-3 h-3 mr-1" />
                       {t.viewMap}
@@ -448,26 +472,7 @@ export const ParentGeolocation = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={useStableCallback(() => {
-                        console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
-                        // Call real API to modify safe zone
-                        fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          credentials: 'include',
-                          body: JSON.stringify({ 
-                            action: 'modify_zone',
-                            updates: { name: zone.name, active: !zone.active }
-                          })
-                        }).then(response => {
-                          if (response.ok) {
-                            queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
-                            console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
-                          }
-                        }).catch(error => {
-                          console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
-                        });
-                      })}
+                      onClick={() => handleModifyZone(zone)}
                     >
                       <Settings className="w-3 h-3 mr-1" />
                       Modifier
