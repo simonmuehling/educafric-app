@@ -42,6 +42,7 @@ interface AuthenticatedUser extends User {
 }
 import { registerTrackingRoutes } from "./routes/tracking";
 import { NotificationService } from "./services/notificationService";
+import { geolocationAlertService } from "./services/geolocationAlertService";
 import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import subscriptionRoutes from "./routes/subscription";
@@ -11728,6 +11729,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching students" });
     }
   });
+
+  // ===== GEOLOCATION ALERT ROUTES =====
+  
+  // Process location updates and check for zone violations
+  app.post("/api/geolocation/alert/zone-exit", requireAuth, async (req, res) => {
+    try {
+      const { studentId, zoneName, currentLocation, parentId, teacherIds } = req.body;
+      
+      console.log(`[GEOLOCATION_ALERT] 🚨 Zone exit alert for student ${studentId}`);
+      
+      await geolocationAlertService.processLocationUpdate({
+        studentId,
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        timestamp: new Date().toISOString(),
+        accuracy: 10,
+        address: currentLocation.address
+      });
+      
+      res.json({ success: true, message: 'Zone exit alert processed' });
+    } catch (error: any) {
+      console.error('[GEOLOCATION_ALERT] Error processing zone exit:', error);
+      res.status(500).json({ message: 'Failed to process zone exit alert' });
+    }
+  });
+
+  // Start geolocation monitoring service
+  app.post("/api/geolocation/monitoring/start", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Parent', 'Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Parent or admin access required' });
+      }
+      
+      geolocationAlertService.startMonitoring();
+      
+      console.log(`[GEOLOCATION_MONITORING] ✅ Started by user ${req.user.id}`);
+      res.json({ success: true, message: 'Geolocation monitoring started' });
+    } catch (error: any) {
+      console.error('[GEOLOCATION_MONITORING] Error starting monitoring:', error);
+      res.status(500).json({ message: 'Failed to start monitoring' });
+    }
+  });
+
+  // Stop geolocation monitoring service
+  app.post("/api/geolocation/monitoring/stop", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Parent', 'Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Parent or admin access required' });
+      }
+      
+      geolocationAlertService.stopMonitoring();
+      
+      console.log(`[GEOLOCATION_MONITORING] ✅ Stopped by user ${req.user.id}`);
+      res.json({ success: true, message: 'Geolocation monitoring stopped' });
+    } catch (error: any) {
+      console.error('[GEOLOCATION_MONITORING] Error stopping monitoring:', error);
+      res.status(500).json({ message: 'Failed to stop monitoring' });
+    }
+  });
+
+  // Simulate zone exit for testing purposes
+  app.post("/api/geolocation/test/zone-exit", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !['Parent', 'Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
+        return res.status(403).json({ message: 'Parent or admin access required' });
+      }
+      
+      const { studentId = 15, zoneName = 'École Primaire Central' } = req.body;
+      
+      console.log(`[GEOLOCATION_TEST] 🧪 Simulating zone exit for student ${studentId}`);
+      
+      // Simulate location update outside safe zone
+      await geolocationAlertService.processLocationUpdate({
+        studentId,
+        latitude: 4.0600,  // Outside the school zone
+        longitude: 9.7800,
+        timestamp: new Date().toISOString(),
+        accuracy: 10,
+        address: 'Avenue Kennedy, Douala - HORS ZONE'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Zone exit simulation triggered for student ${studentId}`,
+        location: 'Avenue Kennedy, Douala - HORS ZONE'
+      });
+    } catch (error: any) {
+      console.error('[GEOLOCATION_TEST] Error simulating zone exit:', error);
+      res.status(500).json({ message: 'Failed to simulate zone exit' });
+    }
+  });
+
+  // Initialize geolocation monitoring on server start
+  console.log('[GEOLOCATION_SERVICE] 🛡️ Initializing geolocation alert service...');
+  geolocationAlertService.startMonitoring();
 
   const httpServer = createServer(app);
   // ===== MULTI-ROLE MANAGEMENT ROUTES =====

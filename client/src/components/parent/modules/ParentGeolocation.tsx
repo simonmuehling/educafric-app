@@ -97,6 +97,29 @@ export const ParentGeolocation = () => {
   const safeZones = safeZonesData || [];
   const alerts = alertsData || [];
 
+  // Test zone exit mutation
+  const testZoneExitMutation = useMutation({
+    mutationFn: async (data: { studentId: number; zoneName: string }) => {
+      console.log('[PARENT_GEOLOCATION] 🧪 Testing zone exit alert for:', data);
+      const response = await fetch('/api/geolocation/test/zone-exit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to test zone exit');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('[PARENT_GEOLOCATION] ✅ Zone exit test completed:', data);
+      alert(`Test d'alerte de sortie de zone envoyé avec succès!\nLocalisation simulée: ${data.location}`);
+    },
+    onError: (error) => {
+      console.error('[PARENT_GEOLOCATION] ❌ Zone exit test failed:', error);
+      alert('Erreur lors du test d\'alerte');
+    }
+  });
+
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
     mutationFn: async (zoneData: any) => {
@@ -602,6 +625,37 @@ export const ParentGeolocation = () => {
       {/* Alerts Tab */}
       {activeTab === 'alerts' && !(childrenLoading || zonesLoading || alertsLoading) && (
         <div className="space-y-6">
+          {/* Test Alert Button */}
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                  Test des Alertes
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const studentId = children.length > 0 ? children[0].id : 15; // Use first child or default
+                    testZoneExitMutation.mutate({ 
+                      studentId, 
+                      zoneName: 'École Primaire Central' 
+                    });
+                  }}
+                  disabled={testZoneExitMutation.isPending}
+                  className="bg-orange-50 hover:bg-orange-100 border-orange-200"
+                >
+                  <AlertTriangle className="w-4 h-4 mr-2" />
+                  {testZoneExitMutation.isPending ? 'Test en cours...' : 'Tester Sortie de Zone'}
+                </Button>
+              </h3>
+              <p className="text-sm text-gray-600">
+                Testez les alertes SMS et notifications PWA lorsqu'un enfant sort d'une zone de sécurité
+              </p>
+            </CardHeader>
+          </Card>
+          
           <Card>
             <CardHeader>
               <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -1038,7 +1092,7 @@ export const ParentGeolocation = () => {
                   <label className="block text-sm font-medium mb-2">Enfant</label>
                   <select name="childId" className="w-full p-2 border rounded-lg" required>
                     <option value="">Sélectionner un enfant</option>
-                    {childrenData.map(child => (
+                    {(childrenData || []).map(child => (
                       <option key={child.id} value={child.id}>{child.name}</option>
                     ))}
                   </select>

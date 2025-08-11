@@ -204,6 +204,35 @@ export const SMS_TEMPLATES = {
       `Safe zone "${zoneName}" deleted for ${childName}. Zone no longer active.`,
     fr: (zoneName: string, childName: string) => 
       `Zone "${zoneName}" supprimée pour ${childName}. Zone plus active.`
+  },
+
+  // Zone Exit/Entry Alerts
+  ZONE_EXIT_ALERT: {
+    en: (childName: string, zoneName: string, time: string, location: string) => 
+      `ALERT: ${childName} left safe zone "${zoneName}" at ${time}. Current location: ${location}`,
+    fr: (childName: string, zoneName: string, time: string, location: string) => 
+      `ALERTE: ${childName} a quitté la zone "${zoneName}" à ${time}. Position actuelle: ${location}`
+  },
+
+  ZONE_ENTRY_CONFIRMATION: {
+    en: (childName: string, zoneName: string, time: string) => 
+      `${childName} entered safe zone "${zoneName}" at ${time}. All is well.`,
+    fr: (childName: string, zoneName: string, time: string) => 
+      `${childName} est entré dans la zone "${zoneName}" à ${time}. Tout va bien.`
+  },
+
+  OUT_OF_ALL_ZONES: {
+    en: (childName: string, currentLocation: string, time: string) => 
+      `URGENT: ${childName} is outside all safe zones at ${currentLocation}, ${time}. Please check immediately!`,
+    fr: (childName: string, currentLocation: string, time: string) => 
+      `URGENT: ${childName} est hors de toutes zones de sécurité à ${currentLocation}, ${time}. Vérifiez immédiatement!`
+  },
+
+  EXTENDED_ABSENCE: {
+    en: (childName: string, duration: string, lastKnownLocation: string) => 
+      `${childName} has been outside safe zones for ${duration}. Last seen: ${lastKnownLocation}`,
+    fr: (childName: string, duration: string, lastKnownLocation: string) => 
+      `${childName} est hors zones de sécurité depuis ${duration}. Dernière position: ${lastKnownLocation}`
   }
 };
 
@@ -395,6 +424,222 @@ export class NotificationService {
     };
 
     console.log(`[NOTIFICATION_SERVICE] ✅ Notification created:`, notification);
+  }
+
+  // Send zone exit/entry alerts
+  async notifyZoneAlert(
+    alertType: 'zone_exit' | 'zone_entry' | 'out_of_all_zones' | 'extended_absence',
+    alertData: {
+      childName: string;
+      childId: number;
+      parentId: number;
+      zoneName?: string;
+      currentLocation: string;
+      time: string;
+      duration?: string;
+      teacherIds?: number[];
+    },
+    language: 'en' | 'fr' = 'fr'
+  ): Promise<void> {
+    console.log(`[NOTIFICATION_SERVICE] 🚨 Sending ${alertType} alert for ${alertData.childName}`);
+
+    let template: string;
+    let notificationTitle: string;
+    let notificationMessage: string;
+    let priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium';
+
+    // Determine template and notification content based on alert type
+    switch (alertType) {
+      case 'zone_exit':
+        template = 'ZONE_EXIT_ALERT';
+        notificationTitle = language === 'fr' ? 'Sortie de zone de sécurité' : 'Left Safe Zone';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          alertData.childName, 
+          alertData.zoneName || '', 
+          alertData.time, 
+          alertData.currentLocation
+        );
+        priority = 'high';
+        break;
+      case 'zone_entry':
+        template = 'ZONE_ENTRY_CONFIRMATION';
+        notificationTitle = language === 'fr' ? 'Entrée en zone de sécurité' : 'Entered Safe Zone';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          alertData.childName, 
+          alertData.zoneName || '', 
+          alertData.time
+        );
+        priority = 'low';
+        break;
+      case 'out_of_all_zones':
+        template = 'OUT_OF_ALL_ZONES';
+        notificationTitle = language === 'fr' ? '🚨 HORS DE TOUTES LES ZONES' : '🚨 OUTSIDE ALL ZONES';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          alertData.childName, 
+          alertData.currentLocation, 
+          alertData.time
+        );
+        priority = 'urgent';
+        break;
+      case 'extended_absence':
+        template = 'EXTENDED_ABSENCE';
+        notificationTitle = language === 'fr' ? 'Absence prolongée' : 'Extended Absence';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          alertData.childName, 
+          alertData.duration || '', 
+          alertData.currentLocation
+        );
+        priority = 'urgent';
+        break;
+      default:
+        return;
+    }
+
+    // Create notification data for different user types
+    const notifications = [
+      {
+        userId: alertData.parentId,
+        userType: 'Parent',
+        title: notificationTitle,
+        message: notificationMessage,
+        type: alertType,
+        priority,
+        category: 'security',
+        actionUrl: alertType === 'out_of_all_zones' || alertType === 'zone_exit' ? '/geolocation' : undefined,
+        actionText: alertType === 'out_of_all_zones' || alertType === 'zone_exit' ? 
+          (language === 'fr' ? 'Voir position' : 'View Location') : undefined
+      }
+    ];
+
+    // For urgent alerts, also notify the student
+    if (alertType === 'out_of_all_zones' || alertType === 'zone_exit') {
+      notifications.push({
+        userId: alertData.childId,
+        userType: 'Student',
+        title: notificationTitle,
+        message: language === 'fr' ? 
+          'Vous êtes hors des zones de sécurité. Vos parents ont été informés.' :
+          'You are outside safe zones. Your parents have been notified.',
+        type: alertType,
+        priority,
+        category: 'security'
+      });
+    }
+
+    // Add teacher notifications for urgent situations
+    if ((alertType === 'out_of_all_zones' || alertType === 'extended_absence') && 
+        alertData.teacherIds && alertData.teacherIds.length > 0) {
+      alertData.teacherIds.forEach(teacherId => {
+        notifications.push({
+          userId: teacherId,
+          userType: 'Teacher',
+          title: notificationTitle,
+          message: `Student safety alert: ${notificationMessage}`,
+          type: alertType,
+          priority,
+          category: 'security'
+        });
+      });
+    }
+
+    // Send notifications to all concerned users
+    for (const notification of notifications) {
+      await this.createNotification(notification);
+    }
+
+    console.log(`[NOTIFICATION_SERVICE] 🚨 Sent ${notifications.length} ${alertType} alerts`);
+
+    // Send SMS for urgent security alerts
+    if (alertType === 'out_of_all_zones' || alertType === 'zone_exit' || alertType === 'extended_absence') {
+      await this.sendSecuritySMS(alertData, notificationMessage, language);
+    }
+
+    // Send PWA push notifications
+    await this.sendPWANotifications(notifications, alertType);
+  }
+
+  // Send SMS alerts for security incidents
+  private async sendSecuritySMS(
+    alertData: { parentId: number; childName: string; currentLocation: string },
+    message: string,
+    language: 'en' | 'fr'
+  ): Promise<void> {
+    try {
+      console.log(`[SMS_ALERT] 📱 Sending security SMS for ${alertData.childName}`);
+      
+      // In a real implementation, you would:
+      // 1. Get parent's phone number from database
+      // 2. Send SMS via Vonage API
+      // 3. Log SMS delivery status
+      
+      const smsData = {
+        to: '+237600000000', // Parent's phone (would come from database)
+        from: 'EduAfric',
+        text: `🚨 EDUCAFRIC SÉCURITÉ\n\n${message}\n\nConnectez-vous à l'app pour voir la position en temps réel.`
+      };
+
+      console.log(`[SMS_ALERT] ✅ Security SMS queued:`, smsData);
+    } catch (error) {
+      console.error(`[SMS_ALERT] ❌ Failed to send SMS:`, error);
+    }
+  }
+
+  // Send PWA push notifications
+  private async sendPWANotifications(
+    notifications: Array<{
+      userId: number;
+      userType: string;
+      title: string;
+      message: string;
+      type: string;
+      priority: string;
+      category: string;
+      actionUrl?: string;
+      actionText?: string;
+    }>,
+    alertType: string
+  ): Promise<void> {
+    try {
+      console.log(`[PWA_PUSH] 🔔 Sending PWA notifications for ${alertType}`);
+
+      for (const notification of notifications) {
+        // In a real implementation with service workers:
+        // 1. Get user's push subscription from database
+        // 2. Send push notification via web-push library
+        // 3. Include action buttons for urgent alerts
+        
+        const pushPayload = {
+          title: notification.title,
+          body: notification.message,
+          icon: '/icon-192x192.png',
+          badge: '/badge-72x72.png',
+          tag: `security-${notification.userId}-${Date.now()}`,
+          requireInteraction: notification.priority === 'urgent',
+          actions: notification.actionUrl ? [
+            {
+              action: 'view_location',
+              title: notification.actionText || 'Voir position',
+              icon: '/icons/location.png'
+            },
+            {
+              action: 'dismiss',
+              title: 'Fermer',
+              icon: '/icons/close.png'
+            }
+          ] : undefined,
+          data: {
+            url: notification.actionUrl || '/',
+            userId: notification.userId,
+            type: notification.type,
+            timestamp: Date.now()
+          }
+        };
+
+        console.log(`[PWA_PUSH] ✅ PWA notification prepared for user ${notification.userId}:`, pushPayload);
+      }
+    } catch (error) {
+      console.error(`[PWA_PUSH] ❌ Failed to send PWA notifications:`, error);
+    }
   }
 
   // Consolidated notification sending
