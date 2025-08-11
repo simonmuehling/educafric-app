@@ -1,9 +1,8 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import * as ws from "ws";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "../shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Configuration pour HTTP au lieu de WebSocket (résout le problème de connexion)
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +10,5 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+const sql = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql, { schema });
