@@ -6,6 +6,20 @@ import { validateEnvironment } from "./middleware/validation";
 import { errorHandler } from "./middleware/errorHandler";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAutoFixMiddleware } from "./autofix-system";
+import {
+  compressionMiddleware,
+  timeoutMiddleware,
+  performanceMiddleware,
+  cacheControlMiddleware,
+  memoryCleanupMiddleware
+} from "./middleware/performance";
+import {
+  assetOptimizationMiddleware,
+  cssOptimizationMiddleware,
+  jsOptimizationMiddleware,
+  imageOptimizationMiddleware,
+  bundleOptimizationMiddleware
+} from "./middleware/assetOptimization";
 
 // Load environment variables
 process.env.VONAGE_API_KEY = '81c4973f';
@@ -14,8 +28,23 @@ process.env.VONAGE_FROM_NUMBER = '+237657004011';
 // Stripe keys will be automatically loaded from Replit Secrets
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Performance optimizations
+app.use(compressionMiddleware);
+app.use(timeoutMiddleware(15000)); // 15 second timeout
+app.use(performanceMiddleware);
+app.use(cacheControlMiddleware);
+app.use(memoryCleanupMiddleware);
+
+// Asset optimizations
+app.use(assetOptimizationMiddleware);
+app.use(cssOptimizationMiddleware);
+app.use(jsOptimizationMiddleware);
+app.use(imageOptimizationMiddleware);
+app.use(bundleOptimizationMiddleware);
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
