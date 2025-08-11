@@ -1516,6 +1516,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Safe zones routes moved to geolocation router
 
+  // Global alert state management
+  let alertsState = new Map([
+    [1, { acknowledged: false, resolved: false, acknowledgedAt: null, resolvedAt: null }],
+    [2, { acknowledged: false, resolved: false, acknowledgedAt: null, resolvedAt: null }],
+    [3, { acknowledged: false, resolved: true, acknowledgedAt: null, resolvedAt: new Date(Date.now() - 20 * 60 * 1000).toISOString() }]
+  ]);
+
   app.get('/api/parent/geolocation/alerts', requireAuth, async (req: Request, res: Response) => {
     try {
       const user = req.user;
@@ -1523,16 +1530,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ success: false, message: 'Authentication required' });
       }
 
-      // Mock alerts data
-      const alertsData = [
+      // Mock alerts data with dynamic state
+      const baseAlertsData = [
         {
           id: 1,
           childName: "Marie Kamdem",
           type: "zone_exit",
           message: "Marie a quitté la zone scolaire à 16h45",
           timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          severity: "warning",
-          resolved: false
+          severity: "warning"
         },
         {
           id: 2,
@@ -1540,8 +1546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "low_battery",
           message: "Batterie faible: 15% restant",
           timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-          severity: "info",
-          resolved: false
+          severity: "info"
         },
         {
           id: 3,
@@ -1549,10 +1554,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: "zone_enter",
           message: "Sophie est arrivée à la maison",
           timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          severity: "info",
-          resolved: true
+          severity: "info"
         }
       ];
+
+      // Merge base data with current state
+      const alertsData = baseAlertsData.map(alert => {
+        const state = alertsState.get(alert.id) || { acknowledged: false, resolved: false, acknowledgedAt: null, resolvedAt: null };
+        return {
+          ...alert,
+          ...state,
+          resolved: state.resolved
+        };
+      });
       
       res.json(alertsData);
     } catch (error) {
@@ -1619,20 +1633,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/parent/geolocation/alerts/:alertId/acknowledge', requireAuth, async (req: Request, res: Response) => {
     const { alertId } = req.params;
+    const id = parseInt(alertId);
     console.log(`[PARENT_GEOLOCATION_API] Acknowledging alert ${alertId}`);
+    
+    // Update alert state
+    if (alertsState.has(id)) {
+      const currentState = alertsState.get(id)!;
+      alertsState.set(id, {
+        ...currentState,
+        acknowledged: true,
+        acknowledgedAt: new Date().toISOString()
+      });
+      console.log(`[PARENT_GEOLOCATION_API] ✅ Alert ${alertId} acknowledged and state updated`);
+    }
     
     res.json({
       success: true,
+      acknowledged: true,
       message: `Alert ${alertId} acknowledged successfully`
     });
   });
 
   app.patch('/api/parent/geolocation/alerts/:alertId/resolve', requireAuth, async (req: Request, res: Response) => {
     const { alertId } = req.params;
+    const id = parseInt(alertId);
     console.log(`[PARENT_GEOLOCATION_API] Resolving alert ${alertId}`);
+    
+    // Update alert state
+    if (alertsState.has(id)) {
+      const currentState = alertsState.get(id)!;
+      alertsState.set(id, {
+        ...currentState,
+        resolved: true,
+        resolvedAt: new Date().toISOString()
+      });
+      console.log(`[PARENT_GEOLOCATION_API] ✅ Alert ${alertId} resolved and state updated`);
+    }
     
     res.json({
       success: true,
+      resolved: true,
       message: `Alert ${alertId} resolved successfully`
     });
   });
