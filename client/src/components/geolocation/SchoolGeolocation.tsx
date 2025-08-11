@@ -21,7 +21,15 @@ import {
   BarChart3,
   Smartphone,
   Building,
-  MessageSquare
+  MessageSquare,
+  Target,
+  Battery,
+  Download,
+  User,
+  UserCheck,
+  ArrowLeft,
+  HelpCircle,
+  BookOpen
 } from 'lucide-react';
 
 export default function SchoolGeolocation() {
@@ -30,10 +38,10 @@ export default function SchoolGeolocation() {
   const [currentTab, setCurrentTab] = useState('overview');
 
   const t = {
-    title: language === 'fr' ? 'Géolocalisation École' : 'School Geolocation',
-    subtitle: language === 'fr' ? 'Configuration centralisée et suivi temps réel' : 'Centralized configuration and real-time tracking',
+    title: language === 'fr' ? 'Services de Géolocalisation École' : 'School Geolocation Services',
+    subtitle: language === 'fr' ? 'Deux options d\'accès • Configuration centralisée • Suivi temps réel' : 'Two access options • Centralized configuration • Real-time tracking',
     overview: language === 'fr' ? 'Aperçu' : 'Overview',
-    zoneConfig: language === 'fr' ? 'Configuration Zones' : 'Zone Configuration',
+    serviceOptions: language === 'fr' ? 'Options de Service' : 'Service Options',
     analytics: language === 'fr' ? 'Analyses' : 'Analytics',
     settings: language === 'fr' ? 'Paramètres' : 'Settings',
     studentsTracked: language === 'fr' ? 'Élèves Suivis' : 'Students Tracked',
@@ -44,21 +52,26 @@ export default function SchoolGeolocation() {
     absent: language === 'fr' ? 'Absents' : 'Absent',
     delayed: language === 'fr' ? 'Retards' : 'Delayed',
     outOfZone: language === 'fr' ? 'Hors Zone' : 'Out of Zone',
-    setupMass: language === 'fr' ? 'Configuration Massive' : 'Mass Setup',
-    deploymentGuide: language === 'fr' ? 'Guide de Déploiement' : 'Deployment Guide',
-    classManagement: language === 'fr' ? 'Gestion par Classe' : 'Class Management',
-    emergencyProtocol: language === 'fr' ? 'Protocole d\'Urgence' : 'Emergency Protocol',
-    manageZones: language === 'fr' ? 'Gérer les Zones' : 'Manage Zones',
-    createZone: language === 'fr' ? 'Créer une Zone' : 'Create Zone',
-    editZone: language === 'fr' ? 'Modifier Zone' : 'Edit Zone',
-    deleteZone: language === 'fr' ? 'Supprimer Zone' : 'Delete Zone',
-    zoneName: language === 'fr' ? 'Nom de la Zone' : 'Zone Name',
-    zoneRadius: language === 'fr' ? 'Rayon (mètres)' : 'Radius (meters)',
-    assignToClasses: language === 'fr' ? 'Assigner aux Classes' : 'Assign to Classes',
-    scheduleActive: language === 'fr' ? 'Horaires Actifs' : 'Active Schedule',
-    parentSubscription: language === 'fr' ? 'Abonnement Parents' : 'Parent Subscription',
-    subscribedParents: language === 'fr' ? 'Parents Abonnés' : 'Subscribed Parents',
-    pendingSubscriptions: language === 'fr' ? 'Abonnements en Attente' : 'Pending Subscriptions'
+    viaSchool: language === 'fr' ? 'Via École Partenaire' : 'Via Partner School',
+    directSubscription: language === 'fr' ? 'Abonnement Direct' : 'Direct Subscription',
+    schoolConnection: language === 'fr' ? 'Connexion scolaire' : 'School connection',
+    required: language === 'fr' ? 'Obligatoire' : 'Required',
+    optional: language === 'fr' ? 'Optionnelle' : 'Optional',
+    autonomy: language === 'fr' ? 'Autonomie' : 'Independence',
+    dependent: language === 'fr' ? 'Dépendant de l\'école' : 'School dependent',
+    independent: language === 'fr' ? 'Totalement indépendant' : 'Completely independent',
+    pricing: language === 'fr' ? 'Tarification' : 'Pricing',
+    schoolPlusGeo: language === 'fr' ? 'École + Géolocalisation' : 'School + Geolocation',
+    geoOnly: language === 'fr' ? 'Géolocalisation uniquement' : 'Geolocation only',
+    parentPrice: language === 'fr' ? '1 000 CFA/mois • 12 000 CFA/an' : '1,000 CFA/month • 12,000 CFA/year',
+    features: language === 'fr' ? 'Fonctionnalités disponibles' : 'Available features',
+    realTimeTracking: language === 'fr' ? 'Suivi temps réel des enfants' : 'Real-time child tracking',
+    safeZoneConfig: language === 'fr' ? 'Configuration des zones de sécurité' : 'Safe zone configuration',
+    deviceManagement: language === 'fr' ? 'Gestion des appareils (smartphone, montre, GPS)' : 'Device management (smartphone, watch, GPS)',
+    multiChannelNotif: language === 'fr' ? 'Notifications multi-canal (SMS, Email, PWA)' : 'Multi-channel notifications (SMS, Email, PWA)',
+    setupInstructions: language === 'fr' ? 'Instructions de configuration des téléphones' : 'Phone setup instructions',
+    invitationSystem: language === 'fr' ? 'Système d\'invitation parent-enfant' : 'Parent-child invitation system',
+    twoWaysAccess: language === 'fr' ? 'IMPORTANT : Il existe DEUX façons d\'accéder aux services de géolocalisation' : 'IMPORTANT: There are TWO ways to access geolocation services'
   };
 
   // Demo school data for 500+ students
@@ -155,13 +168,17 @@ export default function SchoolGeolocation() {
               <BarChart3 className="h-5 w-5 mb-1 md:mb-0 md:mr-2" />
               <span className="text-xs sm:text-sm">{t.overview}</span>
             </TabsTrigger>
-            <TabsTrigger value="zones" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 min-h-[60px] sm:min-h-[40px]" data-testid="tab-zones">
-              <Shield className="h-5 w-5 mb-1 sm:mb-0" />
-              <span className="text-xs sm:text-sm">{t.zoneConfig}</span>
+            <TabsTrigger value="service-options" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 min-h-[60px] sm:min-h-[40px]" data-testid="tab-service-options">
+              <Users className="h-5 w-5 mb-1 sm:mb-0" />
+              <span className="text-xs sm:text-sm">{t.serviceOptions}</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 min-h-[60px] sm:min-h-[40px]" data-testid="tab-analytics">
               <Activity className="h-5 w-5 mb-1 sm:mb-0" />
               <span className="text-xs sm:text-sm">{t.analytics}</span>
+            </TabsTrigger>
+            <TabsTrigger value="role-guides" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 min-h-[60px] sm:min-h-[40px]" data-testid="tab-role-guides">
+              <BookOpen className="h-5 w-5 mb-1 sm:mb-0" />
+              <span className="text-xs sm:text-sm">{language === 'fr' ? 'Guides' : 'Guides'}</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-2 min-h-[60px] sm:min-h-[40px]" data-testid="tab-settings">
               <Settings className="h-5 w-5 mb-1 sm:mb-0" />
@@ -327,18 +344,226 @@ export default function SchoolGeolocation() {
             </div>
           </TabsContent>
 
-          {/* Zone Configuration Tab */}
-          <TabsContent value="zones" data-testid="zones-content">
+          {/* Service Options Tab - Inspired by the HTML document */}
+          <TabsContent value="service-options" data-testid="service-options-content">
             <div className="space-y-6">
-              <Alert data-testid="schedule-verification-alert">
-                <Clock className="h-5 w-5 mb-1 sm:mb-0" />
-                <AlertDescription>
-                  <strong>{language === 'fr' ? 'Vérification Automatique Emploi du Temps:' : 'Automatic Schedule Verification:'}</strong>{' '}
-                  {language === 'fr' 
-                    ? 'Le système vérifie automatiquement si les élèves sont dans les zones sécurisées aux heures de début des classes et alerte les parents abonnés en cas d\'absence.'
-                    : 'The system automatically checks if students are in safe zones at class start times and alerts subscribed parents if absent.'}
+              {/* Important Notice */}
+              <Alert className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800" data-testid="two-ways-access-alert">
+                <AlertTriangle className="h-5 w-5 mb-1 sm:mb-0 text-red-500" />
+                <AlertDescription className="text-red-800 dark:text-red-200">
+                  <strong>{t.twoWaysAccess}</strong>
                 </AlertDescription>
               </Alert>
+
+              {/* Comparison Table */}
+              <Card data-testid="service-comparison-table">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 mb-1 sm:mb-0 text-blue-500" />
+                    {language === 'fr' ? 'Comparaison des Options d\'Accès' : 'Access Options Comparison'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+                          <th className="text-left p-4 font-semibold border-b border-gray-200 dark:border-gray-700">
+                            {language === 'fr' ? 'Aspect' : 'Aspect'}
+                          </th>
+                          <th className="text-left p-4 font-semibold border-b border-gray-200 dark:border-gray-700">
+                            🏫 {t.viaSchool}
+                          </th>
+                          <th className="text-left p-4 font-semibold border-b border-gray-200 dark:border-gray-700">
+                            📱 {t.directSubscription}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
+                          <td className="p-4 font-medium">{t.schoolConnection}</td>
+                          <td className="p-4">
+                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                              ✅ {t.required}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <Badge variant="outline" className="border-gray-300 text-gray-600">
+                              ❌ {t.optional}
+                            </Badge>
+                          </td>
+                        </tr>
+                        <tr className="bg-gray-50 dark:bg-gray-900/20 border-b border-gray-100 dark:border-gray-800">
+                          <td className="p-4 font-medium">{t.autonomy}</td>
+                          <td className="p-4">
+                            <Badge variant="outline" className="border-orange-300 text-orange-600">
+                              ⚠️ {t.dependent}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <Badge className="bg-green-100 text-green-800 border-green-200">
+                              ✅ {t.independent}
+                            </Badge>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
+                          <td className="p-4 font-medium">{t.pricing}</td>
+                          <td className="p-4 text-sm">{t.schoolPlusGeo}</td>
+                          <td className="p-4 text-sm">{t.geoOnly}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Service Options */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Option 1: Via School */}
+                <Card className="border-2 border-blue-200 dark:border-blue-800" data-testid="via-school-option">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <School className="h-6 w-6 mb-1 sm:mb-0" />
+                      🏫 {language === 'fr' ? 'OPTION 1 : VIA ÉCOLE PARTENAIRE' : 'OPTION 1: VIA PARTNER SCHOOL'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-3">
+                          {language === 'fr' ? 'Processus étape par étape :' : 'Step-by-step process:'}
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-blue-500">
+                            <span className="font-bold text-blue-600">1️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'Le parent se connecte d\'abord à une école partenaire'
+                                : 'Parent connects first to a partner school'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-blue-500">
+                            <span className="font-bold text-blue-600">2️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'Il invite ses enfants via cette connexion scolaire'
+                                : 'Invites children via this school connection'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-blue-500">
+                            <span className="font-bold text-blue-600">3️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'La géolocalisation devient un service premium additionnel'
+                                : 'Geolocation becomes an additional premium service'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Option 2: Direct Subscription */}
+                <Card className="border-2 border-green-200 dark:border-green-800" data-testid="direct-subscription-option">
+                  <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <Smartphone className="h-6 w-6 mb-1 sm:mb-0" />
+                      📱 {language === 'fr' ? 'OPTION 2 : ABONNEMENT DIRECT' : 'OPTION 2: DIRECT SUBSCRIPTION'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <h4 className="font-semibold text-green-800 dark:text-green-300 mb-3">
+                          {language === 'fr' ? 'Processus étape par étape :' : 'Step-by-step process:'}
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-green-500">
+                            <span className="font-bold text-green-600">1️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'Le parent s\'abonne directement au service de géolocalisation'
+                                : 'Parent subscribes directly to geolocation service'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-green-500">
+                            <span className="font-bold text-green-600">2️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'Il invite ses enfants immédiatement'
+                                : 'Invites children immediately'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-green-500">
+                            <span className="font-bold text-green-600">3️⃣</span>
+                            <span className="text-sm">
+                              {language === 'fr' 
+                                ? 'Aucune connexion scolaire requise'
+                                : 'No school connection required'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Pricing Information */}
+              <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white" data-testid="pricing-information">
+                <CardContent className="p-6 text-center">
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-bold">💰 {language === 'fr' ? 'TARIF PARENT' : 'PARENT PRICING'}</h3>
+                    <div className="text-xl font-semibold">{t.parentPrice}</div>
+                    <p className="text-sm opacity-90">
+                      {language === 'fr' 
+                        ? 'Suivi temps réel + Alertes SMS + Zones sécurisées'
+                        : 'Real-time tracking + SMS alerts + Safe zones'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Features List */}
+              <Card data-testid="features-list">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 mb-1 sm:mb-0 text-green-500" />
+                    🎯 {t.features}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 dark:bg-gray-900/20 p-4 rounded-lg">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.realTimeTracking}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.safeZoneConfig}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.deviceManagement}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.multiChannelNotif}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.setupInstructions}</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 mt-1 text-green-500 flex-shrink-0" />
+                        <span className="text-sm">{t.invitationSystem}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Parent Choice System */}
               <div className="space-y-6">
@@ -558,6 +783,375 @@ export default function SchoolGeolocation() {
                   </Card>
                 </div>
               </div>
+            </div>
+          </TabsContent>
+
+          {/* Role-Specific Guides Tab - Inspired by GeolocationGuide */}
+          <TabsContent value="role-guides" data-testid="role-guides-content">
+            <div className="space-y-6">
+              <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800" data-testid="role-guides-intro">
+                <BookOpen className="h-5 w-5 mb-1 sm:mb-0 text-blue-500" />
+                <AlertDescription className="text-blue-800 dark:text-blue-200">
+                  <strong>{language === 'fr' ? 'Guides par Rôle' : 'Role-Specific Guides'}</strong><br />
+                  {language === 'fr' 
+                    ? 'Découvrez comment utiliser efficacement la géolocalisation selon votre profil'
+                    : 'Learn how to effectively use geolocation according to your profile'}
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Director Guide */}
+                <Card className="border-2 border-purple-200 dark:border-purple-800" data-testid="director-guide">
+                  <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <School className="h-6 w-6 mb-1 sm:mb-0" />
+                      {language === 'fr' ? 'Guide Directeurs' : 'Director Guide'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '1. Souscription École' : '1. School Subscription'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? '25,000 CFA/an pour suivi massif (500+ élèves)'
+                              : '25,000 CFA/year for mass tracking (500+ students)'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '2. Configuration Campus' : '2. Campus Configuration'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Définir périmètres scolaires et zones sécurisées'
+                              : 'Define school perimeters and secure zones'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Users className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '3. Supervision Massive' : '3. Mass Supervision'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Dashboard temps réel pour tous les élèves'
+                              : 'Real-time dashboard for all students'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-purple-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '4. Protocole Urgence' : '4. Emergency Protocol'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Coordination équipes et services d\'urgence'
+                              : 'Team coordination and emergency services'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" className="w-full text-xs" data-testid="button-director-details">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Détails Complets' : 'Full Details'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Parent Guide */}
+                <Card className="border-2 border-green-200 dark:border-green-800" data-testid="parent-guide">
+                  <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-6 w-6 mb-1 sm:mb-0" />
+                      {language === 'fr' ? 'Guide Parents' : 'Parent Guide'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '1. Souscription Service' : '1. Service Subscription'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? '1,000 CFA/mois depuis Services Premium'
+                              : '1,000 CFA/month from Premium Services'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Shield className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '2. Zones Sécurité' : '2. Safety Zones'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Configuration école, maison et alertes SMS'
+                              : 'Configure school, home and SMS alerts'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Smartphone className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '3. App Enfant' : '3. Child App'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Installation et permissions sur téléphone enfant'
+                              : 'Installation and permissions on child phone'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MapPin className="h-4 w-4 text-green-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '4. Surveillance Quotidienne' : '4. Daily Monitoring'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Dashboard temps réel et vérification alertes'
+                              : 'Real-time dashboard and alert verification'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" className="w-full text-xs" data-testid="button-parent-details">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Détails Complets' : 'Full Details'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Student Guide */}
+                <Card className="border-2 border-blue-200 dark:border-blue-800" data-testid="student-guide">
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-6 w-6 mb-1 sm:mb-0" />
+                      {language === 'fr' ? 'Guide Élèves' : 'Student Guide'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="space-y-3">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Smartphone className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '1. App Téléphone' : '1. Phone App'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Gardez Educafric actif et chargé'
+                              : 'Keep Educafric active and charged'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Shield className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '2. Zones Sécurité' : '2. Safety Zones'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Restez dans zones définies par parents'
+                              : 'Stay within zones defined by parents'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '3. Mode Urgence' : '3. Emergency Mode'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Triple clic bouton alimentation = alerte parents'
+                              : 'Triple click power button = parent alert'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-blue-600" />
+                            <span className="font-semibold text-sm">
+                              {language === 'fr' ? '4. Responsabilités' : '4. Responsibilities'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {language === 'fr' 
+                              ? 'Communication ouverte avec parents'
+                              : 'Open communication with parents'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="outline" className="w-full text-xs" data-testid="button-student-details">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Détails Complets' : 'Full Details'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Additional Guides */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Teacher Guide */}
+                <Card className="border-2 border-orange-200 dark:border-orange-800" data-testid="teacher-guide">
+                  <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <UserCheck className="h-6 w-6 mb-1 sm:mb-0" />
+                      {language === 'fr' ? 'Guide Enseignants' : 'Teacher Guide'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="text-sm">
+                        <strong>{language === 'fr' ? 'Surveillance classe' : 'Class monitoring'}:</strong><br />
+                        <span className="text-xs text-gray-600">
+                          {language === 'fr' 
+                            ? 'Dashboard temps réel pour élèves de votre classe'
+                            : 'Real-time dashboard for your class students'}
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        <strong>{language === 'fr' ? 'Alertes automatiques' : 'Automatic alerts'}:</strong><br />
+                        <span className="text-xs text-gray-600">
+                          {language === 'fr' 
+                            ? 'Notifications sorties non autorisées pendant cours'
+                            : 'Unauthorized exit notifications during classes'}
+                        </span>
+                      </div>
+                      <Button variant="outline" className="w-full text-xs" data-testid="button-teacher-details">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Guide Complet' : 'Complete Guide'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Freelancer Guide */}
+                <Card className="border-2 border-teal-200 dark:border-teal-800" data-testid="freelancer-guide">
+                  <CardHeader className="bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-6 w-6 mb-1 sm:mb-0" />
+                      {language === 'fr' ? 'Guide Freelancers' : 'Freelancer Guide'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="text-sm">
+                        <strong>{language === 'fr' ? 'Cours privés sécurisés' : 'Secure private lessons'}:</strong><br />
+                        <span className="text-xs text-gray-600">
+                          {language === 'fr' 
+                            ? 'Suivi élèves pendant cours particuliers'
+                            : 'Student tracking during private lessons'}
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        <strong>{language === 'fr' ? 'Confiance parents' : 'Parent trust'}:</strong><br />
+                        <span className="text-xs text-gray-600">
+                          {language === 'fr' 
+                            ? 'Transparence totale sur lieu et durée cours'
+                            : 'Full transparency on lesson location and duration'}
+                        </span>
+                      </div>
+                      <Button variant="outline" className="w-full text-xs" data-testid="button-freelancer-details">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Guide Complet' : 'Complete Guide'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Features Reference */}
+              <Card data-testid="quick-features-reference">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 mb-1 sm:mb-0 text-indigo-500" />
+                    {language === 'fr' ? 'Référence Rapide des Fonctionnalités' : 'Quick Features Reference'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-indigo-700 dark:text-indigo-300">
+                        {language === 'fr' ? 'Fonctionnalités Principales' : 'Main Features'}
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">{language === 'fr' ? 'Suivi temps réel des positions' : 'Real-time position tracking'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">{language === 'fr' ? 'Zones de sécurité configurables' : 'Configurable safety zones'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">{language === 'fr' ? 'Alertes SMS automatiques' : 'Automatic SMS alerts'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Battery className="h-4 w-4 text-green-500" />
+                          <span className="text-sm">{language === 'fr' ? 'Surveillance niveau batterie' : 'Battery level monitoring'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-sm text-indigo-700 dark:text-indigo-300">
+                        {language === 'fr' ? 'Tarification' : 'Pricing'}
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{language === 'fr' ? 'Parents:' : 'Parents:'}</span>
+                          <Badge className="bg-green-100 text-green-800 border-green-200">1,000 CFA/mois</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{language === 'fr' ? 'Écoles:' : 'Schools:'}</span>
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">25,000 CFA/an</Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{language === 'fr' ? 'Freelancers:' : 'Freelancers:'}</span>
+                          <Badge className="bg-purple-100 text-purple-800 border-purple-200">15,000 CFA/an</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
