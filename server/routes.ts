@@ -21372,6 +21372,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Geolocation Routes
   app.use('/api/geolocation', geolocationRoutes);
 
+  // ===== PARENT REQUEST MANAGEMENT ROUTES =====
+  
+  // Get all parent requests
+  app.get('/api/parent-requests', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (user.role !== 'Parent') {
+        return res.status(403).json({ message: 'Parent access required' });
+      }
+      
+      console.log(`[PARENT_REQUESTS] Fetching requests for parent: ${user.id}`);
+      
+      // For demo - return mock data that includes school enrollment requests
+      const mockRequests = [
+        {
+          id: 1,
+          type: 'absence_request',
+          subject: 'Demande d\'absence pour rendez-vous médical',
+          description: 'Mon enfant a un rendez-vous médical important',
+          status: 'pending',
+          priority: 'medium',
+          category: 'health',
+          createdAt: new Date().toISOString(),
+          studentId: 1,
+          parentId: user.id
+        },
+        {
+          id: 2,
+          type: 'meeting', 
+          subject: 'Rendez-vous avec le professeur',
+          description: 'Je souhaiterais discuter des résultats de mon enfant',
+          status: 'approved',
+          priority: 'high',
+          category: 'academic',
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          responseDate: new Date().toISOString(),
+          adminResponse: 'Rendez-vous confirmé pour vendredi 14h00',
+          studentId: 1,
+          parentId: user.id
+        },
+        {
+          id: 3,
+          type: 'school_enrollment',
+          subject: 'Demande d\'adhésion - École Bilingue Saint-Michel',
+          description: 'Je souhaite inscrire ma fille dans votre établissement pour bénéficier d\'un enseignement bilingue de qualité.',
+          status: 'in_progress',
+          priority: 'high',
+          category: 'enrollment',
+          schoolCode: 'EDU-CAM-012',
+          childFirstName: 'Sophie',
+          childLastName: 'Mballa',
+          childDateOfBirth: '2012-03-15',
+          relationshipType: 'parent',
+          contactPhone: '+237 691 234 567',
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+          adminResponse: 'Dossier en cours d\'examen. Entretien prévu la semaine prochaine.',
+          parentId: user.id
+        }
+      ];
+      
+      res.json(mockRequests);
+    } catch (error: any) {
+      console.error('[PARENT_REQUESTS] Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create new parent request (including school enrollment)
+  app.post('/api/parent-requests', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (user.role !== 'Parent') {
+        return res.status(403).json({ message: 'Parent access required' });
+      }
+
+      const requestData = req.body;
+      console.log(`[PARENT_REQUESTS] Creating new request:`, requestData);
+
+      // Validate required fields for school enrollment
+      if (requestData.type === 'school_enrollment') {
+        const requiredFields = ['schoolCode', 'childFirstName', 'childLastName', 'childDateOfBirth', 'relationshipType', 'contactPhone'];
+        const missingFields = requiredFields.filter(field => !requestData[field]);
+        
+        if (missingFields.length > 0) {
+          return res.status(400).json({ 
+            message: `Champs requis manquants pour l'adhésion école: ${missingFields.join(', ')}` 
+          });
+        }
+
+        // Send notifications to school administrators
+        console.log(`[SCHOOL_ENROLLMENT] New enrollment request for school: ${requestData.schoolCode}`);
+        // In production, this would notify the school administrators
+      }
+
+      // Mock successful creation
+      const newRequest = {
+        id: Date.now(),
+        ...requestData,
+        parentId: user.id,
+        status: requestData.type === 'school_enrollment' ? 'pending' : 'pending',
+        createdAt: new Date().toISOString()
+      };
+
+      res.status(201).json({
+        success: true,
+        message: requestData.type === 'school_enrollment' 
+          ? 'Demande d\'adhésion envoyée avec succès à l\'école'
+          : 'Demande envoyée avec succès',
+        request: newRequest
+      });
+    } catch (error: any) {
+      console.error('[PARENT_REQUESTS] Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
 

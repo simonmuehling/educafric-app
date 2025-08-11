@@ -11,21 +11,41 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Send, Clock, CheckCircle, XCircle, AlertCircle, FileText, Calendar, MessageSquare } from 'lucide-react';
+import { Plus, Send, Clock, CheckCircle, XCircle, AlertCircle, FileText, Calendar, MessageSquare, GraduationCap, School, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
 
-// Schema pour la validation des demandes
-const requestSchema = z.object({
-  type: z.enum(['absence_request', 'permission', 'complaint', 'information', 'meeting', 'document', 'other']),
-  category: z.enum(['academic', 'administrative', 'health', 'disciplinary', 'transportation', 'other']),
+// Schema de base pour la validation des demandes
+const baseRequestSchema = z.object({
+  type: z.enum(['absence_request', 'permission', 'complaint', 'information', 'meeting', 'document', 'school_enrollment', 'other']),
+  category: z.enum(['academic', 'administrative', 'health', 'disciplinary', 'transportation', 'enrollment', 'other']),
   subject: z.string().min(1, 'Le sujet est requis').max(200, 'Le sujet est trop long'),
   description: z.string().min(10, 'La description doit contenir au moins 10 caractères').max(1000, 'La description est trop longue'),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   requestedDate: z.string().optional(),
-  studentId: z.number(),
+  studentId: z.number().optional(),
+});
+
+// Schema avec validation conditionnelle pour l'inscription école
+const requestSchema = baseRequestSchema.extend({
+  // Champs spécifiques pour l'inscription à l'école
+  schoolCode: z.string().optional(),
+  childFirstName: z.string().optional(),
+  childLastName: z.string().optional(),
+  childDateOfBirth: z.string().optional(),
+  relationshipType: z.enum(['parent', 'guardian', 'tutor']).optional(),
+  contactPhone: z.string().optional(),
+}).refine((data) => {
+  if (data.type === 'school_enrollment') {
+    return !!(data.schoolCode && data.childFirstName && data.childLastName && 
+              data.childDateOfBirth && data.relationshipType && data.contactPhone);
+  }
+  return true;
+}, {
+  message: "Tous les champs sont requis pour une demande d'adhésion école",
+  path: ["schoolCode"]
 });
 
 type RequestFormData = z.infer<typeof requestSchema>;
@@ -56,47 +76,14 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   // Récupérer les demandes du parent
   const { data: requests, isLoading } = useQuery({
     queryKey: ['/api/parent-requests'],
-    queryFn: async () => {
-      // For demo purposes, return mock data
-      return [
-        {
-          id: 1,
-          type: 'absence_request',
-          subject: 'Demande d\'absence pour rendez-vous médical',
-          description: 'Mon enfant a un rendez-vous médical important',
-          status: 'pending',
-          priority: 'medium',
-          createdAt: new Date().toISOString(),
-          studentId: 1
-        },
-        {
-          id: 2,
-          type: 'meeting',
-          subject: 'Rendez-vous avec le professeur',
-          description: 'Je souhaiterais discuter des résultats de mon enfant',
-          status: 'approved',
-          priority: 'high',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          responseDate: new Date().toISOString(),
-          adminResponse: 'Rendez-vous confirmé pour vendredi 14h00',
-          studentId: 1
-        }
-      ];
-    },
   });
 
   // Mutation pour créer une nouvelle demande
   const createRequestMutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
-      // Mock API call - in production this would be a real API call
-      const response = await fetch('/api/parent-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to create request');
-      return response.json();
+      console.log('[PARENT_REQUEST_MANAGER] Creating request:', data);
+      const response = await apiRequest('/api/parent-requests', 'POST', data);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/parent-requests'] });
@@ -152,6 +139,11 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
       icon: FileText, 
       description: 'Demander un certificat ou document officiel' 
     },
+    school_enrollment: { 
+      label: 'Demande d\'Adhésion École', 
+      icon: GraduationCap, 
+      description: 'Demander l\'inscription de votre enfant à une école partenaire Educafric' 
+    },
     other: { 
       label: 'Autre', 
       icon: MessageSquare, 
@@ -192,7 +184,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     }
   };
 
-  const filteredRequests = requests?.filter((request: any) => 
+  const filteredRequests = (requests as any[])?.filter((request: any) => 
     selectedStatus === 'all' || request.status === selectedStatus
   ) || [];
 
@@ -312,6 +304,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                           <SelectItem value="health">Santé</SelectItem>
                           <SelectItem value="disciplinary">Disciplinaire</SelectItem>
                           <SelectItem value="transportation">Transport</SelectItem>
+                          <SelectItem value="enrollment">Inscription/Adhésion</SelectItem>
                           <SelectItem value="other">Autre</SelectItem>
                         </SelectContent>
                       </Select>
@@ -385,17 +378,152 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   />
                 )}
 
+                {/* Champs spécifiques pour la demande d'adhésion à une école */}
+                {form.watch('type') === 'school_enrollment' && (
+                  <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <GraduationCap className="w-5 h-5" />
+                      <h4 className="font-semibold">Informations pour l'Adhésion École</h4>
+                    </div>
+                    
+                    {/* Code de l'école */}
+                    <FormField
+                      control={form.control}
+                      name="schoolCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code de l'École *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="Ex: EDU-CAM-001 (fourni par l'école)"
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-600">
+                            Le code unique de l'école Educafric que vous souhaitez rejoindre
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Informations de l'enfant */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="childFirstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Prénom de l'enfant *</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Prénom" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="childLastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nom de l'enfant *</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nom de famille" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="childDateOfBirth"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date de naissance de l'enfant *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="date"
+                              max={new Date().toISOString().split('T')[0]}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Type de relation */}
+                    <FormField
+                      control={form.control}
+                      name="relationshipType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Relation avec l'enfant *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionnez votre relation" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="parent">Parent</SelectItem>
+                              <SelectItem value="guardian">Tuteur légal</SelectItem>
+                              <SelectItem value="tutor">Tuteur</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Téléphone de contact */}
+                    <FormField
+                      control={form.control}
+                      name="contactPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Téléphone de contact *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="+237 xxx xxx xxx"
+                              type="tel"
+                            />
+                          </FormControl>
+                          <p className="text-xs text-gray-600">
+                            Numéro pour les communications urgentes liées à l'enfant
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
                 {/* Description */}
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description détaillée</FormLabel>
+                      <FormLabel>
+                        {form.watch('type') === 'school_enrollment' 
+                          ? 'Raisons de la demande d\'adhésion' 
+                          : 'Description détaillée'
+                        }
+                      </FormLabel>
                       <FormControl>
                         <Textarea 
                           {...field}
-                          placeholder="Décrivez en détail votre demande, les raisons, et toute information utile..."
+                          placeholder={
+                            form.watch('type') === 'school_enrollment'
+                              ? "Expliquez pourquoi vous souhaitez inscrire votre enfant dans cette école, vos attentes, et toute information pertinente..."
+                              : "Décrivez en détail votre demande, les raisons, et toute information utile..."
+                          }
                           rows={5}
                           maxLength={1000}
                         />
