@@ -36,9 +36,9 @@ interface SafeZone {
   id: number;
   name: string;
   type: 'home' | 'school' | 'relative' | 'activity';
-  center: { lat: number; lng: number };
+  coordinates: { lat: number; lng: number };
   radius: number;
-  children: number[];
+  children?: number[];
   active: boolean;
 }
 
