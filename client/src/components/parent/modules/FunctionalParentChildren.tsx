@@ -13,6 +13,7 @@ import {
   Calendar, BookOpen, GraduationCap, Star, MapPin,
   Mail, Download, UserCheck, FileText
 } from 'lucide-react';
+import { useStableCallback } from '@/hooks/useStableCallback';
 
 interface ParentChild {
   id: number;
@@ -297,7 +298,7 @@ const FunctionalParentChildren: React.FC = () => {
                 id: 'view-all-grades',
                 label: language === 'fr' ? 'Toutes les Notes' : 'All Grades',
                 icon: <FileText className="w-5 h-5" />,
-                onClick: () => {
+                onClick: useStableCallback(() => {
                   console.log('[PARENT_QUICK_ACTION] Fetching all grades...');
                   // Call API to get all grades then navigate
                   fetch('/api/parent/grades', {
@@ -319,14 +320,14 @@ const FunctionalParentChildren: React.FC = () => {
                       variant: 'destructive'
                     });
                   });
-                },
+                }),
                 color: 'bg-blue-600 hover:bg-blue-700'
               },
               {
                 id: 'check-attendance',
                 label: language === 'fr' ? 'Vérifier Présences' : 'Check Attendance',
                 icon: <UserCheck className="w-5 h-5" />,
-                onClick: () => {
+                onClick: useStableCallback(() => {
                   console.log('[PARENT_QUICK_ACTION] Fetching attendance data...');
                   // Call API to get attendance data then navigate
                   fetch('/api/parent/attendance', {
@@ -348,14 +349,14 @@ const FunctionalParentChildren: React.FC = () => {
                       variant: 'destructive'
                     });
                   });
-                },
+                }),
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
                 id: 'send-message',
                 label: language === 'fr' ? 'Message École' : 'Message School',
                 icon: <Mail className="w-5 h-5" />,
-                onClick: () => {
+                onClick: useStableCallback(() => {
                   console.log('[PARENT_QUICK_ACTION] Fetching messages data...');
                   // Call API to get messages data then navigate
                   fetch('/api/parent/messages', {
@@ -377,14 +378,14 @@ const FunctionalParentChildren: React.FC = () => {
                       variant: 'destructive'
                     });
                   });
-                },
+                }),
                 color: 'bg-purple-600 hover:bg-purple-700'
               },
               {
                 id: 'export-children',
                 label: language === 'fr' ? 'Exporter Données' : 'Export Data',
                 icon: <Download className="w-5 h-5" />,
-                onClick: () => {
+                onClick: useStableCallback(() => {
                   const csvContent = [
                     ['Nom,Prenom,Classe,Ecole,Moyenne,Assiduite,Statut'],
                     ...(Array.isArray(children) ? children : []).map(child => [
@@ -416,7 +417,7 @@ const FunctionalParentChildren: React.FC = () => {
                     title: language === 'fr' ? 'Export terminé' : 'Export completed',
                     description: language === 'fr' ? 'Données enfants exportées' : 'Children data exported',
                   });
-                },
+                }),
                 color: 'bg-orange-600 hover:bg-orange-700'
               }
             ]}
@@ -523,7 +524,7 @@ const FunctionalParentChildren: React.FC = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
+                            onClick={useStableCallback(() => {
                               console.log(`[PARENT_CHILD_ACTION] View progress for child ${child.id}`);
                               // Call API to get detailed progress
                               fetch(`/api/parent/children/${child.id}/progress`, {
@@ -545,7 +546,7 @@ const FunctionalParentChildren: React.FC = () => {
                                   variant: 'destructive'
                                 });
                               });
-                            }}
+                            })}
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             {t?.actions?.viewProgress}
@@ -553,7 +554,7 @@ const FunctionalParentChildren: React.FC = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
+                            onClick={useStableCallback(() => {
                               console.log(`[PARENT_CHILD_ACTION] View grades for child ${child.id}`);
                               // Call API to get child's grades
                               fetch(`/api/parent/children/${child.id}/grades`, {
@@ -575,7 +576,7 @@ const FunctionalParentChildren: React.FC = () => {
                                   variant: 'destructive'
                                 });
                               });
-                            }}
+                            })}
                           >
                             <BookOpen className="w-4 h-4 mr-2" />
                             {t?.actions?.viewGrades}
@@ -583,7 +584,7 @@ const FunctionalParentChildren: React.FC = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
+                            onClick={useStableCallback(() => {
                               console.log(`[PARENT_CHILD_ACTION] Contact teacher for child ${child.id}`);
                               // Call API to send message to teacher
                               fetch(`/api/parent/children/${child.id}/contact-teacher`, {
@@ -610,7 +611,7 @@ const FunctionalParentChildren: React.FC = () => {
                                   variant: 'destructive'
                                 });
                               });
-                            }}
+                            })}
                           >
                             <MessageCircle className="w-4 h-4 mr-2" />
                             {t?.actions?.contactTeacher}
@@ -618,7 +619,7 @@ const FunctionalParentChildren: React.FC = () => {
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => {
+                            onClick={useStableCallback(() => {
                               console.log(`[PARENT_CHILD_ACTION] View attendance for child ${child.id}`);
                               // Call API to get child's attendance
                               fetch(`/api/parent/children/${child.id}/attendance`, {
@@ -640,7 +641,7 @@ const FunctionalParentChildren: React.FC = () => {
                                   variant: 'destructive'
                                 });
                               });
-                            }}
+                            })}
                           >
                             <Calendar className="w-4 h-4 mr-2" />
                             {t?.actions?.viewAttendance}
