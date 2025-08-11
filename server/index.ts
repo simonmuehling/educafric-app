@@ -159,15 +159,9 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
   }).on('error', (err: any) => {
+    console.error('[SERVER_ERROR]', err);
     if (err.code === 'EADDRINUSE') {
-      console.log('[AUTOFIX] Port in use, attempting to clear and restart...');
-      exec('lsof -ti:5000 | xargs kill -9 && sleep 2', () => {
-        setTimeout(() => {
-          server.listen({ port, host: "0.0.0.0", reusePort: true });
-        }, 3000);
-      });
-    } else {
-      console.error('[SERVER_ERROR]', err);
+      console.log('[AUTOFIX] Port already in use - server may already be running');
     }
   });
 })();

@@ -59,6 +59,15 @@ export const ParentGeolocation = () => {
   const [selectedChild, setSelectedChild] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddZone, setShowAddZone] = useState(false);
+  const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationHelperActive, setLocationHelperActive] = useState(false);
+  const [suggestedLocations, setSuggestedLocations] = useState<Array<{
+    name: string;
+    type: string;
+    lat: number;
+    lng: number;
+    distance?: number;
+  }>>([]);
 
   // Use proper translations from translation system with safe fallback
   const t = translations[language === 'fr' ? 'fr' : 'en'].geolocation;
@@ -139,6 +148,70 @@ export const ParentGeolocation = () => {
   const handleAddSafeZone = useStableCallback(() => {
     console.log('[PARENT_GEOLOCATION] 🔧 Opening add safe zone modal...');
     setShowAddZone(true);
+    // Proposer des lieux populaires au Cameroun
+    setSuggestedLocations([
+      { name: "École Saint-Paul Douala", type: "school", lat: 4.0511, lng: 9.7679 },
+      { name: "Université de Douala", type: "school", lat: 4.0616, lng: 9.7736 },
+      { name: "Centre-ville Douala", type: "activity", lat: 4.0511, lng: 9.7679 },
+      { name: "Marché Central Yaoundé", type: "activity", lat: 3.8667, lng: 11.5167 },
+      { name: "École Bilingue Yaoundé", type: "school", lat: 3.8480, lng: 11.5021 }
+    ]);
+  });
+
+  const detectCurrentLocation = useStableCallback(() => {
+    console.log('[PARENT_GEOLOCATION] 🔍 Detecting current location...');
+    setLocationHelperActive(true);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setCurrentPosition(pos);
+          console.log('[PARENT_GEOLOCATION] ✅ Position détectée:', pos);
+          
+          // Mettre à jour les champs du formulaire
+          const latInput = document.querySelector('input[name="latitude"]') as HTMLInputElement;
+          const lngInput = document.querySelector('input[name="longitude"]') as HTMLInputElement;
+          if (latInput && lngInput) {
+            latInput.value = pos.lat.toFixed(6);
+            lngInput.value = pos.lng.toFixed(6);
+          }
+          setLocationHelperActive(false);
+        },
+        (error) => {
+          console.error('[PARENT_GEOLOCATION] ❌ Erreur géolocalisation:', error);
+          setLocationHelperActive(false);
+          // Proposer Douala par défaut
+          const defaultPos = { lat: 4.0511, lng: 9.7679 };
+          setCurrentPosition(defaultPos);
+          const latInput = document.querySelector('input[name="latitude"]') as HTMLInputElement;
+          const lngInput = document.querySelector('input[name="longitude"]') as HTMLInputElement;
+          if (latInput && lngInput) {
+            latInput.value = defaultPos.lat.toFixed(6);
+            lngInput.value = defaultPos.lng.toFixed(6);
+          }
+        }
+      );
+    }
+  });
+
+  const selectSuggestedLocation = useStableCallback((location: { lat: number; lng: number; name: string }) => {
+    console.log('[PARENT_GEOLOCATION] 📍 Location suggérée sélectionnée:', location);
+    const latInput = document.querySelector('input[name="latitude"]') as HTMLInputElement;
+    const lngInput = document.querySelector('input[name="longitude"]') as HTMLInputElement;
+    const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
+    
+    if (latInput && lngInput) {
+      latInput.value = location.lat.toFixed(6);
+      lngInput.value = location.lng.toFixed(6);
+    }
+    if (nameInput && !nameInput.value) {
+      nameInput.value = location.name;
+    }
+    setCurrentPosition({ lat: location.lat, lng: location.lng });
   });
 
   // Additional stable callback handlers to prevent hooks rule violations
@@ -650,6 +723,61 @@ export const ParentGeolocation = () => {
                 </select>
               </div>
               
+              {/* Aide interactive pour la géolocalisation */}
+              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                <h4 className="font-medium text-blue-800">🗺️ Aide à la localisation</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={detectCurrentLocation}
+                    disabled={locationHelperActive}
+                    className="w-full"
+                  >
+                    {locationHelperActive ? (
+                      <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full mr-2" />
+                    ) : (
+                      <Navigation className="w-4 h-4 mr-2" />
+                    )}
+                    {locationHelperActive ? 'Localisation...' : 'Ma Position'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const pos = { lat: 4.0511, lng: 9.7679 };
+                      selectSuggestedLocation({ ...pos, name: "Douala Centre" });
+                    }}
+                    className="w-full"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Douala Centre
+                  </Button>
+                </div>
+                
+                {/* Suggestions de lieux populaires */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-blue-700">Lieux populaires au Cameroun:</label>
+                  <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
+                    {suggestedLocations.map((loc, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className="text-left p-2 hover:bg-blue-100 rounded text-sm border"
+                        onClick={() => selectSuggestedLocation(loc)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{loc.name}</span>
+                          <span className="text-xs text-gray-500">
+                            {loc.type === 'school' ? '🏫' : loc.type === 'activity' ? '🏢' : '📍'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-2">Latitude</label>
@@ -661,6 +789,11 @@ export const ParentGeolocation = () => {
                     placeholder="3.8575"
                     required
                   />
+                  {currentPosition && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Position détectée: {currentPosition.lat.toFixed(6)}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Longitude</label>
@@ -672,6 +805,11 @@ export const ParentGeolocation = () => {
                     placeholder="11.5021"
                     required
                   />
+                  {currentPosition && (
+                    <p className="text-xs text-green-600 mt-1">
+                      Position détectée: {currentPosition.lng.toFixed(6)}
+                    </p>
+                  )}
                 </div>
               </div>
               

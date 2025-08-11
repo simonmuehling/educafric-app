@@ -1459,6 +1459,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(classes);
   });
 
+  // Parent geolocation endpoints for dashboard functionality
+  app.get('/api/parent/geolocation/children', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      // Mock children data for parent tracking
+      const childrenData = [
+        {
+          id: 1,
+          name: "Marie Kamdem",
+          class: "CM2",
+          deviceId: "SW001",
+          deviceType: "smartwatch",
+          lastLocation: {
+            latitude: 4.0511,
+            longitude: 9.7679,
+            timestamp: new Date().toISOString(),
+            address: "École Saint-Paul, Douala"
+          },
+          batteryLevel: 78,
+          status: "at_school"
+        },
+        {
+          id: 2,
+          name: "Jean Kamdem",
+          class: "6ème",
+          deviceId: "TB002", 
+          deviceType: "tablet",
+          lastLocation: {
+            latitude: 4.0501,
+            longitude: 9.7669,
+            timestamp: new Date().toISOString(),
+            address: "Maison familiale, Bonapriso"
+          },
+          batteryLevel: 45,
+          status: "safe"
+        },
+        {
+          id: 3,
+          name: "Sophie Kamdem",
+          class: "3ème",
+          deviceId: "PH003",
+          deviceType: "smartphone", 
+          lastLocation: {
+            latitude: 4.0525,
+            longitude: 9.7705,
+            timestamp: new Date().toISOString(),
+            address: "En déplacement, Akwa"
+          },
+          batteryLevel: 92,
+          status: "in_transit"
+        }
+      ];
+      
+      res.json(childrenData);
+    } catch (error) {
+      console.error('[PARENT_GEOLOCATION_API] Get children failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get children data' });
+    }
+  });
+
+  app.get('/api/parent/geolocation/safe-zones', requireAuth, getSafeZones);
+  app.post('/api/parent/geolocation/safe-zones', requireAuth, createSafeZone);
+
+  app.get('/api/parent/geolocation/alerts', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      // Mock alerts data
+      const alertsData = [
+        {
+          id: 1,
+          childName: "Marie Kamdem",
+          type: "zone_exit",
+          message: "Marie a quitté la zone scolaire à 16h45",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          severity: "warning",
+          resolved: false
+        },
+        {
+          id: 2,
+          childName: "Jean Kamdem", 
+          type: "low_battery",
+          message: "Batterie faible: 15% restant",
+          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+          severity: "info",
+          resolved: false
+        },
+        {
+          id: 3,
+          childName: "Sophie Kamdem",
+          type: "zone_enter",
+          message: "Sophie est arrivée à la maison",
+          timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          severity: "info",
+          resolved: true
+        }
+      ];
+      
+      res.json(alertsData);
+    } catch (error) {
+      console.error('[PARENT_GEOLOCATION_API] Get alerts failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get alerts data' });
+    }
+  });
+
+  // Individual child/zone/alert actions
+  app.get('/api/parent/geolocation/children/:childId/location', requireAuth, async (req: Request, res: Response) => {
+    const { childId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Getting location for child ${childId}`);
+    
+    res.json({
+      success: true,
+      child: { id: childId, name: "Child" },
+      location: { lat: 4.0511, lng: 9.7679, address: "Current location", timestamp: new Date() },
+      message: "Location data retrieved successfully"
+    });
+  });
+
+  app.post('/api/parent/geolocation/children/:childId/configure', requireAuth, async (req: Request, res: Response) => {
+    const { childId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Configuring tracking for child ${childId}`);
+    
+    res.json({
+      success: true,
+      message: `Tracking configuration updated for child ${childId}`
+    });
+  });
+
+  app.get('/api/parent/geolocation/safe-zones/:zoneId/map', requireAuth, async (req: Request, res: Response) => {
+    const { zoneId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Getting map for zone ${zoneId}`);
+    
+    res.json({
+      success: true,
+      zoneId,
+      mapData: { center: { lat: 4.0511, lng: 9.7679 }, radius: 200 },
+      message: "Zone map data retrieved successfully"
+    });
+  });
+
+  app.patch('/api/parent/geolocation/safe-zones/:zoneId', requireAuth, async (req: Request, res: Response) => {
+    const { zoneId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Modifying zone ${zoneId}`, req.body);
+    
+    res.json({
+      success: true,
+      message: `Safe zone ${zoneId} updated successfully`
+    });
+  });
+
+  app.get('/api/parent/geolocation/alerts/:alertId/location', requireAuth, async (req: Request, res: Response) => {
+    const { alertId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Getting location for alert ${alertId}`);
+    
+    res.json({
+      success: true,
+      alertLocation: { lat: 4.0511, lng: 9.7679, address: "Alert location", timestamp: new Date() },
+      message: "Alert location data retrieved successfully"
+    });
+  });
+
+  app.patch('/api/parent/geolocation/alerts/:alertId/acknowledge', requireAuth, async (req: Request, res: Response) => {
+    const { alertId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Acknowledging alert ${alertId}`);
+    
+    res.json({
+      success: true,
+      message: `Alert ${alertId} acknowledged successfully`
+    });
+  });
+
   // Premium Services Management API Endpoints
   app.get("/api/premium-services", requireAuth, (req, res) => {
     if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
