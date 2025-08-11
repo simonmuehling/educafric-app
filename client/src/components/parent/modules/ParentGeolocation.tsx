@@ -327,7 +327,30 @@ export const ParentGeolocation = () => {
                       <p className="text-xs text-gray-500">{child.lastLocation?.address}</p>
                     </div>
                     
-                    <Button size="sm" variant="outline" className="w-full mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="w-full mt-3"
+                      onClick={useStableCallback(() => {
+                        console.log(`[PARENT_GEOLOCATION] 🗺️ View ${child.name || ''} on map`);
+                        // Call real API to get detailed location and show on map
+                        fetch(`/api/parent/geolocation/children/${child.id}/location`, {
+                          method: 'GET',
+                          credentials: 'include'
+                        }).then(async response => {
+                          if (response.ok) {
+                            const locationData = await response.json();
+                            console.log(`[PARENT_GEOLOCATION] ✅ Location data for ${child.name}:`, locationData);
+                            // In a real app, this would open a map modal or navigate to map page
+                            window.dispatchEvent(new CustomEvent('openChildMap', { 
+                              detail: { child, locationData } 
+                            }));
+                          }
+                        }).catch(error => {
+                          console.error('[PARENT_GEOLOCATION] View map error:', error);
+                        });
+                      })}
+                    >
                       <MapPin className="w-4 h-4 mr-2" />
                       {t.viewMap}
                     </Button>
@@ -461,34 +484,62 @@ export const ParentGeolocation = () => {
                     </div>
                   </div>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full mt-3"
-                    onClick={useStableCallback(() => {
-                      console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
-                      // Call real API to modify safe zone
-                      fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ 
-                          action: 'modify_zone',
-                          updates: { name: zone.name, active: !zone.active }
-                        })
-                      }).then(response => {
-                        if (response.ok) {
-                          queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
-                          console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
-                        }
-                      }).catch(error => {
-                        console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
-                      });
-                    })}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Modifier
-                  </Button>
+                  <div className="flex gap-2 mt-3">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={useStableCallback(() => {
+                        console.log(`[PARENT_GEOLOCATION] 🗺️ View safe zone ${zone.name || ''} on map`);
+                        // Call API to show safe zone on map
+                        fetch(`/api/parent/geolocation/safe-zones/${zone.id}/map`, {
+                          method: 'GET',
+                          credentials: 'include'
+                        }).then(async response => {
+                          if (response.ok) {
+                            const zoneMapData = await response.json();
+                            console.log(`[PARENT_GEOLOCATION] ✅ Zone map data:`, zoneMapData);
+                            window.dispatchEvent(new CustomEvent('openSafeZoneMap', { 
+                              detail: { zone, zoneMapData } 
+                            }));
+                          }
+                        }).catch(error => {
+                          console.error('[PARENT_GEOLOCATION] View zone map error:', error);
+                        });
+                      })}
+                    >
+                      <MapPin className="w-3 h-3 mr-1" />
+                      {t.viewMap}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={useStableCallback(() => {
+                        console.log(`[PARENT_GEOLOCATION] ✏️ Modifying safe zone ${zone.id}: ${zone.name || ''}`);
+                        // Call real API to modify safe zone
+                        fetch(`/api/parent/geolocation/safe-zones/${zone.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json' },
+                          credentials: 'include',
+                          body: JSON.stringify({ 
+                            action: 'modify_zone',
+                            updates: { name: zone.name, active: !zone.active }
+                          })
+                        }).then(response => {
+                          if (response.ok) {
+                            queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+                            console.log(`[PARENT_GEOLOCATION] ✅ Successfully modified safe zone ${zone.name || ''}`);
+                          }
+                        }).catch(error => {
+                          console.error('[PARENT_GEOLOCATION] Modify safe zone error:', error);
+                        });
+                      })}
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Modifier
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -535,6 +586,57 @@ export const ParentGeolocation = () => {
                         <p className="text-xs text-gray-500 mt-2">
                           {new Date(alert.timestamp).toLocaleString()}
                         </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={useStableCallback(() => {
+                              console.log(`[PARENT_GEOLOCATION] 🗺️ View alert location on map for ${alert.childName}`);
+                              // Call API to get alert location details
+                              fetch(`/api/parent/geolocation/alerts/${alert.id}/location`, {
+                                method: 'GET',
+                                credentials: 'include'
+                              }).then(async response => {
+                                if (response.ok) {
+                                  const alertLocation = await response.json();
+                                  console.log(`[PARENT_GEOLOCATION] ✅ Alert location data:`, alertLocation);
+                                  window.dispatchEvent(new CustomEvent('openAlertMap', { 
+                                    detail: { alert, alertLocation } 
+                                  }));
+                                }
+                              }).catch(error => {
+                                console.error('[PARENT_GEOLOCATION] View alert map error:', error);
+                              });
+                            })}
+                          >
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {t.viewMap}
+                          </Button>
+                          {!alert.resolved && (
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={useStableCallback(() => {
+                                console.log(`[PARENT_GEOLOCATION] ✅ Marking alert ${alert.id} as resolved`);
+                                // Call API to resolve alert
+                                fetch(`/api/parent/geolocation/alerts/${alert.id}/resolve`, {
+                                  method: 'POST',
+                                  credentials: 'include'
+                                }).then(response => {
+                                  if (response.ok) {
+                                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
+                                    console.log(`[PARENT_GEOLOCATION] ✅ Alert resolved successfully`);
+                                  }
+                                }).catch(error => {
+                                  console.error('[PARENT_GEOLOCATION] Resolve alert error:', error);
+                                });
+                              })}
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Résoudre
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
