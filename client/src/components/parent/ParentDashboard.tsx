@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useStableEventHandler } from '@/hooks/useStableCallback';
+import { useStableCallback } from '@/hooks/useStableCallback';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,
   Calendar, FileText, Clock, Bell, DollarSign,
@@ -39,20 +39,20 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
 
   // Stable event handlers that survive server restarts
-  useStableEventHandler(() => {
+  const handleSwitchToGrades = useStableCallback(() => {
     console.log('[PARENT_DASHBOARD] 📊 Event received: switchToGrades');
     setCurrentActiveModule('grades');
-  }, 'switchToGrades');
+  });
 
-  useStableEventHandler(() => {
+  const handleSwitchToAttendance = useStableCallback(() => {
     console.log('[PARENT_DASHBOARD] 📋 Event received: switchToAttendance');
     setCurrentActiveModule('attendance');
-  }, 'switchToAttendance');
+  });
 
-  useStableEventHandler(() => {
+  const handleSwitchToMessages = useStableCallback(() => {
     console.log('[PARENT_DASHBOARD] 💬 Event received: switchToMessages');
     setCurrentActiveModule('messages');
-  }, 'switchToMessages');
+  });
   
   const text = {
     fr: {
