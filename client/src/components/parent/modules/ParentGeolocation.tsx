@@ -62,6 +62,7 @@ export const ParentGeolocation = () => {
   const [showAddDevice, setShowAddDevice] = useState(false);
   const [showMapModal, setShowMapModal] = useState<{show: boolean, type: 'child' | 'zone' | 'alert', data: any}>({show: false, type: 'child', data: null});
   const [showEditZone, setShowEditZone] = useState<{show: boolean, zone: SafeZone | null}>({show: false, zone: null});
+  const [showConfigureChild, setShowConfigureChild] = useState<{show: boolean, child: Child | null}>({show: false, child: null});
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [locationHelperActive, setLocationHelperActive] = useState(false);
   const [suggestedLocations, setSuggestedLocations] = useState<Array<{
@@ -237,20 +238,8 @@ export const ParentGeolocation = () => {
   });
 
   const handleConfigureChildTracking = useStableCallback((child: Child) => {
-    console.log(`[PARENT_GEOLOCATION] 🔧 Configuring tracking for child ${child.id}: ${child.name || ''}`);
-    fetch(`/api/parent/geolocation/children/${child.id}/configure`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ action: 'configure_tracking' })
-    }).then(response => {
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
-        console.log(`[PARENT_GEOLOCATION] ✅ Successfully configured tracking for ${child.name || ''}`);
-      }
-    }).catch(error => {
-      console.error('[PARENT_GEOLOCATION] Configure tracking error:', error);
-    });
+    console.log(`[PARENT_GEOLOCATION] 🔧 Opening configuration modal for child ${child.id}: ${child.name || ''}`);
+    setShowConfigureChild({show: true, child});
   });
 
   const handleViewAlertLocation = useStableCallback((alert: GeolocationAlert) => {
@@ -1151,6 +1140,176 @@ export const ParentGeolocation = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Configuration Enfant */}
+      {showConfigureChild.show && showConfigureChild.child && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Configuration du suivi - {showConfigureChild.child.name}</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowConfigureChild({show: false, child: null})}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form className="space-y-6" onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const configData = {
+                  childId: showConfigureChild.child?.id,
+                  trackingEnabled: formData.get('trackingEnabled') === 'on',
+                  alertsEnabled: formData.get('alertsEnabled') === 'on',
+                  locationSharing: formData.get('locationSharing') === 'on',
+                  emergencyContactsEnabled: formData.get('emergencyContactsEnabled') === 'on',
+                  trackingInterval: parseInt(formData.get('trackingInterval') as string),
+                  safeZoneAlerts: formData.get('safeZoneAlerts') === 'on',
+                  batteryAlerts: formData.get('batteryAlerts') === 'on'
+                };
+                
+                console.log('[PARENT_GEOLOCATION] 💾 Saving child configuration:', configData);
+                
+                // API call to save configuration
+                fetch(`/api/parent/geolocation/children/${configData.childId}/configure`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify(configData)
+                }).then(response => {
+                  if (response.ok) {
+                    queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/children'] });
+                    console.log(`[PARENT_GEOLOCATION] ✅ Configuration saved for ${showConfigureChild.child?.name}`);
+                    setShowConfigureChild({show: false, child: null});
+                  }
+                }).catch(error => {
+                  console.error('[PARENT_GEOLOCATION] Save configuration error:', error);
+                });
+              }}>
+                
+                {/* Statut de l'enfant */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-medium mb-3">Statut actuel</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Dernière position:</span>
+                      <p className="font-medium">{showConfigureChild.child.lastLocation?.address || 'Position inconnue'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Batterie appareil:</span>
+                      <p className="font-medium">{showConfigureChild.child.batteryLevel || 'N/A'}%</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Type appareil:</span>
+                      <p className="font-medium">{showConfigureChild.child.deviceType || 'Non configuré'}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Statut sécurité:</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        showConfigureChild.child.status === 'safe' ? 'bg-green-100 text-green-700' :
+                        showConfigureChild.child.status === 'at_school' ? 'bg-blue-100 text-blue-700' :
+                        showConfigureChild.child.status === 'in_transit' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {showConfigureChild.child.status === 'safe' ? 'En sécurité' :
+                         showConfigureChild.child.status === 'at_school' ? 'À l\'école' :
+                         showConfigureChild.child.status === 'in_transit' ? 'En déplacement' : 'Inconnu'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Configuration de suivi */}
+                <div className="space-y-4">
+                  <h4 className="font-medium">Paramètres de géolocalisation</h4>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Suivi GPS activé</label>
+                      <p className="text-sm text-gray-600">Localisation en temps réel de l'enfant</p>
+                    </div>
+                    <input type="checkbox" name="trackingEnabled" defaultChecked className="rounded" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Alertes de sécurité</label>
+                      <p className="text-sm text-gray-600">Notifications en cas de sortie des zones sécurisées</p>
+                    </div>
+                    <input type="checkbox" name="alertsEnabled" defaultChecked className="rounded" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Partage de position</label>
+                      <p className="text-sm text-gray-600">L'enfant peut partager sa position avec vous</p>
+                    </div>
+                    <input type="checkbox" name="locationSharing" defaultChecked className="rounded" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Contacts d'urgence</label>
+                      <p className="text-sm text-gray-600">Activation des contacts d'urgence en cas d'alerte</p>
+                    </div>
+                    <input type="checkbox" name="emergencyContactsEnabled" defaultChecked className="rounded" />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-2">Intervalle de mise à jour (minutes)</label>
+                    <select name="trackingInterval" className="w-full p-2 border rounded-lg">
+                      <option value="1">Temps réel (1 min)</option>
+                      <option value="5" selected>Normal (5 min)</option>
+                      <option value="15">Économique (15 min)</option>
+                      <option value="30">Très économique (30 min)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Configuration des alertes */}
+                <div className="space-y-4">
+                  <h4 className="font-medium">Types d'alertes</h4>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Alertes zones de sécurité</label>
+                      <p className="text-sm text-gray-600">Notifications d'entrée/sortie des zones sécurisées</p>
+                    </div>
+                    <input type="checkbox" name="safeZoneAlerts" defaultChecked className="rounded" />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="font-medium">Alertes batterie faible</label>
+                      <p className="text-sm text-gray-600">Notifications quand la batterie est faible</p>
+                    </div>
+                    <input type="checkbox" name="batteryAlerts" defaultChecked className="rounded" />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowConfigureChild({show: false, child: null})}
+                  >
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    Enregistrer Configuration
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
