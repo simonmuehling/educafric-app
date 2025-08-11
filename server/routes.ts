@@ -1627,6 +1627,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  app.patch('/api/parent/geolocation/alerts/:alertId/resolve', requireAuth, async (req: Request, res: Response) => {
+    const { alertId } = req.params;
+    console.log(`[PARENT_GEOLOCATION_API] Resolving alert ${alertId}`);
+    
+    res.json({
+      success: true,
+      message: `Alert ${alertId} resolved successfully`
+    });
+  });
+
   // Premium Services Management API Endpoints
   app.get("/api/premium-services", requireAuth, (req, res) => {
     if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {

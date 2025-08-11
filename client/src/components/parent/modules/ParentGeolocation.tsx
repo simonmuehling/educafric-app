@@ -277,6 +277,27 @@ export const ParentGeolocation = () => {
     });
   });
 
+  const handleResolveAlert = useStableCallback((alert: GeolocationAlert) => {
+    console.log(`[PARENT_GEOLOCATION] 🔧 Resolving alert ${alert.id}: ${alert.message}`);
+    fetch(`/api/parent/geolocation/alerts/${alert.id}/resolve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ 
+        action: 'resolve', 
+        resolution: 'Resolved by parent',
+        resolvedAt: new Date().toISOString()
+      })
+    }).then(response => {
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
+        console.log(`[PARENT_GEOLOCATION] ✅ Successfully resolved alert ${alert.id}`);
+      }
+    }).catch(error => {
+      console.error('[PARENT_GEOLOCATION] Resolve alert error:', error);
+    });
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'safe': return 'bg-green-100 text-green-700';
@@ -637,14 +658,24 @@ export const ParentGeolocation = () => {
                             {t.viewMap}
                           </Button>
                           {!alert.resolved && (
-                            <Button 
-                              variant="default" 
-                              size="sm"
-                              onClick={() => handleAcknowledgeAlert(alert)}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Résoudre
-                            </Button>
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleAcknowledgeAlert(alert)}
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Accuser réception
+                              </Button>
+                              <Button 
+                                variant="default" 
+                                size="sm"
+                                onClick={() => handleResolveAlert(alert)}
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Résoudre
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
