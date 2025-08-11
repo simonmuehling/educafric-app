@@ -278,11 +278,11 @@ export const ParentGeolocation = () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ acknowledged: true })
+      body: JSON.stringify({ action: 'acknowledge' })
     }).then(response => {
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/alerts'] });
-        console.log(`[PARENT_GEOLOCATION] ✅ Successfully acknowledged alert`);
+        console.log(`[PARENT_GEOLOCATION] ✅ Successfully acknowledged alert ${alert.id}`);
       }
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] Acknowledge alert error:', error);
@@ -670,18 +670,22 @@ export const ParentGeolocation = () => {
 
       {/* Add Safe Zone Modal */}
       {showAddZone && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Ajouter une Zone de Sécurité</h3>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowAddZone(false)}
-              >
-                ✕
-              </Button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Ajouter une Zone de Sécurité</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAddZone(false)}
+                >
+                  ✕
+                </Button>
+              </div>
             </div>
+            
+            <div className="p-6 pt-0">
             
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -845,6 +849,7 @@ export const ParentGeolocation = () => {
                 </Button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
