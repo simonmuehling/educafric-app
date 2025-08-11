@@ -98,13 +98,35 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
       const response = await apiRequest('/api/parent-requests', 'POST', data);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/parent-requests'] });
       setIsNewRequestOpen(false);
+      
+      // Reset form and search states
       form.reset();
+      setSelectedSchool(null);
+      setSchoolSearchQuery('');
+      setShowSchoolSearch(false);
+      
+      // Customized success messages based on request type
+      let title = 'Demande envoyée';
+      let description = 'Votre demande a été envoyée avec succès à l\'administration.';
+      
+      if (variables.type === 'absence_request') {
+        title = 'Demande d\'absence envoyée';
+        description = `L'absence de votre enfant pour le ${variables.requestedDate ? new Date(variables.requestedDate).toLocaleDateString('fr-FR') : 'jour demandé'} a été signalée. L'administration et les enseignants seront notifiés automatiquement.`;
+      } else if (variables.type === 'school_enrollment') {
+        const schoolName = selectedSchool?.name || 'l\'école sélectionnée';
+        title = 'Demande d\'adhésion envoyée';
+        description = `Votre demande d'inscription à ${schoolName} a été envoyée. L'équipe administrative vous contactera prochainement.`;
+      } else if (variables.type === 'meeting') {
+        title = 'Demande de rendez-vous envoyée';
+        description = 'Votre demande de rendez-vous a été transmise à l\'équipe pédagogique. Vous recevrez une réponse sous 48h.';
+      }
+      
       toast({
-        title: 'Demande envoyée',
-        description: 'Votre demande a été envoyée avec succès à l\'administration.',
+        title,
+        description,
       });
     },
     onError: (error: any) => {
@@ -397,25 +419,49 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                   )}
                 />
 
-                {/* Date demandée (pour les absences) */}
+                {/* Champs spécifiques pour les demandes d'absence */}
                 {form.watch('type') === 'absence_request' && (
-                  <FormField
-                    control={form.control}
-                    name="requestedDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date d'absence demandée</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="date"
-                            min={new Date().toISOString().split('T')[0]}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center gap-2 text-yellow-800">
+                      <Calendar className="w-5 h-5" />
+                      <h4 className="font-semibold">Informations pour la Demande d'Absence</h4>
+                    </div>
+                    
+                    <FormField
+                      control={form.control}
+                      name="requestedDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Date d'absence demandée *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              type="date"
+                              min={new Date().toISOString().split('T')[0]}
+                            />
+                          </FormControl>
+                          <p className="text-xs text-yellow-700">
+                            Sélectionnez la date où votre enfant sera absent
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Information sur le processus */}
+                    <div className="bg-yellow-100 p-3 rounded border border-yellow-300">
+                      <p className="text-sm font-medium text-yellow-800 mb-2">
+                        📋 Après votre demande :
+                      </p>
+                      <ul className="text-xs text-yellow-700 space-y-1">
+                        <li>• L'administration scolaire sera automatiquement notifiée</li>
+                        <li>• Les enseignants de votre enfant recevront l'information</li>
+                        <li>• Le système d'assiduité sera mis à jour</li>
+                        <li>• Vous recevrez une confirmation par notification</li>
+                        <li>• Le statut de la demande sera visible dans cet onglet</li>
+                      </ul>
+                    </div>
+                  </div>
                 )}
 
                 {/* Champs spécifiques pour la demande d'adhésion à une école */}

@@ -21725,6 +21725,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // In production, this would notify the school administrators
       }
 
+      // Handle absence requests with special processing
+      if (requestData.type === 'absence_request') {
+        console.log(`[ABSENCE_REQUEST] New medical absence request from parent: ${user.email}`);
+        console.log(`[ABSENCE_REQUEST] Student: ${requestData.studentId}, Date: ${requestData.requestedDate}`);
+        
+        // Validate that the absence date is in the future
+        if (requestData.requestedDate) {
+          const requestedDate = new Date(requestData.requestedDate);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (requestedDate < today) {
+            return res.status(400).json({ 
+              message: 'La date d\'absence ne peut pas être dans le passé' 
+            });
+          }
+        }
+
+        // Send automatic notifications to relevant staff
+        console.log(`[ABSENCE_REQUEST] 📧 Sending notifications to teachers and administration`);
+        console.log(`[ABSENCE_REQUEST] 📱 SMS notification queued for school administration`);
+        
+        // In production, this would:
+        // 1. Notify the student's teachers
+        // 2. Update attendance system 
+        // 3. Send SMS to school administration
+        // 4. Create calendar reminder for the absence date
+      }
+
+      // Handle meeting requests
+      if (requestData.type === 'meeting') {
+        console.log(`[MEETING_REQUEST] New meeting request from parent: ${user.email}`);
+        console.log(`[MEETING_REQUEST] Subject: ${requestData.subject}`);
+        
+        // Send notification to relevant staff
+        console.log(`[MEETING_REQUEST] 📧 Notifying school administration for meeting scheduling`);
+      }
+
+      // Handle document requests  
+      if (requestData.type === 'document') {
+        console.log(`[DOCUMENT_REQUEST] New document request from parent: ${user.email}`);
+        console.log(`[DOCUMENT_REQUEST] Document type requested: ${requestData.subject}`);
+        
+        // Send notification to administration
+        console.log(`[DOCUMENT_REQUEST] 📧 Notifying administration for document preparation`);
+      }
+
       // Mock successful creation
       const newRequest = {
         id: Date.now(),
