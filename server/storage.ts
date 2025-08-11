@@ -447,7 +447,18 @@ export class DatabaseStorage implements IStorage {
           status: 'En sécurité',
           location: 'École Primaire Central',
           lastUpdate: '2025-01-10 14:30',
-          battery: 85
+          battery: 85,
+          coordinates: { lat: 4.0511, lng: 9.7679 }
+        },
+        {
+          id: 2,
+          name: 'Marie Kameni',
+          device: 'Smartphone Tecno',
+          status: 'En mouvement',
+          location: 'Route vers l\'école',
+          lastUpdate: '2025-01-10 14:25',
+          battery: 72,
+          coordinates: { lat: 4.0481, lng: 9.7689 }
         }
       ];
     } catch (error) {
@@ -465,7 +476,29 @@ export class DatabaseStorage implements IStorage {
           type: 'zone_exit',
           message: 'Enfant sorti de la zone scolaire',
           timestamp: '2025-01-10 15:45',
-          status: 'read'
+          status: 'unread',
+          priority: 'high',
+          coordinates: { lat: 4.0521, lng: 9.7689 }
+        },
+        {
+          id: 2,
+          childName: 'Marie Kameni',
+          type: 'battery_low',
+          message: 'Batterie faible sur l\'appareil',
+          timestamp: '2025-01-10 14:30',
+          status: 'read',
+          priority: 'medium',
+          coordinates: { lat: 4.0511, lng: 9.7679 }
+        },
+        {
+          id: 3,
+          childName: 'Junior Kameni',
+          type: 'speed_alert',
+          message: 'Vitesse élevée détectée',
+          timestamp: '2025-01-10 13:15',
+          status: 'read',
+          priority: 'low',
+          coordinates: { lat: 4.0501, lng: 9.7669 }
         }
       ];
     } catch (error) {
@@ -561,6 +594,15 @@ export class DatabaseStorage implements IStorage {
       console.error('[STORAGE] getParentPayments error:', error);
       return [];
     }
+  }
+
+  // Add alias methods for geolocation APIs that match the route calls
+  async getParentAlerts(parentId: number): Promise<any[]> {
+    return this.getParentGeolocationAlerts(parentId);
+  }
+
+  async getParentGeoChildren(parentId: number): Promise<any[]> {
+    return this.getParentGeolocationChildren(parentId);
   }
 }
 
