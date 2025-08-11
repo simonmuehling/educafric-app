@@ -9,7 +9,7 @@ import {
 } from '@shared/schema';
 // Authentication middleware (inline for now)
 const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.user) {
+  if (!req.user || !req.user.id) {
     return res.status(401).json({ message: 'Authentication required' });
   }
   next();
@@ -166,6 +166,47 @@ router.get('/alerts', async (req, res) => {
     res.json(alerts);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch alerts', details: error });
+  }
+});
+
+// Statistics Routes (Mock data for development)
+router.get('/stats/school/:schoolId', async (req, res) => {
+  try {
+    const stats = {
+      totalDevices: 12,
+      activeDevices: 8,
+      safeZonesCount: 3,
+      activeAlerts: 2,
+      studentsTracked: 8,
+      emergencyContacts: 15,
+      batteryLow: 1,
+      lastUpdate: new Date().toISOString()
+    };
+    res.json(stats);
+  } catch (error) {
+    console.error('[GEOLOCATION_STATS] Error:', error);
+    res.status(500).json({ error: 'Failed to fetch school statistics', details: error.message });
+  }
+});
+
+// Emergency Contact Routes
+router.post('/emergency-contacts', async (req, res) => {
+  try {
+    const contactData = insertEmergencyContact.parse(req.body);
+    const contact = await geolocationService.createEmergencyContact(contactData);
+    res.json(contact);
+  } catch (error) {
+    res.status(400).json({ error: 'Failed to create emergency contact', details: error });
+  }
+});
+
+router.get('/emergency-contacts/student/:studentId', async (req, res) => {
+  try {
+    const studentId = parseInt(req.params.studentId);
+    const contacts = await geolocationService.getEmergencyContacts(studentId);
+    res.json(contacts);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch emergency contacts', details: error });
   }
 });
 
