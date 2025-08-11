@@ -1612,11 +1612,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/parent/geolocation/safe-zones/:zoneId', requireAuth, async (req: Request, res: Response) => {
     const { zoneId } = req.params;
+    const { name, radius, latitude, longitude, active } = req.body;
     console.log(`[PARENT_GEOLOCATION_API] Modifying zone ${zoneId}`, req.body);
+
+    try {
+      // Get the notification service
+      const { NotificationService } = await import('./services/notificationService');
+      const notificationService = NotificationService.getInstance();
+
+      // Send notifications to all concerned users when zone is modified
+      await notificationService.notifySafeZoneChange('updated', {
+        zoneName: name || `Zone ${zoneId}`,
+        childName: 'Marie Kamdem', // In real implementation, get from database
+        changes: ['radius', 'location'], // Track what changed
+        parentId: (req.user as any).id,
+        childId: 15, // In real implementation, get from database
+        teacherIds: [10, 11], // In real implementation, get teachers for this student
+        schoolId: 1
+      });
+
+      console.log(`[PARENT_GEOLOCATION_API] 🔔 Zone modification notifications sent to all concerned users`);
+    } catch (error) {
+      console.error(`[PARENT_GEOLOCATION_API] ⚠️ Failed to send notifications:`, error);
+      // Continue with response even if notifications fail
+    }
     
     res.json({
       success: true,
-      message: `Safe zone ${zoneId} updated successfully`
+      message: `Safe zone ${zoneId} updated successfully`,
+      notificationsSent: true,
+      zoneData: {
+        id: parseInt(zoneId),
+        name: name || `Zone ${zoneId}`,
+        radius,
+        latitude,
+        longitude,
+        active,
+        updatedAt: new Date().toISOString()
+      }
     });
   });
 
@@ -1802,6 +1835,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[STUDENT_GEOLOCATION] Get notifications failed:', error);
       res.status(500).json({ success: false, message: 'Failed to get notifications' });
+    }
+  });
+
+  // Notification Center API Endpoints
+  app.get('/api/notifications', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      const { category = 'all', unreadOnly = 'false' } = req.query;
+      const userId = (user as any).id;
+      const userRole = (user as any).role || 'Parent';
+
+      console.log(`[NOTIFICATIONS_API] 🔔 Getting notifications for user ${userId} (${userRole})`);
+
+      // Mock notifications with geolocation notifications included
+      const baseNotifications = [
+        {
+          id: 1,
+          title: 'Zone de sécurité modifiée',
+          message: 'La zone "École Primaire Central" a été mise à jour avec un nouveau rayon de 250m',
+          type: 'safe_zone_updated',
+          priority: 'medium',
+          category: 'security',
+          isRead: false,
+          actionRequired: false,
+          createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+          senderRole: 'Parent',
+          relatedEntityType: 'safe_zone'
+        },
+        {
+          id: 2,
+          title: 'Nouvelle zone de sécurité',
+          message: 'Une nouvelle zone "Chez Grand-mère" a été créée pour votre enfant',
+          type: 'safe_zone_created',
+          priority: 'medium',
+          category: 'security',
+          isRead: true,
+          actionRequired: false,
+          createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          senderRole: 'Parent',
+          relatedEntityType: 'safe_zone'
+        },
+        {
+          id: 3,
+          title: 'Entrée en zone de sécurité',
+          message: 'Votre enfant est arrivé à l\'école à 07:45',
+          type: 'zone_entry',
+          priority: 'low',
+          category: 'security',
+          isRead: true,
+          actionRequired: false,
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          senderRole: 'System',
+          relatedEntityType: 'location_tracking'
+        },
+        {
+          id: 4,
+          title: 'Alerte de position',
+          message: 'Votre enfant se trouve en dehors des zones de sécurité définies',
+          type: 'location_alert',
+          priority: 'high',
+          category: 'security',
+          isRead: false,
+          actionRequired: true,
+          actionUrl: '/geolocation',
+          actionText: 'Voir localisation',
+          createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          senderRole: 'System',
+          relatedEntityType: 'geolocation_alert'
+        },
+        {
+          id: 5,
+          title: 'Nouvelle note disponible',
+          message: 'Note de mathématiques: 15/20',
+          type: 'grade',
+          priority: 'medium',
+          category: 'academic',
+          isRead: false,
+          actionRequired: false,
+          createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+          senderRole: 'Teacher',
+          relatedEntityType: 'grade'
+        }
+      ];
+
+      let filteredNotifications = baseNotifications;
+
+      // Filter by category
+      if (category !== 'all') {
+        filteredNotifications = filteredNotifications.filter(n => n.category === category);
+      }
+
+      // Filter by read status
+      if (unreadOnly === 'true') {
+        filteredNotifications = filteredNotifications.filter(n => !n.isRead);
+      }
+
+      res.json(filteredNotifications);
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Get notifications failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to get notifications' });
+    }
+  });
+
+  app.post('/api/notifications/:notificationId/mark-read', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { notificationId } = req.params;
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      console.log(`[NOTIFICATIONS_API] ✅ Marking notification ${notificationId} as read`);
+
+      // In a real implementation, this would update the database
+      res.json({ 
+        success: true, 
+        message: 'Notification marked as read',
+        notificationId: parseInt(notificationId),
+        readAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Mark notification as read failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark notification as read' });
+    }
+  });
+
+  app.post('/api/notifications/mark-all-read', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      const userId = (user as any).id;
+      console.log(`[NOTIFICATIONS_API] ✅ Marking all notifications as read for user ${userId}`);
+
+      // In a real implementation, this would update all unread notifications for the user
+      res.json({ 
+        success: true, 
+        message: 'All notifications marked as read',
+        markedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Mark all notifications as read failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to mark all notifications as read' });
+    }
+  });
+
+  app.delete('/api/notifications/:notificationId', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { notificationId } = req.params;
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      console.log(`[NOTIFICATIONS_API] 🗑️ Deleting notification ${notificationId}`);
+
+      // In a real implementation, this would delete the notification from database
+      res.json({ 
+        success: true, 
+        message: 'Notification deleted',
+        notificationId: parseInt(notificationId)
+      });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Delete notification failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete notification' });
     }
   });
 

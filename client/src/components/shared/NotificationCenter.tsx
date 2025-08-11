@@ -93,7 +93,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         announcement: 'Annonce',
         meeting: 'Réunion',
         emergency: 'Urgence',
-        system: 'Système'
+        system: 'Système',
+        geolocation: 'Géolocalisation',
+        safe_zone_created: 'Zone créée',
+        safe_zone_updated: 'Zone modifiée',
+        safe_zone_deleted: 'Zone supprimée',
+        zone_entry: 'Entrée zone',
+        zone_exit: 'Sortie zone',
+        location_alert: 'Alerte position',
+        device_status: 'Statut appareil'
       },
       timeAgo: 'il y a'
     },
@@ -130,7 +138,15 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         announcement: 'Announcement',
         meeting: 'Meeting',
         emergency: 'Emergency',
-        system: 'System'
+        system: 'System',
+        geolocation: 'Geolocation',
+        safe_zone_created: 'Zone Created',
+        safe_zone_updated: 'Zone Updated',
+        safe_zone_deleted: 'Zone Deleted',
+        zone_entry: 'Zone Entry',
+        zone_exit: 'Zone Exit',
+        location_alert: 'Location Alert',
+        device_status: 'Device Status'
       },
       timeAgo: 'ago'
     }
@@ -181,6 +197,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       case 'meeting': return Calendar;
       case 'emergency': return AlertTriangle;
       case 'system': return Info;
+      case 'geolocation':
+      case 'safe_zone_created':
+      case 'safe_zone_updated':
+      case 'safe_zone_deleted':
+      case 'zone_entry':
+      case 'zone_exit':
+      case 'location_alert':
+      case 'device_status': return Shield;
       default: return Bell;
     }
   };

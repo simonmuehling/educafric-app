@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/shared/NotificationCenter';
 import { 
   MapPin, 
   Shield, 
@@ -15,7 +16,8 @@ import {
   School,
   Home,
   Users,
-  Activity
+  Activity,
+  Bell
 } from 'lucide-react';
 
 interface SafeZone {
@@ -48,6 +50,7 @@ interface DeviceStatus {
 const StudentGeolocation: React.FC = () => {
   const { language } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const queryClient = useQueryClient();
 
   const t = {
     fr: {
@@ -75,7 +78,11 @@ const StudentGeolocation: React.FC = () => {
       updatedRecently: 'Mis à jour récemment',
       parentControlled: 'Contrôlé par les parents',
       safetyFirst: 'Votre sécurité est notre priorité',
-      autoTracking: 'Suivi automatique activé'
+      autoTracking: 'Suivi automatique activé',
+      notifications: 'Notifications Récentes',
+      noNotifications: 'Aucune nouvelle notification',
+      zoneModifiedAlert: 'Vos parents ont modifié vos zones de sécurité',
+      viewNotifications: 'Voir toutes les notifications'
     },
     en: {
       title: 'My Geolocation',
@@ -102,7 +109,11 @@ const StudentGeolocation: React.FC = () => {
       updatedRecently: 'Updated recently',
       parentControlled: 'Parent controlled',
       safetyFirst: 'Your safety is our priority',
-      autoTracking: 'Auto tracking enabled'
+      autoTracking: 'Auto tracking enabled',
+      notifications: 'Recent Notifications',
+      noNotifications: 'No new notifications',
+      zoneModifiedAlert: 'Your parents have modified your safety zones',
+      viewNotifications: 'View all notifications'
     }
   };
 
@@ -117,6 +128,12 @@ const StudentGeolocation: React.FC = () => {
   // Fetch student's device status
   const { data: deviceStatus, isLoading: deviceLoading } = useQuery({
     queryKey: ['/api/student/geolocation/device-status'],
+    retry: false,
+  });
+
+  // Fetch recent geolocation notifications for this student
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['/api/notifications', 'Student', 15, 'security', false], // Student ID 15, security category
     retry: false,
   });
 
@@ -213,6 +230,57 @@ const StudentGeolocation: React.FC = () => {
           {translations.autoTracking}
         </div>
       </div>
+
+      {/* Recent Notifications - Only show if there are unread geolocation notifications */}
+      {notifications.length > 0 && (
+        <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
+          <CardHeader>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Bell className="w-5 h-5 text-amber-500" />
+              {translations.notifications} ({notifications.filter((n: any) => !n.isRead).length})
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {notifications.slice(0, 2).map((notification: any) => (
+                <div 
+                  key={notification.id} 
+                  className={`p-3 border rounded-lg ${notification.isRead ? 'bg-gray-50' : 'bg-white border-amber-300'}`}
+                  data-testid={`notification-${notification.id}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-4 h-4 text-amber-500 mt-1" />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{notification.title}</p>
+                      <p className="text-xs text-gray-600">{notification.message}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(notification.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                    {!notification.isRead && (
+                      <Badge variant="secondary" className="text-xs">
+                        Nouveau
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {notifications.length > 2 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  data-testid="button-view-all-notifications"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  {translations.viewNotifications} ({notifications.length})
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Current Status Card */}
       <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">

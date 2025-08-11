@@ -182,6 +182,28 @@ export const SMS_TEMPLATES = {
       `SOS: ${childName} needs help at ${address} (${coordinates}). Contact emergency services.`,
     fr: (childName: string, coordinates: string, address: string) => 
       `SOS: ${childName} a besoin d'aide à ${address} (${coordinates}). Contactez secours.`
+  },
+
+  // Safe Zone Management
+  SAFE_ZONE_CREATED: {
+    en: (zoneName: string, childName: string) => 
+      `New safe zone "${zoneName}" created for ${childName}. Zone is now active.`,
+    fr: (zoneName: string, childName: string) => 
+      `Nouvelle zone de sécurité "${zoneName}" créée pour ${childName}. Zone maintenant active.`
+  },
+
+  SAFE_ZONE_UPDATED: {
+    en: (zoneName: string, childName: string, changes: string) => 
+      `Safe zone "${zoneName}" updated for ${childName}. Changes: ${changes}`,
+    fr: (zoneName: string, childName: string, changes: string) => 
+      `Zone "${zoneName}" modifiée pour ${childName}. Modifications: ${changes}`
+  },
+
+  SAFE_ZONE_DELETED: {
+    en: (zoneName: string, childName: string) => 
+      `Safe zone "${zoneName}" deleted for ${childName}. Zone no longer active.`,
+    fr: (zoneName: string, childName: string) => 
+      `Zone "${zoneName}" supprimée pour ${childName}. Zone plus active.`
   }
 };
 
@@ -259,6 +281,120 @@ export class NotificationService {
       NotificationService.instance = new NotificationService();
     }
     return NotificationService.instance;
+  }
+
+  // Send geolocation notifications to all concerned users
+  async notifySafeZoneChange(
+    action: 'created' | 'updated' | 'deleted',
+    zoneData: {
+      zoneName: string;
+      childName: string;
+      changes?: string[];
+      parentId: number;
+      childId: number;
+      teacherIds?: number[];
+      schoolId?: number;
+    },
+    language: 'en' | 'fr' = 'fr'
+  ): Promise<void> {
+    console.log(`[NOTIFICATION_SERVICE] 🔔 Sending safe zone ${action} notifications for ${zoneData.zoneName}`);
+
+    const changes = zoneData.changes?.join(', ') || '';
+    let template: string;
+    let notificationTitle: string;
+    let notificationMessage: string;
+
+    // Determine template and notification content based on action
+    switch (action) {
+      case 'created':
+        template = 'SAFE_ZONE_CREATED';
+        notificationTitle = language === 'fr' ? 'Nouvelle zone de sécurité' : 'New Safe Zone';
+        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName);
+        break;
+      case 'updated':
+        template = 'SAFE_ZONE_UPDATED';
+        notificationTitle = language === 'fr' ? 'Zone de sécurité modifiée' : 'Safe Zone Updated';
+        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName, changes);
+        break;
+      case 'deleted':
+        template = 'SAFE_ZONE_DELETED';
+        notificationTitle = language === 'fr' ? 'Zone de sécurité supprimée' : 'Safe Zone Deleted';
+        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName);
+        break;
+      default:
+        return;
+    }
+
+    // Create notification data for different user types
+    const notifications = [
+      {
+        userId: zoneData.childId,
+        userType: 'Student',
+        title: notificationTitle,
+        message: notificationMessage,
+        type: `safe_zone_${action}`,
+        priority: 'medium' as const,
+        category: 'security'
+      },
+      {
+        userId: zoneData.parentId,
+        userType: 'Parent',
+        title: notificationTitle,
+        message: notificationMessage,
+        type: `safe_zone_${action}`,
+        priority: 'medium' as const,
+        category: 'security'
+      }
+    ];
+
+    // Add teacher notifications if provided
+    if (zoneData.teacherIds && zoneData.teacherIds.length > 0) {
+      zoneData.teacherIds.forEach(teacherId => {
+        notifications.push({
+          userId: teacherId,
+          userType: 'Teacher',
+          title: notificationTitle,
+          message: `Zone modification for student ${zoneData.childName}: ${notificationMessage}`,
+          type: `safe_zone_${action}`,
+          priority: 'low' as const,
+          category: 'security'
+        });
+      });
+    }
+
+    // Send notifications to all concerned users
+    for (const notification of notifications) {
+      await this.createNotification(notification);
+    }
+
+    console.log(`[NOTIFICATION_SERVICE] ✅ Sent ${notifications.length} notifications for safe zone ${action}`);
+  }
+
+  // Create a notification in the system
+  async createNotification(notificationData: {
+    userId: number;
+    userType: string;
+    title: string;
+    message: string;
+    type: string;
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    category: string;
+    actionUrl?: string;
+    actionText?: string;
+  }): Promise<void> {
+    console.log(`[NOTIFICATION_SERVICE] 📝 Creating notification for user ${notificationData.userId} (${notificationData.userType})`);
+    
+    // In a real implementation, this would store the notification in the database
+    // For now, we'll just log it
+    const notification = {
+      ...notificationData,
+      id: Date.now() + Math.random(),
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      actionRequired: !!notificationData.actionUrl
+    };
+
+    console.log(`[NOTIFICATION_SERVICE] ✅ Notification created:`, notification);
   }
 
   // Consolidated notification sending
