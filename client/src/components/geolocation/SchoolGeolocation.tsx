@@ -446,80 +446,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100">Appareils Actifs</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeDevices || 0}</p>
-                </div>
-                <Activity className="h-8 w-8 text-blue-200" />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100">Zones Sécurisées</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeZones || 0}</p>
-                </div>
-                <Shield className="h-8 w-8 text-green-200" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100">Alertes Actives</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeAlerts || 0}</p>
-                </div>
-                <AlertTriangle className="h-8 w-8 text-orange-200" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100">Total Appareils</p>
-                  <p className="text-2xl font-bold">{schoolStats?.totalDevices || 0}</p>
-                </div>
-                <Users className="h-8 w-8 text-purple-200" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-red-100">Mode Urgence</p>
-                  <p className="text-2xl font-bold">{schoolStats?.emergencyDevices || 0}</p>
-                </div>
-                <Zap className="h-8 w-8 text-red-200" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-teal-500 to-teal-600 text-white">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-teal-100">Total Zones</p>
-                  <p className="text-2xl font-bold">{schoolStats?.totalZones || 0}</p>
-                </div>
-                <Target className="h-8 w-8 text-teal-200" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
@@ -1367,6 +1294,81 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
             </TabsContent>
           )}
         </Tabs>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mt-8">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100">Appareils Actifs</p>
+                  <p className="text-2xl font-bold">{schoolStats?.activeDevices || 0}</p>
+                </div>
+                <Activity className="h-8 w-8 text-blue-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100">Zones Sécurisées</p>
+                  <p className="text-2xl font-bold">{schoolStats?.activeZones || 0}</p>
+                </div>
+                <Shield className="h-8 w-8 text-green-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100">Alertes Actives</p>
+                  <p className="text-2xl font-bold">{schoolStats?.activeAlerts || 0}</p>
+                </div>
+                <AlertTriangle className="h-8 w-8 text-orange-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100">Total Appareils</p>
+                  <p className="text-2xl font-bold">{schoolStats?.totalDevices || 0}</p>
+                </div>
+                <Users className="h-8 w-8 text-purple-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-red-100">Mode Urgence</p>
+                  <p className="text-2xl font-bold">{schoolStats?.emergencyDevices || 0}</p>
+                </div>
+                <Zap className="h-8 w-8 text-red-200" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-teal-500 to-teal-600 text-white">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-teal-100">Total Zones</p>
+                  <p className="text-2xl font-bold">{schoolStats?.totalZones || 0}</p>
+                </div>
+                <Target className="h-8 w-8 text-teal-200" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
