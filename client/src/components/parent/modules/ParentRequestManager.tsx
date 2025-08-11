@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Send, Clock, CheckCircle, XCircle, AlertCircle, FileText, Calendar, MessageSquare, GraduationCap, School, Users } from 'lucide-react';
+import { Plus, Send, Clock, CheckCircle, XCircle, AlertCircle, FileText, Calendar, MessageSquare, GraduationCap, School, Users, Search, MapPin, Globe, Phone, User, Baby } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,6 +56,9 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const { user } = useAuth();
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [schoolSearchQuery, setSchoolSearchQuery] = useState('');
+  const [selectedSchool, setSelectedSchool] = useState<any>(null);
+  const [showSchoolSearch, setShowSchoolSearch] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -64,6 +67,16 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     { id: 1, firstName: 'Junior', lastName: 'Kamga', className: '3ème A' },
     { id: 2, firstName: 'Marie', lastName: 'Kamga', className: '6ème B' }
   ];
+
+  // Search schools query with debouncing
+  const { data: schoolsData } = useQuery({
+    queryKey: ['/api/schools/search', schoolSearchQuery],
+    enabled: schoolSearchQuery.length >= 2,
+    queryFn: async () => {
+      const response = await apiRequest(`/api/schools/search?query=${encodeURIComponent(schoolSearchQuery)}`);
+      return response;
+    },
+  });
 
   const form = useForm<RequestFormData>({
     resolver: zodResolver(requestSchema),
@@ -104,8 +117,35 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   });
 
   const onSubmit = useStableCallback((data: RequestFormData) => {
+    // If it's a school enrollment request and we have a selected school, use its code
+    if (data.type === 'school_enrollment' && selectedSchool) {
+      data.schoolCode = selectedSchool.code;
+    }
     createRequestMutation.mutate(data);
   });
+
+  // Handler to select a school from the search results
+  const handleSchoolSelect = (school: any) => {
+    setSelectedSchool(school);
+    form.setValue('schoolCode', school.code);
+    setShowSchoolSearch(false);
+    setSchoolSearchQuery(school.name);
+    
+    toast({
+      title: 'École sélectionnée',
+      description: `${school.name} - ${school.city}, ${school.country}`,
+    });
+  };
+
+  // Reset school selection when changing request type
+  const handleRequestTypeChange = (type: string) => {
+    if (type !== 'school_enrollment') {
+      setSelectedSchool(null);
+      setSchoolSearchQuery('');
+      setShowSchoolSearch(false);
+      form.setValue('schoolCode', '');
+    }
+  };
 
   // Types de demandes avec leurs icônes et descriptions
   const requestTypes = {
@@ -386,26 +426,107 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                       <h4 className="font-semibold">Informations pour l'Adhésion École</h4>
                     </div>
                     
-                    {/* Code de l'école */}
-                    <FormField
-                      control={form.control}
-                      name="schoolCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Code de l'École *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="Ex: EDU-CAM-001 (fourni par l'école)"
-                            />
-                          </FormControl>
-                          <p className="text-xs text-gray-600">
-                            Le code unique de l'école Educafric que vous souhaitez rejoindre
-                          </p>
-                          <FormMessage />
-                        </FormItem>
+                    {/* Recherche et sélection d'école */}
+                    <div className="space-y-3">
+                      <FormLabel>École Recherchée *</FormLabel>
+                      
+                      {/* School Search Input */}
+                      <div className="relative">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                          <Input
+                            value={schoolSearchQuery}
+                            onChange={(e) => {
+                              setSchoolSearchQuery(e.target.value);
+                              setShowSchoolSearch(e.target.value.length >= 2);
+                            }}
+                            placeholder="Tapez le nom d'une école Educafric..."
+                            className="pl-10"
+                            data-testid="input-school-search"
+                          />
+                        </div>
+                        
+                        {/* School Search Results */}
+                        {showSchoolSearch && schoolsData?.schools?.length > 0 && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                            {schoolsData.schools.map((school: any) => (
+                              <div
+                                key={school.id}
+                                className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                                onClick={() => handleSchoolSelect(school)}
+                                data-testid={`school-option-${school.code}`}
+                              >
+                                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                  <School className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-gray-900 truncate">
+                                    {school.name}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <MapPin className="w-3 h-3 text-gray-400" />
+                                    <p className="text-xs text-gray-600">
+                                      {school.city}, {school.country}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <Globe className="w-3 h-3 text-gray-400" />
+                                    <p className="text-xs text-gray-500">
+                                      {school.type} • {school.languages.join(', ')}
+                                    </p>
+                                  </div>
+                                  <p className="text-xs text-blue-600 font-mono mt-1">
+                                    Code: {school.code}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {showSchoolSearch && schoolSearchQuery.length >= 2 && (!schoolsData?.schools || schoolsData.schools.length === 0) && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 text-center">
+                            <p className="text-sm text-gray-500">Aucune école trouvée pour "{schoolSearchQuery}"</p>
+                            <p className="text-xs text-gray-400 mt-1">Essayez avec un autre nom ou ville</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Selected School Display */}
+                      {selectedSchool && (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                              <School className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-semibold text-green-900">
+                                École sélectionnée: {selectedSchool.name}
+                              </p>
+                              <p className="text-xs text-green-700 mt-1">
+                                {selectedSchool.city}, {selectedSchool.country} • Code: {selectedSchool.code}
+                              </p>
+                              <p className="text-xs text-green-600 mt-1">
+                                {selectedSchool.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       )}
-                    />
+
+                      <FormField
+                        control={form.control}
+                        name="schoolCode"
+                        render={({ field }) => (
+                          <FormItem className="hidden">
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     {/* Informations de l'enfant */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

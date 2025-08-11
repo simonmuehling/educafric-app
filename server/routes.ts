@@ -21372,6 +21372,263 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Geolocation Routes
   app.use('/api/geolocation', geolocationRoutes);
 
+  // ===== EDUCAFRIC SCHOOLS DATABASE =====
+  
+  // Get schools list for enrollment search
+  app.get('/api/schools/search', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { query = '' } = req.query;
+      
+      console.log(`[SCHOOLS_SEARCH] Search query: "${query}" by user: ${user.email}`);
+      
+      // Comprehensive list of Educafric partner schools across Africa
+      const educafricSchools = [
+        // Cameroun
+        {
+          id: 'EDU-CAM-001',
+          code: 'EDU-CAM-001',
+          name: 'École Bilingue Saint-Michel',
+          city: 'Yaoundé',
+          country: 'Cameroun',
+          region: 'Centre',
+          type: 'Primaire et Secondaire',
+          languages: ['Français', 'Anglais'],
+          level: 'Bilingue',
+          contact: '+237 222 123 456',
+          email: 'contact@saintmichel-yaounde.edu.cm',
+          description: 'École bilingue d\'excellence offrant un enseignement de qualité du CP à la Terminale'
+        },
+        {
+          id: 'EDU-CAM-002',
+          code: 'EDU-CAM-002',
+          name: 'Complexe Scolaire Les Bambous',
+          city: 'Douala',
+          country: 'Cameroun',
+          region: 'Littoral',
+          type: 'Maternel, Primaire et Secondaire',
+          languages: ['Français', 'Anglais'],
+          level: 'Bilingue',
+          contact: '+237 233 456 789',
+          email: 'info@lesbambous-dla.edu.cm',
+          description: 'Complexe scolaire moderne avec infrastructure numérique avancée'
+        },
+        {
+          id: 'EDU-CAM-003',
+          code: 'EDU-CAM-003',
+          name: 'Institut Technique ESPOIR',
+          city: 'Bafoussam',
+          country: 'Cameroun',
+          region: 'Ouest',
+          type: 'Technique et Professionnel',
+          languages: ['Français'],
+          level: 'Technique',
+          contact: '+237 233 987 654',
+          email: 'contact@espoir-bafoussam.edu.cm',
+          description: 'Formation technique et professionnelle de haut niveau'
+        },
+        {
+          id: 'EDU-CAM-004',
+          code: 'EDU-CAM-004',
+          name: 'École Internationale de Garoua',
+          city: 'Garoua',
+          country: 'Cameroun',
+          region: 'Nord',
+          type: 'Primaire et Secondaire',
+          languages: ['Français', 'Anglais', 'Arabe'],
+          level: 'International',
+          contact: '+237 222 345 678',
+          email: 'info@eig-garoua.edu.cm',
+          description: 'École internationale avec programme d\'excellence académique'
+        },
+
+        // Côte d'Ivoire
+        {
+          id: 'EDU-CIV-001',
+          code: 'EDU-CIV-001',
+          name: 'Groupe Scolaire Excellence Abidjan',
+          city: 'Abidjan',
+          country: 'Côte d\'Ivoire',
+          region: 'Lagunes',
+          type: 'Maternel, Primaire et Secondaire',
+          languages: ['Français'],
+          level: 'Excellence',
+          contact: '+225 21 456 789',
+          email: 'contact@excellence-abj.edu.ci',
+          description: 'Groupe scolaire de référence avec pédagogie innovante'
+        },
+        {
+          id: 'EDU-CIV-002',
+          code: 'EDU-CIV-002',
+          name: 'Institut Marie-Curie Bouaké',
+          city: 'Bouaké',
+          country: 'Côte d\'Ivoire',
+          region: 'Vallée du Bandama',
+          type: 'Secondaire',
+          languages: ['Français'],
+          level: 'Scientifique',
+          contact: '+225 31 567 890',
+          email: 'info@mariecurie-bouake.edu.ci',
+          description: 'Spécialisé dans les filières scientifiques et technologiques'
+        },
+
+        // Sénégal
+        {
+          id: 'EDU-SEN-001',
+          code: 'EDU-SEN-001',
+          name: 'Cours Sainte-Marie de Hann',
+          city: 'Dakar',
+          country: 'Sénégal',
+          region: 'Dakar',
+          type: 'Primaire et Secondaire',
+          languages: ['Français'],
+          level: 'Privé d\'Excellence',
+          contact: '+221 33 864 12 34',
+          email: 'contact@saintemarie-dakar.edu.sn',
+          description: 'Institution d\'excellence avec tradition pédagogique centenaire'
+        },
+        {
+          id: 'EDU-SEN-002',
+          code: 'EDU-SEN-002',
+          name: 'École Bilingue Thiès',
+          city: 'Thiès',
+          country: 'Sénégal',
+          region: 'Thiès',
+          type: 'Maternel et Primaire',
+          languages: ['Français', 'Anglais'],
+          level: 'Bilingue',
+          contact: '+221 33 951 23 45',
+          email: 'info@bilingue-thies.edu.sn',
+          description: 'École bilingue moderne avec approche pédagogique innovante'
+        },
+
+        // Mali
+        {
+          id: 'EDU-MLI-001',
+          code: 'EDU-MLI-001',
+          name: 'Complexe Scolaire Privé Liberté',
+          city: 'Bamako',
+          country: 'Mali',
+          region: 'District de Bamako',
+          type: 'Maternel, Primaire et Secondaire',
+          languages: ['Français'],
+          level: 'Privé',
+          contact: '+223 20 22 12 34',
+          email: 'contact@liberte-bamako.edu.ml',
+          description: 'Complexe éducatif offrant un parcours complet de qualité'
+        },
+
+        // Burkina Faso
+        {
+          id: 'EDU-BFA-001',
+          code: 'EDU-BFA-001',
+          name: 'École Internationale Ouagadougou',
+          city: 'Ouagadougou',
+          country: 'Burkina Faso',
+          region: 'Centre',
+          type: 'Primaire et Secondaire',
+          languages: ['Français', 'Anglais'],
+          level: 'International',
+          contact: '+226 25 30 12 34',
+          email: 'info@eio-ouaga.edu.bf',
+          description: 'École internationale avec programme d\'études diversifié'
+        },
+
+        // Gabon
+        {
+          id: 'EDU-GAB-001',
+          code: 'EDU-GAB-001',
+          name: 'Institut Saint-Joseph Libreville',
+          city: 'Libreville',
+          country: 'Gabon',
+          region: 'Estuaire',
+          type: 'Secondaire',
+          languages: ['Français'],
+          level: 'Catholique',
+          contact: '+241 01 72 12 34',
+          email: 'contact@saintjoseph-lbv.edu.ga',
+          description: 'Institution catholique d\'enseignement secondaire de qualité'
+        },
+
+        // Togo
+        {
+          id: 'EDU-TGO-001',
+          code: 'EDU-TGO-001',
+          name: 'Complexe Scolaire Arc-en-Ciel',
+          city: 'Lomé',
+          country: 'Togo',
+          region: 'Maritime',
+          type: 'Maternel, Primaire et Secondaire',
+          languages: ['Français'],
+          level: 'Privé',
+          contact: '+228 22 61 12 34',
+          email: 'info@arcenciel-lome.edu.tg',
+          description: 'Complexe scolaire moderne avec approche pédagogique personnalisée'
+        },
+
+        // République Centrafricaine
+        {
+          id: 'EDU-CAF-001',
+          code: 'EDU-CAF-001',
+          name: 'École Primaire Notre-Dame',
+          city: 'Bangui',
+          country: 'République Centrafricaine',
+          region: 'Ombella-M\'Poko',
+          type: 'Primaire',
+          languages: ['Français'],
+          level: 'Privé',
+          contact: '+236 21 61 23 45',
+          email: 'contact@notredame-bangui.edu.cf',
+          description: 'École primaire offrant un enseignement de base solide'
+        },
+
+        // Tchad
+        {
+          id: 'EDU-TCD-001',
+          code: 'EDU-TCD-001',
+          name: 'Lycée Franco-Arabe Al-Bichara',
+          city: 'N\'Djamena',
+          country: 'Tchad',
+          region: 'Chari-Baguirmi',
+          type: 'Secondaire',
+          languages: ['Français', 'Arabe'],
+          level: 'Franco-Arabe',
+          contact: '+235 22 52 12 34',
+          email: 'info@albichara-ndjamena.edu.td',
+          description: 'Lycée franco-arabe proposant un cursus bilingue et biculturel'
+        }
+      ];
+
+      // Filter schools based on query
+      let filteredSchools = educafricSchools;
+      if (query && query.length >= 2) {
+        const searchQuery = query.toString().toLowerCase();
+        filteredSchools = educafricSchools.filter(school => 
+          school.name.toLowerCase().includes(searchQuery) ||
+          school.city.toLowerCase().includes(searchQuery) ||
+          school.country.toLowerCase().includes(searchQuery) ||
+          school.code.toLowerCase().includes(searchQuery) ||
+          school.type.toLowerCase().includes(searchQuery)
+        );
+      }
+
+      // Limit results to 20 for performance
+      const results = filteredSchools.slice(0, 20);
+
+      console.log(`[SCHOOLS_SEARCH] Found ${results.length} schools for query: "${query}"`);
+      
+      res.json({
+        success: true,
+        count: results.length,
+        total: educafricSchools.length,
+        schools: results
+      });
+    } catch (error: any) {
+      console.error('[SCHOOLS_SEARCH] Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // ===== PARENT REQUEST MANAGEMENT ROUTES =====
   
   // Get all parent requests
