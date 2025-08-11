@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposition Tarifaire Personnalisée - Educafric</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background: #f8f9fa;
+        }
+        .proposal {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .client-info {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        .client-info h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+        }
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .pricing-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .pricing-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .pricing-table tr:hover {
+            background: #f8f9ff;
+        }
+        .total-row {
+            background: #28a745 !important;
+            color: white;
+            font-weight: bold;
+        }
+        .total-row:hover {
+            background: #28a745 !important;
+        }
+        .section {
+            margin-bottom: 35px;
+        }
+        .section h2 {
+            color: #667eea;
+            font-size: 22px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .feature-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        .feature-card h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        .savings-highlight {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .savings-highlight h3 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .timeline {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 25px 0;
+        }
+        .payment-terms {
+            background: #f1f3f5;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        .cta-button {
+            background: white;
+            color: #667eea;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .price-highlight {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        ul.included {
+            list-style: none;
+            padding: 0;
+        }
+        ul.included li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        ul.included li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="proposal">
+        <div class="header">
+            <h1>PROPOSITION TARIFAIRE PERSONNALISÉE</h1>
+            <div class="subtitle">Solutions Educafric - Adaptées à vos besoins</div>
+        </div>
+
+        <div class="content">
+            <!-- Client Information -->
+            <div class="client-info">
+                <h3>👥 INFORMATIONS CLIENT</h3>
+                <p><strong>Établissement :</strong> [Nom de l'établissement]</p>
+                <p><strong>Contact :</strong> [Nom du responsable]</p>
+                <p><strong>Nombre d'élèves :</strong> [___] élèves</p>
+                <p><strong>Nombre d'enseignants :</strong> [___] enseignants</p>
+                <p><strong>Date :</strong> [Date de la proposition]</p>
+                <p><strong>Validité :</strong> 30 jours</p>
+            </div>
+
+            <!-- Savings Highlight -->
+            <div class="savings-highlight">
+                <h3>💰 ÉCONOMIES GARANTIES</h3>
+                <p>Notre analyse montre des économies potentielles de <strong>60% sur vos coûts administratifs</strong></p>
+                <p>Soit environ <strong>[Montant] XAF économisés par an</strong></p>
+            </div>
+
+            <!-- Pricing Table -->
+            <div class="section">
+                <h2>💎 TARIFICATION DÉTAILLÉE</h2>
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Description</th>
+                            <th>Tarif</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Licence Plateforme</strong></td>
+                            <td>Accès illimité pour tous les utilisateurs</td>
+                            <td class="price-highlight">[Prix] XAF/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Module Géolocalisation</strong></td>
+                            <td>Suivi GPS temps réel des élèves</td>
+                            <td class="price-highlight">[Prix] XAF/élève/mois</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Communication SMS</strong></td>
+                            <td>Messages illimités vers parents</td>
+                            <td class="price-highlight">[Prix] XAF/SMS</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Formation Équipe</strong></td>
+                            <td>40h de formation sur site</td>
+                            <td class="price-highlight">Incluse</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Migration Données</strong></td>
+                            <td>Transfer depuis votre système actuel</td>
+                            <td class="price-highlight">Incluse</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Support Prioritaire</strong></td>
+                            <td>Support 24/7 pendant 12 mois</td>
+                            <td class="price-highlight">Inclus</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td colspan="2"><strong>TOTAL MENSUEL</strong></td>
+                            <td><strong>[Total] XAF/mois</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Features Included -->
+            <div class="section">
+                <h2>🎯 FONCTIONNALITÉS INCLUSES</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📚 Gestion Académique</h4>
+                        <ul class="included">
+                            <li>Bulletins numériques</li>
+                            <li>Gestion présences</li>
+                            <li>Emplois du temps</li>
+                            <li>Devoirs et notes</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>📍 Sécurité & Géolocalisation</h4>
+                        <ul class="included">
+                            <li>Suivi GPS temps réel</li>
+                            <li>Zones de sécurité</li>
+                            <li>Alertes automatiques</li>
+                            <li>Historique déplacements</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>💬 Communication</h4>
+                        <ul class="included">
+                            <li>SMS automatisés</li>
+                            <li>WhatsApp Business</li>
+                            <li>Notifications push</li>
+                            <li>Emails groupés</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>💳 Paiements</h4>
+                        <ul class="included">
+                            <li>Orange Money</li>
+                            <li>MTN Mobile Money</li>
+                            <li>Cartes bancaires</li>
+                            <li>Factures automatiques</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline">
+                <h3>⏱️ CALENDRIER DE DÉPLOIEMENT</h3>
+                <p><strong>Semaine 1-2 :</strong> Configuration initiale et migration des données</p>
+                <p><strong>Semaine 3 :</strong> Formation du personnel administratif et des enseignants</p>
+                <p><strong>Semaine 4 :</strong> Tests et mise en production</p>
+                <p><strong>Mois 2 :</strong> Suivi et optimisation avec support dédié</p>
+                <p><strong>🎯 Déploiement complet en 30 jours maximum</strong></p>
+            </div>
+
+            <!-- Payment Terms -->
+            <div class="payment-terms">
+                <h3>💰 CONDITIONS DE PAIEMENT</h3>
+                <p><strong>Option 1 :</strong> Paiement mensuel - [Prix] XAF/mois</p>
+                <p><strong>Option 2 :</strong> Paiement annuel - [Prix annuel] XAF/an (2 mois offerts)</p>
+                <p><strong>Option 3 :</strong> Paiement semestriel - [Prix semestriel] XAF/semestre (1 mois offert)</p>
+                
+                <p><strong>Modalités acceptées :</strong></p>
+                <ul>
+                    <li>Virement bancaire</li>
+                    <li>Orange Money / MTN Mobile Money</li>
+                    <li>Chèque d'établissement</li>
+                </ul>
+            </div>
+
+            <!-- Special Offers -->
+            <div class="section">
+                <h2>🎉 OFFRES SPÉCIALES</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🆓 Essai Gratuit</h4>
+                        <p>30 jours d'essai complet sans engagement avec toutes les fonctionnalités</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🎓 Formation Offerte</h4>
+                        <p>40 heures de formation sur site pour votre équipe (valeur 200 000 XAF)</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🚀 Lancement Rapide</h4>
+                        <p>Déploiement prioritaire en 2 semaines au lieu de 4</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h4>🛡️ Garantie</h4>
+                        <p>Satisfait ou remboursé sous 60 jours, aucune question posée</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h2>🎯 PRÊT À COMMENCER ?</h2>
+                <p>Cette offre est valable pendant 30 jours et limitée aux premiers établissements partenaires</p>
+                <a href="#" class="cta-button">Accepter cette Proposition</a>
+                <a href="#" class="cta-button">Programmer une Démonstration</a>
+                <a href="#" class="cta-button">Commencer l'Essai Gratuit</a>
+            </div>
+
+            <!-- Contact -->
+            <div class="section">
+                <h2>📞 VOTRE CONTACT DÉDIÉ</h2>
+                <p><strong>Commercial :</strong> [Nom du commercial]</p>
+                <p><strong>Email :</strong> [email]@educafric.com</p>
+                <p><strong>WhatsApp :</strong> +237 600 000 000</p>
+                <p><strong>Téléphone :</strong> +237 600 000 000</p>
+                <p><strong>Disponibilité :</strong> Lundi-Vendredi 8h-18h, Urgences 24/7</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Educafric Technologies</strong> - Votre partenaire pour l'éducation numérique</p>
+            <p>www.educafric.com | Douala, Cameroun | Bureaux dans 15 pays africains</p>
+        </div>
+    </div>
+</body>
+</html>
