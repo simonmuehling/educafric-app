@@ -690,16 +690,28 @@ export const ParentGeolocation = () => {
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
+              
+              // Récupérer les jours actifs sélectionnés
+              const activeDays = Array.from(formData.getAll('activeDays')).map(day => parseInt(day as string));
+              
               const zoneData = {
                 name: formData.get('name') as string,
                 type: formData.get('type') as string,
                 latitude: parseFloat(formData.get('latitude') as string),
                 longitude: parseFloat(formData.get('longitude') as string),
                 radius: parseInt(formData.get('radius') as string),
-                active: true
+                active: true,
+                // Configuration horaire
+                schedule: {
+                  startTime: formData.get('startTime') as string,
+                  endTime: formData.get('endTime') as string,
+                  startDate: formData.get('startDate') as string,
+                  endDate: formData.get('endDate') as string || null,
+                  activeDays: activeDays
+                }
               };
               
-              console.log('[PARENT_GEOLOCATION] 🏗️ Creating new safe zone:', zoneData);
+              console.log('[PARENT_GEOLOCATION] 🏗️ Creating new safe zone with schedule:', zoneData);
               createSafeZoneMutation.mutate(zoneData);
             }} className="space-y-4">
               <div>
@@ -711,6 +723,70 @@ export const ParentGeolocation = () => {
                   placeholder="Ex: Maison, École, Chez Grand-mère"
                   required
                 />
+              </div>
+
+              {/* Configuration des horaires */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h4 className="font-medium mb-3 text-gray-700">Programmation horaire</h4>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Heure de début</label>
+                    <input
+                      name="startTime"
+                      type="time"
+                      className="w-full p-2 border rounded-lg"
+                      defaultValue="07:00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Heure de fin</label>
+                    <input
+                      name="endTime"
+                      type="time"
+                      className="w-full p-2 border rounded-lg"
+                      defaultValue="18:00"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Date de début</label>
+                    <input
+                      name="startDate"
+                      type="date"
+                      className="w-full p-2 border rounded-lg"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Date de fin (optionnelle)</label>
+                    <input
+                      name="endDate"
+                      type="date"
+                      className="w-full p-2 border rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Jours actifs</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
+                      <label key={day} className="flex items-center space-x-1">
+                        <input
+                          type="checkbox"
+                          name="activeDays"
+                          value={index}
+                          defaultChecked={index < 5} // Lun-Ven par défaut
+                          className="rounded"
+                        />
+                        <span className="text-sm">{day}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
               
               <div>
