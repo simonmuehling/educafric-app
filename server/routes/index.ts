@@ -101,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register existing specialized routes
   registerCriticalAlertingRoutes(app);
-  setupNotificationRoutes(app);
+  app.use('/api/notifications', setupNotificationRoutes(app));
   registerSiteAdminRoutes(app);
   registerTrackingRoutes(app);
   setupDataRightsRoutes(app);
@@ -134,7 +134,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // System health check
   app.get('/api/health', systemHealthCheck);
-  app.use(securityMonitor);
 
   // Error handler (must be last)
   app.use(errorHandler);

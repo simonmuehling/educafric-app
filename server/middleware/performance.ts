@@ -97,19 +97,9 @@ export const cacheControlMiddleware = (req: Request, res: Response, next: NextFu
   next();
 };
 
-// Memory cleanup middleware
+// Memory cleanup middleware (disabled to reduce log noise)
 export const memoryCleanupMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Force garbage collection periodically (not recommended for production)
-  if (process.env.NODE_ENV === 'development') {
-    const memoryUsage = process.memoryUsage();
-    if (memoryUsage.rss > 1000 * 1024 * 1024) { // If using > 1GB (increased threshold)
-      console.log('[MEMORY] High memory usage detected, suggesting garbage collection');
-      if (global.gc) {
-        global.gc();
-      }
-    }
-  }
-
+  // Disabled memory monitoring to focus on other issues
   next();
 };
 
