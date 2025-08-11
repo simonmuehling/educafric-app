@@ -11001,7 +11001,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // All geolocation routes now handled by the geolocation router
+  // Register geolocation routes
+  app.use('/api/geolocation', geolocationRoutes);
   
   // Register subscription routes  
   app.use('/api/subscription', (await import('./routes/subscription')).default);

@@ -139,7 +139,30 @@ export class GeolocationService {
     return zones.filter(zone => zone.isActive);
   }
 
-  // Analytics and Statistics
+  // School Statistics
+  async getSchoolStats(schoolId: number) {
+    try {
+      // In a real implementation, these would be database queries
+      // For now, return mock data that matches the frontend requirements
+      return {
+        totalDevices: 12,
+        activeDevices: 8,
+        activeZones: 3,
+        totalZones: 5,
+        activeAlerts: 2,
+        emergencyDevices: 0,
+        studentsTracked: 8,
+        emergencyContacts: 15,
+        batteryLow: 1,
+        lastUpdate: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('[GEOLOCATION_SERVICE] getSchoolStats error:', error);
+      throw error;
+    }
+  }
+
+  // Analytics and Statistics (legacy method)
   async getSchoolStatistics(schoolId: number) {
     return {
       totalDevices: 12,
@@ -151,6 +174,62 @@ export class GeolocationService {
       batteryLow: 1,
       lastUpdate: new Date().toISOString()
     };
+  }
+
+  // Demo Data Seeding
+  async seedDemoData(schoolId: number) {
+    try {
+      // Create demo safe zones
+      const demoZones = [
+        {
+          schoolId,
+          name: 'Cour principale',
+          description: 'Zone de récréation principale',
+          latitude: '4.0511',
+          longitude: '9.7679',
+          radius: 150,
+          isActive: true,
+          alertOnEntry: false,
+          alertOnExit: true
+        },
+        {
+          schoolId,
+          name: 'Entrée école',
+          description: 'Zone d\'entrée et sortie',
+          latitude: '4.0515',
+          longitude: '9.7685',
+          radius: 100,
+          isActive: true,
+          alertOnEntry: true,
+          alertOnExit: true
+        }
+      ];
+
+      for (const zone of demoZones) {
+        try {
+          await this.createSafeZone(zone as any);
+        } catch (error) {
+          console.log('[GEOLOCATION_SERVICE] Zone may already exist:', zone.name);
+        }
+      }
+
+      console.log(`[GEOLOCATION_SERVICE] Demo data seeded for school ${schoolId}`);
+    } catch (error) {
+      console.error('[GEOLOCATION_SERVICE] seedDemoData error:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to calculate distance between two coordinates
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   }
 }
 
