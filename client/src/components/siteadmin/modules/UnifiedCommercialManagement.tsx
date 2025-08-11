@@ -137,6 +137,15 @@ const UnifiedCommercialManagement: React.FC = () => {
     enabled: !!selectedCommercial
   });
 
+  const { data: allDocuments = [], isLoading: loadingAllDocuments } = useQuery({
+    queryKey: ['/api/site-admin/all-commercial-documents'],
+    queryFn: async () => {
+      const response = await fetch('/api/site-admin/all-commercial-documents', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch all documents');
+      return response.json();
+    }
+  });
+
   // Filtered commercials
   const filteredCommercials = commercials.filter((commercial: Commercial) => {
     const matchesSearch = 
@@ -549,41 +558,72 @@ const UnifiedCommercialManagement: React.FC = () => {
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="mt-6">
-          {selectedCommercial ? (
+          <div className="space-y-6">
+            {/* Document Library Section */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  Documents de {selectedCommercial.firstName} {selectedCommercial.lastName}
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Bibliothèque des Documents Commerciaux
                 </CardTitle>
+                <p className="text-sm text-gray-600">
+                  Tous les documents commerciaux disponibles pour l'équipe EDUCAFRIC
+                </p>
               </CardHeader>
               <CardContent>
-                {loadingDocuments ? (
+                {loadingAllDocuments ? (
                   <div className="flex items-center justify-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    <span className="ml-2">Chargement des documents...</span>
+                    <span className="ml-2">Chargement de la bibliothèque...</span>
                   </div>
-                ) : documents.length === 0 ? (
-                  <p className="text-center text-gray-500 py-8">Aucun document trouvé</p>
                 ) : (
-                  <div className="space-y-4">
-                    {documents.map((document: CommercialDocument) => (
-                      <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <FileText className="w-8 h-8 text-blue-600" />
-                          <div>
-                            <h4 className="font-medium">{document.title}</h4>
-                            <p className="text-sm text-gray-600">Créé le {formatDate(document.createdAt)}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {allDocuments.map((document: any) => (
+                      <div key={document.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <FileText className="w-6 h-6 text-blue-600" />
+                            <div className="flex items-center space-x-1">
+                              <Badge className={getTypeBadge(document.type)}>
+                                {document.type}
+                              </Badge>
+                              <Badge 
+                                variant="outline" 
+                                className={document.language === 'fr' ? 'border-blue-500 text-blue-700' : 'border-green-500 text-green-700'}
+                              >
+                                {document.language.toUpperCase()}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getTypeBadge(document.type)}>
-                            {document.type}
-                          </Badge>
-                          <Badge className={getStatusBadge(document.status)}>
-                            {document.status}
-                          </Badge>
-                          <Button size="sm" variant="outline">
-                            <Eye className="w-4 h-4" />
+                        <h4 className="font-medium text-sm mb-2 line-clamp-2">{document.title}</h4>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Créé le {formatDate(document.createdAt)}
+                        </p>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => window.open(document.path, '_blank')}
+                            data-testid={`button-view-document-${document.id}`}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            Voir
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-blue-600 hover:bg-blue-700 flex-1"
+                            onClick={() => {
+                              navigator.clipboard.writeText(window.location.origin + document.path);
+                              toast({
+                                title: 'Lien copié',
+                                description: 'Le lien du document a été copié dans le presse-papier',
+                              });
+                            }}
+                          >
+                            <Link className="w-3 h-3 mr-1" />
+                            Copier
                           </Button>
                         </div>
                       </div>
@@ -592,15 +632,74 @@ const UnifiedCommercialManagement: React.FC = () => {
                 )}
               </CardContent>
             </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Sélectionner un Commercial</h3>
-                <p className="text-gray-600">Choisissez un commercial dans l'onglet Équipe pour voir ses documents</p>
-              </CardContent>
-            </Card>
-          )}
+
+            {/* Commercial-specific Documents Section */}
+            {selectedCommercial && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    Documents personnels - {selectedCommercial.firstName} {selectedCommercial.lastName}
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Documents créés ou utilisés spécifiquement par ce commercial
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {loadingDocuments ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      <span className="ml-2">Chargement des documents...</span>
+                    </div>
+                  ) : documents.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">Aucun document personnalisé trouvé</p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Ce commercial utilise les documents de la bibliothèque générale
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {documents.map((document: CommercialDocument) => (
+                        <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center space-x-4">
+                            <FileText className="w-8 h-8 text-blue-600" />
+                            <div>
+                              <h4 className="font-medium">{document.title}</h4>
+                              <p className="text-sm text-gray-600">Créé le {formatDate(document.createdAt)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge className={getTypeBadge(document.type)}>
+                              {document.type}
+                            </Badge>
+                            <Badge className={getStatusBadge(document.status)}>
+                              {document.status}
+                            </Badge>
+                            <Button size="sm" variant="outline">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {!selectedCommercial && (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Documents Personnalisés</h3>
+                  <p className="text-gray-600">
+                    Sélectionnez un commercial dans l'onglet Équipe pour voir ses documents personnalisés
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
 
         {/* Contracts Tab */}

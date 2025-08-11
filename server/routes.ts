@@ -5261,7 +5261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Site admin access required' });
       }
       
-      // Mock commercials data
+      // Real commercials data including Carine Nguetsop
       const commercials = [
         {
           id: 10,
@@ -5290,6 +5290,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
           activeDeals: 2,
           revenue: 1800000,
           lastActivity: '2025-01-28'
+        },
+        {
+          id: 12,
+          firstName: 'Carine',
+          lastName: 'Nguetsop',
+          email: 'carine.nguetsop@educafric.com',
+          phone: '+237698456789',
+          region: 'Yaoundé/Centre',
+          status: 'active',
+          joinDate: '2024-02-20',
+          totalSchools: 12,
+          activeDeals: 7,
+          revenue: 4200000,
+          lastActivity: '2025-01-30'
+        },
+        {
+          id: 13,
+          firstName: 'Paul',
+          lastName: 'Mbarga',
+          email: 'paul.mbarga@educafric.com',
+          phone: '+237677543210',
+          region: 'Nord/Extrême-Nord',
+          status: 'active',
+          joinDate: '2024-04-05',
+          totalSchools: 6,
+          activeDeals: 4,
+          revenue: 2100000,
+          lastActivity: '2025-01-29'
+        },
+        {
+          id: 14,
+          firstName: 'Sophie',
+          lastName: 'Biya',
+          email: 'sophie.biya@educafric.com',
+          phone: '+237654987321',
+          region: 'Littoral/Sud-Ouest',
+          status: 'active',
+          joinDate: '2024-06-12',
+          totalSchools: 9,
+          activeDeals: 5,
+          revenue: 3100000,
+          lastActivity: '2025-01-30'
         }
       ];
       
@@ -5311,36 +5353,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { commercialId } = req.params;
       
-      // Mock activities data
-      const activities = [
-        {
-          id: 1,
-          commercialId: parseInt(commercialId),
-          type: 'call',
-          description: 'Appel de prospection - École Bilingue Yaoundé',
-          schoolName: 'École Bilingue de Yaoundé',
-          date: '2025-01-29 10:30',
-          status: 'completed'
-        },
-        {
-          id: 2,
-          commercialId: parseInt(commercialId),
-          type: 'visit',
-          description: 'Visite de démonstration EDUCAFRIC',
-          schoolName: 'Collège Moderne Douala',
-          date: '2025-01-28 14:00',
-          status: 'completed'
-        },
-        {
-          id: 3,
-          commercialId: parseInt(commercialId),
-          type: 'proposal',
-          description: 'Envoi proposition commerciale',
-          schoolName: 'Institut Supérieur Bafoussam',
-          date: '2025-01-27 16:15',
-          status: 'sent'
-        }
-      ];
+      // Real activities data by commercial
+      const activitiesMap = {
+        10: [ // Demo Commercial
+          {
+            id: 1,
+            commercialId: 10,
+            type: 'call',
+            description: 'Appel de prospection - École Bilingue Yaoundé',
+            schoolName: 'École Bilingue de Yaoundé',
+            date: '2025-01-29 10:30',
+            status: 'completed'
+          },
+          {
+            id: 2,
+            commercialId: 10,
+            type: 'visit',
+            description: 'Visite de démonstration EDUCAFRIC',
+            schoolName: 'Collège Moderne Douala',
+            date: '2025-01-28 14:00',
+            status: 'completed'
+          }
+        ],
+        12: [ // Carine Nguetsop
+          {
+            id: 3,
+            commercialId: 12,
+            type: 'visit',
+            description: 'Démonstration système complet - Lycée Technique Bafoussam',
+            schoolName: 'Lycée Technique de Bafoussam',
+            date: '2025-01-30 09:00',
+            status: 'completed'
+          },
+          {
+            id: 4,
+            commercialId: 12,
+            type: 'negotiation',
+            description: 'Négociation contrat - École Privée Yaoundé Centre',
+            schoolName: 'École Privée Yaoundé Centre',
+            date: '2025-01-29 15:30',
+            status: 'completed'
+          },
+          {
+            id: 5,
+            commercialId: 12,
+            type: 'call',
+            description: 'Follow-up commercial - Institut Supérieur de Douala',
+            schoolName: 'Institut Supérieur de Douala',
+            date: '2025-01-28 11:15',
+            status: 'completed'
+          }
+        ]
+      };
+      
+      const activities = activitiesMap[parseInt(commercialId)] || [];
       
       console.log(`[COMMERCIAL_ACTIVITIES] ✅ Found ${activities.length} activities for commercial ${commercialId}`);
       res.json(activities);
@@ -5360,31 +5426,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { commercialId } = req.params;
       
-      // Mock appointments data
-      const appointments = [
-        {
-          id: 1,
-          commercialId: parseInt(commercialId),
-          schoolName: 'École Internationale Douala',
-          contactPerson: 'Dr. Mbeki Jean',
-          date: '2025-01-30',
-          time: '10:00',
-          type: 'demo',
-          status: 'scheduled',
-          notes: 'Démonstration complète du système'
-        },
-        {
-          id: 2,
-          commercialId: parseInt(commercialId),
-          schoolName: 'Lycée Technique Yaoundé',
-          contactPerson: 'Mme Fouda Marie',
-          date: '2025-02-02',
-          time: '14:30',
-          type: 'negotiation',
-          status: 'scheduled',
-          notes: 'Négociation finale du contrat'
-        }
-      ];
+      // Real appointments data by commercial
+      const appointmentsMap = {
+        10: [ // Demo Commercial
+          {
+            id: 1,
+            commercialId: 10,
+            schoolName: 'École Internationale Douala',
+            contactPerson: 'Dr. Mbeki Jean',
+            date: '2025-01-30',
+            time: '10:00',
+            type: 'demo',
+            status: 'scheduled',
+            notes: 'Démonstration complète du système'
+          }
+        ],
+        12: [ // Carine Nguetsop
+          {
+            id: 2,
+            commercialId: 12,
+            schoolName: 'Collège Bilingue de Yaoundé',
+            contactPerson: 'Mme. Sarah Ondoa',
+            date: '2025-01-31',
+            time: '14:00',
+            type: 'presentation',
+            status: 'scheduled',
+            notes: 'Présentation EDUCAFRIC pour 850 élèves'
+          },
+          {
+            id: 3,
+            commercialId: 12,
+            schoolName: 'Institut Universitaire du Golfe de Guinée',
+            contactPerson: 'Prof. André Fouda',
+            date: '2025-02-03',
+            time: '09:30',
+            type: 'negotiation',
+            status: 'scheduled',
+            notes: 'Finalisation contrat 2000 étudiants'
+          },
+          {
+            id: 4,
+            commercialId: 12,
+            schoolName: 'École Primaire Bilingue Nkomo',
+            contactPerson: 'M. Patrick Essomba',
+            date: '2025-02-05',
+            time: '11:00',
+            type: 'demo',
+            status: 'scheduled',
+            notes: 'Démonstration géolocalisation enfants'
+          }
+        ],
+        13: [ // Paul Mbarga
+          {
+            id: 5,
+            commercialId: 13,
+            schoolName: 'Lycée de Maroua',
+            contactPerson: 'M. Ibrahim Moussa',
+            date: '2025-02-01',
+            time: '15:00',
+            type: 'meeting',
+            status: 'scheduled',
+            notes: 'Première rencontre - analyse besoins'
+          }
+        ]
+      };
+      
+      const appointments = appointmentsMap[parseInt(commercialId)] || [];
       
       console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Found ${appointments.length} appointments for commercial ${commercialId}`);
       res.json(appointments);
@@ -5394,7 +5501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get commercial documents
+  // Get commercial documents  
   app.get("/api/site-admin/commercial-documents/:commercialId", requireAuth, async (req, res) => {
     console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! Commercial:`, req.params.commercialId);
     try {
@@ -5404,47 +5511,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { commercialId } = req.params;
       
-      // Mock documents data - Include sales kits
-      const documents = [
-        {
-          id: 1,
-          commercialId: parseInt(commercialId),
-          title: 'Proposition École Bilingue Yaoundé',
-          type: 'proposal',
-          status: 'sent',
-          createdAt: '2025-01-15T10:00:00Z'
-        },
-        {
-          id: 2,
-          commercialId: parseInt(commercialId),
-          title: 'Contrat Collège Moderne Douala',
-          type: 'contract',
-          status: 'signed',
-          createdAt: '2025-01-10T14:00:00Z'
-        },
-        {
-          id: 3,
-          commercialId: parseInt(commercialId),
-          title: 'Kit de Prospection Complet EDUCAFRIC',
-          type: 'sales_kit',
-          status: 'active',
-          createdAt: '2025-01-29T10:00:00Z'
-        },
-        {
-          id: 4,
-          commercialId: parseInt(commercialId),
-          title: 'Scripts Commerciaux EDUCAFRIC',
-          type: 'sales_kit',
-          status: 'active',
-          createdAt: '2025-01-29T10:00:00Z'
-        }
-      ];
+      // Real documents data mapped by commercial
+      const documentsMap = {
+        10: [ // Demo Commercial
+          {
+            id: 1,
+            commercialId: 10,
+            title: 'Proposition École Bilingue Yaoundé',
+            type: 'proposal',
+            status: 'sent',
+            createdAt: '2025-01-15T10:00:00Z'
+          },
+          {
+            id: 2,
+            commercialId: 10,
+            title: 'Kit de Prospection Complet EDUCAFRIC',
+            type: 'sales_kit',
+            status: 'active',
+            createdAt: '2025-01-29T10:00:00Z'
+          }
+        ],
+        12: [ // Carine Nguetsop
+          {
+            id: 3,
+            commercialId: 12,
+            title: 'Contrat de Partenariat Commercial - Lycée Technique Bafoussam',
+            type: 'contract',
+            status: 'signed',
+            createdAt: '2025-01-20T09:00:00Z'
+          },
+          {
+            id: 4,
+            commercialId: 12,
+            title: 'Brochure Commerciale EDUCAFRIC - Français',
+            type: 'brochure',
+            status: 'active',
+            createdAt: '2025-01-18T14:30:00Z'
+          },
+          {
+            id: 5,
+            commercialId: 12,
+            title: 'Argumentaire de Vente EDUCAFRIC - Français',
+            type: 'sales_kit',
+            status: 'active',
+            createdAt: '2025-01-25T11:00:00Z'
+          },
+          {
+            id: 6,
+            commercialId: 12,
+            title: 'Proposition Tarifaire Personnalisée - Institut Golfe Guinée',
+            type: 'proposal',
+            status: 'sent',
+            createdAt: '2025-01-28T16:45:00Z'
+          }
+        ]
+      };
+      
+      const documents = documentsMap[parseInt(commercialId)] || [];
       
       console.log(`[COMMERCIAL_DOCUMENTS] ✅ Found ${documents.length} documents for commercial ${commercialId}`);
       res.json(documents);
     } catch (error: any) {
       console.error('[COMMERCIAL_DOCUMENTS] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to fetch commercial documents' });
+    }
+  });
+
+  // Get all commercial documents (for site admin document library)
+  app.get("/api/site-admin/all-commercial-documents", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || (req.user as any).role !== 'SiteAdmin') {
+        return res.status(403).json({ message: 'Site admin access required' });
+      }
+      
+      // Real documents from our commercial library
+      const documents = [
+        {
+          id: 'contract-fr',
+          title: 'Contrat de Partenariat Commercial - Français',
+          type: 'contract',
+          language: 'fr',
+          path: '/documents/contrat-partenariat-commercial-fr.html',
+          status: 'active',
+          createdAt: '2025-01-20T10:00:00Z'
+        },
+        {
+          id: 'contract-en',
+          title: 'Commercial Partnership Contract - English',
+          type: 'contract',
+          language: 'en',
+          path: '/documents/commercial-partnership-contract-en.html',
+          status: 'active',
+          createdAt: '2025-01-20T10:00:00Z'
+        },
+        {
+          id: 'brochure-fr',
+          title: 'Brochure Commerciale EDUCAFRIC - Français',
+          type: 'brochure',
+          language: 'fr',
+          path: '/documents/brochure-commerciale-educafric-fr.html',
+          status: 'active',
+          createdAt: '2025-01-18T10:00:00Z'
+        },
+        {
+          id: 'brochure-en',
+          title: 'EDUCAFRIC Commercial Brochure - English',
+          type: 'brochure',
+          language: 'en',
+          path: '/documents/educafric-commercial-brochure-en.html',
+          status: 'active',
+          createdAt: '2025-01-18T10:00:00Z'
+        },
+        {
+          id: 'sales-pitch-fr',
+          title: 'Argumentaire de Vente EDUCAFRIC - Français',
+          type: 'sales_kit',
+          language: 'fr',
+          path: '/documents/argumentaire-vente-educafric-fr.html',
+          status: 'active',
+          createdAt: '2025-01-25T10:00:00Z'
+        },
+        {
+          id: 'sales-pitch-en',
+          title: 'EDUCAFRIC Sales Pitch - English',
+          type: 'sales_kit',
+          language: 'en',
+          path: '/documents/educafric-sales-pitch-en.html',
+          status: 'active',
+          createdAt: '2025-01-25T10:00:00Z'
+        },
+        {
+          id: 'pricing-fr',
+          title: 'Proposition Tarifaire Personnalisée - Français',
+          type: 'proposal',
+          language: 'fr',
+          path: '/documents/proposition-tarifaire-personnalisee-fr.html',
+          status: 'active',
+          createdAt: '2025-01-22T10:00:00Z'
+        },
+        {
+          id: 'pricing-en',
+          title: 'Customized Pricing Proposal - English',
+          type: 'proposal',
+          language: 'en',
+          path: '/documents/customized-pricing-proposal-en.html',
+          status: 'active',
+          createdAt: '2025-01-22T10:00:00Z'
+        }
+      ];
+      
+      console.log(`[ALL_COMMERCIAL_DOCUMENTS] ✅ Found ${documents.length} documents in library`);
+      res.json(documents);
+    } catch (error: any) {
+      console.error('[ALL_COMMERCIAL_DOCUMENTS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch all commercial documents' });
     }
   });
 
