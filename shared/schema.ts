@@ -7,6 +7,8 @@ import { z } from "zod";
 export * from "./tutorialSchema";
 // Import geolocation schema
 export * from "./geolocationSchema";
+// Import profile deletion schema
+export * from "./profileDeletionSchema";
 
 // Core user system with multi-role support
 export const users = pgTable("users", {
@@ -41,6 +43,10 @@ export const users = pgTable("users", {
   whatsappNumber: varchar("whatsapp_number", { length: 20 }),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpiry: timestamp("password_reset_expiry"),
+  deletionRequested: boolean("deletion_requested").default(false),
+  deletionRequestedAt: timestamp("deletion_requested_at"),
+  deletionApprovedBy: integer("deletion_approved_by"), // Parent ID who approved deletion
+  deletionApprovedAt: timestamp("deletion_approved_at"),
   firebaseUid: text("firebase_uid").unique(),
   photoURL: text("photo_url"),
   lastLoginAt: timestamp("last_login_at"),
