@@ -17,7 +17,7 @@ import FunctionalDirectorTeacherManagement from './modules/FunctionalDirectorTea
 import SchoolAttendanceManagement from './modules/SchoolAttendanceManagement';
 import ParentRequestsNew from './modules/ParentRequestsNew';
 import DelegateAdministrators from './modules/DelegateAdministrators';
-import GeolocationManagementImproved from './modules/GeolocationManagementImproved';
+import GeolocationManagement from './modules/GeolocationManagement';
 import BulletinApprovalNew from './modules/BulletinApprovalNew';
 import BulletinValidation from './modules/BulletinValidation';
 import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
@@ -291,7 +291,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Rapports de fréquentation géolocalisés"
           ]}
         >
-          <GeolocationManagementImproved />
+          <GeolocationManagement />
         </PremiumFeatureGate>
       )
     },

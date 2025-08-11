@@ -25,17 +25,7 @@ import { ownerNotificationService } from "./services/ownerNotificationService";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
 // Two-factor authentication will be handled by separate routes
-import {
-  updateLocation,
-  getFamilyLocations,
-  createSafeZone,
-  getSafeZones,
-  triggerEmergencyPanic,
-  createFamilyNetwork,
-  getGeofenceAlerts,
-  getLocationAnalytics,
-  registerDevice
-} from "./routes/geolocationRoutes";
+// Geolocation functions now handled by the main geolocation router
 import { storage } from "./storage";
 import { sendGoodbyeEmail } from "./emailService";
 import { dailyReportService } from "./services/dailyReportService";
@@ -1524,8 +1514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/parent/geolocation/safe-zones', requireAuth, getSafeZones);
-  app.post('/api/parent/geolocation/safe-zones', requireAuth, createSafeZone);
+  // Safe zones routes moved to geolocation router
 
   app.get('/api/parent/geolocation/alerts', requireAuth, async (req: Request, res: Response) => {
     try {
@@ -11012,16 +11001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Real-time Geolocation Family Safety Network routes
-  app.post("/api/geolocation/update", requireAuth, updateLocation);
-  app.get("/api/geolocation/family", requireAuth, getFamilyLocations);
-  app.post("/api/geolocation/safe-zones", requireAuth, createSafeZone);
-  app.get("/api/geolocation/safe-zones", requireAuth, getSafeZones);
-  app.post("/api/geolocation/emergency", requireAuth, triggerEmergencyPanic);
-  app.post("/api/geolocation/family-network", requireAuth, createFamilyNetwork);
-  app.get("/api/geolocation/alerts", requireAuth, getGeofenceAlerts);
-  app.get("/api/geolocation/analytics", requireAuth, getLocationAnalytics);
-  app.post("/api/geolocation/register-device", requireAuth, registerDevice);
+  // All geolocation routes now handled by the geolocation router
   
   // Register subscription routes  
   app.use('/api/subscription', (await import('./routes/subscription')).default);
