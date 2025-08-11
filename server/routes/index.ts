@@ -43,6 +43,14 @@ import { ownerNotificationService } from "../services/ownerNotificationService";
 import { criticalAlertingService } from "../services/criticalAlertingService";
 import { dailyReportService } from "../services/dailyReportService";
 import { hostingerMailService } from "../services/hostingerMailService";
+
+// Define requireAuth middleware
+function requireAuth(req: any, res: any, next: any) {
+  if (!req.isAuthenticated || !req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  next();
+}
 import { welcomeEmailService } from "../services/welcomeEmailService";
 
 // Import geolocation routes
@@ -90,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(enhancedSecurityLogger);
   app.use(ipBlockingMiddleware);
   app.use(performanceMonitor);
-  app.use(intrusionDetectionMiddleware(educationalSecurityRules));
+  app.use(intrusionDetectionMiddleware);
   app.use(sandboxIsolationMiddleware);
 
   // Register route modules
@@ -101,8 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register existing specialized routes
   registerCriticalAlertingRoutes(app);
-  app.use('/api/notifications', setupNotificationRoutes(app));
-  registerSiteAdminRoutes(app);
+  setupNotificationRoutes(app);
+  registerSiteAdminRoutes(app, requireAuth);
   registerTrackingRoutes(app);
   setupDataRightsRoutes(app);
 
