@@ -1,416 +1,256 @@
-// Real-time Geolocation Family Safety Network Service
-import { storage } from '../storage';
-import { NotificationService } from './notificationService';
+import { db } from '../db';
+import { 
+  geolocationDevices, 
+  safeZones, 
+  locationTracking, 
+  geolocationAlerts, 
+  emergencyContacts,
+  type GeolocationDevice,
+  type SafeZone,
+  type LocationTracking,
+  type GeolocationAlert,
+  type EmergencyContact,
+  type InsertGeolocationDevice,
+  type InsertSafeZone,
+  type InsertLocationTracking,
+  type InsertGeolocationAlert,
+  type InsertEmergencyContact
+} from '@shared/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
-const notificationService = new NotificationService();
+export class GeolocationService {
+  // Device Management
+  async createDevice(deviceData: InsertGeolocationDevice): Promise<GeolocationDevice> {
+    const [device] = await db.insert(geolocationDevices).values(deviceData).returning();
+    return device;
+  }
 
-interface LocationData {
-  deviceId: number;
-  userId: number;
-  latitude: number;
-  longitude: number;
-  accuracy?: number;
-  altitude?: number;
-  speed?: number;
-  heading?: number;
-  timestamp: Date;
-}
+  async getDevicesByStudent(studentId: number): Promise<GeolocationDevice[]> {
+    return await db.select().from(geolocationDevices).where(eq(geolocationDevices.studentId, studentId));
+  }
 
-interface SafeZoneData {
-  name: string;
-  description?: string;
-  centerLatitude: number;
-  centerLongitude: number;
-  radius: number;
-  zoneType: 'school' | 'home' | 'family' | 'medical' | 'emergency';
-  schoolId?: number;
-  familyId?: number;
-  createdBy: number;
-  allowedTimeStart?: string;
-  allowedTimeEnd?: string;
-  allowedDays?: string[];
-}
+  async updateDeviceStatus(deviceId: number, isActive: boolean, batteryLevel?: number): Promise<void> {
+    await db.update(geolocationDevices)
+      .set({ 
+        isActive, 
+        batteryLevel,
+        lastUpdate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(geolocationDevices.id, deviceId));
+  }
 
-interface EmergencyPanicData {
-  userId: number;
-  deviceId: number;
-  latitude: number;
-  longitude: number;
-  panicType: 'medical' | 'security' | 'lost' | 'accident';
-  message?: string;
-}
+  async setEmergencyMode(deviceId: number, emergencyMode: boolean): Promise<void> {
+    await db.update(geolocationDevices)
+      .set({ 
+        emergencyMode,
+        updatedAt: new Date()
+      })
+      .where(eq(geolocationDevices.id, deviceId));
+  }
 
-class GeolocationService {
-  private readonly EARTH_RADIUS = 6371000; // Earth's radius in meters
-  
-  // Calculate distance between two coordinates using Haversine formula
+  // Safe Zone Management
+  async createSafeZone(zoneData: InsertSafeZone): Promise<SafeZone> {
+    const [zone] = await db.insert(safeZones).values(zoneData).returning();
+    return zone;
+  }
+
+  async getSafeZonesBySchool(schoolId: number): Promise<SafeZone[]> {
+    return await db.select().from(safeZones).where(eq(safeZones.schoolId, schoolId));
+  }
+
+  async updateSafeZone(zoneId: number, updates: Partial<InsertSafeZone>): Promise<void> {
+    await db.update(safeZones)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(safeZones.id, zoneId));
+  }
+
+  async toggleSafeZone(zoneId: number, isActive: boolean): Promise<void> {
+    await db.update(safeZones)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(safeZones.id, zoneId));
+  }
+
+  // Location Tracking
+  async recordLocation(locationData: InsertLocationTracking): Promise<LocationTracking> {
+    const [location] = await db.insert(locationTracking).values(locationData).returning();
+    
+    // Update device last update timestamp
+    await db.update(geolocationDevices)
+      .set({ 
+        lastUpdate: new Date(),
+        batteryLevel: locationData.batteryLevel 
+      })
+      .where(eq(geolocationDevices.id, locationData.deviceId));
+
+    return location;
+  }
+
+  async getRecentLocations(deviceId: number, limit: number = 50): Promise<LocationTracking[]> {
+    return await db.select()
+      .from(locationTracking)
+      .where(eq(locationTracking.deviceId, deviceId))
+      .orderBy(desc(locationTracking.timestamp))
+      .limit(limit);
+  }
+
+  async getLastKnownLocation(deviceId: number): Promise<LocationTracking | undefined> {
+    const [location] = await db.select()
+      .from(locationTracking)
+      .where(eq(locationTracking.deviceId, deviceId))
+      .orderBy(desc(locationTracking.timestamp))
+      .limit(1);
+    return location;
+  }
+
+  // Alert Management
+  async createAlert(alertData: InsertGeolocationAlert): Promise<GeolocationAlert> {
+    const [alert] = await db.insert(geolocationAlerts).values(alertData).returning();
+    return alert;
+  }
+
+  async getActiveAlerts(schoolId?: number): Promise<GeolocationAlert[]> {
+    let query = db.select().from(geolocationAlerts).where(eq(geolocationAlerts.isResolved, false));
+    
+    if (schoolId) {
+      // Join with devices to filter by school
+      // Note: This would need proper join implementation
+    }
+    
+    return await query.orderBy(desc(geolocationAlerts.createdAt));
+  }
+
+  async resolveAlert(alertId: number, resolvedBy: number): Promise<void> {
+    await db.update(geolocationAlerts)
+      .set({ 
+        isResolved: true,
+        resolvedBy,
+        resolvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(geolocationAlerts.id, alertId));
+  }
+
+  // Emergency Contacts
+  async createEmergencyContact(contactData: InsertEmergencyContact): Promise<EmergencyContact> {
+    const [contact] = await db.insert(emergencyContacts).values(contactData).returning();
+    return contact;
+  }
+
+  async getEmergencyContacts(studentId: number): Promise<EmergencyContact[]> {
+    return await db.select()
+      .from(emergencyContacts)
+      .where(and(
+        eq(emergencyContacts.studentId, studentId),
+        eq(emergencyContacts.isActive, true)
+      ))
+      .orderBy(emergencyContacts.priority);
+  }
+
+  // Analytics and Statistics
+  async getSchoolStats(schoolId: number) {
+    // Get total students with devices
+    const [deviceStats] = await db.select({
+      totalDevices: sql<number>`count(*)`,
+      activeDevices: sql<number>`count(case when ${geolocationDevices.isActive} then 1 end)`,
+      emergencyDevices: sql<number>`count(case when ${geolocationDevices.emergencyMode} then 1 end)`
+    }).from(geolocationDevices);
+
+    // Get safe zones count
+    const [zoneStats] = await db.select({
+      totalZones: sql<number>`count(*)`,
+      activeZones: sql<number>`count(case when ${safeZones.isActive} then 1 end)`
+    }).from(safeZones).where(eq(safeZones.schoolId, schoolId));
+
+    // Get unresolved alerts count
+    const [alertStats] = await db.select({
+      activeAlerts: sql<number>`count(*)`
+    }).from(geolocationAlerts).where(eq(geolocationAlerts.isResolved, false));
+
+    return {
+      totalDevices: deviceStats?.totalDevices || 0,
+      activeDevices: deviceStats?.activeDevices || 0,
+      emergencyDevices: deviceStats?.emergencyDevices || 0,
+      totalZones: zoneStats?.totalZones || 0,
+      activeZones: zoneStats?.activeZones || 0,
+      activeAlerts: alertStats?.activeAlerts || 0
+    };
+  }
+
+  // Check if location is within safe zone
+  async checkSafeZone(latitude: number, longitude: number, schoolId: number): Promise<SafeZone[]> {
+    // Simple distance calculation (Haversine formula would be more accurate)
+    const zones = await this.getSafeZonesBySchool(schoolId);
+    
+    const withinZones = zones.filter(zone => {
+      if (!zone.isActive) return false;
+      
+      const lat1 = parseFloat(zone.latitude);
+      const lon1 = parseFloat(zone.longitude);
+      const distance = this.calculateDistance(latitude, longitude, lat1, lon1);
+      
+      return distance <= zone.radius;
+    });
+
+    return withinZones;
+  }
+
+  // Distance calculation helper (in meters)
   private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const R = 6371e3; // Earth's radius in meters
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
 
     const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
               Math.cos(φ1) * Math.cos(φ2) *
               Math.sin(Δλ/2) * Math.sin(Δλ/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-    return this.EARTH_RADIUS * c;
+    return R * c;
   }
 
-  // Update device location and check geofences
-  async updateLocation(locationData: LocationData): Promise<{
-    success: boolean;
-    alerts: any[];
-    safeZoneStatus: any[];
-  }> {
-    try {
-      // Store location in history (using mock implementation for now)
-      console.log(`[GEOLOCATION] Location updated for user ${locationData.userId}: ${locationData.latitude}, ${locationData.longitude}`);
-
-      // Mock family network and safe zones for testing
-      const safeZones = [
-        {
-          id: 1,
-          name: "École Saint-Paul",
-          centerLatitude: "4.0511",
-          centerLongitude: "9.7679",
-          radius: 300,
-          notifyOnEntry: true,
-          notifyOnExit: true,
-          allowedTimeStart: "07:00",
-          allowedTimeEnd: "18:00",
-          allowedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
-        },
-        {
-          id: 2,
-          name: "Maison familiale",
-          centerLatitude: "4.0501",
-          centerLongitude: "9.7669",
-          radius: 200,
-          notifyOnEntry: true,
-          notifyOnExit: true,
-          allowedTimeStart: "00:00",
-          allowedTimeEnd: "23:59",
-          allowedDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-        }
-      ];
-      const alerts: any[] = [];
-      const safeZoneStatus: any[] = [];
-
-      // Check each safe zone
-      for (const zone of safeZones) {
-        const distance = this.calculateDistance(
-          locationData.latitude,
-          locationData.longitude,
-          parseFloat(zone.centerLatitude),
-          parseFloat(zone.centerLongitude)
-        );
-
-        const isInside = distance <= zone.radius;
-        const currentTime = new Date().toLocaleTimeString('en-GB', { hour12: false });
-        const currentDay = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(); // monday, tuesday, etc.
-
-        // Check time and day restrictions
-        const isAllowedTime = !zone.allowedTimeStart || !zone.allowedTimeEnd ||
-          (currentTime >= zone.allowedTimeStart && currentTime <= zone.allowedTimeEnd);
-        
-        const isAllowedDay = !zone.allowedDays || zone.allowedDays.length === 0 ||
-          zone.allowedDays.includes(currentDay);
-
-        safeZoneStatus.push({
-          zoneId: zone.id,
-          zoneName: zone.name,
-          isInside,
-          distance: Math.round(distance),
-          isAllowedTime,
-          isAllowedDay
-        });
-
-        // Mock previous location detection
-        let wasInside = false; // For testing, assume previously outside
-
-        // Generate alerts for zone entry/exit
-        if (isInside && !wasInside && zone.notifyOnEntry) {
-          const alert = {
-            id: Date.now(),
-            deviceId: locationData.deviceId,
-            userId: locationData.userId,
-            safeZoneId: zone.id,
-            alertType: 'entry',
-            severity: 'low',
-            message: `${await this.getUserName(locationData.userId)} est arrivé(e) à ${zone.name}`,
-            latitude: locationData.latitude.toString(),
-            longitude: locationData.longitude.toString(),
-            timestamp: new Date()
-          };
-          alerts.push(alert);
-          console.log(`[GEOLOCATION] Zone entry alert: ${alert.message}`);
-        }
-
-        if (!isInside && wasInside && zone.notifyOnExit) {
-          const alert = {
-            id: Date.now() + 1,
-            deviceId: locationData.deviceId,
-            userId: locationData.userId,
-            safeZoneId: zone.id,
-            alertType: 'exit',
-            severity: 'medium',
-            message: `${await this.getUserName(locationData.userId)} a quitté ${zone.name}`,
-            latitude: locationData.latitude.toString(),
-            longitude: locationData.longitude.toString(),
-            timestamp: new Date()
-          };
-          alerts.push(alert);
-          console.log(`[GEOLOCATION] Zone exit alert: ${alert.message}`);
-        }
-
-        // Check for unauthorized time/day access
-        if (isInside && (!isAllowedTime || !isAllowedDay)) {
-          const alert = {
-            id: Date.now() + 2,
-            deviceId: locationData.deviceId,
-            userId: locationData.userId,
-            safeZoneId: zone.id,
-            alertType: 'unauthorized_time',
-            severity: 'high',
-            message: `${await this.getUserName(locationData.userId)} est dans ${zone.name} en dehors des heures autorisées`,
-            latitude: locationData.latitude.toString(),
-            longitude: locationData.longitude.toString(),
-            timestamp: new Date()
-          };
-          alerts.push(alert);
-          console.log(`[GEOLOCATION] Unauthorized time alert: ${alert.message}`);
-        }
-      }
-
-      // Check for speed violations
-      if (locationData.speed && locationData.speed > 50) { // Speed limit 50 km/h
-        const alert = {
-          id: Date.now() + 3,
-          deviceId: locationData.deviceId,
-          userId: locationData.userId,
-          safeZoneId: null,
-          alertType: 'speed_limit',
-          severity: 'high',
-          message: `${await this.getUserName(locationData.userId)} dépasse la limite de vitesse: ${locationData.speed} km/h`,
-          latitude: locationData.latitude.toString(),
-          longitude: locationData.longitude.toString(),
-          timestamp: new Date()
-        };
-        alerts.push(alert);
-        console.log(`[GEOLOCATION] Speed violation alert: ${alert.message}`);
-      }
-
-      return { success: true, alerts, safeZoneStatus };
-    } catch (error) {
-      console.error('[GEOLOCATION] Location update failed:', error);
-      return { success: false, alerts: [], safeZoneStatus: [] };
-    }
-  }
-
-  // Create a safe zone
-  async createSafeZone(zoneData: SafeZoneData): Promise<any> {
-    try {
-      // Mock safe zone creation for testing
-      const safeZone = {
-        id: Date.now(),
-        name: zoneData.name,
-        description: zoneData.description,
-        centerLatitude: zoneData.centerLatitude.toString(),
-        centerLongitude: zoneData.centerLongitude.toString(),
-        radius: zoneData.radius,
-        zoneType: zoneData.zoneType,
-        schoolId: zoneData.schoolId,
-        familyId: zoneData.familyId,
-        createdBy: zoneData.createdBy,
-        allowedTimeStart: zoneData.allowedTimeStart,
-        allowedTimeEnd: zoneData.allowedTimeEnd,
-        allowedDays: zoneData.allowedDays,
-        isActive: true,
-        notifyOnEntry: true,
-        notifyOnExit: true,
-        createdAt: new Date()
-      };
-
-      console.log(`[GEOLOCATION] Safe zone created: ${zoneData.name}`);
-      return safeZone;
-    } catch (error) {
-      console.error('[GEOLOCATION] Safe zone creation failed:', error);
-      throw error;
-    }
-  }
-
-  // Handle emergency panic button
-  async triggerEmergencyPanic(panicData: EmergencyPanicData): Promise<{
-    success: boolean;
-    emergencyId?: number;
-    responseTime?: number;
-  }> {
-    try {
-      // Mock emergency record creation
-      const emergency = {
-        id: Date.now(),
-        userId: panicData.userId,
-        deviceId: panicData.deviceId,
-        latitude: panicData.latitude.toString(),
-        longitude: panicData.longitude.toString(),
-        panicType: panicData.panicType,
-        message: panicData.message,
-        timestamp: new Date(),
-        isResolved: false,
-        emergencyServicesContacted: false
-      };
-
-      const userName = await this.getUserName(panicData.userId);
-
-      // Mock SMS notifications to emergency contacts
-      console.log(`[EMERGENCY] SMS sent to emergency contacts: URGENCE: ${userName} a déclenché le bouton de panique. Type: ${panicData.panicType}. Localisation: ${panicData.latitude}, ${panicData.longitude}`);
-
-      // If medical emergency, prepare to contact emergency services
-      if (panicData.panicType === 'medical') {
-        console.log(`[EMERGENCY] Medical emergency for ${userName} at ${panicData.latitude}, ${panicData.longitude}`);
-      }
-
-      console.log(`[EMERGENCY] Panic button triggered by user ${panicData.userId}`);
-      return { 
-        success: true, 
-        emergencyId: emergency.id,
-        responseTime: 5 
-      };
-    } catch (error) {
-      console.error('[GEOLOCATION] Emergency panic failed:', error);
-      return { success: false };
-    }
-  }
-
-  // Create geofence alert
-  private async createGeofenceAlert(alertData: {
-    deviceId: number;
-    userId: number;
-    safeZoneId: number | null;
-    alertType: string;
-    severity: string;
-    message: string;
-    latitude: string;
-    longitude: string;
-  }): Promise<any> {
-    return {
-      id: Date.now(),
-      ...alertData,
-      isResolved: false,
-      timestamp: new Date(),
-      notificationsSent: { sms: false, push: false, email: false }
-    };
-  }
-
-  // Send notifications to family members
-  private async notifyFamily(familyNetworkId: number, triggerUserId: number, notificationType: string, data: any): Promise<void> {
-    try {
-      console.log(`[GEOLOCATION] Mock family notification sent for ${notificationType}:`, data);
-    } catch (error) {
-      console.error('[GEOLOCATION] Family notification failed:', error);
-    }
-  }
-
-  // Helper to get user name
-  private async getUserName(userId: number): Promise<string> {
-    try {
-      const user = await storage.getUser(userId);
-      return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur inconnu';
-    } catch (error) {
-      return 'Utilisateur inconnu';
-    }
-  }
-
-  // Get real-time family locations
-  async getFamilyLocations(familyNetworkId: number): Promise<any[]> {
-    try {
-      const familyMembers = await storage.getFamilyNetworkMembers(familyNetworkId);
-      const locations: any[] = [];
-
-      for (const member of familyMembers) {
-        if (member.canBeTracked) {
-          const lastLocation = await storage.getLastLocationForUser(member.userId);
-          const user = await storage.getUser(member.userId);
-          
-          if (lastLocation && user) {
-            locations.push({
-              userId: member.userId,
-              userName: `${user.firstName} ${user.lastName}`,
-              role: member.memberRole,
-              latitude: parseFloat(lastLocation.latitude),
-              longitude: parseFloat(lastLocation.longitude),
-              accuracy: lastLocation.accuracy ? parseFloat(lastLocation.accuracy) : null,
-              timestamp: lastLocation.timestamp,
-              isOnline: lastLocation.isOnline,
-              address: lastLocation.address
-            });
-          }
-        }
-      }
-
-      return locations;
-    } catch (error) {
-      console.error('[GEOLOCATION] Get family locations failed:', error);
-      return [];
-    }
-  }
-
-  // Create African-optimized default safe zones
-  async createDefaultSafeZones(familyNetworkId: number, schoolLocation?: { lat: number; lng: number; name: string }): Promise<void> {
-    const familyNetwork = await storage.getFamilyNetworkById(familyNetworkId);
-    if (!familyNetwork) return;
-
-    const defaultZones = [
+  // Bulk operations for demo data
+  async seedDemoData(schoolId: number): Promise<void> {
+    // Create demo safe zones
+    const demoZones = [
       {
-        name: "Maison familiale",
-        description: "Zone de sécurité autour du domicile familial",
-        radius: 200, // 200 meters
-        zoneType: 'home' as const,
-        allowedTimeStart: "00:00",
-        allowedTimeEnd: "23:59",
-        allowedDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        schoolId,
+        name: 'Périmètre Principal',
+        description: 'Zone principale de l\'école',
+        latitude: '3.848',
+        longitude: '11.502',
+        radius: 100,
+        isActive: true,
+        alertOnExit: true
+      },
+      {
+        schoolId,
+        name: 'Cour de Récréation',
+        description: 'Zone de récréation des élèves',
+        latitude: '3.849',
+        longitude: '11.503',
+        radius: 50,
+        isActive: true,
+        alertOnExit: false
+      },
+      {
+        schoolId,
+        name: 'Cantine',
+        description: 'Zone de restauration',
+        latitude: '3.847',
+        longitude: '11.501',
+        radius: 30,
+        isActive: true,
+        alertOnEntry: false,
+        alertOnExit: false
       }
     ];
 
-    if (schoolLocation) {
-      defaultZones.push({
-        name: schoolLocation.name,
-        description: "Zone scolaire avec horaires de cours",
-        radius: 300, // 300 meters for school
-        zoneType: 'school' as const,
-        allowedTimeStart: "07:00",
-        allowedTimeEnd: "18:00",
-        allowedDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
-      });
+    for (const zone of demoZones) {
+      await db.insert(safeZones).values(zone).onConflictDoNothing();
     }
-
-    for (const zone of defaultZones) {
-      await this.createSafeZone({
-        ...zone,
-        centerLatitude: schoolLocation?.lat || 4.0511, // Default to Douala coordinates
-        centerLongitude: schoolLocation?.lng || 9.7679,
-        familyId: familyNetworkId,
-        createdBy: familyNetwork.primaryParentId
-      });
-    }
-  }
-
-  // Optimize for African mobile networks
-  async optimizeForAfricanNetworks(deviceId: number): Promise<{
-    batteryOptimization: boolean;
-    dataUsageOptimization: boolean;
-    offlineCapability: boolean;
-  }> {
-    // Implement battery and data usage optimization
-    const settings = await storage.getLocationSettings(deviceId);
-    
-    return {
-      batteryOptimization: settings?.batteryOptimization || true,
-      dataUsageOptimization: settings?.dataUsageLimit ? settings.dataUsageLimit < 100 : true,
-      offlineCapability: settings?.offlineMode || false
-    };
   }
 }
 

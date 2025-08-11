@@ -11,6 +11,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import express from "express";
+import geolocationRoutes from "./routes/geolocation";
 import fs from "fs";
 import { marked } from "marked";
 import { configureSecurityMiddleware, securityLogger, productionSessionConfig } from "./middleware/security";
@@ -20905,6 +20906,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Démarrer le service de rapport quotidien automatique
   console.log('[DAILY_REPORT] Starting daily report service...');
   dailyReportService.startDailyReporting();
+
+  // Geolocation Routes
+  app.use('/api/geolocation', geolocationRoutes);
 
   return httpServer;
 }

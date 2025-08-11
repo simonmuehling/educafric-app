@@ -5,6 +5,8 @@ import { z } from "zod";
 
 // Import tutorial schema
 export * from "./tutorialSchema";
+// Import geolocation schema
+export * from "./geolocationSchema";
 
 // Core user system with multi-role support
 export const users = pgTable("users", {

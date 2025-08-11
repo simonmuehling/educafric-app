@@ -64,7 +64,7 @@ import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
-import SchoolGeolocation from "@/components/geolocation/SchoolGeolocation";
+import { SchoolGeolocationPage } from "@/pages/SchoolGeolocationPage";
 
 import { useState } from "react";
 import React from "react";
@@ -326,9 +326,15 @@ function Router() {
       <Route path="/subscription-success" component={SubscriptionSuccess} />
       <Route path="/geolocation-pricing" component={GeolocationPricing} />
       
+      <Route path="/geolocation">
+        <ProtectedRoute>
+          <SchoolGeolocationPage />
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/school-geolocation">
         <ProtectedRoute>
-          <SchoolGeolocation />
+          <SchoolGeolocationPage />
         </ProtectedRoute>
       </Route>
       
