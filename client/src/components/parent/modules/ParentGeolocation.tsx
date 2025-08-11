@@ -59,6 +59,9 @@ export const ParentGeolocation = () => {
   const [selectedChild, setSelectedChild] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [showAddZone, setShowAddZone] = useState(false);
+  const [showAddDevice, setShowAddDevice] = useState(false);
+  const [showMapModal, setShowMapModal] = useState<{show: boolean, type: 'child' | 'zone' | 'alert', data: any}>({show: false, type: 'child', data: null});
+  const [showEditZone, setShowEditZone] = useState<{show: boolean, zone: SafeZone | null}>({show: false, zone: null});
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [locationHelperActive, setLocationHelperActive] = useState(false);
   const [suggestedLocations, setSuggestedLocations] = useState<Array<{
@@ -116,9 +119,7 @@ export const ParentGeolocation = () => {
       if (response.ok) {
         const zoneMapData = await response.json();
         console.log(`[PARENT_GEOLOCATION] ✅ Zone map data:`, zoneMapData);
-        window.dispatchEvent(new CustomEvent('openSafeZoneMap', { 
-          detail: { zone, zoneMapData } 
-        }));
+        setShowMapModal({show: true, type: 'zone', data: {zone, zoneMapData}});
       }
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] View zone map error:', error);
@@ -228,9 +229,7 @@ export const ParentGeolocation = () => {
       if (response.ok) {
         const locationData = await response.json();
         console.log(`[PARENT_GEOLOCATION] ✅ Location data for ${child.name}:`, locationData);
-        window.dispatchEvent(new CustomEvent('openChildMap', { 
-          detail: { child, locationData } 
-        }));
+        setShowMapModal({show: true, type: 'child', data: {child, locationData}});
       }
     }).catch(error => {
       console.error('[PARENT_GEOLOCATION] View map error:', error);
@@ -322,6 +321,7 @@ export const ParentGeolocation = () => {
     { id: 'overview', label: t.overview, icon: <Activity className="w-4 h-4" /> },
     { id: 'children', label: t.children, icon: <Users className="w-4 h-4" /> },
     { id: 'zones', label: t.safeZones, icon: <Shield className="w-4 h-4" /> },
+    { id: 'devices', label: 'Appareils', icon: <Smartphone className="w-4 h-4" /> },
     { id: 'alerts', label: t.alerts, icon: <AlertTriangle className="w-4 h-4" /> }
   ];
 
@@ -926,6 +926,231 @@ export const ParentGeolocation = () => {
               </div>
             </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Carte Interactive */}
+      {showMapModal.show && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">
+                  {showMapModal.type === 'child' && `Position de ${showMapModal.data?.child?.name}`}
+                  {showMapModal.type === 'zone' && `Zone de Sécurité: ${showMapModal.data?.zone?.name}`}
+                  {showMapModal.type === 'alert' && 'Localisation de l\'alerte'}
+                </h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowMapModal({show: false, type: 'child', data: null})}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="bg-green-100 p-8 rounded-lg text-center">
+                <MapPin className="w-16 h-16 mx-auto mb-4 text-green-600" />
+                <h4 className="text-lg font-medium mb-2">Carte Interactive</h4>
+                <p className="text-gray-600 mb-4">
+                  {showMapModal.type === 'child' && `Dernière position connue de ${showMapModal.data?.child?.name || 'cet enfant'}`}
+                  {showMapModal.type === 'zone' && `Zone de sécurité "${showMapModal.data?.zone?.name || ''}" avec rayon de sécurité`}
+                </p>
+                
+                {/* Informations détaillées */}
+                <div className="bg-white p-4 rounded-lg text-left space-y-2">
+                  {showMapModal.type === 'child' && showMapModal.data?.locationData && (
+                    <>
+                      <p><strong>Coordonnées:</strong> {showMapModal.data.locationData.location?.lat?.toFixed(6)}, {showMapModal.data.locationData.location?.lng?.toFixed(6)}</p>
+                      <p><strong>Adresse:</strong> {showMapModal.data.locationData.location?.address || 'Position GPS'}</p>
+                      <p><strong>Dernière mise à jour:</strong> {new Date(showMapModal.data.locationData.location?.timestamp).toLocaleString('fr-FR')}</p>
+                    </>
+                  )}
+                  
+                  {showMapModal.type === 'zone' && showMapModal.data?.zoneMapData && (
+                    <>
+                      <p><strong>Centre:</strong> {showMapModal.data.zoneMapData.mapData?.center?.lat?.toFixed(6)}, {showMapModal.data.zoneMapData.mapData?.center?.lng?.toFixed(6)}</p>
+                      <p><strong>Rayon:</strong> {showMapModal.data.zoneMapData.mapData?.radius} mètres</p>
+                      <p><strong>Type:</strong> Zone de sécurité</p>
+                    </>
+                  )}
+                </div>
+                
+                <Button className="mt-4" onClick={() => {
+                  const coords = showMapModal.type === 'child' 
+                    ? `${showMapModal.data?.locationData?.location?.lat},${showMapModal.data?.locationData?.location?.lng}`
+                    : `${showMapModal.data?.zoneMapData?.mapData?.center?.lat},${showMapModal.data?.zoneMapData?.mapData?.center?.lng}`;
+                  window.open(`https://maps.google.com/maps?q=${coords}`, '_blank');
+                }}>
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Ouvrir dans Google Maps
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Gestion des Appareils */}
+      {showAddDevice && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden">
+            <div className="sticky top-0 bg-white p-6 pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Ajouter un Appareil de Tracking</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAddDevice(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form className="space-y-4" onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const deviceData = {
+                  childId: parseInt(formData.get('childId') as string),
+                  deviceType: formData.get('deviceType') as string,
+                  deviceName: formData.get('deviceName') as string,
+                  deviceId: formData.get('deviceId') as string
+                };
+                console.log('[PARENT_GEOLOCATION] 📱 Adding new tracking device:', deviceData);
+                setShowAddDevice(false);
+              }}>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Enfant</label>
+                  <select name="childId" className="w-full p-2 border rounded-lg" required>
+                    <option value="">Sélectionner un enfant</option>
+                    {childrenData.map(child => (
+                      <option key={child.id} value={child.id}>{child.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Type d'appareil</label>
+                  <select name="deviceType" className="w-full p-2 border rounded-lg" required>
+                    <option value="smartwatch">⌚ Montre connectée</option>
+                    <option value="smartphone">📱 Smartphone</option>
+                    <option value="tablet">📱 Tablette</option>
+                    <option value="gps_tracker">📍 Traceur GPS</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Nom de l'appareil</label>
+                  <input
+                    name="deviceName"
+                    type="text"
+                    className="w-full p-2 border rounded-lg"
+                    placeholder="Ex: Montre de Marie, Téléphone de Jean"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">ID de l'appareil</label>
+                  <input
+                    name="deviceId"
+                    type="text"
+                    className="w-full p-2 border rounded-lg"
+                    placeholder="Ex: IMEI, numéro de série"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowAddDevice(false)}
+                  >
+                    Annuler
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    Ajouter Appareil
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Appareils */}
+      {activeTab === 'devices' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Appareils de Tracking</h3>
+            <Button onClick={() => setShowAddDevice(true)} className="bg-green-600 hover:bg-green-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter Appareil
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Appareils démo */}
+            {[
+              { id: 1, name: "Montre de Marie", type: "smartwatch", child: "Marie Kamdem", battery: 78, status: "active", lastSeen: "Il y a 5 min" },
+              { id: 2, name: "Téléphone de Jean", type: "smartphone", child: "Jean Kamdem", battery: 45, status: "active", lastSeen: "Il y a 12 min" }
+            ].map(device => (
+              <div key={device.id} className="bg-white border rounded-xl p-4 hover:shadow-lg transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="text-2xl">
+                      {device.type === 'smartwatch' ? '⌚' : device.type === 'smartphone' ? '📱' : '📍'}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{device.name}</h4>
+                      <p className="text-sm text-gray-500">{device.child}</p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    device.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {device.status === 'active' ? 'Actif' : 'Inactif'}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Batterie:</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${device.battery > 50 ? 'bg-green-500' : device.battery > 20 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                          style={{width: `${device.battery}%`}}
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{device.battery}%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Dernière activité:</span>
+                    <span className="font-medium">{device.lastSeen}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-4">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Settings className="w-4 h-4 mr-1" />
+                    Configurer
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Localiser
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
