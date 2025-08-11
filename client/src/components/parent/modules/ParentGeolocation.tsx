@@ -594,6 +594,122 @@ export const ParentGeolocation = () => {
           </Card>
         </div>
       )}
+
+      {/* Add Safe Zone Modal */}
+      {showAddZone && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Ajouter une Zone de Sécurité</h3>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowAddZone(false)}
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const zoneData = {
+                name: formData.get('name') as string,
+                type: formData.get('type') as string,
+                latitude: parseFloat(formData.get('latitude') as string),
+                longitude: parseFloat(formData.get('longitude') as string),
+                radius: parseInt(formData.get('radius') as string),
+                active: true
+              };
+              
+              console.log('[PARENT_GEOLOCATION] 🏗️ Creating new safe zone:', zoneData);
+              createSafeZoneMutation.mutate(zoneData);
+            }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Nom de la zone</label>
+                <input
+                  name="name"
+                  type="text"
+                  className="w-full p-2 border rounded-lg"
+                  placeholder="Ex: Maison, École, Chez Grand-mère"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Type de zone</label>
+                <select
+                  name="type"
+                  className="w-full p-2 border rounded-lg"
+                  required
+                >
+                  <option value="home">🏠 Maison</option>
+                  <option value="school">🏫 École</option>
+                  <option value="relative">👨‍👩‍👧‍👦 Famille</option>
+                  <option value="activity">⚽ Activité</option>
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Latitude</label>
+                  <input
+                    name="latitude"
+                    type="number"
+                    step="any"
+                    className="w-full p-2 border rounded-lg"
+                    placeholder="3.8575"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Longitude</label>
+                  <input
+                    name="longitude"
+                    type="number"
+                    step="any"
+                    className="w-full p-2 border rounded-lg"
+                    placeholder="11.5021"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">Rayon (mètres)</label>
+                <input
+                  name="radius"
+                  type="number"
+                  className="w-full p-2 border rounded-lg"
+                  placeholder="100"
+                  min="10"
+                  max="1000"
+                  required
+                />
+              </div>
+              
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowAddZone(false)}
+                  disabled={createSafeZoneMutation.isPending}
+                >
+                  Annuler
+                </Button>
+                <Button 
+                  type="submit"
+                  className="flex-1"
+                  disabled={createSafeZoneMutation.isPending}
+                >
+                  {createSafeZoneMutation.isPending ? 'Création...' : 'Créer Zone'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
