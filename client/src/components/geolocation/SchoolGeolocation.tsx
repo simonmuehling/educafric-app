@@ -37,6 +37,7 @@ import {
   Target
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { trackingService, TrackingConfig, TrackingDevice } from '@/services/firebaseTracking';
 
 // Schemas for forms
 const safeZoneSchema = z.object({
@@ -159,6 +160,78 @@ export { SchoolGeolocation };
 
 export default function SchoolGeolocation({ userRole, userId, schoolId }: SchoolGeolocationProps) {
   const { toast } = useToast();
+
+  // Mock data for parent demo - no Firebase in sandbox
+  useEffect(() => {
+    if (userRole === 'Parent' && userId === 7) { // parent.demo user
+      // Set mock tracking configurations for demo
+      setTrackingConfigs([
+        {
+          id: '1',
+          parentId: '7',
+          childId: '1',
+          childName: 'Marie Kamdem',
+          location: 'École Primaire Les Cocotiers',
+          address: '123 Avenue de l\'Indépendance, Douala',
+          latitude: 4.0511,
+          longitude: 9.7679,
+          startDate: new Date('2025-08-11'),
+          endDate: new Date('2025-08-18'),
+          startTime: '08:00',
+          endTime: '17:00',
+          days: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
+          alertRadius: 100,
+          deviceType: 'smartphone' as const,
+          isActive: true,
+          createdAt: new Date('2025-08-10'),
+          updatedAt: new Date('2025-08-11')
+        },
+        {
+          id: '2',
+          parentId: '7',
+          childId: '2',
+          childName: 'Sophie Kamdem',
+          location: 'Parc de la Liberté',
+          address: 'Bonanjo, Douala',
+          latitude: 4.0608,
+          longitude: 9.7034,
+          startDate: new Date('2025-08-12'),
+          endDate: new Date('2025-08-12'),
+          startTime: '14:00',
+          endTime: '18:00',
+          days: ['samedi'],
+          alertRadius: 200,
+          deviceType: 'smartwatch' as const,
+          isActive: false,
+          createdAt: new Date('2025-08-10'),
+          updatedAt: new Date('2025-08-10')
+        }
+      ]);
+
+      // Set mock tracking devices for demo
+      setTrackingDevices([
+        {
+          id: '1',
+          childId: '1',
+          childName: 'Marie Kamdem',
+          deviceType: 'smartphone' as const,
+          deviceId: 'IMEI-789456123',
+          isActive: true,
+          batteryLevel: 85,
+          location: {
+            latitude: 4.0511,
+            longitude: 9.7679,
+            address: 'École Primaire Les Cocotiers',
+            timestamp: new Date()
+          },
+          alertRadius: 100,
+          parentId: '7',
+          createdAt: new Date('2025-08-10'),
+          updatedAt: new Date()
+        }
+      ]);
+    }
+  }, [userId, userRole]);
   const queryClient = useQueryClient();
   const config = roleConfig[userRole];
   const IconComponent = config.icon;
@@ -170,6 +243,10 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  
+  // Firebase state
+  const [trackingConfigs, setTrackingConfigs] = useState<TrackingConfig[]>([]);
+  const [trackingDevices, setTrackingDevices] = useState<TrackingDevice[]>([]);
 
   // Fetch school statistics
   const { data: schoolStats } = useQuery({
@@ -234,14 +311,22 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
     }
   });
 
-  // Schedule form for parents
-  const scheduleForm = useForm({
-    resolver: zodResolver(scheduleSchema),
+  // Tracking configuration form for parents
+  const trackingForm = useForm({
+    resolver: zodResolver(trackingConfigSchema),
     defaultValues: {
+      childName: '',
+      location: '',
+      address: '',
+      latitude: '',
+      longitude: '',
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       startTime: '08:00',
       endTime: '17:00',
       days: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
-      isActive: true
+      isActive: true,
+      alertRadius: 100
     }
   });
 
@@ -818,45 +903,409 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
           {/* Schedule Tab - Parent Only */}
           {userRole === 'Parent' && (
             <TabsContent value="schedule" className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold">Configuration Horaires</h3>
-                <p className="text-sm text-muted-foreground">Définir les heures de surveillance géolocalisation</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold">Configuration Géolocalisation</h3>
+                  <p className="text-sm text-muted-foreground">Définir précisément où, quand et comment surveiller votre enfant</p>
+                </div>
+                <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-tracking" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Nouvelle Configuration
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Configuration Suivi Géolocalisation</DialogTitle>
+                      <DialogDescription>
+                        Configurez précisément l'endroit, les dates, horaires et appareils pour surveiller votre enfant
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...trackingForm}>
+                      <form onSubmit={trackingForm.handleSubmit(async (data) => {
+                        try {
+                          // Demo mode - just add to local state
+                          const newConfig: TrackingConfig = {
+                            id: `${Date.now()}`,
+                            parentId: userId.toString(),
+                            childId: data.childName,
+                            childName: data.childName,
+                            location: data.location,
+                            address: data.address,
+                            latitude: parseFloat(data.latitude),
+                            longitude: parseFloat(data.longitude),
+                            startDate: new Date(data.startDate),
+                            endDate: new Date(data.endDate),
+                            startTime: data.startTime,
+                            endTime: data.endTime,
+                            days: data.days,
+                            alertRadius: data.alertRadius,
+                            deviceType: 'smartphone' as const,
+                            isActive: data.isActive,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                          };
+                          
+                          setTrackingConfigs(prev => [newConfig, ...prev]);
+                          
+                          toast({
+                            title: 'Configuration enregistrée',
+                            description: `Suivi configuré pour ${data.childName} à ${data.location}`
+                          });
+                          setShowScheduleDialog(false);
+                          trackingForm.reset();
+                        } catch (error) {
+                          console.error('Erreur création config:', error);
+                          toast({
+                            title: 'Erreur',
+                            description: 'Impossible de créer la configuration',
+                            variant: 'destructive'
+                          });
+                        }
+                      })} className="space-y-6">
+                        
+                        {/* Enfant à surveiller */}
+                        <FormField
+                          control={trackingForm.control}
+                          name="childName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>👶 Enfant à surveiller</FormLabel>
+                              <FormControl>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <SelectTrigger data-testid="select-child">
+                                    <SelectValue placeholder="Sélectionner votre enfant" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Marie Kamdem">Marie Kamdem (6 ans)</SelectItem>
+                                    <SelectItem value="Jean Kamdem">Jean Kamdem (10 ans)</SelectItem>
+                                    <SelectItem value="Sophie Kamdem">Sophie Kamdem (14 ans)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Lieu et adresse */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={trackingForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>📍 Lieu</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-location" placeholder="École, Maison, Parc..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={trackingForm.control}
+                            name="address"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>🏠 Adresse</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-address" placeholder="123 Rue de la Paix, Douala..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Coordonnées GPS */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={trackingForm.control}
+                            name="latitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>🌐 Latitude</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-latitude" placeholder="4.0511" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={trackingForm.control}
+                            name="longitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>🌐 Longitude</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-longitude" placeholder="9.7679" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Période de surveillance */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={trackingForm.control}
+                            name="startDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>📅 Date de début</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-start-date" type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={trackingForm.control}
+                            name="endDate"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>📅 Date de fin</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-end-date" type="date" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Horaires quotidiens */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={trackingForm.control}
+                            name="startTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>⏰ Heure de début</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-start-time" type="time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={trackingForm.control}
+                            name="endTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>⏰ Heure de fin</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-end-time" type="time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Jours de la semaine */}
+                        <FormField
+                          control={trackingForm.control}
+                          name="days"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>📆 Jours de surveillance</FormLabel>
+                              <div className="grid grid-cols-4 gap-2 mt-2">
+                                {['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'].map(day => (
+                                  <div key={day} className="flex items-center space-x-2 p-2 border rounded">
+                                    <input
+                                      data-testid={`checkbox-${day}`}
+                                      type="checkbox"
+                                      id={day}
+                                      checked={field.value.includes(day)}
+                                      onChange={(e) => {
+                                        const newDays = e.target.checked 
+                                          ? [...field.value, day]
+                                          : field.value.filter(d => d !== day);
+                                        field.onChange(newDays);
+                                      }}
+                                      className="rounded border border-gray-300"
+                                    />
+                                    <label htmlFor={day} className="text-sm capitalize">{day}</label>
+                                  </div>
+                                ))}
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Rayon d'alerte et appareils */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={trackingForm.control}
+                            name="alertRadius"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>🚨 Rayon d'alerte (mètres)</FormLabel>
+                                <FormControl>
+                                  <Input data-testid="input-alert-radius" type="number" min="10" max="1000" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div>
+                            <FormLabel>📱 Appareil de suivi</FormLabel>
+                            <Select data-testid="select-tracking-device" defaultValue="smartphone">
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Choisir l'appareil" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="smartphone">📱 Smartphone</SelectItem>
+                                <SelectItem value="smartwatch">⌚ Montre connectée</SelectItem>
+                                <SelectItem value="gps_tracker">🛰️ Traceur GPS</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="flex space-x-2">
+                          <Button data-testid="button-cancel-tracking" type="button" variant="outline" onClick={() => setShowScheduleDialog(false)} className="flex-1">
+                            Annuler
+                          </Button>
+                          <Button data-testid="button-save-tracking" type="submit" className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                            Enregistrer Configuration
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Horaires de Surveillance</CardTitle>
-                  <CardDescription>Configurez quand la géolocalisation doit être active</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Heure de début</label>
-                        <Input data-testid="input-start-time" type="time" defaultValue="08:00" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Heure de fin</label>
-                        <Input data-testid="input-end-time" type="time" defaultValue="17:00" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Jours actifs</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map(day => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <Switch data-testid={`switch-${day.toLowerCase()}`} defaultChecked={day !== 'Samedi' && day !== 'Dimanche'} />
-                            <label className="text-sm">{day}</label>
+              {/* Configurations actives depuis données démo */}
+              <div className="space-y-4">
+                {trackingConfigs.length === 0 ? (
+                  <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+                    <CardContent className="p-6 text-center">
+                      <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune configuration</h3>
+                      <p className="text-gray-600 mb-4">Créez votre première configuration de suivi géolocalisation</p>
+                      <Button onClick={() => setShowScheduleDialog(true)} className="bg-gradient-to-r from-purple-500 to-pink-500">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Créer Configuration
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  trackingConfigs.map((config) => (
+                    <Card key={config.id} className={`bg-gradient-to-br ${config.isActive ? 'from-green-50 to-emerald-50 border-green-200' : 'from-gray-50 to-slate-50 border-gray-200'}`}>
+                      <CardHeader className="pb-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{config.childName} - {config.location}</CardTitle>
+                            <CardDescription className="text-sm">{config.address}</CardDescription>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                    <Button data-testid="button-save-schedule" className="w-full bg-purple-500 hover:bg-purple-600">
-                      Enregistrer Horaires
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                          <Badge variant={config.isActive ? "default" : "secondary"} className={config.isActive ? "bg-green-500" : ""}>
+                            {config.isActive ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <p className="font-medium">📅 Période</p>
+                            <p className="text-muted-foreground">
+                              {config.startDate.toLocaleDateString('fr-FR')} - {config.endDate.toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="font-medium">⏰ Horaires</p>
+                            <p className="text-muted-foreground">{config.startTime} - {config.endTime}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium">🚨 Rayon</p>
+                            <p className="text-muted-foreground">{config.alertRadius} mètres</p>
+                          </div>
+                          <div>
+                            <p className="font-medium">📱 Appareil</p>
+                            <p className="text-muted-foreground">
+                              {config.deviceType === 'smartphone' ? 'Smartphone' : 
+                               config.deviceType === 'smartwatch' ? 'Montre connectée' : 'Traceur GPS'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            data-testid={`button-view-location-${config.id}`} 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => {
+                              console.log(`[PARENT_GEOLOCATION] 🗺️ View ${config.childName} on map`);
+                              console.log(`[PARENT_GEOLOCATION] ✅ Location data for ${config.childName}:`, {
+                                success: true,
+                                child: { id: config.childId, name: config.childName },
+                                location: { 
+                                  lat: config.latitude, 
+                                  lng: config.longitude, 
+                                  address: config.address,
+                                  timestamp: new Date().toISOString()
+                                },
+                                message: "Location data retrieved successfully"
+                              });
+                              toast({
+                                title: "Position actuelle",
+                                description: `${config.childName} à ${config.address}`
+                              });
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Voir Position
+                          </Button>
+                          <Button 
+                            data-testid={`button-toggle-config-${config.id}`} 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => {
+                              const newActiveState = !config.isActive;
+                              setTrackingConfigs(prev => 
+                                prev.map(c => 
+                                  c.id === config.id 
+                                    ? { ...c, isActive: newActiveState, updatedAt: new Date() }
+                                    : c
+                                )
+                              );
+                              toast({
+                                title: newActiveState ? "Configuration activée" : "Configuration désactivée",
+                                description: `Suivi ${newActiveState ? 'démarré' : 'arrêté'} pour ${config.childName}`
+                              });
+                            }}
+                          >
+                            {config.isActive ? (
+                              <>
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Désactiver
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Activer
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Jours: {config.days.join(', ')} • Créée le {config.createdAt.toLocaleDateString('fr-FR')}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
             </TabsContent>
           )}
 

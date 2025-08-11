@@ -16,7 +16,7 @@ export function SchoolGeolocationPage() {
     );
   }
 
-  const userRole = (user as any).role as 'Parent' | 'Teacher' | 'Director' | 'Admin' | 'SiteAdmin';
+  const userRole = (user as any).role as 'Parent' | 'Teacher' | 'Director' | 'Admin' | 'SiteAdmin' | 'Freelancer';
   const schoolId = (user as any).schoolId || 1;
 
   return (
