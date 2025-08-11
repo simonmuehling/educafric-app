@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { exec } from "child_process";
 import { registerRoutes } from "./routes";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { systemReportService } from "./services/systemReportService";
@@ -124,6 +125,32 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
+  // Enhanced error handling and auto-recovery
+  process.on('uncaughtException', (error) => {
+    console.error('[AUTOFIX] Uncaught exception detected:', error.message);
+    
+    if (error.message.includes('EADDRINUSE')) {
+      console.log('[AUTOFIX] Fixing port conflict...');
+      exec('pkill -f "port 5000" || true', (err: any) => {
+        if (err) {
+          console.error('[AUTOFIX] Port fix failed:', err);
+          console.log('[AUTOFIX] Could not auto-fix error, manual intervention required');
+        } else {
+          console.log('[AUTOFIX] Port cleared, restarting...');
+          setTimeout(() => {
+            process.exit(0); // Exit to allow restart
+          }, 1000);
+        }
+      });
+    } else {
+      console.error('[AUTOFIX] Could not auto-fix error, manual intervention required');
+    }
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[AUTOFIX] Unhandled rejection at:', promise, 'reason:', reason);
+  });
+
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
@@ -131,5 +158,16 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+  }).on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log('[AUTOFIX] Port in use, attempting to clear and restart...');
+      exec('lsof -ti:5000 | xargs kill -9 && sleep 2', () => {
+        setTimeout(() => {
+          server.listen({ port, host: "0.0.0.0", reusePort: true });
+        }, 3000);
+      });
+    } else {
+      console.error('[SERVER_ERROR]', err);
+    }
   });
 })();
