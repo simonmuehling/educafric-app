@@ -14,7 +14,7 @@ Equip EDUCAFRIC sales representatives with all necessary tools for effective pro
 > Hello [Contact Name], I'm [Your first name] from the digital educational platform **EDUCAFRIC**. We help Cameroonian schools modernize their management, reduce administrative costs by up to 70%, and improve communication with parents.
 
 #### Hook
-> We already work with institutions like [known local example], and we're currently offering a **free 30-day access** to all our features.
+> We already work with institutions like [known local example], and we're currently offering a **free 30-day access** to all our features. For complete school-parent communication, we recommend our packages where schools and families benefit from preferential rates.
 
 #### Proposal
 > I'll be in your area on [day/date], and I'd like to show you how EDUCAFRIC can simplify your enrollments, report cards, and real-time communication with parents.
@@ -64,6 +64,9 @@ Equip EDUCAFRIC sales representatives with all necessary tools for effective pro
 
 #### 5. Concrete proposal (2 min)
 > "We offer you a **free 30-day trial** with training included. No purchase obligation."
+
+**⚠️ IMPORTANT TECHNICAL POINT TO MENTION:**
+> "For complete bidirectional communication with parents (messages, alerts, report cards), the school AND parents must have an EDUCAFRIC subscription. We offer school-family packages with preferential rates to facilitate adoption."
 
 ---
 
@@ -193,6 +196,9 @@ Would you like me to reserve this offer for you?
 ### "We need to think about it"
 > "Perfectly understandable. How about starting with the free 30-day trial? No commitment, just to see the benefits."
 
+### "How to communicate with parents who don't have a subscription?"
+> "**Important point**: For complete bidirectional communication between school and parents, both parties must have at least a basic EDUCAFRIC subscription. This is an essential technical prerequisite. However, we offer very affordable family rates and school-parent group packages."
+
 ---
 
 ## 9️⃣ FOLLOW-UP AND CONVERSION
@@ -212,7 +218,23 @@ Would you like me to reserve this offer for you?
 
 ---
 
-## 🔟 DIGITAL RESOURCES
+## 🔟 IMPORTANT TECHNICAL CONDITIONS
+
+### ⚠️ BIDIRECTIONAL COMMUNICATION PREREQUISITES
+**ESSENTIAL TO COMMUNICATE**: For schools and parents to exchange (messages, alerts, reports), **both parties must have a minimum EDUCAFRIC subscription**.
+
+#### Key points to explain:
+- **School without subscription** = No communication possible
+- **Parents without subscription** = Limited reception, no sending possible
+- **Recommended solution**: School-family packages with preferential rates
+- **Benefit**: Complete communication, real-time tracking, maximum parental engagement
+
+#### Commercial arguments:
+> "Think of it like a phone system: to make and receive calls, each party must have a line. It's the same with EDUCAFRIC: for rich school-parent communication, everyone needs their access."
+
+---
+
+## 1️⃣1️⃣ DIGITAL RESOURCES
 
 ### Essential links
 - **Online demo:** [EDUCAFRIC sandbox URL]

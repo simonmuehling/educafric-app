@@ -14,7 +14,7 @@
 > Bonjour [Nom du contact], je suis [Votre prénom] de la plateforme éducative numérique **EDUCAFRIC**. Nous aidons les écoles camerounaises à moderniser leur gestion, à réduire les coûts administratifs jusqu'à 70% et à faciliter la communication avec les parents.
 
 #### Accroche
-> Nous travaillons déjà avec des établissements comme [exemple local connu], et nous proposons actuellement un **accès gratuit de 30 jours** à toutes nos fonctionnalités.
+> Nous travaillons déjà avec des établissements comme [exemple local connu], et nous proposons actuellement un **accès gratuit de 30 jours** à toutes nos fonctionnalités. Pour une communication complète école-parents, nous recommandons nos packages où école et familles bénéficient de tarifs préférentiels.
 
 #### Proposition
 > Je serai dans votre quartier [jour/date], et j'aimerais vous montrer comment EDUCAFRIC peut simplifier vos inscriptions, bulletins et communication en temps réel avec les parents.
@@ -64,6 +64,9 @@
 
 #### 5. Proposition concrète (2 min)
 > "Nous vous offrons un **essai gratuit de 30 jours** avec formation incluse. Aucune obligation d'achat."
+
+**⚠️ POINT TECHNIQUE IMPORTANT À MENTIONNER :**
+> "Pour une communication bidirectionnelle complète avec les parents (messages, alertes, bulletins), l'école ET les parents doivent avoir un abonnement EDUCAFRIC. Nous proposons des packages école-famille avec tarifs préférentiels pour faciliter l'adoption."
 
 ---
 
@@ -193,6 +196,9 @@ Souhaitez-vous que je vous réserve cette offre ?
 ### "Nous devons réfléchir"
 > "Parfaitement compréhensible. Que diriez-vous de commencer par l'essai gratuit 30 jours ? Aucun engagement, juste pour voir les bénéfices."
 
+### "Comment communiquer avec les parents qui n'ont pas d'abonnement ?"
+> "**Point important** : Pour une communication bidirectionnelle complète entre l'école et les parents, les deux parties doivent avoir au minimum un abonnement basique EDUCAFRIC. C'est un prérequis technique essentiel. Cependant, nous proposons des tarifs famille très abordables et des offres groupées école-parents."
+
 ---
 
 ## 9️⃣ SUIVI ET CONVERSION
@@ -212,7 +218,23 @@ Souhaitez-vous que je vous réserve cette offre ?
 
 ---
 
-## 🔟 RESSOURCES NUMÉRIQUES
+## 🔟 CONDITIONS TECHNIQUES IMPORTANTES
+
+### ⚠️ PRÉREQUIS COMMUNICATION BIDIRECTIONNELLE
+**ESSENTIEL À COMMUNIQUER** : Pour que l'école et les parents puissent échanger (messages, alertes, rapports), **les deux parties doivent avoir un abonnement EDUCAFRIC minimum**.
+
+#### Points clés à expliquer :
+- **École sans abonnement** = Aucune communication possible
+- **Parents sans abonnement** = Réception limitée, pas d'envoi possible
+- **Solution recommandée** : Packages école-famille avec tarifs préférentiels
+- **Bénéfice** : Communication complète, suivi en temps réel, engagement parental maximal
+
+#### Arguments commerciaux :
+> "Pensez-y comme un système téléphonique : pour appeler et recevoir des appels, chaque partie doit avoir une ligne. C'est pareil avec EDUCAFRIC : pour une communication riche école-parents, chacun doit avoir son accès."
+
+---
+
+## 1️⃣1️⃣ RESSOURCES NUMÉRIQUES
 
 ### Liens essentiels
 - **Démo en ligne :** [URL sandbox EDUCAFRIC]

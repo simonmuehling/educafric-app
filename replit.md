@@ -24,6 +24,8 @@ Preferred communication style: Simple, everyday language.
 - **Document Integration**: New document follows existing system configuration for seamless access
 - **Commercial Dashboard Integration**: Document ID 26 accessible via Documents & Contracts module
 - **File Structure Compliance**: Document properly placed in /public/documents/ directory following project standards
+- **Critical Communication Requirements Added**: Both French and English versions now clearly specify that bidirectional communication requires both school AND parents to have minimum EDUCAFRIC subscriptions
+- **Sales Process Enhancement**: Added technical prerequisites in phone scripts, face-to-face presentations, and objection handling sections
 
 ### Document Management System Completed ✅
 - **Interface DocumentManagement**: Complètement recréée avec système de liens directs fonctionnel
