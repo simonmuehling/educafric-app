@@ -1,8 +1,10 @@
 import { db } from '../db';
 import { users, notifications, profileDeletionRequests, deletionEmailsLog } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { hostingerEmailService } from './hostingerMailService';
-import { notificationService } from './notificationService';
+import { hostingerMailService } from './hostingerMailService';
+import { NotificationService } from './notificationService';
+
+const notificationService = new NotificationService();
 
 interface ProfileDeletionResult {
   success: boolean;
@@ -23,17 +25,19 @@ class ProfileDeletionService {
         return { success: false, message: 'Étudiant non trouvé' };
       }
 
-      // Find parent (assuming parent is linked via parent_children relationship)
-      const parentConnections = await db.query.parentChildren.findMany({
-        where: (parentChildren, { eq }) => eq(parentChildren.childId, studentId),
-        with: { parent: true }
-      });
+      // Find parent by looking for Parent role users with same school
+      const parents = await db.select().from(users)
+        .where(and(
+          eq(users.role, 'Parent'),
+          eq(users.schoolId, student[0].schoolId)
+        ))
+        .limit(1);
 
-      if (!parentConnections.length) {
+      if (!parents.length) {
         return { success: false, message: 'Parent non trouvé pour cet étudiant' };
       }
 
-      const parentId = parentConnections[0].parentId;
+      const parentId = parents[0].id;
 
       // Check if there's already a pending request
       const existingRequest = await db.select()
@@ -95,9 +99,9 @@ class ProfileDeletionService {
         requestId: deletionRequest.id
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error requesting deletion:', error);
-      return { success: false, message: 'Erreur lors de la demande de suppression', error: error.message };
+      return { success: false, message: 'Erreur lors de la demande de suppression', error: error?.message || 'Erreur inconnue' };
     }
   }
 
@@ -181,9 +185,9 @@ class ProfileDeletionService {
         return { success: true, message: 'Demande de suppression refusée' };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error handling parent response:', error);
-      return { success: false, message: 'Erreur lors du traitement de la réponse', error: error.message };
+      return { success: false, message: 'Erreur lors du traitement de la réponse', error: error?.message || 'Erreur inconnue' };
     }
   }
 
@@ -242,7 +246,7 @@ class ProfileDeletionService {
 
       console.log(`[PROFILE_DELETION] ✅ Profile deleted for student ${request.studentId}`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error executing deletion:', error);
       throw error;
     }
@@ -308,7 +312,7 @@ class ProfileDeletionService {
         sentAt: new Date()
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error sending request email:', error);
       
       // Log failed email
@@ -318,7 +322,7 @@ class ProfileDeletionService {
         recipientType: 'parent',
         emailType: 'request',
         emailSent: false,
-        errorMessage: error.message
+        errorMessage: error?.message || 'Erreur inconnue'
       });
     }
   }
@@ -382,7 +386,7 @@ class ProfileDeletionService {
         sentAt: new Date()
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error sending student goodbye email:', error);
       await db.insert(deletionEmailsLog).values({
         deletionRequestId: requestId,
@@ -390,7 +394,7 @@ class ProfileDeletionService {
         recipientType: 'student',
         emailType: 'goodbye',
         emailSent: false,
-        errorMessage: error.message
+        errorMessage: error?.message || 'Erreur inconnue'
       });
     }
 
@@ -451,7 +455,7 @@ class ProfileDeletionService {
         sentAt: new Date()
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('[PROFILE_DELETION] Error sending parent goodbye email:', error);
       await db.insert(deletionEmailsLog).values({
         deletionRequestId: requestId,
@@ -459,7 +463,7 @@ class ProfileDeletionService {
         recipientType: 'parent',
         emailType: 'goodbye',
         emailSent: false,
-        errorMessage: error.message
+        errorMessage: error?.message || 'Erreur inconnue'
       });
     }
   }
