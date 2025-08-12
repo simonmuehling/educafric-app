@@ -12,6 +12,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import express from "express";
 import geolocationRoutes from "./routes/geolocation";
+import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
 import documentsRouter from "./routes/documents";
 import fs from "fs";
 import { marked } from "marked";
@@ -11753,6 +11754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register geolocation routes
   app.use('/api/geolocation', geolocationRoutes);
+  app.use('/api/geolocation/enhanced', enhancedGeolocationRoutes);
   
   // Register document API routes
   app.use('/api/documents', documentsRouter);

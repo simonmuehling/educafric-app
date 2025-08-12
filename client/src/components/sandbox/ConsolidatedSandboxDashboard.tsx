@@ -26,6 +26,7 @@ import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
 import CommunicationTester from './CommunicationTester';
 import NotificationTester from './NotificationTester';
+import EnhancedGeolocationDashboard from '../geolocation/EnhancedGeolocationDashboard';
 import { SandboxAutoscaleIndicator } from './SandboxAutoscaleIndicator';
 import { AutoscaleServerIntegration } from './AutoscaleServerIntegration';
 
@@ -374,6 +375,11 @@ const ConsolidatedSandboxDashboard = () => {
       id: 'teacher-absences',
       label: language === 'fr' ? 'Absences Enseignants' : 'Teacher Absences',
       icon: <UserX className="w-4 h-4" />
+    },
+    {
+      id: 'enhanced-geolocation',
+      label: language === 'fr' ? 'Géolocalisation Avancée' : 'Enhanced Geolocation',
+      icon: <Shield className="w-4 h-4" />
     }
   ];
 
@@ -657,6 +663,10 @@ const ConsolidatedSandboxDashboard = () => {
 
           <TabsContent value="teacher-absences">
             <TeacherAbsenceDeclaration />
+          </TabsContent>
+
+          <TabsContent value="enhanced-geolocation">
+            <EnhancedGeolocationDashboard />
           </TabsContent>
 
         </Tabs>
