@@ -16,6 +16,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (2025-08-12)
 
+### Document Management System Fixed
+- **Problème résolu**: Documents commerciaux affichant "Document not found" corrigés
+- **Permissions fichiers**: Changées de 600 à 644 pour accès serveur web
+- **Système restauré**: Liens directs maintenus selon préférence utilisateur
+- **Documents ajoutés**: IDs 19, 20, 21 pour documents commerciaux manquants
+- **Module absences enseignants**: Créé dans sandbox avec données africaines mockées
+
 ### Mobile School Configuration Guide
 - **Module créé**: Guide mobile optimisé pour smartphone avec interface responsive
 - **Navigation fonctionnelle**: Boutons "Commencer" redirigent vers modules correspondants

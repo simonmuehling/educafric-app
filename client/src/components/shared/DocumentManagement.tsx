@@ -367,6 +367,42 @@ const DocumentManagement = () => {
       sharedWith: ['commercial@educafric.com', 'nguetsop.carine@educafric.com', 'simon.admin@educafric.com', 'equipe-vente@educafric.com'],
       downloadCount: 0,
       description: 'Brochure commerciale persuasive pour équipes de vente ciblant établissements, parents et freelancers avec arguments percutants, témoignages, offres spéciales et appels à l\'action sans aspects techniques'
+    },
+    {
+      id: 19,
+      title: 'Document Commercial EDUCAFRIC - Présentation Complète',
+      type: 'commercial',
+      language: 'fr',
+      size: '270 KB',
+      lastModified: '2025-08-09 22:02',
+      accessLevel: 'commercial',
+      sharedWith: ['commercial@educafric.com', 'nguetsop.carine@educafric.com', 'simon.admin@educafric.com'],
+      downloadCount: 0,
+      description: 'Document commercial complet de présentation EDUCAFRIC pour prospects et clients'
+    },
+    {
+      id: 20,
+      title: 'Présentation EDUCAFRIC - Master Deck',
+      type: 'commercial',
+      language: 'fr',
+      size: '17.7 MB',
+      lastModified: '2025-08-09 22:00',
+      accessLevel: 'commercial',
+      sharedWith: ['commercial@educafric.com', 'nguetsop.carine@educafric.com', 'simon.admin@educafric.com'],
+      downloadCount: 0,
+      description: 'Présentation master complète EDUCAFRIC avec visuels et argumentaires pour équipe commerciale'
+    },
+    {
+      id: 21,
+      title: 'Contrat de Partenariat Établissements & Freelancers 2025',
+      type: 'administrative',
+      language: 'fr',
+      size: '144 KB',
+      lastModified: '2025-08-09 21:59',
+      accessLevel: 'commercial',
+      sharedWith: ['commercial@educafric.com', 'nguetsop.carine@educafric.com', 'simon.admin@educafric.com'],
+      downloadCount: 0,
+      description: 'Contrat officiel de partenariat pour établissements scolaires et freelancers - Version 2025'
     }
   ];
 
@@ -413,80 +449,67 @@ const DocumentManagement = () => {
     return user?.role === 'siteadmin' || user?.role === 'admin';
   };
 
-  const handleViewDocument = async (document: Document) => {
-    try {
-      // Utiliser l'API backend pour visualiser le document avec authentification
-      const response = await fetch(`/api/documents/${document.id}/view`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/pdf',
-        },
-      });
-
-      if (response.ok) {
-        // Créer blob URL pour afficher le PDF
-        const blob = await response.blob();
-        const blobUrl = window?.URL?.createObjectURL(blob);
-        window.open(blobUrl, '_blank');
-        
-        console.log(`📄 Document ouvert: ${document.title || ''} (ID: ${document.id})`);
-        
-        // Nettoyer l'URL après 1 minute
-        setTimeout(() => window?.URL?.revokeObjectURL(blobUrl), 60000);
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Document view error:', error);
-      // Fallback pour les documents markdown et autres
-      const directLinks: { [key: number]: string } = {
-        11: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
-        12: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
-        13: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-        14: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
-        15: '/EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
-        16: '/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
-        17: '/EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
-        18: '/EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md'
-      };
-      
-      const directUrl = directLinks[document.id];
-      if (directUrl) {
-        window.open(directUrl, '_blank');
-        console.log(`📄 Document ouvert via lien direct: ${document.title || ''}`);
-      } else {
-        alert(`Impossible d'ouvrir le document: ${document.title || ''}\nDescription: ${document.description || ''}`);
-      }
+  const handleViewDocument = (document: Document) => {
+    // Liens directs pour tous les documents
+    const directLinks: { [key: number]: string } = {
+      1: '/documents/guide-notifications-educafric.md',
+      2: '/documents/tarifs-plans-francais.md',
+      3: '/documents/pricing-plans-english.md',
+      7: '/documents/Demande_Etablissement_1753390157502.pdf',
+      8: '/documents/Demande_ministre-8_1753390184314.pdf',
+      9: '/documents/Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
+      10: '/documents/parents_1753390442002.pdf',
+      11: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
+      12: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
+      13: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      14: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
+      15: '/EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
+      16: '/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
+      17: '/EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
+      18: '/EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md',
+      19: '/documents/Educafric_Document_Commercial.pdf',
+      20: '/documents/Educafric_Presentation.pdf',
+      21: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf'
+    };
+    
+    const directUrl = directLinks[document.id];
+    if (directUrl) {
+      window.open(directUrl, '_blank');
+      console.log(`📄 Document ouvert: ${document.title || ''} (ID: ${document.id})`);
+    } else {
+      alert(`Impossible d'ouvrir le document: ${document.title || ''}\nDescription: ${document.description || ''}`);
     }
   };
 
-  const handleDownload = async (document: Document) => {
-    try {
-      // Utiliser l'API backend pour télécharger le document avec authentification
-      const response = await fetch(`/api/documents/${document.id}/download`, {
-        method: 'GET',
-        credentials: 'include'
-      });
+  const handleDownload = (document: Document) => {
+    // Gestion des téléchargements avec les vrais fichiers
+    const downloadLinks: { [key: number]: string } = {
+      7: '/documents/Demande_Etablissement_1753390157502.pdf',
+      8: '/documents/Demande_ministre-8_1753390184314.pdf', 
+      9: '/documents/Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
+      10: '/documents/parents_1753390442002.pdf',
+      11: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
+      12: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
+      13: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      14: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
+      15: '/EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
+      16: '/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
+      17: '/EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
+      18: '/EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md',
+      19: '/documents/Educafric_Document_Commercial.pdf',
+      20: '/documents/Educafric_Presentation.pdf',
+      21: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf'
+    };
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window?.URL?.createObjectURL(blob);
-        const link = window?.document?.createElement('a');
-        link.href = url;
-        link.download = document.title;
-        link.click();
-        
-        // Nettoyer l'URL après le téléchargement
-        setTimeout(() => window?.URL?.revokeObjectURL(url), 1000);
-        
-        console.log(`📥 Document téléchargé: ${document.title || ''} (ID: ${document.id})`);
-      } else {
-        throw new Error(`HTTP ${response.status}`);
-      }
-    } catch (error) {
-      console.error('Document download error:', error);
-      // Fallback pour liens directs si l'API échoue
+    const downloadUrl = downloadLinks[document.id];
+    if (downloadUrl) {
+      const link = window?.document?.createElement('a');
+      link.href = downloadUrl;
+      link.download = document.title;
+      link.click();
+      console.log(`📥 Document téléchargé: ${document.title || ''}`);
+    } else {
+      // Simulation pour les anciens documents
       alert(`Téléchargement de: ${document.title || ''}`);
     }
   };
