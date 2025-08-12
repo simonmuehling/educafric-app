@@ -145,6 +145,15 @@ const FreelancerChildConnection: React.FC<FreelancerChildConnectionProps> = ({
 
   const t = text[language as keyof typeof text];
 
+  const toggleSubject = (subject: string) => {
+    setStudentData(prev => ({
+      ...prev,
+      subjects: prev.subjects.includes(subject)
+        ? prev.subjects.filter(s => s !== subject)
+        : [...prev.subjects, subject]
+    }));
+  };
+
   const handleSearchStudent = async () => {
     setIsLoading(true);
     try {

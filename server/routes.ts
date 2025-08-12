@@ -2015,6 +2015,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Connection System API Endpoints
+  
+  // Parent-Child Connection Routes
+  app.post("/api/parent/search-child", requireAuth, async (req, res) => {
+    try {
+      const searchData = req.body;
+      const results = await storage.searchChildrenForParent(searchData);
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('[PARENT_CONNECTION] Search child failed:', error);
+      res.status(500).json({ success: false, message: 'Search failed' });
+    }
+  });
+
+  app.post("/api/parent/connect-child", requireAuth, async (req, res) => {
+    try {
+      const { parentId, childId, childData, parentRelation } = req.body;
+      
+      if (childId) {
+        // Connect to existing child
+        const result = await storage.connectParentToExistingChild(parentId, childId, parentRelation);
+        res.json({ success: true, message: 'Connected successfully', data: result });
+      } else {
+        // Create connection request for new child
+        const result = await storage.createParentChildConnectionRequest(parentId, childData, parentRelation);
+        res.json({ success: true, message: 'Connection request created', data: result });
+      }
+    } catch (error) {
+      console.error('[PARENT_CONNECTION] Connect child failed:', error);
+      res.status(500).json({ success: false, message: 'Connection failed' });
+    }
+  });
+
+  // Freelancer-Student Connection Routes
+  app.post("/api/freelancer/search-student", requireAuth, async (req, res) => {
+    try {
+      const searchData = req.body;
+      const results = await storage.searchStudentsForFreelancer(searchData);
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('[FREELANCER_CONNECTION] Search student failed:', error);
+      res.status(500).json({ success: false, message: 'Search failed' });
+    }
+  });
+
+  app.post("/api/freelancer/connect-student", requireAuth, async (req, res) => {
+    try {
+      const { freelancerId, studentId, studentData, serviceType, subjects, hourlyRate, notes } = req.body;
+      const serviceData = { serviceType, subjects, hourlyRate, notes };
+      
+      if (studentId) {
+        // Connect to existing student
+        const result = await storage.connectFreelancerToExistingStudent(freelancerId, studentId, serviceData);
+        res.json({ success: true, message: 'Connected successfully', data: result });
+      } else {
+        // Create connection request for new student
+        const result = await storage.createFreelancerStudentConnectionRequest(freelancerId, studentData, serviceData);
+        res.json({ success: true, message: 'Connection request created', data: result });
+      }
+    } catch (error) {
+      console.error('[FREELANCER_CONNECTION] Connect student failed:', error);
+      res.status(500).json({ success: false, message: 'Connection failed' });
+    }
+  });
+
+  // Child-Parent Connection Routes
+  app.post("/api/student/search-parent", requireAuth, async (req, res) => {
+    try {
+      const searchData = req.body;
+      const results = await storage.searchParentsForChild(searchData);
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('[CHILD_CONNECTION] Search parent failed:', error);
+      res.status(500).json({ success: false, message: 'Search failed' });
+    }
+  });
+
+  app.post("/api/student/connect-parent", requireAuth, async (req, res) => {
+    try {
+      const { studentId, parentId, parentData, relationship } = req.body;
+      
+      if (parentId) {
+        // Connect to existing parent
+        const result = await storage.connectChildToExistingParent(studentId, parentId, relationship);
+        res.json({ success: true, message: 'Connected successfully', data: result });
+      } else {
+        // Create connection request for new parent
+        const result = await storage.createChildParentConnectionRequest(studentId, parentData, relationship);
+        res.json({ success: true, message: 'Connection request created', data: result });
+      }
+    } catch (error) {
+      console.error('[CHILD_CONNECTION] Connect parent failed:', error);
+      res.status(500).json({ success: false, message: 'Connection failed' });
+    }
+  });
+
+  // Smart Duplicate Detection Routes
+  app.get("/api/admin/duplicates/:schoolId", requireAuth, async (req, res) => {
+    try {
+      const schoolId = parseInt(req.params.schoolId);
+      const duplicates = await storage.getSmartDuplicateDetections(schoolId);
+      res.json({ success: true, duplicates });
+    } catch (error) {
+      console.error('[DUPLICATE_DETECTION] Get duplicates failed:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch duplicates' });
+    }
+  });
+
+  app.post("/api/admin/merge-duplicate", requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, existingUserId, newUserData, schoolId } = req.body;
+      const result = await storage.mergeUserDuplicate(duplicateId, existingUserId, newUserData, schoolId);
+      res.json({ success: true, message: 'Users merged successfully', data: result });
+    } catch (error) {
+      console.error('[DUPLICATE_DETECTION] Merge duplicate failed:', error);
+      res.status(500).json({ success: false, message: 'Merge failed' });
+    }
+  });
+
+  app.post("/api/admin/ignore-duplicate", requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, schoolId } = req.body;
+      const result = await storage.ignoreDuplicateDetection(duplicateId, schoolId);
+      res.json({ success: true, message: 'Duplicate ignored', data: result });
+    } catch (error) {
+      console.error('[DUPLICATE_DETECTION] Ignore duplicate failed:', error);
+      res.status(500).json({ success: false, message: 'Ignore failed' });
+    }
+  });
+
+  app.post("/api/admin/create-separate", requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, newUserData, schoolId } = req.body;
+      const result = await storage.createSeparateUser(duplicateId, newUserData, schoolId);
+      res.json({ success: true, message: 'User created separately', data: result });
+    } catch (error) {
+      console.error('[DUPLICATE_DETECTION] Create separate user failed:', error);
+      res.status(500).json({ success: false, message: 'Creation failed' });
+    }
+  });
+
   // Premium Services Management API Endpoints
   app.get("/api/premium-services", requireAuth, (req, res) => {
     if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes((req.user as any).role)) {
