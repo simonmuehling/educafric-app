@@ -452,6 +452,12 @@ const DocumentManagement = () => {
   const handleViewDocument = (document: Document) => {
     // Liens directs vers les vrais fichiers qui existent
     const directLinks: { [key: number]: string } = {
+      1: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
+      2: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      3: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      4: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
+      5: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
+      6: '/EDUCAFRIC_COMMERCIAL_TOOLKIT.md',
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf',
       9: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
@@ -482,6 +488,12 @@ const DocumentManagement = () => {
   const handleDownload = (document: Document) => {
     // Mapping vers les vrais fichiers qui existent
     const downloadLinks: { [key: number]: string } = {
+      1: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
+      2: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      3: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      4: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
+      5: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
+      6: '/EDUCAFRIC_COMMERCIAL_TOOLKIT.md',
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf', 
       9: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
