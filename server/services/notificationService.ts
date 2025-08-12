@@ -611,8 +611,8 @@ export class NotificationService {
         const pushPayload = {
           title: notification.title,
           body: notification.message,
-          icon: '/icon-192x192.png',
-          badge: '/badge-72x72.png',
+          icon: '/educafric-logo-128.png',
+          badge: '/android-icon-192x192.png',
           tag: `security-${notification.userId}-${Date.now()}`,
           requireInteraction: notification.priority === 'urgent',
           actions: notification.actionUrl ? [

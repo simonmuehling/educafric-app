@@ -1,11 +1,13 @@
 // Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.1';
+const CACHE_NAME = 'educafric-v2.2';
 const urlsToCache = [
   '/',
   '/manifest.json',
   '/offline.html',
   '/educafric-logo-128.png',
-  '/educafric-logo-512.png'
+  '/educafric-logo-512.png',
+  '/android-icon-192x192.png',
+  '/favicon.ico'
 ];
 
 // Install event
