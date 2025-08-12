@@ -32,23 +32,45 @@ const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
   const hasAccess = () => {
     if (!user) return false;
     
-    // Pour la démonstration, certains comptes demo ont accès
-    if (user.email?.includes('demo') || user.email?.includes('test')) {
+    // Rôles avec accès gratuit (Teachers et Students n'ont pas besoin d'abonnement)
+    const freeAccessRoles = ['Teacher', 'Student'];
+    if (freeAccessRoles.includes(user.role)) {
+      return true;
+    }
+    
+    // Pour les comptes sandbox/test SEULEMENT, donner accès gratuit
+    if (user.email?.includes('test.educafric.com') || user.email?.includes('sandbox')) {
       return true;
     }
 
-    // Vérifier le plan de l'utilisateur (à implémenter selon votre logique)
-    const userPlan = (user as any).subscriptionPlan || 'freemium';
+    // Pour les vrais utilisateurs, vérifier l'abonnement actif
+    const hasActiveSubscription = user.subscriptionStatus === 'active' && user.subscriptionPlan;
+    
+    if (!hasActiveSubscription) {
+      return false; // Bloquer l'accès si pas d'abonnement actif
+    }
+
+    // Mapper les plans EDUCAFRIC aux niveaux de fonctionnalités
+    const userPlan = user.subscriptionPlan;
+    const planLevels = {
+      'basic': ['basic'],
+      'geolocation': ['basic', 'premium'], // Plan géolocalisation = premium
+      'premium': ['basic', 'premium'],
+      'pro': ['basic', 'premium', 'pro'],
+      'enterprise': ['basic', 'premium', 'pro', 'enterprise']
+    };
+    
+    const userLevels = planLevels[userPlan as keyof typeof planLevels] || [];
     
     switch (requiredPlan) {
       case 'premium':
-        return ['premium', 'pro', 'enterprise'].includes(userPlan);
+        return userLevels.includes('premium');
       case 'pro':
-        return ['pro', 'enterprise'].includes(userPlan);
+        return userLevels.includes('pro');
       case 'enterprise':
-        return userPlan === 'enterprise';
+        return userLevels.includes('enterprise');
       default:
-        return false;
+        return userLevels.includes('basic');
     }
   };
 

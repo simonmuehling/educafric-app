@@ -20,7 +20,10 @@ Preferred communication style: Simple, everyday language.
 - **Role-Based Subscription Display**: Clear differentiation between roles requiring subscriptions vs free access
 - **Subscription-Required Roles**: Parent, SiteAdmin, Admin, Director, Commercial, Freelancer now see subscription status cards
 - **Free Access Roles**: Teacher and Student see "Accès Gratuit - géré par votre école" message instead of subscription cards
-- **Comprehensive Testing Guide**: Created SUBSCRIPTION_TESTING_GUIDE.md with test accounts and verification procedures
+- **Premium Module Blocking**: PremiumFeatureGate now properly blocks premium modules for users without active subscriptions
+- **Subscription Status Verification**: Real subscription status (`subscriptionStatus = 'active'`) required for premium access
+- **Sandbox Access**: Test accounts (`@test.educafric.com`) maintain free access for demonstrations
+- **Comprehensive Testing Guide**: Created SUBSCRIPTION_TESTING_GUIDE.md and PREMIUM_BLOCKING_TEST_GUIDE.md
 - **SubscriptionStatusCard Enhanced**: Role-aware component that displays appropriate content based on user role
 - **SubscriptionPlanDisplay Updated**: Unified display logic for subscription information across all dashboards
 - **Business Logic Clarification**: Teachers and Students receive free access managed by their institution, while other roles need personal subscriptions for platform features

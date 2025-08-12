@@ -2,18 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiRequest } from '@/lib/queryClient';
 import confetti from 'canvas-confetti';
 import { useLocation } from 'wouter';
+import { AuthenticatedUser } from '@shared/types';
 
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  schoolId?: number;
-  phone?: string;
-  gender?: string;
-  photoURL?: string;
-}
+// Use AuthenticatedUser from shared types to include subscription fields
+type User = AuthenticatedUser;
 
 interface AuthContextType {
   user: User | null;
