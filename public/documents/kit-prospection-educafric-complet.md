@@ -197,7 +197,7 @@ Souhaitez-vous que je vous réserve cette offre ?
 > "Parfaitement compréhensible. Que diriez-vous de commencer par l'essai gratuit 30 jours ? Aucun engagement, juste pour voir les bénéfices."
 
 ### "Comment communiquer avec les parents qui n'ont pas d'abonnement ?"
-> "**Point important** : Pour une communication bidirectionnelle complète entre l'école et les parents, les deux parties doivent avoir au minimum un abonnement basique EDUCAFRIC. C'est un prérequis technique essentiel. Cependant, nous proposons des tarifs famille très abordables et des offres groupées école-parents."
+> "**Point important** : Pour une communication bidirectionnelle complète entre l'école et les parents, les deux parties doivent avoir au minimum le **plan basique EDUCAFRIC**. C'est un prérequis technique essentiel. Nous proposons deux plans : Basique (communication standard) et Géolocalisation (communication + suivi GPS). Des offres groupées école-parents sont disponibles."
 
 ---
 
@@ -221,12 +221,16 @@ Souhaitez-vous que je vous réserve cette offre ?
 ## 🔟 CONDITIONS TECHNIQUES IMPORTANTES
 
 ### ⚠️ PRÉREQUIS COMMUNICATION BIDIRECTIONNELLE
-**ESSENTIEL À COMMUNIQUER** : Pour que l'école et les parents puissent échanger (messages, alertes, rapports), **les deux parties doivent avoir un abonnement EDUCAFRIC minimum**.
+**ESSENTIEL À COMMUNIQUER** : Pour que l'école et les parents puissent échanger (messages, alertes, rapports), **les deux parties doivent avoir au minimum le plan basique EDUCAFRIC**.
+
+#### Structure des plans EDUCAFRIC :
+- **Plan Basique** : Communication bidirectionnelle, bulletins, emplois du temps, gestion administrative
+- **Plan Géolocalisation** : Toutes les fonctionnalités Basique + suivi GPS temps réel, zones de sécurité, alertes géolocalisation
 
 #### Points clés à expliquer :
 - **École sans abonnement** = Aucune communication possible
 - **Parents sans abonnement** = Réception limitée, pas d'envoi possible
-- **Solution recommandée** : Packages école-famille avec tarifs préférentiels
+- **Solution recommandée** : Packages école-famille avec tarifs préférentiels pour chaque plan
 - **Bénéfice** : Communication complète, suivi en temps réel, engagement parental maximal
 
 #### Arguments commerciaux :

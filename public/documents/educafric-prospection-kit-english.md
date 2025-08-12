@@ -197,7 +197,7 @@ Would you like me to reserve this offer for you?
 > "Perfectly understandable. How about starting with the free 30-day trial? No commitment, just to see the benefits."
 
 ### "How to communicate with parents who don't have a subscription?"
-> "**Important point**: For complete bidirectional communication between school and parents, both parties must have at least a basic EDUCAFRIC subscription. This is an essential technical prerequisite. However, we offer very affordable family rates and school-parent group packages."
+> "**Important point**: For complete bidirectional communication between school and parents, both parties must have at least the **EDUCAFRIC Basic plan**. This is an essential technical prerequisite. We offer two plans: Basic (standard communication) and Geolocation (communication + GPS tracking). School-parent group packages are available."
 
 ---
 
