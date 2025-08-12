@@ -274,27 +274,38 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
   };
 
   const navigateToModule = (moduleKey: string) => {
+    console.log(`[MOBILE_CONFIG_GUIDE] ⚡ Button clicked for: ${moduleKey}`);
+    
     const moduleMap: { [key: string]: string } = {
       'school-info': 'settings',
-      'admin-accounts': 'administrators',
-      'teachers': 'teacher-management',
-      'classes': 'class-management',
-      'students': 'student-management',
+      'admin-accounts': 'school-administrators',
+      'teachers': 'teachers',
+      'classes': 'classes',
+      'students': 'students',
       'timetable': 'timetable',
       'communications': 'communications',
-      'attendance': 'attendance-management',
+      'attendance': 'attendance',
       'geolocation': 'geolocation',
       'subscription': 'subscription'
     };
 
-    const module = moduleMap[moduleKey];
-    if (module) {
-      const eventName = `switchTo${module.charAt(0).toUpperCase() + module.slice(1)}`;
-      const event = new CustomEvent(eventName, {
-        detail: { source: 'mobile-config-guide' }
+    const targetModule = moduleMap[moduleKey];
+    if (targetModule) {
+      console.log(`[MOBILE_CONFIG_GUIDE] 🎯 Switching to module: ${targetModule}`);
+      
+      // Dispatche l'événement de changement de module
+      const moduleEvent = new CustomEvent('switchModule', { 
+        detail: { 
+          moduleId: targetModule,
+          source: 'mobile-config-guide',
+          originalKey: moduleKey
+        } 
       });
-      window.dispatchEvent(event);
-      console.log(`[MOBILE_CONFIG_GUIDE] Navigating to ${module}`);
+      window.dispatchEvent(moduleEvent);
+      
+      console.log(`[MOBILE_CONFIG_GUIDE] ✅ Module switch event dispatched for: ${targetModule}`);
+    } else {
+      console.warn(`[MOBILE_CONFIG_GUIDE] ❌ No module mapping found for: ${moduleKey}`);
     }
   };
 
