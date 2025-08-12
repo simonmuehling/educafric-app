@@ -12,6 +12,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import express from "express";
 import geolocationRoutes from "./routes/geolocation";
+import documentsRouter from "./routes/documents";
 import fs from "fs";
 import { marked } from "marked";
 import { configureSecurityMiddleware, securityLogger, productionSessionConfig } from "./middleware/security";
@@ -11610,6 +11611,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register geolocation routes
   app.use('/api/geolocation', geolocationRoutes);
+  
+  // Register document API routes
+  app.use('/api/documents', documentsRouter);
   
   // Register subscription routes  
   app.use('/api/subscription', (await import('./routes/subscription')).default);

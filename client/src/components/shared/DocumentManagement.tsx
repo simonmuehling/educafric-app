@@ -461,31 +461,32 @@ const DocumentManagement = () => {
     }
   };
 
-  const handleDownload = (document: Document) => {
-    // Gestion des téléchargements avec les vrais fichiers
-    const downloadLinks: { [key: number]: string } = {
-      7: '/documents/Demande_Etablissement_1753390157502.pdf',
-      8: '/documents/Demande_ministre-8_1753390184314.pdf', 
-      9: '/documents/Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
-      10: '/documents/parents_1753390442002.pdf',
-      11: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
-      12: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
-      13: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-      14: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
-      15: '/EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
-      16: '/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
-      17: '/EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
-      18: '/EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md'
-    };
+  const handleDownload = async (document: Document) => {
+    try {
+      // Utiliser l'API backend pour télécharger le document avec authentification
+      const response = await fetch(`/api/documents/${document.id}/download`, {
+        method: 'GET',
+        credentials: 'include'
+      });
 
-    const downloadUrl = downloadLinks[document.id];
-    if (downloadUrl) {
-      const link = window?.document?.createElement('a');
-      link.href = downloadUrl;
-      link.download = document.title;
-      link.click();
-    } else {
-      // Simulation pour les anciens documents
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window?.URL?.createObjectURL(blob);
+        const link = window?.document?.createElement('a');
+        link.href = url;
+        link.download = document.title;
+        link.click();
+        
+        // Nettoyer l'URL après le téléchargement
+        setTimeout(() => window?.URL?.revokeObjectURL(url), 1000);
+        
+        console.log(`📥 Document téléchargé: ${document.title || ''} (ID: ${document.id})`);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Document download error:', error);
+      // Fallback pour liens directs si l'API échoue
       alert(`Téléchargement de: ${document.title || ''}`);
     }
   };
