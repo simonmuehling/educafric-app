@@ -112,6 +112,19 @@ const DocumentsContracts = () => {
       description: 'Guide détaillé modules freemium vs premium : Écoles (6 modules bloqués), Parents (5 modules), Freelancers (8 modules) avec tarification réelle'
     },
     {
+      id: 26,
+      name: 'EDUCAFRIC Prospection Kit - English Version',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-08-12',
+      status: 'finalized',
+      size: '12.4 KB',
+      format: 'MD',
+      url: '/documents/educafric-prospection-kit-english.md',
+      description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
+    },
+    {
       id: 3,
       name: 'Tarifs et Plans Français',
       type: 'pricing',
