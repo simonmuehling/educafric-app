@@ -27,6 +27,7 @@ import PreviewModule from './modules/PreviewModule';
 import SchoolManagement from './modules/SchoolManagement';
 import SecurityAudit from './modules/SecurityAudit';
 import UserManagement from './modules/UserManagement';
+import DocumentPermissionsManager from './DocumentPermissionsManager';
 
 interface PlatformStats {
   totalUsers: number;
@@ -312,6 +313,13 @@ const SiteAdminDashboard: React.FC = () => {
               <FileText className="h-3 w-3 md:h-4 md:w-4" />
             </TabsTrigger>
             <TabsTrigger 
+              value="doc-permissions" 
+              className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-700 rounded-md" 
+              title="Permissions Documents"
+            >
+              <Shield className="h-3 w-3 md:h-4 md:w-4" />
+            </TabsTrigger>
+            <TabsTrigger 
               value="content" 
               className="flex-shrink-0 p-1 md:p-2 flex items-center justify-center min-w-[35px] md:min-w-0 h-8 md:h-10 data-[state=active]:bg-cyan-50 data-[state=active]:text-cyan-700 rounded-md" 
               title="Contenu"
@@ -509,6 +517,10 @@ const SiteAdminDashboard: React.FC = () => {
 
           <TabsContent value="documents" className="mt-6">
             <FunctionalSiteAdminDocuments />
+          </TabsContent>
+
+          <TabsContent value="doc-permissions" className="mt-6">
+            <DocumentPermissionsManager />
           </TabsContent>
 
           <TabsContent value="content" className="mt-6">

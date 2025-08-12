@@ -22,7 +22,7 @@ interface Document {
   description?: string;
 }
 
-const DocumentManagement: React.FC = () => {
+const DocumentManagementNew: React.FC = () => {
   const { user } = useAuth();
   const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,8 +62,7 @@ const DocumentManagement: React.FC = () => {
       downloads: 'Téléchargements',
       noDocuments: 'Aucun document trouvé',
       language: 'Langue',
-      description: 'Description',
-      accessDenied: 'Accès restreint'
+      description: 'Description'
     },
     en: {
       title: 'Document Management',
@@ -96,8 +95,7 @@ const DocumentManagement: React.FC = () => {
       downloads: 'Downloads',
       noDocuments: 'No documents found',
       language: 'Language',
-      description: 'Description',
-      accessDenied: 'Access restricted'
+      description: 'Description'
     }
   };
 
@@ -462,12 +460,11 @@ const DocumentManagement: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
-                  data-testid="input-search-documents"
                 />
               </div>
               
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger data-testid="select-filter-type">
+                <SelectTrigger>
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder={t.filterByType} />
                 </SelectTrigger>
@@ -480,7 +477,7 @@ const DocumentManagement: React.FC = () => {
               </Select>
 
               <Select value={filterAccess} onValueChange={setFilterAccess}>
-                <SelectTrigger data-testid="select-filter-access">
+                <SelectTrigger>
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder={t.filterByAccess} />
                 </SelectTrigger>
@@ -508,13 +505,13 @@ const DocumentManagement: React.FC = () => {
             </Card>
           ) : (
             filteredDocuments.map((doc) => (
-              <Card key={doc.id} className="hover:shadow-lg transition-shadow" data-testid={`card-document-${doc.id}`}>
+              <Card key={doc.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <File className="h-5 w-5 text-blue-600" />
-                        <h3 className="text-lg font-semibold text-gray-900" data-testid={`text-document-title-${doc.id}`}>{doc.title}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{doc.title}</h3>
                         <Badge variant="outline" className="ml-2">
                           {t.documentTypes[doc.type]}
                         </Badge>
@@ -528,13 +525,13 @@ const DocumentManagement: React.FC = () => {
                       </div>
                       
                       {doc.description && (
-                        <p className="text-gray-600 mb-3" data-testid={`text-document-description-${doc.id}`}>{doc.description}</p>
+                        <p className="text-gray-600 mb-3">{doc.description}</p>
                       )}
                       
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span data-testid={`text-document-size-${doc.id}`}>{t.size}: {doc.size}</span>
-                        <span data-testid={`text-document-modified-${doc.id}`}>{t.lastModified}: {doc.lastModified}</span>
-                        <span data-testid={`text-document-downloads-${doc.id}`}>{t.downloads}: {doc.downloadCount}</span>
+                        <span>{t.size}: {doc.size}</span>
+                        <span>{t.lastModified}: {doc.lastModified}</span>
+                        <span>{t.downloads}: {doc.downloadCount}</span>
                       </div>
                     </div>
                     
@@ -560,7 +557,7 @@ const DocumentManagement: React.FC = () => {
                           </Button>
                         </>
                       ) : (
-                        <Badge variant="secondary" data-testid={`badge-access-denied-${doc.id}`}>{t.accessDenied}</Badge>
+                        <Badge variant="secondary">Accès restreint</Badge>
                       )}
                     </div>
                   </div>
@@ -578,23 +575,23 @@ const DocumentManagement: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-blue-600" data-testid="stat-total-documents">{documents.length}</div>
+                <div className="text-2xl font-bold text-blue-600">{documents.length}</div>
                 <div className="text-sm text-gray-600">Total documents</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600" data-testid="stat-accessible-documents">
+                <div className="text-2xl font-bold text-green-600">
                   {documents.filter(d => hasAccess(d)).length}
                 </div>
                 <div className="text-sm text-gray-600">Accessibles</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-purple-600" data-testid="stat-total-downloads">
+                <div className="text-2xl font-bold text-purple-600">
                   {documents.reduce((sum, doc) => sum + doc.downloadCount, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Téléchargements</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-orange-600" data-testid="stat-filtered-documents">
+                <div className="text-2xl font-bold text-orange-600">
                   {filteredDocuments.length}
                 </div>
                 <div className="text-sm text-gray-600">Filtrés</div>
@@ -607,4 +604,4 @@ const DocumentManagement: React.FC = () => {
   );
 };
 
-export default DocumentManagement;
+export default DocumentManagementNew;
