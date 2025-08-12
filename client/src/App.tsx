@@ -66,6 +66,7 @@ import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDash
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
 import { SchoolGeolocationPage } from "@/pages/SchoolGeolocationPage";
 import RoleBasedGeolocationPage from "@/components/shared/RoleBasedGeolocationPage";
+import ProfileSettings from "@/pages/ProfileSettings";
 
 import { useState } from "react";
 import React from "react";
@@ -298,12 +299,13 @@ function Router() {
       
       <Route path="/settings">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-              <p className="text-gray-600 mt-2">Settings management coming soon</p>
-            </div>
-          </div>
+          <ProfileSettings />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/profile-settings">
+        <ProtectedRoute>
+          <ProfileSettings />
         </ProtectedRoute>
       </Route>
       

@@ -53,6 +53,7 @@ import { MultiRoleService } from "./services/multiRoleService";
 import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import { hostingerMailService } from "./services/hostingerMailService";
+import emailPreferencesRoutes from "./routes/email-preferences-routes";
 import { welcomeEmailService } from "./services/welcomeEmailService";
 import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
 import setupNotificationRoutes from "./routes/notificationRoutes";
@@ -11999,6 +12000,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   console.log('[HOSTINGER_MAIL] Email routes registered successfully');
+
+  // Register email preferences routes
+  app.use(emailPreferencesRoutes);
+  console.log('[EMAIL_PREFERENCES] Email preferences routes registered successfully');
 
   // Parent routes
   app.get("/api/parent/children", requireAuth, async (req, res) => {

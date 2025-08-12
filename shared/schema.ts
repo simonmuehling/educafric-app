@@ -9,6 +9,8 @@ export * from "./tutorialSchema";
 export * from "./geolocationSchema";
 // Import profile deletion schema
 export * from "./profileDeletionSchema";
+// Import email preferences schema
+export * from "./emailPreferencesSchema";
 
 // Core user system with multi-role support
 export const users = pgTable("users", {

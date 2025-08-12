@@ -12,8 +12,9 @@ import {
   type ParentRequestNotification, type InsertParentRequestNotification,
   type NotificationSettings, type InsertNotificationSettings,
   type Notification, type InsertNotification,
+  type EmailPreferences, type InsertEmailPreferences, type UpdateEmailPreferences,
   users, schools, classes, subjects, grades, attendance,
-  homework, payments, messages, notifications, teacherAbsences, parentRequests
+  homework, payments, messages, notifications, teacherAbsences, parentRequests, emailPreferences
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count, sql, or, lt, gte, lte, ne, inArray } from "drizzle-orm";
@@ -198,6 +199,11 @@ export interface IStorage {
   sendBulletin(bulletinId: number, sentBy: number): Promise<any>;
   createBulletinApproval(approval: any): Promise<any>;
   getBulletinApprovals(bulletinId: number): Promise<any[]>;
+
+  // ===== EMAIL PREFERENCES SYSTEM =====
+  getEmailPreferences(userId: number): Promise<EmailPreferences | null>;
+  createEmailPreferences(preferences: InsertEmailPreferences): Promise<EmailPreferences>;
+  updateEmailPreferences(userId: number, updates: UpdateEmailPreferences): Promise<EmailPreferences>;
 
   // ===== SCHOOL ADMINISTRATORS SYSTEM =====
   grantSchoolAdminRights(teacherId: number, schoolId: number, adminLevel: string, grantedBy: number): Promise<any>;
@@ -1048,6 +1054,58 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[STORAGE] deleteNotification error:', error);
       throw new Error('Failed to delete notification');
+    }
+  }
+
+  // ===== EMAIL PREFERENCES IMPLEMENTATION =====
+  async getEmailPreferences(userId: number): Promise<EmailPreferences | null> {
+    try {
+      const [preferences] = await db.select().from(emailPreferences).where(eq(emailPreferences.userId, userId));
+      return preferences || null;
+    } catch (error) {
+      console.error('[STORAGE] getEmailPreferences error:', error);
+      return null;
+    }
+  }
+
+  async createEmailPreferences(preferences: InsertEmailPreferences): Promise<EmailPreferences> {
+    try {
+      const [created] = await db.insert(emailPreferences).values(preferences).returning();
+      console.log('[STORAGE] Created email preferences for user:', preferences.userId);
+      return created;
+    } catch (error) {
+      console.error('[STORAGE] createEmailPreferences error:', error);
+      throw new Error('Failed to create email preferences');
+    }
+  }
+
+  async updateEmailPreferences(userId: number, updates: UpdateEmailPreferences): Promise<EmailPreferences> {
+    try {
+      const [updated] = await db
+        .update(emailPreferences)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(emailPreferences.userId, userId))
+        .returning();
+      
+      if (!updated) {
+        throw new Error('Email preferences not found');
+      }
+      
+      console.log('[STORAGE] Updated email preferences for user:', userId);
+      return updated;
+    } catch (error) {
+      console.error('[STORAGE] updateEmailPreferences error:', error);
+      throw new Error('Failed to update email preferences');
+    }
+  }
+
+  async getUser(id: number): Promise<User | null> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user || null;
+    } catch (error) {
+      console.error('[STORAGE] getUser error:', error);
+      return null;
     }
   }
 }
