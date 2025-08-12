@@ -56,7 +56,7 @@ import { welcomeEmailService } from "./services/welcomeEmailService";
 import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
-// Configuration routes handled inline
+import configurationRoutes from "./routes/configurationRoutes";
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
 
@@ -11632,65 +11632,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   console.log('[SYSTEM_REPORTS] System reports routes registered successfully');
 
-  // Configuration Guide Route
-  app.get('/api/school/configuration-status', requireAuth, async (req, res) => {
-    try {
-      const user = req.user;
-      if (!user) {
-        return res.status(401).json({ message: 'Authentication required' });
-      }
-
-      const schoolId = (user as any).schoolId || 1;
-      console.log(`[CONFIG_STATUS] Checking configuration for school ${schoolId}`);
-
-      const configStatus: any = {};
-      
-      try {
-        const schoolSettings = await storage.getSchoolSettings(schoolId);
-        configStatus['school-info'] = (schoolSettings && schoolSettings.name) ? 'completed' : 'missing';
-      } catch {
-        configStatus['school-info'] = 'missing';
-      }
-
-      try {
-        const administrators = await storage.getSchoolAdministrators(schoolId);
-        configStatus['admin-accounts'] = (administrators && administrators.length > 0) ? 'completed' : 'missing';
-      } catch {
-        configStatus['admin-accounts'] = 'missing';
-      }
-
-      // États simplifiés pour d'autres éléments
-      configStatus['teachers'] = 'pending';
-      configStatus['classes'] = 'pending';
-      configStatus['students'] = 'pending';
-      configStatus['timetable'] = 'pending';
-      configStatus['communications'] = 'pending';
-      configStatus['attendance'] = 'pending';
-      configStatus['geolocation'] = 'pending';
-      configStatus['subscription'] = 'pending';
-
-      const completedCount = Object.values(configStatus).filter(s => s === 'completed').length;
-      const totalSteps = Object.keys(configStatus).length;
-      const progress = Math.round((completedCount / totalSteps) * 100);
-
-      res.json({
-        schoolId,
-        overallProgress: progress,
-        lastUpdated: new Date().toISOString(),
-        steps: configStatus,
-        missingElements: Object.keys(configStatus).filter(key => configStatus[key] !== 'completed'),
-        nextRecommendedStep: Object.keys(configStatus).find(key => configStatus[key] !== 'completed') || null
-      });
-
-    } catch (error) {
-      console.error('[CONFIG_STATUS] Error:', error);
-      res.status(500).json({ 
-        message: 'Error checking configuration status',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
+  // Register configuration routes
+  app.use('/api/school', configurationRoutes);
   console.log('[CONFIG_GUIDE] Configuration guide routes registered successfully');
   
   // Clean Student Routes - Replace all old student routes with clean architecture

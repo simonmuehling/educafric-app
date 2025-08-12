@@ -140,8 +140,12 @@ async function analyzeSchoolConfiguration(schoolId: number) {
 
   try {
     // Vérifier les informations de l'école
-    const schoolSettings = await storage.getSchoolSettings(schoolId);
-    configStatus['school-info'] = (schoolSettings && schoolSettings.name && schoolSettings.address) ? 'completed' : 'missing';
+    try {
+      const school = await storage.getSchool(schoolId);
+      configStatus['school-info'] = (school && school.name && school.address) ? 'completed' : 'missing';
+    } catch (error) {
+      configStatus['school-info'] = 'missing';
+    }
 
     // Vérifier les comptes administrateurs
     try {
@@ -156,7 +160,7 @@ async function analyzeSchoolConfiguration(schoolId: number) {
 
     // Vérifier les classes
     try {
-      const classes = await storage.getAllClasses();
+      const classes = await storage.getClassesBySchool(schoolId);
       configStatus['classes'] = (classes && classes.length > 0) ? 'completed' : 'missing';
     } catch (error) {
       configStatus['classes'] = 'missing';

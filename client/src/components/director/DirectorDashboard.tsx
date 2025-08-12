@@ -29,7 +29,7 @@ import HelpCenter from '@/components/help/HelpCenter';
 import { FunctionalDirectorOverview } from './modules/FunctionalDirectorOverview';
 import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers';
 import CommunicationsCenter from './modules/CommunicationsCenter';
-import SchoolConfigurationGuide from './modules/SchoolConfigurationGuide';
+import MobileSchoolConfigurationGuide from './modules/MobileSchoolConfigurationGuide';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 
 // Import Premium components
@@ -336,7 +336,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.configGuide,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <SchoolConfigurationGuide />
+      component: <MobileSchoolConfigurationGuide />
     }
   ];
 
