@@ -14,6 +14,15 @@ Preferred communication style: Simple, everyday language.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
 
+## Recent Updates (2025-08-12)
+
+### Mobile School Configuration Guide
+- **Module créé**: Guide mobile optimisé pour smartphone avec interface responsive
+- **Navigation fonctionnelle**: Boutons "Commencer" redirigent vers modules correspondants
+- **Système d'événements**: Intégration complète avec UnifiedIconDashboard via événements switchModule
+- **API Routes**: Configuration status endpoints pour récupération statut école
+- **Interface utilisateur**: 10 étapes structurées avec priorités, temps estimé, et progression visuelle
+
 ## System Architecture
 
 ### Frontend Architecture
