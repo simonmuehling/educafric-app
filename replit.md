@@ -16,6 +16,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (2025-08-12)
 
+### Commercial Documentation Enhancement ✅
+- **English Prospection Kit Created**: Complete English version of "KIT DE PROSPECTION EDUCAFRIC - DOUALA & YAOUNDÉ"
+- **Bilingual Sales Materials**: Both French and English versions now available for international markets
+- **Enhanced Content Structure**: Added performance metrics, cultural considerations, and emergency contacts
+- **Sales Process Standardization**: Unified approach for French/English speaking regions of Cameroon
+- **Document Integration**: New document follows existing system configuration for seamless access
+
 ### Document Management System Completed ✅
 - **Interface DocumentManagement**: Complètement recréée avec système de liens directs fonctionnel
 - **Tous les documents testés**: 21 documents (IDs 1-21) avec mappings corrects vers fichiers existants
