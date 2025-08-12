@@ -280,8 +280,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '2.8 MB',
-      format: 'PDF',
-      url: '/documents/contrat-partenariat-commercial-fr.pdf',
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-commercial-fr.html',
       description: 'Contrat de partenariat commercial pour établissements scolaires - Version française'
     },
     {
@@ -293,8 +293,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '2.7 MB',
-      format: 'PDF',
-      url: '/documents/commercial-partnership-contract-en.pdf',
+      format: 'HTML',
+      url: '/documents/commercial-partnership-contract-en.html',
       description: 'Commercial partnership contract for educational institutions - English version'
     },
     {
@@ -306,8 +306,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '1.5 MB',
-      format: 'PDF',
-      url: '/documents/brochure-commerciale-educafric-fr.pdf',
+      format: 'HTML',
+      url: '/documents/brochure-commerciale-educafric-fr.html',
       description: 'Brochure commerciale complète avec tarifs et fonctionnalités - Version française'
     },
     {
@@ -319,35 +319,35 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '1.4 MB',
-      format: 'PDF',
-      url: '/documents/educafric-commercial-brochure-en.pdf',
+      format: 'HTML',
+      url: '/documents/educafric-commercial-brochure-en.html',
       description: 'Complete commercial brochure with pricing and features - English version'
     },
     {
       id: 21,
-      name: 'Guide Déploiement Établissement (FR)',
+      name: 'Guide Commercial Modules Premium/Freemium',
       type: 'guide',
       category: 'technical',
       school: 'Documentation Technique',
       date: '2025-08-11',
       status: 'finalized',
-      size: '3.2 MB',
-      format: 'PDF',
-      url: '/documents/guide-deploiement-etablissement-fr.pdf',
-      description: 'Guide complet de déploiement et configuration pour établissements - Version française'
+      size: '245 KB',
+      format: 'MD',
+      url: '/documents/guide-commercial-modules-premium-freemium.md',
+      description: 'Guide complet des modules premium et freemium pour prospects'
     },
     {
       id: 22,
-      name: 'Institution Deployment Guide (EN)',
+      name: 'Kit de Prospection Educafric Complet',
       type: 'guide',
       category: 'technical',
-      school: 'Technical Documentation',
+      school: 'Commercial Team',
       date: '2025-08-11',
       status: 'finalized',
-      size: '3.1 MB',
-      format: 'PDF',
-      url: '/documents/institution-deployment-guide-en.pdf',
-      description: 'Complete deployment and configuration guide for institutions - English version'
+      size: '567 KB',
+      format: 'MD',
+      url: '/documents/kit-prospection-educafric-complet.md',
+      description: 'Kit complet de prospection avec argumentaires et objections'
     },
     {
       id: 23,
@@ -358,8 +358,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'draft',
       size: '892 KB',
-      format: 'PDF',
-      url: '/documents/proposition-tarifaire-personnalisee-fr.pdf',
+      format: 'HTML',
+      url: '/documents/proposition-tarifaire-personnalisee-fr.html',
       description: 'Template de proposition tarifaire personnalisée pour prospects - Version française'
     },
     {
@@ -371,8 +371,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'draft',
       size: '867 KB',
-      format: 'PDF',
-      url: '/documents/customized-pricing-proposal-en.pdf',
+      format: 'HTML',
+      url: '/documents/customized-pricing-proposal-en.html',
       description: 'Customized pricing proposal template for prospects - English version'
     },
     {
@@ -384,8 +384,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '2.1 MB',
-      format: 'PDF',
-      url: '/documents/argumentaire-vente-educafric-fr.pdf',
+      format: 'HTML',
+      url: '/documents/argumentaire-vente-educafric-fr.html',
       description: 'Argumentaire de vente complet avec objections et réponses - Version française'
     },
     {
@@ -397,61 +397,61 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '2.0 MB',
-      format: 'PDF',
-      url: '/documents/educafric-sales-pitch-en.pdf',
+      format: 'HTML',
+      url: '/documents/educafric-sales-pitch-en.html',
       description: 'Complete sales pitch with objections and responses - English version'
     },
     {
       id: 27,
-      name: 'Cahier des Charges Technique (FR)',
+      name: 'TARIFS COMPLETS EDUCAFRIC - CAMEROUN 2025',
       type: 'guide',
       category: 'technical',
-      school: 'Spécifications Techniques',
+      school: 'Tarification',
       date: '2025-08-11',
       status: 'finalized',
-      size: '4.3 MB',
-      format: 'PDF',
-      url: '/documents/cahier-charges-technique-fr.pdf',
-      description: 'Cahier des charges technique détaillé pour implémentation - Version française'
+      size: '234 KB',
+      format: 'MD',
+      url: '/documents/tarifs-complets-educafric.md',
+      description: 'Tarifs détaillés pour géolocalisation, abonnements et services - Cameroun 2025'
     },
     {
       id: 28,
-      name: 'Technical Specifications (EN)',
+      name: 'Notifications System (EN)',
       type: 'guide',
       category: 'technical',
-      school: 'Technical Specifications',
+      school: 'Technical Documentation',
       date: '2025-08-11',
       status: 'finalized',
-      size: '4.1 MB',
-      format: 'PDF',
-      url: '/documents/technical-specifications-en.pdf',
-      description: 'Detailed technical specifications document for implementation - English version'
+      size: '345 KB',
+      format: 'MD',
+      url: '/documents/notifications-system-english.md',
+      description: 'Complete notification system documentation - English version'
     },
     {
       id: 29,
-      name: 'Formation Utilisateurs Administrateurs (FR)',
+      name: 'Géolocalisation Résumé (FR)',
       type: 'guide',
       category: 'training',
       school: 'Formation',
       date: '2025-08-11',
       status: 'finalized',
-      size: '5.7 MB',
-      format: 'PDF',
-      url: '/documents/formation-utilisateurs-administrateurs-fr.pdf',
-      description: 'Manuel de formation pour administrateurs et utilisateurs avancés - Version française'
+      size: '267 KB',
+      format: 'MD',
+      url: '/documents/geolocalisation-resume-francais.md',
+      description: 'Résumé complet du système de géolocalisation - Version française'
     },
     {
       id: 30,
-      name: 'Admin Users Training Manual (EN)',
+      name: 'Geolocation Summary (EN)',
       type: 'guide',
       category: 'training',
       school: 'Training',
       date: '2025-08-11',
       status: 'finalized',
-      size: '5.5 MB',
-      format: 'PDF',
-      url: '/documents/admin-users-training-manual-en.pdf',
-      description: 'Training manual for administrators and advanced users - English version'
+      size: '245 KB',
+      format: 'MD',
+      url: '/documents/geolocation-summary-english.md',
+      description: 'Complete geolocation system summary - English version'
     }
   ];
 
