@@ -39,7 +39,7 @@ class PaymentMethodService {
       country: 'Cameroon',
       countryCode: 'CM',
       currency: 'XAF',
-      preferredMethods: ['orange-money', 'mtn-money', 'afriland-bank'],
+      preferredMethods: ['orange-money', 'afriland-bank', 'express-union'],
       methods: [
         {
           id: 'orange-money',
@@ -53,18 +53,7 @@ class PaymentMethodService {
           enabled: true,
           instructions: 'Composez #150# → Paiement → Marchand → Code: EDUCAFRIC'
         },
-        {
-          id: 'mtn-money',
-          name: 'MTN Mobile Money',
-          type: 'mobile_money',
-          provider: 'MTN',
-          icon: '🟡',
-          fees: { percentage: 0.75, fixed: 0 },
-          processingTime: 'Instantané',
-          currency: 'XAF',
-          enabled: true,
-          instructions: 'Composez *126# → Paiement → Marchand → EDUCAFRIC'
-        },
+
         {
           id: 'afriland-bank',
           name: 'Afriland First Bank',
