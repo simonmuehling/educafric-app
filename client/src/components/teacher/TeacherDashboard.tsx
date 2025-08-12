@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalTeacherClasses from './modules/FunctionalTeacherClasses';
@@ -206,6 +206,35 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
       component: <FunctionalTeacherProfile />
+    },
+    {
+      id: 'email-settings',
+      label: language === 'fr' ? 'Préférences Email' : 'Email Settings',
+      icon: <Mail className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: (
+        <div className="p-6">
+          <div className="text-center">
+            <Mail className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
+              {language === 'fr' ? 'Gérez vos préférences email' : 'Manage your email preferences'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {language === 'fr' 
+                ? 'Configurez quels emails vous souhaitez recevoir'
+                : 'Configure which emails you want to receive'
+              }
+            </p>
+            <button 
+              onClick={() => window.location.href = '/profile-settings'}
+              className="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
+              data-testid="button-open-email-settings"
+            >
+              {language === 'fr' ? 'Ouvrir les paramètres' : 'Open Settings'}
+            </button>
+          </div>
+        </div>
+      )
     },
     {
       id: 'help',

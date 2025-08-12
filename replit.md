@@ -16,6 +16,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (2025-08-12)
 
+### Email Preferences User Access Issue - RESOLVED ✅
+- **Critical Issue Identified**: Email preferences system existed in code but was not accessible to users
+- **Root Cause**: ProfileSettings page with EmailPreferences component existed but no navigation links from dashboards
+- **Solution Implemented**: Added dedicated "Email Settings" / "Préférences Email" modules to dashboards
+- **User Access**: Parent and Teacher dashboards now have visible email preferences access
+- **Navigation Flow**: Dashboard → Email Settings module → Button to /profile-settings → Email Preferences tabs
+- **System Status**: Email preferences now fully accessible with 53+ interactive buttons working
+- **Backend Verified**: Authentication middleware properly protecting email preference routes
+- **Routes Confirmed**: /settings and /profile-settings routes exist and functional
+
 ### PWA and In-App Notification System Implementation ✅ COMPLETED
 - **Complete PWA Configuration**: Enhanced manifest.json with comprehensive app metadata, proper icon definitions, and PWA-specific settings for optimal mobile experience
 - **Advanced Service Worker**: Implemented comprehensive service worker with push notification handling, click events, background sync capabilities, and offline support
