@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { UserPlus, Users, AlertTriangle } from 'lucide-react';
+import { UserPlus, Users, AlertTriangle, Heart } from 'lucide-react';
 import EasyChildConnection from '@/components/parent/EasyChildConnection';
 import FreelancerChildConnection from '@/components/freelancer/FreelancerChildConnection';
+import ChildParentConnection from '@/components/student/ChildParentConnection';
 import SmartDuplicateDetection from '@/components/admin/SmartDuplicateDetection';
 
 const UnifiedConnectionManager: React.FC = () => {
@@ -18,6 +19,7 @@ const UnifiedConnectionManager: React.FC = () => {
       title: 'Gestion des connexions',
       subtitle: 'Connecter facilement parents, élèves et freelancers',
       parentTab: 'Connexion Parent-Enfant',
+      studentTab: 'Connexion Élève-Parent',
       freelancerTab: 'Connexion Freelancer-Élève',
       duplicatesTab: 'Détection de doublons',
       noAccess: 'Accès non autorisé pour votre rôle',
@@ -27,6 +29,7 @@ const UnifiedConnectionManager: React.FC = () => {
       title: 'Connection management',
       subtitle: 'Easily connect parents, students, and freelancers',
       parentTab: 'Parent-Child Connection',
+      studentTab: 'Student-Parent Connection',
       freelancerTab: 'Freelancer-Student Connection',
       duplicatesTab: 'Duplicate Detection',
       noAccess: 'Access not authorized for your role',
@@ -43,6 +46,7 @@ const UnifiedConnectionManager: React.FC = () => {
   if (!user) return null;
 
   const canAccessParentConnection = ['Parent', 'Admin', 'Director', 'SiteAdmin'].includes(user.role);
+  const canAccessStudentConnection = ['Student', 'Admin', 'Director', 'SiteAdmin'].includes(user.role);
   const canAccessFreelancerConnection = ['Freelancer', 'Admin', 'Director', 'SiteAdmin'].includes(user.role);
   const canAccessDuplicateDetection = ['Admin', 'Director', 'SiteAdmin'].includes(user.role);
 
@@ -56,6 +60,20 @@ const UnifiedConnectionManager: React.FC = () => {
       component: (
         <EasyChildConnection 
           parentId={user.id} 
+          onConnectionSuccess={handleConnectionSuccess}
+        />
+      )
+    });
+  }
+
+  if (canAccessStudentConnection) {
+    availableTabs.push({
+      value: 'student',
+      label: t.studentTab,
+      icon: Heart,
+      component: (
+        <ChildParentConnection 
+          studentId={user.id} 
           onConnectionSuccess={handleConnectionSuccess}
         />
       )

@@ -12073,6 +12073,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Child-Parent Connection Routes
+  app.post('/api/student/search-parent', requireAuth, async (req, res) => {
+    try {
+      const { firstName, lastName, phoneNumber, email } = req.body;
+      
+      const results = await storage.searchParentsForChild({
+        firstName,
+        lastName,
+        phoneNumber,
+        email
+      });
+      
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('Student search parent error:', error);
+      res.status(500).json({ message: 'Failed to search for parent' });
+    }
+  });
+
+  app.post('/api/student/connect-parent', requireAuth, async (req, res) => {
+    try {
+      const { studentId, parentId, parentData, relationship } = req.body;
+      
+      let result;
+      if (parentId) {
+        result = await storage.connectChildToExistingParent(studentId, parentId, relationship);
+      } else {
+        result = await storage.createChildParentConnectionRequest(studentId, parentData, relationship);
+      }
+      
+      res.json({ success: true, message: result.message, data: result });
+    } catch (error) {
+      console.error('Student connect parent error:', error);
+      res.status(500).json({ message: 'Failed to connect to parent' });
+    }
+  });
+
   // Smart Duplicate Detection Routes
   app.get('/api/admin/duplicates/:schoolId', requireAuth, async (req, res) => {
     try {

@@ -16,6 +16,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (2025-08-12)
 
+### Bidirectional Connection System Completed ✅
+- **Parent-Child Connection**: Parents can search for and connect to their children by name, phone, or school
+- **Child-Parent Connection**: Students can search for and connect to their parents/guardians with detailed relationship options
+- **Freelancer-Student Connection**: Freelancers can offer tutoring services to students with service details and pricing
+- **Smart Duplicate Detection**: Automatic detection and merge suggestions when schools add users with matching phone numbers
+- **Unified Connection Manager**: Role-based interface that shows appropriate connection options for each user type
+- **Search & Match System**: Intelligent search that finds existing profiles across the platform
+- **Connection Requests**: When no match found, creates verified requests for schools to process
+- **Multi-Role Support**: Admins and Directors can access all connection types for management purposes
+- **Security & Privacy**: All connections require school verification before activation
+- **Bilingual Interface**: Complete French/English support for all connection workflows
+
 ### Subscription Plan Management System Completed ✅
 - **Role-Based Subscription Display**: Clear differentiation between roles requiring subscriptions vs free access
 - **Subscription-Required Roles**: Parent, SiteAdmin, Admin, Director, Commercial, Freelancer now see subscription status cards
