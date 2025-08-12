@@ -1,78 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline - Educafric</title>
+    <title>Hors ligne - Educafric</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', sans-serif;
             margin: 0;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            padding: 20px;
         }
-        .offline-container {
+        .container {
             max-width: 400px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 40px 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            padding: 40px 20px;
         }
-        .offline-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
         }
         h1 {
-            margin: 0 0 15px 0;
+            margin: 0 0 16px;
             font-size: 24px;
-            font-weight: 700;
+            font-weight: 600;
         }
         p {
-            margin: 0 0 30px 0;
+            margin: 0 0 24px;
             opacity: 0.9;
             line-height: 1.5;
         }
-        .retry-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
             font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
-        .retry-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+        button:hover {
+            background: rgba(255,255,255,0.3);
         }
     </style>
 </head>
 <body>
-    <div class="offline-container">
-        <div class="offline-icon">📱</div>
-        <h1 id="offline-title">You're Offline</h1>
-        <p id="offline-message">No internet connection available. Your Educafric app is ready to use when you're back online.</p>
-        <button class="retry-button" onclick="location.reload()" id="retry-button">Try Again</button>
+    <div class="container">
+        <div class="logo">📚</div>
+        <h1>Vous êtes hors ligne</h1>
+        <p>Vérifiez votre connexion internet pour accéder à Educafric.</p>
+        <button onclick="window.location.reload()">Réessayer</button>
     </div>
-
-    <script>
-        // Detect language and update content
-        const lang = navigator.language.startsWith('fr') ? 'fr' : 'en';
-        
-        if (lang === 'fr') {
-            document.getElementById('offline-title').textContent = 'Vous êtes hors ligne';
-            document.getElementById('offline-message').textContent = 'Aucune connexion Internet disponible. Votre app Educafric sera prête dès que vous serez reconnecté.';
-            document.getElementById('retry-button').textContent = 'Réessayer';
-        }
-    </script>
 </body>
 </html>

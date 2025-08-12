@@ -5,6 +5,7 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { 
   Bell, 
   X, 
@@ -20,11 +21,15 @@ import {
   Clock,
   ExternalLink,
   Filter,
-  Trash2
+  Trash2,
+  Smartphone,
+  Settings
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
+import notificationService from '@/services/notificationService';
+import PWANotificationManager from './PWANotificationManager';
 
 interface Notification {
   id: number;
@@ -154,11 +159,44 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   const t = text[language as keyof typeof text];
 
+  // State for PWA notifications
+  const [showPWAManager, setShowPWAManager] = useState(false);
+  const [realTimeNotifications, setRealTimeNotifications] = useState<Notification[]>([]);
+
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', userRole, userId, selectedCategory, showOnlyUnread],
     enabled: !!userId
   });
+
+  // Combine real-time and fetched notifications
+  const allNotifications = [...realTimeNotifications, ...(notifications || [])];
+
+  // Initialize notification service and listen for real-time notifications
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      await notificationService.initialize();
+      
+      // Listen for real-time notifications
+      const unsubscribe = notificationService.onNotification((notification) => {
+        setRealTimeNotifications(prev => {
+          // Avoid duplicates
+          const exists = prev.some(n => n.id === notification.id);
+          if (!exists) {
+            return [notification, ...prev];
+          }
+          return prev;
+        });
+        
+        // Refresh the query to get updated data
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      });
+
+      return unsubscribe;
+    };
+
+    initializeNotifications();
+  }, [queryClient]);
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
@@ -219,13 +257,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
     }
   };
 
-  const filteredNotifications = (notifications as Notification[]).filter((notification: Notification) => {
+  const filteredNotifications = allNotifications.filter((notification: Notification) => {
     const categoryMatch = selectedCategory === 'all' || notification.category === selectedCategory;
     const readMatch = !showOnlyUnread || !notification.isRead;
     return categoryMatch && readMatch;
   });
 
-  const unreadCount = (notifications as Notification[]).filter((n: Notification) => !n.isRead).length;
+  const unreadCount = allNotifications.filter((n: Notification) => !n.isRead).length;
 
   const formatTimeAgo = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), {
@@ -255,6 +293,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         </div>
         
         <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPWAManager(!showPWAManager)}
+            data-testid="button-toggle-pwa-manager"
+          >
+            <Smartphone className="w-4 h-4 mr-2" />
+            PWA
+          </Button>
+          
           {unreadCount > 0 && (
             <Button
               variant="outline"
@@ -296,6 +344,19 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
           {showOnlyUnread ? t.filterUnread : t.filterAll}
         </Button>
       </div>
+
+      {/* PWA Notification Manager */}
+      {showPWAManager && (
+        <div className="mb-6">
+          <PWANotificationManager 
+            userId={userId} 
+            userRole={userRole}
+            onNotificationPermissionChange={(granted) => {
+              console.log('PWA notification permission:', granted);
+            }}
+          />
+        </div>
+      )}
 
       {/* Notifications List */}
       <ModernCard>

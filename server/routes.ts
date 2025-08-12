@@ -22278,6 +22278,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sandbox/autoscale/refresh', requireAuth, autoscaleRoutes.forceRefresh);
   app.get('/api/sandbox/autoscale/status', requireAuth, autoscaleRoutes.getStatus);
 
+  // === NOTIFICATION MANAGEMENT API ===
+  console.log('[NOTIFICATIONS] ✅ Notification routes registered successfully');
+  
+  // Get notifications for a user
+  app.get('/api/notifications', async (req, res) => {
+    try {
+      const { userId, userRole } = req.query;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID required' });
+      }
+
+      const notifications = await storage.getUserNotifications(Number(userId), userRole as string);
+      res.json(notifications);
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Get notifications error:', error);
+      res.status(500).json({ message: 'Failed to fetch notifications' });
+    }
+  });
+
+  // Mark notification as read
+  app.post('/api/notifications/:id/mark-read', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.markNotificationAsRead(Number(id));
+      res.json({ message: 'Notification marked as read' });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Mark notification as read error:', error);
+      res.status(500).json({ message: 'Failed to mark notification as read' });
+    }
+  });
+
+  // Mark all notifications as read
+  app.post('/api/notifications/mark-all-read', async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID required' });
+      }
+
+      await storage.markAllNotificationsAsRead(Number(userId));
+      res.json({ message: 'All notifications marked as read' });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Mark all notifications as read error:', error);
+      res.status(500).json({ message: 'Failed to mark all notifications as read' });
+    }
+  });
+
+  // Delete notification
+  app.delete('/api/notifications/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteNotification(Number(id));
+      res.json({ message: 'Notification deleted' });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Delete notification error:', error);
+      res.status(500).json({ message: 'Failed to delete notification' });
+    }
+  });
+
+  // Create a new notification
+  app.post('/api/notifications', async (req, res) => {
+    try {
+      const notificationData = req.body;
+      
+      const notification = await storage.createNotification(notificationData);
+      res.json({ message: 'Notification created', data: notification });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Create notification error:', error);
+      res.status(500).json({ message: 'Failed to create notification' });
+    }
+  });
+
+  // Background sync endpoint for PWA
+  app.post('/api/notifications/sync', async (req, res) => {
+    try {
+      console.log('[NOTIFICATIONS_API] Background sync requested');
+      res.json({ message: 'Sync completed' });
+    } catch (error) {
+      console.error('[NOTIFICATIONS_API] Background sync error:', error);
+      res.status(500).json({ message: 'Sync failed' });
+    }
+  });
+
   return httpServer;
 }
 

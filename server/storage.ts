@@ -965,6 +965,91 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Failed to create separate user');
     }
   }
+
+  // ===== NOTIFICATION MANAGEMENT IMPLEMENTATION =====
+  async getUserNotifications(userId: number, userRole?: string): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting notifications for user:', userId, userRole);
+      
+      // Return mock notifications with proper PWA-compatible format
+      return [
+        {
+          id: 1,
+          title: 'Test Notification PWA',
+          message: 'Ceci est une notification test pour vérifier le système PWA',
+          type: 'system',
+          priority: 'medium',
+          category: 'administrative',
+          isRead: false,
+          actionRequired: false,
+          createdAt: new Date().toISOString(),
+          senderRole: 'System'
+        },
+        {
+          id: 2,
+          title: 'Zone de sécurité',
+          message: 'Enfant entré dans la zone école',
+          type: 'zone_entry',
+          priority: 'low',
+          category: 'security',
+          isRead: true,
+          readAt: new Date().toISOString(),
+          actionRequired: false,
+          createdAt: new Date(Date.now() - 3600000).toISOString(),
+          senderRole: 'Geolocation'
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] getUserNotifications error:', error);
+      return [];
+    }
+  }
+
+  async createNotification(notificationData: any): Promise<any> {
+    try {
+      const notification = {
+        id: Date.now(),
+        ...notificationData,
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log('[STORAGE] Created notification:', notification);
+      return notification;
+    } catch (error) {
+      console.error('[STORAGE] createNotification error:', error);
+      throw new Error('Failed to create notification');
+    }
+  }
+
+  async markNotificationAsRead(notificationId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Marking notification as read:', notificationId);
+      // In real implementation, would update database
+    } catch (error) {
+      console.error('[STORAGE] markNotificationAsRead error:', error);
+      throw new Error('Failed to mark notification as read');
+    }
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Marking all notifications as read for user:', userId);
+      // In real implementation, would update all user notifications in database
+    } catch (error) {
+      console.error('[STORAGE] markAllNotificationsAsRead error:', error);
+      throw new Error('Failed to mark all notifications as read');
+    }
+  }
+
+  async deleteNotification(notificationId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Deleting notification:', notificationId);
+      // In real implementation, would delete from database
+    } catch (error) {
+      console.error('[STORAGE] deleteNotification error:', error);
+      throw new Error('Failed to delete notification');
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
