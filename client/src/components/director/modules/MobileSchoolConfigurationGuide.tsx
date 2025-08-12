@@ -412,8 +412,18 @@ const MobileSchoolConfigurationGuide: React.FC = () => {
             {/* Bouton d'action */}
             <div className="pt-4">
               <Button
-                onClick={() => navigateToModule(selectedStep)}
-                className="w-full h-12 text-base font-medium"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log(`[MOBILE_CONFIG_GUIDE] 🖱️ Button clicked for step: ${selectedStep}`);
+                  console.log(`[MOBILE_CONFIG_GUIDE] 🔍 Status: ${status}, Text: ${status === 'completed' ? t.view : t.startNow}`);
+                  
+                  // Test direct
+                  alert(`Navigation vers: ${selectedStep}`);
+                  
+                  navigateToModule(selectedStep);
+                }}
+                className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-lg transform active:scale-95 transition-transform"
                 data-testid={`button-configure-${selectedStep}`}
               >
                 <Play className="w-4 h-4 mr-2" />

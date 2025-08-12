@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 
@@ -44,6 +44,30 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   const handleBackClick = () => {
     setActiveModule(null);
   };
+
+  // Écouter les événements de changement de module
+  useEffect(() => {
+    const handleSwitchModule = (event: CustomEvent) => {
+      const { moduleId } = event.detail;
+      console.log(`[UNIFIED_DASHBOARD] 📡 Received switchModule event for: ${moduleId}`);
+      
+      // Vérifier si le module existe
+      const module = modules.find(m => m.id === moduleId);
+      if (module) {
+        console.log(`[UNIFIED_DASHBOARD] ✅ Switching to module: ${moduleId}`);
+        setActiveModule(moduleId);
+      } else {
+        console.warn(`[UNIFIED_DASHBOARD] ❌ Module not found: ${moduleId}`);
+        console.log(`[UNIFIED_DASHBOARD] Available modules:`, modules.map(m => m.id));
+      }
+    };
+
+    window.addEventListener('switchModule', handleSwitchModule as EventListener);
+
+    return () => {
+      window.removeEventListener('switchModule', handleSwitchModule as EventListener);
+    };
+  }, [modules]);
 
   const renderIconGrid = () => (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
