@@ -205,14 +205,64 @@ const CommercialDocumentManagement: React.FC = () => {
     }
   });
 
-  const handleView = (document: CommercialDocument) => {
-    setSelectedDocument(document);
-    setIsViewDialogOpen(true);
+  const handleView = async (document: CommercialDocument) => {
+    try {
+      // Essayer d'abord l'API pour voir le document
+      const response = await fetch(`/api/commercial/documents/${document.id}/view`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        
+        // Nettoyer l'URL après 1 minute
+        setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+        
+        console.log(`📄 Document commercial ouvert: ${document.title || ''} (ID: ${document.id})`);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Commercial document view error:', error);
+      // Fallback - afficher dans le modal
+      setSelectedDocument(document);
+      setIsViewDialogOpen(true);
+    }
   };
 
   const handleDownload = async (doc: CommercialDocument) => {
     try {
-      // Simulation de téléchargement - créer un blob avec le contenu du document
+      // Utiliser l'API backend pour télécharger des vrais documents
+      const response = await fetch(`/api/commercial/documents/${doc.id}/download`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = window.document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${doc.title || 'document'}.pdf`;
+        window.document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        window.document.body.removeChild(a);
+        
+        toast({
+          title: "Document téléchargé",
+          description: `${doc.title || ''} a été téléchargé`,
+        });
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Commercial document download error:', error);
+      // Fallback - créer un document de texte avec le contenu
       const content = `EDUCAFRIC - Document Commercial\n\nTitre: ${doc.title || ''}\nType: ${doc.type}\nStatut: ${doc.status}\n\nContenu:\n${doc.content}\n\nClient: ${doc.clientInfo?.name || 'N/A'}\nEmail: ${doc.clientInfo?.email || 'N/A'}\nInstitution: ${doc.clientInfo?.institution || 'N/A'}`;
       
       const blob = new Blob([content], { type: 'text/plain' });
@@ -228,13 +278,7 @@ const CommercialDocumentManagement: React.FC = () => {
       
       toast({
         title: "Document téléchargé",
-        description: `${doc.title || ''} a été téléchargé`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de télécharger le document",
-        variant: "destructive",
+        description: `${doc.title || ''} (version texte)`,
       });
     }
   };

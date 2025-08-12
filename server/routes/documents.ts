@@ -40,6 +40,8 @@ router.get('/:id/view', async (req, res) => {
     const documentId = parseInt(req.params.id);
     const filename = documentMapping[documentId];
     
+    console.log(`[DOCUMENTS] View request for document ID: ${documentId}, filename: ${filename}`);
+    
     if (!filename) {
       console.error(`[DOCUMENTS] Document ID ${documentId} not found in mapping`);
       return res.status(404).json({ error: 'Document not found' });
@@ -145,6 +147,8 @@ router.get('/:id/download', async (req, res) => {
   try {
     const documentId = parseInt(req.params.id);
     const filename = documentMapping[documentId];
+    
+    console.log(`[DOCUMENTS] Download request for document ID: ${documentId}, filename: ${filename}`);
     
     if (!filename) {
       console.error(`[DOCUMENTS] Document ID ${documentId} not found in mapping`);
