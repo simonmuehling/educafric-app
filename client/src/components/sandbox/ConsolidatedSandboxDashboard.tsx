@@ -16,8 +16,9 @@ import {
   Smartphone, Tablet, Globe, Zap, Shield, Clock, BarChart3, MessageSquare, 
   Bell, Mail, CheckCircle, Plus, Activity, Terminal, Layers, GitBranch,
   Cpu, MemoryStick, Network, HardDrive, Eye, RefreshCw, Download, Server,
-  Gauge, AlertTriangle, TrendingUp, Calendar, Hash, Sparkles
+  Gauge, AlertTriangle, TrendingUp, Calendar, Hash, Sparkles, UserX
 } from 'lucide-react';
+import TeacherAbsenceDeclaration from './TeacherAbsenceDeclaration';
 import APITester from './APITester';
 import ComponentPlayground from './ComponentPlayground';
 import FirebaseDeviceTest from './FirebaseDeviceTest';
@@ -368,6 +369,11 @@ const ConsolidatedSandboxDashboard = () => {
       id: 'device-testing',
       label: t.deviceTesting,
       icon: <Smartphone className="w-4 h-4" />
+    },
+    {
+      id: 'teacher-absences',
+      label: language === 'fr' ? 'Absences Enseignants' : 'Teacher Absences',
+      icon: <UserX className="w-4 h-4" />
     }
   ];
 
@@ -647,6 +653,10 @@ const ConsolidatedSandboxDashboard = () => {
 
           <TabsContent value="notifications">
             <NotificationTester />
+          </TabsContent>
+
+          <TabsContent value="teacher-absences">
+            <TeacherAbsenceDeclaration />
           </TabsContent>
 
         </Tabs>
