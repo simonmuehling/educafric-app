@@ -29,6 +29,7 @@ import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 import ParentRequestManager from './modules/ParentRequestManager';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
+import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -94,6 +95,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const t = text[language as keyof typeof text];
 
   const modules = [
+    {
+      id: 'subscription',
+      label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
+      icon: <Star className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      component: <SubscriptionStatusCard />
+    },
     {
       id: 'children',
       label: t.myChildren,

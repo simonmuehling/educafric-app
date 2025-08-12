@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalTeacherClasses from './modules/FunctionalTeacherClasses';
@@ -18,6 +18,7 @@ import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import HelpCenter from '@/components/help/HelpCenter';
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
 
 interface TeacherDashboardProps {

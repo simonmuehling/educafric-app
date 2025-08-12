@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import StudentTimetable from './modules/StudentTimetable';
@@ -21,6 +21,7 @@ import HelpCenter from '@/components/help/HelpCenter';
 import StudentProfile from './modules/StudentProfile';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
+import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 
 interface StudentDashboardProps {
   activeModule?: string;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Globe, Save, Eye, EyeOff, Shield, Bell } from 'lucide-react';
 import { BilingualTwoFactorSetup } from './BilingualTwoFactorSetup';
+import { SubscriptionPlanDisplay } from './SubscriptionPlanDisplay';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,7 @@ const ProfileSettings = () => {
       smsNotifications: 'Notifications SMS',
       pushNotifications: 'Notifications Push',
       security: 'Sécurité',
+      subscription: 'Abonnement',
       twoFactor: 'Authentification à deux facteurs',
       changePassword: 'Changer le mot de passe',
       currentPassword: 'Mot de passe actuel',
@@ -76,6 +78,7 @@ const ProfileSettings = () => {
       smsNotifications: 'SMS Notifications',
       pushNotifications: 'Push Notifications',
       security: 'Security',
+      subscription: 'Subscription',
       twoFactor: 'Two-factor Authentication',
       changePassword: 'Change Password',
       currentPassword: 'Current Password',
@@ -219,6 +222,9 @@ const ProfileSettings = () => {
           </div>
           </CardContent>
         </Card>
+
+        {/* Subscription Plan Display */}
+        <SubscriptionPlanDisplay />
 
         {/* Security Settings */}
         <Card>

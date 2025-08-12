@@ -102,7 +102,14 @@ export interface AuthenticatedUser {
   preferredLanguage: 'en' | 'fr';
   whatsappNumber?: string;
   twoFactorEnabled: boolean;
-  subscriptionStatus: string;
+  // Subscription fields
+  subscriptionPlan?: string;
+  subscriptionStatus?: string;
+  subscriptionStart?: string;
+  subscriptionEnd?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  stripePaymentIntentId?: string;
   createdAt: Date;
   lastLoginAt?: Date;
 }
