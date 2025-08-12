@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
-  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star
+  BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import StudentTimetable from './modules/StudentTimetable';
@@ -22,6 +22,7 @@ import StudentProfile from './modules/StudentProfile';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+import ChildParentConnection from './ChildParentConnection';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -67,7 +68,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       profile: 'Profil',
       notifications: 'Notifications',
       settings: 'Paramètres',
-      help: 'Aide'
+      help: 'Aide',
+      parentConnection: 'Trouver mes parents'
     },
     en: {
       title: 'Student Dashboard',
@@ -83,7 +85,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       profile: 'Profile',
       notifications: 'Notifications',
       settings: 'Settings',
-      help: 'Help'
+      help: 'Help',
+      parentConnection: 'Find my parents'
     }
   };
 
@@ -138,6 +141,13 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
       component: <StudentCommunications />
+    },
+    {
+      id: 'parentConnection',
+      label: t.parentConnection,
+      icon: <Heart className="w-6 h-6" />,
+      color: 'bg-pink-600',
+      component: <ChildParentConnection studentId={1} />
     },
     {
       id: 'achievements',
