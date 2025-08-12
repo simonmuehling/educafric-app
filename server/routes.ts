@@ -11993,6 +11993,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('[GEOLOCATION_SERVICE] 🛡️ Initializing geolocation alert service...');
   geolocationAlertService.startMonitoring();
 
+  // Parent-Child Connection Routes
+  app.post('/api/parent/search-child', requireAuth, async (req, res) => {
+    try {
+      const { firstName, lastName, phoneNumber, schoolName, dateOfBirth } = req.body;
+      
+      const results = await storage.searchChildrenForParent({
+        firstName,
+        lastName,
+        phoneNumber,
+        schoolName,
+        dateOfBirth
+      });
+      
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('Parent search child error:', error);
+      res.status(500).json({ message: 'Failed to search for child' });
+    }
+  });
+
+  app.post('/api/parent/connect-child', requireAuth, async (req, res) => {
+    try {
+      const { parentId, childId, childData, parentRelation } = req.body;
+      
+      let result;
+      if (childId) {
+        result = await storage.connectParentToExistingChild(parentId, childId, parentRelation);
+      } else {
+        result = await storage.createParentChildConnectionRequest(parentId, childData, parentRelation);
+      }
+      
+      res.json({ success: true, message: result.message, data: result });
+    } catch (error) {
+      console.error('Parent connect child error:', error);
+      res.status(500).json({ message: 'Failed to connect to child' });
+    }
+  });
+
+  // Freelancer-Student Connection Routes
+  app.post('/api/freelancer/search-student', requireAuth, async (req, res) => {
+    try {
+      const { firstName, lastName, phoneNumber, schoolName, dateOfBirth } = req.body;
+      
+      const results = await storage.searchStudentsForFreelancer({
+        firstName,
+        lastName,
+        phoneNumber,
+        schoolName,
+        dateOfBirth
+      });
+      
+      res.json({ success: true, results });
+    } catch (error) {
+      console.error('Freelancer search student error:', error);
+      res.status(500).json({ message: 'Failed to search for student' });
+    }
+  });
+
+  app.post('/api/freelancer/connect-student', requireAuth, async (req, res) => {
+    try {
+      const { freelancerId, studentId, studentData, serviceType, subjects, hourlyRate, notes } = req.body;
+      
+      let result;
+      if (studentId) {
+        result = await storage.connectFreelancerToExistingStudent(
+          freelancerId, studentId, { serviceType, subjects, hourlyRate, notes }
+        );
+      } else {
+        result = await storage.createFreelancerStudentConnectionRequest(
+          freelancerId, studentData, { serviceType, subjects, hourlyRate, notes }
+        );
+      }
+      
+      res.json({ success: true, message: result.message, data: result });
+    } catch (error) {
+      console.error('Freelancer connect student error:', error);
+      res.status(500).json({ message: 'Failed to connect to student' });
+    }
+  });
+
+  // Smart Duplicate Detection Routes
+  app.get('/api/admin/duplicates/:schoolId', requireAuth, async (req, res) => {
+    try {
+      const { schoolId } = req.params;
+      
+      const duplicates = await storage.getSmartDuplicateDetections(Number(schoolId));
+      
+      res.json({ success: true, duplicates });
+    } catch (error) {
+      console.error('Get duplicates error:', error);
+      res.status(500).json({ message: 'Failed to get duplicate detections' });
+    }
+  });
+
+  app.post('/api/admin/merge-duplicate', requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, existingUserId, newUserData, schoolId } = req.body;
+      
+      const result = await storage.mergeUserDuplicate(duplicateId, existingUserId, newUserData, schoolId);
+      
+      res.json({ success: true, message: result.message, data: result });
+    } catch (error) {
+      console.error('Merge duplicate error:', error);
+      res.status(500).json({ message: 'Failed to merge duplicate users' });
+    }
+  });
+
+  app.post('/api/admin/ignore-duplicate', requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, schoolId } = req.body;
+      
+      const result = await storage.ignoreDuplicateDetection(duplicateId, schoolId);
+      
+      res.json({ success: true, message: result.message });
+    } catch (error) {
+      console.error('Ignore duplicate error:', error);
+      res.status(500).json({ message: 'Failed to ignore duplicate' });
+    }
+  });
+
+  app.post('/api/admin/create-separate', requireAuth, async (req, res) => {
+    try {
+      const { duplicateId, newUserData, schoolId } = req.body;
+      
+      const result = await storage.createSeparateUser(duplicateId, newUserData, schoolId);
+      
+      res.json({ success: true, message: result.message, data: result });
+    } catch (error) {
+      console.error('Create separate user error:', error);
+      res.status(500).json({ message: 'Failed to create separate user' });
+    }
+  });
+
   const httpServer = createServer(app);
   // ===== MULTI-ROLE MANAGEMENT ROUTES =====
   
