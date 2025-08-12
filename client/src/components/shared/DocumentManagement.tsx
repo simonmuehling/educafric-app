@@ -450,6 +450,12 @@ const DocumentManagement = () => {
   };
 
   const handleViewDocument = (document: Document) => {
+    console.log(`🔍 DEBUG - Tentative d'ouverture document:`, {
+      id: document.id,
+      title: document.title,
+      type: document.type
+    });
+    
     // Liens directs vers les vrais fichiers qui existent
     const directLinks: { [key: number]: string } = {
       1: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
@@ -476,12 +482,16 @@ const DocumentManagement = () => {
     };
     
     const directUrl = directLinks[document.id];
+    console.log(`🔗 DEBUG - URL trouvée pour ID ${document.id}:`, directUrl);
+    
     if (directUrl) {
+      console.log(`✅ DEBUG - Ouverture du document: ${directUrl}`);
       window.open(directUrl, '_blank');
       console.log(`📄 Document ouvert: ${document.title || ''} (ID: ${document.id})`);
     } else {
-      console.log(`❌ Document ID ${document.id} non trouvé dans les liens directs`);
-      alert(`Document non disponible: ${document.title || ''}\nVeuillez contacter l'administration.`);
+      console.error(`❌ DEBUG - Document ID ${document.id} non trouvé dans les liens directs`);
+      console.error(`❌ DEBUG - IDs disponibles:`, Object.keys(directLinks));
+      alert(`Document non disponible: ${document.title || ''}\nID: ${document.id}\nVeuillez contacter l'administration.`);
     }
   };
 
