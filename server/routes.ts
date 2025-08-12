@@ -12001,8 +12001,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('[HOSTINGER_MAIL] Email routes registered successfully');
 
-  // Register email preferences routes
-  app.use(emailPreferencesRoutes);
+  // Register email preferences routes with authentication
+  app.use(requireAuth, emailPreferencesRoutes);
   console.log('[EMAIL_PREFERENCES] Email preferences routes registered successfully');
 
   // Parent routes

@@ -8,6 +8,11 @@ const router = express.Router();
 // Get user's email preferences
 router.get('/api/email-preferences', async (req: any, res) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
     const userId = req.user.id;
     let preferences = await storage.getEmailPreferences(userId);
     
@@ -35,6 +40,11 @@ router.get('/api/email-preferences', async (req: any, res) => {
 // Update user's email preferences
 router.patch('/api/email-preferences', async (req: any, res) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
     const userId = req.user.id;
     
     // Validate request body
