@@ -98,6 +98,8 @@ export interface AuthenticatedUser {
   role: UserRole;
   secondaryRoles?: UserRole[];
   schoolId?: number;
+  phone?: string;
+  gender?: string;
   photoURL?: string;
   preferredLanguage: 'en' | 'fr';
   whatsappNumber?: string;
