@@ -16,21 +16,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (2025-08-12)
 
-### Document Management System Completed
+### Document Management System Completed ✅
 - **Interface DocumentManagement**: Complètement recréée avec système de liens directs fonctionnel
 - **Tous les documents testés**: 21 documents (IDs 1-21) avec mappings corrects vers fichiers existants
 - **Boutons "Voir" fonctionnels**: Ouverture directe des documents via window.open()
 - **Téléchargement automatique**: Fonctionnalité de download intégrée avec liens dynamiques
 - **Permissions d'accès**: Système de contrôle basé sur les rôles utilisateurs
 
-### SiteAdmin Document Permissions Manager
+### Commercial Documents System Fixed ✅
+- **Problème résolu**: DocumentsContracts.tsx référençait fichiers inexistants (404 errors)
+- **URLs corrigées**: Tous liens mis à jour vers fichiers existants dans /public/documents/
+- **Tests confirmés**: HTTP 200 OK pour tous documents (HTML, MD, PDF)
+- **Formats supportés**: .html, .md, .pdf avec ouverture directe fonctionnelle
+- **Documents opérationnels**: "TARIFS COMPLETS EDUCAFRIC" et "Institution Deployment Guide" maintenant accessibles
+
+### SiteAdmin Document Permissions Manager ✅
 - **Module créé**: DocumentPermissionsManager pour gestion permissions commerciales
 - **Interface administration**: Matrice permissions pour Carine et équipe commerciale
 - **Contrôle granulaire**: Permissions voir/télécharger/partager par document et utilisateur
 - **Intégration SiteAdmin**: Nouvel onglet "Permissions Documents" dans tableau de bord
 - **Utilisateurs commerciaux**: Gestion Carine (COO) et team commercial avec droits différenciés
 
-### Mobile School Configuration Guide
+### Mobile School Configuration Guide ✅
 - **Module créé**: Guide mobile optimisé pour smartphone avec interface responsive
 - **Navigation fonctionnelle**: Boutons "Commencer" redirigent vers modules correspondants
 - **Système d'événements**: Intégration complète avec UnifiedIconDashboard via événements switchModule
