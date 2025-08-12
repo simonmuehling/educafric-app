@@ -450,11 +450,8 @@ const DocumentManagement = () => {
   };
 
   const handleViewDocument = (document: Document) => {
-    // Liens directs pour tous les documents
+    // Liens directs vers les vrais fichiers qui existent
     const directLinks: { [key: number]: string } = {
-      1: '/documents/guide-notifications-educafric.md',
-      2: '/documents/tarifs-plans-francais.md',
-      3: '/documents/pricing-plans-english.md',
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf',
       9: '/documents/Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
@@ -477,12 +474,13 @@ const DocumentManagement = () => {
       window.open(directUrl, '_blank');
       console.log(`📄 Document ouvert: ${document.title || ''} (ID: ${document.id})`);
     } else {
-      alert(`Impossible d'ouvrir le document: ${document.title || ''}\nDescription: ${document.description || ''}`);
+      console.log(`❌ Document ID ${document.id} non trouvé dans les liens directs`);
+      alert(`Document non disponible: ${document.title || ''}\nVeuillez contacter l'administration.`);
     }
   };
 
   const handleDownload = (document: Document) => {
-    // Gestion des téléchargements avec les vrais fichiers
+    // Mapping vers les vrais fichiers qui existent
     const downloadLinks: { [key: number]: string } = {
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf', 
@@ -507,10 +505,10 @@ const DocumentManagement = () => {
       link.href = downloadUrl;
       link.download = document.title;
       link.click();
-      console.log(`📥 Document téléchargé: ${document.title || ''}`);
+      console.log(`📥 Document téléchargé: ${document.title || ''} (ID: ${document.id})`);
     } else {
-      // Simulation pour les anciens documents
-      alert(`Téléchargement de: ${document.title || ''}`);
+      console.log(`❌ Téléchargement non disponible pour document ID ${document.id}`);
+      alert(`Téléchargement non disponible: ${document.title || ''}\nVeuillez contacter l'administration.`);
     }
   };
 
