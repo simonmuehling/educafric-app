@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
-  Settings, Clock, MapPin, FileText, HelpCircle, Bell, User
+  Settings, Clock, MapPin, FileText, HelpCircle, Bell, User, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import FunctionalFreelancerProfile from './modules/FunctionalFreelancerProfile';
@@ -16,6 +16,7 @@ import FreelancerGeolocation from './modules/FreelancerGeolocation';
 import HelpCenter from '@/components/help/HelpCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -63,6 +64,13 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const t = text[language as keyof typeof text];
 
   const modules = [
+    {
+      id: 'subscription',
+      label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
+      icon: <Star className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      component: <SubscriptionStatusCard />
+    },
     {
       id: 'settings',
       label: t.settings,

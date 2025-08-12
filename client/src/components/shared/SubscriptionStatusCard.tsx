@@ -15,8 +15,8 @@ export const SubscriptionStatusCard = ({ showForRole }: SubscriptionStatusCardPr
   const { language } = useLanguage();
   const { user } = useAuth();
 
-  // Only show subscription info for roles that need it (Teachers, Students, and Freelancers get free access)  
-  const rolesWithSubscriptions = ['Parent', 'SiteAdmin', 'Admin', 'Director', 'Commercial'];
+  // Only show subscription info for roles that need it (Teachers and Students get free access)  
+  const rolesWithSubscriptions = ['Parent', 'SiteAdmin', 'Admin', 'Director', 'Commercial', 'Freelancer'];
   const currentRole = showForRole || user?.role;
   
   if (!rolesWithSubscriptions.includes(currentRole || '')) {
