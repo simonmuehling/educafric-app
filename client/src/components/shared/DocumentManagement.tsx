@@ -359,27 +359,27 @@ const DocumentManagement: React.FC = () => {
     }
   ];
 
-  // Mappings des documents vers les fichiers réels
+  // Mappings des documents vers les fichiers réellement disponibles
   const getDocumentUrl = (docId: number): string => {
     const mappings: { [key: number]: string } = {
-      1: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
-      2: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-      3: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-      4: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
-      5: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
-      6: '/EDUCAFRIC_COMMERCIAL_TOOLKIT.md',
+      1: '/documents/guide-notifications-educafric.md',
+      2: '/documents/tarifs-plans-francais.md',
+      3: '/documents/pricing-plans-english.md',
+      4: '/documents/notifications-system-francais.md',
+      5: '/documents/notifications-system-english.md',
+      6: '/documents/contrat-partenariat-commercial-fr.html',
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf',
-      9: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
+      9: '/documents/brochure-commerciale-educafric-fr.html',
       10: '/documents/parents_1753390442002.pdf',
-      11: '/EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
-      12: '/EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
-      13: '/EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-      14: '/EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
-      15: '/EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
-      16: '/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
-      17: '/EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
-      18: '/EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md',
+      11: '/documents/educafric-commercial-brochure-en.html',
+      12: '/documents/argumentaire-vente-educafric-fr.html',
+      13: '/documents/educafric-sales-pitch-en.html',
+      14: '/documents/proposition-tarifaire-personnalisee-fr.html',
+      15: '/documents/customized-pricing-proposal-en.html',
+      16: '/documents/geolocalisation-resume-francais.md',
+      17: '/documents/geolocation-summary-english.md',
+      18: '/documents/kit-prospection-educafric-complet.md',
       19: '/documents/Educafric_Document_Commercial.pdf',
       20: '/documents/Educafric_Presentation.pdf',
       21: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf'
@@ -389,35 +389,35 @@ const DocumentManagement: React.FC = () => {
   };
 
   // Fonction pour ouvrir un document
-  const handleViewDocument = (document: Document) => {
-    const url = getDocumentUrl(document.id);
+  const handleViewDocument = (doc: Document) => {
+    const url = getDocumentUrl(doc.id);
     if (url) {
-      console.log(`🔍 Opening document ID ${document.id}: ${document.title}`);
+      console.log(`🔍 Opening document ID ${doc.id}: ${doc.title}`);
       console.log(`🔗 URL: ${url}`);
       window.open(url, '_blank');
     } else {
-      console.error(`❌ No URL found for document ID ${document.id}`);
-      alert(`Document non disponible: ${document.title}\nID: ${document.id}\nVeuillez contacter l'administration.`);
+      console.error(`❌ No URL found for document ID ${doc.id}`);
+      alert(`Document non disponible: ${doc.title}\nID: ${doc.id}\nVeuillez contacter l'administration.`);
     }
   };
 
   // Fonction pour télécharger un document
-  const handleDownloadDocument = (document: Document) => {
-    const url = getDocumentUrl(document.id);
+  const handleDownloadDocument = (doc: Document) => {
+    const url = getDocumentUrl(doc.id);
     if (url) {
-      console.log(`💾 Downloading document ID ${document.id}: ${document.title}`);
+      console.log(`💾 Downloading document ID ${doc.id}: ${doc.title}`);
       console.log(`🔗 URL: ${url}`);
       
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
-      link.download = document.title;
+      link.download = doc.title;
       link.target = '_blank';
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
     } else {
-      console.error(`❌ No URL found for document ID ${document.id}`);
-      alert(`Document non disponible pour téléchargement: ${document.title}\nID: ${document.id}`);
+      console.error(`❌ No URL found for document ID ${doc.id}`);
+      alert(`Document non disponible pour téléchargement: ${doc.title}\nID: ${doc.id}`);
     }
   };
 
