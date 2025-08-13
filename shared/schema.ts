@@ -24,7 +24,7 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   gender: text("gender"),
-  phone: text("phone"),
+  phone: text("phone").unique(),
   schoolId: integer("school_id"),
   // Subscription and payment fields
   stripeCustomerId: text("stripe_customer_id"),
@@ -42,7 +42,7 @@ export const users = pgTable("users", {
   twoFactorVerifiedAt: timestamp("two_factor_verified_at"),
   isTestAccount: boolean("is_test_account").default(false),
   preferredLanguage: varchar("preferred_language", { length: 2 }).default("en"),
-  whatsappNumber: varchar("whatsapp_number", { length: 20 }),
+  whatsappNumber: varchar("whatsapp_number", { length: 20 }).unique(),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpiry: timestamp("password_reset_expiry"),
   deletionRequested: boolean("deletion_requested").default(false),

@@ -513,15 +513,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Email already exists' });
       }
 
-      // Check if phone number already exists (if provided)
+      // Validate phone number uniqueness using new validation system
       if (userData.phone) {
-        const existingUserByPhone = await storage.getUserByPhoneNumber(userData.phone);
-        if (existingUserByPhone) {
-          // Allow specific phone numbers to have multiple profiles  
-          const allowedMultipleNumbers = ['+237657004011', '+41768017000'];
-          if (!allowedMultipleNumbers.includes(userData.phone)) {
-            return res.status(400).json({ message: 'Phone number already exists' });
-          }
+        const { validatePhoneNumber } = await import('./utils/phoneValidation');
+        const phoneValidation = await validatePhoneNumber(userData.phone);
+        if (!phoneValidation.isValid) {
+          return res.status(400).json({ message: phoneValidation.message });
+        }
+      }
+
+      // Validate WhatsApp number uniqueness (if provided)
+      if (userData.whatsappNumber) {
+        const { validatePhoneNumber } = await import('./utils/phoneValidation');
+        const whatsappValidation = await validatePhoneNumber(userData.whatsappNumber);
+        if (!whatsappValidation.isValid) {
+          return res.status(400).json({ message: `WhatsApp number: ${whatsappValidation.message}` });
         }
       }
 

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { storage } from '../storage';
+import { validatePhoneNumber } from '../utils/phoneValidation';
 import { 
   NotFoundError, 
   ConflictError, 
@@ -18,6 +19,22 @@ export class AuthService {
     const existingUser = await storage.getUserByEmail(userData.email);
     if (existingUser) {
       throw new ConflictError('User already exists');
+    }
+
+    // Validate phone number uniqueness (if provided)
+    if (userData.phone) {
+      const phoneValidation = await validatePhoneNumber(userData.phone);
+      if (!phoneValidation.isValid) {
+        throw new ConflictError(phoneValidation.message || 'Invalid phone number');
+      }
+    }
+
+    // Validate WhatsApp number uniqueness (if provided)
+    if (userData.whatsappNumber) {
+      const whatsappValidation = await validatePhoneNumber(userData.whatsappNumber);
+      if (!whatsappValidation.isValid) {
+        throw new ConflictError(`WhatsApp number validation failed: ${whatsappValidation.message}`);
+      }
     }
 
     // Hash password
@@ -78,7 +95,7 @@ export class AuthService {
   }
 
   static async resetPassword(resetData: PasswordReset) {
-    const user = await storage.getUserByToken(resetData.token);
+    const user = await storage.getUserByPasswordResetToken(resetData.token);
     if (!user || !user.passwordResetExpiry || user.passwordResetExpiry < new Date()) {
       throw new UnauthorizedError('Invalid or expired reset token');
     }
