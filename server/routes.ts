@@ -19941,32 +19941,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/student/request-parent', requireAuth, async (req, res) => {
     try {
       const userId = req.user.id;
-      const { parentEmail, relationshipType, message } = req.body;
+      const { parentEmail, parentPhone, searchMethod, relationshipType, message } = req.body;
       
       console.log('[STUDENT_PARENT_REQUEST] 📧 Student requesting parent connection:', {
         userId,
-        parentEmail,
+        searchMethod,
+        parentEmail: parentEmail || '[hidden]',
+        parentPhone: parentPhone || '[hidden]',
         relationshipType
       });
       
-      // Validate required fields
-      if (!parentEmail || !relationshipType) {
+      // Validate required fields based on search method
+      if (!searchMethod || !relationshipType) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
-      
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(parentEmail)) {
-        return res.status(400).json({ error: 'Invalid email format' });
+
+      if (searchMethod === 'email') {
+        if (!parentEmail) {
+          return res.status(400).json({ error: 'Email is required for email search' });
+        }
+        
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(parentEmail)) {
+          return res.status(400).json({ error: 'Invalid email format' });
+        }
+      } else if (searchMethod === 'phone') {
+        if (!parentPhone) {
+          return res.status(400).json({ error: 'Phone number is required for phone search' });
+        }
+        
+        // Validate phone format (Cameroon + international)
+        const phoneRegex = /^(\+237|237)?[6-9][0-9]{8}$|^\+[1-9][0-9]{1,14}$/;
+        const cleanPhone = parentPhone.replace(/\s/g, '');
+        if (!phoneRegex.test(cleanPhone)) {
+          return res.status(400).json({ error: 'Invalid phone number format' });
+        }
+      } else {
+        return res.status(400).json({ error: 'Invalid search method' });
       }
       
-      // Mock successful response - replace with real database insertion and email notification
+      // Mock successful response - replace with real database insertion and notification
       const requestId = Date.now();
+      const contactMethod = searchMethod === 'email' ? parentEmail : parentPhone;
       
       res.json({
         success: true,
         requestId,
-        message: 'Demande envoyée avec succès. Le parent recevra une notification.',
+        searchMethod,
+        contactMethod,
+        message: `Demande envoyée avec succès via ${searchMethod === 'email' ? 'email' : 'SMS'}. Le parent recevra une notification.`,
         status: 'pending'
       });
     } catch (error) {

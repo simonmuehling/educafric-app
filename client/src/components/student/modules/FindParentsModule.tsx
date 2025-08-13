@@ -56,6 +56,8 @@ interface ParentConnection {
 
 interface ParentRequest {
   parentEmail: string;
+  parentPhone: string;
+  searchMethod: 'email' | 'phone';
   relationshipType: 'parent' | 'guardian' | 'emergency_contact';
   message: string;
 }
@@ -70,6 +72,8 @@ const FindParentsModule: React.FC = () => {
   const [qrCode, setQrCode] = useState('');
   const [parentRequest, setParentRequest] = useState<ParentRequest>({
     parentEmail: '',
+    parentPhone: '',
+    searchMethod: 'email',
     relationshipType: 'parent',
     message: ''
   });
@@ -89,7 +93,11 @@ const FindParentsModule: React.FC = () => {
       shareQR: 'Partager ce code avec vos parents',
       qrInstructions: 'Vos parents peuvent scanner ce code pour se connecter rapidement',
       searchParent: 'Rechercher un parent',
+      searchMethod: 'Méthode de recherche',
+      searchByEmail: 'Par email',
+      searchByPhone: 'Par téléphone',
       parentEmail: 'Email du parent',
+      parentPhone: 'Téléphone du parent',
       relationship: 'Type de relation',
       message: 'Message (optionnel)',
       sendRequest: 'Envoyer demande',
@@ -109,9 +117,11 @@ const FindParentsModule: React.FC = () => {
       qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
       messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
+      phonePlaceholder: '+237657004011',
       error: 'Erreur',
-      fillRequired: 'Veuillez remplir l\'email du parent',
+      fillRequired: 'Veuillez remplir l\'email ou le téléphone du parent',
       validEmail: 'Veuillez entrer un email valide',
+      validPhone: 'Veuillez entrer un numéro de téléphone valide',
       requestedOn: 'Demandé le',
       verifiedOn: 'Vérifié le'
     },
@@ -129,7 +139,11 @@ const FindParentsModule: React.FC = () => {
       shareQR: 'Share this code with your parents',
       qrInstructions: 'Your parents can scan this code to connect quickly',
       searchParent: 'Search for a parent',
+      searchMethod: 'Search method',
+      searchByEmail: 'By email',
+      searchByPhone: 'By phone',
       parentEmail: 'Parent email',
+      parentPhone: 'Parent phone',
       relationship: 'Relationship type',
       message: 'Message (optional)',
       sendRequest: 'Send request',
@@ -149,9 +163,11 @@ const FindParentsModule: React.FC = () => {
       qrGeneratedDesc: 'Share this code with your parents for quick connection',
       messagePlaceholder: 'Hello, I am your child on EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
+      phonePlaceholder: '+237657004011',
       error: 'Error',
-      fillRequired: 'Please fill the parent email',
+      fillRequired: 'Please fill the parent email or phone',
       validEmail: 'Please enter a valid email',
+      validPhone: 'Please enter a valid phone number',
       requestedOn: 'Requested on',
       verifiedOn: 'Verified on'
     }
@@ -195,6 +211,8 @@ const FindParentsModule: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['/api/student/parent-connections'] });
       setParentRequest({
         parentEmail: '',
+        parentPhone: '',
+        searchMethod: 'email',
         relationshipType: 'parent',
         message: ''
       });
@@ -213,24 +231,47 @@ const FindParentsModule: React.FC = () => {
   });
 
   const handleSendRequest = () => {
-    if (!parentRequest.parentEmail.trim()) {
-      toast({
-        title: t.error,
-        description: t.fillRequired,
-        variant: 'destructive',
-      });
-      return;
-    }
+    // Validate based on search method
+    if (parentRequest.searchMethod === 'email') {
+      if (!parentRequest.parentEmail.trim()) {
+        toast({
+          title: t.error,
+          description: t.fillRequired,
+          variant: 'destructive',
+        });
+        return;
+      }
 
-    // Simple email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(parentRequest.parentEmail)) {
-      toast({
-        title: t.error,
-        description: t.validEmail,
-        variant: 'destructive',
-      });
-      return;
+      // Simple email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(parentRequest.parentEmail)) {
+        toast({
+          title: t.error,
+          description: t.validEmail,
+          variant: 'destructive',
+        });
+        return;
+      }
+    } else {
+      if (!parentRequest.parentPhone.trim()) {
+        toast({
+          title: t.error,
+          description: t.fillRequired,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Phone validation (Cameroon format + international)
+      const phoneRegex = /^(\+237|237)?[6-9][0-9]{8}$|^\+[1-9][0-9]{1,14}$/;
+      if (!phoneRegex.test(parentRequest.parentPhone.replace(/\s/g, ''))) {
+        toast({
+          title: t.error,
+          description: t.validPhone,
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     sendRequestMutation.mutate(parentRequest);
@@ -456,16 +497,55 @@ const FindParentsModule: React.FC = () => {
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="parentEmail">{t.parentEmail} *</Label>
-                  <Input
-                    id="parentEmail"
-                    type="email"
-                    value={parentRequest.parentEmail}
-                    onChange={(e) => setParentRequest(prev => ({ ...prev, parentEmail: e.target.value }))}
-                    placeholder={t.emailPlaceholder}
-                    data-testid="input-parent-email"
-                  />
+                  <Label htmlFor="searchMethod">{t.searchMethod} *</Label>
+                  <select
+                    id="searchMethod"
+                    value={parentRequest.searchMethod}
+                    onChange={(e) => setParentRequest(prev => ({ 
+                      ...prev, 
+                      searchMethod: e.target.value as 'email' | 'phone',
+                      parentEmail: '', // Reset fields when switching
+                      parentPhone: ''
+                    }))}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    data-testid="select-search-method"
+                  >
+                    <option value="email">{t.searchByEmail}</option>
+                    <option value="phone">{t.searchByPhone}</option>
+                  </select>
                 </div>
+
+                {parentRequest.searchMethod === 'email' ? (
+                  <div>
+                    <Label htmlFor="parentEmail">{t.parentEmail} *</Label>
+                    <Input
+                      id="parentEmail"
+                      type="email"
+                      value={parentRequest.parentEmail}
+                      onChange={(e) => setParentRequest(prev => ({ ...prev, parentEmail: e.target.value }))}
+                      placeholder={t.emailPlaceholder}
+                      data-testid="input-parent-email"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Label htmlFor="parentPhone">{t.parentPhone} *</Label>
+                    <Input
+                      id="parentPhone"
+                      type="tel"
+                      value={parentRequest.parentPhone}
+                      onChange={(e) => setParentRequest(prev => ({ ...prev, parentPhone: e.target.value }))}
+                      placeholder={t.phonePlaceholder}
+                      data-testid="input-parent-phone"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {language === 'fr' ? 
+                        'Format: +237657004011 ou 657004011' :
+                        'Format: +237657004011 or 657004011'
+                      }
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <Label htmlFor="relationship">{t.relationship} *</Label>
