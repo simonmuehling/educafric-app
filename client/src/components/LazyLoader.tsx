@@ -104,7 +104,7 @@ export const LazyUIShowcase = (props: any) => (
 );
 
 // Geolocation components - Optimisés pour production 3500+ users
-const LazySchoolGeolocationComponent = lazy(() => import('@/pages/SchoolGeolocationPage'));
+const LazySchoolGeolocationComponent = lazy(() => import('@/components/shared/RoleBasedGeolocationPage'));
 const LazyRoleBasedGeolocationComponent = lazy(() => import('@/components/shared/RoleBasedGeolocationPage'));
 
 export const LazySchoolGeolocation = (props: any) => (

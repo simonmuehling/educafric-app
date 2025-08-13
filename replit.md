@@ -14,6 +14,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (August 13, 2025)
 
+### Teacher and Parent Dashboard Routing Fix (Completed)
+**Fixed missing routes preventing teacher/parent dashboard access:**
+- ✅ Added `/teacher` route mapping to LazyTeachers component
+- ✅ Added `/parent` route mapping to LazyParentsPage component  
+- ✅ RoleBasedDashboard now properly redirects to role-specific dashboards
+- ✅ Verified both teacher and parent sandbox logins work correctly
+- ✅ All dashboard functionality restored and accessible
+
+**Status:** Teacher and parent dashboards are now fully functional and accessible. Route configuration completed successfully.
+
 ### PWA Analytics System Completion
 **Fixed all 404 and runtime errors in PWA analytics system:**
 - ✅ Resolved 6 duplicate function implementations in storage.ts (LSP diagnostics fixed)
