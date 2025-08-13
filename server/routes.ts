@@ -11914,6 +11914,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pushPermissionGranted
       } = req.body;
 
+      // Check if this is a sandbox user session - skip tracking completely
+      if (req.session?.passport?.user && typeof req.session.passport.user === 'string' && req.session.passport.user.startsWith('sandbox:')) {
+        console.log('[PWA_ANALYTICS] Skipping tracking for sandbox user session');
+        return res.json({ success: true, message: 'Sandbox user - tracking disabled' });
+      }
+
       // Get client IP
       const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
 
@@ -11954,6 +11960,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { deviceType, userAgent } = req.body;
+
+      // Skip tracking for sandbox users
+      if (user?.sandboxMode === true || (req.session?.passport?.user && typeof req.session.passport.user === 'string' && req.session.passport.user.startsWith('sandbox:'))) {
+        console.log('[PWA_ANALYTICS] Skipping installation tracking for sandbox user:', user?.email);
+        return res.json({ success: true, message: 'Sandbox user - tracking disabled' });
+      }
 
       console.log('[PWA_ANALYTICS] PWA installation detected for user:', user.id);
       
