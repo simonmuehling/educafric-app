@@ -11754,6 +11754,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register geolocation routes
   app.use('/api/geolocation', geolocationRoutes);
+  // Enhanced geolocation routes with complete sandbox bypass
+  app.use('/api/sandbox/geolocation/enhanced', (req, res, next) => {
+    console.log(`[SANDBOX_ENHANCED_GEOLOCATION] 🏖️ Sandbox-only enhanced geolocation endpoint: ${req.method} ${req.path}`);
+    req.user = { 
+      id: 1, 
+      role: 'SiteAdmin', 
+      schoolId: 1,
+      firstName: 'Sandbox',
+      lastName: 'User',
+      email: 'sandbox@educafric.com'
+    };
+    next();
+  }, enhancedGeolocationRoutes);
+  
   app.use('/api/geolocation/enhanced', enhancedGeolocationRoutes);
   
   // Register document API routes

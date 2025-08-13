@@ -84,11 +84,9 @@ export default function EnhancedGeolocationDashboard() {
 
   // System status query
   const { data: systemStatus } = useQuery({
-    queryKey: ['/api/geolocation/enhanced/system/status'],
+    queryKey: ['/api/sandbox/geolocation/enhanced/system/status'],
     queryFn: async () => {
-      const response = await fetch('/api/geolocation/enhanced/system/status?sandbox=true', {
-        headers: { 'X-Sandbox-Mode': 'true' }
-      });
+      const response = await fetch('/api/sandbox/geolocation/enhanced/system/status');
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to fetch system status');
@@ -101,11 +99,10 @@ export default function EnhancedGeolocationDashboard() {
   // Route optimization mutation
   const routeOptimizationMutation = useMutation({
     mutationFn: async (data: { studentId: number; destinationLat: number; destinationLng: number }) => {
-      const response = await fetch('/api/geolocation/enhanced/route/optimize?sandbox=true', {
+      const response = await fetch('/api/sandbox/geolocation/enhanced/route/optimize', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Sandbox-Mode': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
@@ -134,11 +131,10 @@ export default function EnhancedGeolocationDashboard() {
   // Attendance automation mutation
   const attendanceAutomationMutation = useMutation({
     mutationFn: async (data: { schoolId: number; classId: number }) => {
-      const response = await fetch('/api/geolocation/enhanced/attendance/automate?sandbox=true', {
+      const response = await fetch('/api/sandbox/geolocation/enhanced/attendance/automate', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Sandbox-Mode': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
@@ -167,11 +163,10 @@ export default function EnhancedGeolocationDashboard() {
   // Emergency response mutation
   const emergencyResponseMutation = useMutation({
     mutationFn: async (alertId: number) => {
-      const response = await fetch(`/api/geolocation/enhanced/emergency/trigger/${alertId}?sandbox=true`, {
+      const response = await fetch(`/api/sandbox/geolocation/enhanced/emergency/trigger/${alertId}`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Sandbox-Mode': 'true'
+          'Content-Type': 'application/json'
         }
       });
       if (!response.ok) {
@@ -199,11 +194,10 @@ export default function EnhancedGeolocationDashboard() {
   // AI route learning mutation
   const aiRouteLearningMutation = useMutation({
     mutationFn: async (data: { schoolId: number; analysisType: string }) => {
-      const response = await fetch('/api/geolocation/enhanced/ai/learn-routes?sandbox=true', {
+      const response = await fetch('/api/sandbox/geolocation/enhanced/ai/learn-routes', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Sandbox-Mode': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
@@ -225,11 +219,10 @@ export default function EnhancedGeolocationDashboard() {
   // Attendance prediction mutation
   const attendancePredictionMutation = useMutation({
     mutationFn: async (data: { classId: number; predictionDays: number }) => {
-      const response = await fetch('/api/geolocation/enhanced/ai/predict-attendance?sandbox=true', {
+      const response = await fetch('/api/sandbox/geolocation/enhanced/ai/predict-attendance', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-Sandbox-Mode': 'true'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });

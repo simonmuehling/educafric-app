@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, jsonb, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1603,3 +1603,89 @@ export const insertCommercialContactSchema = z.object({
 // Types for commercial contacts
 export type CommercialContact = typeof commercialContacts.$inferSelect;
 export type InsertCommercialContact = z.infer<typeof insertCommercialContactSchema>;
+
+// ===== ENHANCED GEOLOCATION SYSTEM =====
+export const locationTracking = pgTable("location_tracking", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  deviceId: text("device_id"),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  accuracy: real("accuracy"),
+  address: text("address"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  batteryLevel: integer("battery_level"),
+  inSafeZone: boolean("in_safe_zone").default(false),
+  safeZoneName: text("safe_zone_name"),
+  speed: real("speed"),
+  heading: real("heading"),
+  altitude: real("altitude"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const routeOptimization = pgTable("route_optimization", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull(),
+  startLat: real("start_lat").notNull(),
+  startLng: real("start_lng").notNull(),
+  endLat: real("end_lat").notNull(),
+  endLng: real("end_lng").notNull(),
+  optimizedRoute: jsonb("optimized_route"),
+  distance: real("distance"),
+  estimatedTime: integer("estimated_time"),
+  safetyScore: real("safety_score"),
+  checkpoints: jsonb("checkpoints"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const attendanceAutomation = pgTable("attendance_automation", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull(),
+  schoolId: integer("school_id").notNull(),
+  classId: integer("class_id").notNull(),
+  entryTime: timestamp("entry_time"),
+  exitTime: timestamp("exit_time"),
+  geofenceTriggered: boolean("geofence_triggered").default(false),
+  automaticallyMarked: boolean("automatically_marked").default(false),
+  manualOverride: boolean("manual_override").default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Enhanced Geolocation Relations
+export const locationTrackingRelations = relations(locationTracking, ({ one }) => ({
+  user: one(users, {
+    fields: [locationTracking.userId],
+    references: [users.id],
+  }),
+}));
+
+export const routeOptimizationRelations = relations(routeOptimization, ({ one }) => ({
+  student: one(users, {
+    fields: [routeOptimization.studentId],
+    references: [users.id],
+  }),
+}));
+
+export const attendanceAutomationRelations = relations(attendanceAutomation, ({ one }) => ({
+  student: one(users, {
+    fields: [attendanceAutomation.studentId],
+    references: [users.id],
+  }),
+  school: one(schools, {
+    fields: [attendanceAutomation.schoolId],
+    references: [schools.id],
+  }),
+  class: one(classes, {
+    fields: [attendanceAutomation.classId],
+    references: [classes.id],
+  }),
+}));
+
+// Enhanced Geolocation Types
+export type LocationTracking = typeof locationTracking.$inferSelect;
+export type InsertLocationTracking = typeof locationTracking.$inferInsert;
+export type RouteOptimization = typeof routeOptimization.$inferSelect;
+export type InsertRouteOptimization = typeof routeOptimization.$inferInsert;
+export type AttendanceAutomation = typeof attendanceAutomation.$inferSelect;
+export type InsertAttendanceAutomation = typeof attendanceAutomation.$inferInsert;
