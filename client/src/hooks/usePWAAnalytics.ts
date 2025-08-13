@@ -3,6 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Global in-flight request deduplication map to prevent networking memory overflow
+const inFlightRequests = new Map<string, Promise<any>>();
+
+// Request deduplication helper to prevent Chrome networking memory issues
+async function fetchOnce<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key) as Promise<T>;
+  }
+  
+  const promise = fetchFn().finally(() => {
+    inFlightRequests.delete(key);
+  });
+  
+  inFlightRequests.set(key, promise);
+  return promise;
+}
+
 // PWA Analytics Hook for tracking and monitoring
 export const usePWAAnalytics = () => {
   const queryClient = useQueryClient();
@@ -35,26 +52,34 @@ export const usePWAAnalytics = () => {
         return { success: true, message: 'Sandbox user - tracking disabled' };
       }
 
-      try {
-        const response = await fetch('/api/analytics/pwa/session', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(data),
-        });
+      // Use request deduplication to prevent networking memory overflow
+      const requestKey = `pwa-session-${data.sessionId}-${data.accessMethod}`;
+      
+      return fetchOnce(requestKey, async () => {
+        const controller = new AbortController();
+        
+        try {
+          const response = await fetch('/api/analytics/pwa/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            signal: controller.signal,
+            body: JSON.stringify(data),
+          });
 
-        if (!response.ok) {
-          throw new Error(`PWA session tracking failed: ${response.status}`);
+          if (!response.ok) {
+            throw new Error(`PWA session tracking failed: ${response.status}`);
+          }
+
+          return response.json();
+        } catch (error) {
+          // Silent fail to prevent UI errors and networking memory overflow
+          console.log('[PWA_ANALYTICS] Session tracking failed:', error);
+          return { success: false, message: 'Session tracking failed', error: String(error) };
         }
-
-        return response.json();
-      } catch (error) {
-        console.log('[PWA_ANALYTICS] Session tracking failed:', error);
-        // Return success to prevent UI errors
-        return { success: false, message: 'Session tracking failed', error: String(error) };
-      }
+      });
 
 
     },
@@ -73,20 +98,33 @@ export const usePWAAnalytics = () => {
         return { success: true, message: 'Sandbox user - tracking disabled' };
       }
 
-      const response = await fetch('/api/analytics/pwa/install', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
+      // Use request deduplication to prevent networking memory overflow
+      const requestKey = `pwa-install-${data.deviceType}-${Date.now()}`;
+      
+      return fetchOnce(requestKey, async () => {
+        const controller = new AbortController();
+        
+        try {
+          const response = await fetch('/api/analytics/pwa/install', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            signal: controller.signal,
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to track PWA installation');
+          }
+
+          return response.json();
+        } catch (error) {
+          console.log('[PWA_ANALYTICS] Installation tracking failed:', error);
+          return { success: false, message: 'Installation tracking failed', error: String(error) };
+        }
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to track PWA installation');
-      }
-
-      return response.json();
     },
 
   });
