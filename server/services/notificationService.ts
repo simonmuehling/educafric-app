@@ -233,6 +233,65 @@ export const SMS_TEMPLATES = {
       `${childName} has been outside safe zones for ${duration}. Last seen: ${lastKnownLocation}`,
     fr: (childName: string, duration: string, lastKnownLocation: string) => 
       `${childName} est hors zones de sécurité depuis ${duration}. Dernière position: ${lastKnownLocation}`
+  },
+
+  // ========== PARENT-CHILD CONNECTION NOTIFICATIONS ==========
+  
+  // Connection Request Notifications
+  CONNECTION_REQUEST_SUBMITTED: {
+    en: (parentName: string, studentName: string, relationshipType: string) => 
+      `${parentName} requested to connect as ${relationshipType} to ${studentName}. Awaiting school approval.`,
+    fr: (parentName: string, studentName: string, relationshipType: string) => 
+      `${parentName} a demandé à se connecter comme ${relationshipType} à ${studentName}. En attente d'approbation école.`
+  },
+
+  CONNECTION_REQUEST_APPROVED: {
+    en: (parentName: string, studentName: string, relationshipType: string) => 
+      `Connection approved! ${parentName} is now connected as ${relationshipType} to ${studentName}.`,
+    fr: (parentName: string, studentName: string, relationshipType: string) => 
+      `Connexion approuvée! ${parentName} est maintenant connecté comme ${relationshipType} à ${studentName}.`
+  },
+
+  CONNECTION_REQUEST_REJECTED: {
+    en: (parentName: string, studentName: string, reason?: string) => 
+      `Connection request rejected for ${parentName} to ${studentName}. ${reason ? `Reason: ${reason}` : 'Contact school for details.'}`,
+    fr: (parentName: string, studentName: string, reason?: string) => 
+      `Demande de connexion rejetée pour ${parentName} à ${studentName}. ${reason ? `Raison: ${reason}` : 'Contactez école pour détails.'}`
+  },
+
+  CONNECTION_INVITATION_SENT: {
+    en: (parentContact: string, studentName: string, schoolName: string) => 
+      `Invitation sent to ${parentContact} to connect with ${studentName} at ${schoolName}.`,
+    fr: (parentContact: string, studentName: string, schoolName: string) => 
+      `Invitation envoyée à ${parentContact} pour se connecter à ${studentName} de ${schoolName}.`
+  },
+
+  CONNECTION_INVITATION_RECEIVED: {
+    en: (schoolName: string, studentName: string, relationshipType: string) => 
+      `${schoolName} invited you to connect as ${relationshipType} to ${studentName}. Please respond via the app.`,
+    fr: (schoolName: string, studentName: string, relationshipType: string) => 
+      `${schoolName} vous invite à vous connecter comme ${relationshipType} à ${studentName}. Répondez via l'app.`
+  },
+
+  MAX_PARENTS_REACHED: {
+    en: (studentName: string, currentCount: number) => 
+      `Cannot connect to ${studentName}. Maximum 2 parents/guardians already connected (${currentCount}/2).`,
+    fr: (studentName: string, currentCount: number) => 
+      `Impossible de se connecter à ${studentName}. Maximum 2 parents/tuteurs déjà connectés (${currentCount}/2).`
+  },
+
+  PARENT_CONNECTION_REMOVED: {
+    en: (parentName: string, studentName: string, removedBy: string) => 
+      `${parentName}'s connection to ${studentName} was removed by ${removedBy}.`,
+    fr: (parentName: string, studentName: string, removedBy: string) => 
+      `La connexion de ${parentName} à ${studentName} a été supprimée par ${removedBy}.`
+  },
+
+  DUPLICATE_CONNECTION_BLOCKED: {
+    en: (parentName: string, studentName: string) => 
+      `Duplicate connection blocked: ${parentName} is already connected to ${studentName}.`,
+    fr: (parentName: string, studentName: string) => 
+      `Connexion en double bloquée: ${parentName} est déjà connecté à ${studentName}.`
   }
 };
 
@@ -581,6 +640,253 @@ export class NotificationService {
       console.log(`[SMS_ALERT] ✅ Security SMS queued:`, smsData);
     } catch (error) {
       console.error(`[SMS_ALERT] ❌ Failed to send SMS:`, error);
+    }
+  }
+
+  // ========== PARENT-CHILD CONNECTION NOTIFICATION METHODS ==========
+
+  // Send connection request notifications to all concerned parties
+  async notifyConnectionRequest(
+    action: 'submitted' | 'approved' | 'rejected' | 'invitation_sent' | 'invitation_received' | 'removed' | 'max_reached' | 'duplicate_blocked',
+    requestData: {
+      parentName: string;
+      parentId?: number;
+      studentName: string;
+      studentId: number;
+      relationshipType?: string;
+      schoolName?: string;
+      schoolId?: number;
+      directorId?: number;
+      reason?: string;
+      searchMethod?: 'email' | 'phone';
+      contactInfo?: string;
+      currentParentCount?: number;
+      removedBy?: string;
+    },
+    language: 'en' | 'fr' = 'fr'
+  ): Promise<void> {
+    console.log(`[NOTIFICATION_SERVICE] 🔔 Sending connection ${action} notifications for ${requestData.parentName} -> ${requestData.studentName}`);
+
+    let template: string;
+    let notificationTitle: string;
+    let notificationMessage: string;
+    let priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium';
+    let category = 'connection';
+
+    // Determine template and notification content based on action
+    switch (action) {
+      case 'submitted':
+        template = 'CONNECTION_REQUEST_SUBMITTED';
+        notificationTitle = language === 'fr' ? 'Nouvelle demande de connexion' : 'New Connection Request';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.parentName, 
+          requestData.studentName, 
+          requestData.relationshipType || 'parent'
+        );
+        priority = 'medium';
+        break;
+      case 'approved':
+        template = 'CONNECTION_REQUEST_APPROVED';
+        notificationTitle = language === 'fr' ? 'Connexion approuvée' : 'Connection Approved';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.parentName, 
+          requestData.studentName, 
+          requestData.relationshipType || 'parent'
+        );
+        priority = 'high';
+        break;
+      case 'rejected':
+        template = 'CONNECTION_REQUEST_REJECTED';
+        notificationTitle = language === 'fr' ? 'Connexion rejetée' : 'Connection Rejected';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.parentName, 
+          requestData.studentName, 
+          requestData.reason
+        );
+        priority = 'medium';
+        break;
+      case 'invitation_sent':
+        template = 'CONNECTION_INVITATION_SENT';
+        notificationTitle = language === 'fr' ? 'Invitation envoyée' : 'Invitation Sent';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.contactInfo || requestData.parentName, 
+          requestData.studentName, 
+          requestData.schoolName || 'School'
+        );
+        priority = 'low';
+        break;
+      case 'invitation_received':
+        template = 'CONNECTION_INVITATION_RECEIVED';
+        notificationTitle = language === 'fr' ? 'Invitation reçue' : 'Invitation Received';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.schoolName || 'School', 
+          requestData.studentName, 
+          requestData.relationshipType || 'parent'
+        );
+        priority = 'high';
+        break;
+      case 'max_reached':
+        template = 'MAX_PARENTS_REACHED';
+        notificationTitle = language === 'fr' ? '⚠️ Limite atteinte' : '⚠️ Limit Reached';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.studentName, 
+          requestData.currentParentCount || 2
+        );
+        priority = 'medium';
+        category = 'warning';
+        break;
+      case 'removed':
+        template = 'PARENT_CONNECTION_REMOVED';
+        notificationTitle = language === 'fr' ? 'Connexion supprimée' : 'Connection Removed';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.parentName, 
+          requestData.studentName, 
+          requestData.removedBy || 'Administrator'
+        );
+        priority = 'high';
+        break;
+      case 'duplicate_blocked':
+        template = 'DUPLICATE_CONNECTION_BLOCKED';
+        notificationTitle = language === 'fr' ? 'Connexion en double bloquée' : 'Duplicate Connection Blocked';
+        notificationMessage = SMS_TEMPLATES[template][language](
+          requestData.parentName, 
+          requestData.studentName
+        );
+        priority = 'low';
+        category = 'info';
+        break;
+      default:
+        return;
+    }
+
+    // Create notification data for different user types
+    const notifications = [];
+
+    // Notify director/school admin for requests and approvals
+    if (action === 'submitted' && requestData.directorId) {
+      notifications.push({
+        userId: requestData.directorId,
+        userType: 'Director',
+        title: notificationTitle,
+        message: notificationMessage,
+        type: `connection_${action}`,
+        priority,
+        category,
+        actionUrl: '/director/connections',
+        actionText: language === 'fr' ? 'Gérer demandes' : 'Manage Requests'
+      });
+    }
+
+    // Notify parent for status updates
+    if (requestData.parentId && ['approved', 'rejected', 'invitation_received', 'removed'].includes(action)) {
+      notifications.push({
+        userId: requestData.parentId,
+        userType: 'Parent',
+        title: notificationTitle,
+        message: notificationMessage,
+        type: `connection_${action}`,
+        priority,
+        category,
+        actionUrl: action === 'approved' ? '/parent' : '/parent/connections',
+        actionText: action === 'approved' ? 
+          (language === 'fr' ? 'Voir enfant' : 'View Child') : 
+          (language === 'fr' ? 'Voir connexions' : 'View Connections')
+      });
+    }
+
+    // Notify student for connection changes
+    if (['approved', 'removed'].includes(action)) {
+      notifications.push({
+        userId: requestData.studentId,
+        userType: 'Student',
+        title: notificationTitle,
+        message: language === 'fr' ? 
+          `Connexion parent mise à jour: ${notificationMessage}` :
+          `Parent connection updated: ${notificationMessage}`,
+        type: `connection_${action}`,
+        priority: 'low',
+        category,
+        actionUrl: '/student/profile',
+        actionText: language === 'fr' ? 'Voir profil' : 'View Profile'
+      });
+    }
+
+    // Send notifications to all concerned users
+    for (const notification of notifications) {
+      await this.createNotification(notification);
+    }
+
+    // Send PWA push notifications
+    if (notifications.length > 0) {
+      await this.sendConnectionPWANotifications(notifications, action);
+    }
+
+    console.log(`[NOTIFICATION_SERVICE] ✅ Sent ${notifications.length} connection ${action} notifications`);
+  }
+
+  // Send PWA push notifications for connection requests
+  private async sendConnectionPWANotifications(
+    notifications: Array<{
+      userId: number;
+      userType: string;
+      title: string;
+      message: string;
+      type: string;
+      priority: string;
+      category: string;
+      actionUrl?: string;
+      actionText?: string;
+    }>,
+    action: string
+  ): Promise<void> {
+    try {
+      console.log(`[PWA_PUSH] 🔔 Sending connection PWA notifications for ${action}`);
+
+      for (const notification of notifications) {
+        // Determine icon based on action and user type
+        let icon = '/educafric-logo-128.png';
+        let badge = '/android-icon-192x192.png';
+        
+        if (notification.category === 'warning') {
+          icon = '/icons/warning.png';
+        } else if (notification.type.includes('approved')) {
+          icon = '/icons/success.png';
+        } else if (notification.type.includes('rejected')) {
+          icon = '/icons/error.png';
+        }
+
+        const pushPayload = {
+          title: notification.title,
+          body: notification.message,
+          icon,
+          badge,
+          tag: `connection-${notification.userId}-${Date.now()}`,
+          requireInteraction: notification.priority === 'high' || notification.priority === 'urgent',
+          actions: notification.actionUrl ? [
+            {
+              action: 'view_request',
+              title: notification.actionText || 'Voir',
+              icon: '/icons/view.png'
+            },
+            {
+              action: 'dismiss',
+              title: 'Fermer',
+              icon: '/icons/close.png'
+            }
+          ] : undefined,
+          data: {
+            url: notification.actionUrl || '/',
+            userId: notification.userId,
+            type: notification.type,
+            category: notification.category,
+            timestamp: Date.now()
+          }
+        };
+
+        console.log(`[PWA_PUSH] ✅ Connection PWA notification prepared for user ${notification.userId}:`, pushPayload);
+      }
+    } catch (error) {
+      console.error(`[PWA_PUSH] ❌ Failed to send connection PWA notifications:`, error);
     }
   }
 

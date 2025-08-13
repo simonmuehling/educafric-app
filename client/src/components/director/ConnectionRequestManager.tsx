@@ -188,6 +188,8 @@ const ConnectionRequestManager: React.FC<ConnectionRequestManagerProps> = ({ lan
         setInvitePhone('');
         setSelectedStudentId(null);
         loadPendingRequests(); // Refresh requests
+        
+        // PWA notification sent automatically by backend
       } else {
         const errorData = await response.json();
         if (errorData.message?.includes('maximum') || errorData.message?.includes('2 parents')) {
@@ -240,6 +242,8 @@ const ConnectionRequestManager: React.FC<ConnectionRequestManagerProps> = ({ lan
               ? { ...req, status: approval ? 'approved' : 'rejected' }
               : req
           ));
+          
+          // PWA notification sent automatically by backend
         } else {
           // Handle max parents error
           toast({

@@ -12241,7 +12241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('[GEOLOCATION_SERVICE] 🛡️ Initializing geolocation alert service...');
   geolocationAlertService.startMonitoring();
 
-  // Parent-Child Connection Routes
+  // Parent-Child Connection Routes with PWA Notifications
   app.post('/api/parent/search-child', requireAuth, async (req, res) => {
     try {
       const { firstName, lastName, phoneNumber, schoolName, dateOfBirth } = req.body;
@@ -12264,12 +12264,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/parent/connect-child', requireAuth, async (req, res) => {
     try {
       const { parentId, childId, childData, parentRelation } = req.body;
+      const user = req.user as any;
       
       let result;
       if (childId) {
         result = await storage.connectParentToExistingChild(parentId, childId, parentRelation);
+        
+        // Send PWA notification for immediate connection
+        if (result.success) {
+          const notificationService = NotificationService.getInstance();
+          await notificationService.notifyConnectionRequest('approved', {
+            parentName: `${user.firstName} ${user.lastName}`,
+            parentId: parentId,
+            studentName: result.studentName || 'Student',
+            studentId: childId,
+            relationshipType: parentRelation,
+            schoolName: user.schoolName || 'School',
+            schoolId: user.schoolId
+          }, user.preferredLanguage || 'fr');
+        }
       } else {
         result = await storage.createParentChildConnectionRequest(parentId, childData, parentRelation);
+        
+        // Send PWA notification for connection request submission
+        if (result.success) {
+          const notificationService = NotificationService.getInstance();
+          await notificationService.notifyConnectionRequest('submitted', {
+            parentName: `${user.firstName} ${user.lastName}`,
+            parentId: parentId,
+            studentName: `${childData.firstName} ${childData.lastName}`,
+            studentId: result.studentId || 0,
+            relationshipType: parentRelation,
+            schoolName: childData.schoolName || 'School',
+            directorId: result.directorId || undefined
+          }, user.preferredLanguage || 'fr');
+        }
       }
       
       res.json({ success: true, message: result.message, data: result });
@@ -12343,12 +12372,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/student/connect-parent', requireAuth, async (req, res) => {
     try {
       const { studentId, parentId, parentData, relationship } = req.body;
+      const user = req.user as any;
       
       let result;
       if (parentId) {
         result = await storage.connectChildToExistingParent(studentId, parentId, relationship);
+        
+        // Send PWA notification for immediate connection
+        if (result.success) {
+          const notificationService = NotificationService.getInstance();
+          await notificationService.notifyConnectionRequest('approved', {
+            parentName: result.parentName || 'Parent',
+            parentId: parentId,
+            studentName: `${user.firstName} ${user.lastName}`,
+            studentId: studentId,
+            relationshipType: relationship,
+            schoolName: user.schoolName || 'School',
+            schoolId: user.schoolId
+          }, user.preferredLanguage || 'fr');
+        }
       } else {
         result = await storage.createChildParentConnectionRequest(studentId, parentData, relationship);
+        
+        // Send PWA notification for connection request submission
+        if (result.success) {
+          const notificationService = NotificationService.getInstance();
+          await notificationService.notifyConnectionRequest('submitted', {
+            parentName: `${parentData.firstName} ${parentData.lastName}`,
+            studentName: `${user.firstName} ${user.lastName}`,
+            studentId: studentId,
+            relationshipType: relationship,
+            schoolName: user.schoolName || 'School',
+            directorId: result.directorId || undefined
+          }, user.preferredLanguage || 'fr');
+        }
       }
       
       res.json({ success: true, message: result.message, data: result });
@@ -12408,6 +12465,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Create separate user error:', error);
       res.status(500).json({ message: 'Failed to create separate user' });
+    }
+  });
+
+  // ========== PARENT-CHILD CONNECTION MANAGEMENT ROUTES WITH PWA NOTIFICATIONS ==========
+  
+  // Get pending connection requests for director/admin
+  app.get('/api/director/connection-requests', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const requests = await storage.getPendingConnectionRequests(user.schoolId);
+      res.json({ success: true, requests });
+    } catch (error) {
+      console.error('Get connection requests error:', error);
+      res.status(500).json({ message: 'Failed to fetch connection requests' });
+    }
+  });
+
+  // Approve or reject connection request with PWA notifications
+  app.post('/api/director/connection-requests/:requestId/approve', requireAuth, async (req, res) => {
+    try {
+      const { requestId } = req.params;
+      const { approved, reason } = req.body;
+      const user = req.user as any;
+      
+      if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const result = await storage.approveConnectionRequest(parseInt(requestId), approved, reason, user.id);
+      
+      if (result.success) {
+        const notificationService = NotificationService.getInstance();
+        
+        // Check parent limit before approving
+        if (approved && result.parentCount >= 2) {
+          await notificationService.notifyConnectionRequest('max_reached', {
+            parentName: result.parentName,
+            parentId: result.parentId,
+            studentName: result.studentName,
+            studentId: result.studentId,
+            currentParentCount: result.parentCount,
+            schoolName: user.schoolName || 'School',
+            directorId: user.id
+          }, user.preferredLanguage || 'fr');
+          
+          return res.json({ 
+            success: false, 
+            message: 'Cannot approve: Maximum 2 parents/guardians limit reached',
+            parentCount: result.parentCount 
+          });
+        }
+        
+        // Send appropriate notification
+        await notificationService.notifyConnectionRequest(
+          approved ? 'approved' : 'rejected',
+          {
+            parentName: result.parentName,
+            parentId: result.parentId,
+            studentName: result.studentName,
+            studentId: result.studentId,
+            relationshipType: result.relationshipType,
+            schoolName: user.schoolName || 'School',
+            schoolId: user.schoolId,
+            directorId: user.id,
+            reason: reason
+          },
+          user.preferredLanguage || 'fr'
+        );
+      }
+      
+      res.json({ 
+        success: result.success, 
+        message: result.message,
+        parentCount: result.parentCount || 0
+      });
+    } catch (error) {
+      console.error('Approve connection request error:', error);
+      res.status(500).json({ message: 'Failed to process connection request' });
+    }
+  });
+
+  // Send invitation to parent/guardian with PWA notification
+  app.post('/api/director/send-parent-invitation', requireAuth, async (req, res) => {
+    try {
+      const { studentId, contactMethod, contactValue, relationshipType } = req.body;
+      const user = req.user as any;
+      
+      if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      // Validate inputs
+      if (!studentId || !contactMethod || !contactValue || !relationshipType) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      // Check parent limit first
+      const parentCount = await storage.getParentCount(studentId);
+      if (parentCount >= 2) {
+        const notificationService = NotificationService.getInstance();
+        const studentData = await storage.getStudentById(studentId);
+        
+        await notificationService.notifyConnectionRequest('max_reached', {
+          parentName: 'Invited Parent',
+          studentName: studentData ? `${studentData.firstName} ${studentData.lastName}` : 'Student',
+          studentId: studentId,
+          currentParentCount: parentCount,
+          schoolName: user.schoolName || 'School',
+          directorId: user.id
+        }, user.preferredLanguage || 'fr');
+        
+        return res.json({ 
+          success: false, 
+          message: `Cannot send invitation: Student already has ${parentCount}/2 parents connected` 
+        });
+      }
+      
+      const result = await storage.sendParentInvitation({
+        studentId,
+        contactMethod,
+        contactValue,
+        relationshipType,
+        invitedBy: user.id,
+        schoolId: user.schoolId
+      });
+      
+      if (result.success) {
+        const notificationService = NotificationService.getInstance();
+        const studentData = await storage.getStudentById(studentId);
+        
+        await notificationService.notifyConnectionRequest('invitation_sent', {
+          parentName: 'Invited Parent',
+          studentName: studentData ? `${studentData.firstName} ${studentData.lastName}` : 'Student',
+          studentId: studentId,
+          contactInfo: contactValue,
+          relationshipType: relationshipType,
+          schoolName: user.schoolName || 'School',
+          schoolId: user.schoolId,
+          directorId: user.id
+        }, user.preferredLanguage || 'fr');
+      }
+      
+      res.json({ success: result.success, message: result.message });
+    } catch (error) {
+      console.error('Send parent invitation error:', error);
+      res.status(500).json({ message: 'Failed to send invitation' });
+    }
+  });
+
+  // Remove parent connection with PWA notification
+  app.delete('/api/director/parent-connection/:connectionId', requireAuth, async (req, res) => {
+    try {
+      const { connectionId } = req.params;
+      const { reason } = req.body;
+      const user = req.user as any;
+      
+      if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const result = await storage.removeParentConnection(parseInt(connectionId), reason, user.id);
+      
+      if (result.success) {
+        const notificationService = NotificationService.getInstance();
+        
+        await notificationService.notifyConnectionRequest('removed', {
+          parentName: result.parentName,
+          parentId: result.parentId,
+          studentName: result.studentName,
+          studentId: result.studentId,
+          removedBy: `${user.firstName} ${user.lastName}`,
+          reason: reason,
+          schoolName: user.schoolName || 'School',
+          schoolId: user.schoolId
+        }, user.preferredLanguage || 'fr');
+      }
+      
+      res.json({ success: result.success, message: result.message });
+    } catch (error) {
+      console.error('Remove parent connection error:', error);
+      res.status(500).json({ message: 'Failed to remove connection' });
+    }
+  });
+
+  // Block duplicate connection attempt with PWA notification
+  app.post('/api/director/block-duplicate-connection', requireAuth, async (req, res) => {
+    try {
+      const { parentId, studentId, reason } = req.body;
+      const user = req.user as any;
+      
+      if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+      
+      const result = await storage.blockDuplicateConnection(parentId, studentId, reason, user.id);
+      
+      if (result.success) {
+        const notificationService = NotificationService.getInstance();
+        
+        await notificationService.notifyConnectionRequest('duplicate_blocked', {
+          parentName: result.parentName,
+          parentId: parentId,
+          studentName: result.studentName,
+          studentId: studentId,
+          schoolName: user.schoolName || 'School',
+          schoolId: user.schoolId,
+          directorId: user.id
+        }, user.preferredLanguage || 'fr');
+      }
+      
+      res.json({ success: result.success, message: result.message });
+    } catch (error) {
+      console.error('Block duplicate connection error:', error);
+      res.status(500).json({ message: 'Failed to block duplicate connection' });
     }
   });
 
