@@ -31,20 +31,23 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const url = queryKey.join("/") as string;
     
-    // Enhanced debugging for cookie transmission
-    console.log(`[QUERY_REQUEST] GET ${url}`);
-    console.log(`[QUERY_REQUEST] Document cookies:`, document.cookie);
-    console.log(`[QUERY_REQUEST] Credentials: include`);
+    // Debug simplifié en mode développement seulement
+    if (import.meta.env.DEV && url.includes('/api/auth/')) {
+      console.log(`[QUERY_REQUEST] GET ${url}`);
+    }
     
     const res = await fetch(url, {
       credentials: "include",
     });
 
-    console.log(`[QUERY_RESPONSE] ${res.status} ${url}`);
-    console.log(`[QUERY_RESPONSE] Headers:`, Object.fromEntries(res?.headers?.entries()));
+    if (import.meta.env.DEV && (!res.ok || url.includes('/api/auth/'))) {
+      console.log(`[QUERY_RESPONSE] ${res.status} ${url}`);
+    }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      console.log(`[QUERY_401] Returning null for ${url}`);
+      if (import.meta.env.DEV) {
+        console.log(`[QUERY_401] Returning null for ${url}`);
+      }
       return null;
     }
 
@@ -58,11 +61,12 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "returnNull" }), // Return null instead of throwing on 401
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      staleTime: 10 * 60 * 1000, // 10 minutes cache (augmenté)
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors
         if (error.message?.includes('401')) return false;
-        return failureCount < 2;
+        return failureCount < 1; // Réduit de 2 à 1
       },
     },
     mutations: {
