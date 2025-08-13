@@ -107,6 +107,40 @@ const FunctionalParentChildren: React.FC = () => {
     });
   });
 
+  const handleExportChildren = useStableCallback(() => {
+    const csvContent = [
+      ['Nom,Prenom,Classe,Ecole,Moyenne,Assiduite,Statut'],
+      ...(Array.isArray(children) ? children : []).map(child => [
+        child.lastName,
+        child.firstName,
+        child.className,
+        child.schoolName,
+        child.averageGrade,
+        child.attendanceRate,
+        child.status
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `enfants_${new Date().toISOString().split('T')[0]}.csv`);
+    if (link.style) {
+      link.style.visibility = 'hidden';
+    }
+    if (document.body) {
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    toast({
+      title: language === 'fr' ? 'Export terminé' : 'Export completed',
+      description: language === 'fr' ? 'Données enfants exportées' : 'Children data exported',
+    });
+  });
+
   // Fetch parent children data from PostgreSQL API
   const { data: children = [], isLoading } = useQuery<ParentChild[]>({
     queryKey: ['/api/parent/children'],
@@ -392,39 +426,7 @@ const FunctionalParentChildren: React.FC = () => {
                 id: 'export-children',
                 label: language === 'fr' ? 'Exporter Données' : 'Export Data',
                 icon: <Download className="w-5 h-5" />,
-                onClick: useStableCallback(() => {
-                  const csvContent = [
-                    ['Nom,Prenom,Classe,Ecole,Moyenne,Assiduite,Statut'],
-                    ...(Array.isArray(children) ? children : []).map(child => [
-                      child.lastName,
-                      child.firstName,
-                      child.className,
-                      child.schoolName,
-                      child.averageGrade,
-                      child.attendanceRate,
-                      child.status
-                    ].join(','))
-                  ].join('\n');
-                  
-                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                  const link = document.createElement('a');
-                  const url = URL.createObjectURL(blob);
-                  link.setAttribute('href', url);
-                  link.setAttribute('download', `enfants_${new Date().toISOString().split('T')[0]}.csv`);
-                  if (link.style) {
-                    link.style.visibility = 'hidden';
-                  }
-                  if (document.body) {
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }
-                  
-                  toast({
-                    title: language === 'fr' ? 'Export terminé' : 'Export completed',
-                    description: language === 'fr' ? 'Données enfants exportées' : 'Children data exported',
-                  });
-                }),
+                onClick: handleExportChildren,
                 color: 'bg-orange-600 hover:bg-orange-700'
               }
             ]}
