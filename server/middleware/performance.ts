@@ -14,7 +14,7 @@ export const compressionMiddleware = compression({
 });
 
 // Request timeout middleware
-export const timeoutMiddleware = (timeoutMs: number = 30000) => {
+export const timeoutMiddleware = (timeoutMs: number = 15000) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const timeout = setTimeout(() => {
       if (!res.headersSent) {
@@ -53,13 +53,13 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
     const endMemory = process.memoryUsage();
     const memoryDiff = endMemory.rss - startMemory.rss;
 
-    // Log performance metrics
-    if (duration > 1000) { // Log slow requests (>1s)
-      console.warn(`[PERFORMANCE] SLOW_REQUEST: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`);
+    // Log only critical performance issues (production optimized)
+    if (duration > 5000) { // Only log very slow requests (>5s)
+      console.warn(`[PERFORMANCE] CRITICAL_SLOW: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`);
     }
 
-    if (memoryDiff > 10 * 1024 * 1024) { // Log memory-intensive requests (>10MB)
-      console.warn(`[PERFORMANCE] MEMORY_INTENSIVE: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
+    if (memoryDiff > 50 * 1024 * 1024) { // Only log very memory-intensive requests (>50MB)
+      console.warn(`[PERFORMANCE] CRITICAL_MEMORY: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
     }
 
     // Add performance headers only if headers haven't been sent
