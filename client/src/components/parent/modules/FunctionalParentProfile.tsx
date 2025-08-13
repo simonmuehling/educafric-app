@@ -127,7 +127,7 @@ const FunctionalParentProfile: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Mon Profil Parent',
+      title: 'Paramètres Parent',
       subtitle: 'Gérez vos informations personnelles et préférences',
       personalInfo: 'Informations Personnelles',
       preferences: 'Préférences',
@@ -160,7 +160,7 @@ const FunctionalParentProfile: React.FC = () => {
       loading: 'Chargement du profil...'
     },
     en: {
-      title: 'My Parent Profile',
+      title: 'Parent Settings',
       subtitle: 'Manage your personal information and preferences',
       personalInfo: 'Personal Information',
       preferences: 'Preferences',

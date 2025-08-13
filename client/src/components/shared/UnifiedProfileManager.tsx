@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save, MessageSquare, BarChart3, CheckSquare, Trash2 } from 'lucide-react';
+import { User, Shield, Bell, Phone, Mail, MapPin, Calendar, Save, MessageSquare, BarChart3, CheckSquare, Trash2, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { EMAIL_CATEGORIES, EMAIL_FREQUENCY_OPTIONS, type EmailPreferences, type UpdateEmailPreferences } from '@shared/emailPreferencesSchema';
 import MobileIconTabNavigation from './MobileIconTabNavigation';
 
 interface UnifiedProfileManagerProps {
@@ -67,19 +72,78 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     generalAnnouncements: true
   });
 
+  // Email preferences state
+  const [emailPreferences, setEmailPreferences] = useState<Partial<EmailPreferences>>({});
+  const [hasEmailChanges, setHasEmailChanges] = useState(false);
+
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  // Fetch email preferences
+  const { data: emailPrefs, isLoading: emailPrefsLoading } = useQuery({
+    queryKey: ['/api/email-preferences'],
+    retry: false,
+  });
+
+  // Update email preferences mutation
+  const updateEmailPreferencesMutation = useMutation({
+    mutationFn: async (updates: UpdateEmailPreferences) => {
+      return apiRequest('/api/email-preferences', 'PATCH', updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email-preferences'] });
+      setHasEmailChanges(false);
+      toast({
+        title: language === 'fr' ? 'Préférences sauvegardées' : 'Preferences saved',
+        description: language === 'fr' ? 'Vos préférences email ont été mises à jour.' : 'Your email preferences have been updated.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de sauvegarder les préférences.' : 'Failed to save preferences.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Load email preferences when data is available
+  useEffect(() => {
+    if (emailPrefs) {
+      setEmailPreferences(emailPrefs);
+    }
+  }, [emailPrefs]);
+
+  // Email preferences functions
+  const updateEmailPreference = (field: keyof EmailPreferences, value: any) => {
+    setEmailPreferences(prev => ({ ...prev, [field]: value }));
+    setHasEmailChanges(true);
+  };
+
+  const handleEmailSave = () => {
+    updateEmailPreferencesMutation.mutate(emailPreferences);
+  };
+
+  const toggleEmailCategory = (categoryFields: readonly string[], enabled: boolean) => {
+    const updates: Partial<EmailPreferences> = {};
+    categoryFields.forEach(field => {
+      updates[field as keyof EmailPreferences] = enabled;
+    });
+    setEmailPreferences(prev => ({ ...prev, ...updates }));
+    setHasEmailChanges(true);
+  };
 
   const text = {
     fr: {
       title: {
-        teacher: 'Profil Enseignant',
-        student: 'Profil Élève', 
-        parent: 'Profil Parent'
+        teacher: 'Paramètres Enseignant',
+        student: 'Paramètres Élève', 
+        parent: 'Paramètres Parent'
       },
       subtitle: 'Gérez vos informations personnelles et paramètres',
       profile: 'Profil',
       security: 'Sécurité',
       notifications: 'Notifications',
+      emailPreferences: 'Préférences Email',
       firstName: 'Prénom',
       lastName: 'Nom',
       email: 'Email',
@@ -108,14 +172,15 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     },
     en: {
       title: {
-        teacher: 'Teacher Profile',
-        student: 'Student Profile',
-        parent: 'Parent Profile'
+        teacher: 'Teacher Settings',
+        student: 'Student Settings',
+        parent: 'Parent Settings'
       },
       subtitle: 'Manage your personal information and settings',
       profile: 'Profile',
       security: 'Security',
       notifications: 'Notifications',
+      emailPreferences: 'Email Preferences',
       firstName: 'First Name',
       lastName: 'Last Name',
       email: 'Email',
@@ -149,7 +214,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
   const tabConfig = [
     { value: 'profile', label: t.profile, icon: User },
     { value: 'security', label: t.security, icon: Shield },
-    { value: 'notifications', label: t.notifications, icon: Bell }
+    { value: 'notifications', label: t.notifications, icon: Bell },
+    { value: 'email-preferences', label: t.emailPreferences, icon: Mail }
   ];
 
   const handleProfileSave = async () => {
@@ -782,6 +848,227 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                 <Bell className="w-4 h-4 mr-2" />
                 {t.save}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Email Preferences Tab */}
+        <TabsContent value="email-preferences">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                {language === 'fr' ? 'Préférences Email' : 'Email Preferences'}
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                {language === 'fr' ? 'Gérez les emails que vous souhaitez recevoir d\'EDUCAFRIC' : 'Manage which emails you want to receive from EDUCAFRIC'}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {emailPrefsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">
+                    {language === 'fr' ? 'Chargement...' : 'Loading...'}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Master Toggle */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-blue-900">
+                          {language === 'fr' ? 'Recevoir tous les emails' : 'Receive all emails'}
+                        </h3>
+                        <p className="text-sm text-blue-700">
+                          {language === 'fr' ? 'Désactiver complètement les emails (sauf sécurité)' : 'Completely disable emails (except security)'}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={emailPreferences.allowEmails !== false}
+                        onCheckedChange={(checked) => updateEmailPreference('allowEmails', checked)}
+                        className="data-[state=checked]:bg-blue-600"
+                        data-testid="switch-allow-emails"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Categories */}
+                  {EMAIL_CATEGORIES.map((category) => (
+                    <div key={category.id} className="space-y-3">
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-white">
+                            {category.id === 'ESSENTIAL' && <Shield className="w-5 h-5 text-red-600" />}
+                            {category.id === 'ACADEMIC' && <User className="w-5 h-5 text-blue-600" />}
+                            {category.id === 'SAFETY' && <MapPin className="w-5 h-5 text-orange-600" />}
+                            {category.id === 'COMMUNICATION' && <MessageSquare className="w-5 h-5 text-green-600" />}
+                            {category.id === 'FINANCIAL' && <BarChart3 className="w-5 h-5 text-yellow-600" />}
+                            {category.id === 'PLATFORM' && <Settings className="w-5 h-5 text-purple-600" />}
+                            {category.id === 'ACCOUNT' && <User className="w-5 h-5 text-gray-600" />}
+                            {category.id === 'WELCOME' && <Calendar className="w-5 h-5 text-pink-600" />}
+                            {category.id === 'MARKETING' && <Mail className="w-5 h-5 text-indigo-600" />}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">
+                              {category.name[language as keyof typeof category.name]}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {category.description[language as keyof typeof category.description]}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {category.mandatory && (
+                            <Badge variant="secondary" className="text-xs">
+                              {language === 'fr' ? 'Essentiel' : 'Essential'}
+                            </Badge>
+                          )}
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toggleEmailCategory(category.fields, true)}
+                              className="text-xs px-2"
+                              data-testid={`button-enable-${category.id.toLowerCase()}`}
+                            >
+                              {language === 'fr' ? 'Tout activer' : 'Enable all'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toggleEmailCategory(category.fields, false)}
+                              className="text-xs px-2"
+                              disabled={category.mandatory}
+                              data-testid={`button-disable-${category.id.toLowerCase()}`}
+                            >
+                              {language === 'fr' ? 'Tout désactiver' : 'Disable all'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Individual Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4">
+                        {category.fields.map((field) => (
+                          <div key={field} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <span className="text-sm capitalize">
+                              {field.replace(/([A-Z])/g, ' $1').trim()}
+                            </span>
+                            <Switch
+                              checked={emailPreferences[field as keyof EmailPreferences] !== false}
+                              onCheckedChange={(checked) => updateEmailPreference(field as keyof EmailPreferences, checked)}
+                              disabled={category.mandatory}
+                              className="data-[state=checked]:bg-green-600"
+                              data-testid={`switch-${field.toLowerCase().replace(/([A-Z])/g, '-$1')}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Global Settings */}
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-lg">
+                      {language === 'fr' ? 'Paramètres globaux' : 'Global Settings'}
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="emailFrequency">
+                          {language === 'fr' ? 'Fréquence des emails' : 'Email frequency'}
+                        </Label>
+                        <Select
+                          value={emailPreferences.frequency || 'immediate'}
+                          onValueChange={(value) => updateEmailPreference('frequency', value)}
+                        >
+                          <SelectTrigger data-testid="select-email-frequency">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {EMAIL_FREQUENCY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label[language as keyof typeof option.label]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="emailLanguage">
+                          {language === 'fr' ? 'Langue des emails' : 'Email language'}
+                        </Label>
+                        <Select
+                          value={emailPreferences.language || 'fr'}
+                          onValueChange={(value) => updateEmailPreference('language', value)}
+                        >
+                          <SelectTrigger data-testid="select-email-language">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                            <SelectItem value="en">🇬🇧 English</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label>
+                          {language === 'fr' ? 'Format des emails' : 'Email format'}
+                        </Label>
+                        <div className="flex gap-2 mt-2">
+                          <Button
+                            variant={emailPreferences.htmlEmails !== false ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => updateEmailPreference('htmlEmails', true)}
+                            data-testid="button-html-format"
+                          >
+                            {language === 'fr' ? 'HTML' : 'HTML'}
+                          </Button>
+                          <Button
+                            variant={emailPreferences.htmlEmails === false ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => updateEmailPreference('htmlEmails', false)}
+                            data-testid="button-text-format"
+                          >
+                            {language === 'fr' ? 'Texte' : 'Text'}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  {hasEmailChanges && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Settings className="w-5 h-5 text-yellow-600" />
+                          <span className="font-medium text-yellow-800">
+                            {language === 'fr' ? 'Modifications non sauvegardées' : 'Unsaved changes'}
+                          </span>
+                        </div>
+                        <Button
+                          onClick={handleEmailSave}
+                          disabled={updateEmailPreferencesMutation.isPending}
+                          className="bg-blue-600 hover:bg-blue-700"
+                          data-testid="button-save-email-preferences"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {updateEmailPreferencesMutation.isPending 
+                            ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...') 
+                            : (language === 'fr' ? 'Sauvegarder' : 'Save')
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

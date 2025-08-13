@@ -225,39 +225,10 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     },
     {
       id: 'profile',
-      label: 'PROFIL',
+      label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
       component: <ParentProfile />
-    },
-    {
-      id: 'email-settings',
-      label: language === 'fr' ? 'Préférences Email' : 'Email Settings',
-      icon: <Mail className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: (
-        <div className="p-6">
-          <div className="text-center">
-            <Mail className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              {language === 'fr' ? 'Gérez vos préférences email' : 'Manage your email preferences'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              {language === 'fr' 
-                ? 'Configurez quels emails vous souhaitez recevoir'
-                : 'Configure which emails you want to receive'
-              }
-            </p>
-            <button 
-              onClick={() => window.location.href = '/profile-settings'}
-              className="bg-indigo-500 text-white px-6 py-2 rounded-lg hover:bg-indigo-600 transition-colors"
-              data-testid="button-open-email-settings"
-            >
-              {language === 'fr' ? 'Ouvrir les paramètres' : 'Open Settings'}
-            </button>
-          </div>
-        </div>
-      )
     },
     {
       id: 'multirole',
