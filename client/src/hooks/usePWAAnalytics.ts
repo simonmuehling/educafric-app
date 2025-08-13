@@ -129,13 +129,19 @@ export const usePWAAnalytics = () => {
 
   });
 
-  // Auto-detect and track PWA usage
+  // Auto-detect and track PWA usage - with render loop prevention
   const autoTrackPWAUsage = useCallback((userId?: number) => {
     try {
       // Skip tracking for sandbox users
       if (isSandboxUser) {
         console.log('[PWA_ANALYTICS] Skipping auto-tracking for sandbox user');
         return;
+      }
+
+      // Prevent render loop - only track once per session
+      const sessionKey = 'pwa_analytics_tracked';
+      if (typeof window !== 'undefined' && window.sessionStorage?.getItem(sessionKey)) {
+        return; // Already tracked this session
       }
       // Detect if running as PWA
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
@@ -161,42 +167,55 @@ export const usePWAAnalytics = () => {
         pushPermissionGranted = Notification.permission === 'granted';
       }
 
-      // Generate session ID
+      // Generate unique session ID for analytics
       const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Track the session
-      trackSession.mutate({
-        userId,
-        sessionId,
-        accessMethod,
-        deviceType,
-        userAgent,
-        isStandalone,
-        isPwaInstalled,
-        pushPermissionGranted,
-      });
+      // Mark this session as tracked to prevent loops
+      if (typeof window !== 'undefined') {
+        window.sessionStorage?.setItem(sessionKey, sessionId);
+      }
 
-      // Listen for PWA installation
-      window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('[PWA_ANALYTICS] PWA installation prompt shown');
-        // This event fires when PWA is installable
-      });
-
-      // Listen for app installed event
-      window.addEventListener('appinstalled', () => {
-        console.log('[PWA_ANALYTICS] PWA installed by user');
-        trackInstallation.mutate({
-          deviceType,
-          userAgent,
-        });
-      });
-
+      // Auto-track session data
       console.log('[PWA_ANALYTICS] Auto-tracking initialized:', {
         accessMethod,
         deviceType,
         isStandalone,
-        isPwaInstalled,
+        isPwaInstalled
       });
+
+      // Execute tracking with retry logic using deduplication
+      const trackingKey = `auto-track-${sessionId}`;
+      fetchOnce(trackingKey, async () => {
+        return trackSession.mutateAsync({
+          userId,
+          sessionId,
+          accessMethod,
+          deviceType: deviceType,
+          userAgent,
+          isStandalone,
+          isPwaInstalled,
+          pushPermissionGranted
+        });
+      }).catch(error => {
+        console.log('[PWA_ANALYTICS] Auto-tracking failed silently:', error);
+      });
+
+      // Listen for PWA installation (only once per session)
+      if (!window.sessionStorage?.getItem('pwa_listeners_added')) {
+        window.addEventListener('beforeinstallprompt', (e) => {
+          console.log('[PWA_ANALYTICS] PWA installation prompt shown');
+        });
+
+        window.addEventListener('appinstalled', () => {
+          console.log('[PWA_ANALYTICS] PWA installed by user');
+          trackInstallation.mutate({
+            deviceType,
+            userAgent,
+          });
+        });
+
+        window.sessionStorage?.setItem('pwa_listeners_added', 'true');
+      }
 
     } catch (error) {
       console.error('[PWA_ANALYTICS] Auto-tracking failed:', error);
