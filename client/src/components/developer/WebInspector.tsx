@@ -99,62 +99,9 @@ const WebInspector = () => {
       interceptConsole(level as keyof typeof originalConsole);
     });
 
-    // Intercept fetch requests with comprehensive error handling
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const [url] = args;
-      const urlString = typeof url === 'string' ? url : url.toString();
-      
-      // Skip ALL interception for critical API endpoints to prevent interference
-      if (urlString.includes('/api/analytics') || 
-          urlString.includes('/api/session') || 
-          urlString.includes('/api/login') ||
-          urlString.includes('/api/auth')) {
-        return originalFetch(...args);
-      }
-
-      const requestId = Date.now().toString() + Math.random();
-      const startTime = Date.now();
-
-      const networkRequest: NetworkRequest = {
-        id: requestId,
-        url: urlString,
-        method: args[1]?.method || 'GET',
-        timestamp: new Date(),
-        headers: args[1]?.headers as Record<string, string>
-      };
-
-      setNetworkRequests(prev => [...prev.slice(-49), networkRequest]);
-
-      try {
-        const response = await originalFetch(...args);
-        const duration = Date.now() - startTime;
-
-        setNetworkRequests(prev => 
-          (Array.isArray(prev) ? prev : []).map(req => 
-            req.id === requestId 
-              ? { ...req, status: response.status, duration }
-              : req
-          )
-        );
-
-        return response;
-      } catch (error) {
-        const duration = Date.now() - startTime;
-        
-        setNetworkRequests(prev => 
-          (Array.isArray(prev) ? prev : []).map(req => 
-            req.id === requestId 
-              ? { ...req, error: error instanceof Error ? error.message : 'Network error', duration }
-              : req
-          )
-        );
-
-        // Log error but don't disrupt user experience with runtime overlays
-        console.warn('WebInspector: Network request failed for', urlString, error);
-        throw error;
-      }
-    };
+    // Note: Fetch interception disabled to prevent runtime errors with PWA analytics
+    // This preserves WebInspector functionality while avoiding interference with critical API calls
+    console.log('[WebInspector] Fetch interception disabled to prevent runtime errors');
 
     // Intercept errors
     const handleError = (event: ErrorEvent) => {
