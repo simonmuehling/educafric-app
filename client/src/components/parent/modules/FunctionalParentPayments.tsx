@@ -349,7 +349,10 @@ const FunctionalParentPayments: React.FC = () => {
 
   const isOverdue = (dueDate: string, status: string) => {
     if (status === 'paid') return false;
-    return new Date(dueDate) < new Date();
+    if (!dueDate) return false;
+    const due = new Date(dueDate);
+    if (isNaN(due.getTime())) return false;
+    return due < new Date();
   };
 
   const handleCreatePayment = async (e: React.FormEvent) => {

@@ -205,7 +205,8 @@ const FunctionalParentChildren: React.FC = () => {
     );
   };
 
-  const getGradeColor = (grade: number) => {
+  const getGradeColor = (grade: number | undefined | null) => {
+    if (!grade || isNaN(grade)) return 'text-gray-500';
     if (grade >= 16) return 'text-green-600';
     if (grade >= 12) return 'text-blue-600';
     if (grade >= 10) return 'text-orange-600';

@@ -235,19 +235,24 @@ const FunctionalParentAttendance: React.FC = () => {
     const now = new Date();
     let matchesDateRange = true;
     
-    switch (dateRange) {
-      case 'week':
-        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        matchesDateRange = recordDate >= weekAgo;
-        break;
-      case 'month':
-        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        matchesDateRange = recordDate >= monthAgo;
-        break;
-      case 'term':
-        const termStart = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        matchesDateRange = recordDate >= termStart;
-        break;
+    // Ensure recordDate is valid before comparing
+    if (!recordDate || isNaN(recordDate.getTime())) {
+      matchesDateRange = false;
+    } else {
+      switch (dateRange) {
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDateRange = recordDate >= weekAgo;
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          matchesDateRange = recordDate >= monthAgo;
+          break;
+        case 'term':
+          const termStart = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          matchesDateRange = recordDate >= termStart;
+          break;
+      }
     }
     
     return matchesStudent && matchesStatus && matchesDateRange;

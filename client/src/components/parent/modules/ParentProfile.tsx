@@ -1,12 +1,14 @@
 import React from 'react';
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 
-const ParentProfile = () => {
+const ParentProfile: React.FC = () => {
   return (
-    <UnifiedProfileManager 
-      userType="parent"
-      showPhotoUpload={true} // Photos autorisées pour les parents
-    />
+    <div className="p-4">
+      <UnifiedProfileManager 
+        userType="parent"
+        showPhotoUpload={true} // Photos autorisées pour les parents
+      />
+    </div>
   );
 };
 

@@ -60,7 +60,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       title: 'Tableau de Bord Parent',
       subtitle: 'Suivi complet de l\'éducation de vos enfants',
       overview: 'Aperçu',
-      settings: 'Profil',
+      settings: 'Paramètres Parent',
       myChildren: 'Mes Enfants',
       timetable: 'Emploi du Temps',
       results: 'Résultats',
@@ -77,7 +77,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       title: 'Parent Dashboard',
       subtitle: 'Complete educational monitoring for your children',
       overview: 'Overview',
-      settings: 'Profile',
+      settings: 'Parent Settings',
       myChildren: 'My Children',
       timetable: 'Timetable',
       results: 'Results',
@@ -214,7 +214,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Parent" userId={1} />
+      component: <NotificationCenter userRole="Parent" />
     },
     {
       id: 'requests',

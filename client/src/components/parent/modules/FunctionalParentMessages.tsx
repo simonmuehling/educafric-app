@@ -242,14 +242,15 @@ const FunctionalParentMessages: React.FC = () => {
 
   // Filter and search messages
   const filteredMessages = (Array.isArray(messages) ? messages : []).filter(message => {
-    if (!message) return false;
+    if (!message || typeof message !== 'object') return false;
     const matchesFilter = selectedFilter === 'all' || 
                          (selectedFilter === 'unread' && message.status === 'unread') ||
                          (selectedFilter === 'urgent' && message.priority === 'high') ||
                          message.category === selectedFilter;
-    const matchesSearch = message?.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         message?.senderName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         message?.childName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchTermLower = searchTerm.toLowerCase();
+    const matchesSearch = (message.subject && message.subject.toLowerCase().includes(searchTermLower)) ||
+                         (message.senderName && message.senderName.toLowerCase().includes(searchTermLower)) ||
+                         (message.childName && message.childName.toLowerCase().includes(searchTermLower));
     return matchesFilter && matchesSearch;
   });
 
