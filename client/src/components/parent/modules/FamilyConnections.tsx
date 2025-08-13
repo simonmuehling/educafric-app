@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { 
   MessageCircle, Users, Send, 
   Plus, Heart, Shield, Lock, MapPin, Camera,
-  UserPlus, Clock, CheckCheck
+  UserPlus, Clock, CheckCheck, Mail, Phone
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -49,7 +49,8 @@ const FamilyConnections: React.FC = () => {
   const [selectedConnection, setSelectedConnection] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [showAddConnection, setShowAddConnection] = useState(false);
-  const [childEmail, setChildEmail] = useState('');
+  const [childEmailOrPhone, setChildEmailOrPhone] = useState('');
+  const [searchType, setSearchType] = useState<'email' | 'phone'>('email');
 
   // Fetch family connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<FamilyConnection[]>({
@@ -65,12 +66,12 @@ const FamilyConnections: React.FC = () => {
 
   // Create new connection mutation
   const createConnectionMutation = useMutation({
-    mutationFn: async (data: { childEmail: string }) => {
+    mutationFn: async (data: { childEmail?: string; childPhone?: string }) => {
       return apiRequest('/api/family/connections', 'POST', data);
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/family/connections'] });
-      setChildEmail('');
+      setChildEmailOrPhone('');
       setShowAddConnection(false);
       toast({
         title: 'Connexion créée',
@@ -109,16 +110,22 @@ const FamilyConnections: React.FC = () => {
   });
 
   const handleCreateConnection = () => {
-    if (!childEmail.trim()) {
+    if (!childEmailOrPhone.trim()) {
       toast({
-        title: 'Email requis',
-        description: 'Veuillez saisir l\'email de votre enfant',
+        title: searchType === 'email' ? 'Email requis' : 'Téléphone requis',
+        description: searchType === 'email' 
+          ? 'Veuillez saisir l\'email de votre enfant'
+          : 'Veuillez saisir le numéro de téléphone de votre enfant',
         variant: 'destructive'
       });
       return;
     }
 
-    createConnectionMutation.mutate({ childEmail });
+    const data = searchType === 'email' 
+      ? { childEmail: childEmailOrPhone }
+      : { childPhone: childEmailOrPhone };
+    
+    createConnectionMutation.mutate(data);
   };
 
   const handleSendMessage = () => {
@@ -144,6 +151,10 @@ const FamilyConnections: React.FC = () => {
       subtitle: 'Communication directe avec vos enfants',
       addConnection: 'Nouvelle connexion',
       childEmail: 'Email de votre enfant',
+      childPhone: 'Téléphone de votre enfant',
+      searchBy: 'Rechercher par',
+      email: 'Email',
+      phone: 'Téléphone',
       create: 'Créer',
       cancel: 'Annuler',
       noConnections: 'Aucune connexion',
@@ -163,6 +174,10 @@ const FamilyConnections: React.FC = () => {
       subtitle: 'Direct communication with your children',
       addConnection: 'New connection',
       childEmail: 'Your child\'s email',
+      childPhone: 'Your child\'s phone',
+      searchBy: 'Search by',
+      email: 'Email',
+      phone: 'Phone',
       create: 'Create',
       cancel: 'Cancel',
       noConnections: 'No connections',
@@ -225,13 +240,38 @@ const FamilyConnections: React.FC = () => {
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                {t.childEmail}
+                {t.searchBy}
+              </label>
+              <div className="flex gap-2 mb-3">
+                <Button
+                  variant={searchType === 'email' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchType('email')}
+                  className="flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  {t.email}
+                </Button>
+                <Button
+                  variant={searchType === 'phone' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchType('phone')}
+                  className="flex items-center gap-2"
+                >
+                  <Phone className="w-4 h-4" />
+                  {t.phone}
+                </Button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {searchType === 'email' ? t.childEmail : t.childPhone}
               </label>
               <Input
-                type="email"
-                value={childEmail}
-                onChange={(e) => setChildEmail(e.target.value)}
-                placeholder="enfant@example.com"
+                type={searchType === 'email' ? 'email' : 'tel'}
+                value={childEmailOrPhone}
+                onChange={(e) => setChildEmailOrPhone(e.target.value)}
+                placeholder={searchType === 'email' ? 'enfant@example.com' : '+237 XXX XXX XXX'}
                 className="w-full"
               />
             </div>
@@ -247,7 +287,7 @@ const FamilyConnections: React.FC = () => {
                 variant="outline"
                 onClick={() => {
                   setShowAddConnection(false);
-                  setChildEmail('');
+                  setChildEmailOrPhone('');
                 }}
               >
                 {t.cancel}

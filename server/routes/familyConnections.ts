@@ -14,7 +14,10 @@ const requireAuth = (req: any, res: any, next: any) => {
 
 // Schema de validation pour la création d'une connexion
 const createConnectionSchema = z.object({
-  childEmail: z.string().email('Email invalide')
+  childEmail: z.string().email('Email invalide').optional(),
+  childPhone: z.string().min(10, 'Numéro de téléphone invalide').optional()
+}).refine(data => data.childEmail || data.childPhone, {
+  message: 'Email ou numéro de téléphone requis'
 });
 
 // Schema de validation pour l'envoi de message
@@ -66,13 +69,14 @@ router.post('/connections', requireAuth, async (req: any, res: any) => {
       });
     }
 
-    const { childEmail } = validationResult.data;
+    const { childEmail, childPhone } = validationResult.data;
 
-    console.log('[FAMILY_CONNECTIONS] Creating connection:', { parentId: userId, childEmail });
+    console.log('[FAMILY_CONNECTIONS] Creating connection:', { parentId: userId, childEmail, childPhone });
 
     const connection = await storage.createFamilyConnection({
       parentId: userId,
-      childEmail
+      childEmail,
+      childPhone
     });
 
     res.status(201).json({

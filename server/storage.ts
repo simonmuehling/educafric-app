@@ -1109,19 +1109,30 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createFamilyConnection(data: { parentId: number; childEmail: string }): Promise<any> {
+  async createFamilyConnection(data: { parentId: number; childEmail?: string; childPhone?: string }): Promise<any> {
     try {
       console.log('[STORAGE] Creating family connection:', data);
       
-      // Find child by email
-      const [child] = await db.select().from(users).where(eq(users.email, data.childEmail));
+      let child;
       
-      if (!child) {
-        throw new Error('Child not found with this email address');
+      // Find child by email or phone
+      if (data.childEmail) {
+        [child] = await db.select().from(users).where(eq(users.email, data.childEmail));
+        if (!child) {
+          throw new Error('Child not found with this email address');
+        }
+      } else if (data.childPhone) {
+        [child] = await db.select().from(users).where(eq(users.phone, data.childPhone));
+        if (!child) {
+          throw new Error('Child not found with this phone number');
+        }
+      } else {
+        throw new Error('Either email or phone number is required');
       }
 
       if (child.role !== 'Student') {
-        throw new Error('Email address does not belong to a student');
+        const searchMethod = data.childEmail ? 'Email address' : 'Phone number';
+        throw new Error(`${searchMethod} does not belong to a student`);
       }
 
       // Check if connection already exists
