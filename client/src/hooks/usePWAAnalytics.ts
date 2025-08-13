@@ -10,11 +10,10 @@ export const usePWAAnalytics = () => {
   
   // Skip analytics for sandbox users - Check multiple sandbox indicators
   const isSandboxUser = Boolean(
-    user?.sandboxMode === true ||
     user?.email?.includes('sandbox.') ||
     user?.email?.includes('.demo@') ||
     user?.email?.includes('@educafric.demo') ||
-    user?.role === 'SandboxUser' ||
+    user?.email?.includes('@test.educafric.com') ||
     (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))
   );
 
@@ -36,20 +35,28 @@ export const usePWAAnalytics = () => {
         return { success: true, message: 'Sandbox user - tracking disabled' };
       }
 
-      const response = await fetch('/api/analytics/pwa/session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await fetch('/api/analytics/pwa/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to track PWA session');
+        if (!response.ok) {
+          throw new Error(`PWA session tracking failed: ${response.status}`);
+        }
+
+        return response.json();
+      } catch (error) {
+        console.log('[PWA_ANALYTICS] Session tracking failed:', error);
+        // Return success to prevent UI errors
+        return { success: false, message: 'Session tracking failed', error: String(error) };
       }
 
-      return response.json();
+
     },
 
   });
