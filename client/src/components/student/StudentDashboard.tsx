@@ -21,6 +21,7 @@ import HelpCenter from '@/components/help/HelpCenter';
 import StudentProfile from './modules/StudentProfile';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
+import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 import ChildParentConnection from './ChildParentConnection';
 
@@ -176,10 +177,10 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     },
     {
       id: 'profile',
-      label: 'PROFIL',
+      label: language === 'fr' ? 'Paramètres Étudiant' : 'Student Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <StudentProfile />
+      component: <UnifiedProfileManager userType="student" showPhotoUpload={true} />
     },
     {
       id: 'help',

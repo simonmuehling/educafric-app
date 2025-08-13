@@ -72,8 +72,49 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     generalAnnouncements: true
   });
 
-  // Email preferences state
+  // Email preferences state with proper initialization
   const [emailPreferences, setEmailPreferences] = useState<Partial<EmailPreferences>>({});
+  
+  // Initialize email preferences with defaults
+  const initializeEmailPreferences = (userRole: string) => {
+    return {
+      allEmailsEnabled: true,
+      emailFrequency: 'immediate',
+      emailLanguage: 'fr',
+      htmlEmails: true,
+      // Essential (always enabled)
+      passwordResetEmails: true,
+      accountDeletionEmails: true,
+      emergencyNotifications: true,
+      loginAttempts: true,
+      profileChanges: true,
+      // Add other defaults based on role
+      ...(userRole === 'Parent' && {
+        weeklyProgressReports: true,
+        gradeNotifications: true,
+        attendanceAlerts: true,
+        parentTeacherMessages: true,
+        schoolAnnouncements: true,
+        eventInvitations: true
+      }),
+      ...(userRole === 'Teacher' && {
+        weeklyProgressReports: false,
+        gradeNotifications: false,
+        attendanceAlerts: true,
+        parentTeacherMessages: true,
+        schoolAnnouncements: true,
+        systemMaintenance: true
+      }),
+      ...(userRole === 'Student' && {
+        weeklyProgressReports: true,
+        gradeNotifications: true,
+        attendanceAlerts: false,
+        parentTeacherMessages: false,
+        schoolAnnouncements: true,
+        eventInvitations: true
+      })
+    };
+  };
   const [hasEmailChanges, setHasEmailChanges] = useState(false);
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -886,8 +927,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                         </p>
                       </div>
                       <Switch
-                        checked={emailPreferences.allowEmails !== false}
-                        onCheckedChange={(checked) => updateEmailPreference('allowEmails', checked)}
+                        checked={emailPreferences.allEmailsEnabled !== false}
+                        onCheckedChange={(checked) => updateEmailPreference('allEmailsEnabled', checked)}
                         className="data-[state=checked]:bg-blue-600"
                         data-testid="switch-allow-emails"
                       />
@@ -984,8 +1025,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                           {language === 'fr' ? 'Fréquence des emails' : 'Email frequency'}
                         </Label>
                         <Select
-                          value={emailPreferences.frequency || 'immediate'}
-                          onValueChange={(value) => updateEmailPreference('frequency', value)}
+                          value={emailPreferences.emailFrequency || 'immediate'}
+                          onValueChange={(value) => updateEmailPreference('emailFrequency', value)}
                         >
                           <SelectTrigger data-testid="select-email-frequency">
                             <SelectValue />
@@ -1005,8 +1046,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                           {language === 'fr' ? 'Langue des emails' : 'Email language'}
                         </Label>
                         <Select
-                          value={emailPreferences.language || 'fr'}
-                          onValueChange={(value) => updateEmailPreference('language', value)}
+                          value={emailPreferences.emailLanguage || 'fr'}
+                          onValueChange={(value) => updateEmailPreference('emailLanguage', value)}
                         >
                           <SelectTrigger data-testid="select-email-language">
                             <SelectValue />
