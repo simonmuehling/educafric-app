@@ -99,14 +99,17 @@ const WebInspector = () => {
       interceptConsole(level as keyof typeof originalConsole);
     });
 
-    // Intercept fetch requests with proper error handling
+    // Intercept fetch requests with comprehensive error handling
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
-      // Skip interception for PWA analytics to prevent interference
       const [url] = args;
       const urlString = typeof url === 'string' ? url : url.toString();
       
-      if (urlString.includes('/api/analytics/pwa')) {
+      // Skip ALL interception for critical API endpoints to prevent interference
+      if (urlString.includes('/api/analytics') || 
+          urlString.includes('/api/session') || 
+          urlString.includes('/api/login') ||
+          urlString.includes('/api/auth')) {
         return originalFetch(...args);
       }
 
@@ -147,16 +150,8 @@ const WebInspector = () => {
           )
         );
 
-        // Don't re-throw errors for PWA analytics tracking to prevent UI disruption
-        if (urlString.includes('/api/analytics') || urlString.includes('/api/session')) {
-          console.warn('Network request failed:', error);
-          return new Response(JSON.stringify({ error: 'Network failed' }), { 
-            status: 500, 
-            statusText: 'Internal Server Error',
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-
+        // Log error but don't disrupt user experience with runtime overlays
+        console.warn('WebInspector: Network request failed for', urlString, error);
         throw error;
       }
     };
