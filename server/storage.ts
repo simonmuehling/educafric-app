@@ -14,13 +14,18 @@ import {
   type Notification, type InsertNotification,
   type EmailPreferences, type InsertEmailPreferences, type UpdateEmailPreferences,
   users, schools, classes, subjects, grades, attendance,
-  homework, payments, messages, notifications, teacherAbsences, parentRequests, emailPreferences
+  homework, payments, messages, notifications, teacherAbsences, parentRequests, emailPreferences, pwaAnalytics
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count, sql, or, lt, gte, lte, ne, inArray } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 
 export interface IStorage {
+  // ===== PWA ANALYTICS INTERFACE =====
+  trackPwaSession(data: any): Promise<any>;
+  getPwaUserStatistics(): Promise<any>;
+  updateUserAccessMethod(userId: number, accessMethod: string, isPwaInstalled: boolean): Promise<void>;
+
   // ===== DELEGATE ADMINISTRATORS INTERFACE =====
   getDelegateAdministrators(schoolId: number): Promise<any[]>;
   addDelegateAdministrator(data: { teacherId: number; schoolId: number; adminLevel: string; assignedBy: number }): Promise<any>;
@@ -1392,6 +1397,147 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[STORAGE] getGradeStatsByClass error:', error);
       return {};
+    }
+  }
+
+  // ===== PWA ANALYTICS IMPLEMENTATION =====
+  async trackPwaSession(data: any): Promise<any> {
+    try {
+      const sessionData = {
+        userId: data.userId || null,
+        sessionId: data.sessionId,
+        accessMethod: data.accessMethod || 'web',
+        deviceType: data.deviceType || 'unknown',
+        userAgent: data.userAgent || null,
+        isStandalone: data.isStandalone || false,
+        isPwaInstalled: data.isPwaInstalled || false,
+        pushPermissionGranted: data.pushPermissionGranted || false,
+        ipAddress: data.ipAddress || null,
+        country: data.country || null,
+        city: data.city || null
+      };
+
+      // Insert into database
+      const result = await db.insert(pwaAnalytics).values(sessionData).returning();
+      
+      console.log('[STORAGE] PWA session saved to database:', sessionData.sessionId, sessionData.accessMethod);
+      return result[0];
+    } catch (error) {
+      console.error('[STORAGE] trackPwaSession database error:', error);
+      // Log the session even if database fails
+      console.log('[STORAGE] Tracking PWA session:', data.sessionId, data.accessMethod);
+      throw error;
+    }
+  }
+
+  async updateUserAccessMethod(userId: number, accessMethod: string, isPwaInstalled: boolean = false): Promise<void> {
+    try {
+      await db
+        .update(users)
+        .set({
+          accessMethod,
+          isPwaUser: accessMethod === 'pwa',
+          lastPwaAccess: accessMethod === 'pwa' ? new Date() : undefined,
+          pwaInstallDate: isPwaInstalled && accessMethod === 'pwa' ? new Date() : undefined,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      console.log(`[STORAGE] Updated user ${userId} access method to: ${accessMethod}`);
+    } catch (error) {
+      console.error('[STORAGE] updateUserAccessMethod error:', error);
+      throw error;
+    }
+  }
+
+  async getPwaUserStatistics(): Promise<any> {
+    try {
+      // Get total sessions by access method
+      const accessMethodStats = await db
+        .select({
+          accessMethod: pwaAnalytics.accessMethod,
+          count: count()
+        })
+        .from(pwaAnalytics)
+        .groupBy(pwaAnalytics.accessMethod);
+
+      // Get unique users by access method (for last 30 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const userStats = await db
+        .select({
+          accessMethod: users.accessMethod,
+          count: count()
+        })
+        .from(users)
+        .where(
+          and(
+            gte(users.lastLoginAt, thirtyDaysAgo),
+            ne(users.role, 'SiteAdmin') // Exclude admin users from statistics
+          )
+        )
+        .groupBy(users.accessMethod);
+
+      // Get device type distribution
+      const deviceTypeStats = await db
+        .select({
+          type: pwaAnalytics.deviceType,
+          count: count()
+        })
+        .from(pwaAnalytics)
+        .where(gte(pwaAnalytics.createdAt, thirtyDaysAgo))
+        .groupBy(pwaAnalytics.deviceType);
+
+      // Calculate daily PWA access (last 7 days)
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const dailyPwaAccess = await db
+        .select({ count: count() })
+        .from(pwaAnalytics)
+        .where(
+          and(
+            eq(pwaAnalytics.accessMethod, 'pwa'),
+            gte(pwaAnalytics.createdAt, sevenDaysAgo)
+          )
+        );
+
+      // Process statistics
+      const totalPwaUsers = userStats.find(stat => stat.accessMethod === 'pwa')?.count || 0;
+      const totalWebUsers = userStats.find(stat => stat.accessMethod === 'web')?.count || 0;
+      const totalPwaSessions = accessMethodStats.find(stat => stat.accessMethod === 'pwa')?.count || 0;
+      const totalWebSessions = accessMethodStats.find(stat => stat.accessMethod === 'web')?.count || 0;
+
+      const pwaInstallRate = totalPwaUsers > 0 && totalWebUsers > 0 
+        ? ((totalPwaUsers / (totalPwaUsers + totalWebUsers)) * 100) 
+        : 0;
+
+      const stats = {
+        totalPwaUsers: Number(totalPwaUsers),
+        totalWebUsers: Number(totalWebUsers),
+        totalPwaSessions: Number(totalPwaSessions),
+        totalWebSessions: Number(totalWebSessions),
+        dailyPwaAccess: Number(dailyPwaAccess[0]?.count || 0),
+        pwaInstallRate: Math.round(pwaInstallRate * 100) / 100,
+        avgSessionDuration: 0, // Would need session duration calculation
+        topDeviceTypes: deviceTypeStats.map(stat => ({
+          type: stat.type || 'unknown',
+          count: Number(stat.count)
+        }))
+      };
+
+      console.log('[STORAGE] PWA statistics calculated:', stats);
+      return stats;
+    } catch (error) {
+      console.error('[STORAGE] getPwaUserStatistics error:', error);
+      // Return default statistics if database error
+      return {
+        totalPwaUsers: 0,
+        totalWebUsers: 0,
+        totalPwaSessions: 0,
+        totalWebSessions: 0,
+        dailyPwaAccess: 0,
+        pwaInstallRate: 0,
+        avgSessionDuration: 0,
+        topDeviceTypes: []
+      };
     }
   }
 }
