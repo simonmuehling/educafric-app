@@ -62,7 +62,8 @@ import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
-import WebInspector from "@/components/developer/WebInspector";
+// WebInspector disabled to prevent fetch override interference with PWA analytics
+// import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 import RoleBasedDashboard from "@/components/RoleBasedDashboard";
 
@@ -137,8 +138,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
         <InactivityMonitor warningTime={25} logoutTime={30} />
         <InactivityMonitor warningTime={25} logoutTime={30} />
       </div>
-      {/* Web Inspector for debugging */}
-      <WebInspector />
+      {/* WebInspector removed to prevent fetch override interference with PWA analytics */}
       
       {/* Tutorial Overlay */}
       {user && (
