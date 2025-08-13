@@ -13,8 +13,21 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+interface PWAAnalyticsData {
+  totalPwaUsers: number;
+  totalWebUsers: number;
+  dailyPwaAccess: number;
+  pwaInstallRate: number;
+  avgSessionDuration: number;
+  topDeviceTypes: { type: string; count: number }[];
+  lastUpdated: string;
+  installationTrend: string;
+  peakUsageHours: string[];
+  offlineUsagePercent: number;
+}
+
 const PWAAnalyticsDemo: React.FC = () => {
-  const { data: analytics, isLoading, error, refetch } = useQuery({
+  const { data: analytics, isLoading, error, refetch } = useQuery<PWAAnalyticsData>({
     queryKey: ['/api/analytics/pwa'],
     queryFn: async () => {
       const response = await fetch('/api/analytics/pwa', {
@@ -32,15 +45,19 @@ const PWAAnalyticsDemo: React.FC = () => {
       const result = await response.json();
       return result.data;
     },
-    retry: 1,
-    onError: (error: any) => {
+    retry: 1
+  });
+
+  // Handle errors separately with React.useEffect
+  React.useEffect(() => {
+    if (error) {
       toast({
         title: "Erreur",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive"
       });
     }
-  });
+  }, [error]);
 
   if (isLoading) {
     return (

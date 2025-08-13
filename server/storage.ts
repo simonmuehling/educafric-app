@@ -1010,74 +1010,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // ===== PWA ANALYTICS TRACKING IMPLEMENTATION =====
-  async trackPwaSession(data: {
-    userId?: number;
-    sessionId: string;
-    accessMethod: string;
-    deviceType?: string;
-    userAgent?: string;
-    isStandalone?: boolean;
-    isPwaInstalled?: boolean;
-    pushPermissionGranted?: boolean;
-    ipAddress?: string;
-    country?: string;
-    city?: string;
-  }): Promise<void> {
-    try {
-      console.log('[STORAGE] Tracking PWA session:', data.sessionId, data.accessMethod);
-      // In a real implementation, this would save to the database
-    } catch (error) {
-      console.error('[STORAGE] trackPwaSession error:', error);
-    }
-  }
 
-  async updateUserAccessMethod(userId: number, accessMethod: string, isPwaInstalled?: boolean): Promise<void> {
-    try {
-      console.log('[STORAGE] Updating user access method:', userId, accessMethod);
-      // In a real implementation, this would update the users table
-      // with isPwaUser=true, lastPwaAccess=now, accessMethod
-    } catch (error) {
-      console.error('[STORAGE] updateUserAccessMethod error:', error);
-    }
-  }
-
-  async getPwaUserStatistics(): Promise<{
-    totalPwaUsers: number;
-    totalWebUsers: number;
-    dailyPwaAccess: number;
-    pwaInstallRate: number;
-    avgSessionDuration: number;
-    topDeviceTypes: { type: string; count: number }[];
-  }> {
-    try {
-      console.log('[STORAGE] Getting PWA user statistics...');
-      
-      // Mock data for now - would query the database in production
-      return {
-        totalPwaUsers: 45,
-        totalWebUsers: 105,
-        dailyPwaAccess: 23,
-        pwaInstallRate: 0.43, // 43% install rate
-        avgSessionDuration: 1240, // 20.6 minutes average
-        topDeviceTypes: [
-          { type: 'mobile', count: 78 },
-          { type: 'desktop', count: 52 },
-          { type: 'tablet', count: 20 }
-        ]
-      };
-    } catch (error) {
-      console.error('[STORAGE] getPwaUserStatistics error:', error);
-      return {
-        totalPwaUsers: 0,
-        totalWebUsers: 0,
-        dailyPwaAccess: 0,
-        pwaInstallRate: 0,
-        avgSessionDuration: 0,
-        topDeviceTypes: []
-      };
-    }
-  }
 
   // ===== NOTIFICATION MANAGEMENT IMPLEMENTATION =====
   async getUserNotifications(userId: number, userRole?: string): Promise<any[]> {

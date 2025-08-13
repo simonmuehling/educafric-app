@@ -33,10 +33,7 @@ export const usePWAAnalytics = () => {
 
       return response.json();
     },
-    onError: (error) => {
-      console.error('PWA session tracking failed:', error);
-      // Don't show toast for tracking failures to avoid disrupting user experience
-    }
+
   });
 
   // Track PWA installation
@@ -60,15 +57,7 @@ export const usePWAAnalytics = () => {
 
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: "Installation PWA enregistrée",
-        description: "Votre installation PWA a été comptabilisée dans nos statistiques",
-      });
-    },
-    onError: (error) => {
-      console.error('PWA installation tracking failed:', error);
-    }
+
   });
 
   // Auto-detect and track PWA usage
