@@ -1,10 +1,15 @@
 import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 // PWA Analytics Hook for tracking and monitoring
 export const usePWAAnalytics = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  // Skip analytics for sandbox users
+  const isSandboxUser = user?.sandboxMode === true;
 
   // Track PWA session
   const trackSession = useMutation({
@@ -18,6 +23,12 @@ export const usePWAAnalytics = () => {
       isPwaInstalled?: boolean;
       pushPermissionGranted?: boolean;
     }) => {
+      // Skip tracking for sandbox users
+      if (isSandboxUser) {
+        console.log('[PWA_ANALYTICS] Skipping tracking for sandbox user');
+        return { success: true, message: 'Sandbox user - tracking disabled' };
+      }
+
       const response = await fetch('/api/analytics/pwa/session', {
         method: 'POST',
         headers: {
@@ -42,6 +53,12 @@ export const usePWAAnalytics = () => {
       deviceType?: string;
       userAgent?: string;
     }) => {
+      // Skip tracking for sandbox users
+      if (isSandboxUser) {
+        console.log('[PWA_ANALYTICS] Skipping installation tracking for sandbox user');
+        return { success: true, message: 'Sandbox user - tracking disabled' };
+      }
+
       const response = await fetch('/api/analytics/pwa/install', {
         method: 'POST',
         headers: {
@@ -63,6 +80,11 @@ export const usePWAAnalytics = () => {
   // Auto-detect and track PWA usage
   const autoTrackPWAUsage = useCallback((userId?: number) => {
     try {
+      // Skip tracking for sandbox users
+      if (isSandboxUser) {
+        console.log('[PWA_ANALYTICS] Skipping auto-tracking for sandbox user');
+        return;
+      }
       // Detect if running as PWA
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                           (window.navigator as any)?.standalone ||
@@ -127,7 +149,7 @@ export const usePWAAnalytics = () => {
     } catch (error) {
       console.error('[PWA_ANALYTICS] Auto-tracking failed:', error);
     }
-  }, [trackSession, trackInstallation]);
+  }, [trackSession, trackInstallation, isSandboxUser]);
 
   return {
     trackSession,
