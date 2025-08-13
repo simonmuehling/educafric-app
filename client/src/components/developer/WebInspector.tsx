@@ -99,19 +99,26 @@ const WebInspector = () => {
       interceptConsole(level as keyof typeof originalConsole);
     });
 
-    // Intercept fetch requests
+    // Intercept fetch requests with proper error handling
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
-      const [url, options] = args;
+      // Skip interception for PWA analytics to prevent interference
+      const [url] = args;
+      const urlString = typeof url === 'string' ? url : url.toString();
+      
+      if (urlString.includes('/api/analytics/pwa')) {
+        return originalFetch(...args);
+      }
+
       const requestId = Date.now().toString() + Math.random();
       const startTime = Date.now();
 
       const networkRequest: NetworkRequest = {
         id: requestId,
-        url: typeof url === 'string' ? url : url.toString(),
-        method: options?.method || 'GET',
+        url: urlString,
+        method: args[1]?.method || 'GET',
         timestamp: new Date(),
-        headers: options?.headers as Record<string, string>
+        headers: args[1]?.headers as Record<string, string>
       };
 
       setNetworkRequests(prev => [...prev.slice(-49), networkRequest]);
@@ -139,6 +146,16 @@ const WebInspector = () => {
               : req
           )
         );
+
+        // Don't re-throw errors for PWA analytics tracking to prevent UI disruption
+        if (urlString.includes('/api/analytics') || urlString.includes('/api/session')) {
+          console.warn('Network request failed:', error);
+          return new Response(JSON.stringify({ error: 'Network failed' }), { 
+            status: 500, 
+            statusText: 'Internal Server Error',
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
 
         throw error;
       }
