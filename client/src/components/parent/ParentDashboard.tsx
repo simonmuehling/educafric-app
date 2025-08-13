@@ -6,7 +6,7 @@ import {
   Calendar, FileText, Clock, Bell, DollarSign,
   MapPin, Award, Users, Smartphone, User, GraduationCap,
   CheckCircle2, AlertCircle, Target, Star, CreditCard, HelpCircle,
-  ChevronDown, Mail
+  ChevronDown, Mail, Heart
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import ChildrenManagement from './modules/ChildrenManagement';
