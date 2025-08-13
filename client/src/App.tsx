@@ -417,6 +417,32 @@ function FirebaseRedirectHandler() {
 }
 
 function App() {
+  useEffect(() => {
+    // Importer et démarrer l'optimiseur mémoire
+    import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
+      memoryOptimizer.start();
+      memoryOptimizer.optimizeAnimations();
+      
+      if (import.meta.env.DEV) {
+        console.log('[PERFORMANCE] Memory optimizer started');
+        setTimeout(() => {
+          console.log(memoryOptimizer.generatePerformanceReport());
+        }, 5000);
+      }
+    }).catch(error => {
+      if (import.meta.env.DEV) {
+        console.warn('[PERFORMANCE] Memory optimizer not available:', error);
+      }
+    });
+    
+    return () => {
+      // Arrêter l'optimiseur à la fermeture
+      import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
+        memoryOptimizer.stop();
+      }).catch(() => {});
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

@@ -13,19 +13,25 @@ class MemoryOptimizer {
   private performanceMonitor: NodeJS.Timeout | null = null;
   private memoryThreshold = 0.85; // 85% de la mémoire disponible
 
-  // Démarrer l'optimisation automatique
+  // Démarrer l'optimisation automatique (mode agressif pour résoudre le problème critique)
   start() {
-    // Nettoyage automatique toutes les 2 minutes
+    // Nettoyage immédiat
+    this.performCleanup();
+    this.optimizeAnimations();
+    this.optimizeNetworkRequests();
+    
+    // Nettoyage automatique très fréquent pour problème critique de mémoire
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
-    }, 2 * 60 * 1000);
+    }, 15 * 1000); // 15 secondes au lieu de 2 minutes
 
-    // Monitoring des performances toutes les 30 secondes
+    // Monitoring des performances très fréquent
     this.performanceMonitor = setInterval(() => {
       this.checkMemoryUsage();
-    }, 30 * 1000);
+      this.triggerGarbageCollection();
+    }, 10 * 1000); // 10 secondes au lieu de 30
 
-    console.log('[MEMORY_OPTIMIZER] Optimiseur démarré - nettoyage automatique activé');
+    console.log('[MEMORY_OPTIMIZER] Optimiseur démarré - nettoyage automatique activé (mode agressif)');
   }
 
   // Arrêter l'optimisation
