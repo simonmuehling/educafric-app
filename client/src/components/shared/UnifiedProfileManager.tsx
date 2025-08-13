@@ -897,8 +897,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                   {/* Email Categories */}
                   {Object.entries(EMAIL_CATEGORIES).map(([categoryId, category]) => (
                     <div key={categoryId} className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3 mb-3">
                           <div className="p-2 rounded-full bg-white">
                             {categoryId === 'ESSENTIAL' && <Shield className="w-5 h-5 text-red-600" />}
                             {categoryId === 'ACADEMIC' && <User className="w-5 h-5 text-blue-600" />}
@@ -910,42 +910,44 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                             {categoryId === 'WELCOME' && <Calendar className="w-5 h-5 text-pink-600" />}
                             {categoryId === 'MARKETING' && <Mail className="w-5 h-5 text-indigo-600" />}
                           </div>
-                          <div>
-                            <h4 className="font-medium">
-                              {category.name[language as keyof typeof category.name]}
-                            </h4>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium">
+                                {category.name[language as keyof typeof category.name]}
+                              </h4>
+                              {categoryId === 'ESSENTIAL' && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {language === 'fr' ? 'Essentiel' : 'Essential'}
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-600">
                               {category.description[language as keyof typeof category.description]}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {categoryId === 'ESSENTIAL' && (
-                            <Badge variant="secondary" className="text-xs">
-                              {language === 'fr' ? 'Essentiel' : 'Essential'}
-                            </Badge>
-                          )}
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toggleEmailCategory(category.fields, true)}
-                              className="text-xs px-2"
-                              data-testid={`button-enable-${categoryId.toLowerCase()}`}
-                            >
-                              {language === 'fr' ? 'Tout activer' : 'Enable all'}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toggleEmailCategory(category.fields, false)}
-                              className="text-xs px-2"
-                              disabled={categoryId === 'ESSENTIAL'}
-                              data-testid={`button-disable-${categoryId.toLowerCase()}`}
-                            >
-                              {language === 'fr' ? 'Tout désactiver' : 'Disable all'}
-                            </Button>
-                          </div>
+                        
+                        {/* Boutons de contrôle en dessous - Optimisé mobile */}
+                        <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleEmailCategory(category.fields, true)}
+                            className="flex-1 text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                            data-testid={`button-enable-${categoryId.toLowerCase()}`}
+                          >
+                            {language === 'fr' ? '✓ Tout activer' : '✓ Enable all'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => toggleEmailCategory(category.fields, false)}
+                            className="flex-1 text-xs bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                            disabled={categoryId === 'ESSENTIAL'}
+                            data-testid={`button-disable-${categoryId.toLowerCase()}`}
+                          >
+                            {language === 'fr' ? '✗ Tout désactiver' : '✗ Disable all'}
+                          </Button>
                         </div>
                       </div>
 
