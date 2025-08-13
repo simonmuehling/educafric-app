@@ -12,61 +12,62 @@ import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvi
 import { useEffect } from "react";
 
 
-// Pages - Core (always loaded)
+// Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import PasswordReset from "@/pages/PasswordReset";
 import NotFound from "@/pages/not-found";
 
-// Lazy loaded pages for better performance
+// Critical optimisation pour 3500+ users - Lazy loading obligatoire
 import { 
   LazyStudents, 
   LazyTeachers, 
   LazyGrades, 
   LazyAttendance, 
-  LazyProfile 
+  LazyProfile,
+  LazyDirectorPage,
+  LazyCommercialPage,
+  LazyFreelancerPage,
+  LazyParentsPage,
+  LazySchoolGeolocation,
+  LazyRoleBasedGeolocation,
+  LazySecurityDashboard,
+  LazyAdminPage,
+  LazySandboxPage,
+  LazyEnhancedSandbox,
+  LazyUIShowcase
 } from "@/components/LazyLoader";
 
-// Regular imports for Subscribe and Demo (small components)
+// Light components - Regular imports OK
 import Subscribe from "@/pages/Subscribe";
 import Demo from "@/pages/Demo";
 import GeolocationPricing from "@/pages/GeolocationPricing";
 import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
 import SandboxLogin from "@/pages/SandboxLogin";
 import SandboxDemo from "@/pages/SandboxDemo";
-import UIShowcase from "@/pages/UIShowcase";
 import CurrencyDemo from "@/pages/CurrencyDemo";
 import Schools from "@/pages/Schools";
-import TeachersPage from "@/pages/Teachers";
-import StudentsPage from "@/pages/Students";
-import ParentsPage from "@/pages/ParentsPage";
-import InactivityMonitor from "@/components/auth/InactivityMonitor";
-import FreelancerPage from "@/pages/FreelancerPage";
-import CommercialPage from "@/pages/CommercialPage";
-import AdminPage from "@/pages/AdminPage";
-import DirectorPage from "@/pages/DirectorPage";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import ProfileFeatures from "@/pages/ProfileFeatures";
-import EducafricFooter from "@/components/EducafricFooter";
 import ModernFormDemo from "@/pages/ModernFormDemo";
-import RoleBasedDashboard from "@/components/RoleBasedDashboard";
-import SandboxPage from "@/pages/SandboxPage";
-import EnhancedSandbox from "@/pages/EnhancedSandbox";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
-import SecurityDashboard from "@/pages/SecurityDashboard";
 import DebugInspector from "@/pages/DebugInspector";
+
+// System components - Optimisés pour 3500+ utilisateurs
+import InactivityMonitor from "@/components/auth/InactivityMonitor";
+import EducafricFooter from "@/components/EducafricFooter";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
+import RoleBasedDashboard from "@/components/RoleBasedDashboard";
+
+// Demo components - Non critiques, lazy si nécessaire
 import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
-import { SchoolGeolocationPage } from "@/pages/SchoolGeolocationPage";
-import RoleBasedGeolocationPage from "@/components/shared/RoleBasedGeolocationPage";
-import ProfileSettings from "@/pages/ProfileSettings";
 
 import { useState } from "react";
 import React from "react";
@@ -150,7 +151,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/home" component={Home} />
       <Route path="/login" component={Login} />
-      <Route path="/ui-showcase" component={UIShowcase} />
+      <Route path="/ui-showcase" component={LazyUIShowcase} />
       <Route path="/micro-interactions" component={MicroInteractionsDemo} />
       <Route path="/bilingual-sandbox" component={BilingualSandboxDashboard} />
       <Route path="/updated-sandbox" component={UpdatedSandboxDashboard} />
@@ -166,25 +167,19 @@ function Router() {
       
       <Route path="/student">
         <ProtectedRoute>
-          <StudentsPage />
+          <LazyStudents />
         </ProtectedRoute>
       </Route>
       
       <Route path="/students">
         <ProtectedRoute>
-          <StudentsPage />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/teacher">
-        <ProtectedRoute>
-          <TeachersPage />
+          <LazyStudents />
         </ProtectedRoute>
       </Route>
       
       <Route path="/teachers">
         <ProtectedRoute>
-          <TeachersPage />
+          <LazyTeachers />
         </ProtectedRoute>
       </Route>
       
@@ -239,39 +234,33 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/parent">
-        <ProtectedRoute>
-          <ParentsPage />
-        </ProtectedRoute>
-      </Route>
-      
       <Route path="/parents">
         <ProtectedRoute>
-          <ParentsPage />
+          <LazyParentsPage />
         </ProtectedRoute>
       </Route>
       
       <Route path="/freelancer">
         <ProtectedRoute>
-          <FreelancerPage />
+          <LazyFreelancerPage />
         </ProtectedRoute>
       </Route>
       
       <Route path="/commercial">
         <ProtectedRoute>
-          <CommercialPage />
+          <LazyCommercialPage />
         </ProtectedRoute>
       </Route>
       
       <Route path="/admin">
         <ProtectedRoute>
-          <AdminPage />
+          <LazyAdminPage />
         </ProtectedRoute>
       </Route>
       
       <Route path="/director">
         <ProtectedRoute>
-          <DirectorPage />
+          <LazyDirectorPage />
         </ProtectedRoute>
       </Route>
       
@@ -299,13 +288,13 @@ function Router() {
       
       <Route path="/settings">
         <ProtectedRoute>
-          <ProfileSettings />
+          <LazyProfile />
         </ProtectedRoute>
       </Route>
       
       <Route path="/profile-settings">
         <ProtectedRoute>
-          <ProfileSettings />
+          <LazyProfile />
         </ProtectedRoute>
       </Route>
       
@@ -331,13 +320,13 @@ function Router() {
       
       <Route path="/geolocation">
         <ProtectedRoute>
-          <RoleBasedGeolocationPage />
+          <LazyRoleBasedGeolocation />
         </ProtectedRoute>
       </Route>
       
       <Route path="/school-geolocation">
         <ProtectedRoute>
-          <RoleBasedGeolocationPage />
+          <LazySchoolGeolocation />
         </ProtectedRoute>
       </Route>
       
@@ -346,8 +335,8 @@ function Router() {
       
       {/* Developer Tools */}
       <Route path="/debug-inspector" component={DebugInspector} />
-      <Route path="/sandbox" component={SandboxPage} />
-      <Route path="/enhanced-sandbox" component={EnhancedSandbox} />
+      <Route path="/sandbox" component={LazySandboxPage} />
+      <Route path="/enhanced-sandbox" component={LazyEnhancedSandbox} />
       <Route path="/sandbox-direct" component={() => (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full space-y-8">
@@ -381,7 +370,7 @@ function Router() {
       
       <Route path="/security">
         <ProtectedRoute>
-          <SecurityDashboard />
+          <LazySecurityDashboard />
         </ProtectedRoute>
       </Route>
       

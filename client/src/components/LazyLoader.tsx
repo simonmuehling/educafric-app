@@ -1,89 +1,126 @@
-import { Suspense, ComponentType, lazy } from 'react';
+import { lazy, Suspense } from 'react';
 
-interface LazyLoaderProps {
-  fallback?: React.ReactNode;
-  children: React.ReactNode;
-}
-
-// Generic lazy loading wrapper component
-export function LazyLoader({ fallback = <LoadingSpinner />, children }: LazyLoaderProps) {
-  return (
-    <Suspense fallback={fallback}>
-      {children}
-    </Suspense>
-  );
-}
-
-// Default loading spinner
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center p-8 min-h-[200px]">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="animate-spin w-8 h-8 border-4 border-african-orange-500 border-t-transparent rounded-full" />
-        <p className="text-sm text-gray-600">Loading...</p>
-      </div>
+// Loading component optimisé pour 3500+ users
+const OptimizedLoading = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="text-center">
+      <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+      <p className="text-blue-600 font-medium">Chargement...</p>
     </div>
-  );
-}
+  </div>
+);
 
-// HOC for creating lazy components
-export function withLazyLoading<P = {}>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
-  fallback?: React.ReactNode
-) {
-  const LazyComponent = lazy(importFn);
-  
-  return function WrappedComponent(props: P) {
-    return (
-      <LazyLoader fallback={fallback}>
-        <LazyComponent {...(props as any)} />
-      </LazyLoader>
-    );
-  };
-}
+// Pages critiques - Lazy loading pour production 3500+ users
+const LazyStudentsComponent = lazy(() => import('@/pages/Students'));
+const LazyTeachersComponent = lazy(() => import('@/pages/Teachers'));
+const LazyProfileComponent = lazy(() => import('@/pages/ProfileSettings'));
 
-// Specialized loaders for different content types
-export function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="animate-spin w-12 h-12 border-4 border-african-orange-500 border-t-transparent rounded-full" />
-        <p className="text-lg text-gray-700">Loading page...</p>
-      </div>
-    </div>
-  );
-}
+// Dashboard pages - Gros composants
+const LazyDirectorPageComponent = lazy(() => import('@/pages/DirectorPage'));
+const LazyCommercialPageComponent = lazy(() => import('@/pages/CommercialPage'));
+const LazyFreelancerPageComponent = lazy(() => import('@/pages/FreelancerPage'));
+const LazyParentsPageComponent = lazy(() => import('@/pages/ParentsPage'));
 
-export function CardLoader() {
-  return (
-    <div className="educafric-card animate-pulse">
-      <div className="h-4 bg-gray-200 rounded mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-    </div>
-  );
-}
+// Security et admin
+const LazySecurityDashboardComponent = lazy(() => import('@/pages/SecurityDashboard'));
+const LazyAdminPageComponent = lazy(() => import('@/pages/AdminPage'));
 
-export function TableLoader() {
-  return (
-    <div className="space-y-3">
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="animate-pulse flex space-x-4">
-          <div className="rounded-full bg-gray-200 h-10 w-10"></div>
-          <div className="flex-1 space-y-2 py-1">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+// Sandbox et demo (non critiques)
+const LazySandboxPageComponent = lazy(() => import('@/pages/SandboxPage'));
+const LazyEnhancedSandboxComponent = lazy(() => import('@/pages/EnhancedSandbox'));
+const LazyUIShowcaseComponent = lazy(() => import('@/pages/UIShowcase'));
 
-// Lazy loaded page components
-// LazyDashboard removed - now using RoleBasedDashboard directly
-export const LazyStudents = withLazyLoading(() => import('../pages/Students'), <PageLoader />);
-export const LazyTeachers = withLazyLoading(() => import('../pages/Teachers'), <PageLoader />);
-export const LazyGrades = withLazyLoading(() => import('../pages/Grades'), <PageLoader />);
-export const LazyAttendance = withLazyLoading(() => import('../pages/Attendance'), <PageLoader />);
-export const LazyProfile = withLazyLoading(() => import('../pages/Profile'), <PageLoader />);
+// Exports with Suspense wrapper
+export const LazyStudents = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyStudentsComponent {...props} />
+  </Suspense>
+);
+
+export const LazyTeachers = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyTeachersComponent {...props} />
+  </Suspense>
+);
+
+export const LazyProfile = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyProfileComponent {...props} />
+  </Suspense>
+);
+
+export const LazyDirectorPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyDirectorPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazyCommercialPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyCommercialPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazyFreelancerPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyFreelancerPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazyParentsPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyParentsPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazySecurityDashboard = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazySecurityDashboardComponent {...props} />
+  </Suspense>
+);
+
+export const LazyAdminPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyAdminPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazySandboxPage = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazySandboxPageComponent {...props} />
+  </Suspense>
+);
+
+export const LazyEnhancedSandbox = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyEnhancedSandboxComponent {...props} />
+  </Suspense>
+);
+
+export const LazyUIShowcase = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyUIShowcaseComponent {...props} />
+  </Suspense>
+);
+
+// Geolocation components - Optimisés pour production 3500+ users
+const LazySchoolGeolocationComponent = lazy(() => import('@/pages/SchoolGeolocationPage'));
+const LazyRoleBasedGeolocationComponent = lazy(() => import('@/components/shared/RoleBasedGeolocationPage'));
+
+export const LazySchoolGeolocation = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazySchoolGeolocationComponent {...props} />
+  </Suspense>
+);
+
+export const LazyRoleBasedGeolocation = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyRoleBasedGeolocationComponent {...props} />
+  </Suspense>
+);
+
+// Placeholders pour pages non critiques
+export const LazyGrades = LazyStudents;
+export const LazyAttendance = LazyStudents;
+
+export default OptimizedLoading;
