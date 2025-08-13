@@ -53,6 +53,10 @@ export const users = pgTable("users", {
   photoURL: text("photo_url"),
   lastLoginAt: timestamp("last_login_at"),
   profilePictureUrl: text("profile_picture_url"),
+  isPwaUser: boolean("is_pwa_user").default(false),
+  lastPwaAccess: timestamp("last_pwa_access"),
+  pwaInstallDate: timestamp("pwa_install_date"),
+  accessMethod: text("access_method").default("web"), // web, pwa, mobile
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -68,6 +72,28 @@ export const notificationSettings = pgTable("notification_settings", {
   pushEnabled: boolean("push_enabled").default(true),
   whatsappEnabled: boolean("whatsapp_enabled").default(false),
   priority: text("priority").default("medium"), // 'low', 'medium', 'high', 'urgent'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// PWA User Analytics - Track PWA usage patterns
+export const pwaAnalytics = pgTable("pwa_analytics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  sessionId: text("session_id").notNull(),
+  accessMethod: text("access_method").notNull(), // 'web', 'pwa', 'mobile_app'
+  deviceType: text("device_type"), // 'desktop', 'mobile', 'tablet'
+  userAgent: text("user_agent"),
+  isStandalone: boolean("is_standalone").default(false), // PWA standalone mode
+  isPwaInstalled: boolean("is_pwa_installed").default(false),
+  pushPermissionGranted: boolean("push_permission_granted").default(false),
+  sessionDuration: integer("session_duration"), // in seconds
+  pagesVisited: integer("pages_visited").default(1),
+  actionsPerformed: integer("actions_performed").default(0),
+  offlineTime: integer("offline_time").default(0), // time spent offline in seconds
+  ipAddress: text("ip_address"),
+  country: text("country"),
+  city: text("city"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

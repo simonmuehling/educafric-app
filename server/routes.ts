@@ -11872,6 +11872,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[SYSTEM_REPORTS] Error registering system reports routes:', error);
   }
 
+  // ===== PWA ANALYTICS ROUTES =====
+  
+  // PWA Analytics Dashboard - Admin only
+  app.get('/api/analytics/pwa', requireAuth, async (req, res) => {
+    try {
+      if (!['SiteAdmin', 'Admin'].includes((req.user as any)?.role)) {
+        return res.status(403).json({ message: 'Access denied - Admin access required' });
+      }
+
+      const pwaStats = await storage.getPwaUserStatistics();
+      console.log('[PWA_ANALYTICS] PWA statistics requested by:', (req.user as any)?.email);
+      
+      res.json({
+        success: true,
+        data: {
+          ...pwaStats,
+          lastUpdated: new Date().toISOString(),
+          installationTrend: 'increasing', // Could be calculated from historical data
+          peakUsageHours: ['14:00-16:00', '19:00-21:00'], // Mock peak hours
+          offlineUsagePercent: 12.5 // Mock offline usage percentage
+        }
+      });
+    } catch (error) {
+      console.error('[PWA_ANALYTICS] Error getting PWA analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to get PWA analytics' });
+    }
+  });
+
+  // Track PWA session data - public endpoint for analytics
+  app.post('/api/analytics/pwa/session', async (req, res) => {
+    try {
+      const {
+        userId,
+        sessionId,
+        accessMethod,
+        deviceType,
+        userAgent,
+        isStandalone,
+        isPwaInstalled,
+        pushPermissionGranted
+      } = req.body;
+
+      // Get client IP
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+
+      await storage.trackPwaSession({
+        userId: userId || null,
+        sessionId,
+        accessMethod,
+        deviceType,
+        userAgent,
+        isStandalone: isStandalone || false,
+        isPwaInstalled: isPwaInstalled || false,
+        pushPermissionGranted: pushPermissionGranted || false,
+        ipAddress
+      });
+
+      // Update user's access method if user is authenticated
+      if (userId && accessMethod) {
+        await storage.updateUserAccessMethod(userId, accessMethod, isPwaInstalled);
+      }
+
+      console.log('[PWA_ANALYTICS] Session tracked:', { 
+        userId: userId || 'anonymous', 
+        sessionId, 
+        accessMethod, 
+        isStandalone, 
+        isPwaInstalled 
+      });
+
+      res.json({ success: true, message: 'PWA session tracked successfully' });
+    } catch (error) {
+      console.error('[PWA_ANALYTICS] Error tracking PWA session:', error);
+      res.status(500).json({ success: false, message: 'Failed to track PWA session' });
+    }
+  });
+
+  // PWA install event tracking - requires authentication
+  app.post('/api/analytics/pwa/install', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { deviceType, userAgent } = req.body;
+
+      console.log('[PWA_ANALYTICS] PWA installation detected for user:', user.id);
+      
+      await storage.updateUserAccessMethod(user.id, 'pwa', true);
+
+      // Track the install event
+      await storage.trackPwaSession({
+        userId: user.id,
+        sessionId: `install_${Date.now()}`,
+        accessMethod: 'pwa',
+        deviceType,
+        userAgent,
+        isStandalone: true,
+        isPwaInstalled: true,
+        pushPermissionGranted: false,
+        ipAddress: req.ip || 'unknown'
+      });
+
+      res.json({ success: true, message: 'PWA installation tracked successfully' });
+    } catch (error) {
+      console.error('[PWA_ANALYTICS] Error tracking PWA installation:', error);
+      res.status(500).json({ success: false, message: 'Failed to track PWA installation' });
+    }
+  });
+
+  console.log('[PWA_ANALYTICS] ✅ PWA Analytics routes registered successfully');
+
   // Notification routes
   try {
     setupNotificationRoutes(app);

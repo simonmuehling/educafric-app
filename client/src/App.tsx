@@ -53,6 +53,7 @@ import ProfileFeatures from "@/pages/ProfileFeatures";
 import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
 import DebugInspector from "@/pages/DebugInspector";
+import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -60,6 +61,7 @@ import EducafricFooter from "@/components/EducafricFooter";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
+import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 import RoleBasedDashboard from "@/components/RoleBasedDashboard";
@@ -96,6 +98,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
+  const { autoTrackPWAUsage } = usePWAAnalytics();
+
+  // Initialize PWA analytics tracking
+  React.useEffect(() => {
+    // Auto-track PWA usage for all users (authenticated and anonymous)
+    autoTrackPWAUsage(user?.id);
+  }, [user?.id, autoTrackPWAUsage]);
 
   // Expose tutorial function globally
   React.useEffect(() => {
@@ -156,6 +165,7 @@ function Router() {
       <Route path="/bilingual-sandbox" component={BilingualSandboxDashboard} />
       <Route path="/updated-sandbox" component={UpdatedSandboxDashboard} />
       <Route path="/currency-demo" component={CurrencyDemo} />
+      <Route path="/pwa-analytics" component={PWAAnalyticsDemo} />
       
       {/* Protected Routes */}
       
