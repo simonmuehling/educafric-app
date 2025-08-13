@@ -13,9 +13,18 @@ export const setupConsoleFilter = () => {
     /MessageEvent.*replit\.dev/i,
     /MessageEvent.*js\.stripe\.com/i,
     /MessageEvent.*m\.stripe\.network/i,
+    /MessageEvent.*setImmediate/i,
+    /MessageEvent.*page_all\.js/i,
+    /page_all\.js.*init command/i,
+    /page_all\.js.*MessageEvent/i,
     /\[MEMORY_OPTIMIZER\] Nettoyage terminé en \d+\.\d+ms$/,
+    /\[MEMORY_OPTIMIZER\] \d+ images optimisées$/,
     /\[vite\] connecting\.\.\./,
     /\[vite\] connected\./,
+    /yoroi.*dapp-connector/i,
+    /TronLink initiated/i,
+    /Provider initialised/i,
+    /Disconnected from polkadot/i,
   ];
 
   // Filter function
@@ -45,27 +54,28 @@ export const setupConsoleFilter = () => {
     }
   };
 
-  // Special filter for MessageEvent logs from page_all.js
-  const originalWindowAddEventListener = window.addEventListener;
-  window.addEventListener = function(type: string, listener: any, options?: any) {
-    if (type === 'message' && typeof listener === 'function') {
-      const filteredListener = (event: MessageEvent) => {
-        // Filter out Stripe and other noisy message events
-        const allowedOrigins = [window.location.origin];
-        const isAllowed = allowedOrigins.some(origin => event.origin.startsWith(origin));
+  // Bloquer les MessageEvent indésirables à la source
+  if (window.console) {
+    const blockNoiseFromPageAll = () => {
+      try {
+        // Bloquer les messages de page_all.js s'ils existent
+        const scripts = document.querySelectorAll('script[src*="page_all"]');
+        scripts.forEach(script => {
+          script.remove();
+        });
         
-        // Only log our own app messages or important system messages
-        if (isAllowed && event.data?.type && !event.data.type.includes('stripe')) {
-          listener(event);
-        } else {
-          // Call original listener but don't log
-          listener(event);
-        }
-      };
-      
-      return originalWindowAddEventListener.call(this, type, filteredListener, options);
-    }
+        // Simple filtrage sans override - plus sûr
+        // Note: Nous laissons postMessage fonctionner normalement pour éviter des erreurs TypeScript complexes
+        
+      } catch (e) {
+        // Silently ignore if we can't block these
+      }
+    };
     
-    return originalWindowAddEventListener.call(this, type, listener, options);
-  };
+    // Appliquer le blocage
+    blockNoiseFromPageAll();
+    
+    // Aussi appliquer après le chargement complet
+    document.addEventListener('DOMContentLoaded', blockNoiseFromPageAll);
+  }
 };

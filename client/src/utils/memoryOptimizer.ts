@@ -31,7 +31,10 @@ class MemoryOptimizer {
       this.triggerGarbageCollection();
     }, 10 * 1000); // 10 secondes au lieu de 30
 
-    console.log('[MEMORY_OPTIMIZER] Optimiseur démarré - nettoyage automatique activé (mode agressif)');
+    // Afficher seulement en mode debug
+    if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+      console.log('[MEMORY_OPTIMIZER] Optimiseur démarré - nettoyage automatique activé (mode agressif)');
+    }
   }
 
   // Arrêter l'optimisation
@@ -44,7 +47,10 @@ class MemoryOptimizer {
       clearInterval(this.performanceMonitor);
       this.performanceMonitor = null;
     }
-    console.log('[MEMORY_OPTIMIZER] Optimiseur arrêté');
+    // Afficher seulement en mode debug
+    if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+      console.log('[MEMORY_OPTIMIZER] Optimiseur arrêté');
+    }
   }
 
   // Obtenir les métriques de mémoire
@@ -130,7 +136,8 @@ class MemoryOptimizer {
     // Nettoyer les listeners d'événements orphelins
     this.cleanEventListeners();
     
-    if (removedCount > 0) {
+    // Afficher seulement si beaucoup d'éléments supprimés  
+    if (import.meta.env.DEV && removedCount > 10) {
       console.log(`[MEMORY_OPTIMIZER] ${removedCount} éléments DOM inutiles supprimés`);
     }
   }
@@ -159,7 +166,8 @@ class MemoryOptimizer {
       }
     });
     
-    if (optimizedCount > 0) {
+    // Réduire le spam - afficher seulement si beaucoup d'images optimisées
+    if (import.meta.env.DEV && optimizedCount > 5) {
       console.log(`[MEMORY_OPTIMIZER] ${optimizedCount} images optimisées`);
     }
   }
@@ -179,7 +187,9 @@ class MemoryOptimizer {
   private triggerGarbageCollection() {
     if ('gc' in window && typeof (window as any).gc === 'function') {
       (window as any).gc();
-      console.log('[MEMORY_OPTIMIZER] Garbage collection forcé');
+      if (import.meta.env.DEV) {
+        console.log('[MEMORY_OPTIMIZER] Garbage collection forcé');
+      }
     }
   }
 
@@ -189,7 +199,9 @@ class MemoryOptimizer {
     const metrics = this.getMemoryMetrics();
     if (metrics && metrics.percentage > 70) {
       document.documentElement.style.setProperty('--animation-duration', '0.1s');
-      console.log('[MEMORY_OPTIMIZER] Animations réduites pour économiser la mémoire');
+      if (import.meta.env.DEV) {
+        console.log('[MEMORY_OPTIMIZER] Animations réduites pour économiser la mémoire');
+      }
     } else {
       document.documentElement.style.setProperty('--animation-duration', '0.3s');
     }
@@ -207,7 +219,10 @@ class MemoryOptimizer {
       }
     });
     
-    console.log('[MEMORY_OPTIMIZER] Requêtes réseau optimisées');
+    // Afficher seulement en mode debug
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+      console.log('[MEMORY_OPTIMIZER] Requêtes réseau optimisées');
+    }
   }
 
   // Rapport de performance
