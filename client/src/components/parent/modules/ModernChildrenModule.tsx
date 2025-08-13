@@ -384,7 +384,7 @@ const ModernChildrenModule: React.FC = () => {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {(children as Child[]).map((child: Child, index: number) => (
+              {Array.isArray(children) && children.map((child: Child, index: number) => (
                 <Card key={child.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">

@@ -232,15 +232,6 @@ const FreelancerChildConnection: React.FC<FreelancerChildConnectionProps> = ({
     }
   };
 
-  const toggleSubject = (subject: string) => {
-    setStudentData(prev => ({
-      ...prev,
-      subjects: prev.subjects.includes(subject)
-        ? prev.subjects.filter(s => s !== subject)
-        : [...prev.subjects, subject]
-    }));
-  };
-
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="text-center">

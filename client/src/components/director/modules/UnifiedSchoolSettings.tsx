@@ -384,7 +384,7 @@ const UnifiedSchoolSettings: React.FC = () => {
         {/* Mobile Navigation */}
         <div className="md:hidden">
           <MobileIconTabNavigation
-            tabs={tabs}
+            tabs={tabs.map(tab => ({ ...tab, value: tab.id }))}
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />

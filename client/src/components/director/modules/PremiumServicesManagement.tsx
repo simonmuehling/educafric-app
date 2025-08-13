@@ -254,7 +254,20 @@ const PremiumServicesManagement = () => {
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {(Array.isArray(gpsStats) ? gpsStats : []).map((stat, index) => (
-            <ModernStatsCard key={index} {...stat} />
+            <div key={index} className="bg-white rounded-lg shadow-sm border p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-blue-600">{stat.value}</p>
+                </div>
+                <div className="text-3xl">{stat.icon}</div>
+              </div>
+              {stat.trend && (
+                <div className={`text-sm mt-2 ${stat.trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                  {stat.trend.isPositive ? '↗' : '↘'} {stat.trend.value}%
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
@@ -281,7 +294,8 @@ const PremiumServicesManagement = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Device Management */}
-        <ModernCard title="Appareils Suivis" className="p-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Appareils Suivis</h3>
           <div className="space-y-4">
             {(Array.isArray(trackedDevices) ? trackedDevices : []).map((device) => (
               <div key={device.id} className="border rounded-lg p-4 bg-gray-50">
@@ -345,10 +359,11 @@ const PremiumServicesManagement = () => {
               </div>
             ))}
           </div>
-        </ModernCard>
+        </div>
 
         {/* Recent Activity */}
-        <ModernCard title={t.recentActivity} className="p-6">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.recentActivity}</h3>
           <div className="space-y-4">
             {(Array.isArray(recentActivity) ? recentActivity : []).map((activity) => (
               <div key={activity.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
@@ -363,7 +378,7 @@ const PremiumServicesManagement = () => {
               </div>
             ))}
           </div>
-        </ModernCard>
+        </div>
       </div>
     </div>
   );

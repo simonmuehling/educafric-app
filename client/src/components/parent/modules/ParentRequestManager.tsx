@@ -73,7 +73,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     queryKey: ['/api/schools/search', schoolSearchQuery],
     enabled: schoolSearchQuery.length >= 2,
     queryFn: async () => {
-      const response = await apiRequest(`/api/schools/search?query=${encodeURIComponent(schoolSearchQuery)}`);
+      const response = await apiRequest('GET', `/api/schools/search?query=${encodeURIComponent(schoolSearchQuery)}`);
       return response;
     },
   });
@@ -95,7 +95,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const createRequestMutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
       console.log('[PARENT_REQUEST_MANAGER] Creating request:', data);
-      const response = await apiRequest('/api/parent-requests', 'POST', data);
+      const response = await apiRequest('POST', '/api/parent-requests', data);
       return response;
     },
     onSuccess: (response, variables) => {

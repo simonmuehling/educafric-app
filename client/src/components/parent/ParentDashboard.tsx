@@ -30,6 +30,7 @@ import ParentRequestManager from './modules/ParentRequestManager';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ParentDashboardProps {
   activeModule?: string;
@@ -37,6 +38,7 @@ interface ParentDashboardProps {
 
 const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
 
   // Stable event handlers that survive server restarts
