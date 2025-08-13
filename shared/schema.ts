@@ -62,6 +62,52 @@ export const users = pgTable("users", {
 });
 
 // Notification preferences for each user
+// Family connections for direct parent-child communication
+export const familyConnections = pgTable("family_connections", {
+  id: serial("id").primaryKey(),
+  parentId: integer("parent_id").notNull(),
+  childId: integer("child_id").notNull(),
+  connectionStatus: text("connection_status").notNull().default("pending"), // 'active', 'pending', 'inactive', 'blocked'
+  connectionKey: text("connection_key").notNull(), // Encrypted key for secure communication
+  parentName: text("parent_name").notNull(),
+  childName: text("child_name").notNull(),
+  lastContactAt: timestamp("last_contact_at"),
+  isParentOnline: boolean("is_parent_online").default(false),
+  isChildOnline: boolean("is_child_online").default(false),
+  unreadMessagesCount: integer("unread_messages_count").default(0),
+  connectionApprovedAt: timestamp("connection_approved_at"),
+  connectionApprovedBy: integer("connection_approved_by"), // Child ID who approved
+  privacySettings: jsonb("privacy_settings"), // Chat settings, notifications etc
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Family messages for encrypted parent-child communication
+export const familyMessages = pgTable("family_messages", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  senderName: text("sender_name").notNull(),
+  senderType: text("sender_type").notNull(), // 'parent', 'child'
+  recipientId: integer("recipient_id").notNull(),
+  message: text("message").notNull(), // Encrypted message content
+  messageType: text("message_type").notNull().default("text"), // 'text', 'image', 'audio', 'location', 'file'
+  mediaUrl: text("media_url"), // For images, audio, files
+  isEncrypted: boolean("is_encrypted").default(true),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  isDelivered: boolean("is_delivered").default(false),
+  deliveredAt: timestamp("delivered_at"),
+  priority: text("priority").default("normal"), // 'low', 'normal', 'high', 'urgent'
+  metadata: jsonb("metadata"), // Location data, file info, etc
+  replyToMessageId: integer("reply_to_message_id"), // For message replies
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: integer("deleted_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const notificationSettings = pgTable("notification_settings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -768,6 +814,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   payments: many(payments),
   parentRelations: many(parentStudentRelations, { relationName: "parent" }),
   studentRelations: many(parentStudentRelations, { relationName: "student" }),
+  // Family connections relations
+  parentConnections: many(familyConnections, { relationName: "parent" }),
+  childConnections: many(familyConnections, { relationName: "child" }),
+  sentFamilyMessages: many(familyMessages, { relationName: "sender" }),
+  receivedFamilyMessages: many(familyMessages, { relationName: "recipient" }),
 }));
 
 export const schoolsRelations = relations(schools, ({ many }) => ({
@@ -1053,6 +1104,67 @@ export type EnhancedBulletinApprovalType = typeof bulletinApprovals.$inferSelect
 export type EnhancedInsertBulletinApproval = typeof bulletinApprovals.$inferInsert;
 export type BulkTimetableOperation = z.infer<typeof bulkTimetableOperationSchema>;
 export type AfricanScheduleConfig = z.infer<typeof africanScheduleConfigSchema>;
+
+// Family connections relations and schemas
+export const familyConnectionsRelations = relations(familyConnections, ({ one, many }) => ({
+  parent: one(users, {
+    fields: [familyConnections.parentId],
+    references: [users.id],
+    relationName: "parent"
+  }),
+  child: one(users, {
+    fields: [familyConnections.childId],
+    references: [users.id],
+    relationName: "child"
+  }),
+  messages: many(familyMessages),
+}));
+
+export const familyMessagesRelations = relations(familyMessages, ({ one }) => ({
+  connection: one(familyConnections, {
+    fields: [familyMessages.connectionId],
+    references: [familyConnections.id],
+  }),
+  sender: one(users, {
+    fields: [familyMessages.senderId],
+    references: [users.id],
+    relationName: "sender"
+  }),
+  recipient: one(users, {
+    fields: [familyMessages.recipientId],
+    references: [users.id],
+    relationName: "recipient"
+  }),
+  replyToMessage: one(familyMessages, {
+    fields: [familyMessages.replyToMessageId],
+    references: [familyMessages.id],
+    relationName: "replyTo"
+  }),
+}));
+
+// Family connections insert schemas
+export const insertFamilyConnectionSchema = createInsertSchema(familyConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastContactAt: true,
+  connectionApprovedAt: true,
+});
+
+export const insertFamilyMessageSchema = createInsertSchema(familyMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  readAt: true,
+  deliveredAt: true,
+  deletedAt: true,
+});
+
+// Family connections types
+export type FamilyConnection = typeof familyConnections.$inferSelect;
+export type InsertFamilyConnection = z.infer<typeof insertFamilyConnectionSchema>;
+export type FamilyMessage = typeof familyMessages.$inferSelect;
+export type InsertFamilyMessage = z.infer<typeof insertFamilyMessageSchema>;
 
 // Enhanced Bulletin Validation Schemas with Workflow Support
 export const bulletinWorkflowSchema = z.object({

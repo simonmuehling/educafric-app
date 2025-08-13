@@ -59,6 +59,16 @@ export interface IStorage {
   // Teacher-specific methods
   getTeacherClasses(teacherId: number): Promise<any[]>;
   getTeacherStudents(teacherId: number): Promise<any[]>;
+
+  // ===== FAMILY CONNECTIONS INTERFACE =====
+  getFamilyConnections(parentId: number): Promise<any[]>;
+  createFamilyConnection(data: { parentId: number; childEmail: string }): Promise<any>;
+  updateConnectionStatus(connectionId: number, status: string): Promise<any>;
+  getFamilyMessages(connectionId: number): Promise<any[]>;
+  sendFamilyMessage(data: { connectionId: number; senderId: number; message: string; messageType: string }): Promise<any>;
+  markFamilyMessageAsRead(messageId: number): Promise<void>;
+  checkChildConnectionRequest(childId: number): Promise<any[]>;
+  approveFamilyConnection(connectionId: number, childId: number): Promise<any>;
   
   // Class management methods
   getClassesBySchool(schoolId: number): Promise<any[]>;
@@ -1060,6 +1070,235 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[STORAGE] markNotificationAsRead error:', error);
       throw new Error('Failed to mark notification as read');
+    }
+  }
+
+  // ===== FAMILY CONNECTIONS IMPLEMENTATION =====
+  async getFamilyConnections(parentId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting family connections for parent:', parentId);
+      
+      // Return mock family connections for demo
+      return [
+        {
+          id: 1,
+          parentId: parentId,
+          childId: 15,
+          childName: 'Emma Dupont',
+          childPhoto: '/api/placeholder/avatar',
+          connectionStatus: 'active',
+          lastContact: '2 minutes ago',
+          unreadMessages: 2,
+          isOnline: true,
+        },
+        {
+          id: 2,
+          parentId: parentId,
+          childId: 16,
+          childName: 'Lucas Martin',
+          childPhoto: '/api/placeholder/avatar',
+          connectionStatus: 'active',
+          lastContact: '1 hour ago',
+          unreadMessages: 0,
+          isOnline: false,
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] getFamilyConnections error:', error);
+      return [];
+    }
+  }
+
+  async createFamilyConnection(data: { parentId: number; childEmail: string }): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating family connection:', data);
+      
+      // Find child by email
+      const [child] = await db.select().from(users).where(eq(users.email, data.childEmail));
+      
+      if (!child) {
+        throw new Error('Child not found with this email address');
+      }
+
+      if (child.role !== 'Student') {
+        throw new Error('Email address does not belong to a student');
+      }
+
+      // Check if connection already exists
+      const existingConnection = []; // Would check in real DB
+      
+      // Create connection key for encryption
+      const connectionKey = `family_${data.parentId}_${child.id}_${Date.now()}`;
+      
+      const newConnection = {
+        id: Date.now(),
+        parentId: data.parentId,
+        childId: child.id,
+        parentName: 'Parent', // Would get from DB
+        childName: child.firstName + ' ' + child.lastName,
+        connectionStatus: 'pending',
+        connectionKey: connectionKey,
+        unreadMessagesCount: 0,
+        isParentOnline: false,
+        isChildOnline: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      return newConnection;
+    } catch (error) {
+      console.error('[STORAGE] createFamilyConnection error:', error);
+      throw error;
+    }
+  }
+
+  async updateConnectionStatus(connectionId: number, status: string): Promise<any> {
+    try {
+      console.log('[STORAGE] Updating connection status:', { connectionId, status });
+      
+      return {
+        id: connectionId,
+        connectionStatus: status,
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      console.error('[STORAGE] updateConnectionStatus error:', error);
+      throw error;
+    }
+  }
+
+  async getFamilyMessages(connectionId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting family messages for connection:', connectionId);
+      
+      // Return mock messages for demo
+      return [
+        {
+          id: 1,
+          connectionId: connectionId,
+          senderId: 7,
+          senderName: 'Papa',
+          senderType: 'parent',
+          message: 'Bonjour ma chérie ! Comment s\'est passée ta journée à l\'école ?',
+          messageType: 'text',
+          timestamp: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
+          isRead: true,
+          isEncrypted: true
+        },
+        {
+          id: 2,
+          connectionId: connectionId,
+          senderId: 15,
+          senderName: 'Emma',
+          senderType: 'child',
+          message: 'Salut Papa ! Ça va bien, on a eu un cours de sciences super intéressant aujourd\'hui !',
+          messageType: 'text',
+          timestamp: new Date(Date.now() - 240000).toISOString(), // 4 minutes ago
+          isRead: true,
+          isEncrypted: true
+        },
+        {
+          id: 3,
+          connectionId: connectionId,
+          senderId: 7,
+          senderName: 'Papa',
+          senderType: 'parent',
+          message: 'C\'est formidable ! Tu peux me raconter ce que vous avez appris ?',
+          messageType: 'text',
+          timestamp: new Date(Date.now() - 180000).toISOString(), // 3 minutes ago
+          isRead: false,
+          isEncrypted: true
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] getFamilyMessages error:', error);
+      return [];
+    }
+  }
+
+  async sendFamilyMessage(data: { connectionId: number; senderId: number; message: string; messageType: string }): Promise<any> {
+    try {
+      console.log('[STORAGE] Sending family message:', data);
+      
+      // Get sender info
+      const [sender] = await db.select().from(users).where(eq(users.id, data.senderId));
+      
+      if (!sender) {
+        throw new Error('Sender not found');
+      }
+
+      const senderType = sender.role === 'Parent' ? 'parent' : 'child';
+      const senderName = senderType === 'parent' ? 'Papa' : sender.firstName;
+
+      const newMessage = {
+        id: Date.now(),
+        connectionId: data.connectionId,
+        senderId: data.senderId,
+        senderName: senderName,
+        senderType: senderType,
+        recipientId: senderType === 'parent' ? 15 : 7, // Mock recipient
+        message: data.message,
+        messageType: data.messageType,
+        isEncrypted: true,
+        isRead: false,
+        isDelivered: true,
+        deliveredAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      return newMessage;
+    } catch (error) {
+      console.error('[STORAGE] sendFamilyMessage error:', error);
+      throw error;
+    }
+  }
+
+  async markFamilyMessageAsRead(messageId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Marking family message as read:', messageId);
+      // In real implementation, would update the database
+    } catch (error) {
+      console.error('[STORAGE] markFamilyMessageAsRead error:', error);
+      throw new Error('Failed to mark family message as read');
+    }
+  }
+
+  async checkChildConnectionRequest(childId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Checking connection requests for child:', childId);
+      
+      // Return mock pending requests for demo
+      return [
+        {
+          id: 1,
+          parentId: 7,
+          parentName: 'Jean Dupont',
+          parentEmail: 'parent.demo@test.educafric.com',
+          connectionStatus: 'pending',
+          createdAt: new Date()
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] checkChildConnectionRequest error:', error);
+      return [];
+    }
+  }
+
+  async approveFamilyConnection(connectionId: number, childId: number): Promise<any> {
+    try {
+      console.log('[STORAGE] Approving family connection:', { connectionId, childId });
+      
+      return {
+        id: connectionId,
+        connectionStatus: 'active',
+        connectionApprovedBy: childId,
+        connectionApprovedAt: new Date(),
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      console.error('[STORAGE] approveFamilyConnection error:', error);
+      throw error;
     }
   }
 

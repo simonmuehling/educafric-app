@@ -60,6 +60,7 @@ import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
+import familyConnectionsRoutes from "./routes/familyConnections";
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
 
@@ -11858,6 +11859,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register document API routes
   app.use('/api/documents', documentsRouter);
+  
+  // Register family connections routes
+  app.use('/api/family', familyConnectionsRoutes);
   
   // Register subscription routes  
   app.use('/api/subscription', (await import('./routes/subscription')).default);

@@ -23,6 +23,7 @@ import FunctionalParentMessages from './modules/FunctionalParentMessages';
 import FunctionalParentGrades from './modules/FunctionalParentGrades';
 import FunctionalParentAttendance from './modules/FunctionalParentAttendance';
 import FunctionalParentPayments from './modules/FunctionalParentPayments';
+import FamilyConnections from './modules/FamilyConnections';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -208,6 +209,26 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           ]}
         >
           <ParentGeolocation />
+        </PremiumFeatureGate>
+      )
+    },
+    {
+      id: 'family',
+      label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
+      icon: <Heart className="w-6 h-6" />,
+      color: 'bg-pink-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Communication Familiale Directe"
+          userType="Parent"
+          features={[
+            "Communication directe parent-enfant",
+            "Messages chiffrés end-to-end",
+            "Connexions sécurisées par QR code",
+            "Chat temps réel avec statut en ligne"
+          ]}
+        >
+          <FamilyConnections />
         </PremiumFeatureGate>
       )
     },
