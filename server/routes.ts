@@ -2023,6 +2023,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test Alert to Swiss Number
+  app.post('/api/test-alert-swiss', async (req, res) => {
+    try {
+      const { criticalAlertingService } = await import('./services/criticalAlertingService');
+      
+      // Send test alert
+      await criticalAlertingService.sendTestAlert();
+      
+      console.log('[TEST_ALERT] ✅ Test alert sent to Swiss number (+41768017000)');
+      res.json({ 
+        success: true, 
+        message: 'Test alert sent to both your phone numbers (+41768017000 & +237657004011)',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[TEST_ALERT] Error sending test alert:', error);
+      res.status(500).json({ error: 'Failed to send test alert', details: error.message });
+    }
+  });
+
+  // Trigger commercial connection alert (sends SMS to Swiss number)
+  app.post('/api/trigger-commercial-alert', async (req, res) => {
+    try {
+      const { criticalAlertingService } = await import('./services/criticalAlertingService');
+      
+      // Simulate commercial user connection
+      await criticalAlertingService.sendCommercialConnectionAlert({
+        id: 999,
+        name: 'Test Commercial User',
+        email: 'test.commercial@example.com',
+        role: 'Commercial',
+        ip: req.ip || '127.0.0.1'
+      });
+      
+      console.log('[COMMERCIAL_ALERT] ✅ Commercial connection alert sent to Swiss number');
+      res.json({ 
+        success: true, 
+        message: 'Commercial connection alert sent to Swiss number (+41768017000)',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[COMMERCIAL_ALERT] Error sending commercial alert:', error);
+      res.status(500).json({ error: 'Failed to send commercial alert', details: error.message });
+    }
+  });
+
   // Connection System API Endpoints
   
   // Parent-Child Connection Routes
