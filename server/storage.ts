@@ -206,6 +206,9 @@ export interface IStorage {
   createEmailPreferences(preferences: InsertEmailPreferences): Promise<EmailPreferences>;
   updateEmailPreferences(userId: number, updates: UpdateEmailPreferences): Promise<EmailPreferences>;
 
+  // ===== SUBSCRIPTION SYSTEM =====
+  getExpiredSubscriptions(): Promise<any[]>;
+
   // ===== SCHOOL ADMINISTRATORS SYSTEM =====
   grantSchoolAdminRights(teacherId: number, schoolId: number, adminLevel: string, grantedBy: number): Promise<any>;
   revokeSchoolAdminRights(teacherId: number, schoolId: number, revokedBy: number): Promise<any>;
@@ -378,8 +381,6 @@ export class DatabaseStorage implements IStorage {
 
   async createNotification(notification: InsertNotification): Promise<Notification> { return {} as Notification; }
   async getNotifications(userId: number): Promise<Notification[]> { return []; }
-  async markNotificationAsRead(id: number): Promise<void> {}
-  async markAllNotificationsAsRead(userId: number): Promise<void> {}
 
   async createTeacherAbsence(absence: InsertTeacherAbsence): Promise<TeacherAbsence> { return {} as TeacherAbsence; }
   async getTeacherAbsences(schoolId: number): Promise<TeacherAbsence[]> { return []; }
@@ -413,6 +414,8 @@ export class DatabaseStorage implements IStorage {
 
   async getDirectorClasses(directorId: number): Promise<any[]> { return []; }
   async getSchoolAttendanceStats(schoolId: number): Promise<any> { return {}; }
+
+
   async getSchoolAttendanceByDate(schoolId: number, date: string): Promise<any[]> { return []; }
   async updateAttendanceRecord(recordId: number, data: any): Promise<any> { return {}; }
   async getParentRequestsStats(schoolId: number): Promise<any> { return {}; }
@@ -1017,21 +1020,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createNotification(notificationData: any): Promise<any> {
-    try {
-      const notification = {
-        id: Date.now(),
-        ...notificationData,
-        createdAt: new Date().toISOString()
-      };
-      
-      console.log('[STORAGE] Created notification:', notification);
-      return notification;
-    } catch (error) {
-      console.error('[STORAGE] createNotification error:', error);
-      throw new Error('Failed to create notification');
-    }
-  }
+
 
   async markNotificationAsRead(notificationId: number): Promise<void> {
     try {
@@ -1112,6 +1101,204 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[STORAGE] getUser error:', error);
       return null;
+    }
+  }
+
+  async getExpiredSubscriptions(): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting expired subscriptions...');
+      // In real implementation, would query database for expired subscriptions
+      return [];
+    } catch (error) {
+      console.error('[STORAGE] getExpiredSubscriptions error:', error);
+      return [];
+    }
+  }
+
+  // ===== CLASS MANAGEMENT IMPLEMENTATION =====
+  async createClass(classData: InsertClass): Promise<Class> {
+    try {
+      const [created] = await db.insert(classes).values(classData).returning();
+      console.log('[STORAGE] Created class:', created);
+      return created;
+    } catch (error) {
+      console.error('[STORAGE] createClass error:', error);
+      throw new Error('Failed to create class');
+    }
+  }
+
+  async getClass(id: number): Promise<Class | null> {
+    try {
+      const [classRecord] = await db.select().from(classes).where(eq(classes.id, id));
+      return classRecord || null;
+    } catch (error) {
+      console.error('[STORAGE] getClass error:', error);
+      return null;
+    }
+  }
+
+  async updateClass(id: number, updates: Partial<InsertClass>): Promise<Class> {
+    try {
+      const [updated] = await db
+        .update(classes)
+        .set(updates)
+        .where(eq(classes.id, id))
+        .returning();
+      
+      if (!updated) {
+        throw new Error('Class not found');
+      }
+      
+      console.log('[STORAGE] Updated class:', updated);
+      return updated;
+    } catch (error) {
+      console.error('[STORAGE] updateClass error:', error);
+      throw new Error('Failed to update class');
+    }
+  }
+
+  async getClassesBySchool(schoolId: number): Promise<Class[]> {
+    try {
+      const schoolClasses = await db.select().from(classes).where(eq(classes.schoolId, schoolId));
+      console.log(`[STORAGE] Found ${schoolClasses.length} classes for school ${schoolId}`);
+      return schoolClasses;
+    } catch (error) {
+      console.error('[STORAGE] getClassesBySchool error:', error);
+      return [];
+    }
+  }
+
+  // ===== GRADE MANAGEMENT IMPLEMENTATION =====
+  async createGrade(grade: InsertGrade): Promise<Grade> {
+    try {
+      const [created] = await db.insert(grades).values(grade).returning();
+      console.log('[STORAGE] Created grade:', created);
+      return created;
+    } catch (error) {
+      console.error('[STORAGE] createGrade error:', error);
+      throw new Error('Failed to create grade');
+    }
+  }
+
+  async getGrade(id: number): Promise<Grade | null> {
+    try {
+      const [grade] = await db.select().from(grades).where(eq(grades.id, id));
+      return grade || null;
+    } catch (error) {
+      console.error('[STORAGE] getGrade error:', error);
+      return null;
+    }
+  }
+
+  async updateGrade(id: number, updates: Partial<InsertGrade>): Promise<Grade> {
+    try {
+      const [updated] = await db
+        .update(grades)
+        .set(updates)
+        .where(eq(grades.id, id))
+        .returning();
+      
+      if (!updated) {
+        throw new Error('Grade not found');
+      }
+      
+      console.log('[STORAGE] Updated grade:', updated);
+      return updated;
+    } catch (error) {
+      console.error('[STORAGE] updateGrade error:', error);
+      throw new Error('Failed to update grade');
+    }
+  }
+
+  async getGradesByStudent(studentId: number): Promise<Grade[]> {
+    try {
+      const studentGrades = await db.select().from(grades).where(eq(grades.studentId, studentId));
+      console.log(`[STORAGE] Found ${studentGrades.length} grades for student ${studentId}`);
+      return studentGrades;
+    } catch (error) {
+      console.error('[STORAGE] getGradesByStudent error:', error);
+      return [];
+    }
+  }
+
+  async getGradesByClass(classId: number): Promise<Grade[]> {
+    try {
+      const classGrades = await db.select().from(grades).where(eq(grades.classId, classId));
+      console.log(`[STORAGE] Found ${classGrades.length} grades for class ${classId}`);
+      return classGrades;
+    } catch (error) {
+      console.error('[STORAGE] getGradesByClass error:', error);
+      return [];
+    }
+  }
+
+  // ===== ADDITIONAL MISSING METHODS =====
+  async deleteClass(id: number): Promise<void> {
+    try {
+      await db.delete(classes).where(eq(classes.id, id));
+      console.log('[STORAGE] Deleted class:', id);
+    } catch (error) {
+      console.error('[STORAGE] deleteClass error:', error);
+      throw new Error('Failed to delete class');
+    }
+  }
+
+  async getSubjectsByClass(classId: number): Promise<any[]> {
+    try {
+      console.log(`[STORAGE] Getting subjects for class ${classId}`);
+      // In real implementation, would query class-subject relations
+      return [];
+    } catch (error) {
+      console.error('[STORAGE] getSubjectsByClass error:', error);
+      return [];
+    }
+  }
+
+  async getGradesBySchool(schoolId: number): Promise<any[]> {
+    try {
+      console.log(`[STORAGE] Getting grades for school ${schoolId}`);
+      // In real implementation, would join grades with classes to filter by school
+      return [];
+    } catch (error) {
+      console.error('[STORAGE] getGradesBySchool error:', error);
+      return [];
+    }
+  }
+
+  async getGradesBySubject(subjectId: number): Promise<any[]> {
+    try {
+      const subjectGrades = await db.select().from(grades).where(eq(grades.subjectId, subjectId));
+      console.log(`[STORAGE] Found ${subjectGrades.length} grades for subject ${subjectId}`);
+      return subjectGrades;
+    } catch (error) {
+      console.error('[STORAGE] getGradesBySubject error:', error);
+      return [];
+    }
+  }
+
+  async deleteGrade(id: number): Promise<void> {
+    try {
+      await db.delete(grades).where(eq(grades.id, id));
+      console.log('[STORAGE] Deleted grade:', id);
+    } catch (error) {
+      console.error('[STORAGE] deleteGrade error:', error);
+      throw new Error('Failed to delete grade');
+    }
+  }
+
+  async getGradeStatsByClass(classId: number): Promise<any> {
+    try {
+      console.log(`[STORAGE] Getting grade statistics for class ${classId}`);
+      // In real implementation, would calculate statistics from grades
+      return {
+        totalGrades: 0,
+        averageGrade: 0,
+        highestGrade: 0,
+        lowestGrade: 0
+      };
+    } catch (error) {
+      console.error('[STORAGE] getGradeStatsByClass error:', error);
+      return {};
     }
   }
 }
