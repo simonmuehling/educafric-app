@@ -110,15 +110,115 @@ const SchoolConfigurationGuide: React.FC = () => {
     }
   };
 
+  // Fonctions de configuration spécifiques pour chaque module
+  const configureSchoolInfo = () => {
+    console.log('[CONFIG_GUIDE] Configuring school information');
+    window.location.hash = 'settings';
+    alert(language === 'fr' 
+      ? 'Redirection vers la configuration des informations de l\'école' 
+      : 'Redirecting to school information configuration');
+  };
+
+  const configureAdminAccounts = () => {
+    console.log('[CONFIG_GUIDE] Configuring admin accounts');
+    window.location.hash = 'administrators';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des comptes administrateurs' 
+      : 'Redirecting to administrator accounts management');
+  };
+
+  const configureTeachers = () => {
+    console.log('[CONFIG_GUIDE] Configuring teachers');
+    window.location.hash = 'teacher-management';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des enseignants' 
+      : 'Redirecting to teacher management');
+  };
+
+  const configureClasses = () => {
+    console.log('[CONFIG_GUIDE] Configuring classes');
+    window.location.hash = 'class-management';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des classes' 
+      : 'Redirecting to class management');
+  };
+
+  const configureStudents = () => {
+    console.log('[CONFIG_GUIDE] Configuring students');
+    window.location.hash = 'student-management';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des élèves' 
+      : 'Redirecting to student management');
+  };
+
+  const configureTimetable = () => {
+    console.log('[CONFIG_GUIDE] Configuring timetable');
+    window.location.hash = 'timetable';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des emplois du temps' 
+      : 'Redirecting to timetable management');
+  };
+
+  const configureCommunications = () => {
+    console.log('[CONFIG_GUIDE] Configuring communications');
+    window.location.hash = 'communications';
+    alert(language === 'fr' 
+      ? 'Redirection vers la configuration des communications' 
+      : 'Redirecting to communications setup');
+  };
+
+  const configureAttendance = () => {
+    console.log('[CONFIG_GUIDE] Configuring attendance');
+    window.location.hash = 'attendance-management';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des présences' 
+      : 'Redirecting to attendance management');
+  };
+
+  const configureGeolocation = () => {
+    console.log('[CONFIG_GUIDE] Configuring geolocation');
+    window.location.hash = 'geolocation';
+    alert(language === 'fr' 
+      ? 'Redirection vers la configuration de la géolocalisation' 
+      : 'Redirecting to geolocation configuration');
+  };
+
+  const configureSubscription = () => {
+    console.log('[CONFIG_GUIDE] Configuring subscription');
+    window.location.hash = 'premium-services';
+    alert(language === 'fr' 
+      ? 'Redirection vers la gestion des abonnements' 
+      : 'Redirecting to subscription management');
+  };
+
+  // Mapper les fonctions de configuration
+  const configurationFunctions = {
+    'school-info': configureSchoolInfo,
+    'admin-accounts': configureAdminAccounts,
+    'teachers': configureTeachers,
+    'classes': configureClasses,
+    'students': configureStudents,
+    'timetable': configureTimetable,
+    'communications': configureCommunications,
+    'attendance': configureAttendance,
+    'geolocation': configureGeolocation,
+    'subscription': configureSubscription
+  };
+
   const navigateToModule = (moduleKey: string) => {
-    const config = stepConfig[moduleKey as keyof typeof stepConfig];
-    if (config) {
-      const eventName = `switchTo${config?.module?.charAt(0).toUpperCase() + config?.module?.slice(1)}`;
-      const event = new CustomEvent(eventName, {
-        detail: { source: 'config-guide' }
-      });
-      window.dispatchEvent(event);
-      console.log(`[CONFIG_GUIDE] Navigating to ${config.module}`);
+    const configFunc = configurationFunctions[moduleKey as keyof typeof configurationFunctions];
+    if (configFunc) {
+      configFunc();
+    } else {
+      const config = stepConfig[moduleKey as keyof typeof stepConfig];
+      if (config) {
+        const eventName = `switchTo${config?.module?.charAt(0).toUpperCase() + config?.module?.slice(1)}`;
+        const event = new CustomEvent(eventName, {
+          detail: { source: 'config-guide' }
+        });
+        window.dispatchEvent(event);
+        console.log(`[CONFIG_GUIDE] Navigating to ${config.module}`);
+      }
     }
   };
 
@@ -193,28 +293,34 @@ const SchoolConfigurationGuide: React.FC = () => {
               return (
                 <div
                   key={stepKey}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <div className="font-medium">{config.title || ''}</div>
-                      <div className="text-sm text-gray-600">{config.description || ''}</div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <div className="font-medium">{config.title || ''}</div>
+                        <div className="text-sm text-gray-600">{config.description || ''}</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(status)}
                       <span className="text-sm">{getStatusText(status)}</span>
                     </div>
+                  </div>
+                  
+                  {/* Bouton Configurer placé sous l'option */}
+                  <div className="w-full">
                     <Button
-                      variant="outline"
+                      variant={status === 'completed' ? 'outline' : 'default'}
                       size="sm"
                       onClick={() => navigateToModule(stepKey)}
-                      className="flex items-center gap-1"
+                      className="w-full flex items-center justify-center gap-2"
+                      data-testid={`button-configure-${stepKey}`}
                     >
+                      <Icon className="w-4 h-4" />
                       {status === 'completed' 
-                        ? (language === 'fr' ? 'Voir' : 'View')
+                        ? (language === 'fr' ? 'Voir Configuration' : 'View Configuration')
                         : (language === 'fr' ? 'Configurer' : 'Configure')
                       }
                       <ChevronRight className="w-4 h-4" />
