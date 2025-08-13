@@ -8,8 +8,15 @@ export const usePWAAnalytics = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
-  // Skip analytics for sandbox users
-  const isSandboxUser = user?.sandboxMode === true;
+  // Skip analytics for sandbox users - Check multiple sandbox indicators
+  const isSandboxUser = Boolean(
+    user?.sandboxMode === true ||
+    user?.email?.includes('sandbox.') ||
+    user?.email?.includes('.demo@') ||
+    user?.email?.includes('@educafric.demo') ||
+    user?.role === 'SandboxUser' ||
+    (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))
+  );
 
   // Track PWA session
   const trackSession = useMutation({
