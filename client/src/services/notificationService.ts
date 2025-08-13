@@ -112,7 +112,7 @@ class NotificationService {
         createdAt: new Date().toISOString()
       });
 
-      const newNotification = response.data as InAppNotification;
+      const newNotification = await response.json() as InAppNotification;
       
       // Notify listeners
       this.notificationListeners.forEach(listener => listener(newNotification));

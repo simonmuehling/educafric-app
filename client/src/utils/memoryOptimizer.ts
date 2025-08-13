@@ -87,7 +87,10 @@ class MemoryOptimizer {
     this.triggerGarbageCollection();
     
     const endTime = performance.now();
-    console.log(`[MEMORY_OPTIMIZER] Nettoyage terminé en ${(endTime - startTime).toFixed(2)}ms`);
+    // Réduire le spam de logs - afficher seulement si le nettoyage prend plus de 50ms
+    if (import.meta.env.DEV && (endTime - startTime) > 50) {
+      console.log(`[MEMORY_OPTIMIZER] Nettoyage important terminé en ${(endTime - startTime).toFixed(2)}ms`);
+    }
   }
 
   // Nettoyer le cache des requêtes anciennes
@@ -105,7 +108,8 @@ class MemoryOptimizer {
       }
     });
     
-    if (removedCount > 0) {
+    // Afficher seulement si beaucoup d'éléments supprimés
+    if (import.meta.env.DEV && removedCount > 5) {
       console.log(`[MEMORY_OPTIMIZER] ${removedCount} requêtes anciennes supprimées du cache`);
     }
   }

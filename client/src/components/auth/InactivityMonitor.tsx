@@ -62,11 +62,16 @@ const InactivityMonitor: React.FC<InactivityMonitorProps> = ({
     if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
 
-    console.log('[INACTIVITY] Activity detected, resetting timers');
+    // Debug uniquement en développement si nécessaire
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_INACTIVITY === 'true') {
+      console.log('[INACTIVITY] Activity detected, resetting timers');
+    }
 
     // Set warning timer
     warningTimerRef.current = setTimeout(() => {
-      console.log('[INACTIVITY] ⚠️ Showing inactivity warning');
+      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_INACTIVITY === 'true') {
+        console.log('[INACTIVITY] ⚠️ Showing inactivity warning');
+      }
       setShowWarning(true);
       setCountdown(logoutTime - warningTime);
       
@@ -91,7 +96,9 @@ const InactivityMonitor: React.FC<InactivityMonitorProps> = ({
   }, [user, warningTime, logoutTime]);
 
   const handleAutoLogout = useCallback(async () => {
-    console.log('[INACTIVITY] 🚪 Auto logout triggered');
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_INACTIVITY === 'true') {
+      console.log('[INACTIVITY] 🚪 Auto logout triggered');
+    }
     setShowWarning(false);
     
     try {

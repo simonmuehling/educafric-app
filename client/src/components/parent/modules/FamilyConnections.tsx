@@ -69,7 +69,8 @@ const FamilyConnections: React.FC = () => {
   // Search for users by phone/email
   const searchUsersMutation = useMutation({
     mutationFn: async (data: { searchValue: string; searchType: 'email' | 'phone' }) => {
-      return apiRequest('/api/family/search-users', 'POST', data);
+      const response = await apiRequest('POST', '/api/family/search-users', data);
+      return response.json();
     },
     onSuccess: (data: any) => {
       setSearchSuggestions(data.users || []);
@@ -84,7 +85,8 @@ const FamilyConnections: React.FC = () => {
   // Create new connection mutation
   const createConnectionMutation = useMutation({
     mutationFn: async (data: { childEmail?: string; childPhone?: string }) => {
-      return apiRequest('/api/family/connections', 'POST', data);
+      const response = await apiRequest('POST', '/api/family/connections', data);
+      return response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/family/connections'] });
@@ -109,7 +111,8 @@ const FamilyConnections: React.FC = () => {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data: { connectionId: number; message: string; messageType: string }) => {
-      return apiRequest('/api/family/messages', 'POST', data);
+      const response = await apiRequest('POST', '/api/family/messages', data);
+      return response.json();
     },
     onSuccess: () => {
       setNewMessage('');

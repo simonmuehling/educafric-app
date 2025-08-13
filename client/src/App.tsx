@@ -429,6 +429,11 @@ function FirebaseRedirectHandler() {
 
 function App() {
   useEffect(() => {
+    // Configuration du filtre de console pour réduire le spam
+    import("@/utils/consoleFilter").then(({ setupConsoleFilter }) => {
+      setupConsoleFilter();
+    }).catch(() => {});
+
     // Importer et démarrer l'optimiseur mémoire
     import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
       memoryOptimizer.start();
