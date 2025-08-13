@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import EmailPreferences from '@/components/EmailPreferences';
+
 import { 
   User, 
   Settings, 
@@ -250,7 +250,36 @@ export default function ProfileSettings() {
 
           {/* Email Preferences Tab */}
           <TabsContent value="email">
-            <EmailPreferences language={language} />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  {getTexts('emailPreferences')}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' ? 'Gérez vos préférences email dans le module Paramètres Parent' : 'Manage your email preferences in the Parent Settings module'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    {language === 'fr' 
+                      ? 'Les préférences email ont été intégrées dans le module "Paramètres Parent" pour une meilleure expérience.'
+                      : 'Email preferences have been integrated into the "Parent Settings" module for a better experience.'
+                    }
+                  </p>
+                  <Button 
+                    onClick={() => window.location.href = '/parent'}
+                    className="flex items-center gap-2"
+                    data-testid="button-go-to-parent-settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                    {language === 'fr' ? 'Aller aux Paramètres Parent' : 'Go to Parent Settings'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Security Tab */}
