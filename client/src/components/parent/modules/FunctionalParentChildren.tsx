@@ -42,6 +42,71 @@ const FunctionalParentChildren: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  // Define all stable callback handlers at the top level (Rules of Hooks compliance)
+  const handleViewAllGrades = useStableCallback(() => {
+    console.log('[PARENT_QUICK_ACTION] Fetching all grades...');
+    fetch('/api/parent/grades', {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      const gradesData = await response.json();
+      console.log('[PARENT_QUICK_ACTION] Grades data received:', (Array.isArray(gradesData) ? gradesData.length : 0), 'items');
+      window.dispatchEvent(new CustomEvent('switchToGrades'));
+      toast({
+        title: language === 'fr' ? 'Notes chargées' : 'Grades loaded',
+        description: language === 'fr' ? `${(Array.isArray(gradesData) ? gradesData.length : 0)} notes trouvées` : `${(Array.isArray(gradesData) ? gradesData.length : 0)} grades found`,
+      });
+    }).catch(error => {
+      console.error('[PARENT_QUICK_ACTION] Grades fetch error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de charger les notes' : 'Unable to load grades',
+        variant: 'destructive'
+      });
+    });
+  });
+
+  const handleCheckAttendance = useStableCallback(() => {
+    console.log('[PARENT_QUICK_ACTION] Fetching attendance data...');
+    fetch('/api/parent/attendance', {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      const attendanceData = await response.json();
+      console.log('[PARENT_QUICK_ACTION] Attendance data received:', (Array.isArray(attendanceData) ? attendanceData.length : 0), 'records');
+      window.dispatchEvent(new CustomEvent('switchToAttendance'));
+      toast({
+        title: language === 'fr' ? 'Présences chargées' : 'Attendance loaded',
+        description: language === 'fr' ? `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} enregistrements trouvés` : `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} records found`,
+      });
+    }).catch(error => {
+      console.error('[PARENT_QUICK_ACTION] Attendance fetch error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de charger les présences' : 'Unable to load attendance',
+        variant: 'destructive'
+      });
+    });
+  });
+
+  const handleSendMessage = useStableCallback(() => {
+    console.log('[PARENT_QUICK_ACTION] Opening message interface...');
+    window.dispatchEvent(new CustomEvent('switchToMessages'));
+    toast({
+      title: language === 'fr' ? 'Messages' : 'Messages',
+      description: language === 'fr' ? 'Interface de messagerie ouverte' : 'Messaging interface opened',
+    });
+  });
+
+  const handleTrackLocation = useStableCallback(() => {
+    console.log('[PARENT_QUICK_ACTION] Opening location tracking...');
+    window.dispatchEvent(new CustomEvent('switchToGeolocation'));
+    toast({
+      title: language === 'fr' ? 'Géolocalisation' : 'Location',
+      description: language === 'fr' ? 'Suivi de position activé' : 'Location tracking activated',
+    });
+  });
+
   // Fetch parent children data from PostgreSQL API
   const { data: children = [], isLoading } = useQuery<ParentChild[]>({
     queryKey: ['/api/parent/children'],
@@ -299,88 +364,29 @@ const FunctionalParentChildren: React.FC = () => {
                 id: 'view-all-grades',
                 label: language === 'fr' ? 'Toutes les Notes' : 'All Grades',
                 icon: <FileText className="w-5 h-5" />,
-                onClick: useStableCallback(() => {
-                  console.log('[PARENT_QUICK_ACTION] Fetching all grades...');
-                  // Call API to get all grades then navigate
-                  fetch('/api/parent/grades', {
-                    method: 'GET',
-                    credentials: 'include'
-                  }).then(async response => {
-                    const gradesData = await response.json();
-                    console.log('[PARENT_QUICK_ACTION] Grades data received:', (Array.isArray(gradesData) ? gradesData.length : 0), 'items');
-                    window.dispatchEvent(new CustomEvent('switchToGrades'));
-                    toast({
-                      title: language === 'fr' ? 'Notes chargées' : 'Grades loaded',
-                      description: language === 'fr' ? `${(Array.isArray(gradesData) ? gradesData.length : 0)} notes trouvées` : `${(Array.isArray(gradesData) ? gradesData.length : 0)} grades found`,
-                    });
-                  }).catch(error => {
-                    console.error('[PARENT_QUICK_ACTION] Grades fetch error:', error);
-                    toast({
-                      title: language === 'fr' ? 'Erreur' : 'Error',
-                      description: language === 'fr' ? 'Impossible de charger les notes' : 'Unable to load grades',
-                      variant: 'destructive'
-                    });
-                  });
-                }),
+                onClick: handleViewAllGrades,
                 color: 'bg-blue-600 hover:bg-blue-700'
               },
               {
                 id: 'check-attendance',
                 label: language === 'fr' ? 'Vérifier Présences' : 'Check Attendance',
                 icon: <UserCheck className="w-5 h-5" />,
-                onClick: useStableCallback(() => {
-                  console.log('[PARENT_QUICK_ACTION] Fetching attendance data...');
-                  // Call API to get attendance data then navigate
-                  fetch('/api/parent/attendance', {
-                    method: 'GET',
-                    credentials: 'include'
-                  }).then(async response => {
-                    const attendanceData = await response.json();
-                    console.log('[PARENT_QUICK_ACTION] Attendance data received:', (Array.isArray(attendanceData) ? attendanceData.length : 0), 'records');
-                    window.dispatchEvent(new CustomEvent('switchToAttendance'));
-                    toast({
-                      title: language === 'fr' ? 'Présences chargées' : 'Attendance loaded',
-                      description: language === 'fr' ? `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} enregistrements trouvés` : `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} records found`,
-                    });
-                  }).catch(error => {
-                    console.error('[PARENT_QUICK_ACTION] Attendance fetch error:', error);
-                    toast({
-                      title: language === 'fr' ? 'Erreur' : 'Error',
-                      description: language === 'fr' ? 'Impossible de charger les présences' : 'Unable to load attendance',
-                      variant: 'destructive'
-                    });
-                  });
-                }),
+                onClick: handleCheckAttendance,
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
                 id: 'send-message',
                 label: language === 'fr' ? 'Message École' : 'Message School',
                 icon: <Mail className="w-5 h-5" />,
-                onClick: useStableCallback(() => {
-                  console.log('[PARENT_QUICK_ACTION] Fetching messages data...');
-                  // Call API to get messages data then navigate
-                  fetch('/api/parent/messages', {
-                    method: 'GET',
-                    credentials: 'include'
-                  }).then(async response => {
-                    const messagesData = await response.json();
-                    console.log('[PARENT_QUICK_ACTION] Messages data received:', (Array.isArray(messagesData) ? messagesData.length : 0), 'messages');
-                    window.dispatchEvent(new CustomEvent('switchToMessages'));
-                    toast({
-                      title: language === 'fr' ? 'Messages chargés' : 'Messages loaded',
-                      description: language === 'fr' ? `${(Array.isArray(messagesData) ? messagesData.length : 0)} messages trouvés` : `${(Array.isArray(messagesData) ? messagesData.length : 0)} messages found`,
-                    });
-                  }).catch(error => {
-                    console.error('[PARENT_QUICK_ACTION] Messages fetch error:', error);
-                    toast({
-                      title: language === 'fr' ? 'Erreur' : 'Error',
-                      description: language === 'fr' ? 'Impossible de charger les messages' : 'Unable to load messages',
-                      variant: 'destructive'
-                    });
-                  });
-                }),
+                onClick: handleSendMessage,
                 color: 'bg-purple-600 hover:bg-purple-700'
+              },
+              {
+                id: 'track-location',
+                label: language === 'fr' ? 'Géolocalisation' : 'Track Location',
+                icon: <MapPin className="w-5 h-5" />,
+                onClick: handleTrackLocation,
+                color: 'bg-orange-600 hover:bg-orange-700'
               },
               {
                 id: 'export-children',
