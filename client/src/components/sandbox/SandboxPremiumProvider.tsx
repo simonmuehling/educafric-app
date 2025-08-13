@@ -32,14 +32,16 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
   const refreshIntervalRef = useRef<NodeJS.Timeout>();
   const duplicateCheckRef = useRef<Set<string>>(new Set());
 
-  // Sandbox mode detection - comprehensive check
+  // Sandbox mode detection - stable check without setState
   const isSandboxUser = Boolean(
-    (user as any)?.sandboxMode || 
-    user?.email?.includes('sandbox.') ||
-    user?.email?.includes('.demo@') ||
-    user?.email?.includes('test.educafric.com') ||
-    user?.role === 'SandboxUser' ||
-    (typeof window !== 'undefined' && window.location?.pathname.includes('/sandbox'))
+    user && (
+      (user as any)?.sandboxMode || 
+      user?.email?.includes('sandbox.') ||
+      user?.email?.includes('.demo@') ||
+      user?.email?.includes('test.educafric.com') ||
+      user?.role === 'SandboxUser' ||
+      (typeof window !== 'undefined' && window.location?.pathname.includes('/sandbox'))
+    )
   );
 
   // Autoscale refresh function to prevent duplications
@@ -59,23 +61,17 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
     console.log('🔄 Sandbox Autoscale: Refreshed at', now.toLocaleTimeString());
   };
 
-  // Auto-refresh every 5 minutes to prevent duplications
+  // Auto-refresh every 5 minutes to prevent duplications (no initial refresh to avoid setState during render)
   useEffect(() => {
     if (isSandboxUser) {
       refreshIntervalRef.current = setInterval(() => {
         refreshSandbox();
       }, 5 * 60 * 1000); // 5 minutes
 
-      // Initial refresh on mount after a small delay to avoid render issues
-      const timeoutId = setTimeout(() => {
-        refreshSandbox();
-      }, 100);
-
       return () => {
         if (refreshIntervalRef.current) {
           clearInterval(refreshIntervalRef.current);
         }
-        clearTimeout(timeoutId);
       };
     }
   }, [isSandboxUser]);
