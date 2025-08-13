@@ -895,20 +895,20 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                   </div>
 
                   {/* Email Categories */}
-                  {EMAIL_CATEGORIES.map((category) => (
-                    <div key={category.id} className="space-y-3">
+                  {Object.entries(EMAIL_CATEGORIES).map(([categoryId, category]) => (
+                    <div key={categoryId} className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center gap-3">
                           <div className="p-2 rounded-full bg-white">
-                            {category.id === 'ESSENTIAL' && <Shield className="w-5 h-5 text-red-600" />}
-                            {category.id === 'ACADEMIC' && <User className="w-5 h-5 text-blue-600" />}
-                            {category.id === 'SAFETY' && <MapPin className="w-5 h-5 text-orange-600" />}
-                            {category.id === 'COMMUNICATION' && <MessageSquare className="w-5 h-5 text-green-600" />}
-                            {category.id === 'FINANCIAL' && <BarChart3 className="w-5 h-5 text-yellow-600" />}
-                            {category.id === 'PLATFORM' && <Settings className="w-5 h-5 text-purple-600" />}
-                            {category.id === 'ACCOUNT' && <User className="w-5 h-5 text-gray-600" />}
-                            {category.id === 'WELCOME' && <Calendar className="w-5 h-5 text-pink-600" />}
-                            {category.id === 'MARKETING' && <Mail className="w-5 h-5 text-indigo-600" />}
+                            {categoryId === 'ESSENTIAL' && <Shield className="w-5 h-5 text-red-600" />}
+                            {categoryId === 'ACADEMIC' && <User className="w-5 h-5 text-blue-600" />}
+                            {categoryId === 'SAFETY' && <MapPin className="w-5 h-5 text-orange-600" />}
+                            {categoryId === 'COMMUNICATION' && <MessageSquare className="w-5 h-5 text-green-600" />}
+                            {categoryId === 'FINANCIAL' && <BarChart3 className="w-5 h-5 text-yellow-600" />}
+                            {categoryId === 'PLATFORM' && <Settings className="w-5 h-5 text-purple-600" />}
+                            {categoryId === 'ACCOUNT' && <User className="w-5 h-5 text-gray-600" />}
+                            {categoryId === 'WELCOME' && <Calendar className="w-5 h-5 text-pink-600" />}
+                            {categoryId === 'MARKETING' && <Mail className="w-5 h-5 text-indigo-600" />}
                           </div>
                           <div>
                             <h4 className="font-medium">
@@ -920,7 +920,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          {category.mandatory && (
+                          {categoryId === 'ESSENTIAL' && (
                             <Badge variant="secondary" className="text-xs">
                               {language === 'fr' ? 'Essentiel' : 'Essential'}
                             </Badge>
@@ -931,7 +931,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                               variant="outline"
                               onClick={() => toggleEmailCategory(category.fields, true)}
                               className="text-xs px-2"
-                              data-testid={`button-enable-${category.id.toLowerCase()}`}
+                              data-testid={`button-enable-${categoryId.toLowerCase()}`}
                             >
                               {language === 'fr' ? 'Tout activer' : 'Enable all'}
                             </Button>
@@ -940,8 +940,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                               variant="outline"
                               onClick={() => toggleEmailCategory(category.fields, false)}
                               className="text-xs px-2"
-                              disabled={category.mandatory}
-                              data-testid={`button-disable-${category.id.toLowerCase()}`}
+                              disabled={categoryId === 'ESSENTIAL'}
+                              data-testid={`button-disable-${categoryId.toLowerCase()}`}
                             >
                               {language === 'fr' ? 'Tout désactiver' : 'Disable all'}
                             </Button>
@@ -959,7 +959,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                             <Switch
                               checked={emailPreferences[field as keyof EmailPreferences] !== false}
                               onCheckedChange={(checked) => updateEmailPreference(field as keyof EmailPreferences, checked)}
-                              disabled={category.mandatory}
+                              disabled={categoryId === 'ESSENTIAL'}
                               className="data-[state=checked]:bg-green-600"
                               data-testid={`switch-${field.toLowerCase().replace(/([A-Z])/g, '-$1')}`}
                             />
