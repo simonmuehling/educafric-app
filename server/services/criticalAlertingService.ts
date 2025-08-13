@@ -28,14 +28,14 @@ export class CriticalAlertingService {
     this.ownerContacts = {
       emails: ['admin@educafric.com', 'support@educafric.com'],
       phones: {
-        primary: '+237600000000',   // Demo primary contact
-        secondary: '+237600000001'   // Demo secondary contact
+        primary: '+237657004011',   // Cameroon primary contact
+        secondary: '+41768017000'   // Switzerland secondary contact
       },
       name: 'Platform Administrator'
     };
     
-    // Commercial connections notify to demo number
-    this.commercialNotificationPhone = '+237600000001';
+    // Commercial connections notify to Cameroon number
+    this.commercialNotificationPhone = '+237657004011';
     
     console.log('[CRITICAL_ALERTING] Service initialized for Educafric platform');
     console.log(`[CRITICAL_ALERTING] Owner emails: ${this.ownerContacts.emails.join(', ')}`);

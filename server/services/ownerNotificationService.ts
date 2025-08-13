@@ -10,7 +10,7 @@ interface OwnerContact {
 class OwnerNotificationService {
   private ownerContact: OwnerContact = {
     emails: ['admin@educafric.com', 'support@educafric.com'],
-    phones: ['+237600000000', '+237600000001'], // Demo contact numbers
+    phones: ['+237657004011', '+41768017000'], // Actual owner contact numbers
     name: 'Platform Administrator',
     timezone: 'Africa/Douala'
   };

@@ -9,10 +9,10 @@ import { eq, and, ne, or } from "drizzle-orm";
 
 // Owner/Platform Admin exception numbers - these can be used by multiple accounts
 const OWNER_EXCEPTION_NUMBERS = [
-  "+237600000000", // Primary owner number
-  "+237600000001", // Commercial owner number  
-  "237600000000",  // Without + prefix
-  "237600000001"   // Without + prefix
+  "+41768017000",   // Primary owner number (Switzerland)
+  "+237657004011",  // Commercial owner number (Cameroon)
+  "41768017000",    // Without + prefix
+  "237657004011"    // Without + prefix
 ];
 
 /**
@@ -22,8 +22,8 @@ function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
   // Remove spaces, dashes, parentheses
   let normalized = phone.replace(/[\s\-\(\)]/g, '');
-  // Add + if missing and starts with 237
-  if (normalized.startsWith('237') && !normalized.startsWith('+')) {
+  // Add + if missing and starts with 237 or 41
+  if ((normalized.startsWith('237') || normalized.startsWith('41')) && !normalized.startsWith('+')) {
     normalized = '+' + normalized;
   }
   return normalized;
@@ -112,10 +112,13 @@ export function validatePhoneFormat(phone: string): { isValid: boolean; message?
   // Cameroon phone number format: +237XXXXXXXXX (9 digits after country code)
   const cameroonPhoneRegex = /^\+237[6-9]\d{8}$/;
   
-  if (!cameroonPhoneRegex.test(normalized)) {
+  // Swiss phone number format: +41XXXXXXXXX (9 digits after country code)
+  const swissPhoneRegex = /^\+41[0-9]{9}$/;
+  
+  if (!cameroonPhoneRegex.test(normalized) && !swissPhoneRegex.test(normalized)) {
     return {
       isValid: false,
-      message: 'Invalid Cameroon phone number format. Should be +237XXXXXXXXX'
+      message: 'Invalid phone number format. Should be +237XXXXXXXXX (Cameroon) or +41XXXXXXXXX (Switzerland)'
     };
   }
 

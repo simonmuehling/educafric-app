@@ -13,10 +13,10 @@ Successfully implemented comprehensive phone number uniqueness validation system
 
 #### Owner Exception Numbers
 The following numbers are exempt from uniqueness validation and can be used by multiple accounts:
-- `+237600000000` (Primary owner number)
-- `+237600000001` (Commercial owner number)
-- `237600000000` (Without + prefix)
-- `237600000001` (Without + prefix)
+- `+41768017000` (Primary owner number - Switzerland)
+- `+237657004011` (Commercial owner number - Cameroon)
+- `41768017000` (Without + prefix)
+- `237657004011` (Without + prefix)
 
 #### Validation Features
 1. **Format Validation**: Ensures Cameroon phone number format (+237XXXXXXXXX)
@@ -45,8 +45,9 @@ The following numbers are exempt from uniqueness validation and can be used by m
 ### ✅ Successful Cases
 
 1. **Owner Exception Numbers**: 
-   - `+237600000000` can be used by multiple users
-   - Successfully registered 2 users with same owner number
+   - `+41768017000` (Switzerland) can be used by multiple users
+   - `+237657004011` (Cameroon) can be used by multiple users
+   - Successfully registered multiple users with same owner numbers
 
 2. **Unique Phone Numbers**:
    - `+237650123456` successfully registered for first user
@@ -54,6 +55,7 @@ The following numbers are exempt from uniqueness validation and can be used by m
 
 3. **Format Validation**:
    - Valid Cameroon numbers (+237XXXXXXXXX) accepted
+   - Valid Swiss numbers (+41XXXXXXXXX) accepted
    - Invalid formats rejected with clear error messages
 
 ### ❌ Properly Rejected Cases
@@ -97,17 +99,18 @@ To modify owner exception numbers, edit `OWNER_EXCEPTION_NUMBERS` array in:
 ```typescript
 // server/utils/phoneValidation.ts
 const OWNER_EXCEPTION_NUMBERS = [
-  "+237600000000", // Primary owner number
-  "+237600000001", // Commercial owner number  
-  "237600000000",  // Without + prefix
-  "237600000001"   // Without + prefix
+  "+41768017000",   // Primary owner number (Switzerland)
+  "+237657004011",  // Commercial owner number (Cameroon)
+  "41768017000",    // Without + prefix
+  "237657004011"    // Without + prefix
 ];
 ```
 
 ### Phone Format Validation
-Cameroon phone number format enforced:
+Multi-country phone number format support:
 ```typescript
-const cameroonPhoneRegex = /^\+237[6-9]\d{8}$/;
+const cameroonPhoneRegex = /^\+237[6-9]\d{8}$/; // Cameroon
+const swissPhoneRegex = /^\+41[0-9]{9}$/;       // Switzerland
 ```
 
 ## Deployment Status
