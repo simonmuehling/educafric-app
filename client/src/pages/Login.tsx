@@ -471,46 +471,7 @@ export default function Login() {
 
 
 
-          {/* Demo Accounts Section */}
-          {!isRegisterMode && (
-            <div className="bg-blue-50 rounded-xl p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-blue-900 text-center">
-                {language === 'fr' ? '🧪 Comptes de Démonstration' : '🧪 Demo Accounts'}
-              </h4>
-              <div className="text-xs text-blue-700 space-y-1">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {language === 'fr' ? 'Comptes Standard:' : 'Standard Accounts:'}
-                    </p>
-                    <div className="text-xs space-y-0.5">
-                      <p>teacher.demo@educafric.com</p>
-                      <p>parent.demo@educafric.com</p>
-                      <p>student.demo@educafric.com</p>
-                      <p>director.demo@educafric.com</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">
-                      {language === 'fr' ? 'Comptes Sandbox:' : 'Sandbox Accounts:'}
-                    </p>
-                    <div className="text-xs space-y-0.5">
-                      <p>sandbox.teacher@educafric.demo</p>
-                      <p>sandbox.parent@educafric.demo</p>
-                      <p>sandbox.student@educafric.demo</p>
-                      <p>sandbox.director@educafric.demo</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-center mt-2 pt-2 border-t border-blue-200">
-                  <p className="font-semibold text-blue-800">
-                    {language === 'fr' ? 'Mot de passe pour tous: ' : 'Password for all: '}
-                    <span className="font-mono bg-blue-100 px-2 py-0.5 rounded">password</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           <div className="text-center space-y-3">
             <button
