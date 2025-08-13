@@ -187,6 +187,12 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/teacher">
+        <ProtectedRoute>
+          <LazyTeachers />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/teachers">
         <ProtectedRoute>
           <LazyTeachers />
@@ -244,6 +250,12 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/parent">
+        <ProtectedRoute>
+          <LazyParentsPage />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/parents">
         <ProtectedRoute>
           <LazyParentsPage />
