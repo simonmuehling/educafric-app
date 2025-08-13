@@ -2043,6 +2043,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Trigger critical system alert (SMS to Swiss number)
+  app.post('/api/trigger-critical-alert', async (req, res) => {
+    try {
+      const { criticalAlertingService } = await import('./services/criticalAlertingService');
+      const { alertType = 'server_error', message = 'Test critical system alert' } = req.body;
+      
+      // Send critical system alert
+      await criticalAlertingService.sendCriticalSystemAlert({
+        type: alertType,
+        severity: 'critical',
+        message: `${message} - Test from platform owner`,
+        details: {
+          requestedBy: 'Platform Owner',
+          testType: 'Critical SMS Alert Test',
+          targetNumber: '+41768017000',
+          timestamp: new Date().toISOString(),
+          note: 'This is a test of critical alerting for server issues and security breaches'
+        },
+        timestamp: new Date(),
+        source: 'Manual Critical Test'
+      });
+      
+      console.log('[CRITICAL_ALERT] ✅ Critical alert sent to Swiss number (+41768017000)');
+      res.json({ 
+        success: true, 
+        message: `Critical ${alertType} alert sent to Swiss number (+41768017000)`,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('[CRITICAL_ALERT] Error sending critical alert:', error);
+      res.status(500).json({ error: 'Failed to send critical alert', details: error.message });
+    }
+  });
+
   // Trigger commercial connection alert (sends SMS to Swiss number)
   app.post('/api/trigger-commercial-alert', async (req, res) => {
     try {

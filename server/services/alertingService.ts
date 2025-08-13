@@ -40,7 +40,7 @@ export class AlertingService {
     // Owner contact information for critical alerts
     this.ownerContacts = {
       emails: ['admin@educafric.com', 'support@educafric.com'],
-      phones: ['+237600000000', '+237600000001'], // Demo contact numbers
+      phones: ['+41768017000', '+237657004011'], // Owner's actual phone numbers
       name: 'Platform Administrator'
     };
     
@@ -218,7 +218,7 @@ async function sendCriticalSMSAlert(alert: any): Promise<void> {
   try {
     const notificationService = await import('../services/notificationService');
     
-    const ownerPhones = ['+237600000000', '+237600000001']; // Demo contact numbers
+    const ownerPhones = ['+41768017000', '+237657004011']; // Owner's actual phone numbers
     const message = `🚨 EDUCAFRIC SECURITY ALERT\n\nType: ${alert.event_type}\nThreat Score: ${alert.threat_score}\nIP: ${alert.source_ip}\nTime: ${new Date(alert.timestamp).toLocaleString()}\n\nImmediate review required.`;
     
     for (const phone of ownerPhones) {

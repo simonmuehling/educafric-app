@@ -573,7 +573,7 @@ export class NotificationService {
       // 3. Log SMS delivery status
       
       const smsData = {
-        to: '+237600000000', // Parent's phone (would come from database)
+        to: '+41768017000', // Owner's Swiss phone number
         from: 'EduAfric',
         text: `🚨 EDUCAFRIC SÉCURITÉ\n\n${message}\n\nConnectez-vous à l'app pour voir la position en temps réel.`
       };

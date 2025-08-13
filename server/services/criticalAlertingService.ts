@@ -56,8 +56,8 @@ export class CriticalAlertingService {
       }
       
       // Send SMS to both phone numbers for critical system issues
-      await this.sendSMSAlert(this.ownerContacts.phones.primary, this.formatSMSAlert(event));
-      await this.sendSMSAlert(this.ownerContacts.phones.secondary, this.formatSMSAlert(event));
+      await this.sendSMSAlert('+41768017000', this.formatSMSAlert(event)); // Swiss number
+      await this.sendSMSAlert('+237657004011', this.formatSMSAlert(event)); // Cameroon number
       
       console.log('[CRITICAL_ALERTING] System alert sent successfully');
     } catch (error) {
@@ -89,9 +89,10 @@ export class CriticalAlertingService {
       // Send PWA notification
       await this.sendPWANotification('Commercial Connection Alert', event.message, event.details);
       
-      // Send SMS only to Switzerland number
+      // Send SMS to both numbers for commercial alerts
       const smsMessage = `EDUCAFRIC: Commercial user ${userInfo.name || userInfo.email} connected at ${new Date().toLocaleTimeString('fr-CH')}`;
-      await this.sendSMSAlert(this.commercialNotificationPhone, smsMessage);
+      await this.sendSMSAlert('+41768017000', smsMessage); // Swiss number
+      await this.sendSMSAlert('+237657004011', smsMessage); // Cameroon number
       
       console.log('[CRITICAL_ALERTING] Commercial connection alert sent');
     } catch (error) {
