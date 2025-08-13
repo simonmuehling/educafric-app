@@ -140,8 +140,8 @@ const FamilyConnections: React.FC = () => {
         searchValue: value,
         searchType: 'phone'
       });
-    } else if (searchType === 'email' && value.includes('@') && value.includes('.')) {
-      // Search when email looks complete
+    } else if (searchType === 'email' && value.includes('@') && value.includes('.') && value.length > 5) {
+      // Search when email looks complete (has @ and . and reasonable length)
       searchUsersMutation.mutate({
         searchValue: value,
         searchType: 'email'
@@ -326,11 +326,14 @@ const FamilyConnections: React.FC = () => {
               {/* Search suggestions dropdown */}
               {showSuggestions && searchSuggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  <div className="px-3 py-2 bg-gray-50 text-sm text-gray-600 border-b">
+                    {searchSuggestions.length} étudiant{searchSuggestions.length > 1 ? 's' : ''} trouvé{searchSuggestions.length > 1 ? 's' : ''}
+                  </div>
                   {searchSuggestions.map((user, index) => (
                     <div
                       key={index}
                       onClick={() => handleSelectSuggestion(user)}
-                      className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
@@ -349,9 +352,21 @@ const FamilyConnections: React.FC = () => {
                             </p>
                           )}
                         </div>
+                        <div className="text-xs text-purple-600 font-medium">
+                          Cliquer pour ajouter
+                        </div>
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* No results message */}
+              {showSuggestions && searchSuggestions.length === 0 && !searchUsersMutation.isPending && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-50">
+                  <div className="text-sm text-gray-600">
+                    Aucun étudiant trouvé avec {searchType === 'email' ? 'cet email' : 'ce numéro'}
+                  </div>
                 </div>
               )}
               

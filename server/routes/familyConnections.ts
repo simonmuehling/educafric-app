@@ -44,8 +44,8 @@ router.post('/search-users', requireAuth, async (req: any, res: any) => {
     if (searchType === 'phone' && searchValue.length >= 10) {
       // Recherche par téléphone uniquement si numéro complet
       users = await storage.searchUsersByPhone(searchValue);
-    } else if (searchType === 'email' && searchValue.includes('@') && searchValue.includes('.')) {
-      // Recherche par email uniquement si email complet
+    } else if (searchType === 'email' && searchValue.includes('@') && searchValue.includes('.') && searchValue.length > 5) {
+      // Recherche par email uniquement si email complet et suffisamment long
       users = await storage.searchUsersByEmail(searchValue);
     }
 
