@@ -51,6 +51,8 @@ const FamilyConnections: React.FC = () => {
   const [showAddConnection, setShowAddConnection] = useState(false);
   const [childEmailOrPhone, setChildEmailOrPhone] = useState('');
   const [searchType, setSearchType] = useState<'email' | 'phone'>('email');
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Fetch family connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<FamilyConnection[]>({
@@ -64,6 +66,21 @@ const FamilyConnections: React.FC = () => {
     enabled: !!selectedConnection
   });
 
+  // Search for users by phone/email
+  const searchUsersMutation = useMutation({
+    mutationFn: async (data: { searchValue: string; searchType: 'email' | 'phone' }) => {
+      return apiRequest('/api/family/search-users', 'POST', data);
+    },
+    onSuccess: (data: any) => {
+      setSearchSuggestions(data.users || []);
+      setShowSuggestions(true);
+    },
+    onError: () => {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  });
+
   // Create new connection mutation
   const createConnectionMutation = useMutation({
     mutationFn: async (data: { childEmail?: string; childPhone?: string }) => {
@@ -72,6 +89,8 @@ const FamilyConnections: React.FC = () => {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/family/connections'] });
       setChildEmailOrPhone('');
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
       setShowAddConnection(false);
       toast({
         title: 'Connexion créée',
@@ -108,6 +127,35 @@ const FamilyConnections: React.FC = () => {
       });
     }
   });
+
+  // Handle input change and trigger search
+  const handleInputChange = (value: string) => {
+    setChildEmailOrPhone(value);
+    setShowSuggestions(false);
+    
+    // Auto-search when complete phone number or email is entered
+    if (searchType === 'phone' && value.length >= 10) {
+      // Search when phone number is complete (10+ digits)
+      searchUsersMutation.mutate({
+        searchValue: value,
+        searchType: 'phone'
+      });
+    } else if (searchType === 'email' && value.includes('@') && value.includes('.')) {
+      // Search when email looks complete
+      searchUsersMutation.mutate({
+        searchValue: value,
+        searchType: 'email'
+      });
+    }
+  };
+
+  const handleSelectSuggestion = (user: any) => {
+    const data = searchType === 'email' 
+      ? { childEmail: user.email }
+      : { childPhone: user.phone };
+    
+    createConnectionMutation.mutate(data);
+  };
 
   const handleCreateConnection = () => {
     if (!childEmailOrPhone.trim()) {
@@ -263,17 +311,58 @@ const FamilyConnections: React.FC = () => {
                 </Button>
               </div>
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium mb-2">
                 {searchType === 'email' ? t.childEmail : t.childPhone}
               </label>
               <Input
                 type={searchType === 'email' ? 'email' : 'tel'}
                 value={childEmailOrPhone}
-                onChange={(e) => setChildEmailOrPhone(e.target.value)}
+                onChange={(e) => handleInputChange(e.target.value)}
                 placeholder={searchType === 'email' ? 'enfant@example.com' : '+237 XXX XXX XXX'}
                 className="w-full"
               />
+              
+              {/* Search suggestions dropdown */}
+              {showSuggestions && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {searchSuggestions.map((user, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleSelectSuggestion(user)}
+                      className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                          {user.firstName?.charAt(0) || '?'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {user.firstName} {user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {searchType === 'email' ? user.email : user.phone}
+                          </p>
+                          {user.schoolName && (
+                            <p className="text-xs text-gray-500">
+                              École: {user.schoolName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {searchUsersMutation.isPending && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 z-50">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
+                    Recherche en cours...
+                  </div>
+                </div>
+              )}
             </div>
             <div className="flex gap-3">
               <Button 

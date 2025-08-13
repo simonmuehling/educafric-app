@@ -1109,6 +1109,48 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async searchUsersByPhone(phone: string): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Searching users by phone:', phone);
+      
+      const userList = await db.select({
+        id: users.id,
+        email: users.email,
+        phone: users.phone,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        schoolId: users.schoolId
+      }).from(users).where(eq(users.phone, phone));
+
+      return userList;
+    } catch (error) {
+      console.error('[STORAGE] searchUsersByPhone error:', error);
+      return [];
+    }
+  }
+
+  async searchUsersByEmail(email: string): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Searching users by email:', email);
+      
+      const userList = await db.select({
+        id: users.id,
+        email: users.email,
+        phone: users.phone,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        role: users.role,
+        schoolId: users.schoolId
+      }).from(users).where(eq(users.email, email));
+
+      return userList;
+    } catch (error) {
+      console.error('[STORAGE] searchUsersByEmail error:', error);
+      return [];
+    }
+  }
+
   async createFamilyConnection(data: { parentId: number; childEmail?: string; childPhone?: string }): Promise<any> {
     try {
       console.log('[STORAGE] Creating family connection:', data);

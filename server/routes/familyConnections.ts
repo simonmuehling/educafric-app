@@ -27,6 +27,41 @@ const sendMessageSchema = z.object({
   messageType: z.enum(['text', 'image', 'audio', 'location']).default('text')
 });
 
+// POST /api/family/search-users - Rechercher des utilisateurs par email/téléphone
+router.post('/search-users', requireAuth, async (req: any, res: any) => {
+  try {
+    const { searchValue, searchType } = req.body;
+    const userId = req.user.id;
+    
+    if (!searchValue || !searchType) {
+      return res.status(400).json({ error: 'Valeur de recherche et type requis' });
+    }
+
+    console.log('[FAMILY_SEARCH] Searching users:', { searchValue, searchType, userId });
+
+    let users = [];
+
+    if (searchType === 'phone' && searchValue.length >= 10) {
+      // Recherche par téléphone uniquement si numéro complet
+      users = await storage.searchUsersByPhone(searchValue);
+    } else if (searchType === 'email' && searchValue.includes('@') && searchValue.includes('.')) {
+      // Recherche par email uniquement si email complet
+      users = await storage.searchUsersByEmail(searchValue);
+    }
+
+    // Filtrer pour ne retourner que les étudiants et exclure l'utilisateur actuel
+    const students = users.filter((user: any) => 
+      user.role === 'Student' && 
+      user.id !== userId
+    );
+
+    res.json({ users: students });
+  } catch (error) {
+    console.error('[FAMILY_SEARCH] Error searching users:', error);
+    res.status(500).json({ error: 'Erreur lors de la recherche' });
+  }
+});
+
 // GET /api/family/connections - Récupérer les connexions familiales
 router.get('/connections', requireAuth, async (req: any, res: any) => {
   try {
