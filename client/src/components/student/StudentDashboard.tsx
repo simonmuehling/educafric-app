@@ -24,6 +24,7 @@ import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwit
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
 import ChildParentConnection from './ChildParentConnection';
+import FindParentsModule from './modules/FindParentsModule';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -148,7 +149,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.parentConnection,
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-600',
-      component: <ChildParentConnection studentId={1} />
+      component: <FindParentsModule />
     },
     {
       id: 'achievements',

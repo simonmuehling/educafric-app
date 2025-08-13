@@ -1,0 +1,526 @@
+import React, { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Button
+} from '@/components/ui/button';
+import {
+  Input
+} from '@/components/ui/input';
+import {
+  Label
+} from '@/components/ui/label';
+import {
+  Badge
+} from '@/components/ui/badge';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  QrCode,
+  Users,
+  UserPlus,
+  Heart,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Search,
+  Send,
+  Phone,
+  Mail
+} from 'lucide-react';
+
+interface ParentConnection {
+  id: number;
+  parentId: number;
+  parentName: string;
+  parentEmail: string;
+  parentPhone?: string;
+  relationshipType: 'parent' | 'guardian' | 'emergency_contact';
+  status: 'verified' | 'pending' | 'rejected';
+  requestDate: string;
+  verifiedDate?: string;
+}
+
+interface ParentRequest {
+  parentEmail: string;
+  relationshipType: 'parent' | 'guardian' | 'emergency_contact';
+  message: string;
+}
+
+const FindParentsModule: React.FC = () => {
+  const { language } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState('connections');
+  const [qrCode, setQrCode] = useState('');
+  const [parentRequest, setParentRequest] = useState<ParentRequest>({
+    parentEmail: '',
+    relationshipType: 'parent',
+    message: ''
+  });
+
+  const text = {
+    fr: {
+      title: 'Trouver mes Parents',
+      subtitle: 'Connectez-vous avec vos parents sur EDUCAFRIC',
+      tabs: {
+        connections: 'Mes Parents',
+        qrCode: 'Code QR',
+        search: 'Rechercher Parent'
+      },
+      noParents: 'Aucun parent connecté',
+      noParentsDesc: 'Demandez à vos parents de vous rejoindre sur EDUCAFRIC pour suivre votre scolarité',
+      generateQR: 'Générer Code QR',
+      shareQR: 'Partager ce code avec vos parents',
+      qrInstructions: 'Vos parents peuvent scanner ce code pour se connecter rapidement',
+      searchParent: 'Rechercher un parent',
+      parentEmail: 'Email du parent',
+      relationship: 'Type de relation',
+      message: 'Message (optionnel)',
+      sendRequest: 'Envoyer demande',
+      relationships: {
+        parent: 'Parent Principal',
+        guardian: 'Tuteur/Responsable',
+        emergency_contact: 'Contact d\'Urgence'
+      },
+      connectionStatus: {
+        verified: 'Vérifié',
+        pending: 'En attente',
+        rejected: 'Rejeté'
+      },
+      requestSent: 'Demande envoyée',
+      requestSentDesc: 'Votre demande de connexion a été envoyée au parent',
+      qrGenerated: 'Code QR généré',
+      qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
+      messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
+      emailPlaceholder: 'parent@email.com',
+      error: 'Erreur',
+      fillRequired: 'Veuillez remplir l\'email du parent',
+      validEmail: 'Veuillez entrer un email valide',
+      requestedOn: 'Demandé le',
+      verifiedOn: 'Vérifié le'
+    },
+    en: {
+      title: 'Find my Parents',
+      subtitle: 'Connect with your parents on EDUCAFRIC',
+      tabs: {
+        connections: 'My Parents',
+        qrCode: 'QR Code',
+        search: 'Search Parent'
+      },
+      noParents: 'No parents connected',
+      noParentsDesc: 'Ask your parents to join you on EDUCAFRIC to follow your education',
+      generateQR: 'Generate QR Code',
+      shareQR: 'Share this code with your parents',
+      qrInstructions: 'Your parents can scan this code to connect quickly',
+      searchParent: 'Search for a parent',
+      parentEmail: 'Parent email',
+      relationship: 'Relationship type',
+      message: 'Message (optional)',
+      sendRequest: 'Send request',
+      relationships: {
+        parent: 'Primary Parent',
+        guardian: 'Guardian/Responsible',
+        emergency_contact: 'Emergency Contact'
+      },
+      connectionStatus: {
+        verified: 'Verified',
+        pending: 'Pending',
+        rejected: 'Rejected'
+      },
+      requestSent: 'Request sent',
+      requestSentDesc: 'Your connection request has been sent to the parent',
+      qrGenerated: 'QR Code generated',
+      qrGeneratedDesc: 'Share this code with your parents for quick connection',
+      messagePlaceholder: 'Hello, I am your child on EDUCAFRIC...',
+      emailPlaceholder: 'parent@email.com',
+      error: 'Error',
+      fillRequired: 'Please fill the parent email',
+      validEmail: 'Please enter a valid email',
+      requestedOn: 'Requested on',
+      verifiedOn: 'Verified on'
+    }
+  };
+
+  const t = text[language];
+
+  // Fetch parent connections
+  const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery({
+    queryKey: ['/api/student/parent-connections'],
+    retry: false,
+  });
+
+  // Generate QR code mutation
+  const generateQRMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/api/student/generate-qr', 'POST', {});
+    },
+    onSuccess: (data: any) => {
+      setQrCode(data.qrToken);
+      toast({
+        title: t.qrGenerated,
+        description: t.qrGeneratedDesc,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t.error,
+        description: error.message || 'Failed to generate QR code',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Send parent request mutation
+  const sendRequestMutation = useMutation({
+    mutationFn: async (requestData: ParentRequest) => {
+      return apiRequest('/api/student/request-parent', 'POST', requestData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/student/parent-connections'] });
+      setParentRequest({
+        parentEmail: '',
+        relationshipType: 'parent',
+        message: ''
+      });
+      toast({
+        title: t.requestSent,
+        description: t.requestSentDesc,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t.error,
+        description: error.message || 'Failed to send request',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const handleSendRequest = () => {
+    if (!parentRequest.parentEmail.trim()) {
+      toast({
+        title: t.error,
+        description: t.fillRequired,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Simple email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(parentRequest.parentEmail)) {
+      toast({
+        title: t.error,
+        description: t.validEmail,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    sendRequestMutation.mutate(parentRequest);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'verified': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'verified': return <CheckCircle2 className="w-4 h-4" />;
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'rejected': return <XCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 rounded-xl">
+        <h1 className="text-2xl font-bold flex items-center gap-3">
+          <Heart className="w-8 h-8" />
+          {t.title}
+        </h1>
+        <p className="text-pink-100 mt-2">{t.subtitle}</p>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="connections" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            {t.tabs.connections}
+          </TabsTrigger>
+          <TabsTrigger value="qrCode" className="flex items-center gap-2">
+            <QrCode className="w-4 h-4" />
+            {t.tabs.qrCode}
+          </TabsTrigger>
+          <TabsTrigger value="search" className="flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            {t.tabs.search}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* My Parents Tab */}
+        <TabsContent value="connections" className="space-y-4">
+          {connectionsLoading ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">
+                  {language === 'fr' ? 'Chargement...' : 'Loading...'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : parentConnections.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">{t.noParents}</h3>
+                <p className="text-gray-500 mb-6">{t.noParentsDesc}</p>
+                <div className="flex gap-3 justify-center">
+                  <Button 
+                    onClick={() => setActiveTab('qrCode')}
+                    className="bg-pink-600 hover:bg-pink-700"
+                    data-testid="button-goto-qr"
+                  >
+                    <QrCode className="w-4 h-4 mr-2" />
+                    {t.generateQR}
+                  </Button>
+                  <Button 
+                    onClick={() => setActiveTab('search')}
+                    variant="outline"
+                    data-testid="button-goto-search"
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    {t.searchParent}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {(parentConnections as ParentConnection[]).map((connection: ParentConnection) => (
+                <Card key={connection.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            {connection.parentName.split(' ').map(n => n.charAt(0)).join('')}
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-bold text-gray-800">
+                              {connection.parentName}
+                            </h4>
+                            <div className="flex gap-2 mt-1">
+                              <Badge className={getStatusColor(connection.status)}>
+                                {getStatusIcon(connection.status)}
+                                {t.connectionStatus[connection.status as keyof typeof t.connectionStatus]}
+                              </Badge>
+                              <Badge variant="outline">
+                                {t.relationships[connection.relationshipType as keyof typeof t.relationships]}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-600 flex items-center gap-1">
+                              <Mail className="w-4 h-4" />
+                              Email
+                            </p>
+                            <p className="font-semibold text-gray-800">{connection.parentEmail}</p>
+                          </div>
+                          {connection.parentPhone && (
+                            <div>
+                              <p className="text-sm text-gray-600 flex items-center gap-1">
+                                <Phone className="w-4 h-4" />
+                                {language === 'fr' ? 'Téléphone' : 'Phone'}
+                              </p>
+                              <p className="font-semibold text-gray-800">{connection.parentPhone}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-gray-600 flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {connection.status === 'verified' ? t.verifiedOn : t.requestedOn}
+                            </p>
+                            <p className="font-semibold text-gray-800">
+                              {new Date(connection.verifiedDate || connection.requestDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* QR Code Tab */}
+        <TabsContent value="qrCode" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                {t.generateQR}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 text-center">
+              {!qrCode ? (
+                <div className="space-y-4">
+                  <div className="w-32 h-32 bg-gray-100 rounded-lg mx-auto flex items-center justify-center">
+                    <QrCode className="w-16 h-16 text-gray-400" />
+                  </div>
+                  <p className="text-gray-600">{t.qrInstructions}</p>
+                  <Button
+                    onClick={() => generateQRMutation.mutate()}
+                    disabled={generateQRMutation.isPending}
+                    className="bg-pink-600 hover:bg-pink-700"
+                    data-testid="button-generate-qr"
+                  >
+                    {generateQRMutation.isPending ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {language === 'fr' ? 'Génération...' : 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="w-4 h-4 mr-2" />
+                        {t.generateQR}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="w-64 h-64 bg-white border-2 border-gray-200 rounded-lg mx-auto flex items-center justify-center">
+                    <div className="text-center">
+                      <QrCode className="w-32 h-32 text-gray-700 mx-auto mb-4" />
+                      <p className="text-xs font-mono bg-gray-100 p-2 rounded">
+                        {qrCode}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-pink-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-pink-800 mb-2">{t.shareQR}</h4>
+                    <p className="text-sm text-pink-600">{t.qrInstructions}</p>
+                  </div>
+                  <Button
+                    onClick={() => generateQRMutation.mutate()}
+                    variant="outline"
+                    data-testid="button-regenerate-qr"
+                  >
+                    {language === 'fr' ? 'Nouveau code' : 'New code'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Search Parent Tab */}
+        <TabsContent value="search" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                {t.searchParent}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="parentEmail">{t.parentEmail} *</Label>
+                  <Input
+                    id="parentEmail"
+                    type="email"
+                    value={parentRequest.parentEmail}
+                    onChange={(e) => setParentRequest(prev => ({ ...prev, parentEmail: e.target.value }))}
+                    placeholder={t.emailPlaceholder}
+                    data-testid="input-parent-email"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="relationship">{t.relationship} *</Label>
+                  <select
+                    id="relationship"
+                    value={parentRequest.relationshipType}
+                    onChange={(e) => setParentRequest(prev => ({ 
+                      ...prev, 
+                      relationshipType: e.target.value as 'parent' | 'guardian' | 'emergency_contact' 
+                    }))}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    data-testid="select-relationship-type"
+                  >
+                    <option value="parent">{t.relationships.parent}</option>
+                    <option value="guardian">{t.relationships.guardian}</option>
+                    <option value="emergency_contact">{t.relationships.emergency_contact}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="message">{t.message}</Label>
+                  <Input
+                    id="message"
+                    value={parentRequest.message}
+                    onChange={(e) => setParentRequest(prev => ({ ...prev, message: e.target.value }))}
+                    placeholder={t.messagePlaceholder}
+                    data-testid="input-message"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleSendRequest}
+                  disabled={sendRequestMutation.isPending}
+                  className="w-full bg-pink-600 hover:bg-pink-700"
+                  data-testid="button-send-request"
+                >
+                  {sendRequestMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      {t.sendRequest}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default FindParentsModule;

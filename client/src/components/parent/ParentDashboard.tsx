@@ -214,7 +214,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Parent" />
+      component: <NotificationCenter userRole="Parent" userId={user?.id || 0} />
     },
     {
       id: 'requests',

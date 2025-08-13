@@ -19737,6 +19737,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === PARENT-CHILD CONNECTION ROUTES ===
+  
+  // Parent routes for child management
+  app.get('/api/parent/children', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('[PARENT_CHILDREN] 👥 Fetching children for parent:', userId);
+      
+      // Mock data for demo - replace with real database query
+      const mockChildren = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Dupont',
+          className: 'CM2',
+          school: 'École Primaire Ngoa-Ekellé',
+          schoolId: 1,
+          averageGrade: 16.5,
+          attendanceRate: 95,
+          status: 'excellent',
+          parentConnection: 'verified',
+          birthDate: '2014-03-15',
+          profileImage: null
+        },
+        {
+          id: 2,
+          firstName: 'Jean',
+          lastName: 'Dupont',
+          className: '6ème',
+          school: 'Collège Bilingue de Yaoundé',
+          schoolId: 2,
+          averageGrade: 14.2,
+          attendanceRate: 88,
+          status: 'good',
+          parentConnection: 'pending',
+          birthDate: '2012-07-22',
+          profileImage: null
+        }
+      ];
+      
+      res.json(mockChildren);
+    } catch (error) {
+      console.error('[PARENT_CHILDREN] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to fetch children' });
+    }
+  });
+
+  app.post('/api/parent/children/request', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { firstName, lastName, birthDate, schoolId, className, relationshipType, reason, identityDocuments } = req.body;
+      
+      console.log('[PARENT_REQUEST] 📝 Parent child connection request:', {
+        userId,
+        firstName,
+        lastName,
+        schoolId,
+        className,
+        relationshipType
+      });
+      
+      // Validate required fields
+      if (!firstName || !lastName || !birthDate || !schoolId || !className || !reason) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+      
+      // Mock successful response - replace with real database insertion
+      const requestId = Date.now();
+      
+      res.json({
+        success: true,
+        requestId,
+        message: 'Demande de connexion soumise avec succès. L\'école va vérifier votre demande.',
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('[PARENT_REQUEST] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to submit request' });
+    }
+  });
+
+  app.get('/api/schools/educafric', requireAuth, async (req, res) => {
+    try {
+      console.log('[SCHOOLS_EDUCAFRIC] 🏫 Fetching EDUCAFRIC partner schools');
+      
+      // Mock EDUCAFRIC schools data
+      const mockSchools = [
+        {
+          id: 1,
+          name: 'École Primaire Ngoa-Ekellé',
+          address: 'Quartier Ngoa-Ekellé',
+          city: 'Yaoundé',
+          country: 'Cameroun',
+          type: 'public',
+          isEducAfricPartner: true
+        },
+        {
+          id: 2,
+          name: 'Collège Bilingue de Yaoundé',
+          address: 'Centre-ville',
+          city: 'Yaoundé',
+          country: 'Cameroun',
+          type: 'private',
+          isEducAfricPartner: true
+        },
+        {
+          id: 3,
+          name: 'Lycée Général Leclerc',
+          address: 'Rue Leclerc',
+          city: 'Yaoundé',
+          country: 'Cameroun',
+          type: 'public',
+          isEducAfricPartner: true
+        },
+        {
+          id: 4,
+          name: 'Institution Sainte-Thérèse',
+          address: 'Quartier Bastos',
+          city: 'Yaoundé',
+          country: 'Cameroun',
+          type: 'private',
+          isEducAfricPartner: true
+        },
+        {
+          id: 5,
+          name: 'École Primaire de Bonanjo',
+          address: 'Quartier Bonanjo',
+          city: 'Douala',
+          country: 'Cameroun',
+          type: 'public',
+          isEducAfricPartner: true
+        }
+      ];
+      
+      res.json(mockSchools);
+    } catch (error) {
+      console.error('[SCHOOLS_EDUCAFRIC] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to fetch schools' });
+    }
+  });
+
+  // Student routes for parent connection
+  app.get('/api/student/parent-connections', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('[STUDENT_PARENTS] 👨‍👩‍👧‍👦 Fetching parent connections for student:', userId);
+      
+      // Mock data for demo - replace with real database query
+      const mockParentConnections = [
+        {
+          id: 1,
+          parentId: 7,
+          parentName: 'Marie Dupont',
+          parentEmail: 'parent.demo@test.educafric.com',
+          parentPhone: '+237657004011',
+          relationshipType: 'parent',
+          status: 'verified',
+          requestDate: '2025-01-10T10:00:00Z',
+          verifiedDate: '2025-01-11T14:30:00Z'
+        },
+        {
+          id: 2,
+          parentId: 8,
+          parentName: 'Jean Dupont',
+          parentEmail: 'jean.dupont@email.com',
+          parentPhone: '+237655123456',
+          relationshipType: 'guardian',
+          status: 'pending',
+          requestDate: '2025-01-12T09:15:00Z'
+        }
+      ];
+      
+      res.json(mockParentConnections);
+    } catch (error) {
+      console.error('[STUDENT_PARENTS] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to fetch parent connections' });
+    }
+  });
+
+  app.post('/api/student/generate-qr', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('[STUDENT_QR] 📱 Generating QR code for student:', userId);
+      
+      // Generate unique QR token
+      const timestamp = Date.now();
+      const qrToken = `qr_${timestamp}_${userId}_${Math.random().toString(36).substring(7)}`;
+      
+      // Mock successful response - in real implementation, store token in database with expiration
+      res.json({
+        success: true,
+        qrToken,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        message: 'Code QR généré avec succès. Partagez-le avec vos parents.'
+      });
+    } catch (error) {
+      console.error('[STUDENT_QR] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to generate QR code' });
+    }
+  });
+
+  app.post('/api/student/request-parent', requireAuth, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { parentEmail, relationshipType, message } = req.body;
+      
+      console.log('[STUDENT_PARENT_REQUEST] 📧 Student requesting parent connection:', {
+        userId,
+        parentEmail,
+        relationshipType
+      });
+      
+      // Validate required fields
+      if (!parentEmail || !relationshipType) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(parentEmail)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      
+      // Mock successful response - replace with real database insertion and email notification
+      const requestId = Date.now();
+      
+      res.json({
+        success: true,
+        requestId,
+        message: 'Demande envoyée avec succès. Le parent recevra une notification.',
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('[STUDENT_PARENT_REQUEST] ❌ Error:', error);
+      res.status(500).json({ error: 'Failed to send parent request' });
+    }
+  });
+
   console.log("All routes configured ✅");
 
   // ===== NOTIFICATION SETTINGS ROUTES =====
