@@ -119,13 +119,13 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Fetch email preferences
+  // Always fetch email preferences (moved out of conditional rendering)
   const { data: emailPrefs, isLoading: emailPrefsLoading } = useQuery({
     queryKey: ['/api/email-preferences'],
     retry: false,
   });
 
-  // Update email preferences mutation
+  // Always define email preferences mutation (moved out of conditional rendering)
   const updateEmailPreferencesMutation = useMutation({
     mutationFn: async (updates: UpdateEmailPreferences) => {
       return apiRequest('/api/email-preferences', 'PATCH', updates);
@@ -147,14 +147,18 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     },
   });
 
-  // Load email preferences when data is available
+  // Load email preferences when data is available (always executed)
   useEffect(() => {
     if (emailPrefs) {
       setEmailPreferences(emailPrefs);
+    } else if (user && !emailPrefsLoading) {
+      // Initialize with defaults if no preferences exist
+      const defaults = initializeEmailPreferences(userType);
+      setEmailPreferences(defaults);
     }
-  }, [emailPrefs]);
+  }, [emailPrefs, user, userType, emailPrefsLoading]);
 
-  // Email preferences functions
+  // Email preferences functions (always available)
   const updateEmailPreference = (field: keyof EmailPreferences, value: any) => {
     setEmailPreferences(prev => ({ ...prev, [field]: value }));
     setHasEmailChanges(true);
