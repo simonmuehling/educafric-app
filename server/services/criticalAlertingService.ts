@@ -225,8 +225,24 @@ Educafric Monitoring System
 
   private async sendSMSAlert(phone: string, message: string) {
     try {
-      // Use existing notification service for SMS
-      await notificationService.sendSMS(phone, message, 'fr');
+      // Create a mock user object for SMS alerts
+      const mockUser = {
+        id: 0,
+        email: 'system@educafric.com',
+        phone: phone,
+        preferredLanguage: 'fr' as const
+      } as any;
+
+      const smsNotification = {
+        type: 'sms' as const,
+        recipient: mockUser,
+        template: 'CRITICAL_ALERT',
+        data: { message },
+        priority: 'urgent' as const,
+        language: 'fr' as const
+      };
+
+      await notificationService.sendNotification(smsNotification);
       console.log(`📱 [SMS_ALERT] Sent to ${phone}: ${message}`);
     } catch (error) {
       console.error(`[SMS_ALERT] Failed to send to ${phone}:`, error);
@@ -235,13 +251,23 @@ Educafric Monitoring System
 
   private async sendPWANotification(title: string, message: string, data?: any) {
     try {
-      // Use existing notification service for PWA
-      await notificationService.sendPushNotification({
-        title,
-        message,
-        type: 'critical_alert',
-        data
-      });
+      // Create a mock user object for PWA alerts
+      const mockUser = {
+        id: 0,
+        email: 'system@educafric.com',
+        preferredLanguage: 'fr' as const
+      } as any;
+
+      const pushNotification = {
+        type: 'push' as const,
+        recipient: mockUser,
+        template: 'CRITICAL_ALERT',
+        data: { title, message, ...data },
+        priority: 'urgent' as const,
+        language: 'fr' as const
+      };
+
+      await notificationService.sendNotification(pushNotification);
       console.log(`🔔 [PWA_ALERT] ${title}: ${message}`);
     } catch (error) {
       console.error('[PWA_ALERT] Failed to send notification:', error);

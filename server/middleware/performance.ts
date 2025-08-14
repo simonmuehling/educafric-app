@@ -40,39 +40,55 @@ export const timeoutMiddleware = (timeoutMs: number = 15000) => {
   };
 };
 
-// Performance monitoring middleware
+// Performance monitoring middleware - optimized for memory efficiency
 export const performanceMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now();
-  const startMemory = process.memoryUsage();
+  const startMemory = process.memoryUsage().rss; // Only track RSS memory
 
-  // Override res.end to capture metrics safely
+  // Store original res.end to restore it properly
   const originalEnd = res.end;
+  
+  // Override res.end to capture metrics safely
   res.end = function(chunk?: any, encoding?: any) {
-    const endTime = Date.now();
-    const duration = endTime - startTime;
-    const endMemory = process.memoryUsage();
-    const memoryDiff = endMemory.rss - startMemory.rss;
+    try {
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      const endMemory = process.memoryUsage().rss;
+      const memoryDiff = endMemory - startMemory;
 
-    // Ultra-minimal logging for 3500+ user scale
-    if (duration > 10000) { // Only log extremely slow requests (>10s)
-      console.error(`[CRITICAL] TIMEOUT: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`);
-    }
-
-    if (memoryDiff > 100 * 1024 * 1024) { // Only log massive memory leaks (>100MB)
-      console.error(`[CRITICAL] MEMORY_LEAK: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
-    }
-
-    // Add performance headers only if headers haven't been sent
-    if (!res.headersSent) {
-      try {
-        res.setHeader('X-Response-Time', `${duration}ms`);
-        res.setHeader('X-Memory-Usage', `${(memoryDiff / 1024).toFixed(0)}KB`);
-      } catch (error) {
-        // Ignore header setting errors
+      // Ultra-minimal logging for 3500+ user scale
+      if (duration > 10000) { // Only log extremely slow requests (>10s)
+        console.error(`[CRITICAL] TIMEOUT: ${req.method} ${req.url} took ${duration}ms`);
       }
-    }
 
-    return originalEnd.call(this, chunk, encoding);
+      // Lower threshold for memory leak detection (50MB instead of 100MB)
+      if (memoryDiff > 50 * 1024 * 1024) {
+        console.error(`[CRITICAL] MEMORY_LEAK: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
+        
+        // Force garbage collection if available
+        if (global.gc) {
+          try {
+            global.gc();
+          } catch (gcError) {
+            // Ignore GC errors
+          }
+        }
+      }
+
+      // Only add performance headers for API routes to reduce overhead
+      if (!res.headersSent && req.url.startsWith('/api/')) {
+        try {
+          res.setHeader('X-Response-Time', `${duration}ms`);
+        } catch (error) {
+          // Ignore header setting errors
+        }
+      }
+    } catch (performanceError) {
+      // Ensure original functionality is preserved even if monitoring fails
+    } finally {
+      // Always call original end method
+      return originalEnd.call(this, chunk, encoding);
+    }
   };
 
   next();
@@ -97,9 +113,35 @@ export const cacheControlMiddleware = (req: Request, res: Response, next: NextFu
   next();
 };
 
-// Memory cleanup middleware (disabled to reduce log noise)
+// Memory cleanup middleware - active memory management
 export const memoryCleanupMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Disabled memory monitoring to focus on other issues
+  // Trigger garbage collection every 100 requests for large static files
+  if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2)$/) && Math.random() < 0.01) {
+    // 1% chance to trigger GC for static assets
+    if (global.gc) {
+      try {
+        setImmediate(() => global.gc?.());
+      } catch (error) {
+        // Ignore GC errors
+      }
+    }
+  }
+  
+  // Clean up request data after response
+  res.on('finish', () => {
+    // Clear any request-specific data that might cause memory leaks
+    try {
+      if (req.body) {
+        delete req.body;
+      }
+      if (req.files) {
+        delete req.files;
+      }
+    } catch (error) {
+      // Ignore cleanup errors
+    }
+  });
+  
   next();
 };
 
