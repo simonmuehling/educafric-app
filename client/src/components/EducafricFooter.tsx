@@ -40,11 +40,11 @@ const EducafricFooter = () => {
       { label: t.termsOfService, href: "/terms-of-service", icon: FileText }
     ],
     contact: [
-      { label: "info@educafric.com", href: "mailto:info@educafric.com", icon: Mail },
-      { label: "+237 656 200 472", href: "tel:+237656200472", icon: Phone }
+      { label: "admin@educafric.com", href: "mailto:admin@educafric.com", icon: Mail },
+      { label: "+237 657 004 011", href: "tel:+237657004011", icon: Phone }
     ],
     social: [
-      { label: "WhatsApp", href: "https://wa.me/237656200472", icon: MessageCircle },
+      { label: "WhatsApp", href: "https://wa.me/237657004011", icon: MessageCircle },
       { label: "Facebook", href: "https://facebook.com/educafric", icon: Facebook },
       { label: "TikTok", href: "https://tiktok.com/@educafric", icon: FaTiktok }
     ]

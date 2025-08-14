@@ -455,8 +455,8 @@ Plan premium professionnel
 
 **🍊 Orange Money**
 ```
-Numéro principal: +237 656 200 472
-Nom bénéficiaire: AFRO METAVERSE MARKETING SARL
+Numéro principal: +237 657 004 011
+Nom bénéficiaire: Abanda Akak Simon Pierre
 Référence obligatoire: "EDUCAFRIC-[Nom École/Freelancer]"
 Frais: 1% du montant (minimum 100 CFA)
 Confirmation: Instantanée avec SMS
@@ -464,8 +464,8 @@ Confirmation: Instantanée avec SMS
 
 **📱 MTN Mobile Money**
 ```
-Numéro principal: +237 6XX XXX XXX
-Nom bénéficiaire: AFRO METAVERSE MARKETING SARL
+Numéro principal: Non disponible
+Nom bénéficiaire: Abanda Akak Simon Pierre
 Référence obligatoire: "EDUCAFRIC-[Nom École/Freelancer]"
 Frais: 1.5% du montant (minimum 150 CFA)
 Confirmation: Instantanée avec SMS
@@ -596,14 +596,7 @@ Protection: Acheteur intégrée
 - **ISO 27001**: Certification sécurité information
 - **SOC 2**: Audit contrôles sécurité
 
-#### 🔒 Mesures Techniques
-```
-🔐 Chiffrement: AES-256 + TLS 1.3
-🏠 Localisation: Serveurs Afrique uniquement
-🔄 Backup: Triple redondance automatique
-🔑 Authentification: Multi-facteurs obligatoire
-👁️ Monitoring: Surveillance 24/7 intrusions
-```
+
 
 ### 9.2 Droits des Personnes Concernées
 
