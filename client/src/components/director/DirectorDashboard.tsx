@@ -322,7 +322,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     {
       id: 'business-partnerships',
       label: t.businessPartnerships,
-      icon: <Users className="w-6 h-6" />,
+      icon: <Building2 className="w-6 h-6" />,
       color: 'bg-rose-500',
       component: (
         <PremiumFeatureGate
