@@ -1,0 +1,6 @@
+numero_etudiant,date,heure_arrivee,statut,motif_absence,classe,matiere,enseignant_email
+STU001,2025-08-14,08:00,Présent,,6eme-A,Mathématiques,marie.ngono@school.cm
+STU002,2025-08-14,08:05,Présent,,6eme-A,Mathématiques,marie.ngono@school.cm
+STU003,2025-08-14,08:15,Retard,,6eme-B,Français,paul.kamdem@school.cm
+STU004,2025-08-14,,Absent,Maladie,5eme-A,Sciences,sophie.mballa@school.cm
+STU005,2025-08-14,07:58,Présent,,5eme-A,Sciences,sophie.mballa@school.cm

@@ -1,0 +1,6 @@
+numero_etudiant,matiere,type_evaluation,note,note_max,date_evaluation,trimestre,commentaire,enseignant_email
+STU001,Mathématiques,Devoir Surveillé,15,20,2025-08-10,T1,Très bon travail,marie.ngono@school.cm
+STU001,Français,Composition,12,20,2025-08-12,T1,Peut mieux faire,paul.kamdem@school.cm
+STU002,Mathématiques,Interrogation,18,20,2025-08-10,T1,Excellent,marie.ngono@school.cm
+STU002,Sciences,Devoir Maison,14,20,2025-08-11,T1,Bon effort,sophie.mballa@school.cm
+STU003,Histoire-Géographie,Test,16,20,2025-08-09,T1,Bien maîtrisé,ahmed.bello@school.cm
