@@ -31,7 +31,7 @@ import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers
 import CommunicationsCenter from './modules/CommunicationsCenter';
 import MobileSchoolConfigurationGuide from './modules/MobileSchoolConfigurationGuide';
 import NotificationCenter from '@/components/shared/NotificationCenter';
-import BusinessPartnershipMapSimple from './modules/BusinessPartnershipMapSimple';
+
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -109,7 +109,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       bulletinApproval: 'Validation Bulletins',
       notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
-      businessPartnerships: 'Partenaires Entreprise',
+
       finances: 'Finances',
       reports: 'Rapports',
       help: 'Aide',
@@ -132,7 +132,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       bulletinApproval: 'Bulletin Approval',
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
-      businessPartnerships: 'Business Partners',
+
       finances: 'Finances',
       reports: 'Reports',
       help: 'Help',
@@ -318,26 +318,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <Shield className="w-6 h-6" />,
       color: 'bg-amber-500',
       component: <DelegateAdministrators />
-    },
-    {
-      id: 'business-partnerships',
-      label: t.businessPartnerships,
-      icon: <Building2 className="w-6 h-6" />,
-      color: 'bg-rose-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Partenariats École-Entreprise"
-          userType="School"
-          features={[
-            "Carte interactive des entreprises partenaires",
-            "Gestion des stages et formations",
-            "Suivi des placements étudiants",
-            "Communication directe avec les entreprises"
-          ]}
-        >
-          <BusinessPartnershipMapSimple />
-        </PremiumFeatureGate>
-      )
     },
     {
       id: 'reports',
