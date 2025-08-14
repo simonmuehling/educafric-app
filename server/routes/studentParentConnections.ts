@@ -51,7 +51,7 @@ const sendStudentParentMessageSchema = z.object({
   }).optional()
 });
 
-// POST /api/student-parent/search-parents - Rechercher des parents par email/téléphone
+// POST /api/student-parent/search-parents - Recherche universelle de parents
 router.post('/search-parents', requireAuth, async (req: any, res: any) => {
   try {
     const { searchValue, searchType } = req.body;
@@ -62,18 +62,49 @@ router.post('/search-parents', requireAuth, async (req: any, res: any) => {
       return res.status(403).json({ error: 'Seuls les élèves peuvent rechercher des parents' });
     }
     
-    if (!searchValue || !searchType) {
-      return res.status(400).json({ error: 'Valeur de recherche et type requis' });
+    if (!searchValue || searchValue.length < 3) {
+      return res.status(400).json({ error: 'Recherche doit contenir au moins 3 caractères' });
     }
 
-    console.log('[STUDENT_PARENT_SEARCH] Searching parents:', { searchValue, searchType, userId });
+    console.log('[STUDENT_PARENT_SEARCH] Universal search for parents:', { searchValue, searchType, userId });
 
     let users = [];
 
-    if (searchType === 'phone' && searchValue.length >= 10) {
+    if (searchType === 'universal') {
+      // Recherche universelle : nom, email, téléphone
+      try {
+        // Recherche par email si contient @
+        if (searchValue.includes('@')) {
+          const emailUsers = await storage.searchUsersByEmail(searchValue);
+          users = users.concat(emailUsers);
+        }
+        
+        // Recherche par téléphone si contient des chiffres
+        if (/\d/.test(searchValue) && searchValue.length >= 8) {
+          const phoneUsers = await storage.searchUsersByPhone(searchValue);
+          users = users.concat(phoneUsers);
+        }
+        
+        // Recherche par nom
+        const nameUsers = await storage.searchUsersByName(searchValue);
+        users = users.concat(nameUsers);
+        
+        // Éliminer les doublons
+        users = users.filter((user, index, self) => 
+          index === self.findIndex((u) => u.id === user.id)
+        );
+        
+      } catch (error) {
+        console.error('[STUDENT_PARENT_SEARCH] Error in universal search:', error);
+        // Fallback à une recherche de base
+        users = [];
+      }
+    } else if (searchType === 'phone' && searchValue.length >= 8) {
       users = await storage.searchUsersByPhone(searchValue);
-    } else if (searchType === 'email' && searchValue.includes('@') && searchValue.includes('.') && searchValue.length > 5) {
+    } else if (searchType === 'email' && searchValue.includes('@')) {
       users = await storage.searchUsersByEmail(searchValue);
+    } else if (searchType === 'name') {
+      users = await storage.searchUsersByName(searchValue);
     }
 
     // Filtrer pour ne retourner que les parents et exclure l'utilisateur actuel
@@ -82,6 +113,7 @@ router.post('/search-parents', requireAuth, async (req: any, res: any) => {
       user.id !== userId
     );
 
+    console.log(`[STUDENT_PARENT_SEARCH] Found ${parents.length} parents for query: ${searchValue}`);
     res.json({ users: parents });
   } catch (error) {
     console.error('[STUDENT_PARENT_SEARCH] Error searching parents:', error);

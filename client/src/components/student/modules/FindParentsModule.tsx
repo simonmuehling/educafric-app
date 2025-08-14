@@ -78,6 +78,11 @@ const FindParentsModule: React.FC = () => {
     message: ''
   });
 
+  // Enhanced search states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
   const text = {
     fr: {
       title: 'Trouver mes Parents',
@@ -96,8 +101,10 @@ const FindParentsModule: React.FC = () => {
       searchMethod: 'Méthode de recherche',
       searchByEmail: 'Par email',
       searchByPhone: 'Par téléphone',
+      searchByName: 'Par nom',
       parentEmail: 'Email du parent',
       parentPhone: 'Téléphone du parent',
+      parentName: 'Nom du parent',
       relationship: 'Type de relation',
       message: 'Message (optionnel)',
       sendRequest: 'Envoyer demande',
@@ -142,8 +149,10 @@ const FindParentsModule: React.FC = () => {
       searchMethod: 'Search method',
       searchByEmail: 'By email',
       searchByPhone: 'By phone',
+      searchByName: 'By name',
       parentEmail: 'Parent email',
       parentPhone: 'Parent phone',
+      parentName: 'Parent name',
       relationship: 'Relationship type',
       message: 'Message (optional)',
       sendRequest: 'Send request',
@@ -169,7 +178,16 @@ const FindParentsModule: React.FC = () => {
       validEmail: 'Please enter a valid email',
       validPhone: 'Please enter a valid phone number',
       requestedOn: 'Requested on',
-      verifiedOn: 'Verified on'
+      verifiedOn: 'Verified on',
+      searchPlaceholder: 'Search by name, email or phone...',
+      connecting: 'Connecting...',
+      searchResults: 'Search results',
+      noResults: 'No parents found',
+      selectParent: 'Select this parent',
+      searchHint: 'Type at least 3 characters to search'
+      noResults: 'Aucun parent trouvé',
+      selectParent: 'Sélectionner ce parent',
+      searchHint: 'Tapez au moins 3 caractères pour rechercher'
     }
   };
 
@@ -177,8 +195,32 @@ const FindParentsModule: React.FC = () => {
 
   // Fetch parent connections
   const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery({
-    queryKey: ['/api/student/parent-connections'],
+    queryKey: ['/api/student-parent/connections'],
     retry: false,
+  });
+
+  // Enhanced search mutation for parents
+  const searchParentsMutation = useMutation({
+    mutationFn: async (query: string) => {
+      if (!query || query.length < 3) return [];
+      return apiRequest('/api/student-parent/search-parents', 'POST', { 
+        searchValue: query,
+        searchType: 'universal'
+      });
+    },
+    onSuccess: (data: any) => {
+      setSearchResults(data.users || []);
+      setIsSearching(false);
+    },
+    onError: (error: any) => {
+      setSearchResults([]);
+      setIsSearching(false);
+      toast({
+        title: t.error,
+        description: error.message || 'Failed to search parents',
+        variant: 'destructive',
+      });
+    }
   });
 
   // Generate QR code mutation
@@ -205,10 +247,15 @@ const FindParentsModule: React.FC = () => {
   // Send parent request mutation
   const sendRequestMutation = useMutation({
     mutationFn: async (requestData: ParentRequest) => {
-      return apiRequest('/api/student/request-parent', 'POST', requestData);
+      return apiRequest('/api/student-parent/connections', 'POST', {
+        parentEmail: requestData.parentEmail,
+        parentPhone: requestData.parentPhone,
+        relationshipType: requestData.relationshipType,
+        connectionType: 'guardian'
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/student/parent-connections'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/student-parent/connections'] });
       setParentRequest({
         parentEmail: '',
         parentPhone: '',
@@ -216,6 +263,8 @@ const FindParentsModule: React.FC = () => {
         relationshipType: 'parent',
         message: ''
       });
+      setSearchQuery('');
+      setSearchResults([]);
       toast({
         title: t.requestSent,
         description: t.requestSentDesc,
@@ -229,6 +278,32 @@ const FindParentsModule: React.FC = () => {
       });
     }
   });
+
+  // Enhanced search handling
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (value.length >= 3) {
+      setIsSearching(true);
+      // Debounce search
+      setTimeout(() => {
+        searchParentsMutation.mutate(value);
+      }, 500);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectParent = (parent: any) => {
+    setParentRequest({
+      ...parentRequest,
+      parentEmail: parent.email || '',
+      parentPhone: parent.phone || '',
+      searchMethod: parent.email ? 'email' : 'phone'
+    });
+    setSearchQuery(`${parent.firstName} ${parent.lastName}`);
+    setSearchResults([]);
+  };
 
   const handleSendRequest = () => {
     // Validate based on search method

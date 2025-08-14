@@ -1178,6 +1178,32 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async searchUsersByName(nameQuery: string): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Searching users by name:', nameQuery);
+      
+      const searchTerm = `%${nameQuery.toLowerCase()}%`;
+      
+      const results = await db
+        .select()
+        .from(users)
+        .where(
+          or(
+            sql`LOWER(${users.firstName}) LIKE ${searchTerm}`,
+            sql`LOWER(${users.lastName}) LIKE ${searchTerm}`,
+            sql`LOWER(CONCAT(${users.firstName}, ' ', ${users.lastName})) LIKE ${searchTerm}`,
+            sql`LOWER(CONCAT(${users.lastName}, ' ', ${users.firstName})) LIKE ${searchTerm}`
+          )
+        );
+
+      console.log(`[STORAGE] Found ${results.length} users for name search`);
+      return results;
+    } catch (error) {
+      console.error('[STORAGE] searchUsersByName error:', error);
+      return [];
+    }
+  }
+
   async createFamilyConnection(data: { parentId: number; childEmail?: string; childPhone?: string }): Promise<any> {
     try {
       console.log('[STORAGE] Creating family connection:', data);
