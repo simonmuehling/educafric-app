@@ -64,11 +64,11 @@ class MemoryOptimizer {
     return null;
   }
 
-  // Vérifier l'utilisation mémoire et déclencher nettoyage si nécessaire
+  // Enterprise memory monitoring for 3500+ users
   checkMemoryUsage() {
     const metrics = this.getMemoryMetrics();
     if (metrics && metrics.percentage > this.memoryThreshold * 100) {
-      console.warn(`[MEMORY_OPTIMIZER] Mémoire élevée: ${metrics.percentage.toFixed(1)}% - Nettoyage forcé`);
+      // Silent cleanup for performance
       this.performCleanup();
     }
   }

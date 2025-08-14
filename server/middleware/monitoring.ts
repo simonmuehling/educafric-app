@@ -318,20 +318,16 @@ export function performanceMonitor(req: Request, res: Response, next: NextFuncti
     const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
     const memoryDelta = endMemory.heapUsed - startMemory.heapUsed;
 
-    // Only log critical performance issues to reduce noise
-    if (duration > 3000) { // Only log very slow requests (>3s)
-      console.warn(`[PERFORMANCE] CRITICAL_SLOW: ${req.method} ${req.path} took ${duration.toFixed(2)}ms`);
+    // Enterprise scale monitoring - only critical issues for 3500+ users
+    if (duration > 10000) { // Only log extremely slow requests (>10s)
+      console.error(`[CRITICAL_TIMEOUT] ${req.method} ${req.path} took ${duration.toFixed(2)}ms`);
     }
 
-    // Only log very memory-intensive requests
-    if (memoryDelta > 50 * 1024 * 1024) { // More than 50MB memory increase
-      console.warn(`[PERFORMANCE] CRITICAL_MEMORY: ${req.method} ${req.path} used ${(memoryDelta / 1024 / 1024).toFixed(2)}MB`);
+    if (memoryDelta > 100 * 1024 * 1024) { // Only log massive memory leaks (>100MB)
+      console.error(`[CRITICAL_MEMORY] ${req.method} ${req.path} used ${(memoryDelta / 1024 / 1024).toFixed(2)}MB`);
     }
 
-    // Reduced API logging - only show significant issues
-    if (req.path.startsWith('/api/') && (duration > 2000 || memoryDelta > 20 * 1024 * 1024)) {
-      console.log(`[PERFORMANCE] ${req.method} ${req.path} ${res.statusCode} ${duration.toFixed(2)}ms ${(memoryDelta / 1024).toFixed(0)}KB`);
-    }
+    // No regular API logging for performance - enterprise silent mode
   });
 
   next();

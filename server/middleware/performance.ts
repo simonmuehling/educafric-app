@@ -53,13 +53,13 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
     const endMemory = process.memoryUsage();
     const memoryDiff = endMemory.rss - startMemory.rss;
 
-    // Log only critical performance issues (production optimized)
-    if (duration > 5000) { // Only log very slow requests (>5s)
-      console.warn(`[PERFORMANCE] CRITICAL_SLOW: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`);
+    // Ultra-minimal logging for 3500+ user scale
+    if (duration > 10000) { // Only log extremely slow requests (>10s)
+      console.error(`[CRITICAL] TIMEOUT: ${req.method} ${req.url} took ${duration.toFixed(2)}ms`);
     }
 
-    if (memoryDiff > 50 * 1024 * 1024) { // Only log very memory-intensive requests (>50MB)
-      console.warn(`[PERFORMANCE] CRITICAL_MEMORY: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
+    if (memoryDiff > 100 * 1024 * 1024) { // Only log massive memory leaks (>100MB)
+      console.error(`[CRITICAL] MEMORY_LEAK: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
     }
 
     // Add performance headers only if headers haven't been sent

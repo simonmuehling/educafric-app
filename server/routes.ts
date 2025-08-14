@@ -141,7 +141,7 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: string | number, done) => {
   try {
-    // Handle sandbox users
+    // Fast deserialization for 3500+ users
     if (typeof id === 'string' && id.startsWith('sandbox:')) {
       const sandboxId = parseInt(id.replace('sandbox:', ''));
       
@@ -395,23 +395,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // Session debugging middleware - Enhanced
+  // Enterprise session middleware - Silent mode for 3500+ users
   app.use((req: any, res: any, next: any) => {
-    // Debug session info for API requests only
-    if (req.path.startsWith('/api/')) {
-      console.log(`[SESSION_DEBUG] ${req.method} ${req.path}`);
-      console.log(`[SESSION_DEBUG] Session ID: ${req.sessionID}`);
-      console.log(`[SESSION_DEBUG] Cookies received: ${req.headers.cookie || 'NONE'}`);
-      console.log(`[SESSION_DEBUG] Session data: ${req.session ? JSON.stringify({
-        passport: req.session.passport,
-        id: req.sessionID
-      }) : 'NO SESSION'}`);
-    }
-    
-    // Force session save for persistence
+    // Force session save for persistence without logging
     if (req.session) {
       req.session.save((err: any) => {
-        if (err) console.log('Session save error:', err);
+        if (err && import.meta.env?.DEV) console.log('Session save error:', err);
         next();
       });
     } else {
@@ -423,15 +412,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const requireAuth = (req: any, res: any, next: any) => {
     // Primary authentication check
     if (req.isAuthenticated && req.isAuthenticated() && req.user) {
-      console.log(`[AUTH_SUCCESS] ✅ ${req.method} ${req.path} - User: ${req.user.email} (ID: ${req.user.id})`);
+      // Silent auth success for enterprise performance
       return next();
     }
     
-    console.log(`[AUTH_FAIL] ${req.method} ${req.path} - No valid session found`);
-    console.log(`[AUTH_DEBUG] isAuthenticated:`, req.isAuthenticated ? req.isAuthenticated() : 'undefined');
-    console.log(`[AUTH_DEBUG] user:`, !!req.user);
-    console.log(`[AUTH_DEBUG] session:`, !!req.session);
-    console.log(`[AUTH_DEBUG] sessionID:`, req.sessionID);
+    // Enterprise mode - minimal auth logging for 3500+ users
     
     res.status(401).json({ message: 'Authentication required' });
   };
