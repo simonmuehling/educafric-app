@@ -99,7 +99,7 @@ const logoUpload = multer({
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-06-30.basil",
+    apiVersion: "2025-07-30.basil",
   });
 }
 
@@ -1182,16 +1182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedTeacher = await storage.updateTeacher(parseInt(id), updates);
       
-      // Send notification about teacher update
-      await NotificationService.sendNotification({
-        type: 'teacher_updated',
-        title: 'Enseignant Modifié',
-        message: `${updatedTeacher.firstName} ${updatedTeacher.lastName} - Informations mises à jour`,
-        recipients: [(req.user as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { teacherId: updatedTeacher.id, changes: Object.keys(updates) }
-      });
+      // Log teacher update (notification service disabled for now)
+      console.log(`[TEACHER_UPDATE] Teacher ${updatedTeacher.firstName} ${updatedTeacher.lastName} updated by user ${(req.user as any).id}`);
       
       console.log(`[TEACHERS_API] ✅ Updated teacher: ${updatedTeacher.firstName} ${updatedTeacher.lastName}`);
       res.json(updatedTeacher);
@@ -1211,16 +1203,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteTeacher(parseInt(id));
       
-      // Send notification about teacher deletion
-      await NotificationService.sendNotification({
-        type: 'teacher_deleted',
-        title: 'Enseignant Supprimé',
-        message: `Enseignant supprimé avec toutes ses relations école`,
-        recipients: [(req.user as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { teacherId: parseInt(id) }
-      });
+      // Log teacher deletion (notification service disabled for now)
+      console.log(`[TEACHER_DELETE] Teacher ID ${id} deleted by user ${(req.user as any).id}`);
       
       console.log(`[TEACHERS_API] ✅ Deleted teacher ID: ${id}`);
       res.json({ message: 'Teacher deleted successfully' });
@@ -1241,16 +1225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
       
-      // Send notification about user blocking
-      await NotificationService.sendNotification({
-        type: 'user_blocked',
-        title: 'Accès Bloqué',
-        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
-        recipients: [(req.user as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { userId: blockedUser.id, reason }
-      });
+      // Log user blocking (notification service disabled for now)
+      console.log(`[USER_BLOCK] User ${blockedUser.firstName} ${blockedUser.lastName} blocked by user ${(req.user as any).id} - Reason: ${reason}`);
       
       console.log(`[USER_MANAGEMENT] ✅ Blocked user access: ${blockedUser.firstName} ${blockedUser.lastName}`);
       res.json({ message: 'User access blocked successfully', user: blockedUser });
@@ -1270,16 +1246,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const unblockedUser = await storage.unblockUserAccess(parseInt(id));
       
-      // Send notification about user unblocking
-      await NotificationService.sendNotification({
-        type: 'user_unblocked',
-        title: 'Accès Rétabli',
-        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
-        recipients: [(req.user as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { userId: unblockedUser.id }
-      });
+      // Log user unblocking (notification service disabled for now)
+      console.log(`[USER_UNBLOCK] User ${unblockedUser.firstName} ${unblockedUser.lastName} unblocked by user ${(req.user as any).id}`);
       
       console.log(`[USER_MANAGEMENT] ✅ Unblocked user access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
       res.json({ message: 'User access restored successfully', user: unblockedUser });
@@ -1463,7 +1431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Parent geolocation endpoints for dashboard functionality
-  app.get('/api/parent/geolocation/children', requireAuth, async (req: Request, res: Response) => {
+  app.get('/api/parent/geolocation/children', requireAuth, async (req: any, res: any) => {
     try {
       const user = req.user;
       if (!user) {
@@ -12545,7 +12513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { schoolId } = req.params;
       
-      const duplicates = await storage.getSmartDuplicateDetections(Number(schoolId));
+      const duplicates = await storage.getSmartDuplicateDetections(parseInt(schoolId));
       
       res.json({ success: true, duplicates });
     } catch (error) {
@@ -15430,14 +15398,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return matchesSearch && matchesRole && matchesStatus;
       });
 
-      const startIndex = (Number(page) - 1) * Number(limit);
-      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + Number(limit));
+      const startIndex = (parseInt(page) - 1) * parseInt(limit);
+      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + parseInt(limit));
 
       res.json({
         users: paginatedUsers,
         totalUsers: filteredUsers.length,
-        totalPages: Math.ceil(filteredUsers.length / Number(limit)),
-        currentPage: Number(page)
+        totalPages: Math.ceil(filteredUsers.length / parseInt(limit)),
+        currentPage: parseInt(page)
       });
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -15557,8 +15525,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         schools: paginatedSchools,
         totalSchools: filteredSchools.length,
-        totalPages: Math.ceil(filteredSchools.length / Number(limit)),
-        currentPage: Number(page)
+        totalPages: Math.ceil(filteredSchools.length / parseInt(limit)),
+        currentPage: parseInt(page)
       });
     } catch (error) {
       console.error('Error fetching schools:', error);
@@ -23060,7 +23028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'User ID required' });
       }
 
-      const notifications = await storage.getUserNotifications(Number(userId), userRole as string);
+      const notifications = await storage.getUserNotifications(parseInt(userId), userRole as string);
       res.json(notifications);
     } catch (error) {
       console.error('[NOTIFICATIONS_API] Get notifications error:', error);
@@ -23073,7 +23041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      await storage.markNotificationAsRead(Number(id));
+      await storage.markNotificationAsRead(parseInt(id));
       res.json({ message: 'Notification marked as read' });
     } catch (error) {
       console.error('[NOTIFICATIONS_API] Mark notification as read error:', error);
@@ -23090,7 +23058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'User ID required' });
       }
 
-      await storage.markAllNotificationsAsRead(Number(userId));
+      await storage.markAllNotificationsAsRead(parseInt(userId));
       res.json({ message: 'All notifications marked as read' });
     } catch (error) {
       console.error('[NOTIFICATIONS_API] Mark all notifications as read error:', error);
@@ -23103,7 +23071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      await storage.deleteNotification(Number(id));
+      await storage.deleteNotification(parseInt(id));
       res.json({ message: 'Notification deleted' });
     } catch (error) {
       console.error('[NOTIFICATIONS_API] Delete notification error:', error);
