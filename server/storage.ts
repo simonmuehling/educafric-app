@@ -13,8 +13,13 @@ import {
   type NotificationSettings, type InsertNotificationSettings,
   type Notification, type InsertNotification,
   type EmailPreferences, type InsertEmailPreferences, type UpdateEmailPreferences,
+  type BusinessPartner, type InsertBusinessPartner,
+  type SchoolPartnershipAgreement, type InsertSchoolPartnershipAgreement,
+  type Internship, type InsertInternship,
+  type PartnershipCommunication, type InsertPartnershipCommunication,
   users, schools, classes, subjects, grades, attendance,
-  homework, payments, messages, notifications, teacherAbsences, parentRequests, emailPreferences, pwaAnalytics
+  homework, payments, messages, notifications, teacherAbsences, parentRequests, emailPreferences, pwaAnalytics,
+  businessPartners, schoolPartnershipAgreements, internships, partnershipCommunications
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, like, count, sql, or, lt, gte, lte, ne, inArray } from "drizzle-orm";
@@ -279,6 +284,28 @@ export interface IStorage {
   getCommunicationsOverview(schoolId: number): Promise<any>;
   getSchoolMessages(schoolId: number): Promise<any[]>;
   sendSchoolMessage(messageData: any): Promise<any>;
+
+  // ===== BUSINESS PARTNERSHIPS INTERFACE =====
+  getBusinessPartners(schoolId?: number): Promise<any[]>;
+  getBusinessPartner(partnerId: number): Promise<any | null>;
+  createBusinessPartner(partner: any): Promise<any>;
+  updateBusinessPartner(partnerId: number, updates: any): Promise<any>;
+  deleteBusinessPartner(partnerId: number): Promise<void>;
+  
+  getSchoolPartnershipAgreements(schoolId: number): Promise<any[]>;
+  createSchoolPartnershipAgreement(agreement: any): Promise<any>;
+  updateSchoolPartnershipAgreement(agreementId: number, updates: any): Promise<any>;
+  
+  getInternships(schoolId: number, filters?: any): Promise<any[]>;
+  getInternship(internshipId: number): Promise<any | null>;
+  createInternship(internship: any): Promise<any>;
+  updateInternship(internshipId: number, updates: any): Promise<any>;
+  getStudentInternships(studentId: number): Promise<any[]>;
+  
+  sendPartnershipCommunication(communication: any): Promise<any>;
+  getPartnershipCommunications(agreementId: number): Promise<any[]>;
+  
+  getPartnershipStatistics(schoolId: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2196,6 +2223,333 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('[STORAGE] deleteStudentParentConnection error:', error);
       throw new Error('Failed to delete student-parent connection');
+    }
+  }
+
+  // ===== BUSINESS PARTNERSHIPS IMPLEMENTATION =====
+  async getBusinessPartners(schoolId?: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting business partners for school:', schoolId);
+      
+      let query = db.select().from(businessPartners);
+      
+      if (schoolId) {
+        // In real implementation, we would join with school partnership agreements
+        // For now, return all partners
+      }
+      
+      const partners = await query;
+      return partners;
+    } catch (error) {
+      console.error('[STORAGE] getBusinessPartners error:', error);
+      return [];
+    }
+  }
+
+  async getBusinessPartner(partnerId: number): Promise<any | null> {
+    try {
+      console.log('[STORAGE] Getting business partner:', partnerId);
+      
+      const [partner] = await db
+        .select()
+        .from(businessPartners)
+        .where(eq(businessPartners.id, partnerId));
+      
+      return partner || null;
+    } catch (error) {
+      console.error('[STORAGE] getBusinessPartner error:', error);
+      return null;
+    }
+  }
+
+  async createBusinessPartner(partner: InsertBusinessPartner): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating business partner:', partner);
+      
+      const [newPartner] = await db
+        .insert(businessPartners)
+        .values(partner)
+        .returning();
+      
+      return newPartner;
+    } catch (error) {
+      console.error('[STORAGE] createBusinessPartner error:', error);
+      throw new Error('Failed to create business partner');
+    }
+  }
+
+  async updateBusinessPartner(partnerId: number, updates: Partial<InsertBusinessPartner>): Promise<any> {
+    try {
+      console.log('[STORAGE] Updating business partner:', { partnerId, updates });
+      
+      const [updatedPartner] = await db
+        .update(businessPartners)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(businessPartners.id, partnerId))
+        .returning();
+      
+      return updatedPartner;
+    } catch (error) {
+      console.error('[STORAGE] updateBusinessPartner error:', error);
+      throw new Error('Failed to update business partner');
+    }
+  }
+
+  async deleteBusinessPartner(partnerId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Deleting business partner:', partnerId);
+      
+      await db
+        .delete(businessPartners)
+        .where(eq(businessPartners.id, partnerId));
+    } catch (error) {
+      console.error('[STORAGE] deleteBusinessPartner error:', error);
+      throw new Error('Failed to delete business partner');
+    }
+  }
+
+  async getSchoolPartnershipAgreements(schoolId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting partnership agreements for school:', schoolId);
+      
+      const agreements = await db
+        .select({
+          agreement: schoolPartnershipAgreements,
+          partner: businessPartners
+        })
+        .from(schoolPartnershipAgreements)
+        .leftJoin(businessPartners, eq(schoolPartnershipAgreements.partnerId, businessPartners.id))
+        .where(eq(schoolPartnershipAgreements.schoolId, schoolId));
+      
+      return agreements;
+    } catch (error) {
+      console.error('[STORAGE] getSchoolPartnershipAgreements error:', error);
+      return [];
+    }
+  }
+
+  async createSchoolPartnershipAgreement(agreement: InsertSchoolPartnershipAgreement): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating partnership agreement:', agreement);
+      
+      const [newAgreement] = await db
+        .insert(schoolPartnershipAgreements)
+        .values(agreement)
+        .returning();
+      
+      return newAgreement;
+    } catch (error) {
+      console.error('[STORAGE] createSchoolPartnershipAgreement error:', error);
+      throw new Error('Failed to create partnership agreement');
+    }
+  }
+
+  async updateSchoolPartnershipAgreement(agreementId: number, updates: Partial<InsertSchoolPartnershipAgreement>): Promise<any> {
+    try {
+      console.log('[STORAGE] Updating partnership agreement:', { agreementId, updates });
+      
+      const [updatedAgreement] = await db
+        .update(schoolPartnershipAgreements)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(schoolPartnershipAgreements.id, agreementId))
+        .returning();
+      
+      return updatedAgreement;
+    } catch (error) {
+      console.error('[STORAGE] updateSchoolPartnershipAgreement error:', error);
+      throw new Error('Failed to update partnership agreement');
+    }
+  }
+
+  async getInternships(schoolId: number, filters?: any): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting internships for school:', schoolId, 'with filters:', filters);
+      
+      let query = db
+        .select({
+          internship: internships,
+          student: users,
+          partner: businessPartners
+        })
+        .from(internships)
+        .leftJoin(users, eq(internships.studentId, users.id))
+        .leftJoin(businessPartners, eq(internships.partnerId, businessPartners.id))
+        .where(eq(internships.schoolId, schoolId));
+      
+      if (filters?.status) {
+        query = query.where(eq(internships.status, filters.status));
+      }
+      
+      const internshipsList = await query;
+      return internshipsList;
+    } catch (error) {
+      console.error('[STORAGE] getInternships error:', error);
+      return [];
+    }
+  }
+
+  async getInternship(internshipId: number): Promise<any | null> {
+    try {
+      console.log('[STORAGE] Getting internship:', internshipId);
+      
+      const [internship] = await db
+        .select({
+          internship: internships,
+          student: users,
+          partner: businessPartners
+        })
+        .from(internships)
+        .leftJoin(users, eq(internships.studentId, users.id))
+        .leftJoin(businessPartners, eq(internships.partnerId, businessPartners.id))
+        .where(eq(internships.id, internshipId));
+      
+      return internship || null;
+    } catch (error) {
+      console.error('[STORAGE] getInternship error:', error);
+      return null;
+    }
+  }
+
+  async createInternship(internship: InsertInternship): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating internship:', internship);
+      
+      const [newInternship] = await db
+        .insert(internships)
+        .values(internship)
+        .returning();
+      
+      return newInternship;
+    } catch (error) {
+      console.error('[STORAGE] createInternship error:', error);
+      throw new Error('Failed to create internship');
+    }
+  }
+
+  async updateInternship(internshipId: number, updates: Partial<InsertInternship>): Promise<any> {
+    try {
+      console.log('[STORAGE] Updating internship:', { internshipId, updates });
+      
+      const [updatedInternship] = await db
+        .update(internships)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(internships.id, internshipId))
+        .returning();
+      
+      return updatedInternship;
+    } catch (error) {
+      console.error('[STORAGE] updateInternship error:', error);
+      throw new Error('Failed to update internship');
+    }
+  }
+
+  async getStudentInternships(studentId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting internships for student:', studentId);
+      
+      const studentInternships = await db
+        .select({
+          internship: internships,
+          partner: businessPartners
+        })
+        .from(internships)
+        .leftJoin(businessPartners, eq(internships.partnerId, businessPartners.id))
+        .where(eq(internships.studentId, studentId));
+      
+      return studentInternships;
+    } catch (error) {
+      console.error('[STORAGE] getStudentInternships error:', error);
+      return [];
+    }
+  }
+
+  async sendPartnershipCommunication(communication: InsertPartnershipCommunication): Promise<any> {
+    try {
+      console.log('[STORAGE] Sending partnership communication:', communication);
+      
+      const [newCommunication] = await db
+        .insert(partnershipCommunications)
+        .values(communication)
+        .returning();
+      
+      return newCommunication;
+    } catch (error) {
+      console.error('[STORAGE] sendPartnershipCommunication error:', error);
+      throw new Error('Failed to send partnership communication');
+    }
+  }
+
+  async getPartnershipCommunications(agreementId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting partnership communications for agreement:', agreementId);
+      
+      const communications = await db
+        .select({
+          communication: partnershipCommunications,
+          sender: users
+        })
+        .from(partnershipCommunications)
+        .leftJoin(users, eq(partnershipCommunications.senderId, users.id))
+        .where(eq(partnershipCommunications.agreementId, agreementId))
+        .orderBy(desc(partnershipCommunications.createdAt));
+      
+      return communications;
+    } catch (error) {
+      console.error('[STORAGE] getPartnershipCommunications error:', error);
+      return [];
+    }
+  }
+
+  async getPartnershipStatistics(schoolId: number): Promise<any> {
+    try {
+      console.log('[STORAGE] Getting partnership statistics for school:', schoolId);
+      
+      const [partnerCount] = await db
+        .select({ count: count() })
+        .from(schoolPartnershipAgreements)
+        .where(eq(schoolPartnershipAgreements.schoolId, schoolId));
+      
+      const [internshipCount] = await db
+        .select({ count: count() })
+        .from(internships)
+        .where(eq(internships.schoolId, schoolId));
+      
+      const [activeInternshipCount] = await db
+        .select({ count: count() })
+        .from(internships)
+        .where(
+          and(
+            eq(internships.schoolId, schoolId),
+            eq(internships.status, 'active')
+          )
+        );
+      
+      const [completedInternshipCount] = await db
+        .select({ count: count() })
+        .from(internships)
+        .where(
+          and(
+            eq(internships.schoolId, schoolId),
+            eq(internships.status, 'completed')
+          )
+        );
+      
+      return {
+        totalPartners: partnerCount.count,
+        totalInternships: internshipCount.count,
+        activeInternships: activeInternshipCount.count,
+        completedInternships: completedInternshipCount.count,
+        successRate: internshipCount.count > 0 ? (completedInternshipCount.count / internshipCount.count * 100).toFixed(1) : 0
+      };
+    } catch (error) {
+      console.error('[STORAGE] getPartnershipStatistics error:', error);
+      return {
+        totalPartners: 0,
+        totalInternships: 0,
+        activeInternships: 0,
+        completedInternships: 0,
+        successRate: 0
+      };
     }
   }
 }

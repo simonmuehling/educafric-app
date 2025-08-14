@@ -1955,3 +1955,193 @@ export type RouteOptimization = typeof routeOptimization.$inferSelect;
 export type InsertRouteOptimization = typeof routeOptimization.$inferInsert;
 export type AttendanceAutomation = typeof attendanceAutomation.$inferSelect;
 export type InsertAttendanceAutomation = typeof attendanceAutomation.$inferInsert;
+
+// ===== BUSINESS PARTNERSHIP SYSTEM =====
+export const businessPartners = pgTable("business_partners", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  sector: varchar("sector", { length: 100 }).notNull(), // 'technology', 'finance', 'healthcare', etc.
+  type: varchar("type", { length: 50 }).notNull(), // 'multinational', 'local', 'startup', 'ngo'
+  description: text("description"),
+  
+  // Location information
+  address: text("address"),
+  city: varchar("city", { length: 100 }),
+  region: varchar("region", { length: 100 }),
+  country: varchar("country", { length: 100 }).default("Cameroun"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  
+  // Contact information
+  contactPerson: varchar("contact_person", { length: 255 }),
+  contactPosition: varchar("contact_position", { length: 255 }),
+  phone: varchar("phone", { length: 20 }),
+  email: varchar("email", { length: 255 }),
+  website: varchar("website", { length: 255 }),
+  
+  // Partnership details
+  partnershipType: varchar("partnership_type", { length: 50 }).notNull(), // 'internship', 'training', 'recruitment', 'mentoring', 'sponsorship'
+  partnershipSince: varchar("partnership_since", { length: 10 }), // YYYY-MM-DD
+  status: varchar("status", { length: 20 }).default("active"), // 'active', 'pending', 'suspended', 'inactive'
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"), // 0.00 to 5.00
+  
+  // Statistics
+  studentsPlaced: integer("students_placed").default(0),
+  opportunitiesOffered: integer("opportunities_offered").default(0),
+  
+  // Metadata
+  programs: jsonb("programs"), // Array of program names
+  metadata: jsonb("metadata"), // Additional flexible data
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const schoolPartnershipAgreements = pgTable("school_partnership_agreements", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  partnerId: integer("partner_id").notNull(),
+  agreementType: varchar("agreement_type", { length: 50 }).notNull(), // 'internship', 'training', 'recruitment'
+  startDate: varchar("start_date", { length: 10 }), // YYYY-MM-DD
+  endDate: varchar("end_date", { length: 10 }), // YYYY-MM-DD
+  status: varchar("status", { length: 20 }).default("active"),
+  terms: text("terms"),
+  contactFrequency: varchar("contact_frequency", { length: 20 }), // 'weekly', 'monthly', 'quarterly'
+  lastContactDate: varchar("last_contact_date", { length: 10 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const internships = pgTable("internships", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull(),
+  partnerId: integer("partner_id").notNull(),
+  schoolId: integer("school_id").notNull(),
+  
+  // Internship details
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  startDate: varchar("start_date", { length: 10 }).notNull(), // YYYY-MM-DD
+  endDate: varchar("end_date", { length: 10 }).notNull(),
+  duration: integer("duration"), // in days
+  
+  // Status and management
+  status: varchar("status", { length: 20 }).default("planned"), // 'planned', 'active', 'completed', 'cancelled'
+  supervisorName: varchar("supervisor_name", { length: 255 }),
+  supervisorEmail: varchar("supervisor_email", { length: 255 }),
+  supervisorPhone: varchar("supervisor_phone", { length: 20 }),
+  
+  // Evaluation and feedback
+  studentRating: decimal("student_rating", { precision: 3, scale: 2 }), // 0.00 to 5.00
+  companyRating: decimal("company_rating", { precision: 3, scale: 2 }), // 0.00 to 5.00
+  studentFeedback: text("student_feedback"),
+  companyFeedback: text("company_feedback"),
+  
+  // Outcomes
+  completionStatus: varchar("completion_status", { length: 20 }), // 'completed', 'incomplete', 'terminated'
+  jobOfferReceived: boolean("job_offer_received").default(false),
+  skillsAcquired: jsonb("skills_acquired"), // Array of skills
+  
+  // Metadata
+  metadata: jsonb("metadata"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const partnershipCommunications = pgTable("partnership_communications", {
+  id: serial("id").primaryKey(),
+  agreementId: integer("agreement_id").notNull(),
+  senderId: integer("sender_id").notNull(), // User ID
+  recipientEmail: varchar("recipient_email", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  messageType: varchar("message_type", { length: 50 }).default("general"), // 'general', 'internship_inquiry', 'follow_up', 'evaluation'
+  status: varchar("status", { length: 20 }).default("sent"), // 'sent', 'delivered', 'read', 'replied'
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations for business partnerships
+export const businessPartnersRelations = relations(businessPartners, ({ many }) => ({
+  agreements: many(schoolPartnershipAgreements),
+  internships: many(internships),
+}));
+
+export const schoolPartnershipAgreementsRelations = relations(schoolPartnershipAgreements, ({ one, many }) => ({
+  school: one(schools, {
+    fields: [schoolPartnershipAgreements.schoolId],
+    references: [schools.id],
+  }),
+  partner: one(businessPartners, {
+    fields: [schoolPartnershipAgreements.partnerId],
+    references: [businessPartners.id],
+  }),
+  communications: many(partnershipCommunications),
+}));
+
+export const internshipsRelations = relations(internships, ({ one }) => ({
+  student: one(users, {
+    fields: [internships.studentId],
+    references: [users.id],
+  }),
+  partner: one(businessPartners, {
+    fields: [internships.partnerId],
+    references: [businessPartners.id],
+  }),
+  school: one(schools, {
+    fields: [internships.schoolId],
+    references: [schools.id],
+  }),
+}));
+
+export const partnershipCommunicationsRelations = relations(partnershipCommunications, ({ one }) => ({
+  agreement: one(schoolPartnershipAgreements, {
+    fields: [partnershipCommunications.agreementId],
+    references: [schoolPartnershipAgreements.id],
+  }),
+  sender: one(users, {
+    fields: [partnershipCommunications.senderId],
+    references: [users.id],
+  }),
+}));
+
+// Types for business partnerships
+export type BusinessPartner = typeof businessPartners.$inferSelect;
+export type InsertBusinessPartner = typeof businessPartners.$inferInsert;
+export type SchoolPartnershipAgreement = typeof schoolPartnershipAgreements.$inferSelect;
+export type InsertSchoolPartnershipAgreement = typeof schoolPartnershipAgreements.$inferInsert;
+export type Internship = typeof internships.$inferSelect;
+export type InsertInternship = typeof internships.$inferInsert;
+export type PartnershipCommunication = typeof partnershipCommunications.$inferSelect;
+export type InsertPartnershipCommunication = typeof partnershipCommunications.$inferInsert;
+
+// Validation schemas for business partnerships
+export const insertBusinessPartnerSchema = createInsertSchema(businessPartners).extend({
+  name: z.string().min(1, "Nom de l'entreprise requis"),
+  sector: z.string().min(1, "Secteur requis"),
+  type: z.string().min(1, "Type d'entreprise requis"),
+  partnershipType: z.string().min(1, "Type de partenariat requis"),
+  email: z.string().email("Email valide requis").optional(),
+  rating: z.string().transform(val => val ? parseFloat(val) : 0),
+});
+
+export const insertInternshipSchema = createInsertSchema(internships).extend({
+  title: z.string().min(1, "Titre du stage requis"),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide (YYYY-MM-DD)"),
+  supervisorEmail: z.string().email("Email superviseur invalide").optional(),
+});
+
+export const insertSchoolPartnershipAgreementSchema = createInsertSchema(schoolPartnershipAgreements).extend({
+  agreementType: z.string().min(1, "Type d'accord requis"),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide").optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format de date invalide").optional(),
+});
+
+export const insertPartnershipCommunicationSchema = createInsertSchema(partnershipCommunications).extend({
+  subject: z.string().min(1, "Sujet requis"),
+  message: z.string().min(1, "Message requis"),
+  recipientEmail: z.string().email("Email destinataire invalide"),
+});

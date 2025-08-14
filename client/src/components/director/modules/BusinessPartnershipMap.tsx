@@ -7,6 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  getBusinessPartners, 
+  getInternships, 
+  getPartnershipStatistics,
+  sendPartnershipCommunication,
+  type BusinessPartner as APIBusinessPartner,
+  type Internship,
+  type PartnershipStatistics,
+  getPartnershipTypeColor,
+  getInternshipStatusColor,
+  formatPartnershipType,
+  formatInternshipStatus
+} from '@/lib/api/partnerships';
 import { 
   MapPin, Building2, Users, Phone, Mail, Globe, 
   Plus, Search, Filter, Star, Clock, TrendingUp,
@@ -47,12 +61,49 @@ interface BusinessPartner {
 const BusinessPartnershipMap: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedPartner, setSelectedPartner] = useState<BusinessPartner | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSector, setFilterSector] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
   const [activeView, setActiveView] = useState<'map' | 'list' | 'stats' | 'internships'>('map');
+
+  // API Queries
+  const schoolId = 1; // TODO: Get from user context
+  
+  const { data: partners = [], isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/partnerships/partners', schoolId],
+    queryFn: () => getBusinessPartners(schoolId),
+  });
+
+  const { data: internships = [], isLoading: internshipsLoading } = useQuery({
+    queryKey: ['/api/partnerships/internships', schoolId],
+    queryFn: () => getInternships(schoolId),
+  });
+
+  const { data: statistics, isLoading: statisticsLoading } = useQuery({
+    queryKey: ['/api/partnerships/statistics', schoolId],
+    queryFn: () => getPartnershipStatistics(schoolId),
+  });
+
+  // Communication mutation
+  const sendCommunicationMutation = useMutation({
+    mutationFn: sendPartnershipCommunication,
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Message envoyé' : 'Message sent',
+        description: language === 'fr' ? 'Votre message a été envoyé avec succès' : 'Your message has been sent successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'envoyer le message' : 'Failed to send message',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const text = {
     fr: {
@@ -345,6 +396,42 @@ const BusinessPartnershipMap: React.FC = () => {
     });
   };
 
+  const handleAddPartner = () => {
+    toast({
+      title: language === 'fr' ? 'Nouveau partenaire' : 'New partner',
+      description: language === 'fr' ? 'Formulaire d\'ajout de partenaire ouvert' : 'Partner addition form opened'
+    });
+    setShowAddPartnerModal(true);
+  };
+
+  const handleAddInternship = () => {
+    toast({
+      title: language === 'fr' ? 'Nouveau stage' : 'New internship',
+      description: language === 'fr' ? 'Formulaire de création de stage ouvert' : 'Internship creation form opened'
+    });
+  };
+
+  const handleScheduleInternship = () => {
+    toast({
+      title: language === 'fr' ? 'Planifier stage' : 'Schedule internship',
+      description: language === 'fr' ? 'Calendrier de planification ouvert' : 'Scheduling calendar opened'
+    });
+  };
+
+  const handleEvaluateStudent = () => {
+    toast({
+      title: language === 'fr' ? 'Évaluer étudiant' : 'Evaluate student',
+      description: language === 'fr' ? 'Formulaire d\'évaluation ouvert' : 'Evaluation form opened'
+    });
+  };
+
+  const handleContactCompany = () => {
+    toast({
+      title: language === 'fr' ? 'Contacter entreprise' : 'Contact company',
+      description: language === 'fr' ? 'Centre de communication ouvert' : 'Communication center opened'
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -356,7 +443,7 @@ const BusinessPartnershipMap: React.FC = () => {
         
         <div className="flex gap-2">
           <Button 
-            onClick={() => setShowAddPartnerModal(true)}
+            onClick={handleAddPartner}
             className="bg-blue-600 hover:bg-blue-700"
             data-testid="button-add-partner"
           >
@@ -648,7 +735,11 @@ const BusinessPartnershipMap: React.FC = () => {
                 </div>
               </div>
 
-              <Button className="w-full" data-testid="button-add-internship">
+              <Button 
+                className="w-full" 
+                onClick={handleAddInternship}
+                data-testid="button-add-internship"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 {language === 'fr' ? 'Nouveau Stage' : 'New Internship'}
               </Button>
@@ -688,17 +779,32 @@ const BusinessPartnershipMap: React.FC = () => {
 
         {/* Quick Actions for Internships */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+          <Button 
+            variant="outline" 
+            className="p-6 h-auto flex-col space-y-2"
+            onClick={handleScheduleInternship}
+            data-testid="button-schedule-internship"
+          >
             <Calendar className="w-8 h-8 text-blue-600" />
             <span>{language === 'fr' ? 'Planifier Stage' : 'Schedule Internship'}</span>
           </Button>
           
-          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+          <Button 
+            variant="outline" 
+            className="p-6 h-auto flex-col space-y-2"
+            onClick={handleEvaluateStudent}
+            data-testid="button-evaluate-student"
+          >
             <FileText className="w-8 h-8 text-green-600" />
             <span>{language === 'fr' ? 'Évaluer Étudiant' : 'Evaluate Student'}</span>
           </Button>
           
-          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+          <Button 
+            variant="outline" 
+            className="p-6 h-auto flex-col space-y-2"
+            onClick={handleContactCompany}
+            data-testid="button-contact-company"
+          >
             <MessageSquare className="w-8 h-8 text-purple-600" />
             <span>{language === 'fr' ? 'Contacter Entreprise' : 'Contact Company'}</span>
           </Button>
