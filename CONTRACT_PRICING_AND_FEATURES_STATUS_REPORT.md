@@ -8,12 +8,16 @@
 - **Issue**: You asked about pricing source in contract document
 - **Answer**: The prices in the contract are **custom pricing structure**, NOT from /subscribe page
 - **Contract Pricing Structure**:
-  - École Publique: 25,000 CFA/mois (250,000 CFA/an)
-  - École Privée: 75,000 CFA/mois (750,000 CFA/an) 
-  - École Enterprise: 150,000 CFA/mois (1,500,000 CFA/an)
-  - Répétiteur Basique: 5,000 CFA/mois (50,000 CFA/an)
-  - Répétiteur Professionnel: 12,000 CFA/mois (120,000 CFA/an)
-  - Répétiteur Expert: 25,000 CFA/mois (250,000 CFA/an)
+  - École Publique: 250,000 CFA/an (plan annuel uniquement)
+  - École Privée: 750,000 CFA/an (plan annuel uniquement) 
+  - Répétiteur Basique: 5,000 CFA/mois ou 50,000 CFA/an
+  - Répétiteur Professionnel: 12,000 CFA/mois ou 120,000 CFA/an
+  - Répétiteur Expert: 25,000 CFA/mois ou 250,000 CFA/an
+  
+**Notes importantes:**
+- Écoles: Sans limitation d'élèves (sera dans prochaines versions)
+- Écoles: Plans annuels uniquement
+- Répétiteurs: Plans semestriels ou annuels disponibles
 
 #### 2. **"Mesures Techniques" Section REMOVED** ✅
 - **Location**: Article 9 - Protection des Données

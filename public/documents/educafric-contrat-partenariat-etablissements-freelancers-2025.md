@@ -72,9 +72,9 @@ Démocratiser l'accès aux technologies éducatives en Afrique et moderniser l'�
 
 #### 🏫 Plan École Publique
 ```
-Prix: 25.000 CFA/mois (250.000 CFA/an)
-Élèves inclus: Jusqu'à 200 élèves
-Économie annuelle: 50.000 CFA (2 mois gratuits)
+Prix: 250.000 CFA/an (Plan annuel uniquement)
+Élèves: Sans limitation
+Économie vs mensuel: 50.000 CFA (2 mois gratuits)
 ```
 
 **✅ Fonctionnalités Incluses:**
@@ -87,17 +87,11 @@ Prix: 25.000 CFA/mois (250.000 CFA/an)
 - Notifications SMS (1000/mois)
 - Formation équipe (8h incluses)
 
-**📊 Tarification Progressive:**
-- 0-200 élèves: 25.000 CFA/mois
-- 201-500 élèves: +100 CFA/élève/mois
-- 501-1000 élèves: +75 CFA/élève/mois
-- +1000 élèves: Tarif négocié
-
 #### 🌟 Plan École Privée
 ```
-Prix: 75.000 CFA/mois (750.000 CFA/an)
-Élèves inclus: Jusqu'à 500 élèves
-Économie annuelle: 150.000 CFA (2 mois gratuits)
+Prix: 750.000 CFA/an (Plan annuel uniquement)
+Élèves: Sans limitation
+Économie vs mensuel: 150.000 CFA (2 mois gratuits)
 ```
 
 **✅ Tout du Plan Public +:**
@@ -110,27 +104,13 @@ Prix: 75.000 CFA/mois (750.000 CFA/an)
 - Support prioritaire 24/7
 - Formation équipe (40h incluses)
 
-#### 💼 Plan École Enterprise
-```
-Prix: 150.000 CFA/mois (1.500.000 CFA/an)
-Élèves: Illimités
-Solution complète sur mesure
-```
 
-**✅ Solution Premium:**
-- Toutes fonctionnalités incluses
-- Multi-campus sans limite
-- Personnalisation complète
-- Intégrations sur mesure
-- Infrastructure dédiée
-- Équipe support dédiée
-- SLA 99.9% uptime garanti
 
 ### 2.2 Plans Freelancers Éducatifs (Répétiteurs)
 
 #### 📖 Plan Répétiteur Basique
 ```
-Prix: 5.000 CFA/mois (50.000 CFA/an)
+Options: 5.000 CFA/mois ou 50.000 CFA/an
 Élèves: Jusqu'à 10 élèves
 Essai gratuit: 14 jours inclus
 ```
@@ -146,7 +126,7 @@ Essai gratuit: 14 jours inclus
 
 #### 🎯 Plan Répétiteur Professionnel
 ```
-Prix: 12.000 CFA/mois (120.000 CFA/an)
+Options: 12.000 CFA/mois ou 120.000 CFA/an
 Élèves: Jusqu'à 50 élèves
 Économie annuelle: 24.000 CFA
 ```
@@ -162,7 +142,7 @@ Prix: 12.000 CFA/mois (120.000 CFA/an)
 
 #### 💎 Plan Répétiteur Expert
 ```
-Prix: 25.000 CFA/mois (250.000 CFA/an)
+Options: 25.000 CFA/mois ou 250.000 CFA/an
 Élèves: Illimités
 Plan premium professionnel
 ```
