@@ -700,7 +700,7 @@ const DocumentsContracts = () => {
       {/* Documents Grid - Mobile Optimized */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredDocuments.map((doc) => (
-          <Card key={doc.id} className="hover:shadow-lg transition-shadow duration-200">
+          <Card key={`doc-${doc.id}-${doc.name}`} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="pb-3 px-3 sm:px-6">
               <div className="flex flex-col space-y-3">
                 {/* Mobile: Title and Icon on top, badges below */}

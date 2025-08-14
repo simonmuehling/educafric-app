@@ -134,26 +134,26 @@ const SiteAdminDashboard: React.FC = () => {
     trend?: string;
   }> = ({ title, value, subtitle, icon, color, trend }) => (
     <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-            <div className="flex items-baseline space-x-2">
-              <h3 className={`text-2xl font-bold ${color}`}>
+      <CardContent className="p-3 sm:p-6">
+        <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 truncate">{title}</p>
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:space-x-2">
+              <h3 className={`text-lg sm:text-2xl font-bold ${color} break-words`}>
                 {typeof value === 'number' ? formatNumber(value) : value}
               </h3>
               {trend && (
-                <span className="text-sm text-green-600 flex items-center">
+                <span className="text-xs sm:text-sm text-green-600 flex items-center mt-1 sm:mt-0">
                   <TrendingUp className="h-3 w-3 mr-1" />
                   {trend}
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{subtitle}</p>
             )}
           </div>
-          <div className={`p-3 rounded-full ${color.replace('text-', 'bg-').replace('-600', '-100')}`}>
+          <div className={`p-2 sm:p-3 rounded-full ${color.replace('text-', 'bg-').replace('-600', '-100')} self-end sm:self-auto`}>
             {icon}
           </div>
         </div>
@@ -162,43 +162,43 @@ const SiteAdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-3 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
               Administration Plateforme
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Gestion complète de la plateforme EDUCAFRIC
             </p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Rechercher..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-10 w-full sm:w-64 text-sm sm:text-base"
                 data-testid="input-search-global"
               />
             </div>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="self-end sm:self-auto">
               <Bell className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Platform Overview Stats */}
+        {/* Platform Overview Stats - Mobile Optimized */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             <StatCard
               title="Utilisateurs Total"
               value={platformStats?.totalUsers || 0}
               subtitle="Tous rôles confondus"
-              icon={<Users className="h-6 w-6" />}
+              icon={<Users className="h-4 w-4 sm:h-6 sm:w-6" />}
               color="text-blue-600"
               trend="+12.3%"
             />
@@ -206,7 +206,7 @@ const SiteAdminDashboard: React.FC = () => {
               title="Écoles Actives"
               value={platformStats?.totalSchools || 0}
               subtitle="Établissements inscrits"
-              icon={<School className="h-6 w-6" />}
+              icon={<School className="h-4 w-4 sm:h-6 sm:w-6" />}
               color="text-green-600"
               trend="+8.7%"
             />
@@ -214,7 +214,7 @@ const SiteAdminDashboard: React.FC = () => {
               title="Revenus Mensuels"
               value={formatCurrency(platformStats?.monthlyRevenue || 0)}
               subtitle="Abonnements actifs"
-              icon={<BarChart3 className="h-6 w-6" />}
+              icon={<BarChart3 className="h-4 w-4 sm:h-6 sm:w-6" />}
               color="text-purple-600"
               trend="+15.2%"
             />
@@ -222,7 +222,7 @@ const SiteAdminDashboard: React.FC = () => {
               title="Temps de Fonctionnement"
               value={`${platformStats?.systemUptime || 0}%`}
               subtitle="Disponibilité système"
-              icon={<Activity className="h-6 w-6" />}
+              icon={<Activity className="h-4 w-4 sm:h-6 sm:w-6" />}
               color="text-orange-600"
             />
           </div>

@@ -157,20 +157,20 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: 'Géolocalisation',
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <div className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Géolocalisation Élèves</h3>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600 mb-4">
+      component: <div className="p-3 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Géolocalisation Élèves</h3>
+        <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+          <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
             Suivi de localisation de vos élèves pour leur sécurité.
           </p>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Junior Kamga (6ème A)</span>
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">À l'école</span>
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+              <span className="text-xs sm:text-sm font-medium">Junior Kamga (6ème A)</span>
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded w-fit">À l'école</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">Marie Nkomo (5ème B)</span>
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">En route</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+              <span className="text-xs sm:text-sm font-medium">Marie Nkomo (5ème B)</span>
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded w-fit">En route</span>
             </div>
           </div>
         </div>

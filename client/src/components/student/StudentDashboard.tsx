@@ -156,22 +156,22 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.achievements,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <div className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Réussites</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-400">
+      component: <div className="p-3 sm:p-6">
+        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Réussites</h3>
+        <div className="grid grid-cols-1 gap-3 sm:gap-4">
+          <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg border-l-4 border-yellow-400">
             <div className="flex items-center">
-              <Award className="w-5 h-5 text-yellow-600 mr-2" />
-              <span className="font-medium">Excellent Élève</span>
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-2" />
+              <span className="font-medium text-sm sm:text-base">Excellent Élève</span>
             </div>
-            <p className="text-sm text-gray-600 mt-1">Moyenne générale de 17/20</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Moyenne générale de 17/20</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-400">
             <div className="flex items-center">
-              <Target className="w-5 h-5 text-green-600 mr-2" />
-              <span className="font-medium">Participation Active</span>
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2" />
+              <span className="font-medium text-sm sm:text-base">Participation Active</span>
             </div>
-            <p className="text-sm text-gray-600 mt-1">95% de présence</p>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">95% de présence</p>
           </div>
         </div>
       </div>
