@@ -484,7 +484,7 @@ const FunctionalDirectorClassManagement: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {teachers.length === 0 ? (
-                      <SelectItem value="" disabled>
+                      <SelectItem value="disabled-option" disabled>
                         {isLoadingTeachers ? 'Chargement...' : 'Aucun enseignant disponible'}
                       </SelectItem>
                     ) : (

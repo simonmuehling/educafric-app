@@ -457,15 +457,15 @@ const ClassManagement: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {isLoadingTeachers ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Chargement des enseignants...
                           </SelectItem>
                         ) : teachersError ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Erreur: Impossible de charger les enseignants
                           </SelectItem>
                         ) : teachersData.length === 0 ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Aucun enseignant trouvé dans cette école
                           </SelectItem>
                         ) : (
@@ -588,15 +588,15 @@ const ClassManagement: React.FC = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {isLoadingTeachers ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Chargement des enseignants...
                           </SelectItem>
                         ) : teachersError ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Erreur: Impossible de charger les enseignants
                           </SelectItem>
                         ) : teachersData.length === 0 ? (
-                          <SelectItem value="" disabled>
+                          <SelectItem value="disabled-option" disabled>
                             Aucun enseignant trouvé dans cette école
                           </SelectItem>
                         ) : (
