@@ -23105,12 +23105,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add API 404 handler before returning server
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({
+      message: 'API endpoint not found',
+      path: req.originalUrl,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   return httpServer;
 }
-
-
-
-
-  // Administration École Routes - Gestion des listes d'utilisateurs
-  
-  // Enseignants - Liste complète avec recherche et filtres
