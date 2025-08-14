@@ -108,22 +108,6 @@ Prix: 750.000 CFA/an (Plan annuel uniquement)
 
 ### 2.2 Plans Freelancers Éducatifs (Répétiteurs)
 
-#### 📖 Plan Répétiteur Basique
-```
-Options: 5.000 CFA/mois ou 50.000 CFA/an
-Élèves: Jusqu'à 10 élèves
-Essai gratuit: 14 jours inclus
-```
-
-**✅ Outils Pédagogiques:**
-- Gestion planning cours
-- Suivi progression élèves
-- Facturation automatisée
-- Communication parents
-- Ressources pédagogiques
-- Profil public visible
-- Support email
-
 #### 🎯 Plan Répétiteur Professionnel
 ```
 Options: 12.000 CFA/mois ou 120.000 CFA/an
@@ -131,28 +115,39 @@ Options: 12.000 CFA/mois ou 120.000 CFA/an
 Économie annuelle: 24.000 CFA
 ```
 
-**✅ Tout du Plan Basique +:**
+**✅ Outils Pédagogiques Complets:**
+- Gestion planning cours
+- Suivi progression élèves
+- Facturation automatisée
+- Communication parents
+- Ressources pédagogiques
+- Profil public visible
 - Géolocalisation déplacements
 - Zones d'enseignement définies
 - Analytics performance détaillées
 - Marketing digital inclus
 - Formation continue accès
 - Certification Educafric
-- Support téléphonique
+- Support téléphonique et email
 
-#### 💎 Plan Répétiteur Expert
+### 2.3 Plans Centres de Formation
+
+#### 💼 Plan École Entreprise
 ```
-Options: 25.000 CFA/mois ou 250.000 CFA/an
-Élèves: Illimités
-Plan premium professionnel
+Prix: 150.000 CFA/an (Plan annuel uniquement)
+Élèves: Sans limitation
+Solution centres de formation
 ```
 
-**✅ Solution Premium:**
-- Toutes fonctionnalités incluses
-- Profile premium highlighted
-- Marketing prioritaire
-- Coach business dédié
-- Partenariats écoles
+**✅ Solution Entreprise:**
+- Dashboard bilingue spécialisé
+- Gestion formations professionnelles
+- Suivi stagiaires entreprises
+- Certification et diplômes
+- Facturation entreprises
+- Reporting avancé ROI
+- Interface personnalisée
+- Support prioritaire dédié
 - Support prioritaire 24/7
 
 ### 2.3 Tarification Services Parents

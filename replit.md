@@ -12,6 +12,13 @@ Preferred communication style: Simple, everyday language.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
 - **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
+- **PRICING STRUCTURE CLARIFIED (August 2025)**:
+  - Schools: Annual plans only, no student limitations
+  - École Publique: 250,000 CFA/year
+  - École Privée: 750,000 CFA/year  
+  - École Entreprise: 150,000 CFA/year (training centers with bilingual dashboard)
+  - Freelancers: Only Professional plan (12,000 CFA/month or 120,000 CFA/year)
+  - Contact: Always use +237 657 004 011 / admin@educafric.com
 
 ## System Architecture
 

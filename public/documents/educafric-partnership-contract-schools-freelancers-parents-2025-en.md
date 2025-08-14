@@ -72,9 +72,9 @@ Democratize access to educational technologies in Africa and modernize the educa
 
 #### 🏫 Public School Plan
 ```
-Price: 25,000 CFA/month (250,000 CFA/year)
-Students included: Up to 200 students
-Annual savings: 50,000 CFA (2 free months)
+Price: 250,000 CFA/year (Annual plan only)
+Students: No limitation
+Annual savings vs monthly: 50,000 CFA (2 free months)
 ```
 
 **✅ Included Features:**
@@ -87,17 +87,11 @@ Annual savings: 50,000 CFA (2 free months)
 - SMS notifications (1000/month)
 - Team training (8h included)
 
-**📊 Progressive Pricing:**
-- 0-200 students: 25,000 CFA/month
-- 201-500 students: +100 CFA/student/month
-- 501-1000 students: +75 CFA/student/month
-- 1000+ students: Negotiated rate
-
 #### 🌟 Private School Plan
 ```
-Price: 75,000 CFA/month (750,000 CFA/year)
-Students included: Up to 500 students
-Annual savings: 150,000 CFA (2 free months)
+Price: 750,000 CFA/year (Annual plan only)
+Students: No limitation
+Annual savings vs monthly: 150,000 CFA (2 free months)
 ```
 
 **✅ All Public Plan Features +:**
@@ -112,70 +106,65 @@ Annual savings: 150,000 CFA (2 free months)
 
 #### 💼 Enterprise School Plan
 ```
-Price: 150,000 CFA/month (1,500,000 CFA/year)
-Students: Unlimited
-Complete custom solution
+Price: 150,000 CFA/year (Annual plan only)
+Students: No limitation
+Training center solution
 ```
 
-**✅ Premium Solution:**
-- All features included
-- Unlimited multi-campus
-- Complete customization
-- Custom integrations
-- Dedicated infrastructure
-- Dedicated support team
-- 99.9% uptime SLA guaranteed
+**✅ Enterprise Solution:**
+- Specialized bilingual dashboard
+- Professional training management
+- Corporate trainee tracking
+- Certification and diplomas
+- Enterprise billing system
+- Advanced ROI reporting
+- Customized interface
+- Dedicated priority support
 
 ### 2.2 Educational Freelancer Plans (Tutors)
 
-#### 📖 Basic Tutor Plan
+#### 🎯 Professional Tutor Plan
 ```
-Price: 5,000 CFA/month (50,000 CFA/year)
-Students: Up to 10 students
-Free trial: 14 days included
+Options: 12,000 CFA/month or 120,000 CFA/year
+Students: Up to 50 students
+Annual savings: 24,000 CFA
 ```
 
-**✅ Educational Tools:**
+**✅ Complete Educational Tools:**
 - Class scheduling management
 - Student progress tracking
 - Automated billing
 - Parent communication
 - Educational resources
 - Visible public profile
-- Email support
-
-#### 🎯 Professional Tutor Plan
-```
-Price: 12,000 CFA/month (120,000 CFA/year)
-Students: Up to 50 students
-Annual savings: 24,000 CFA
-```
-
-**✅ All Basic Plan Features +:**
 - Travel geolocation
 - Defined teaching zones
 - Detailed performance analytics
 - Digital marketing included
 - Continuing education access
 - Educafric certification
-- Phone support
+- Phone and email support
 
-#### 💎 Expert Tutor Plan
+### 2.3 Training Center Plans
+
+#### 💼 Enterprise School Plan
 ```
-Price: 25,000 CFA/month (250,000 CFA/year)
-Students: Unlimited
-Professional premium plan
+Price: 150,000 CFA/year (Annual plan only)
+Students: No limitation
+Training center solution
 ```
 
-**✅ Premium Solution:**
-- All features included
-- Premium highlighted profile
-- Priority marketing
-- Dedicated business coach
-- School partnerships
-- 24/7 priority support
+**✅ Enterprise Solution:**
+- Specialized bilingual dashboard
+- Professional training management
+- Corporate trainee tracking
+- Certification and diplomas
+- Enterprise billing system
+- Advanced ROI reporting
+- Customized interface
+- Dedicated priority support
 
-### 2.3 Parent Service Plans
+### 2.4 Parent Service Plans
 
 #### 👨‍👩‍👧‍👦 Parent Plans Available
 
@@ -400,7 +389,7 @@ Professional premium plan
 
 **Premium Support (Advanced Plans):**
 ```
-☎️ Hotline: +237 656 200 472 (12h response)
+☎️ Hotline: +237 657 004 011 (12h response)
 📱 WhatsApp: Priority support
 🖥️ Screen sharing: Direct assistance
 👨‍💻 Personalized training: Dedicated sessions
@@ -467,8 +456,8 @@ Professional premium plan
 
 **🍊 Orange Money**
 ```
-Primary number: +237 656 200 472
-Beneficiary name: AFRO METAVERSE MARKETING SARL
+Primary number: +237 657 004 011
+Beneficiary name: Abanda Akak Simon Pierre
 Mandatory reference: "EDUCAFRIC-[School/Freelancer/Parent Name]"
 Fees: 1% of amount (minimum 100 CFA)
 Confirmation: Instant with SMS
@@ -476,8 +465,8 @@ Confirmation: Instant with SMS
 
 **📱 MTN Mobile Money**
 ```
-Primary number: +237 6XX XXX XXX
-Beneficiary name: AFRO METAVERSE MARKETING SARL
+Primary number: Not available
+Beneficiary name: Abanda Akak Simon Pierre
 Mandatory reference: "EDUCAFRIC-[School/Freelancer/Parent Name]"
 Fees: 1.5% of amount (minimum 150 CFA)
 Confirmation: Instant with SMS
@@ -607,7 +596,7 @@ Protection: Integrated buyer protection
 ```
 AFRO METAVERSE MARKETING SARL
 Address: Douala, Cameroon
-Phone: +237 656 200 472
+Phone: +237 657 004 011
 Email: contact@educafric.com
 Website: www.educafric.com
 ```

@@ -79,7 +79,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'school_public',
     name: 'École Publique',
-    price: 50000,
+    price: 250000,
     currency: 'xaf',
     interval: 'year',
     category: 'school',
@@ -88,11 +88,20 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'school_private',
     name: 'École Privée',
-    price: 75000,
+    price: 750000,
     currency: 'xaf',
     interval: 'year',
     category: 'school',
     features: ['unlimited_students', 'advanced_analytics', 'custom_reports', 'whatsapp_integration', 'payment_processing', 'priority_support']
+  },
+  {
+    id: 'school_enterprise',
+    name: 'École Entreprise',
+    price: 150000,
+    currency: 'xaf',
+    interval: 'year',
+    category: 'school',
+    features: ['unlimited_students', 'bilingual_dashboard', 'training_management', 'corporate_tracking', 'certification_system', 'enterprise_billing', 'roi_reporting', 'dedicated_support']
   },
   {
     id: 'school_geolocation',
@@ -105,31 +114,22 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   // Plans Freelancers
   {
-    id: 'freelancer_annual',
-    name: 'Freelancer Annuel',
-    price: 25000,
-    currency: 'xaf',
-    interval: 'year',
-    category: 'freelancer',
-    features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication', 'billing_system']
-  },
-  {
-    id: 'freelancer_semester',
-    name: 'Freelancer Semestriel',
-    price: 12500,
-    currency: 'xaf',
-    interval: 'semester',
-    category: 'freelancer',
-    features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication']
-  },
-  {
-    id: 'freelancer_geolocation',
-    name: 'Freelancer GPS',
+    id: 'freelancer_professional_monthly',
+    name: 'Répétiteur Professionnel (Mensuel)',
     price: 12000,
     currency: 'xaf',
+    interval: 'month',
+    category: 'freelancer',
+    features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication', 'billing_system', 'geolocation_tracking', 'teaching_zones', 'performance_analytics', 'digital_marketing', 'continuing_education', 'certification', 'phone_support']
+  },
+  {
+    id: 'freelancer_professional_annual',
+    name: 'Répétiteur Professionnel (Annuel)',
+    price: 120000,
+    currency: 'xaf',
     interval: 'year',
     category: 'freelancer',
-    features: ['student_location_tracking', 'session_verification', 'safety_monitoring', 'location_reports']
+    features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication', 'billing_system', 'geolocation_tracking', 'teaching_zones', 'performance_analytics', 'digital_marketing', 'continuing_education', 'certification', 'phone_support', 'annual_savings']
   }
 ];
 
