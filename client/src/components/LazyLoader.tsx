@@ -1,12 +1,9 @@
 import { lazy, Suspense } from 'react';
 
-// Loading component optimisé pour 3500+ users
+// Fast loading component optimized for speed
 const OptimizedLoading = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-    <div className="text-center">
-      <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-      <p className="text-blue-600 font-medium">Chargement...</p>
-    </div>
+  <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
   </div>
 );
 

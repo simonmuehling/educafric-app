@@ -39,26 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData);
       
-      // Enhanced login notification with user details
-      const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
-      const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
-      console.log(`🎉 Login successful: ${userDisplayName} (${roleDisplay}) - ${email}`);
+      // Minimal logging for performance
+      if (import.meta.env.DEV) {
+        console.log(`Login successful: ${userData.firstName} ${userData.lastName} (${userData.role})`);
+      }
       
-      // Log user context for monitoring
-      console.log('User context:', {
-        id: userData.id,
-        name: userDisplayName,
-        role: userData.role,
-        schoolId: userData.schoolId,
-        email: email
-      });
-      
-      // Trigger celebration confetti
+      // Lightweight confetti for fast login
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#FFD700', '#FFA500', '#FF6347', '#32CD32', '#1E90FF']
+        particleCount: 50,
+        spread: 50,
+        origin: { y: 0.7 }
       });
       
       // Immediate navigation to dashboard (no delay)

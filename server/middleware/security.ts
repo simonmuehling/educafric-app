@@ -65,12 +65,10 @@ export function configureSecurityMiddleware(app: Express) {
   // No rate limiting applied - supporting 1000+ concurrent users
   console.log('[RATE_LIMITING] DISABLED - Supporting 1000+ concurrent users');
   
-  // Optional: Only log authentication attempts without blocking
+  // Minimal auth logging for performance
   app.use((req, res, next) => {
-    if (req.path.includes('/api/auth/')) {
-      console.log(`[AUTH_LOG] ${req.method} ${req.path} from ${req.ip}`);
-    }
-    next(); // Always pass through without blocking
+    // Remove auth logging to improve login speed
+    next();
   });
 
   // Request size limits for African mobile networks

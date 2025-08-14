@@ -31,23 +31,12 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     const url = queryKey.join("/") as string;
     
-    // Debug simplifié en mode développement seulement
-    if (import.meta.env.DEV && url.includes('/api/auth/')) {
-      console.log(`[QUERY_REQUEST] GET ${url}`);
-    }
-    
+    // Minimal logging to improve performance
     const res = await fetch(url, {
       credentials: "include",
     });
 
-    if (import.meta.env.DEV && (!res.ok || url.includes('/api/auth/'))) {
-      console.log(`[QUERY_RESPONSE] ${res.status} ${url}`);
-    }
-
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      if (import.meta.env.DEV) {
-        console.log(`[QUERY_401] Returning null for ${url}`);
-      }
       return null;
     }
 
@@ -62,8 +51,8 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnMount: true,
-      staleTime: 10 * 60 * 1000, // 10 minutes cache
-      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      staleTime: 5 * 60 * 1000, // 5 minutes cache - reduced for faster updates
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection - reduced for memory optimization
       retry: (failureCount, error: any) => {
         // Don't retry on authentication errors
         if (error.message?.includes('401')) return false;

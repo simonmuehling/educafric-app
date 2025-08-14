@@ -20,21 +20,18 @@ class MemoryOptimizer {
     this.optimizeAnimations();
     this.optimizeNetworkRequests();
     
-    // Nettoyage automatique très fréquent pour problème critique de mémoire
+    // Balanced cleanup for login performance optimization
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
-    }, 15 * 1000); // 15 secondes au lieu de 2 minutes
+    }, 30 * 1000); // 30 seconds - balanced for performance
 
-    // Monitoring des performances très fréquent
+    // Less aggressive monitoring to reduce CPU overhead during login
     this.performanceMonitor = setInterval(() => {
       this.checkMemoryUsage();
       this.triggerGarbageCollection();
-    }, 10 * 1000); // 10 secondes au lieu de 30
+    }, 60 * 1000); // 1 minute - reduced for login speed
 
-    // Afficher seulement en mode debug
-    if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
-      console.log('[MEMORY_OPTIMIZER] Optimiseur démarré - nettoyage automatique activé (mode agressif)');
-    }
+    // Silent mode for performance
   }
 
   // Arrêter l'optimisation

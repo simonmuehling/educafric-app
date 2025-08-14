@@ -456,22 +456,14 @@ function App() {
       setupConsoleFilter();
     }).catch(() => {});
 
-    // Importer et démarrer l'optimiseur mémoire
-    import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
-      memoryOptimizer.start();
-      memoryOptimizer.optimizeAnimations();
-      
-      if (import.meta.env.DEV) {
-        console.log('[PERFORMANCE] Memory optimizer started');
-        setTimeout(() => {
-          console.log(memoryOptimizer.generatePerformanceReport());
-        }, 5000);
-      }
-    }).catch(error => {
-      if (import.meta.env.DEV) {
-        console.warn('[PERFORMANCE] Memory optimizer not available:', error);
-      }
-    });
+    // Lightweight memory optimization for faster startup
+    if (!import.meta.env.VITE_DISABLE_OPTIMIZER) {
+      import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
+        memoryOptimizer.start();
+      }).catch(() => {
+        // Silent fail for performance
+      });
+    }
     
     return () => {
       // Arrêter l'optimiseur à la fermeture

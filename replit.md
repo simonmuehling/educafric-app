@@ -6,6 +6,15 @@ Educafric is a comprehensive African educational technology platform providing a
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+**Recent Performance Issue (August 14, 2025):** User reported slow login and module loading times. Fixed several critical issues:
+- ✓ Resolved React lazy loading error in App.tsx
+- ✓ Reduced performance monitoring overhead (monitoring thresholds increased)
+- ✓ Optimized memory cleanup intervals for login speed
+- ✓ Reduced frontend logging during authentication
+- ✓ Simplified loading components for faster rendering
+- → Still investigating: 285 TypeScript diagnostics in server/routes.ts causing backend slowness
+- → Still investigating: Critical memory usage (90MB+) on some frontend requests
+
 **CRITICAL USER PREFERENCES:**
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
