@@ -50,10 +50,15 @@ const PWAInstallPrompt: React.FC = () => {
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('[PWA] Before install prompt triggered');
+      console.log('[PWA_INSTALL] 🎯 Bannière d\'installation automatique détectée');
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
+      
+      // Délai pour une meilleure UX
+      setTimeout(() => {
+        setShowInstallPrompt(true);
+        console.log('[PWA_INSTALL] 📱 Affichage de la bannière d\'installation');
+      }, 2000);
     };
 
     const handleAppInstalled = () => {
@@ -81,21 +86,22 @@ const PWAInstallPrompt: React.FC = () => {
     if (!deferredPrompt) return;
 
     try {
+      console.log('[PWA_INSTALL] 🚀 Démarrage installation automatique EducAfric...');
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       
-      console.log(`[PWA] User choice: ${outcome}`);
+      console.log(`[PWA_INSTALL] Choix utilisateur: ${outcome}`);
       
       if (outcome === 'accepted') {
-        console.log('[PWA] User accepted the install prompt');
+        console.log('[PWA_INSTALL] ✅ Installation acceptée - EducAfric sera ajouté à l\'écran d\'accueil !');
       } else {
-        console.log('[PWA] User dismissed the install prompt');
+        console.log('[PWA_INSTALL] ❌ Installation refusée par l\'utilisateur');
       }
 
       setDeferredPrompt(null);
       setShowInstallPrompt(false);
     } catch (error) {
-      console.error('[PWA] Error during installation:', error);
+      console.error('[PWA_INSTALL] Erreur installation:', error);
     }
   };
 

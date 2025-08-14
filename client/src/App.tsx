@@ -12,6 +12,7 @@ import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvi
 import { useEffect } from "react";
 
 
+
 // Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -53,6 +54,7 @@ import BulkManagement from "@/pages/BulkManagement";
 import ProfileFeatures from "@/pages/ProfileFeatures";
 import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+// PWA Install Prompt déjà importé dans les composants PWA
 import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
