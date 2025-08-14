@@ -71,9 +71,16 @@ export default function EducationalConnections() {
   };
 
   // Récupérer les connexions
-  const { data: connectionsResponse, isLoading: connectionsLoading } = useQuery({
+  const { data: connectionsResponse, isLoading: connectionsLoading, error: connectionsError } = useQuery({
     queryKey: ['connections', activeTab],
-    queryFn: () => fetch(getConnectionsEndpoint()).then(res => res.json())
+    queryFn: async () => {
+      const response = await fetch(getConnectionsEndpoint());
+      if (!response.ok) {
+        throw new Error('Authentification requise');
+      }
+      return response.json();
+    },
+    retry: false
   });
 
   const connections = connectionsResponse?.data || [];
@@ -95,11 +102,24 @@ export default function EducationalConnections() {
 
   // Rechercher des utilisateurs
   const searchUsersMutation = useMutation({
-    mutationFn: (data: { searchValue: string; searchType: string }) => {
+    mutationFn: async (data: { searchValue: string; searchType: string }) => {
       const endpoint = activeTab === 'teacher-student' 
         ? '/api/teacher-student/search-students'
         : '/api/student-parent/search-parents';
-      return apiRequest(endpoint, { method: 'POST', body: data });
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la recherche');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       console.log('Utilisateurs trouvés:', data.users);
@@ -115,11 +135,24 @@ export default function EducationalConnections() {
 
   // Créer une nouvelle connexion
   const createConnectionMutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: async (data: any) => {
       const endpoint = activeTab === 'teacher-student' 
         ? '/api/teacher-student/connections'
         : '/api/student-parent/connections';
-      return apiRequest(endpoint, { method: 'POST', body: data });
+        
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Impossible de créer la connexion');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -128,6 +161,7 @@ export default function EducationalConnections() {
       });
       setNewConnectionDialogOpen(false);
       setConnectionFormData({});
+      setSearchValue('');
       queryClient.invalidateQueries({ queryKey: ['connections', activeTab] });
     },
     onError: (error: any) => {
@@ -141,11 +175,23 @@ export default function EducationalConnections() {
 
   // Approuver une connexion
   const approveConnectionMutation = useMutation({
-    mutationFn: (connectionId: number) => {
+    mutationFn: async (connectionId: number) => {
       const endpoint = activeTab === 'teacher-student' 
         ? `/api/teacher-student/connections/${connectionId}/approve`
         : `/api/student-parent/connections/${connectionId}/approve`;
-      return apiRequest(endpoint, { method: 'PUT' });
+        
+      const response = await fetch(endpoint, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Impossible d\'approuver la connexion');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -165,11 +211,24 @@ export default function EducationalConnections() {
 
   // Envoyer un message
   const sendMessageMutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: async (data: any) => {
       const endpoint = activeTab === 'teacher-student' 
         ? '/api/teacher-student/messages'
         : '/api/student-parent/messages';
-      return apiRequest(endpoint, { method: 'POST', body: data });
+        
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Impossible d\'envoyer le message');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -197,10 +256,50 @@ export default function EducationalConnections() {
       });
       return;
     }
+    
+    // Validation du format email
+    if (searchType === 'email' && !searchValue.includes('@')) {
+      toast({
+        title: 'Format email invalide',
+        description: 'Veuillez saisir une adresse email valide',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Validation du format téléphone
+    if (searchType === 'phone' && searchValue.length < 10) {
+      toast({
+        title: 'Format téléphone invalide',
+        description: 'Veuillez saisir un numéro de téléphone valide',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     searchUsersMutation.mutate({ searchValue, searchType });
   };
 
   const handleCreateConnection = () => {
+    // Validation des champs requis
+    if (activeTab === 'teacher-student' && !connectionFormData.subjectArea) {
+      toast({
+        title: 'Matière requise',
+        description: 'Veuillez indiquer la matière pour cette connexion éducative',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (activeTab === 'student-parent' && !connectionFormData.relationshipType) {
+      toast({
+        title: 'Relation requise',
+        description: 'Veuillez indiquer votre relation avec ce parent',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     const data = {
       ...connectionFormData,
       [`${activeTab === 'teacher-student' ? 'student' : 'parent'}${searchType === 'email' ? 'Email' : 'Phone'}`]: searchValue
@@ -284,8 +383,16 @@ export default function EducationalConnections() {
                     className="flex-1"
                     data-testid="input-search-user"
                   />
-                  <Button onClick={handleSearch} disabled={searchUsersMutation.isPending}>
-                    <Search className="h-4 w-4" />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={searchUsersMutation.isPending}
+                    data-testid="button-search-user"
+                  >
+                    {searchUsersMutation.isPending ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                    ) : (
+                      <Search className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
 
@@ -417,7 +524,22 @@ export default function EducationalConnections() {
           </TabsList>
           
           <TabsContent value={activeTab} className="mt-6">
-            {connectionsLoading ? (
+            {connectionsError ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <X className="h-12 w-12 text-red-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Authentification requise
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Vous devez être connecté pour accéder aux connexions éducatives
+                  </p>
+                  <Button onClick={() => window.location.href = '/login'} data-testid="button-login-redirect">
+                    Se connecter
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : connectionsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (
                   <Card key={i} className="animate-pulse">
