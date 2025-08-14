@@ -84,54 +84,6 @@ const FindParentsModule: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   const text = {
-    fr: {
-      title: 'Trouver mes Parents',
-      subtitle: 'Connectez-vous avec vos parents sur EDUCAFRIC',
-      tabs: {
-        connections: 'Mes Parents',
-        qrCode: 'Code QR',
-        search: 'Rechercher Parent'
-      },
-      noParents: 'Aucun parent connecté',
-      noParentsDesc: 'Demandez à vos parents de vous rejoindre sur EDUCAFRIC pour suivre votre scolarité',
-      generateQR: 'Générer Code QR',
-      shareQR: 'Partager ce code avec vos parents',
-      qrInstructions: 'Vos parents peuvent scanner ce code pour se connecter rapidement',
-      searchParent: 'Rechercher un parent',
-      searchMethod: 'Méthode de recherche',
-      searchByEmail: 'Par email',
-      searchByPhone: 'Par téléphone',
-      searchByName: 'Par nom',
-      parentEmail: 'Email du parent',
-      parentPhone: 'Téléphone du parent',
-      parentName: 'Nom du parent',
-      relationship: 'Type de relation',
-      message: 'Message (optionnel)',
-      sendRequest: 'Envoyer demande',
-      relationships: {
-        parent: 'Parent Principal',
-        guardian: 'Tuteur/Responsable',
-        emergency_contact: 'Contact d\'Urgence'
-      },
-      connectionStatus: {
-        verified: 'Vérifié',
-        pending: 'En attente',
-        rejected: 'Rejeté'
-      },
-      requestSent: 'Demande envoyée',
-      requestSentDesc: 'Votre demande de connexion a été envoyée au parent',
-      qrGenerated: 'Code QR généré',
-      qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
-      messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
-      emailPlaceholder: 'parent@email.com',
-      phonePlaceholder: '+237657004011',
-      error: 'Erreur',
-      fillRequired: 'Veuillez remplir l\'email ou le téléphone du parent',
-      validEmail: 'Veuillez entrer un email valide',
-      validPhone: 'Veuillez entrer un numéro de téléphone valide',
-      requestedOn: 'Demandé le',
-      verifiedOn: 'Vérifié le'
-    },
     en: {
       title: 'Find my Parents',
       subtitle: 'Connect with your parents on EDUCAFRIC',
@@ -185,6 +137,57 @@ const FindParentsModule: React.FC = () => {
       noResults: 'No parents found',
       selectParent: 'Select this parent',
       searchHint: 'Type at least 3 characters to search'
+    },
+    fr: {
+      title: 'Trouver mes Parents',
+      subtitle: 'Connectez-vous avec vos parents sur EDUCAFRIC',
+      tabs: {
+        connections: 'Mes Parents',
+        qrCode: 'Code QR',
+        search: 'Rechercher Parent'
+      },
+      noParents: 'Aucun parent connecté',
+      noParentsDesc: 'Demandez à vos parents de vous rejoindre sur EDUCAFRIC pour suivre votre scolarité',
+      generateQR: 'Générer Code QR',
+      shareQR: 'Partager ce code avec vos parents',
+      qrInstructions: 'Vos parents peuvent scanner ce code pour se connecter rapidement',
+      searchParent: 'Rechercher un parent',
+      searchMethod: 'Méthode de recherche',
+      searchByEmail: 'Par email',
+      searchByPhone: 'Par téléphone',
+      searchByName: 'Par nom',
+      parentEmail: 'Email du parent',
+      parentPhone: 'Téléphone du parent',
+      parentName: 'Nom du parent',
+      relationship: 'Type de relation',
+      message: 'Message (optionnel)',
+      sendRequest: 'Envoyer demande',
+      relationships: {
+        parent: 'Parent Principal',
+        guardian: 'Tuteur/Responsable',
+        emergency_contact: 'Contact d\'Urgence'
+      },
+      connectionStatus: {
+        verified: 'Vérifié',
+        pending: 'En attente',
+        rejected: 'Rejeté'
+      },
+      requestSent: 'Demande envoyée',
+      requestSentDesc: 'Votre demande de connexion a été envoyée au parent',
+      qrGenerated: 'Code QR généré',
+      qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
+      messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
+      emailPlaceholder: 'parent@email.com',
+      phonePlaceholder: '+237657004011',
+      error: 'Erreur',
+      fillRequired: 'Veuillez remplir l\'email ou le téléphone du parent',
+      validEmail: 'Veuillez entrer un email valide',
+      validPhone: 'Veuillez entrer un numéro de téléphone valide',
+      requestedOn: 'Demandé le',
+      verifiedOn: 'Vérifié le',
+      searchPlaceholder: 'Rechercher par nom, email ou téléphone...',
+      connecting: 'Connexion...',
+      searchResults: 'Résultats de recherche',
       noResults: 'Aucun parent trouvé',
       selectParent: 'Sélectionner ce parent',
       searchHint: 'Tapez au moins 3 caractères pour rechercher'
@@ -194,7 +197,7 @@ const FindParentsModule: React.FC = () => {
   const t = text[language];
 
   // Fetch parent connections
-  const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery({
+  const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery<ParentConnection[]>({
     queryKey: ['/api/student-parent/connections'],
     retry: false,
   });
