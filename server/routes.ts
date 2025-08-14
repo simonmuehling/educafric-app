@@ -61,6 +61,8 @@ import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
 import familyConnectionsRoutes from "./routes/familyConnections";
+import teacherStudentConnections from "./routes/teacherStudentConnections";
+import studentParentConnections from "./routes/studentParentConnections";
 import bulkImportRoutes from "./routes/bulkImport";
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
@@ -11831,6 +11833,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register family connections routes
   app.use('/api/family', familyConnectionsRoutes);
+  app.use('/api/teacher-student', teacherStudentConnections);
+  app.use('/api/student-parent', studentParentConnections);
   
   // Register subscription routes  
   app.use('/api/subscription', (await import('./routes/subscription')).default);

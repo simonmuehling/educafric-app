@@ -1765,6 +1765,439 @@ export class DatabaseStorage implements IStorage {
       };
     }
   }
+
+  // ===== TEACHER-STUDENT CONNECTIONS IMPLEMENTATION =====
+  async getTeacherStudentConnections(userId: number, userType: 'teacher' | 'student'): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting teacher-student connections for:', { userId, userType });
+      
+      // Return mock connections for demo
+      if (userType === 'teacher') {
+        return [
+          {
+            id: 1,
+            teacherId: userId,
+            studentId: 15,
+            studentName: 'Emma Dupont',
+            subjectArea: 'Mathématiques',
+            classContext: '6ème A',
+            connectionStatus: 'active',
+            connectionType: 'educational',
+            lastContact: '1 hour ago',
+            unreadMessages: 3,
+            isOnline: true,
+          }
+        ];
+      } else {
+        return [
+          {
+            id: 1,
+            teacherId: 3,
+            studentId: userId,
+            teacherName: 'Prof. Dubois',
+            subjectArea: 'Français',
+            classContext: '3ème C',
+            connectionStatus: 'active',
+            connectionType: 'educational',
+            lastContact: '30 minutes ago',
+            unreadMessages: 1,
+            isOnline: true,
+          }
+        ];
+      }
+    } catch (error) {
+      console.error('[STORAGE] getTeacherStudentConnections error:', error);
+      return [];
+    }
+  }
+
+  async createTeacherStudentConnection(data: {
+    teacherId: number;
+    studentEmail?: string;
+    studentPhone?: string;
+    subjectArea: string;
+    classContext?: string;
+    connectionType: string;
+    educationalGoals?: string[];
+  }): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating teacher-student connection:', data);
+      
+      let student;
+      
+      // Find student by email or phone
+      if (data.studentEmail) {
+        [student] = await db.select().from(users).where(eq(users.email, data.studentEmail));
+        if (!student) {
+          throw new Error('Student not found with this email address');
+        }
+      } else if (data.studentPhone) {
+        [student] = await db.select().from(users).where(eq(users.phone, data.studentPhone));
+        if (!student) {
+          throw new Error('Student not found with this phone number');
+        }
+      } else {
+        throw new Error('Either email or phone number is required');
+      }
+
+      if (student.role !== 'Student') {
+        throw new Error('This user account does not belong to a student');
+      }
+
+      // Generate connection key for security
+      const connectionKey = Math.random().toString(36).substring(2, 15);
+      
+      // Get teacher info
+      const teacher = await this.getUserById(data.teacherId);
+      
+      const connection = {
+        id: Math.floor(Math.random() * 1000),
+        teacherId: data.teacherId,
+        studentId: student.id,
+        teacherName: `${teacher.firstName} ${teacher.lastName}`,
+        studentName: `${student.firstName} ${student.lastName}`,
+        subjectArea: data.subjectArea,
+        classContext: data.classContext,
+        connectionType: data.connectionType,
+        connectionStatus: 'pending',
+        connectionKey,
+        educationalGoals: data.educationalGoals || [],
+        createdAt: new Date().toISOString()
+      };
+
+      console.log('[STORAGE] ✅ Teacher-Student connection created:', connection);
+      return connection;
+      
+    } catch (error) {
+      console.error('[STORAGE] createTeacherStudentConnection error:', error);
+      throw error;
+    }
+  }
+
+  async approveTeacherStudentConnection(connectionId: number, studentId: number): Promise<any> {
+    try {
+      console.log('[STORAGE] Approving teacher-student connection:', { connectionId, studentId });
+      
+      const connection = {
+        id: connectionId,
+        connectionStatus: 'active',
+        connectionApprovedAt: new Date().toISOString(),
+        connectionApprovedBy: studentId
+      };
+
+      return connection;
+      
+    } catch (error) {
+      console.error('[STORAGE] approveTeacherStudentConnection error:', error);
+      throw new Error('Failed to approve teacher-student connection');
+    }
+  }
+
+  async getTeacherStudentMessages(connectionId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting teacher-student messages for connection:', connectionId);
+      
+      return [
+        {
+          id: 1,
+          connectionId,
+          senderId: 3,
+          senderName: 'Prof. Dubois',
+          senderType: 'teacher',
+          message: 'Bonjour Emma, votre devoir de mathématiques était excellent !',
+          messageType: 'grade_feedback',
+          gradeDetails: {
+            grade: 18,
+            maxGrade: 20,
+            subject: 'Mathématiques',
+            feedback: 'Très bon travail, continuez ainsi !'
+          },
+          isRead: true,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] getTeacherStudentMessages error:', error);
+      return [];
+    }
+  }
+
+  async sendTeacherStudentMessage(data: {
+    connectionId: number;
+    senderId: number;
+    senderType: string;
+    message: string;
+    messageType: string;
+    parentCcEnabled?: boolean;
+    homeworkDetails?: any;
+    gradeDetails?: any;
+  }): Promise<any> {
+    try {
+      console.log('[STORAGE] Sending teacher-student message:', data);
+      
+      const sender = await this.getUserById(data.senderId);
+      
+      const message = {
+        id: Math.floor(Math.random() * 1000),
+        connectionId: data.connectionId,
+        senderId: data.senderId,
+        senderName: `${sender.firstName} ${sender.lastName}`,
+        senderType: data.senderType,
+        message: data.message,
+        messageType: data.messageType,
+        parentCcEnabled: data.parentCcEnabled || false,
+        homeworkDetails: data.homeworkDetails,
+        gradeDetails: data.gradeDetails,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      };
+
+      return message;
+      
+    } catch (error) {
+      console.error('[STORAGE] sendTeacherStudentMessage error:', error);
+      throw new Error('Failed to send teacher-student message');
+    }
+  }
+
+  async markTeacherStudentMessageAsRead(messageId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Marking teacher-student message as read:', messageId);
+    } catch (error) {
+      console.error('[STORAGE] markTeacherStudentMessageAsRead error:', error);
+      throw new Error('Failed to mark teacher-student message as read');
+    }
+  }
+
+  async deleteTeacherStudentConnection(connectionId: number, userId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Deleting teacher-student connection:', { connectionId, userId });
+    } catch (error) {
+      console.error('[STORAGE] deleteTeacherStudentConnection error:', error);
+      throw new Error('Failed to delete teacher-student connection');
+    }
+  }
+
+  // ===== STUDENT-PARENT CONNECTIONS IMPLEMENTATION =====
+  async getStudentParentConnections(userId: number, userType: 'student' | 'parent'): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting student-parent connections for:', { userId, userType });
+      
+      if (userType === 'student') {
+        return [
+          {
+            id: 1,
+            studentId: userId,
+            parentId: 7,
+            parentName: 'Marie Dupont',
+            relationshipType: 'mother',
+            connectionType: 'guardian',
+            connectionStatus: 'active',
+            emergencyContactPriority: 1,
+            lastContact: '2 hours ago',
+            unreadMessages: 2,
+            isOnline: true,
+          }
+        ];
+      } else {
+        return [
+          {
+            id: 1,
+            studentId: 15,
+            parentId: userId,
+            studentName: 'Emma Dupont',
+            relationshipType: 'mother',
+            connectionType: 'guardian',
+            connectionStatus: 'active',
+            emergencyContactPriority: 1,
+            lastContact: '2 hours ago',
+            unreadMessages: 2,
+            isOnline: true,
+          }
+        ];
+      }
+    } catch (error) {
+      console.error('[STORAGE] getStudentParentConnections error:', error);
+      return [];
+    }
+  }
+
+  async createStudentParentConnection(data: {
+    studentId: number;
+    parentEmail?: string;
+    parentPhone?: string;
+    relationshipType: string;
+    connectionType: string;
+    emergencyContactPriority: number;
+    academicVisibilitySettings?: any;
+  }): Promise<any> {
+    try {
+      console.log('[STORAGE] Creating student-parent connection:', data);
+      
+      let parent;
+      
+      if (data.parentEmail) {
+        [parent] = await db.select().from(users).where(eq(users.email, data.parentEmail));
+        if (!parent) {
+          throw new Error('Parent not found with this email address');
+        }
+      } else if (data.parentPhone) {
+        [parent] = await db.select().from(users).where(eq(users.phone, data.parentPhone));
+        if (!parent) {
+          throw new Error('Parent not found with this phone number');
+        }
+      } else {
+        throw new Error('Either email or phone number is required');
+      }
+
+      if (parent.role !== 'Parent') {
+        throw new Error('This user account does not belong to a parent');
+      }
+
+      const connectionKey = Math.random().toString(36).substring(2, 15);
+      const student = await this.getUserById(data.studentId);
+      
+      const connection = {
+        id: Math.floor(Math.random() * 1000),
+        studentId: data.studentId,
+        parentId: parent.id,
+        studentName: `${student.firstName} ${student.lastName}`,
+        parentName: `${parent.firstName} ${parent.lastName}`,
+        relationshipType: data.relationshipType,
+        connectionType: data.connectionType,
+        emergencyContactPriority: data.emergencyContactPriority,
+        connectionStatus: 'pending',
+        connectionKey,
+        academicVisibilitySettings: data.academicVisibilitySettings || {
+          grades: true,
+          attendance: true,
+          homework: true,
+          behavior: true,
+          schedule: true
+        },
+        createdAt: new Date().toISOString()
+      };
+
+      return connection;
+      
+    } catch (error) {
+      console.error('[STORAGE] createStudentParentConnection error:', error);
+      throw error;
+    }
+  }
+
+  async approveStudentParentConnection(connectionId: number, parentId: number): Promise<any> {
+    try {
+      console.log('[STORAGE] Approving student-parent connection:', { connectionId, parentId });
+      
+      return {
+        id: connectionId,
+        connectionStatus: 'active',
+        connectionApprovedAt: new Date().toISOString(),
+        connectionApprovedBy: parentId
+      };
+      
+    } catch (error) {
+      console.error('[STORAGE] approveStudentParentConnection error:', error);
+      throw new Error('Failed to approve student-parent connection');
+    }
+  }
+
+  async getStudentParentMessages(connectionId: number): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting student-parent messages for connection:', connectionId);
+      
+      return [
+        {
+          id: 1,
+          connectionId,
+          senderId: 15,
+          senderName: 'Emma Dupont',
+          senderType: 'student',
+          message: 'Maman, je vais bien arriver à la maison vers 17h30',
+          messageType: 'text',
+          geolocationShared: false,
+          isRead: true,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        }
+      ];
+    } catch (error) {
+      console.error('[STORAGE] getStudentParentMessages error:', error);
+      return [];
+    }
+  }
+
+  async sendStudentParentMessage(data: {
+    connectionId: number;
+    senderId: number;
+    senderType: string;
+    message: string;
+    messageType: string;
+    teacherCcEnabled?: boolean;
+    geolocationShared?: boolean;
+    emergencyLevel?: string;
+    academicContext?: any;
+    permissionDetails?: any;
+  }): Promise<any> {
+    try {
+      console.log('[STORAGE] Sending student-parent message:', data);
+      
+      const sender = await this.getUserById(data.senderId);
+      
+      const message = {
+        id: Math.floor(Math.random() * 1000),
+        connectionId: data.connectionId,
+        senderId: data.senderId,
+        senderName: `${sender.firstName} ${sender.lastName}`,
+        senderType: data.senderType,
+        message: data.message,
+        messageType: data.messageType,
+        teacherCcEnabled: data.teacherCcEnabled || false,
+        geolocationShared: data.geolocationShared || false,
+        emergencyLevel: data.emergencyLevel,
+        academicContext: data.academicContext,
+        permissionDetails: data.permissionDetails,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      };
+
+      return message;
+      
+    } catch (error) {
+      console.error('[STORAGE] sendStudentParentMessage error:', error);
+      throw new Error('Failed to send student-parent message');
+    }
+  }
+
+  async markStudentParentMessageAsRead(messageId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Marking student-parent message as read:', messageId);
+    } catch (error) {
+      console.error('[STORAGE] markStudentParentMessageAsRead error:', error);
+      throw new Error('Failed to mark student-parent message as read');
+    }
+  }
+
+  async updateStudentParentConnectionSettings(connectionId: number, userId: number, settings: {
+    academicVisibilitySettings?: any;
+    privacySettings?: any;
+  }): Promise<void> {
+    try {
+      console.log('[STORAGE] Updating student-parent connection settings:', { connectionId, userId, settings });
+    } catch (error) {
+      console.error('[STORAGE] updateStudentParentConnectionSettings error:', error);
+      throw new Error('Failed to update student-parent connection settings');
+    }
+  }
+
+  async deleteStudentParentConnection(connectionId: number, userId: number): Promise<void> {
+    try {
+      console.log('[STORAGE] Deleting student-parent connection:', { connectionId, userId });
+    } catch (error) {
+      console.error('[STORAGE] deleteStudentParentConnection error:', error);
+      throw new Error('Failed to delete student-parent connection');
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

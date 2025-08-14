@@ -55,6 +55,7 @@ import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
 import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
+import EducationalConnections from "@/pages/EducationalConnections";
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -167,6 +168,7 @@ function Router() {
       <Route path="/updated-sandbox" component={UpdatedSandboxDashboard} />
       <Route path="/currency-demo" component={CurrencyDemo} />
       <Route path="/pwa-analytics" component={PWAAnalyticsDemo} />
+      <Route path="/educational-connections" component={EducationalConnections} />
       
       {/* Protected Routes */}
       

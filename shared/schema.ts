@@ -108,6 +108,124 @@ export const familyMessages = pgTable("family_messages", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Teacher-Student connections for direct educational communication
+export const teacherStudentConnections = pgTable("teacher_student_connections", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  connectionStatus: text("connection_status").notNull().default("pending"), // 'active', 'pending', 'inactive', 'blocked'
+  connectionType: text("connection_type").notNull().default("educational"), // 'educational', 'tutoring', 'mentoring'
+  connectionKey: text("connection_key").notNull(), // Encrypted key for secure communication
+  teacherName: text("teacher_name").notNull(),
+  studentName: text("student_name").notNull(),
+  subjectArea: text("subject_area"), // Math, Science, French, etc.
+  classContext: text("class_context"), // Class name or context
+  lastContactAt: timestamp("last_contact_at"),
+  isTeacherOnline: boolean("is_teacher_online").default(false),
+  isStudentOnline: boolean("is_student_online").default(false),
+  unreadMessagesCount: integer("unread_messages_count").default(0),
+  connectionApprovedAt: timestamp("connection_approved_at"),
+  connectionApprovedBy: integer("connection_approved_by"), // Student ID who approved
+  privacySettings: jsonb("privacy_settings"), // Chat settings, notifications etc
+  educationalGoals: jsonb("educational_goals"), // Learning objectives, progress tracking
+  parentNotificationEnabled: boolean("parent_notification_enabled").default(true),
+  schoolApprovalRequired: boolean("school_approval_required").default(true),
+  schoolId: integer("school_id"), // Associated school
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Teacher-Student messages for educational communication
+export const teacherStudentMessages = pgTable("teacher_student_messages", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  senderName: text("sender_name").notNull(),
+  senderType: text("sender_type").notNull(), // 'teacher', 'student'
+  recipientId: integer("recipient_id").notNull(),
+  message: text("message").notNull(), // Encrypted message content
+  messageType: text("message_type").notNull().default("text"), // 'text', 'image', 'audio', 'location', 'file', 'homework', 'grade_feedback'
+  mediaUrl: text("media_url"), // For images, audio, files
+  homeworkDetails: jsonb("homework_details"), // For homework assignments
+  gradeDetails: jsonb("grade_details"), // For grade feedback
+  isEncrypted: boolean("is_encrypted").default(true),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  isDelivered: boolean("is_delivered").default(false),
+  deliveredAt: timestamp("delivered_at"),
+  priority: text("priority").default("normal"), // 'low', 'normal', 'high', 'urgent'
+  metadata: jsonb("metadata"), // Subject context, assignment details, etc
+  replyToMessageId: integer("reply_to_message_id"), // For message replies
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: integer("deleted_by"),
+  parentCcEnabled: boolean("parent_cc_enabled").default(false), // Copy parent on message
+  schoolVisible: boolean("school_visible").default(true), // Visible to school admins
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Student-Parent connections (enhanced beyond basic family connections)
+export const studentParentConnections = pgTable("student_parent_connections", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull(),
+  parentId: integer("parent_id").notNull(),
+  connectionStatus: text("connection_status").notNull().default("pending"), // 'active', 'pending', 'inactive', 'blocked'
+  connectionType: text("connection_type").notNull().default("guardian"), // 'guardian', 'tutor', 'relative', 'emergency_contact'
+  connectionKey: text("connection_key").notNull(), // Encrypted key for secure communication
+  studentName: text("student_name").notNull(),
+  parentName: text("parent_name").notNull(),
+  relationshipType: text("relationship_type").notNull(), // 'mother', 'father', 'guardian', 'sibling', 'grandparent', 'uncle', 'aunt', 'tutor'
+  lastContactAt: timestamp("last_contact_at"),
+  isStudentOnline: boolean("is_student_online").default(false),
+  isParentOnline: boolean("is_parent_online").default(false),
+  unreadMessagesCount: integer("unread_messages_count").default(0),
+  connectionApprovedAt: timestamp("connection_approved_at"),
+  connectionApprovedBy: integer("connection_approved_by"), // Student ID who approved
+  privacySettings: jsonb("privacy_settings"), // Chat settings, notifications etc
+  academicVisibilitySettings: jsonb("academic_visibility_settings"), // What academic info parent can see
+  emergencyContactPriority: integer("emergency_contact_priority").default(1), // 1 = primary, 2 = secondary, etc.
+  schoolId: integer("school_id"), // Associated school
+  verificationRequired: boolean("verification_required").default(true),
+  verificationMethod: text("verification_method"), // 'email', 'phone', 'document', 'in_person'
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by"), // School admin who verified
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Student-Parent messages for enhanced family communication
+export const studentParentMessages = pgTable("student_parent_messages", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").notNull(),
+  senderId: integer("sender_id").notNull(),
+  senderName: text("sender_name").notNull(),
+  senderType: text("sender_type").notNull(), // 'student', 'parent'
+  recipientId: integer("recipient_id").notNull(),
+  message: text("message").notNull(), // Encrypted message content
+  messageType: text("message_type").notNull().default("text"), // 'text', 'image', 'audio', 'location', 'file', 'academic_update', 'permission_request', 'emergency'
+  mediaUrl: text("media_url"), // For images, audio, files
+  academicContext: jsonb("academic_context"), // Grade info, homework updates, etc.
+  permissionDetails: jsonb("permission_details"), // For permission requests
+  emergencyLevel: text("emergency_level"), // 'low', 'medium', 'high', 'critical'
+  isEncrypted: boolean("is_encrypted").default(true),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  isDelivered: boolean("is_delivered").default(false),
+  deliveredAt: timestamp("delivered_at"),
+  priority: text("priority").default("normal"), // 'low', 'normal', 'high', 'urgent'
+  metadata: jsonb("metadata"), // Location data, academic context, etc
+  replyToMessageId: integer("reply_to_message_id"), // For message replies
+  isDeleted: boolean("is_deleted").default(false),
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: integer("deleted_by"),
+  teacherCcEnabled: boolean("teacher_cc_enabled").default(false), // Copy teacher on message
+  schoolVisible: boolean("school_visible").default(true), // Visible to school admins
+  geolocationShared: boolean("geolocation_shared").default(false), // Location sharing enabled
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const notificationSettings = pgTable("notification_settings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -819,6 +937,16 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   childConnections: many(familyConnections, { relationName: "child" }),
   sentFamilyMessages: many(familyMessages, { relationName: "sender" }),
   receivedFamilyMessages: many(familyMessages, { relationName: "recipient" }),
+  // Teacher-Student connections relations
+  teacherConnections: many(teacherStudentConnections, { relationName: "teacher" }),
+  studentTeacherConnections: many(teacherStudentConnections, { relationName: "student" }),
+  sentTeacherStudentMessages: many(teacherStudentMessages, { relationName: "sender" }),
+  receivedTeacherStudentMessages: many(teacherStudentMessages, { relationName: "recipient" }),
+  // Student-Parent connections relations
+  studentParentConnections: many(studentParentConnections, { relationName: "student" }),
+  parentStudentConnections: many(studentParentConnections, { relationName: "parent" }),
+  sentStudentParentMessages: many(studentParentMessages, { relationName: "sender" }),
+  receivedStudentParentMessages: many(studentParentMessages, { relationName: "recipient" }),
 }));
 
 export const schoolsRelations = relations(schools, ({ many }) => ({
