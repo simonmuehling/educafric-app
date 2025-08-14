@@ -9,7 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 // import { handleRedirect } from "@/lib/firebase"; // Function not available
-import { useEffect } from "react";
+import { useEffect, lazy } from "react";
 
 
 
@@ -67,6 +67,7 @@ import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
+import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
 // WebInspector disabled to prevent fetch override interference with PWA analytics
 // import WebInspector from "@/components/developer/WebInspector";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
@@ -372,6 +373,7 @@ function Router() {
       <Route path="/debug-inspector" component={DebugInspector} />
       <Route path="/sandbox" component={LazySandboxPage} />
       <Route path="/enhanced-sandbox" component={LazyEnhancedSandbox} />
+      <Route path="/sandbox/pwa-connection" component={lazy(() => import('./components/sandbox/PWAConnectionTester'))} />
       <Route path="/sandbox-direct" component={() => (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full space-y-8">
@@ -484,6 +486,7 @@ function App() {
                   <FirebaseRedirectHandler />
                   <AppLayout>
                     <SmallPWAInstallNotification />
+                    <ConnectionStatusIndicator />
                     <Router />
                   </AppLayout>
                   <Toaster />
