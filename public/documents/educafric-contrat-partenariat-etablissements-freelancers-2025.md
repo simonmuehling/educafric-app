@@ -392,7 +392,7 @@ Solution centres de formation
 
 #### 🔐 Propriété Exclusive
 - **Code source**: Algorithmes et technologies propriétaires
-- **Marques déposées**: "Educafric", "EduConnect Africa"
+- **Marques déposées**: "EducAfric", "EducAfric Africa"
 - **Designs interfaces**: Brevets interface utilisateur
 - **Innovations IA**: Algorithmes prédictifs éducatifs
 - **Base données**: Structure et organisation

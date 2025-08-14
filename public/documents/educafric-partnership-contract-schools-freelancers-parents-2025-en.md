@@ -411,7 +411,7 @@ Training center solution
 
 #### 🔐 Exclusive Ownership
 - **Source code**: Proprietary algorithms and technologies
-- **Registered trademarks**: "Educafric", "EduConnect Africa"
+- **Registered trademarks**: "EducAfric", "EducAfric Africa"
 - **Interface designs**: User interface patents
 - **AI innovations**: Educational predictive algorithms
 - **Database**: Structure and organization
