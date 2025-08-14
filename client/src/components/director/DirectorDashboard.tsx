@@ -31,7 +31,7 @@ import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers
 import CommunicationsCenter from './modules/CommunicationsCenter';
 import MobileSchoolConfigurationGuide from './modules/MobileSchoolConfigurationGuide';
 import NotificationCenter from '@/components/shared/NotificationCenter';
-import BusinessPartnershipMap from './modules/BusinessPartnershipMap';
+import BusinessPartnershipMapSimple from './modules/BusinessPartnershipMapSimple';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -335,7 +335,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Communication directe avec les entreprises"
           ]}
         >
-          <BusinessPartnershipMap />
+          <BusinessPartnershipMapSimple />
         </PremiumFeatureGate>
       )
     },

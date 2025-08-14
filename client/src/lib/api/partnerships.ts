@@ -1,6 +1,6 @@
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from '@/lib/queryClient';
 
-// Types for API responses
+// Types
 export interface BusinessPartner {
   id: number;
   name: string;
@@ -11,8 +11,8 @@ export interface BusinessPartner {
   city?: string;
   region?: string;
   country?: string;
-  latitude?: string;
-  longitude?: string;
+  latitude?: number;
+  longitude?: number;
   contactPerson?: string;
   contactPosition?: string;
   phone?: string;
@@ -21,29 +21,13 @@ export interface BusinessPartner {
   partnershipType: string;
   partnershipSince?: string;
   status: string;
-  rating?: string;
+  rating?: number;
   studentsPlaced?: number;
   opportunitiesOffered?: number;
-  programs?: any[];
+  programs?: any;
   metadata?: any;
   createdAt?: string;
   updatedAt?: string;
-}
-
-export interface SchoolPartnershipAgreement {
-  id: number;
-  schoolId: number;
-  partnerId: number;
-  agreementType: string;
-  startDate?: string;
-  endDate?: string;
-  status: string;
-  terms?: string;
-  contactFrequency?: string;
-  lastContactDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  partner?: BusinessPartner;
 }
 
 export interface Internship {
@@ -60,185 +44,88 @@ export interface Internship {
   supervisorName?: string;
   supervisorEmail?: string;
   supervisorPhone?: string;
-  studentRating?: string;
-  companyRating?: string;
+  studentRating?: number;
+  companyRating?: number;
   studentFeedback?: string;
   companyFeedback?: string;
   completionStatus?: string;
   jobOfferReceived?: boolean;
-  skillsAcquired?: string[];
+  skillsAcquired?: any;
   metadata?: any;
   createdAt?: string;
   updatedAt?: string;
-  student?: any;
-  partner?: BusinessPartner;
 }
 
-export interface PartnershipCommunication {
-  id: number;
+export interface PartnershipStatistics {
+  totalPartners: number;
+  activeInternships: number;
+  totalStudentsPlaced: number;
+  averageRating: number;
+  partnersByType: Record<string, number>;
+  partnersBySector: Record<string, number>;
+  monthlyPlacements: Record<string, number>;
+}
+
+export interface CommunicationData {
   agreementId: number;
   senderId: number;
   recipientEmail: string;
   subject: string;
   message: string;
-  messageType: string;
-  status: string;
-  createdAt?: string;
-  sender?: any;
+  messageType?: string;
 }
 
-export interface PartnershipStatistics {
-  totalPartners: number;
-  totalInternships: number;
-  activeInternships: number;
-  completedInternships: number;
-  successRate: string;
-}
-
-// ===== BUSINESS PARTNERS API =====
-
+// API Functions
 export const getBusinessPartners = async (schoolId?: number): Promise<BusinessPartner[]> => {
-  const params = new URLSearchParams();
-  if (schoolId) params.append('schoolId', schoolId.toString());
-  
-  const response = await apiRequest(`/api/partnerships/partners?${params}`);
-  return response;
+  const url = schoolId ? `/api/partnerships/partners?schoolId=${schoolId}` : '/api/partnerships/partners';
+  return apiRequest(url);
 };
 
-export const getBusinessPartner = async (partnerId: number): Promise<BusinessPartner> => {
-  const response = await apiRequest(`/api/partnerships/partners/${partnerId}`);
-  return response;
+export const getInternships = async (schoolId?: number): Promise<Internship[]> => {
+  const url = schoolId ? `/api/partnerships/internships?schoolId=${schoolId}` : '/api/partnerships/internships';
+  return apiRequest(url);
 };
 
-export const createBusinessPartner = async (partner: Partial<BusinessPartner>): Promise<BusinessPartner> => {
-  const response = await apiRequest('/api/partnerships/partners', {
+export const getPartnershipStatistics = async (schoolId?: number): Promise<PartnershipStatistics> => {
+  const url = schoolId ? `/api/partnerships/statistics?schoolId=${schoolId}` : '/api/partnerships/statistics';
+  return apiRequest(url);
+};
+
+export const sendPartnershipCommunication = async (data: CommunicationData): Promise<any> => {
+  return apiRequest('/api/partnerships/communications', {
     method: 'POST',
-    body: JSON.stringify(partner),
-  });
-  return response;
-};
-
-export const updateBusinessPartner = async (partnerId: number, updates: Partial<BusinessPartner>): Promise<BusinessPartner> => {
-  const response = await apiRequest(`/api/partnerships/partners/${partnerId}`, {
-    method: 'PUT',
-    body: JSON.stringify(updates),
-  });
-  return response;
-};
-
-export const deleteBusinessPartner = async (partnerId: number): Promise<void> => {
-  await apiRequest(`/api/partnerships/partners/${partnerId}`, {
-    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
   });
 };
 
-// ===== PARTNERSHIP AGREEMENTS API =====
-
-export const getSchoolPartnershipAgreements = async (schoolId: number): Promise<SchoolPartnershipAgreement[]> => {
-  const response = await apiRequest(`/api/partnerships/agreements?schoolId=${schoolId}`);
-  return response;
-};
-
-export const createSchoolPartnershipAgreement = async (agreement: Partial<SchoolPartnershipAgreement>): Promise<SchoolPartnershipAgreement> => {
-  const response = await apiRequest('/api/partnerships/agreements', {
-    method: 'POST',
-    body: JSON.stringify(agreement),
-  });
-  return response;
-};
-
-export const updateSchoolPartnershipAgreement = async (agreementId: number, updates: Partial<SchoolPartnershipAgreement>): Promise<SchoolPartnershipAgreement> => {
-  const response = await apiRequest(`/api/partnerships/agreements/${agreementId}`, {
-    method: 'PUT',
-    body: JSON.stringify(updates),
-  });
-  return response;
-};
-
-// ===== INTERNSHIPS API =====
-
-export const getInternships = async (schoolId: number, filters?: { status?: string }): Promise<Internship[]> => {
-  const params = new URLSearchParams({ schoolId: schoolId.toString() });
-  if (filters?.status) params.append('status', filters.status);
-  
-  const response = await apiRequest(`/api/partnerships/internships?${params}`);
-  return response;
-};
-
-export const getInternship = async (internshipId: number): Promise<Internship> => {
-  const response = await apiRequest(`/api/partnerships/internships/${internshipId}`);
-  return response;
-};
-
-export const createInternship = async (internship: Partial<Internship>): Promise<Internship> => {
-  const response = await apiRequest('/api/partnerships/internships', {
-    method: 'POST',
-    body: JSON.stringify(internship),
-  });
-  return response;
-};
-
-export const updateInternship = async (internshipId: number, updates: Partial<Internship>): Promise<Internship> => {
-  const response = await apiRequest(`/api/partnerships/internships/${internshipId}`, {
-    method: 'PUT',
-    body: JSON.stringify(updates),
-  });
-  return response;
-};
-
-export const getStudentInternships = async (studentId: number): Promise<Internship[]> => {
-  const response = await apiRequest(`/api/partnerships/students/${studentId}/internships`);
-  return response;
-};
-
-// ===== COMMUNICATIONS API =====
-
-export const sendPartnershipCommunication = async (communication: Partial<PartnershipCommunication>): Promise<PartnershipCommunication> => {
-  const response = await apiRequest('/api/partnerships/communications', {
-    method: 'POST',
-    body: JSON.stringify(communication),
-  });
-  return response;
-};
-
-export const getPartnershipCommunications = async (agreementId: number): Promise<PartnershipCommunication[]> => {
-  const response = await apiRequest(`/api/partnerships/communications?agreementId=${agreementId}`);
-  return response;
-};
-
-// ===== STATISTICS API =====
-
-export const getPartnershipStatistics = async (schoolId: number): Promise<PartnershipStatistics> => {
-  const response = await apiRequest(`/api/partnerships/statistics?schoolId=${schoolId}`);
-  return response;
-};
-
-// ===== UTILITY FUNCTIONS =====
-
+// Helper Functions
 export const getPartnershipTypeColor = (type: string): string => {
   const colors: Record<string, string> = {
-    'internship': 'bg-blue-100 text-blue-800 border-blue-200',
-    'training': 'bg-green-100 text-green-800 border-green-200',
-    'recruitment': 'bg-purple-100 text-purple-800 border-purple-200',
-    'mentoring': 'bg-orange-100 text-orange-800 border-orange-200',
-    'sponsorship': 'bg-pink-100 text-pink-800 border-pink-200',
+    'internship': 'bg-blue-500',
+    'training': 'bg-green-500',
+    'recruitment': 'bg-purple-500',
+    'mentoring': 'bg-orange-500',
+    'sponsorship': 'bg-pink-500',
   };
-  return colors[type] || 'bg-gray-100 text-gray-800 border-gray-200';
+  return colors[type] || 'bg-gray-500';
 };
 
 export const getInternshipStatusColor = (status: string): string => {
   const colors: Record<string, string> = {
-    'planned': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'active': 'bg-green-100 text-green-800 border-green-200',
-    'completed': 'bg-blue-100 text-blue-800 border-blue-200',
-    'cancelled': 'bg-red-100 text-red-800 border-red-200',
+    'planned': 'bg-yellow-500',
+    'active': 'bg-green-500',
+    'completed': 'bg-blue-500',
+    'cancelled': 'bg-red-500',
   };
-  return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+  return colors[status] || 'bg-gray-500';
 };
 
 export const formatPartnershipType = (type: string, language: 'fr' | 'en' = 'fr'): string => {
   const translations: Record<string, Record<string, string>> = {
-    'internship': { fr: 'Stages', en: 'Internships' },
+    'internship': { fr: 'Stage', en: 'Internship' },
     'training': { fr: 'Formation', en: 'Training' },
     'recruitment': { fr: 'Recrutement', en: 'Recruitment' },
     'mentoring': { fr: 'Mentorat', en: 'Mentoring' },
@@ -249,8 +136,8 @@ export const formatPartnershipType = (type: string, language: 'fr' | 'en' = 'fr'
 
 export const formatInternshipStatus = (status: string, language: 'fr' | 'en' = 'fr'): string => {
   const translations: Record<string, Record<string, string>> = {
-    'planned': { fr: 'Prévu', en: 'Planned' },
-    'active': { fr: 'Actif', en: 'Active' },
+    'planned': { fr: 'Planifié', en: 'Planned' },
+    'active': { fr: 'En cours', en: 'Active' },
     'completed': { fr: 'Terminé', en: 'Completed' },
     'cancelled': { fr: 'Annulé', en: 'Cancelled' },
   };
