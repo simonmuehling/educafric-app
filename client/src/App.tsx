@@ -49,6 +49,7 @@ import CurrencyDemo from "@/pages/CurrencyDemo";
 import Schools from "@/pages/Schools";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import BulkManagement from "@/pages/BulkManagement";
 import ProfileFeatures from "@/pages/ProfileFeatures";
 import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
@@ -283,6 +284,12 @@ function Router() {
       <Route path="/director">
         <ProtectedRoute>
           <LazyDirectorPage />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/bulk-management">
+        <ProtectedRoute>
+          <BulkManagement />
         </ProtectedRoute>
       </Route>
       

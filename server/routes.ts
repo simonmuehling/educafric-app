@@ -61,6 +61,7 @@ import setupNotificationRoutes from "./routes/notificationRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
 import familyConnectionsRoutes from "./routes/familyConnections";
+import bulkImportRoutes from "./routes/bulkImport";
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
 
@@ -11976,6 +11977,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register configuration routes
   app.use('/api/school', configurationRoutes);
   console.log('[CONFIG_GUIDE] Configuration guide routes registered successfully');
+  
+  // Register bulk import routes
+  app.use('/api/bulk', bulkImportRoutes);
+  console.log('[BULK_IMPORT] Bulk import routes registered successfully');
   
   // Clean Student Routes - Replace all old student routes with clean architecture
   // Student routes handled inline above
