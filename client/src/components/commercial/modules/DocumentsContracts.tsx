@@ -132,16 +132,16 @@ const DocumentsContracts = () => {
     // Proposal Request Documents - NEW
     {
       id: 50,
-      name: 'Demande de Proposition - Parent/École',
+      name: 'Proposal Request - Parent/School Partnership',
       type: 'proposal',
       category: 'templates',
-      school: 'Communication Clients',
+      school: 'Client Communication',
       date: '2025-08-14',
       status: 'finalized',
       size: '5.2 KB',
       format: 'MD',
       url: '/api/documents/22/view',
-      description: 'Document de demande de proposition officiel pour écoles et parents : services Educafric, géolocalisation, notifications SMS, tarification 2025'
+      description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 pricing'
     },
     
     // Partnership Contracts - NEW

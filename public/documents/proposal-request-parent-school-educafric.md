@@ -1,4 +1,4 @@
-# DEMANDE DE PROPOSITION - PLATEFORME D'APPRENTISSAGE NUMÉRIQUE EDUCAFRIC
+# PROPOSAL REQUEST - EDUCAFRIC DIGITAL LEARNING PLATFORM
 
 **Simon Abanda**  
 Educafric.com by Afro Metaverse  
@@ -8,80 +8,80 @@ educafric.com
 
 ---
 
-## OBJET : DEMANDE DE PROPOSITION – MISE EN ŒUVRE DE LA PLATEFORME D'APPRENTISSAGE NUMÉRIQUE EDUCAFRIC
+## SUBJECT: PROPOSAL REQUEST – IMPLEMENTATION OF THE EDUCAFRIC DIGITAL LEARNING PLATFORM
 
-Madame, Monsieur,
+Dear Sir or Madam,
 
-Nous sollicitons de votre institution un devis détaillé pour l'accès aux fonctionnalités avancées de la plateforme Educafric, conçue pour répondre efficacement aux besoins de communication et de suivi scolaire de l'ère numérique.
+We are seeking from your institution a detailed quotation for access to the advanced features of the Educafric platform, designed to effectively meet the communication and school monitoring needs of the digital age.
 
-Notre intérêt particulier porte sur les services suivants :
+Our particular interest is in the following services:
 
-### 📱 Notifications instantanées & SMS internationaux
-Envoi de notifications personnalisées et de messages SMS à toute la communauté scolaire (parents, enseignants, élèves et freelancers), y compris les destinataires à l'étranger, afin de fournir des informations en temps réel sur toute actualité, urgence ou événement scolaire.
+### 📱 Instant Notifications & International SMS
+Sending personalized notifications and SMS messages to the entire school community (parents, teachers, pupils, and freelancers), including recipients abroad, in order to provide real-time information on any news, emergencies, or school events.
 
-### 📍 Géolocalisation des enfants
-Suivi géographique sécurisé des élèves pour assurer leur sécurité pendant les heures scolaires et les trajets domicile-école.
+### 📍 Child Geolocation
+Secure geographical tracking of pupils to ensure their safety during school hours and on journeys to and from school.
 
-### 📅 Emplois du temps interactifs
-Mise à disposition et gestion numériques des emplois du temps pour les élèves, enseignants et contributeurs freelances, accessibles à tout moment via la plateforme.
+### 📅 Interactive Timetables
+Digital provision and management of timetables for pupils, teachers, and freelance contributors, accessible at any time via the platform.
 
-### ✅ Registre d'absences numérique
-Saisie, centralisation et notification automatique des absences, avec alertes instantanées envoyées par SMS ou notification aux parents concernés, facilitant le suivi administratif et la prise de décision rapide.
+### ✅ Digital Absence Register
+Entry, centralization, and automatic notification of absences, with instant alerts sent by SMS or notification to the relevant parents, facilitating administrative follow-up and swift decision-making.
 
-### 💬 Communication unifiée
-Canal de communication centralisé entre l'école, les enseignants, les élèves, les parents et les freelancers, permettant des échanges fluides, le partage d'informations pédagogiques et administratives, et l'organisation d'événements ou la planification de réunions.
+### 💬 Unified Communication
+A centralized communication channel between the school, teachers, pupils, parents, and freelancers, allowing smooth exchanges, the sharing of educational and administrative information, and the organisation of events or scheduling of meetings.
 
-### 📊 Rapports de présence et suivi académique
-Rapports automatisés tels que bulletins de notes ou notifications de progrès, envoyés directement aux parents et élèves pour permettre un suivi dynamique, quel que soit leur lieu de résidence.
-
----
-
-## DEMANDE SPÉCIFIQUE
-
-Nous vous serions reconnaissants de bien vouloir nous fournir une proposition adaptée aux établissements d'enseignement, incluant :
-
-- **Modalités d'intégration** détaillées
-- **Options tarifaires** adaptées aux écoles africaines
-- **Aperçu des garanties de sécurité** associées à ces services
-- **Formation et support technique** inclus
-- **Période d'essai gratuite** si disponible
+### 📊 Attendance Reports and Academic Tracking
+Automated reports such as grade sheets or progress notifications, sent directly to parents and pupils to enable dynamic monitoring, regardless of their place of residence.
 
 ---
 
-## TARIFICATION EDUCAFRIC 2025
+## SPECIFIC REQUEST
 
-### Plans Écoles (Annuels uniquement)
-- **École Publique** : 250 000 CFA/an (sans limitation d'étudiants)
-- **École Privée** : 750 000 CFA/an (sans limitation d'étudiants)
-- **École Entreprise** : 150 000 CFA/an (centres de formation avec tableau de bord bilingue)
+We would be grateful if you could provide us with a proposal tailored to educational institutions, including:
 
-### Plan Freelancers
-- **Professionnel** : 12 000 CFA/mois ou 120 000 CFA/an
+- **Integration arrangements** detailed
+- **Pricing options** adapted to African schools
+- **Security guarantees** associated with these services
+- **Training and technical support** included
+- **Free trial period** if available
+
+---
+
+## EDUCAFRIC 2025 PRICING
+
+### School Plans (Annual only)
+- **Public School**: 250,000 CFA/year (unlimited students)
+- **Private School**: 750,000 CFA/year (unlimited students)
+- **Enterprise School**: 150,000 CFA/year (training centers with bilingual dashboard)
+
+### Freelancer Plan
+- **Professional**: 12,000 CFA/month or 120,000 CFA/year
 
 ### Contact
-Toujours utiliser : **+237 657 004 011** / **admin@educafric.com**
+Always use: **+237 657 004 011** / **admin@educafric.com**
 
 ---
 
-## FONCTIONNALITÉS INCLUSES
+## INCLUDED FEATURES
 
-✅ Gestion académique complète  
-✅ Communication multi-canal (SMS, WhatsApp, Email, PWA)  
-✅ Géolocalisation et sécurité des élèves  
-✅ Bulletins numériques africains  
-✅ Paiements locaux (Orange Money, Express Union, Afriland First Bank)  
-✅ Interface bilingue français/anglais  
-✅ Support technique 24/7  
-✅ Formation complète incluse  
+✅ Complete academic management  
+✅ Multi-channel communication (SMS, WhatsApp, Email, PWA)  
+✅ Student geolocation and security  
+✅ African digital report cards  
+✅ Local payments (Orange Money, Express Union, Afriland First Bank)  
+✅ Bilingual French/English interface  
+✅ 24/7 technical support  
+✅ Complete training included  
 
 ---
 
-Nous restons à votre disposition pour tout complément d'information ou pour organiser une démonstration personnalisée, et nous attendons votre retour avec impatience.
+We remain at your disposal for any further information or to arrange a personalised demonstration, and we look forward to hearing from you.
 
-Cordialement,
+Yours faithfully,
 
 **Simon Abanda**  
-Développeur - Fondateur & CEO - Educafric by Afro Metaverse
+Developer - Founder & CEO - Educafric by Afro Metaverse
 
 ---
 
