@@ -233,16 +233,27 @@ const FunctionalSiteAdminUsers: React.FC = () => {
     suspended: 45
   };
 
-  const filteredUsers = (Array.isArray(mockUsers) ? mockUsers : []).filter(user => {
-    if (!user) return false;
-    const matchesSearch = (user.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  const filteredUsers = (Array.isArray(mockUsers) ? mockUsers : [])
+    .filter(user => {
+      if (!user) return false;
+      const matchesSearch = (user.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (user.lastName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+      
+      return matchesSearch && matchesRole && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Sort alphabetically by last name first, then first name
+      const aFullName = `${a.lastName || ''} ${a.firstName || ''}`;
+      const bFullName = `${b.lastName || ''} ${b.firstName || ''}`;
+      return aFullName.localeCompare(bFullName, language === 'fr' ? 'fr' : 'en', {
+        sensitivity: 'base',
+        numeric: true,
+        ignorePunctuation: true
+      });
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -100,10 +100,16 @@ const AttendanceManagement = () => {
 
   const classes = ['6eme-A', '6eme-B', '5eme-A', '5eme-B', '4eme-A', '4eme-B', '3eme-A', '3eme-B'];
 
-  const filteredStudents = students.filter(student => 
-    student.class === selectedClass &&
-    student.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students
+    .filter(student => 
+      student.class === selectedClass &&
+      student.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, language === 'fr' ? 'fr' : 'en', { 
+      sensitivity: 'base',
+      numeric: true,
+      ignorePunctuation: true 
+    }));
 
   // Mutation pour mettre à jour le statut d'un élève
   const updateStatusMutation = useMutation({

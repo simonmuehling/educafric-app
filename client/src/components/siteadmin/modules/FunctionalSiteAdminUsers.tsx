@@ -93,6 +93,16 @@ const FunctionalSiteAdminUsers: React.FC = () => {
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesRole;
+  })
+  .sort((a, b) => {
+    // Sort alphabetically by last name first, then first name
+    const aFullName = `${a.lastName} ${a.firstName}`;
+    const bFullName = `${b.lastName} ${b.firstName}`;
+    return aFullName.localeCompare(bFullName, 'fr', {
+      sensitivity: 'base',
+      numeric: true,
+      ignorePunctuation: true
+    });
   }) || [];
 
   const handleDeleteUser = useStableCallback((userId: number) => {

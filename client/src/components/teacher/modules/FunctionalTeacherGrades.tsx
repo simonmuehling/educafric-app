@@ -519,7 +519,13 @@ const FunctionalTeacherGrades: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {(Array.isArray(grades) ? grades : []).map((grade) => (
+              {(Array.isArray(grades) ? grades : [])
+                .sort((a, b) => a.studentName?.localeCompare(b.studentName, language === 'fr' ? 'fr' : 'en', {
+                  sensitivity: 'base',
+                  numeric: true,
+                  ignorePunctuation: true
+                }))
+                .map((grade) => (
                 <div key={grade.id} className="border rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
