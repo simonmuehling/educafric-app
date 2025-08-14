@@ -28,7 +28,8 @@ const documentMapping: { [key: number]: string } = {
   18: 'EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md',
   19: 'Educafric_Document_Commercial.pdf',
   20: 'Educafric_Presentation.pdf',
-  21: 'CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf'
+  21: 'CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf',
+  22: 'proposal-request-parent-school-educafric.md'
 };
 
 // Serve static files from uploads directory

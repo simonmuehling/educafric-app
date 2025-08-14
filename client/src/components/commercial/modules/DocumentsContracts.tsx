@@ -129,6 +129,21 @@ const DocumentsContracts = () => {
       description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
     },
     
+    // Proposal Request Documents - NEW
+    {
+      id: 50,
+      name: 'Demande de Proposition - Parent/École',
+      type: 'proposal',
+      category: 'templates',
+      school: 'Communication Clients',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '5.2 KB',
+      format: 'MD',
+      url: '/api/documents/22/view',
+      description: 'Document de demande de proposition officiel pour écoles et parents : services Educafric, géolocalisation, notifications SMS, tarification 2025'
+    },
+    
     // Partnership Contracts - NEW
     {
       id: 27,

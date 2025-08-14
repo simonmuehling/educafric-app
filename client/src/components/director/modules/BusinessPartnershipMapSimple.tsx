@@ -38,6 +38,7 @@ const BusinessPartnershipMapSimple: React.FC = () => {
   const { toast } = useToast();
   const [partners, setPartners] = useState<BusinessPartner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPartner, setSelectedPartner] = useState<BusinessPartner | null>(null);
   const [contactFormOpen, setContactFormOpen] = useState(false);
   const [contactData, setContactData] = useState({
     subject: '',
