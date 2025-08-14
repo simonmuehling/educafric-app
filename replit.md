@@ -11,6 +11,29 @@ Preferred communication style: Simple, everyday language.
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
+- **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
+
+## Recent Changes (August 14, 2025)
+
+### Document System Standardization (Completed)
+**Fixed document directory structure inconsistencies:**
+- ✅ Established standard location: `/public/documents/` (not `/documents/`)
+- ✅ Enforced naming convention: lowercase kebab-case (e.g., `educafric-contract-name.md`)
+- ✅ Updated commercial documents module to follow existing patterns
+- ✅ Fixed 404 errors by matching configuration of working documents like "Kit de Prospection Educafric Complet"
+- ✅ Created bulk import template permissions for commercial role access
+
+**Status:** All documents now follow unified directory structure. Commercial dashboard fully mobile-optimized with proper document access.
+
+### Mobile Commercial Dashboard Optimization (Completed)
+**Resolved smartphone interface issues for commercial team:**
+- ✅ Fixed horizontal overflow: Document titles wrap to 2 lines on mobile
+- ✅ Responsive grid layout: 1 column mobile → 2 tablet → 3 desktop
+- ✅ Touch-friendly button layout: Stacked vertically on mobile, side-by-side on desktop
+- ✅ Optimized spacing and padding for smartphone usage
+- ✅ Bulk import template access granted to commercial role
+
+**Status:** Commercial dashboard fully optimized for primary smartphone usage with complete functionality.
 
 ## Recent Changes (August 13, 2025)
 

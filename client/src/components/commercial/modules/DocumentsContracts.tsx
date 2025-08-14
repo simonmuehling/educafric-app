@@ -83,6 +83,10 @@ const DocumentsContracts = () => {
   const t = text[language as keyof typeof text];
 
   // Documents commerciaux réels EDUCAFRIC - Combinaison MD + PDF
+  // 🚨 CRITICAL: ALL documents MUST be placed in /public/documents/ directory
+  // 🚨 CRITICAL: ALL URLs must start with /documents/ (not /public/documents/)
+  // 🚨 CRITICAL: ALL filenames must use lowercase kebab-case naming
+  // 🚨 CRITICAL: Follow exact pattern of "Kit de Prospection Educafric Complet" (working reference)
   const documents = [
     // Documents Markdown (MD) - Guides détaillés
     {
