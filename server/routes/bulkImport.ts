@@ -29,10 +29,18 @@ const upload = multer({
   }
 });
 
-// Authentication middleware
+// Authentication middleware for bulk operations
 const requireAuth = (req: any, res: any, next: any) => {
   if (!req.user || !['Director', 'Admin', 'SiteAdmin'].includes(req.user.role)) {
     return res.status(403).json({ message: 'Accès administrateur école requis' });
+  }
+  next();
+};
+
+// Authentication middleware for template downloads (allows commercial access)
+const requireTemplateAuth = (req: any, res: any, next: any) => {
+  if (!req.user || !['Director', 'Admin', 'SiteAdmin', 'Commercial'].includes(req.user.role)) {
+    return res.status(403).json({ message: 'Accès autorisé: Administrateurs et Commercial' });
   }
   next();
 };
@@ -198,8 +206,8 @@ async function validateData(data: any[], userType: 'teachers' | 'students', scho
   };
 }
 
-// Download template endpoint
-router.get('/template/:userType', requireAuth, async (req, res) => {
+// Download template endpoint - Accessible by Commercial and Admins
+router.get('/template/:userType', requireTemplateAuth, async (req, res) => {
   try {
     const { userType } = req.params;
     

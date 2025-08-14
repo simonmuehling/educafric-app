@@ -136,7 +136,7 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '45.8 KB',
       format: 'MD',
-      url: '/documents/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
+      url: '/documents/educafric-contrat-partenariat-etablissements-freelancers-2025.md',
       description: 'Contrat officiel de partenariat tripartite pour écoles, freelancers et parents avec tarification actuelle et obligations spécifiques à chaque partie'
     },
     {
@@ -149,7 +149,7 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '48.2 KB',
       format: 'MD',
-      url: '/documents/EDUCAFRIC_PARTNERSHIP_CONTRACT_SCHOOLS_FREELANCERS_PARENTS_2025_EN.md',
+      url: '/documents/educafric-partnership-contract-schools-freelancers-parents-2025-en.md',
       description: 'Official tripartite partnership contract for schools, freelancers and parents with current pricing and specific obligations for each party'
     },
     
