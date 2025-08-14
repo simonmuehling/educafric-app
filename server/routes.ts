@@ -64,6 +64,7 @@ import familyConnectionsRoutes from "./routes/familyConnections";
 import teacherStudentConnections from "./routes/teacherStudentConnections";
 import studentParentConnections from "./routes/studentParentConnections";
 import bulkImportRoutes from "./routes/bulkImport";
+import { registerSubscriptionRoutes } from "./routes/subscriptionRoutes";
 // Student routes handled inline in this file
 // reCAPTCHA removed for development simplicity
 
@@ -11984,6 +11985,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register bulk import routes
   app.use('/api/bulk', bulkImportRoutes);
+  
+  // Register subscription management routes
+  registerSubscriptionRoutes(app);
   console.log('[BULK_IMPORT] Bulk import routes registered successfully');
   
   // Clean Student Routes - Replace all old student routes with clean architecture

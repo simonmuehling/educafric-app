@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { storage } from '../storage';
 import { validatePhoneNumber } from '../utils/phoneValidation';
+import { ProfileNotificationService } from './profileNotificationService';
 import { 
   NotFoundError, 
   ConflictError, 
@@ -46,6 +47,17 @@ export class AuthService {
       password: hashedPassword,
       schoolId: userData.schoolId || 1, // Default school
     });
+
+    // Send profile creation notifications
+    try {
+      await ProfileNotificationService.sendProfileCreatedNotifications({
+        user,
+        isNewRegistration: true
+      });
+    } catch (error) {
+      console.error('Failed to send profile creation notifications:', error);
+      // Ne pas faire échouer l'inscription si les notifications échouent
+    }
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
