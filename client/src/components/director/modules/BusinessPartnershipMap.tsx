@@ -52,7 +52,7 @@ const BusinessPartnershipMap: React.FC = () => {
   const [filterSector, setFilterSector] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
-  const [activeView, setActiveView] = useState<'map' | 'list' | 'stats'>('map');
+  const [activeView, setActiveView] = useState<'map' | 'list' | 'stats' | 'internships'>('map');
 
   const text = {
     fr: {
@@ -61,6 +61,7 @@ const BusinessPartnershipMap: React.FC = () => {
       mapView: 'Vue Carte',
       listView: 'Vue Liste',
       statsView: 'Statistiques',
+      internshipsView: 'Stages & Formations',
       totalPartners: 'Partenaires Totaux',
       activePartnerships: 'Partenariats Actifs',
       studentsPlaced: 'Élèves Placés',
@@ -105,6 +106,7 @@ const BusinessPartnershipMap: React.FC = () => {
       mapView: 'Map View',
       listView: 'List View',
       statsView: 'Statistics',
+      internshipsView: 'Internships & Training',
       totalPartners: 'Total Partners',
       activePartnerships: 'Active Partnerships',
       studentsPlaced: 'Students Placed',
@@ -364,78 +366,88 @@ const BusinessPartnershipMap: React.FC = () => {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building2 className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{t.totalPartners}</p>
-                <p className="text-2xl font-bold text-gray-900">{businessPartners.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Navigation Tabs */}
+      <Tabs value={activeView} onValueChange={(value: any) => setActiveView(value)}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="map" data-testid="tab-map">{t.mapView}</TabsTrigger>
+          <TabsTrigger value="list" data-testid="tab-list">{t.listView}</TabsTrigger>
+          <TabsTrigger value="internships" data-testid="tab-internships">{t.internshipsView}</TabsTrigger>
+          <TabsTrigger value="stats" data-testid="tab-stats">{t.statsView}</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Target className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{t.activePartnerships}</p>
-                <p className="text-2xl font-bold text-gray-900">{activePartnerships}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TabsContent value="map" className="space-y-6">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t.totalPartners}</p>
+                    <p className="text-2xl font-bold text-gray-900">{businessPartners.length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <GraduationCap className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{t.studentsPlaced}</p>
-                <p className="text-2xl font-bold text-gray-900">{totalStudentsPlaced}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Target className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t.activePartnerships}</p>
+                    <p className="text-2xl font-bold text-gray-900">{activePartnerships}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Briefcase className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{t.opportunities}</p>
-                <p className="text-2xl font-bold text-gray-900">{totalOpportunities}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <GraduationCap className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t.studentsPlaced}</p>
+                    <p className="text-2xl font-bold text-gray-900">{totalStudentsPlaced}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={t.searchPlaceholder}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-                data-testid="input-search-partners"
-              />
-            </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Briefcase className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t.opportunities}</p>
+                    <p className="text-2xl font-bold text-gray-900">{totalOpportunities}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder={t.searchPlaceholder}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full"
+                    data-testid="input-search-partners"
+                  />
+                </div>
             
             <Select value={filterSector} onValueChange={setFilterSector}>
               <SelectTrigger className="w-full lg:w-48" data-testid="select-filter-sector">
@@ -544,29 +556,166 @@ const BusinessPartnershipMap: React.FC = () => {
                   <Calendar className="w-4 h-4 mr-1" />
                   {t.scheduleVisit}
                 </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredPartners.length === 0 && (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {language === 'fr' ? 'Aucun partenaire trouvé' : 'No partners found'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'fr' 
+                  ? 'Essayez d\'ajuster vos filtres de recherche.'
+                  : 'Try adjusting your search filters.'
+                }
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="list" className="space-y-6">
+        {/* Same content as map but in list format */}
+        <div className="text-center py-8">
+          <h3 className="text-lg font-medium text-gray-900">
+            {language === 'fr' ? 'Vue liste en développement' : 'List view in development'}
+          </h3>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="internships" className="space-y-6">
+        {/* Internships and Training Management */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="w-5 h-5" />
+                {language === 'fr' ? 'Stages Actifs' : 'Active Internships'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Sample internship data */}
+              <div className="space-y-3">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium">Stage en Télécommunications</h4>
+                      <p className="text-sm text-gray-600">MTN Cameroun - 3 mois</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">En cours</Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Étudiant: Ngono Paul</span>
+                    <span>Début: Jan 2025</span>
+                    <span>Fin: Mar 2025</span>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium">Formation Finance Bancaire</h4>
+                      <p className="text-sm text-gray-600">Société Générale - 2 mois</p>
+                    </div>
+                    <Badge className="bg-blue-100 text-blue-800">Planifié</Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Étudiant: Mballa Marie</span>
+                    <span>Début: Mar 2025</span>
+                    <span>Fin: Mai 2025</span>
+                  </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-medium">Stage Médical</h4>
+                      <p className="text-sm text-gray-600">Hôpital Central - 6 mois</p>
+                    </div>
+                    <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>Étudiant: Atangana Sophie</span>
+                    <span>Début: Fév 2025</span>
+                    <span>Fin: Août 2025</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button className="w-full" data-testid="button-add-internship">
+                <Plus className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Nouveau Stage' : 'New Internship'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                {language === 'fr' ? 'Statistiques Stages' : 'Internship Stats'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">12</div>
+                <div className="text-sm text-gray-600">Stages actifs</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">45</div>
+                <div className="text-sm text-gray-600">Stages terminés</div>
+              </div>
+              
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">89%</div>
+                <div className="text-sm text-gray-600">Taux de réussite</div>
+              </div>
+
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">78%</div>
+                <div className="text-sm text-gray-600">Embauche post-stage</div>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </div>
 
-      {filteredPartners.length === 0 && (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {language === 'fr' ? 'Aucun partenaire trouvé' : 'No partners found'}
-            </h3>
-            <p className="text-gray-600">
-              {language === 'fr' 
-                ? 'Essayez d\'ajuster vos filtres de recherche.'
-                : 'Try adjusting your search filters.'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {/* Quick Actions for Internships */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+            <Calendar className="w-8 h-8 text-blue-600" />
+            <span>{language === 'fr' ? 'Planifier Stage' : 'Schedule Internship'}</span>
+          </Button>
+          
+          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+            <FileText className="w-8 h-8 text-green-600" />
+            <span>{language === 'fr' ? 'Évaluer Étudiant' : 'Evaluate Student'}</span>
+          </Button>
+          
+          <Button variant="outline" className="p-6 h-auto flex-col space-y-2">
+            <MessageSquare className="w-8 h-8 text-purple-600" />
+            <span>{language === 'fr' ? 'Contacter Entreprise' : 'Contact Company'}</span>
+          </Button>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="stats" className="space-y-6">
+        {/* Statistics View */}
+        <div className="text-center py-8">
+          <h3 className="text-lg font-medium text-gray-900">
+            {language === 'fr' ? 'Statistiques détaillées en développement' : 'Detailed statistics in development'}
+          </h3>
+        </div>
+      </TabsContent>
+
+    </Tabs>
+  </div>
   );
 };
 
