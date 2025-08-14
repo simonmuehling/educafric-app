@@ -136,7 +136,7 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '45.8 KB',
       format: 'MD',
-      url: 'EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
+      url: '/documents/EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
       description: 'Contrat officiel de partenariat tripartite pour écoles, freelancers et parents avec tarification actuelle et obligations spécifiques à chaque partie'
     },
     {
@@ -149,7 +149,7 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '48.2 KB',
       format: 'MD',
-      url: 'EDUCAFRIC_PARTNERSHIP_CONTRACT_SCHOOLS_FREELANCERS_PARENTS_2025_EN.md',
+      url: '/documents/EDUCAFRIC_PARTNERSHIP_CONTRACT_SCHOOLS_FREELANCERS_PARENTS_2025_EN.md',
       description: 'Official tripartite partnership contract for schools, freelancers and parents with current pricing and specific obligations for each party'
     },
     
@@ -558,8 +558,15 @@ const DocumentsContracts = () => {
   });
 
   const handleViewDocument = (doc: any) => {
-    // For MD files, open PDF conversion directly
-    if (doc.format === 'MD') {
+    // For XLSX templates, open directly via API
+    if (doc.format === 'XLSX' && doc.url.includes('/api/bulk/template/')) {
+      window.open(doc.url, '_blank');
+      toast({
+        title: language === 'fr' ? 'Modèle Excel téléchargé' : 'Excel Template Downloaded',
+        description: language === 'fr' ? `${doc.name} a été téléchargé` : `${doc.name} has been downloaded`,
+      });
+    } else if (doc.format === 'MD') {
+      // For MD files, open PDF conversion directly
       const pdfUrl = doc.url.replace('.md', '/pdf');
       window.open(pdfUrl, '_blank');
       toast({
@@ -577,8 +584,15 @@ const DocumentsContracts = () => {
   };
 
   const handleDownloadDocument = (doc: any) => {
-    // For MD files, offer PDF conversion option
-    if (doc.format === 'MD') {
+    // For XLSX templates, download directly via API
+    if (doc.format === 'XLSX' && doc.url.includes('/api/bulk/template/')) {
+      window.open(doc.url, '_blank');
+      toast({
+        title: language === 'fr' ? 'Modèle Excel téléchargé' : 'Excel Template Downloaded',
+        description: language === 'fr' ? `${doc.name} est prêt à utiliser` : `${doc.name} is ready to use`,
+      });
+    } else if (doc.format === 'MD') {
+      // For MD files, offer PDF conversion option
       const pdfUrl = doc.url.replace('.md', '/pdf');
       window.open(pdfUrl, '_blank');
       toast({
@@ -643,7 +657,7 @@ const DocumentsContracts = () => {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {['all', 'marketing', 'contracts', 'technical', 'legal'].map((category) => (
+              {['all', 'marketing', 'contracts', 'templates', 'technical', 'legal'].map((category) => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? 'default' : 'outline'}
@@ -654,6 +668,7 @@ const DocumentsContracts = () => {
                   {category === 'all' ? t.all : 
                    category === 'marketing' ? t.marketing :
                    category === 'contracts' ? t.contracts :
+                   category === 'templates' ? t.templates :
                    category === 'technical' ? 'Technique' :
                    category === 'legal' ? t.legal : category}
                 </Button>
@@ -663,24 +678,31 @@ const DocumentsContracts = () => {
         </CardHeader>
       </Card>
 
-      {/* Documents Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Documents Grid - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredDocuments.map((doc) => (
           <Card key={doc.id} className="hover:shadow-lg transition-shadow duration-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+            <CardHeader className="pb-3 px-3 sm:px-6">
+              <div className="flex flex-col space-y-3">
+                {/* Mobile: Title and Icon on top, badges below */}
+                <div className="flex items-start gap-2">
                   {getTypeIcon(doc.type)}
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm font-semibold text-gray-900 truncate">
-                      {doc.name}
+                    <CardTitle className="text-sm font-semibold text-gray-900 leading-tight break-words">
+                      <span className="block sm:hidden">{/* Mobile: Allow 2-line wrap */}
+                        {doc.name}
+                      </span>
+                      <span className="hidden sm:block truncate">{/* Desktop: Single line */}
+                        {doc.name}
+                      </span>
                     </CardTitle>
-                    <CardDescription className="text-xs text-gray-500 mt-1">
+                    <CardDescription className="text-xs text-gray-500 mt-1 truncate">
                       {doc.school}
                     </CardDescription>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1">
+                {/* Badges row */}
+                <div className="flex gap-2 justify-start">
                   <Badge className={`text-xs ${getStatusColor(doc.status)}`}>
                     {doc.status === 'finalized' ? 'Finalisé' : doc.status}
                   </Badge>
@@ -690,28 +712,33 @@ const DocumentsContracts = () => {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-xs text-gray-600 mb-4 line-clamp-3">
+            <CardContent className="pt-0 px-3 sm:px-6">
+              <p className="text-xs text-gray-600 mb-3 line-clamp-2 sm:line-clamp-3">
                 {doc.description}
               </p>
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                <span>{doc.date}</span>
-                <span>{doc.size}</span>
+              <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                <span className="truncate">{doc.date}</span>
+                <span className="ml-2">{doc.size}</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleViewDocument(doc)}
-                  className="flex-1 text-xs"
+                  className="flex-1 text-xs py-2"
+                  data-testid={`button-view-document-${doc.id}`}
                 >
                   <Eye className="w-3 h-3 mr-1" />
-                  {language === 'fr' ? 'Voir PDF' : 'View PDF'}
+                  {doc.format === 'XLSX' ? 
+                    (language === 'fr' ? 'Ouvrir' : 'Open') : 
+                    (language === 'fr' ? 'Voir PDF' : 'View PDF')
+                  }
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => handleDownloadDocument(doc)}
-                  className="flex-1 text-xs"
+                  className="flex-1 text-xs py-2"
+                  data-testid={`button-download-document-${doc.id}`}
                 >
                   <Download className="w-3 h-3 mr-1" />
                   {doc.format === 'MD' ? (language === 'fr' ? 'PDF' : 'PDF') : t.download}
