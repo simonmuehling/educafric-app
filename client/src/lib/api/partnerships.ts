@@ -78,17 +78,17 @@ export interface CommunicationData {
 // API Functions
 export const getBusinessPartners = async (schoolId?: number): Promise<BusinessPartner[]> => {
   const url = schoolId ? `/api/partnerships/partners?schoolId=${schoolId}` : '/api/partnerships/partners';
-  return apiRequest(url);
+  return apiRequest(url, { method: 'GET' });
 };
 
 export const getInternships = async (schoolId?: number): Promise<Internship[]> => {
   const url = schoolId ? `/api/partnerships/internships?schoolId=${schoolId}` : '/api/partnerships/internships';
-  return apiRequest(url);
+  return apiRequest(url, { method: 'GET' });
 };
 
 export const getPartnershipStatistics = async (schoolId?: number): Promise<PartnershipStatistics> => {
   const url = schoolId ? `/api/partnerships/statistics?schoolId=${schoolId}` : '/api/partnerships/statistics';
-  return apiRequest(url);
+  return apiRequest(url, { method: 'GET' });
 };
 
 export const sendPartnershipCommunication = async (data: CommunicationData): Promise<any> => {

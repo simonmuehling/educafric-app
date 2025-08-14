@@ -139,7 +139,7 @@ const BusinessPartnershipMapSimple: React.FC = () => {
     activeInternships: 5, // Mock data
     studentsPlaced: partners.reduce((sum, p) => sum + (p.studentsPlaced || 0), 0),
     averageRating: partners.length > 0 ? 
-      partners.reduce((sum, p) => sum + (p.rating || 0), 0) / partners.length : 0
+      partners.reduce((sum, p) => sum + (Number(p.rating) || 0), 0) / partners.length : 0
   };
 
   return (
@@ -218,7 +218,7 @@ const BusinessPartnershipMapSimple: React.FC = () => {
                       <span className="font-medium text-gray-700">Note:</span>
                       <div className="flex items-center">
                         <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        <span>{partner.rating?.toFixed(1) || 'N/A'}</span>
+                        <span>{Number.isFinite(Number(partner.rating)) ? Number(partner.rating).toFixed(1) : 'N/A'}</span>
                       </div>
                     </div>
                   </div>
