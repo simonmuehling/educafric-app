@@ -9,7 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 // import { handleRedirect } from "@/lib/firebase"; // Function not available
-import { useEffect, lazy } from "react";
+import { useEffect, lazy, Suspense } from "react";
 
 
 
@@ -373,7 +373,14 @@ function Router() {
       <Route path="/debug-inspector" component={DebugInspector} />
       <Route path="/sandbox" component={LazySandboxPage} />
       <Route path="/enhanced-sandbox" component={LazyEnhancedSandbox} />
-      <Route path="/sandbox/pwa-connection" component={lazy(() => import('./components/sandbox/PWAConnectionTester'))} />
+      <Route path="/sandbox/pwa-connection">
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div></div>}>
+          {(() => {
+            const PWAConnectionTester = lazy(() => import('./components/sandbox/PWAConnectionTester'));
+            return <PWAConnectionTester />;
+          })()}
+        </Suspense>
+      </Route>
       <Route path="/sandbox-direct" component={() => (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full space-y-8">
