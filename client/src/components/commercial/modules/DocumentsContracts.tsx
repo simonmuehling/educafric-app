@@ -124,6 +124,88 @@ const DocumentsContracts = () => {
       url: '/documents/educafric-prospection-kit-english.md',
       description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
     },
+    
+    // Partnership Contracts - NEW
+    {
+      id: 27,
+      name: 'Contrat de Partenariat Écoles-Freelancers-Parents 2025 (Français)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Tous Partenaires',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '45.8 KB',
+      format: 'MD',
+      url: 'EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
+      description: 'Contrat officiel de partenariat tripartite pour écoles, freelancers et parents avec tarification actuelle et obligations spécifiques à chaque partie'
+    },
+    {
+      id: 28,
+      name: 'Partnership Contract Schools-Freelancers-Parents 2025 (English)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'All Partners',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '48.2 KB',
+      format: 'MD',
+      url: 'EDUCAFRIC_PARTNERSHIP_CONTRACT_SCHOOLS_FREELANCERS_PARENTS_2025_EN.md',
+      description: 'Official tripartite partnership contract for schools, freelancers and parents with current pricing and specific obligations for each party'
+    },
+    
+    // Bulk Import Templates - NEW
+    {
+      id: 29,
+      name: 'Modèle Excel - Import Enseignants en Masse',
+      type: 'template',
+      category: 'templates',
+      school: 'Administrations',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '15.3 KB',
+      format: 'XLSX',
+      url: '/api/bulk/template/teachers',
+      description: 'Modèle Excel pré-configuré pour import massif d\'enseignants avec colonnes validation et données échantillons'
+    },
+    {
+      id: 30,
+      name: 'Modèle Excel - Import Élèves en Masse',
+      type: 'template',
+      category: 'templates',
+      school: 'Administrations',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '16.7 KB',
+      format: 'XLSX',
+      url: '/api/bulk/template/students',
+      description: 'Modèle Excel pré-configuré pour import massif d\'élèves avec validation données et gestion contacts parents'
+    },
+    {
+      id: 31,
+      name: 'Teacher Bulk Import Template (Excel)',
+      type: 'template',
+      category: 'templates',
+      school: 'Administrations',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '15.3 KB',
+      format: 'XLSX',
+      url: '/api/bulk/template/teachers',
+      description: 'Pre-configured Excel template for bulk teacher import with validation columns and sample data'
+    },
+    {
+      id: 32,
+      name: 'Student Bulk Import Template (Excel)',
+      type: 'template',
+      category: 'templates',
+      school: 'Administrations',
+      date: '2025-08-14',
+      status: 'finalized',
+      size: '16.7 KB',
+      format: 'XLSX',
+      url: '/api/bulk/template/students',
+      description: 'Pre-configured Excel template for bulk student import with data validation and parent contact management'
+    },
     {
       id: 3,
       name: 'Tarifs et Plans Français',

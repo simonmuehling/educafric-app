@@ -1,11 +1,11 @@
 # EDUCAFRIC - Contrat de Partenariat Établissements Scolaires et Freelancers 2025
 
 ## Document Information
-- **Date de création**: 30 janvier 2025
-- **Version**: 3.0 (Mise à jour Educafric)
+- **Date de création**: 14 août 2025
+- **Version**: 4.0 (Mise à jour avec intégration des parents)
 - **Validité**: Du 1er janvier 2025 au 31 décembre 2025
-- **Destinataires**: Directeurs d'École, Freelancers Éducatifs, Équipe Juridique
-- **Objectif**: Contrat officiel de partenariat Educafric pour établissements et répétiteurs
+- **Destinataires**: Directeurs d'École, Freelancers Éducatifs, Parents, Équipe Juridique
+- **Objectif**: Contrat officiel de partenariat Educafric pour établissements, répétiteurs et parents
 
 ---
 
@@ -17,6 +17,7 @@ Le présent contrat définit les modalités de partenariat entre **EDUCAFRIC** (
 - **EDUCAFRIC** : Plateforme éducative technologique
 - **ÉTABLISSEMENTS SCOLAIRES** : Écoles publiques, privées, confessionnelles
 - **FREELANCERS ÉDUCATIFS** : Répétiteurs indépendants, centres de formation
+- **PARENTS** : Tuteurs légaux et représentants des élèves
 
 **Mission Educafric:**
 Démocratiser l'accès aux technologies éducatives en Afrique et moderniser l'écosystème éducatif par l'innovation numérique.
@@ -176,7 +177,7 @@ Plan premium professionnel
 
 ### 2.3 Tarification Services Parents
 
-#### Plans Parents Disponibles
+#### 👨‍👩‍👧‍👦 Plans Parents Disponibles
 
 | Plan | Prix Mensuel | Prix Annuel | Enfants | Fonctionnalités |
 |------|--------------|-------------|---------|-----------------|
@@ -186,6 +187,18 @@ Plan premium professionnel
 | **Premium** | 8.000 CFA | 80.000 CFA | ∞ | + Géolocalisation (5 zones) |
 | **GPS+** | 12.000 CFA | 120.000 CFA | ∞ | + Zones illimitées, tracking |
 | **Elite** | 15.000 CFA | 150.000 CFA | ∞ | + Services exclusifs complets |
+
+#### 🎯 Fonctionnalités Spécifiques Parents
+- **Suivi académique**: Progrès scolaire temps réel des enfants
+- **Alertes sécurité**: Notifications géolocalisation entrée/sortie zones sécurisées
+- **Communication directe**: Messages avec enseignants et administration scolaire
+- **Bulletins numériques**: Accès instantané aux rapports académiques des enfants
+- **Suivi présences**: Confirmation quotidienne de présence
+- **Notifications événements**: Activités scolaires et annonces importantes
+- **Suivi paiements**: Historique frais scolaires et rappels
+- **Gestion multi-enfants**: Tableau de bord unique pour tous les enfants
+- **Contacts urgence**: Alertes automatiques pour situations urgentes
+- **Planification académique**: Coordination horaires avec enseignants
 
 #### 🎁 Réductions Familiales
 - **2 enfants**: 10% réduction
@@ -240,6 +253,33 @@ Plan premium professionnel
 
 #### 💼 Professionnalisme
 - **Certification Educafric**: Formation plateforme obligatoire
+- **Profil professionnel**: Informations complètes et exactes
+- **Communication parents**: Transparence et régularité
+- **Respect planning**: Ponctualité et engagement
+- **Amélioration continue**: Participation formations
+
+#### 📚 Pédagogie et Suivi
+- **Méthodes approuvées**: Respect standards éducatifs
+- **Suivi progression**: Évaluations régulières élèves
+- **Communication résultats**: Reporting parents transparent
+- **Ressources qualité**: Utilisation contenus certifiés
+- **Collaboration écoles**: Coordination établissements partenaires
+
+### 3.4 Obligations des Parents
+
+#### 👨‍👩‍👧‍👦 Engagement Familial
+- **Suivi actif**: Utilisation régulière plateforme pour suivi enfant
+- **Informations exactes**: Fourniture coordonnées correctes
+- **Communication respectueuse**: Interaction professionnelle avec enseignants
+- **Paiement ponctuel**: Règlement abonnement dans les délais
+- **Protection vie privée**: Sauvegarde identifiants d'accès
+
+#### 📱 Utilisation Plateforme
+- **Accès responsable**: Utilisation appropriée de la plateforme
+- **Supervision enfant**: Surveillance activité numérique enfant
+- **Mise à jour coordonnées**: Maintien informations contact actuelles
+- **Feedback constructif**: Suggestions d'amélioration
+- **Participation communautaire**: Engagement écosystème numérique scolaire
 - **Profil professionnel**: Informations complètes et exactes
 - **Communication parents**: Transparence et régularité
 - **Respect planning**: Ponctualité et engagement
