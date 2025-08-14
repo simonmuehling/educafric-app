@@ -49,7 +49,7 @@ import speakeasy from "speakeasy";
 import QRCode from "qrcode";
 import subscriptionRoutes from "./routes/subscription";
 import autofixRoutes from "./routes/autofix";
-import multiRoleRoutes from "./routes/multiRole";
+import multiRoleRoutes from "./routes/multiRoleRoutes";
 import { MultiRoleService } from "./services/multiRoleService";
 import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
