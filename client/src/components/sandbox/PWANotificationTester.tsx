@@ -1,254 +1,341 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Smartphone, Check, X, AlertTriangle } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import notificationService, { type InAppNotification } from '@/services/notificationService';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Bell, 
+  BellRing, 
+  Shield, 
+  MapPin, 
+  BookOpen, 
+  MessageSquare,
+  Smartphone,
+  Monitor,
+  CheckCircle,
+  AlertTriangle
+} from 'lucide-react';
+
+interface NotificationTest {
+  type: string;
+  title: string;
+  body: string;
+  icon: string;
+  badge: string;
+  actions?: Array<{ action: string; title: string; icon: string }>;
+  priority: 'low' | 'normal' | 'high';
+  category: string;
+}
 
 const PWANotificationTester: React.FC = () => {
-  const { language } = useLanguage();
-  const [testResults, setTestResults] = useState<{
-    permission: NotificationPermission;
-    browserSupport: boolean;
-    serviceWorkerSupport: boolean;
-    testSent: boolean;
-    testError: string | null;
-  }>({
-    permission: Notification.permission,
-    browserSupport: 'Notification' in window,
-    serviceWorkerSupport: 'serviceWorker' in navigator,
-    testSent: false,
-    testError: null
-  });
+  const { toast } = useToast();
+  const [isSupported, setIsSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
+  const [isPWAInstalled, setIsPWAInstalled] = useState(false);
 
-  const text = {
-    fr: {
-      title: 'Test des Notifications PWA',
-      subtitle: 'Vérification et test du système de notifications',
-      browserSupport: 'Support navigateur',
-      serviceWorkerSupport: 'Support Service Worker',
-      permission: 'Permission notifications',
-      testNotification: 'Tester notification',
-      requestPermission: 'Demander permission',
-      testSent: 'Test envoyé',
-      error: 'Erreur',
-      supported: 'Supporté',
-      notSupported: 'Non supporté',
-      granted: 'Accordée',
-      denied: 'Refusée',
-      default: 'En attente'
+  // Test notifications disponibles
+  const testNotifications: NotificationTest[] = [
+    {
+      type: 'zone_exit',
+      title: 'Sortie de zone de sécurité',
+      body: 'ALERTE: Emma Talla a quitté la zone "École Primaire Central". Position actuelle: Douala',
+      icon: '/educafric-logo-128.png',
+      badge: '/android-icon-192x192.png',
+      actions: [
+        { action: 'view_location', title: 'Voir position', icon: '/icons/location.png' },
+        { action: 'dismiss', title: 'Fermer', icon: '/icons/close.png' }
+      ],
+      priority: 'high',
+      category: 'security'
     },
-    en: {
-      title: 'PWA Notifications Test',
-      subtitle: 'Verification and testing of notification system',
-      browserSupport: 'Browser support',
-      serviceWorkerSupport: 'Service Worker support',
-      permission: 'Notification permission',
-      testNotification: 'Test notification',
-      requestPermission: 'Request permission',
-      testSent: 'Test sent',
-      error: 'Error',
-      supported: 'Supported',
-      notSupported: 'Not supported',
-      granted: 'Granted',
-      denied: 'Denied',
-      default: 'Pending'
+    {
+      type: 'zone_entry',
+      title: 'Entrée en zone de sécurité',
+      body: 'Emma Talla est entré dans la zone "École Primaire Central". Tout va bien.',
+      icon: '/educafric-logo-128.png',
+      badge: '/android-icon-192x192.png',
+      priority: 'low',
+      category: 'security'
+    },
+    {
+      type: 'new_message',
+      title: 'Nouveau message',
+      body: 'Professeur Dubois vous a envoyé un message concernant les devoirs de mathématiques.',
+      icon: '/educafric-logo-128.png',
+      badge: '/android-icon-192x192.png',
+      actions: [
+        { action: 'read_message', title: 'Lire', icon: '/icons/message.png' },
+        { action: 'dismiss', title: 'Plus tard', icon: '/icons/clock.png' }
+      ],
+      priority: 'normal',
+      category: 'communication'
+    },
+    {
+      type: 'homework_reminder',
+      title: 'Rappel de devoir',
+      body: 'N\'oubliez pas : Devoir de français à rendre demain avant 18h.',
+      icon: '/educafric-logo-128.png',
+      badge: '/android-icon-192x192.png',
+      priority: 'normal',
+      category: 'academic'
     }
-  };
+  ];
 
-  const t = text[language as keyof typeof text];
-
-  const handleRequestPermission = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      setTestResults(prev => ({ ...prev, permission, testError: null }));
-    } catch (error) {
-      setTestResults(prev => ({ 
-        ...prev, 
-        testError: `Permission request failed: ${error}` 
-      }));
+  useEffect(() => {
+    // Vérifier le support des notifications
+    setIsSupported('Notification' in window && 'serviceWorker' in navigator);
+    
+    // Vérifier les permissions
+    if ('Notification' in window) {
+      setPermission(Notification.permission);
     }
-  };
 
-  const handleTestNotification = async () => {
+    // Vérifier l'installation PWA
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isInWebAppiOS = (window.navigator as any).standalone === true;
+    setIsPWAInstalled(isStandalone || isInWebAppiOS);
+
+    // Récupérer l'enregistrement du service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        setSwRegistration(registration);
+      });
+    }
+  }, []);
+
+  const requestPermission = async () => {
+    if (!isSupported) {
+      toast({
+        title: "Non supporté",
+        description: "Les notifications push ne sont pas supportées sur ce navigateur.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      setTestResults(prev => ({ ...prev, testError: null, testSent: false }));
+      const result = await Notification.requestPermission();
+      setPermission(result);
       
-      // Method 1: Direct browser notification
-      if (testResults.permission === 'granted') {
-        const notification = new Notification('Test Educafric PWA', {
-          body: 'Cette notification teste le système PWA en mode développement',
-          icon: '/educafric-logo-128.png',
-          badge: '/educafric-logo-128.png',
-          tag: 'test-pwa-dev',
-          requireInteraction: false,
-          timestamp: Date.now(),
-          data: { type: 'test', environment: 'development' }
+      if (result === 'granted') {
+        toast({
+          title: "Permission accordée",
+          description: "Vous recevrez maintenant les notifications EducAfric !",
+          variant: "default"
         });
+      } else {
+        toast({
+          title: "Permission refusée",
+          description: "Activez les notifications dans les paramètres du navigateur.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur permission notifications:', error);
+    }
+  };
 
-        notification.onclick = () => {
-          console.log('[PWA TEST] Notification clicked');
-          notification.close();
-        };
+  const sendTestNotification = async (notif: NotificationTest) => {
+    if (permission !== 'granted') {
+      toast({
+        title: "Permission requise",
+        description: "Accordez d'abord la permission pour les notifications.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-        notification.onclose = () => {
-          console.log('[PWA TEST] Notification closed');
-        };
-
-        setTimeout(() => notification.close(), 5000);
+    try {
+      if (swRegistration) {
+        // Utiliser le service worker pour les notifications
+        await swRegistration.showNotification(notif.title, {
+          body: notif.body,
+          icon: notif.icon,
+          badge: notif.badge,
+          tag: `test-${notif.type}-${Date.now()}`,
+          data: {
+            type: notif.type,
+            category: notif.category,
+            url: '/',
+            timestamp: Date.now()
+          },
+          actions: notif.actions as any,
+          requireInteraction: notif.priority === 'high',
+          vibrate: notif.priority === 'high' ? [200, 100, 200, 100, 200] : [200, 100, 200],
+          timestamp: Date.now()
+        });
+      } else {
+        // Fallback avec l'API Notification native
+        new Notification(notif.title, {
+          body: notif.body,
+          icon: notif.icon,
+          tag: `test-${notif.type}-${Date.now()}`
+        });
       }
 
-      // Method 2: Using notification service
-      await notificationService.createInAppNotification({
-        title: 'Test PWA Notification Service',
-        message: 'Ce test vérifie le service de notifications intégré',
-        type: 'system',
-        priority: 'medium',
-        category: 'administrative',
-        actionRequired: false,
-        senderRole: 'System'
+      toast({
+        title: "Notification envoyée",
+        description: `Test "${notif.title}" envoyé avec succès !`,
+        variant: "default"
       });
-
-      setTestResults(prev => ({ ...prev, testSent: true }));
-      setTimeout(() => {
-        setTestResults(prev => ({ ...prev, testSent: false }));
-      }, 3000);
-
     } catch (error) {
-      setTestResults(prev => ({ 
-        ...prev, 
-        testError: `Test failed: ${error}` 
-      }));
+      console.error('Erreur envoi notification:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer la notification test.",
+        variant: "destructive"
+      });
     }
   };
 
-  const getStatusIcon = (status: boolean) => {
-    return status ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4 text-red-500" />;
-  };
-
-  const getPermissionColor = (perm: NotificationPermission) => {
-    switch (perm) {
-      case 'granted': return 'bg-green-100 text-green-800';
-      case 'denied': return 'bg-red-100 text-red-800';
-      default: return 'bg-yellow-100 text-yellow-800';
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return <AlertTriangle className="w-4 h-4 text-red-500" />;
+      case 'normal': return <Bell className="w-4 h-4 text-blue-500" />;
+      case 'low': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      default: return <Bell className="w-4 h-4" />;
     }
   };
 
-  const getPermissionText = (perm: NotificationPermission) => {
-    switch (perm) {
-      case 'granted': return t.granted;
-      case 'denied': return t.denied;
-      default: return t.default;
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'security': return <Shield className="w-4 h-4" />;
+      case 'communication': return <MessageSquare className="w-4 h-4" />;
+      case 'academic': return <BookOpen className="w-4 h-4" />;
+      default: return <Bell className="w-4 h-4" />;
     }
   };
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-600 rounded-lg flex items-center justify-center">
-            <Smartphone className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <CardTitle className="text-lg">{t.title}</CardTitle>
-            <p className="text-sm text-gray-600">{t.subtitle}</p>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Status checks */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium">{t.browserSupport}</span>
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(testResults.browserSupport)}
-              <span className="text-xs">
-                {testResults.browserSupport ? t.supported : t.notSupported}
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <BellRing className="w-6 h-6 text-blue-600" />
+            Testeur de Notifications PWA EducAfric
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className={`w-5 h-5 ${isSupported ? 'text-green-500' : 'text-red-500'}`} />
+              <span className="text-sm">
+                Support: {isSupported ? 'Disponible' : 'Non supporté'}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {isPWAInstalled ? <Smartphone className="w-5 h-5 text-green-500" /> : <Monitor className="w-5 h-5 text-gray-500" />}
+              <span className="text-sm">
+                Mode: {isPWAInstalled ? 'PWA Installée' : 'Navigateur Web'}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Bell className={`w-5 h-5 ${permission === 'granted' ? 'text-green-500' : permission === 'denied' ? 'text-red-500' : 'text-yellow-500'}`} />
+              <span className="text-sm">
+                Permission: {permission === 'granted' ? 'Accordée' : permission === 'denied' ? 'Refusée' : 'Demander'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium">{t.serviceWorkerSupport}</span>
-            <div className="flex items-center space-x-2">
-              {getStatusIcon(testResults.serviceWorkerSupport)}
-              <span className="text-xs">
-                {testResults.serviceWorkerSupport ? t.supported : t.notSupported}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium">{t.permission}</span>
-            <Badge className={getPermissionColor(testResults.permission)}>
-              {getPermissionText(testResults.permission)}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Error display */}
-        {testResults.testError && (
-          <div className="flex items-center p-3 bg-red-50 border border-red-200 rounded-lg">
-            <AlertTriangle className="w-4 h-4 text-red-500 mr-2" />
-            <span className="text-sm text-red-700">{testResults.testError}</span>
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          {testResults.permission !== 'granted' && (
-            <Button
-              onClick={handleRequestPermission}
-              className="flex-1"
-              data-testid="button-request-permission"
+          {/* Actions */}
+          {permission !== 'granted' && (
+            <Button 
+              onClick={requestPermission}
+              disabled={!isSupported}
+              className="w-full"
             >
               <Bell className="w-4 h-4 mr-2" />
-              {t.requestPermission}
+              Demander la Permission de Notifications
             </Button>
           )}
+        </CardContent>
+      </Card>
 
-          <Button
-            onClick={handleTestNotification}
-            variant={testResults.permission === 'granted' ? 'default' : 'outline'}
-            className="flex-1"
-            disabled={testResults.testSent}
-            data-testid="button-test-pwa-notification"
-          >
-            {testResults.testSent ? (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                {t.testSent}
-              </>
-            ) : (
-              <>
-                <Bell className="w-4 h-4 mr-2" />
-                {t.testNotification}
-              </>
-            )}
-          </Button>
-        </div>
+      {/* Tests de notifications */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {testNotifications.map((notif, index) => (
+          <Card key={index} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {getCategoryIcon(notif.category)}
+                  <span className="text-lg">{notif.title}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getPriorityIcon(notif.priority)}
+                  <Badge variant={notif.priority === 'high' ? 'destructive' : notif.priority === 'normal' ? 'default' : 'secondary'}>
+                    {notif.priority}
+                  </Badge>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">Aperçu du message:</p>
+                <div className="bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500">
+                  <p className="font-semibold text-sm">{notif.title}</p>
+                  <p className="text-sm text-gray-700">{notif.body}</p>
+                </div>
+              </div>
 
-        {/* Development mode info */}
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h4 className="font-medium text-blue-900 mb-2">Mode Développement</h4>
-          <p className="text-sm text-blue-700">
-            En mode développement, les notifications PWA utilisent l'API native du navigateur. 
-            En production, elles utiliseraient le Service Worker pour une meilleure persistance.
-          </p>
-        </div>
+              {notif.actions && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Actions disponibles:</p>
+                  <div className="flex gap-2">
+                    {notif.actions.map((action, actionIndex) => (
+                      <Badge key={actionIndex} variant="outline" className="text-xs">
+                        {action.title}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Real-time notifications info */}
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-          <h4 className="font-medium text-green-900 mb-2">Notifications Temps Réel</h4>
-          <p className="text-sm text-green-700">
-            Le système génère automatiquement des notifications de géolocalisation. 
-            Consultez les logs du serveur pour voir les notifications PWA préparées.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+              <Button 
+                onClick={() => sendTestNotification(notif)}
+                disabled={permission !== 'granted'}
+                className="w-full"
+                variant={notif.priority === 'high' ? 'destructive' : 'default'}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Tester cette Notification
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Instructions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Instructions de Test</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-blue-800 mb-2">📱 Test sur Mobile (Android/iOS)</h4>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-blue-700">
+              <li>Installez EducAfric comme PWA depuis votre navigateur</li>
+              <li>Accordez la permission pour les notifications</li>
+              <li>Testez chaque type de notification ci-dessus</li>
+              <li>Vérifiez que les notifications apparaissent même quand l'app est fermée</li>
+            </ol>
+          </div>
+          
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-green-800 mb-2">🔔 Notifications Réelles</h4>
+            <p className="text-sm text-green-700">
+              Les notifications de géolocalisation se déclenchent automatiquement toutes les 30 secondes selon l'activité simulée. 
+              Connectez-vous comme Parent pour voir les alertes de sécurité en temps réel.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
