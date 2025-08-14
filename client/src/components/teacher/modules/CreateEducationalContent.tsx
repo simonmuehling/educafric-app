@@ -488,7 +488,7 @@ const CreateEducationalContent = () => {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
           <div className="text-2xl font-bold text-gray-800">24</div>
           <div className="text-sm text-gray-600">Leçons créées</div>
@@ -576,7 +576,7 @@ const CreateEducationalContent = () => {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">{t.subject}</label>
                 <select

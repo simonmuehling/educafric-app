@@ -220,7 +220,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center">
@@ -341,7 +341,7 @@ const FunctionalFreelancerPayments: React.FC = () => {
                           {getStatusBadge(payment.status)}
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
                           <div>
                             <p className="text-sm text-gray-500">{t?.payment?.invoice}</p>
                             <p className="font-medium">{payment.invoiceNumber}</p>

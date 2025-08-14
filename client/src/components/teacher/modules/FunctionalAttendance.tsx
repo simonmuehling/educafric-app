@@ -190,8 +190,8 @@ const FunctionalAttendance = () => {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Controls - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">{t.selectClass}</label>
           <select 
@@ -296,7 +296,7 @@ const FunctionalAttendance = () => {
                   </div>
                   
                   {/* Boutons de présence pour mobile */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
                     <Button
                       size="sm"
                       variant={status === 'present' ? 'default' : 'outline'}
@@ -401,7 +401,7 @@ const FunctionalAttendance = () => {
             <DialogTitle>Historique des Présences - {selectedClass.toUpperCase()}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="text-center p-4 bg-green-100 rounded-lg">
                 <div className="text-2xl font-bold text-green-800">92%</div>
                 <div className="text-sm text-green-600">Taux moyen de présence</div>

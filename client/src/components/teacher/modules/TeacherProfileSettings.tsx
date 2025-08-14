@@ -23,8 +23,8 @@ const TeacherProfileSettings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   
   const [profile, setProfile] = useState({
-    firstName: user?.username?.split(' ')[0] || '',
-    lastName: user?.username?.split(' ')[1] || '',
+    firstName: user?.name?.split(' ')[0] || '',
+    lastName: user?.name?.split(' ')[1] || '',
     email: user?.email || '',
     phone: '',
     address: '',
@@ -516,7 +516,7 @@ const TeacherProfileSettings = () => {
       </div>
 
       {/* Statistiques */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
           <div className="text-2xl font-bold text-gray-800">{profile.experience}</div>
           <div className="text-sm text-gray-600">Années d'expérience</div>

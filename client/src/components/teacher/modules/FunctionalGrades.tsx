@@ -244,8 +244,8 @@ const FunctionalGrades = () => {
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Controls - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">{t.selectClass}</label>
           <select 
@@ -285,7 +285,7 @@ const FunctionalGrades = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <ModernCard className="p-4 text-center activity-card-blue">
           <div className="text-2xl font-bold text-gray-800">{(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0)}</div>
           <div className="text-sm text-gray-600">Élèves</div>
@@ -441,7 +441,7 @@ const FunctionalGrades = () => {
             <DialogTitle>Historique des Notes - {selectedClass.toUpperCase()}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="text-center p-4 bg-blue-100 rounded-lg">
                 <div className="text-2xl font-bold text-blue-800">{classAverage.toFixed(1)}/20</div>
                 <div className="text-sm text-blue-600">Moyenne de classe</div>
@@ -479,7 +479,7 @@ const FunctionalGrades = () => {
           <DialogHeader>
             <DialogTitle>Statistiques Rapides - {selectedClass.toUpperCase()}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-3">
               <h4 className="font-medium">Répartition des notes :</h4>
               <div className="space-y-2">
@@ -526,7 +526,7 @@ const FunctionalGrades = () => {
               <DialogTitle>Contacter le Parent - {selectedStudent.name || ''}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Parent/Tuteur :</label>
                   <p className="text-lg font-medium">{selectedStudent.parentName}</p>

@@ -91,7 +91,7 @@ export const ParentPremiumServices = () => {
         </div>
 
         <div className="filter blur-sm pointer-events-none">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="bg-white rounded-xl p-6 border">
               <h4 className="font-semibold text-gray-800 mb-4">Analytics</h4>
               <div className="h-32 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg flex items-center justify-center">

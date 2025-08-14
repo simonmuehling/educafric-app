@@ -300,7 +300,7 @@ const BulletinGradeInput = () => {
 
       {/* Sélecteurs */}
       <ModernCard className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <Label htmlFor="class-select">{t.selectClass}</Label>
             <select
@@ -407,7 +407,7 @@ const BulletinGradeInput = () => {
                             </Badge>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div>
                               <Label htmlFor={`grade-${key}`}>{t.grade}{t.gradeRange}</Label>
                               <Input

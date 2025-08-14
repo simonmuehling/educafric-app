@@ -57,7 +57,7 @@ const ConsolidatedActions = ({ userRole = 'teacher' }) => {
   return (
     <div className="w-full max-w-6xl mx-auto">
       <Tabs value={activeAction} onValueChange={setActiveAction} className="w-full">
-        <TabsList className="grid grid-cols-6 mb-6">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mb-6">
           {(Array.isArray(actions) ? actions : []).map((action) => (
             <TabsTrigger key={action.id} value={action.id} className="flex items-center gap-2">
               {action.icon}

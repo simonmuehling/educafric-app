@@ -254,7 +254,7 @@ const ResourceManager = () => {
       </Card>
 
       {/* Resources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {(Array.isArray(filteredResources) ? filteredResources : []).map((resource) => (
           <Card key={resource.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-4">

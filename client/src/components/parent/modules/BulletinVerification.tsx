@@ -136,15 +136,15 @@ const BulletinVerification = () => {
 
   const t = text[language as keyof typeof text];
 
-  const verifyBulletinMutation = useMutation({
-    mutationFn: async (data: { qrCode?: string; verificationCode?: string; verificationType: string }) => {
+  const verifyBulletinMutation = useMutation<VerificationResult, Error, { qrCode?: string; verificationCode?: string; verificationType: string }>({
+    mutationFn: async (data: { qrCode?: string; verificationCode?: string; verificationType: string }): Promise<VerificationResult> => {
       const response = await apiRequest('POST', '/api/parent/verify-bulletin', {
         ...data,
         parentId: user?.id,
         ipAddress: '127?.0?.0.1', // Would be actual IP in production
         userAgent: navigator.userAgent
       });
-      return response;
+      return response as unknown as VerificationResult;
     },
     onSuccess: (data: VerificationResult) => {
       setVerificationResult(data);
@@ -220,7 +220,7 @@ const BulletinVerification = () => {
       {/* Comment ça marche */}
       <ModernCard className="p-6 bg-gradient-to-r from-blue-50 to-green-50">
         <h3 className="text-xl font-semibold mb-4 text-gray-900">{t.howItWorks}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="flex items-start gap-3 p-4 bg-white rounded-lg border">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
               1

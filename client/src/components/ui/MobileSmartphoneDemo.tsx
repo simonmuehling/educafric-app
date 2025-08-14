@@ -121,7 +121,7 @@ const MobileSmartphoneDemo: React.FC = () => {
       
       {/* Ultra-compact grid - 3 columns on mobile */}
       <div className="max-w-7xl mx-auto px-2 py-3">
-        <div className="grid grid-cols-3 gap-2 max-w-sm mx-auto">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 max-w-sm mx-auto">
           {(Array.isArray(modules) ? modules : []).map((module, index) => {
             const IconComponent = module.icon;
             const title = t.modules[module.id as keyof typeof t.modules];

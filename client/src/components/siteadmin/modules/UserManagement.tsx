@@ -247,14 +247,14 @@ const UserManagement = () => {
   };
 
   const renderUserStats = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
       <ModernCard className="p-6">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-blue-100 rounded-lg">
             <Users className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{userStats?.totalUsers || 0}</div>
+            <div className="text-2xl font-bold">{(userStats as any)?.totalUsers || 0}</div>
             <div className="text-sm text-gray-600">{t.totalUsers}</div>
           </div>
         </div>
@@ -266,7 +266,7 @@ const UserManagement = () => {
             <UserCheck className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{userStats?.activeUsers || 0}</div>
+            <div className="text-2xl font-bold">{(userStats as any)?.activeUsers || 0}</div>
             <div className="text-sm text-gray-600">{t.activeUsers}</div>
           </div>
         </div>
@@ -278,7 +278,7 @@ const UserManagement = () => {
             <UserPlus className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{userStats?.newThisMonth || 0}</div>
+            <div className="text-2xl font-bold">{(userStats as any)?.newThisMonth || 0}</div>
             <div className="text-sm text-gray-600">{t.newThisMonth}</div>
           </div>
         </div>
@@ -356,7 +356,7 @@ const UserManagement = () => {
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <p className="text-gray-600">Error loading users</p>
           </div>
-        ) : usersData?.users?.length === 0 ? (
+        ) : (usersData as any)?.users?.length === 0 ? (
           <div className="text-center py-8">
             <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">{t.noUsers}</p>
@@ -370,7 +370,7 @@ const UserManagement = () => {
                     type="checkbox"
                     onChange={(e) => {
                       if (e?.target?.checked) {
-                        setSelectedUsers(usersData?.users?.map((u: User) => u.id) || []);
+                        setSelectedUsers((usersData as any)?.users?.map((u: User) => u.id) || []);
                       } else {
                         setSelectedUsers([]);
                       }
@@ -386,7 +386,7 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {usersData?.users?.map((userData: User) => (
+              {(usersData as any)?.users?.map((userData: User) => (
                 <tr key={userData.id} className="border-b hover:bg-gray-50">
                   <td className="py-3 px-4">
                     <input
@@ -471,10 +471,10 @@ const UserManagement = () => {
       </div>
 
       {/* Pagination */}
-      {usersData?.totalPages > 1 && (
+      {(usersData as any)?.totalPages > 1 && (
         <div className="flex justify-center mt-6">
           <div className="flex gap-2">
-            {Array.from({ length: usersData.totalPages }, (_, i) => i + 1).map((page) => (
+            {Array.from({ length: (usersData as any)?.totalPages || 1 }, (_, i) => i + 1).map((page) => (
               <Button
                 key={page}
                 size="sm"

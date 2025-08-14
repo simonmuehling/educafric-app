@@ -602,7 +602,7 @@ const ReportCardManagement = () => {
                     <div key={subject} className="flex justify-between items-center p-3 border rounded-lg">
                       <span className="capitalize font-medium">{subject}</span>
                       <Badge className={getGradeLevel(Number(grade)).color + ' bg-white border'}>
-                        {grade}/20
+                        {String(grade)}/20
                       </Badge>
                     </div>
                   ))}
@@ -610,7 +610,7 @@ const ReportCardManagement = () => {
               </div>
 
               {/* Résumé */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-800">{currentBulletin?.average?.toFixed(1)}/20</div>
                   <div className="text-sm text-blue-600">Moyenne générale</div>

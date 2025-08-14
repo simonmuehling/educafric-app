@@ -228,7 +228,7 @@ const CommercialCRM = () => {
         <p className="text-gray-600 mb-6">{t.subtitle}</p>
         
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           {(Array.isArray(stats) ? stats : []).map((stat, index) => (
             <ModernStatsCard key={index} {...stat} />
           ))}
@@ -249,7 +249,7 @@ const CommercialCRM = () => {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -368,7 +368,7 @@ const CommercialCRM = () => {
                   <Input name="contactPerson" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t.phone}
@@ -390,7 +390,7 @@ const CommercialCRM = () => {
                   <Input name="address" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {t.status} *
