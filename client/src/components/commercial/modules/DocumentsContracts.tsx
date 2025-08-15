@@ -104,7 +104,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 2,
-      name: 'Guide Commercial Modules Premium/Freemium (FR/EN)',
+      name: 'Guide Commercial Modules Premium/Freemium EDUCAFRIC (FR/EN)',
       type: 'guide',
       category: 'marketing', 
       school: 'Équipe Commerciale',
@@ -113,7 +113,7 @@ const DocumentsContracts = () => {
       size: '15.3 KB',
       format: 'PDF',
       url: '/documents/guide-commercial-modules-premium.html',
-      description: 'Guide bilingue détaillé modules freemium vs premium : Écoles (6 modules bloqués), Parents (5 modules), Freelancers (8 modules) avec tarification réelle - Bilingual detailed guide for freemium vs premium modules: Schools (6 blocked modules), Parents (5 modules), Freelancers (8 modules) with real pricing'
+      description: 'Guide EDUCAFRIC Premium vs Gratuit - ÉCOLES: Accès limité gratuit vs Premium (gestion classes, rapports, paiements, analytics) - PARENTS: Suivi basique gratuit vs Premium (GPS temps réel, alertes, historique) - FREELANCERS: Profil simple gratuit vs Premium (géolocalisation, facturation, analytics, marketing) avec pricing réel /subscribe - EDUCAFRIC Premium vs Free Guide - SCHOOLS: Limited free access vs Premium (class management, reports, payments, analytics) - PARENTS: Basic tracking free vs Premium (real-time GPS, alerts, history) - FREELANCERS: Simple profile free vs Premium (geolocation, billing, analytics, marketing) with real /subscribe pricing'
     },
     {
       id: 26,
@@ -129,19 +129,19 @@ const DocumentsContracts = () => {
       description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
     },
     
-    // Proposal Request Documents - NEW
+    // Proposal Request Documents - FIXED URL
     {
       id: 50,
       name: 'Proposal Request - Parent/School Partnership',
       type: 'proposal',
       category: 'templates',
       school: 'Client Communication',
-      date: '2025-08-14',
+      date: '2025-08-15',
       status: 'finalized',
       size: '5.2 KB',
       format: 'PDF',
-      url: '/documents/parents_1755170063211.pdf',
-      description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 pricing'
+      url: '/documents/parents_1753390442002.pdf',
+      description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 real pricing from /subscribe'
     },
     
     // Partnership Contracts - UPDATED WITH REAL PRICING 2025
@@ -168,8 +168,8 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '50.1 KB',
       format: 'HTML',
-      url: '/documents/educafric-official-contract-2025-updated-en.html',
-      description: 'Updated official contract with real pricing - Public School: 250,000 CFA/year, Private School: 750,000 CFA/year, Enterprise School: 150,000 CFA/year, Freelancers: 120,000 CFA/year'
+      url: '/documents/educafric-contrat-officiel-2025-actualise.html',
+      description: 'Updated official contract with real pricing from /subscribe - Public School: 250,000 XAF/year, Private School: 750,000 XAF/year, Enterprise School: 150,000 XAF/year, Freelancers Professional: 120,000 XAF/year, Parents: 12,000-18,000 XAF/year'
     },
     {
       id: 28,
@@ -240,7 +240,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 3,
-      name: 'Tarifs et Plans Complets Français - Mise à Jour /subscribe',
+      name: 'Tarifs et Plans Complets Français - Depuis /subscribe',
       type: 'pricing',
       category: 'contracts',
       school: 'Documentation Officielle',
@@ -249,11 +249,11 @@ const DocumentsContracts = () => {
       size: '12.7 KB',
       format: 'PDF',
       url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Tarification complète EDUCAFRIC mise à jour depuis /subscribe : École Publique (250,000 CFA/an), École Privée (750,000 CFA/an), École Entreprise (150,000 CFA/an), Freelancers Professional (120,000 CFA/an), avec toutes les fonctionnalités détaillées'
+      description: 'Tarification complète EDUCAFRIC depuis /subscribe - ÉCOLES: Publique 250,000 XAF/an, Privée 750,000 XAF/an, Entreprise 150,000 XAF/an, GPS 25,000 XAF/an - PARENTS: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - FREELANCERS: Professionnel 120,000 XAF/an avec toutes fonctionnalités détaillées'
     },
     {
       id: 4,
-      name: 'Complete Pricing Plans English - Updated from /subscribe',
+      name: 'Complete Pricing Plans English - From /subscribe',
       type: 'pricing',
       category: 'contracts',
       school: 'Official Documentation',
@@ -262,7 +262,7 @@ const DocumentsContracts = () => {
       size: '11.9 KB',
       format: 'PDF',
       url: '/documents/customized-pricing-proposal-en.html',
-      description: 'Complete EDUCAFRIC pricing updated from /subscribe: Public School (250,000 CFA/year), Private School (750,000 CFA/year), Enterprise School (150,000 CFA/year), Freelancers Professional (120,000 CFA/year), with all detailed features'
+      description: 'Complete EDUCAFRIC pricing from /subscribe - SCHOOLS: Public 250,000 XAF/year, Private 750,000 XAF/year, Enterprise 150,000 XAF/year, GPS 25,000 XAF/year - PARENTS: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - FREELANCERS: Professional 120,000 XAF/year with all detailed features'
     },
     {
       id: 5,
@@ -275,7 +275,7 @@ const DocumentsContracts = () => {
       size: '11.2 KB',
       format: 'PDF',
       url: '/documents/notifications-system-educafric-fr.html',
-      description: 'SYSTÈME DE NOTIFICATIONS EDUCAFRIC COMPLET BILINGUE : SMS (Vonage), WhatsApp Business API, Email (Hostinger SMTP), Notifications Push PWA, alertes géolocalisation, notifications académiques, communications parents-écoles, templates bilingues contextuels - COMPLETE BILINGUAL EDUCAFRIC NOTIFICATION SYSTEM: SMS (Vonage), WhatsApp Business API, Email (Hostinger SMTP), PWA Push notifications, geolocation alerts, academic notifications, parent-school communications, contextual bilingual templates'
+      description: 'SYSTÈME COMPLET BILINGUE : SMS automatiques (Vonage API), WhatsApp Business intégré, Email (Hostinger SMTP), Notifications Push PWA, Alertes géolocalisation temps réel, Notifications notes/présence, Communications parents-écoles bidirectionnelles, Templates contextuels français/anglais - COMPLETE BILINGUAL SYSTEM: Automatic SMS (Vonage API), Integrated WhatsApp Business, Email (Hostinger SMTP), PWA Push notifications, Real-time geolocation alerts, Grade/attendance notifications, Bidirectional parent-school communications, Contextual French/English templates'
     },
     {
       id: 6,
@@ -288,7 +288,7 @@ const DocumentsContracts = () => {
       size: '8.7 KB',
       format: 'PDF',
       url: '/documents/geolocalisation-resume-educafric-fr.html',
-      description: 'Système de géolocalisation EDUCAFRIC COMPLET : GPS temps réel, zones de sécurité, géofencing, alertes automatiques SMS/WhatsApp/Email, historique complet, tracking tablettes/smartwatches/téléphones, optimisation itinéraires, automatisation présence, alertes urgence parents/écoles'
+      description: 'SYSTÈME GÉOLOCALISATION EDUCAFRIC : Suivi GPS temps réel élèves/personnel, Zones de sécurité configurables, Géofencing intelligent, Alertes automatiques SMS/WhatsApp/Email, Historique déplacements complet, Compatible tablettes/smartwatches/téléphones, Optimisation itinéraires bus scolaires, Automatisation présence classes, Boutons urgence, Rapports parents/écoles, Interface cartographie interactive'
     },
     {
       id: 7,
@@ -300,50 +300,11 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '8.2 KB',
       format: 'PDF',
-      url: '/documents/educafric-geolocation-complete-en.html',
-      description: 'COMPLETE EDUCAFRIC geolocation system: Real-time GPS, security zones, geofencing, automatic SMS/WhatsApp/Email alerts, full history, tablet/smartwatch/phone tracking, route optimization, attendance automation, emergency alerts for parents/schools'
-    },
-    {
-      id: 8,
-      name: 'Tarifs Complets Educafric',
-      type: 'pricing',
-      category: 'contracts',
-      school: 'Documentation Officielle',
-      date: '2025-01-15',
-      status: 'finalized',
-      size: '9.1 KB',
-      format: 'PDF',
-      url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Tarifs complets EDUCAFRIC 2025 actualisés avec prix réels : École Publique (25,000 CFA/an), École Privée (75,000 CFA/an), sans plan Entreprise'
+      url: '/documents/geolocalisation-resume-educafric-fr.html',
+      description: 'EDUCAFRIC GEOLOCATION SYSTEM: Real-time GPS tracking students/staff, Configurable safety zones, Smart geofencing, Automatic SMS/WhatsApp/Email alerts, Complete movement history, Compatible tablets/smartwatches/phones, School bus route optimization, Class attendance automation, Emergency buttons, Parent/school reports, Interactive mapping interface'
     },
 
-    // Documents PDF - Originaux partagés
-    {
-      id: 11,
-      name: 'Demande Établissement (PDF)',
-      type: 'form',
-      category: 'legal',
-      school: 'Administration',
-      date: '2025-01-20',
-      status: 'finalized',
-      size: '2.1 MB',
-      format: 'PDF',
-      url: '/documents/Demande_Etablissement_1753390157502.pdf',
-      description: 'Formulaire officiel de demande d\'adhésion pour établissements scolaires'
-    },
-    {
-      id: 12,
-      name: 'Demande Ministre (PDF)',
-      type: 'form',
-      category: 'legal',
-      school: 'Ministère',
-      date: '2025-01-20',
-      status: 'finalized',
-      size: '1.8 MB',
-      format: 'PDF',
-      url: '/documents/Demande_ministre-8_1753390184314.pdf',
-      description: 'Document officiel de demande ministérielle pour validation institutionnelle'
-    },
+    // Documents PDF - Publics pour commerciaux
     {
       id: 13,
       name: 'Documentation Parents (PDF)',
@@ -355,46 +316,7 @@ const DocumentsContracts = () => {
       size: '1.2 MB',
       format: 'PDF',
       url: '/documents/parents_1753390442002.pdf',
-      description: 'Guide pour parents : fonctionnalités, tarifs, avantages géolocalisation et suivi scolaire'
-    },
-    {
-      id: 14,
-      name: 'Contrat Partenariat Établissements-Freelancers 2025',
-      type: 'contract',
-      category: 'legal',
-      school: 'Partenariats',
-      date: '2025-01-25',
-      status: 'finalized',
-      size: '2.5 MB',
-      format: 'PDF',
-      url: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf',
-      description: 'Contrat officiel de partenariat entre établissements scolaires et freelancers/répétiteurs'
-    },
-    {
-      id: 15,
-      name: 'Educafric - Document Commercial (PDF)',
-      type: 'brochure',
-      category: 'marketing',
-      school: 'Présentation Commerciale',
-      date: '2025-01-28',
-      status: 'finalized',
-      size: '270 KB',
-      format: 'PDF',
-      url: '/documents/Educafric_Document_Commercial.pdf',
-      description: 'Brochure commerciale améliorée Educafric avec argumentaires de vente complets'
-    },
-    {
-      id: 16,
-      name: 'Educafric - Présentation Officielle (PDF)',
-      type: 'presentation',
-      category: 'marketing',
-      school: 'Présentation Officielle',
-      date: '2025-01-28',
-      status: 'finalized',
-      size: '16.9 MB',
-      format: 'PDF',
-      url: '/documents/Educafric_Presentation.pdf',
-      description: 'Présentation officielle de la plateforme Educafric pour partenaires et investisseurs'
+      description: 'Guide EDUCAFRIC pour parents : fonctionnalités géolocalisation, notifications temps réel, suivi scolaire, tarifs réels 2025'
     },
 
     // Nouveaux documents bilingues requis
@@ -464,32 +386,6 @@ const DocumentsContracts = () => {
       description: 'Kit complet de prospection avec argumentaires et objections'
     },
     {
-      id: 23,
-      name: 'Proposition Tarifaire Personnalisée (FR)',
-      type: 'quote',
-      category: 'contracts',
-      school: 'Propositions Commerciales',
-      date: '2025-08-11',
-      status: 'draft',
-      size: '892 KB',
-      format: 'HTML',
-      url: '/documents/proposition-tarifaire-personnalisee-fr.html',
-      description: 'Template de proposition tarifaire personnalisée pour prospects - Version française'
-    },
-    {
-      id: 24,
-      name: 'Customized Pricing Proposal (EN)',
-      type: 'quote',
-      category: 'contracts',
-      school: 'Commercial Proposals',
-      date: '2025-08-11',
-      status: 'draft',
-      size: '867 KB',
-      format: 'HTML',
-      url: '/documents/customized-pricing-proposal-en.html',
-      description: 'Customized pricing proposal template for prospects - English version'
-    },
-    {
       id: 25,
       name: 'ARGUMENTAIRE DE VENTE EDUCAFRIC COMPLET (FR/EN) - LARGE VERSION',
       type: 'presentation',
@@ -528,45 +424,6 @@ const DocumentsContracts = () => {
       url: '/documents/tarifs-complets-educafric-2025.html',
       description: 'Tarifs détaillés pour géolocalisation, abonnements et services - Cameroun 2025'
     },
-    {
-      id: 28,
-      name: 'Notifications System (EN)',
-      type: 'guide',
-      category: 'technical',
-      school: 'Technical Documentation',
-      date: '2025-08-11',
-      status: 'finalized',
-      size: '345 KB',
-      format: 'PDF',
-      url: '/documents/educafric-sales-pitch-en.html',
-      description: 'Complete notification system documentation - English version'
-    },
-    {
-      id: 29,
-      name: 'Géolocalisation Résumé (FR)',
-      type: 'guide',
-      category: 'training',
-      school: 'Formation',
-      date: '2025-08-11',
-      status: 'finalized',
-      size: '267 KB',
-      format: 'PDF',
-      url: '/documents/brochure-commerciale-educafric-fr.html',
-      description: 'Résumé complet du système de géolocalisation - Version française'
-    },
-    {
-      id: 30,
-      name: 'Geolocation Summary (EN)',
-      type: 'guide',
-      category: 'training',
-      school: 'Training',
-      date: '2025-08-11',
-      status: 'finalized',
-      size: '245 KB',
-      format: 'PDF',
-      url: '/documents/educafric-commercial-brochure-en.html',
-      description: 'Complete geolocation system summary - English version'
-    }
   ];
 
   const filteredDocuments = documents.filter(doc => {
