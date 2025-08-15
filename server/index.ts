@@ -55,6 +55,20 @@ app.use(bundleOptimizationMiddleware);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Fix Service Worker MIME type
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile('sw.js', { root: 'public' });
+});
+
+// Fix manifest MIME type
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile('manifest.json', { root: 'public' });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
