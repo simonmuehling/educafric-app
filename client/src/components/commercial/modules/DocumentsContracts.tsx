@@ -147,7 +147,7 @@ const DocumentsContracts = () => {
     // Partnership Contracts - UPDATED WITH REAL PRICING 2025
     {
       id: 27,
-      name: 'EDUCAFRIC Contrat Officiel 2025 Actualisé',
+      name: 'EDUCAFRIC Contrat Officiel 2025 Actualisé (FR)',
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
@@ -156,7 +156,20 @@ const DocumentsContracts = () => {
       size: '52.3 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Contrat officiel actualisé avec prix réels - École Publique: 25.000 CFA/an, École Privée: 75.000 CFA/an, Freelancers: 12.500-25.000 CFA'
+      description: 'Contrat officiel actualisé avec prix réels - École Publique: 250,000 CFA/an, École Privée: 750,000 CFA/an, École Entreprise: 150,000 CFA/an, Freelancers: 120,000 CFA/an'
+    },
+    {
+      id: 53,
+      name: 'EDUCAFRIC Official Contract 2025 Updated (EN)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'All Partners',
+      date: '2025-08-15',
+      status: 'finalized',
+      size: '50.1 KB',
+      format: 'HTML',
+      url: '/documents/educafric-official-contract-2025-updated-en.html',
+      description: 'Updated official contract with real pricing - Public School: 250,000 CFA/year, Private School: 750,000 CFA/year, Enterprise School: 150,000 CFA/year, Freelancers: 120,000 CFA/year'
     },
     {
       id: 28,
@@ -170,32 +183,6 @@ const DocumentsContracts = () => {
       format: 'HTML',
       url: '/documents/contrat-commercial-educafric-2025-actualise.html',
       description: 'Contrat commercial actualisé pour ventes - Toutes les offres avec tarification réelle et remises familiales'
-    },
-    {
-      id: 51,
-      name: 'Contrat Partenariat Établissements-Freelancers-Parents 2025 Actualisé',
-      type: 'contract',
-      category: 'contracts',
-      school: 'Tous Partenaires',
-      date: '2025-01-15',
-      status: 'finalized',
-      size: '56.2 KB',
-      format: 'HTML',
-      url: '/documents/contrat-partenariat-etablissements-freelancers-parents-2025-actualise.html',
-      description: 'Contrat de partenariat complet actualisé avec tarification réelle pour écoles, freelancers et parents'
-    },
-    {
-      id: 52,
-      name: 'Partnership Contract Schools-Freelancers-Parents 2025 (English Updated)',
-      type: 'contract',
-      category: 'contracts',
-      school: 'All Partners',
-      date: '2025-01-15',
-      status: 'finalized',
-      size: '54.1 KB',
-      format: 'HTML',
-      url: '/documents/partnership-contract-schools-freelancers-parents-2025-en.html',
-      description: 'Updated English partnership contract with real pricing for schools, freelancers and parents - No Enterprise plans'
     },
     
     // Bulk Import Templates - NEW
