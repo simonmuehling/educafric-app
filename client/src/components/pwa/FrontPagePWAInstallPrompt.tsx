@@ -94,10 +94,10 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         // Ignore localStorage errors on restricted devices
       }
 
-      // Reduced delay for faster interaction on slow devices
+      // 3 seconds delay as preferred by user
       setTimeout(() => {
         setIsVisible(true);
-      }, 1500);
+      }, 3000);
     };
 
     checkInstallation();
