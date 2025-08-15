@@ -134,7 +134,7 @@ const EducafricFooter = () => {
         {/* Bottom Section */}
         <div className="border-t border-border pt-8">
           <div className="text-sm text-muted-foreground text-center">
-            © {new Date().getFullYear()} Educafric. {t.allRightsReserved}<br />
+            © {new Date().getFullYear()} Afro Metaverse marketing Sarl (RC/YAE/2023/B1361) - Educafric. {t.allRightsReserved}<br />
             {t.euCompliance}
           </div>
         </div>

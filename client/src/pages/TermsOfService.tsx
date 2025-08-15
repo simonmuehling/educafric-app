@@ -11,7 +11,7 @@ const TermsOfService = () => {
       sections: {
         intro: {
           title: 'Agreement to Terms',
-          content: 'By accessing and using Educafric ("Service"), you accept and agree to be bound by the terms and provision of this agreement. This Service is provided by Educafric, located in Cameroon, Central Africa.'
+          content: 'By accessing and using Educafric ("Service"), you accept and agree to be bound by the terms and provision of this agreement. This Service is provided by Afro Metaverse marketing Sarl (RC/YAE/2023/B1361), the company operating Educafric, located in Cameroon, Central Africa.'
         },
         description: {
           title: 'Description of Service',
@@ -116,7 +116,7 @@ const TermsOfService = () => {
         },
         intellectualProperty: {
           title: 'Intellectual Property',
-          content: 'The Service and its original content, features, and functionality are owned by Educafric and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.'
+          content: 'The Service and its original content, features, and functionality are owned by Afro Metaverse marketing Sarl (RC/YAE/2023/B1361) and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.'
         },
         termination: {
           title: 'Termination',
@@ -135,7 +135,7 @@ const TermsOfService = () => {
         },
         limitation: {
           title: 'Limitation of Liability',
-          content: 'In no event shall Educafric be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.'
+          content: 'In no event shall Afro Metaverse marketing Sarl (RC/YAE/2023/B1361) be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses.'
         },
         governing: {
           title: 'Governing Law',
@@ -163,7 +163,7 @@ const TermsOfService = () => {
       sections: {
         intro: {
           title: 'Accord aux Conditions',
-          content: 'En accédant et en utilisant Educafric ("Service"), vous acceptez et vous engagez à être lié par les termes et dispositions de cet accord. Ce Service est fourni par Educafric, situé au Cameroun, Afrique Centrale.'
+          content: 'En accédant et en utilisant Educafric ("Service"), vous acceptez et vous engagez à être lié par les termes et dispositions de cet accord. Ce Service est fourni par Afro Metaverse marketing Sarl (RC/YAE/2023/B1361), la société qui exploite Educafric, située au Cameroun, Afrique Centrale.'
         },
         description: {
           title: 'Description du Service',
@@ -268,7 +268,7 @@ const TermsOfService = () => {
         },
         intellectualProperty: {
           title: 'Propriété Intellectuelle',
-          content: 'Le Service et son contenu original, ses fonctionnalités sont la propriété d\'Educafric et sont protégés par les lois internationales de droit d\'auteur, marque déposée, brevet, secret commercial et autres lois de propriété intellectuelle.'
+          content: 'Le Service et son contenu original, ses fonctionnalités sont la propriété d\'Afro Metaverse marketing Sarl (RC/YAE/2023/B1361) et sont protégés par les lois internationales de droit d\'auteur, marque déposée, brevet, secret commercial et autres lois de propriété intellectuelle.'
         },
         termination: {
           title: 'Résiliation',
@@ -286,7 +286,7 @@ const TermsOfService = () => {
         },
         limitation: {
           title: 'Limitation de Responsabilité',
-          content: 'En aucun cas Educafric ne sera responsable de dommages indirects, accessoires, spéciaux, consécutifs ou punitifs, incluant sans limitation, la perte de profits, données, usage, goodwill ou autres pertes intangibles.'
+          content: 'En aucun cas Afro Metaverse marketing Sarl (RC/YAE/2023/B1361) ne sera responsable de dommages indirects, accessoires, spéciaux, consécutifs ou punitifs, incluant sans limitation, la perte de profits, données, usage, goodwill ou autres pertes intangibles.'
         },
         governing: {
           title: 'Loi Applicable',

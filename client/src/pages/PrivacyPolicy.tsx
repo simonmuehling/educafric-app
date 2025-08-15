@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
       sections: {
         intro: {
           title: 'Introduction',
-          content: 'Educafric ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our educational technology platform, including our mobile application and web services.'
+          content: 'Afro Metaverse marketing Sarl (RC/YAE/2023/B1361), operating Educafric ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our educational technology platform, including our mobile application and web services.'
         },
         dataCollection: {
           title: 'Information We Collect',
@@ -123,7 +123,7 @@ const PrivacyPolicy = () => {
       sections: {
         intro: {
           title: 'Introduction',
-          content: 'Educafric ("nous", "notre" ou "nos") s\'engage à protéger votre vie privée. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre plateforme de technologie éducative, y compris notre application mobile et nos services web.'
+          content: 'Afro Metaverse marketing Sarl (RC/YAE/2023/B1361), exploitant Educafric ("nous", "notre" ou "nos") s\'engage à protéger votre vie privée. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre plateforme de technologie éducative, y compris notre application mobile et nos services web.'
         },
         dataCollection: {
           title: 'Informations que Nous Collectons',
