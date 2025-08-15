@@ -113,7 +113,7 @@ const DocumentsContracts = () => {
       size: '15.3 KB',
       format: 'PDF',
       url: '/documents/guide-commercial-modules-premium.html',
-      description: 'Guide EDUCAFRIC Premium vs Gratuit - ÉCOLES: Accès limité gratuit vs Premium (gestion classes, rapports, paiements, analytics) - PARENTS: Suivi basique gratuit vs Premium (GPS temps réel, alertes, historique) - FREELANCERS: Profil simple gratuit vs Premium (géolocalisation, facturation, analytics, marketing) avec pricing réel /subscribe - EDUCAFRIC Premium vs Free Guide - SCHOOLS: Limited free access vs Premium (class management, reports, payments, analytics) - PARENTS: Basic tracking free vs Premium (real-time GPS, alerts, history) - FREELANCERS: Simple profile free vs Premium (geolocation, billing, analytics, marketing) with real /subscribe pricing'
+      description: 'Guide EDUCAFRIC Premium vs Gratuit - ÉCOLES: Publique 250,000 XAF/an, Privée 750,000 XAF/an, Entreprise 150,000 XAF/an, GPS 25,000 XAF/an - PARENTS: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an (1,000-1,500 XAF/mois) - FREELANCERS: Professionnel 120,000 XAF/an (12,000 XAF/mois) - EDUCAFRIC Premium vs Free Guide - SCHOOLS: Public 250,000 XAF/year, Private 750,000 XAF/year, Enterprise 150,000 XAF/year, GPS 25,000 XAF/year - PARENTS: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year (1,000-1,500 XAF/month) - FREELANCERS: Professional 120,000 XAF/year (12,000 XAF/month)'
     },
     {
       id: 26,
@@ -141,7 +141,7 @@ const DocumentsContracts = () => {
       size: '5.2 KB',
       format: 'PDF',
       url: '/documents/parents_1753390442002.pdf',
-      description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 real pricing from /subscribe'
+      description: 'Demande de proposition officielle écoles/parents : Services Educafric, géolocalisation, notifications SMS, tarifs réels 2025 - Écoles: 150,000-750,000 XAF/an, Parents: 12,000-18,000 XAF/an, Freelancers: 120,000 XAF/an - Official proposal request schools/parents: Educafric services, geolocation, SMS notifications, real 2025 pricing - Schools: 150,000-750,000 XAF/year, Parents: 12,000-18,000 XAF/year, Freelancers: 120,000 XAF/year'
     },
     
     // Partnership Contracts - UPDATED WITH REAL PRICING 2025
@@ -156,7 +156,7 @@ const DocumentsContracts = () => {
       size: '52.3 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Contrat officiel actualisé avec prix réels - École Publique: 250,000 CFA/an, École Privée: 750,000 CFA/an, École Entreprise: 150,000 CFA/an, Freelancers: 120,000 CFA/an'
+      description: 'Contrat officiel actualisé avec prix réels 2025 - École Publique: 250,000 XAF/an, École Privée: 750,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 25,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 120,000 XAF/an'
     },
     {
       id: 53,
@@ -169,7 +169,7 @@ const DocumentsContracts = () => {
       size: '50.1 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Updated official contract with real pricing from /subscribe - Public School: 250,000 XAF/year, Private School: 750,000 XAF/year, Enterprise School: 150,000 XAF/year, Freelancers Professional: 120,000 XAF/year, Parents: 12,000-18,000 XAF/year'
+      description: 'Updated official contract with complete real pricing from /subscribe - Public School: 250,000 XAF/year, Private School: 750,000 XAF/year, Enterprise School: 150,000 XAF/year, School GPS: 25,000 XAF/year - Parents: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - Freelancers Professional: 120,000 XAF/year (12,000 XAF/month)'
     },
     {
       id: 28,
@@ -182,7 +182,7 @@ const DocumentsContracts = () => {
       size: '48.7 KB',
       format: 'HTML',
       url: '/documents/contrat-commercial-educafric-2025-actualise.html',
-      description: 'Contrat commercial actualisé pour ventes - Toutes les offres avec tarification réelle et remises familiales'
+      description: 'Contrat commercial actualisé pour ventes avec tarification réelle 2025 - Écoles: 150,000-750,000 XAF/an selon type - Parents: 12,000-18,000 XAF/an selon école - Freelancers: 120,000 XAF/an - Remises familiales et packages multiples disponibles'
     },
     
     // Bulk Import Templates - NEW
@@ -249,7 +249,7 @@ const DocumentsContracts = () => {
       size: '12.7 KB',
       format: 'PDF',
       url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Tarification complète EDUCAFRIC depuis /subscribe - ÉCOLES: Publique 250,000 XAF/an, Privée 750,000 XAF/an, Entreprise 150,000 XAF/an, GPS 25,000 XAF/an - PARENTS: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - FREELANCERS: Professionnel 120,000 XAF/an avec toutes fonctionnalités détaillées'
+      description: 'Tarification complète EDUCAFRIC depuis /subscribe réelle 2025 - ÉCOLES: Publique 250,000 XAF/an (illimité étudiants), Privée 750,000 XAF/an (analytics+WhatsApp), Entreprise 150,000 XAF/an (bilingue+ROI), GPS 25,000 XAF/an - PARENTS: Publique 12,000 XAF/an (1,000 XAF/mois), Privée 18,000 XAF/an (1,500 XAF/mois), GPS 12,000 XAF/an (1,000 XAF/mois) - FREELANCERS: Professionnel 120,000 XAF/an (12,000 XAF/mois) avec géolocalisation, facturation, analytics, marketing digital'
     },
     {
       id: 4,
@@ -262,7 +262,7 @@ const DocumentsContracts = () => {
       size: '11.9 KB',
       format: 'PDF',
       url: '/documents/customized-pricing-proposal-en.html',
-      description: 'Complete EDUCAFRIC pricing from /subscribe - SCHOOLS: Public 250,000 XAF/year, Private 750,000 XAF/year, Enterprise 150,000 XAF/year, GPS 25,000 XAF/year - PARENTS: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - FREELANCERS: Professional 120,000 XAF/year with all detailed features'
+      description: 'Complete EDUCAFRIC pricing from /subscribe real 2025 - SCHOOLS: Public 250,000 XAF/year (unlimited students), Private 750,000 XAF/year (analytics+WhatsApp), Enterprise 150,000 XAF/year (bilingual+ROI), GPS 25,000 XAF/year - PARENTS: Public 12,000 XAF/year (1,000 XAF/month), Private 18,000 XAF/year (1,500 XAF/month), GPS 12,000 XAF/year (1,000 XAF/month) - FREELANCERS: Professional 120,000 XAF/year (12,000 XAF/month) with geolocation, billing, analytics, digital marketing'
     },
     {
       id: 5,
@@ -316,7 +316,7 @@ const DocumentsContracts = () => {
       size: '1.2 MB',
       format: 'PDF',
       url: '/documents/parents_1753390442002.pdf',
-      description: 'Guide EDUCAFRIC pour parents : fonctionnalités géolocalisation, notifications temps réel, suivi scolaire, tarifs réels 2025'
+      description: 'Guide EDUCAFRIC pour parents : fonctionnalités géolocalisation, notifications temps réel, suivi scolaire, tarifs réels 2025 - Parent École Publique: 12,000 XAF/an, Parent École Privée: 18,000 XAF/an, Parent GPS: 12,000 XAF/an'
     },
 
     // Nouveaux documents bilingues requis
@@ -422,7 +422,7 @@ const DocumentsContracts = () => {
       size: '234 KB',
       format: 'PDF',
       url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Tarifs détaillés pour géolocalisation, abonnements et services - Cameroun 2025'
+      description: 'Tarifs détaillés réels depuis /subscribe - Cameroun 2025 - Écoles: Publique 250,000 XAF, Privée 750,000 XAF, Entreprise 150,000 XAF, GPS 25,000 XAF - Parents: Publique 12,000 XAF, Privée 18,000 XAF, GPS 12,000 XAF - Freelancers: 120,000 XAF/an - Géolocalisation, abonnements et services complets'
     },
   ];
 
