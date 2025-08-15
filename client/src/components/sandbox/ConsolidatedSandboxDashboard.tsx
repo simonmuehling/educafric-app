@@ -29,6 +29,7 @@ import NotificationTester from './NotificationTester';
 import EnhancedGeolocationDashboard from '../geolocation/EnhancedGeolocationDashboard';
 import { SandboxAutoscaleIndicator } from './SandboxAutoscaleIndicator';
 import { AutoscaleServerIntegration } from './AutoscaleServerIntegration';
+import PWAInstallationDiagnostic from '../pwa/PWAInstallationDiagnostic';
 
 
 interface SystemMetrics {
@@ -426,6 +427,11 @@ const ConsolidatedSandboxDashboard = () => {
       id: 'enhanced-geolocation',
       label: language === 'fr' ? 'Géolocalisation Avancée' : 'Enhanced Geolocation',
       icon: <Shield className="w-4 h-4" />
+    },
+    {
+      id: 'pwa-diagnostic',
+      label: language === 'fr' ? 'Installation PWA' : 'PWA Installation',
+      icon: <Download className="w-4 h-4" />
     }
   ];
 
@@ -713,6 +719,10 @@ const ConsolidatedSandboxDashboard = () => {
 
           <TabsContent value="enhanced-geolocation">
             <EnhancedGeolocationDashboard />
+          </TabsContent>
+
+          <TabsContent value="pwa-diagnostic">
+            <PWAInstallationDiagnostic />
           </TabsContent>
 
         </Tabs>

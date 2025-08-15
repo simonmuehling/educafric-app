@@ -157,12 +157,32 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         
         if (choiceResult.outcome === 'accepted') {
           console.log('[PWA] Installation accepted');
+          localStorage.setItem('pwa-installation-accepted', 'true');
+          
+          // Show success message
+          const successMessage = popupLanguage === 'fr' ? 
+            'EDUCAFRIC installé avec succès!\n\nVous devriez voir l\'icône sur votre écran d\'accueil dans quelques secondes.\n\nSi ce n\'est pas le cas, cherchez "EDUCAFRIC" dans votre liste d\'applications.' :
+            'EDUCAFRIC installed successfully!\n\nYou should see the icon on your home screen in a few seconds.\n\nIf not, look for "EDUCAFRIC" in your apps list.';
+          
+          setTimeout(() => {
+            alert(successMessage);
+          }, 1000);
+          
           setIsVisible(false);
+        } else {
+          console.log('[PWA] Installation declined');
         }
         
         setDeferredPrompt(null);
       } catch (error) {
         console.error('[PWA] Installation error:', error);
+        
+        // Show error with manual instructions
+        const errorMessage = popupLanguage === 'fr' ?
+          'Erreur d\'installation automatique.\n\nPour installer manuellement :\n1. Menu navigateur (⋮)\n2. "Installer EDUCAFRIC" ou "Ajouter à l\'écran"' :
+          'Automatic installation error.\n\nTo install manually:\n1. Browser menu (⋮)\n2. "Install EDUCAFRIC" or "Add to screen"';
+        
+        alert(errorMessage);
       } finally {
         setIsInstalling(false);
       }
