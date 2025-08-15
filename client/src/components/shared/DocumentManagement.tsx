@@ -362,11 +362,11 @@ const DocumentManagement: React.FC = () => {
   // Mappings des documents vers les fichiers réellement disponibles
   const getDocumentUrl = (docId: number): string => {
     const mappings: { [key: number]: string } = {
-      1: '/documents/guide-notifications-educafric.pdf',
-      2: '/documents/tarifs-plans-francais.pdf',
-      3: '/documents/pricing-plans-english.pdf',
-      4: '/documents/notifications-system-francais.pdf',
-      5: '/documents/notifications-system-english.pdf',
+      1: '/documents/argumentaire-vente-educafric-fr.html',
+      2: '/documents/tarifs-complets-educafric-2025.html',
+      3: '/documents/customized-pricing-proposal-en.html',
+      4: '/documents/brochure-commerciale-educafric-fr.html',
+      5: '/documents/educafric-commercial-brochure-en.html',
       6: '/documents/contrat-partenariat-commercial-fr.html',
       7: '/documents/Demande_Etablissement_1753390157502.pdf',
       8: '/documents/Demande_ministre-8_1753390184314.pdf',
@@ -377,9 +377,9 @@ const DocumentManagement: React.FC = () => {
       13: '/documents/educafric-sales-pitch-en.html',
       14: '/documents/proposition-tarifaire-personnalisee-fr.html',
       15: '/documents/customized-pricing-proposal-en.html',
-      16: '/documents/geolocalisation-resume-francais.pdf',
-      17: '/documents/geolocation-summary-english.pdf',
-      18: '/documents/kit-prospection-educafric-complet.pdf',
+      16: '/documents/brochure-commerciale-educafric-fr.html',
+      17: '/documents/educafric-commercial-brochure-en.html',
+      18: '/documents/guide-commercial-modules-premium.html',
       19: '/documents/Educafric_Document_Commercial.pdf',
       20: '/documents/Educafric_Presentation.pdf',
       21: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf'
