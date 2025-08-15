@@ -62,57 +62,89 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
     setPopupLanguage(prev => prev === 'fr' ? 'en' : 'fr');
   };
 
-  // Check if PWA is already installed
+  // Check if PWA is already installed - Optimized for low-end devices
   useEffect(() => {
     const checkInstallation = () => {
-      // Check various installation indicators
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isWebkit = (navigator as any).standalone;
-      const isAndroid = document.referrer.includes('android-app://');
-      
-      if (isStandalone || isWebkit || isAndroid) {
-        setIsInstalled(true);
-        return;
-      }
-
-      // Check localStorage for dismissal (24 hours)
-      const dismissed = localStorage.getItem('pwa-frontpage-dismissed');
-      if (dismissed) {
-        const dismissedTime = parseInt(dismissed);
-        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-        if (dismissedTime > oneDayAgo) {
-          return; // Still dismissed
+      // Simplified installation check for low-end devices
+      try {
+        const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+        const isWebkit = (navigator as any).standalone;
+        const isAndroid = document.referrer && document.referrer.includes('android-app://');
+        
+        if (isStandalone || isWebkit || isAndroid) {
+          setIsInstalled(true);
+          return;
         }
+      } catch (e) {
+        // Ignore errors on older browsers
+        console.log('[PWA] Installation check failed on older browser');
       }
 
-      // Show after 3 seconds delay
+      // Relaxed dismissal check - only 2 hours for low-end users
+      try {
+        const dismissed = localStorage.getItem('pwa-frontpage-dismissed');
+        if (dismissed) {
+          const dismissedTime = parseInt(dismissed);
+          const twoHoursAgo = Date.now() - (2 * 60 * 60 * 1000);
+          if (dismissedTime > twoHoursAgo) {
+            return; // Still dismissed
+          }
+        }
+      } catch (e) {
+        // Ignore localStorage errors on restricted devices
+      }
+
+      // Reduced delay for faster interaction on slow devices
       setTimeout(() => {
         setIsVisible(true);
-      }, 3000);
+      }, 1500);
     };
 
     checkInstallation();
   }, []);
 
-  // Listen for beforeinstallprompt event
+  // Listen for beforeinstallprompt event - Enhanced for low-end devices
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as PWAInstallEvent);
+      try {
+        e.preventDefault();
+        setDeferredPrompt(e as PWAInstallEvent);
+        console.log('[PWA] Install prompt captured for low-end device');
+      } catch (error) {
+        // Ignore errors on older browsers but still try to capture
+        setDeferredPrompt(e as PWAInstallEvent);
+      }
     };
 
     const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setIsVisible(false);
-      setDeferredPrompt(null);
+      try {
+        setIsInstalled(true);
+        setIsVisible(false);
+        setDeferredPrompt(null);
+        // Store success for future reference
+        localStorage.setItem('pwa-installed', 'true');
+      } catch (error) {
+        // Ignore localStorage errors
+        setIsInstalled(true);
+        setIsVisible(false);
+      }
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+    // Enhanced event listening for older browsers
+    try {
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.addEventListener('appinstalled', handleAppInstalled);
+    } catch (error) {
+      console.log('[PWA] Event listeners not supported on this device');
+    }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
+      try {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      } catch (error) {
+        // Ignore cleanup errors
+      }
     };
   }, []);
 
@@ -135,66 +167,89 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         setIsInstalling(false);
       }
     } else {
-      // Direct installation attempt - trigger browser's install UI
+      // Enhanced installation for low-end devices with relaxed security
       setIsInstalling(true);
       
       try {
-        // Try to trigger installation event artificially
-        const installEvent = new Event('beforeinstallprompt');
-        window.dispatchEvent(installEvent);
+        // Multiple installation attempts for better compatibility
         
-        // For Chrome/Edge - try to trigger installation dialog
-        if ((window as any).chrome || navigator.userAgent.includes('Edge')) {
-          // Hide popup and show instructions to user
+        // Method 1: Try artificial event trigger (works on some older browsers)
+        try {
+          const installEvent = new Event('beforeinstallprompt');
+          window.dispatchEvent(installEvent);
+        } catch (e) {
+          console.log('[PWA] Event trigger not supported');
+        }
+        
+        // Method 2: Try service worker registration as installation hint
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/sw.js').catch(() => {
+            // Ignore SW registration failures
+          });
+        }
+        
+        // Method 3: Direct browser-specific guidance
+        const userAgent = navigator.userAgent.toLowerCase();
+        
+        // Enhanced Chrome/Edge support (most Android low-end devices)
+        if (userAgent.includes('chrome') || userAgent.includes('edge') || userAgent.includes('android')) {
           setIsVisible(false);
           
-          // Show a more direct message
-          if (popupLanguage === 'fr') {
-            // Try opening chrome://flags or directing to menu
-            setTimeout(() => {
-              if (confirm('Voulez-vous installer EDUCAFRIC maintenant?\n\nCliquez OK puis cherchez "Installer EDUCAFRIC" dans le menu Chrome (⋮).')) {
-                // Focus on the address bar to help user see install icon
-                (document.querySelector('input[type="url"]') as HTMLInputElement)?.focus?.();
-              }
-            }, 100);
-          } else {
-            setTimeout(() => {
-              if (confirm('Do you want to install EDUCAFRIC now?\n\nClick OK then look for "Install EDUCAFRIC" in the Chrome menu (⋮).')) {
-                (document.querySelector('input[type="url"]') as HTMLInputElement)?.focus?.();
-              }
-            }, 100);
-          }
+          const message = popupLanguage === 'fr' ? 
+            'EDUCAFRIC peut être installé!\n\n📱 Cherchez "Installer" ou "Ajouter à l\'écran" dans votre navigateur.\n\n✅ Accès plus rapide\n🔔 Notifications\n📶 Fonctionne sans internet' :
+            'EDUCAFRIC can be installed!\n\n📱 Look for "Install" or "Add to Home Screen" in your browser.\n\n✅ Faster access\n🔔 Notifications\n📶 Works offline';
+          
+          setTimeout(() => {
+            if (confirm(message)) {
+              // Try to highlight install option in address bar
+              try {
+                document.body.style.border = '3px solid #007bff';
+                setTimeout(() => {
+                  document.body.style.border = '';
+                }, 3000);
+              } catch (e) {}
+            }
+          }, 100);
           
           setIsInstalling(false);
           return;
         }
         
-        // For Safari - direct instructions
-        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+        // Enhanced Safari support (iOS low-end devices)
+        if (userAgent.includes('safari') || userAgent.includes('iphone') || userAgent.includes('ipad')) {
           setIsVisible(false);
           
-          if (popupLanguage === 'fr') {
-            setTimeout(() => {
-              alert('Pour installer EDUCAFRIC:\n\n1. Appuyez sur le bouton Partager (⬆️)\n2. Sélectionnez "Sur l\'écran d\'accueil"\n3. Appuyez sur "Ajouter"');
-            }, 100);
-          } else {
-            setTimeout(() => {
-              alert('To install EDUCAFRIC:\n\n1. Tap the Share button (⬆️)\n2. Select "Add to Home Screen"\n3. Tap "Add"');
-            }, 100);
-          }
+          const message = popupLanguage === 'fr' ? 
+            'Installation EDUCAFRIC:\n\n1. Bouton Partager (⬆️ en bas)\n2. "Sur l\'écran d\'accueil"\n3. "Ajouter"\n\n📱 L\'app sera sur votre écran!' :
+            'Install EDUCAFRIC:\n\n1. Share button (⬆️ at bottom)\n2. "Add to Home Screen"\n3. "Add"\n\n📱 App will be on your screen!';
+          
+          setTimeout(() => {
+            alert(message);
+          }, 100);
           
           setIsInstalling(false);
           return;
         }
         
-        // Close popup and direct user to browser menu
+        // Generic fallback for any browser
         setIsVisible(false);
+        const genericMessage = popupLanguage === 'fr' ? 
+          'EDUCAFRIC peut être installé comme application!\n\nCherchez "Installer", "Ajouter" ou "App" dans le menu de votre navigateur.' :
+          'EDUCAFRIC can be installed as an app!\n\nLook for "Install", "Add" or "App" in your browser menu.';
+        
+        alert(genericMessage);
         setIsInstalling(false);
         
       } catch (error) {
-        console.log('[PWA] Installation trigger failed:', error);
-        setIsInstalling(false);
+        console.log('[PWA] All installation methods failed:', error);
+        
+        // Ultimate fallback - just show basic instruction
         setIsVisible(false);
+        const fallbackMessage = popupLanguage === 'fr' ? 
+          'Pour installer EDUCAFRIC, cherchez "Installer" dans votre navigateur.' :
+          'To install EDUCAFRIC, look for "Install" in your browser.';
+        alert(fallbackMessage);
+        setIsInstalling(false);
       }
     }
   };
@@ -206,9 +261,13 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
 
   const handleLater = () => {
     setIsVisible(false);
-    // Dismiss for 4 hours only
-    const fourHoursLater = Date.now() - (20 * 60 * 60 * 1000); // Less aggressive
-    localStorage.setItem('pwa-frontpage-dismissed', fourHoursLater.toString());
+    // Very short dismissal for low-end users (1 hour only)
+    try {
+      const oneHourLater = Date.now() - (23 * 60 * 60 * 1000); // Very aggressive for low-end
+      localStorage.setItem('pwa-frontpage-dismissed', oneHourLater.toString());
+    } catch (e) {
+      // Ignore localStorage errors on restricted devices
+    }
   };
 
   const getBrowserInstructions = () => {
@@ -244,7 +303,7 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
       >
         {/* Popup - Smaller Version */}
         <div 
-          className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm mx-auto shadow-2xl transform transition-transform duration-300 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4"
+          className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm mx-auto shadow-lg transform transition-transform duration-200 animate-in slide-in-from-bottom-4"
           onClick={(e) => e.stopPropagation()}
           data-testid="pwa-install-popup"
         >
