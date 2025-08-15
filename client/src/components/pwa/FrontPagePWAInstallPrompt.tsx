@@ -139,7 +139,7 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         window.dispatchEvent(installEvent);
         
         // For Chrome/Edge - try to trigger installation dialog
-        if (window.chrome || navigator.userAgent.includes('Edge')) {
+        if ((window as any).chrome || navigator.userAgent.includes('Edge')) {
           // Hide popup and show instructions to user
           setIsVisible(false);
           
