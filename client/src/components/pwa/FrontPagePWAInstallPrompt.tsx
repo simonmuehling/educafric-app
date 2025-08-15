@@ -130,15 +130,56 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         setIsInstalling(false);
       }
     } else {
-      // Show manual instructions more prominently
-      const instructionsEl = document.getElementById('manual-instructions');
-      if (instructionsEl) {
-        instructionsEl.scrollIntoView({ behavior: 'smooth' });
-        instructionsEl.style.backgroundColor = '#fef3c7';
-        setTimeout(() => {
-          instructionsEl.style.backgroundColor = '';
-        }, 2000);
+      // Try to trigger browser installation directly
+      setIsInstalling(true);
+      
+      // For browsers that support it, try to trigger installation
+      if ('serviceWorker' in navigator) {
+        try {
+          // Check if already installed
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration) {
+            // Try to show installation prompt by reloading with special parameter
+            const url = new URL(window.location.href);
+            url.searchParams.set('install_pwa', 'true');
+            window.location.href = url.toString();
+            return;
+          }
+        } catch (error) {
+          console.log('[PWA] Service worker check failed:', error);
+        }
       }
+      
+      // Fallback: Open browser-specific installation instructions
+      const userAgent = navigator.userAgent.toLowerCase();
+      let instructions = '';
+      
+      if (language === 'fr') {
+        if (userAgent.includes('chrome')) {
+          instructions = 'Chrome: Cliquez sur ⋮ (menu) → "Installer EDUCAFRIC"';
+        } else if (userAgent.includes('safari')) {
+          instructions = 'Safari: Cliquez sur Partager → "Sur l\'écran d\'accueil"';
+        } else if (userAgent.includes('firefox')) {
+          instructions = 'Firefox: Cliquez sur l\'icône + dans la barre d\'adresse';
+        } else {
+          instructions = 'Cherchez "Installer l\'application" dans votre navigateur';
+        }
+        alert(`Installation PWA:\n\n${instructions}\n\nL'application sera accessible depuis votre écran d'accueil.`);
+      } else {
+        if (userAgent.includes('chrome')) {
+          instructions = 'Chrome: Click ⋮ (menu) → "Install EDUCAFRIC"';
+        } else if (userAgent.includes('safari')) {
+          instructions = 'Safari: Click Share → "Add to Home Screen"';
+        } else if (userAgent.includes('firefox')) {
+          instructions = 'Firefox: Click + icon in address bar';
+        } else {
+          instructions = 'Look for "Install app" in your browser menu';
+        }
+        alert(`PWA Installation:\n\n${instructions}\n\nThe app will be accessible from your home screen.`);
+      }
+      
+      setIsInstalling(false);
+      setIsVisible(false);
     }
   };
 
@@ -185,45 +226,35 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         onClick={handleClose}
         data-testid="pwa-install-backdrop"
       >
-        {/* Popup */}
+        {/* Popup - Smaller Version */}
         <div 
-          className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md mx-auto shadow-2xl transform transition-transform duration-300 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4"
+          className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-sm mx-auto shadow-2xl transform transition-transform duration-300 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-4"
           onClick={(e) => e.stopPropagation()}
           data-testid="pwa-install-popup"
         >
-          {/* Header */}
-          <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-2xl sm:rounded-t-2xl">
+          {/* Header - Compact */}
+          <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-2xl sm:rounded-t-2xl">
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 p-1 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors"
+              className="absolute top-3 right-3 p-1 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors"
               data-testid="button-close-pwa"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
             
-            <div className="text-center">
-              <h3 className="text-xl font-bold mb-2">{t.title}</h3>
-              <p className="text-blue-100 text-sm">{t.subtitle}</p>
+            <div className="text-center pr-8">
+              <h3 className="text-lg font-bold mb-1">{t.title}</h3>
+              <p className="text-blue-100 text-xs">{t.subtitle}</p>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-4">
-            {/* Benefits */}
-            <div className="space-y-2">
-              {t.benefits.map((benefit, index) => (
-                <div key={index} className="flex items-center text-sm text-gray-700">
-                  <span className="text-lg mr-2">{benefit.charAt(0)}</span>
-                  <span>{benefit.substring(2)}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Install Button */}
+          {/* Content - Compact */}
+          <div className="p-4 space-y-3">
+            {/* Install Button - Primary Action */}
             <button
               onClick={handleInstallClick}
               disabled={isInstalling}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-blue-700 hover:to-purple-700 transition-colors disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 px-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-blue-700 hover:to-purple-700 transition-colors disabled:opacity-50"
               data-testid="button-install-pwa"
             >
               {isInstalling ? (
@@ -239,23 +270,18 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
               )}
             </button>
 
-            {/* Manual Instructions */}
-            <div 
-              id="manual-instructions"
-              className="bg-gray-50 p-4 rounded-lg border transition-colors"
-            >
-              <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                {t.manualTitle}
-              </h4>
-              <p className="text-xs text-gray-600">{getBrowserInstructions()}</p>
+            {/* Compact Benefits */}
+            <div className="text-center">
+              <p className="text-xs text-gray-600">
+                {language === 'fr' ? '🚀 Accès rapide • 🔔 Notifications • 📶 Hors ligne' : '🚀 Quick access • 🔔 Notifications • 📶 Offline'}
+              </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-2">
               <button
                 onClick={handleLater}
-                className="flex-1 py-2 px-4 text-gray-600 text-sm rounded-lg border hover:bg-gray-50 transition-colors"
+                className="flex-1 py-1.5 px-3 text-gray-600 text-xs rounded-md border hover:bg-gray-50 transition-colors"
                 data-testid="button-later-pwa"
               >
                 {t.later}
