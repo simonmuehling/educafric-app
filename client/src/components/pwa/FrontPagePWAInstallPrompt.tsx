@@ -9,6 +9,7 @@ interface PWAInstallEvent extends Event {
 
 const FrontPagePWAInstallPrompt: React.FC = () => {
   const { language } = useLanguage();
+  const [popupLanguage, setPopupLanguage] = useState<'fr' | 'en'>(language as 'fr' | 'en');
   const [isVisible, setIsVisible] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<PWAInstallEvent | null>(null);
@@ -55,7 +56,11 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
     }
   };
 
-  const t = text[language as keyof typeof text];
+  const t = text[popupLanguage as keyof typeof text];
+
+  const toggleLanguage = () => {
+    setPopupLanguage(prev => prev === 'fr' ? 'en' : 'fr');
+  };
 
   // Check if PWA is already installed
   useEffect(() => {
@@ -144,7 +149,7 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
           setIsVisible(false);
           
           // Show a more direct message
-          if (language === 'fr') {
+          if (popupLanguage === 'fr') {
             // Try opening chrome://flags or directing to menu
             setTimeout(() => {
               if (confirm('Voulez-vous installer EDUCAFRIC maintenant?\n\nCliquez OK puis cherchez "Installer EDUCAFRIC" dans le menu Chrome (⋮).')) {
@@ -168,7 +173,7 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
           setIsVisible(false);
           
-          if (language === 'fr') {
+          if (popupLanguage === 'fr') {
             setTimeout(() => {
               alert('Pour installer EDUCAFRIC:\n\n1. Appuyez sur le bouton Partager (⬆️)\n2. Sélectionnez "Sur l\'écran d\'accueil"\n3. Appuyez sur "Ajouter"');
             }, 100);
@@ -257,6 +262,15 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
               <h3 className="text-lg font-bold mb-1">{t.title}</h3>
               <p className="text-blue-100 text-xs">{t.subtitle}</p>
             </div>
+            
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLanguage}
+              className="absolute top-3 left-3 p-1 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-xs font-medium"
+              data-testid="button-toggle-language"
+            >
+              {popupLanguage === 'fr' ? 'EN' : 'FR'}
+            </button>
           </div>
 
           {/* Content - Compact */}
@@ -284,7 +298,7 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
             {/* Compact Benefits */}
             <div className="text-center">
               <p className="text-xs text-gray-600">
-                {language === 'fr' ? '🚀 Accès rapide • 🔔 Notifications • 📶 Hors ligne' : '🚀 Quick access • 🔔 Notifications • 📶 Offline'}
+                {popupLanguage === 'fr' ? '🚀 Accès rapide • 🔔 Notifications • 📶 Hors ligne' : '🚀 Quick access • 🔔 Notifications • 📶 Offline'}
               </p>
             </div>
 
