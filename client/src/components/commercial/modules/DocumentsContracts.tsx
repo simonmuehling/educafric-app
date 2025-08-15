@@ -261,8 +261,8 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '8.2 KB',
       format: 'PDF',
-      url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Tarification officielle EDUCAFRIC en français : Parents (1000-1500 CFA/mois), Écoles (50000 CFA/an), Freelancers (12500-25000 CFA/an)'
+      url: '/documents/brochure-commerciale-educafric-fr.html',
+      description: 'Tarification officielle EDUCAFRIC en français avec prix réels : École Publique (25,000 CFA/an), École Privée (75,000 CFA/an), Freelancers (12,500-25,000 CFA/an)'
     },
     {
       id: 4,
@@ -287,8 +287,8 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '4.9 KB',
       format: 'PDF',
-      url: '/documents/argumentaire-vente-educafric-fr.html',
-      description: 'Guide complet système notifications : SMS, WhatsApp, Email, Push avec templates personnalisés'
+      url: '/documents/notifications-system-educafric-fr.html',
+      description: 'Système de notifications EDUCAFRIC : SMS, WhatsApp, Email, Push - canaux, templates et fonctionnalités multilingues'
     },
     {
       id: 6,
@@ -300,8 +300,8 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '3.1 KB',
       format: 'PDF',
-      url: '/documents/brochure-commerciale-educafric-fr.html',
-      description: 'Guide géolocalisation en français : GPS temps réel, zones sécurité, alertes, suivi élèves/personnel'
+      url: '/documents/geolocalisation-resume-educafric-fr.html',
+      description: 'Système géolocalisation EDUCAFRIC : GPS temps réel, zones sécurité, alertes automatiques, historique positions'
     },
     {
       id: 7,
@@ -327,7 +327,7 @@ const DocumentsContracts = () => {
       size: '9.1 KB',
       format: 'PDF',
       url: '/documents/tarifs-complets-educafric-2025.html',
-      description: 'Documentation complète des tarifs et plans EDUCAFRIC'
+      description: 'Tarifs complets EDUCAFRIC 2025 actualisés avec prix réels : École Publique (25,000 CFA/an), École Privée (75,000 CFA/an), sans plan Entreprise'
     },
 
     // Documents PDF - Originaux partagés
