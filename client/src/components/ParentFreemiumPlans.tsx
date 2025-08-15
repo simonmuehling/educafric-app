@@ -164,12 +164,12 @@ export default function ParentFreemiumPlans() {
               <div className="mb-6">
                 <div className="text-3xl font-bold text-gray-800 mb-2">
                   <span className="text-red-600 bg-red-50 px-2 py-1 rounded-md">
-                    1,500 CFA
+                    1,000 CFA
                   </span>
                   <span className="text-lg text-gray-600 ml-2">{t.monthlyPrice}</span>
                 </div>
                 <div className="text-sm text-green-600">
-                  15,000 CFA{t.annualPrice} • {t.annualSavings}
+                  12,000 CFA{t.annualPrice} • {t.annualSavings}
                 </div>
               </div>
             </div>
@@ -216,12 +216,12 @@ export default function ParentFreemiumPlans() {
               <div className="mb-6">
                 <div className="text-3xl font-bold text-gray-800 mb-2">
                   <span className="text-red-600 bg-red-50 px-2 py-1 rounded-md">
-                    2,000 CFA
+                    1,500 CFA
                   </span>
                   <span className="text-lg text-gray-600 ml-2">{t.monthlyPrice}</span>
                 </div>
                 <div className="text-sm text-green-600">
-                  20,000 CFA{t.annualPrice}
+                  18,000 CFA{t.annualPrice}
                 </div>
               </div>
             </div>
@@ -258,9 +258,9 @@ export default function ParentFreemiumPlans() {
                 {language === 'fr' ? 'École Publique' : 'Public School'}
               </h4>
               <ul className="space-y-2 text-sm">
-                <li>1 {language === 'fr' ? 'enfant' : 'child'}: <span className="font-bold text-red-600">15,000 CFA</span>/an</li>
-                <li>2 {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">24,000 CFA</span>/an (-20%)</li>
-                <li>3+ {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">27,000 CFA</span>/an (-40%)</li>
+                <li>1 {language === 'fr' ? 'enfant' : 'child'}: <span className="font-bold text-red-600">12,000 CFA</span>/an</li>
+                <li>2 {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">19,200 CFA</span>/an (-20%)</li>
+                <li>3+ {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">21,600 CFA</span>/an (-40%)</li>
               </ul>
             </div>
             
@@ -269,9 +269,9 @@ export default function ParentFreemiumPlans() {
                 {language === 'fr' ? 'École Privée' : 'Private School'}
               </h4>
               <ul className="space-y-2 text-sm">
-                <li>1 {language === 'fr' ? 'enfant' : 'child'}: <span className="font-bold text-red-600">20,000 CFA</span>/an</li>
-                <li>2 {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">32,000 CFA</span>/an (-20%)</li>
-                <li>3+ {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">36,000 CFA</span>/an (-40%)</li>
+                <li>1 {language === 'fr' ? 'enfant' : 'child'}: <span className="font-bold text-red-600">18,000 CFA</span>/an</li>
+                <li>2 {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">28,800 CFA</span>/an (-20%)</li>
+                <li>3+ {language === 'fr' ? 'enfants' : 'children'}: <span className="font-bold text-red-600">32,400 CFA</span>/an (-40%)</li>
               </ul>
             </div>
           </div>

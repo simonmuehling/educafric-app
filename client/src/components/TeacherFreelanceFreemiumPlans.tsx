@@ -164,7 +164,7 @@ export default function TeacherFreelanceFreemiumPlans() {
               <div className="mb-6">
                 <div className="text-3xl font-bold text-gray-800 mb-2">
                   <span className="text-red-600 bg-red-50 px-2 py-1 rounded-md">
-                    15,000 CFA
+                    12,500 CFA
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -215,14 +215,14 @@ export default function TeacherFreelanceFreemiumPlans() {
               <div className="mb-6">
                 <div className="text-3xl font-bold text-gray-800 mb-2">
                   <span className="text-red-600 bg-red-50 px-2 py-1 rounded-md">
-                    30,000 CFA
+                    25,000 CFA
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
                   {t.perYear}
                 </div>
                 <div className="text-sm text-green-600 font-medium mt-1">
-                  Économie de 5,000 CFA vs 2x semestre
+                  Économie de 0 CFA vs 2x semestre
                 </div>
               </div>
             </div>

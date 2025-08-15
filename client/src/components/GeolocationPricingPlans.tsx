@@ -110,8 +110,8 @@ const GeolocationPricingPlans = () => {
       name: t.parentPlan,
       icon: <Users className="w-8 h-8" />,
       color: 'from-blue-500 to-blue-600',
-      monthlyPrice: '1 500',
-      annualPrice: '15 000',
+      monthlyPrice: '1 000',
+      annualPrice: '12 000',
       duration: '1 mois',
       annualDuration: '1 an',
       features: t?.features?.parent,
@@ -138,7 +138,7 @@ const GeolocationPricingPlans = () => {
       name: t.freelancerPlan,
       icon: <UserCheck className="w-8 h-8" />,
       color: 'from-purple-500 to-purple-600',
-      annualPrice: '20 000',
+      annualPrice: '25 000',
       duration: '1 an',
       features: t?.features?.freelancer,
       stripeIds: {
@@ -187,7 +187,7 @@ const GeolocationPricingPlans = () => {
               <tbody className="divide-y divide-gray-200">
                 <tr>
                   <td className="px-6 py-4 font-medium text-blue-600">Parent</td>
-                  <td className="px-6 py-4 text-gray-900">1 500 CFA</td>
+                  <td className="px-6 py-4 text-gray-900">1 000 CFA</td>
                   <td className="px-6 py-4 text-gray-600">1 mois</td>
                   <td className="px-6 py-4 text-gray-600">Suivi enfants, alertes SMS, zones sécurité</td>
                 </tr>
@@ -199,7 +199,7 @@ const GeolocationPricingPlans = () => {
                 </tr>
                 <tr>
                   <td className="px-6 py-4 font-medium text-purple-600">Freelancer</td>
-                  <td className="px-6 py-4 text-gray-900">20 000 CFA</td>
+                  <td className="px-6 py-4 text-gray-900">25 000 CFA</td>
                   <td className="px-6 py-4 text-gray-600">1 an</td>
                   <td className="px-6 py-4 text-gray-600">Suivi domicile, calcul distances, présence</td>
                 </tr>

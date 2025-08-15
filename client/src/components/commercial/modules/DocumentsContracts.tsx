@@ -104,16 +104,16 @@ const DocumentsContracts = () => {
     },
     {
       id: 2,
-      name: 'Guide Commercial Modules Premium/Freemium EDUCAFRIC (FR/EN)',
+      name: 'Guide Commercial Freemium/Premium EDUCAFRIC Complet (FR/EN) - Interactive',
       type: 'guide',
       category: 'marketing', 
       school: 'Équipe Commerciale',
       date: '2025-08-15',
       status: 'finalized',
-      size: '15.3 KB',
-      format: 'PDF',
-      url: '/documents/guide-commercial-modules-premium.html',
-      description: 'Guide EDUCAFRIC Premium vs Gratuit - ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, Entreprise 150,000 XAF/an, GPS 50,000 XAF/an, Publique Complet 90,000 XAF/an, Privée Complet 115,000 XAF/an - PARENTS: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an (1,000-1,500 XAF/mois) - FREELANCERS: Professionnel 25,000 XAF/an (12,500 XAF/semestre) - EDUCAFRIC Premium vs Free Guide - SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, Enterprise 150,000 XAF/year, GPS 50,000 XAF/year, Public Complete 90,000 XAF/year, Private Complete 115,000 XAF/year - PARENTS: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year (1,000-1,500 XAF/month) - FREELANCERS: Professional 25,000 XAF/year (12,500 XAF/semester)'
+      size: '28.7 KB',
+      format: 'HTML',
+      url: '/documents/guide-freemium-premium-commercial-fr-en.html',
+      description: '🚀 GUIDE COMMERCIAL COMPLET INTERACTIF BILINGUE avec boutons changement de langue - ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, Entreprise 150,000 XAF/an, GPS 50,000 XAF/an, Publique Complet 90,000 XAF/an (économie 10,000), Privée Complet 115,000 XAF/an (économie 10,000) - PARENTS: Publique 1,000 XAF/mois (12,000/an), Privée 1,500 XAF/mois (18,000/an), GPS 1,000 XAF/mois (12,000/an) avec réductions familiales - FREELANCERS: Professionnel 12,500 XAF/semestre, 25,000 XAF/an - 🚀 COMPLETE INTERACTIVE BILINGUAL COMMERCIAL GUIDE with language toggle buttons - SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, Enterprise 150,000 XAF/year, GPS 50,000 XAF/year, Public Complete 90,000 XAF/year (save 10,000), Private Complete 115,000 XAF/year (save 10,000) - PARENTS: Public 1,000 XAF/month (12,000/year), Private 1,500 XAF/month (18,000/year), GPS 1,000 XAF/month (12,000/year) with family discounts - FREELANCERS: Professional 12,500 XAF/semester, 25,000 XAF/year'
     },
     {
       id: 26,

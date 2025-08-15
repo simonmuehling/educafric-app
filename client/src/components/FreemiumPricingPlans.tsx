@@ -24,9 +24,9 @@ export default function FreemiumPricingPlans() {
           'Professional communication - SMS, notifications, messaging',
           'Financial management - Fees tracking, payment management',
           'Advanced technology - Mobile PWA, cloud storage',
-          'Fonctionnalités premium complètes',
-          'Paiement annuel : 50,000 CFA',
-          'Support technique inclus'
+          'SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, GPS 50,000 XAF/year',
+          'COMPLETE: Public 90,000 XAF/year, Private 115,000 XAF/year',
+          'Premium technical support included'
         ],
         premium: {
           userManagement: {
@@ -97,9 +97,9 @@ export default function FreemiumPricingPlans() {
           'Communication professionnelle - SMS, notifications, messagerie',
           'Gestion financière - Suivi des frais, gestion des paiements',
           'Technologie avancée - PWA mobile, stockage cloud',
-          'Fonctionnalités premium complètes',
-          'Paiement annuel : 50,000 CFA',
-          'Support technique inclus'
+          'ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, GPS 50,000 XAF/an',
+          'COMPLETS: Publique 90,000 XAF/an, Privée 115,000 XAF/an',
+          'Support technique premium inclus'
         ],
         premium: {
           userManagement: {
@@ -259,7 +259,7 @@ export default function FreemiumPricingPlans() {
               </div>
               
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                {t.premiumSubscription}
+                {language === 'fr' ? 'PLANS ÉCOLES EDUCAFRIC 2025' : 'EDUCAFRIC SCHOOL PLANS 2025'}
               </h3>
               
               <p className="text-gray-600 mb-6">
