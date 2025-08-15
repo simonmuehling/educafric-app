@@ -98,8 +98,8 @@ const DocumentsContracts = () => {
       date: '2025-08-09',
       status: 'finalized',
       size: '7.7 KB',
-      format: 'MD',
-      url: '/documents/kit-prospection-educafric-complet.md',
+      format: 'PDF',
+      url: '/documents/kit-prospection-educafric-complet.pdf',
       description: 'Kit complet de prospection pour commerciaux : scripts téléphone, argumentaires, messages WhatsApp, stratégies ciblage Douala/Yaoundé'
     },
     {
@@ -111,8 +111,8 @@ const DocumentsContracts = () => {
       date: '2025-08-09',
       status: 'finalized',
       size: '11.8 KB',
-      format: 'MD',
-      url: '/documents/guide-commercial-modules-premium-freemium.md',
+      format: 'PDF',
+      url: '/documents/guide-commercial-modules-premium-freemium.pdf',
       description: 'Guide détaillé modules freemium vs premium : Écoles (6 modules bloqués), Parents (5 modules), Freelancers (8 modules) avec tarification réelle'
     },
     {
@@ -124,8 +124,8 @@ const DocumentsContracts = () => {
       date: '2025-08-12',
       status: 'finalized',
       size: '12.4 KB',
-      format: 'MD',
-      url: '/documents/educafric-prospection-kit-english.md',
+      format: 'PDF',
+      url: '/documents/educafric-prospection-kit-english.pdf',
       description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
     },
     
@@ -139,7 +139,7 @@ const DocumentsContracts = () => {
       date: '2025-08-14',
       status: 'finalized',
       size: '5.2 KB',
-      format: 'MD',
+      format: 'PDF',
       url: '/api/documents/22/view',
       description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 pricing'
     },
@@ -154,8 +154,8 @@ const DocumentsContracts = () => {
       date: '2025-08-14',
       status: 'finalized',
       size: '45.8 KB',
-      format: 'MD',
-      url: '/documents/educafric-contrat-partenariat-etablissements-freelancers-2025.md',
+      format: 'PDF',
+      url: '/documents/educafric-contrat-partenariat-etablissements-freelancers-2025.pdf',
       description: 'Contrat officiel de partenariat tripartite pour écoles, freelancers et parents avec tarification actuelle et obligations spécifiques à chaque partie'
     },
     {
@@ -167,8 +167,8 @@ const DocumentsContracts = () => {
       date: '2025-08-14',
       status: 'finalized',
       size: '48.2 KB',
-      format: 'MD',
-      url: '/documents/educafric-partnership-contract-schools-freelancers-parents-2025-en.md',
+      format: 'PDF',
+      url: '/documents/educafric-partnership-contract-schools-freelancers-parents-2025-en.pdf',
       description: 'Official tripartite partnership contract for schools, freelancers and parents with current pricing and specific obligations for each party'
     },
     
@@ -234,8 +234,8 @@ const DocumentsContracts = () => {
       date: '2025-01-15',
       status: 'finalized',
       size: '8.2 KB',
-      format: 'MD',
-      url: '/documents/tarifs-plans-francais.md',
+      format: 'PDF',
+      url: '/documents/tarifs-plans-francais.pdf',
       description: 'Tarification officielle EDUCAFRIC en français : Parents (1000-1500 CFA/mois), Écoles (50000 CFA/an), Freelancers (12500-25000 CFA/an)'
     },
     {
@@ -247,8 +247,8 @@ const DocumentsContracts = () => {
       date: '2025-01-15',
       status: 'finalized',
       size: '7.9 KB',
-      format: 'MD',
-      url: '/documents/pricing-plans-english.md',
+      format: 'PDF',
+      url: '/documents/pricing-plans-english.pdf',
       description: 'Official EDUCAFRIC pricing in English: Parents, Schools, Freelancers with complete feature breakdown'
     },
     {
@@ -260,8 +260,8 @@ const DocumentsContracts = () => {
       date: '2025-01-10',
       status: 'finalized',
       size: '4.9 KB',
-      format: 'MD',
-      url: '/documents/guide-notifications-educafric.md',
+      format: 'PDF',
+      url: '/documents/guide-notifications-educafric.pdf',
       description: 'Guide complet système notifications : SMS, WhatsApp, Email, Push avec templates personnalisés'
     },
     {
@@ -273,8 +273,8 @@ const DocumentsContracts = () => {
       date: '2025-01-08',
       status: 'finalized',
       size: '3.1 KB',
-      format: 'MD',
-      url: '/documents/geolocalisation-resume-francais.md',
+      format: 'PDF',
+      url: '/documents/geolocalisation-resume-francais.pdf',
       description: 'Guide géolocalisation en français : GPS temps réel, zones sécurité, alertes, suivi élèves/personnel'
     },
     {
@@ -286,8 +286,8 @@ const DocumentsContracts = () => {
       date: '2025-01-08',
       status: 'finalized',
       size: '2.8 KB',
-      format: 'MD',
-      url: '/documents/geolocation-summary-english.md',
+      format: 'PDF',
+      url: '/documents/geolocation-summary-english.pdf',
       description: 'Geolocation guide in English: Real-time GPS, security zones, alerts, student/staff tracking'
     },
     {
@@ -299,8 +299,8 @@ const DocumentsContracts = () => {
       date: '2025-01-15',
       status: 'finalized',
       size: '9.1 KB',
-      format: 'MD',
-      url: '/documents/tarifs-complets-educafric.md',
+      format: 'PDF',
+      url: '/documents/tarifs-complets-educafric.pdf',
       description: 'Documentation complète des tarifs et plans EDUCAFRIC'
     },
 
@@ -446,8 +446,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '245 KB',
-      format: 'MD',
-      url: '/documents/guide-commercial-modules-premium-freemium.md',
+      format: 'PDF',
+      url: '/documents/guide-commercial-modules-premium-freemium.pdf',
       description: 'Guide complet des modules premium et freemium pour prospects'
     },
     {
@@ -459,8 +459,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '567 KB',
-      format: 'MD',
-      url: '/documents/kit-prospection-educafric-complet.md',
+      format: 'PDF',
+      url: '/documents/kit-prospection-educafric-complet.pdf',
       description: 'Kit complet de prospection avec argumentaires et objections'
     },
     {
@@ -524,8 +524,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '234 KB',
-      format: 'MD',
-      url: '/documents/tarifs-complets-educafric.md',
+      format: 'PDF',
+      url: '/documents/tarifs-complets-educafric.pdf',
       description: 'Tarifs détaillés pour géolocalisation, abonnements et services - Cameroun 2025'
     },
     {
@@ -537,8 +537,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '345 KB',
-      format: 'MD',
-      url: '/documents/notifications-system-english.md',
+      format: 'PDF',
+      url: '/documents/notifications-system-english.pdf',
       description: 'Complete notification system documentation - English version'
     },
     {
@@ -550,8 +550,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '267 KB',
-      format: 'MD',
-      url: '/documents/geolocalisation-resume-francais.md',
+      format: 'PDF',
+      url: '/documents/geolocalisation-resume-francais.pdf',
       description: 'Résumé complet du système de géolocalisation - Version française'
     },
     {
@@ -563,8 +563,8 @@ const DocumentsContracts = () => {
       date: '2025-08-11',
       status: 'finalized',
       size: '245 KB',
-      format: 'MD',
-      url: '/documents/geolocation-summary-english.md',
+      format: 'PDF',
+      url: '/documents/geolocation-summary-english.pdf',
       description: 'Complete geolocation system summary - English version'
     }
   ];
