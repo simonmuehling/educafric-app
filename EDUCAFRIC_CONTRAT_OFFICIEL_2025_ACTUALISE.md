@@ -64,13 +64,6 @@ Activation: Immédiate après paiement
 - Analytics IA prédictive
 - Support prioritaire 24/7
 
-#### 💼 Plan École Enterprise
-```
-Prix: 1.500.000 CFA/an
-Élèves: Illimités
-Solution complète sur mesure
-```
-
 #### 📍 Option Géolocalisation École
 ```
 Prix: 25.000 CFA/an (complément)

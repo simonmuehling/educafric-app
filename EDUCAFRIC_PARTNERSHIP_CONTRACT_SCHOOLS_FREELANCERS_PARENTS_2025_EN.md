@@ -110,22 +110,6 @@ Activation: Immediate after payment
 - 24/7 priority support
 - Team training (40h included)
 
-#### 💼 Enterprise School Plan
-```
-Price: 1,500,000 CFA/year
-Students: Unlimited
-Complete custom solution
-```
-
-**✅ Premium Solution:**
-- All features included
-- Unlimited multi-campus
-- Complete customization
-- Custom integrations
-- Dedicated infrastructure
-- Dedicated support team
-- 99.9% uptime SLA guaranteed
-
 ### 2.2 Educational Freelancer Plans (Tutors)
 
 #### 📖 Basic Tutor Plan

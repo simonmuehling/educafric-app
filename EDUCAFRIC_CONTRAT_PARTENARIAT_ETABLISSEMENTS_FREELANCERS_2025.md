@@ -110,22 +110,6 @@ Activation: Immédiate après paiement
 - Support prioritaire 24/7
 - Formation équipe (40h incluses)
 
-#### 💼 Plan École Enterprise
-```
-Prix: 1.500.000 CFA/an
-Élèves: Illimités
-Solution complète sur mesure
-```
-
-**✅ Solution Premium:**
-- Toutes fonctionnalités incluses
-- Multi-campus sans limite
-- Personnalisation complète
-- Intégrations sur mesure
-- Infrastructure dédiée
-- Équipe support dédiée
-- SLA 99.9% uptime garanti
-
 ### 2.2 Plans Freelancers Éducatifs (Répétiteurs)
 
 #### 📖 Plan Répétiteur Basique

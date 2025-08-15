@@ -33,11 +33,6 @@
 - **Abonnement Parent (par enfant):** 1,000-1,500 CFA /mois (12,000-18,000 CFA /an)
 - **Enseignant Freelance:** 25,000 CFA /an ou 12,500 CFA /semestre
 
-### 🏫 **ÉCOLES ENTERPRISE**
-- **Abonnement École:** 1,500,000 CFA /an
-- **Abonnement Parent (par enfant):** 1,500 CFA /mois (18,000 CFA /an)
-- **Enseignant Freelance:** 25,000 CFA /an ou 12,500 CFA /semestre
-
 ### 👨‍👩‍👧‍👦 **REMISES FAMILIALES**
 - **2 enfants:** 20% de réduction sur abonnements parents
 - **3+ enfants:** 40% de réduction sur abonnements parents
