@@ -2,6 +2,7 @@ import FrontpageNavbar from '@/components/FrontpageNavbar';
 import ModernEducafricHero from '@/components/ModernEducafricHero';
 import SandboxBanner from '@/components/SandboxBanner';
 import ModernFeatureSlider from '@/components/ModernFeatureSlider';
+import FrontPagePWAInstallPrompt from '@/components/pwa/FrontPagePWAInstallPrompt';
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'wouter';
@@ -69,6 +70,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* PWA Installation Prompt */}
+      <FrontPagePWAInstallPrompt />
 
     </div>
   );
