@@ -264,12 +264,14 @@ const GeolocationPricingPlans = () => {
                   ))}
                 </ul>
                 
-                <Button 
-                  className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold py-3`}
-                  size="lg"
-                >
-                  {t.choosePlan}
-                </Button>
+                <a href={`/subscribe?plan=${plan.id}-geolocation`}>
+                  <Button 
+                    className={`w-full bg-gradient-to-r ${plan.color} hover:opacity-90 text-white font-semibold py-3`}
+                    size="lg"
+                  >
+                    {t.choosePlan}
+                  </Button>
+                </a>
               </CardContent>
             </Card>
           ))}
