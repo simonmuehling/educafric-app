@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUCAFRIC - Partnership Contract Schools Freelancers Parents 2025</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 50px 40px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .header h2 {
+            font-size: 1.5em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        .document-meta {
+            background: #ecf0f1;
+            padding: 30px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin: 40px 0;
+            padding: 30px;
+            border-radius: 15px;
+            background: #fdfdfd;
+            border-left: 5px solid #3498db;
+        }
+        .pricing-showcase {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+        .pricing-tier {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            transition: transform 0.3s ease;
+        }
+        .pricing-tier:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        .price-tag {
+            background: #f39c12;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 15px 0;
+            font-size: 1.2em;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        .features-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .feature-card {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+        }
+        .obligations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        .obligation-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 25px;
+            border-radius: 12px;
+            border-top: 4px solid #28a745;
+        }
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .payment-card {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e3f2fd;
+            transition: background 0.3s ease;
+        }
+        .signature-zone {
+            border: 3px dashed #95a5a6;
+            padding: 40px;
+            margin: 40px 0;
+            border-radius: 15px;
+            background: #ecf0f1;
+        }
+        .contact-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 15px 15px 0 0;
+        }
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        .highlight-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f39c12;
+        }
+        .success-box {
+            background: #d1edff;
+            border: 1px solid #74b9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #0984e3;
+        }
+        @media (max-width: 768px) {
+            .content { padding: 20px; }
+            .features-showcase { grid-template-columns: 1fr; }
+            .obligations-grid { grid-template-columns: 1fr; }
+            .payment-options { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2.2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="emoji">🎓</span> EDUCAFRIC</h1>
+            <h2>Partnership Contract for Schools, Freelancers & Parents 2025</h2>
+        </div>
+
+        <div class="document-meta">
+            <h3><span class="emoji">📋</span> Document Information</h3>
+            <div class="features-showcase">
+                <div>
+                    <ul>
+                        <li><strong>Creation Date:</strong> August 14, 2025</li>
+                        <li><strong>Version:</strong> 4.0 (English Version with Parents Integration)</li>
+                        <li><strong>Validity:</strong> January 1, 2025 to December 31, 2025</li>
+                        <li><strong>Recipients:</strong> School Directors, Educational Freelancers, Parents, Legal Team</li>
+                    </ul>
+                </div>
+                <div>
+                    <p><strong>Objective:</strong> Official Educafric partnership contract for schools, tutors, and parents</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2><span class="emoji">🏛️</span> PREAMBLE</h2>
+                <p><strong>This contract defines the partnership terms between EDUCAFRIC (operated by AFRO METAVERSE MARKETING SARL) and educational institutions, educational freelancers (tutors), and parents for the use of the African digital educational platform.</strong></p>
+                
+                <div class="success-box">
+                    <h3>Contracting Parties:</h3>
+                    <ul>
+                        <li><strong>EDUCAFRIC:</strong> Educational technology platform</li>
+                        <li><strong>EDUCATIONAL INSTITUTIONS:</strong> Public, private, denominational schools</li>
+                        <li><strong>EDUCATIONAL FREELANCERS:</strong> Independent tutors, training centers</li>
+                        <li><strong>PARENTS:</strong> Guardians and legal representatives of students</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <h3><span class="emoji">🎯</span> Educafric Mission:</h3>
+                    <p><em>Democratize access to educational technologies in Africa and modernize the educational ecosystem through digital innovation.</em></p>
+                </div>
+            </div>
+
+            <div class="pricing-showcase">
+                <h2><span class="emoji">💰</span> ARTICLE 2 - PRICING AND SUBSCRIPTIONS</h2>
+                
+                <div class="pricing-tier">
+                    <h3><span class="emoji">🏫</span> School Institution Plans</h3>
+                    
+                    <h4><span class="emoji">🏫</span> Public School Plan</h4>
+                    <div class="price-tag">Price: 25,000 CFA/year</div>
+                    <p>✅ <strong>Students included:</strong> Up to 200 students | <strong>Activation:</strong> Immediate after payment</p>
+                    
+                    <h5>Included Features:</h5>
+                    <ul>
+                        <li>Complete student/teacher management</li>
+                        <li>Unlimited digital report cards</li>
+                        <li>Automated parent communication</li>
+                        <li>Interactive timetables</li>
+                        <li>Electronic attendance</li>
+                        <li>Dedicated technical support</li>
+                        <li>SMS notifications (1000/month)</li>
+                        <li>Team training (8h included)</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-tier">
+                    <h4><span class="emoji">🌟</span> Private School Plan</h4>
+                    <div class="price-tag">Price: 75,000 CFA/year</div>
+                    <p>✅ <strong>Students included:</strong> Up to 500 students | <strong>Activation:</strong> Immediate after payment</p>
+                    
+                    <h5>All Public Plan Features +:</h5>
+                    <ul>
+                        <li>Student safety geolocation</li>
+                        <li>Integrated payment system</li>
+                        <li>Advanced accounting module</li>
+                        <li>Personalized school branding</li>
+                        <li>School mobile application</li>
+                        <li>Predictive AI analytics</li>
+                        <li>24/7 priority support</li>
+                        <li>Team training (40h included)</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-tier">
+                    <h3><span class="emoji">📖</span> Educational Freelancer Plans (Tutors)</h3>
+                    
+                    <h4><span class="emoji">🎯</span> Professional Tutor Plan</h4>
+                    <div class="price-tag">Semester Price: 12,500 CFA/semester</div>
+                    <div class="price-tag">Annual Price: 25,000 CFA/year</div>
+                    <p>✅ <strong>Students:</strong> Up to 50 students | <strong>Annual savings:</strong> 50% with annual plan</p>
+                    
+                    <h5>Educational Tools:</h5>
+                    <ul>
+                        <li>Class scheduling management</li>
+                        <li>Student progress tracking</li>
+                        <li>Automated billing</li>
+                        <li>Parent communication</li>
+                        <li>Travel geolocation</li>
+                        <li>Defined teaching zones</li>
+                        <li>Detailed performance analytics</li>
+                        <li>Phone support</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3><span class="emoji">👨‍👩‍👧‍👦</span> Parent Service Plans</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plan</th>
+                            <th>Monthly Price</th>
+                            <th>Annual Price</th>
+                            <th>Children</th>
+                            <th>Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Free</strong></td>
+                            <td>0 CFA</td>
+                            <td>0 CFA</td>
+                            <td>1</td>
+                            <td>Grades, attendance, basic communication</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Basic</strong></td>
+                            <td>2,500 CFA</td>
+                            <td>25,000 CFA</td>
+                            <td>2</td>
+                            <td>+ SMS (50/month), WhatsApp</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Standard</strong></td>
+                            <td>5,000 CFA</td>
+                            <td>50,000 CFA</td>
+                            <td>3</td>
+                            <td>+ Geolocation (1 zone)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Premium</strong></td>
+                            <td>8,000 CFA</td>
+                            <td>80,000 CFA</td>
+                            <td>∞</td>
+                            <td>+ Geolocation (5 zones)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPS+</strong></td>
+                            <td>12,000 CFA</td>
+                            <td>120,000 CFA</td>
+                            <td>∞</td>
+                            <td>+ Unlimited zones, tracking</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Elite</strong></td>
+                            <td>15,000 CFA</td>
+                            <td>150,000 CFA</td>
+                            <td>∞</td>
+                            <td>+ Complete exclusive services</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="highlight-box">
+                    <h4><span class="emoji">🎁</span> Family Discounts</h4>
+                    <ul>
+                        <li><strong>2 children:</strong> 10% discount</li>
+                        <li><strong>3 children:</strong> 15% discount</li>
+                        <li><strong>4+ children:</strong> 25% discount</li>
+                        <li><strong>Large families:</strong> Up to 6 children free</li>
+                    </ul>
+                </div>
+
+                <div class="success-box">
+                    <h4><span class="emoji">👨‍👩‍👧‍👦</span> Parent-Specific Features</h4>
+                    <ul>
+                        <li><strong>Child monitoring:</strong> Real-time academic progress</li>
+                        <li><strong>Safety alerts:</strong> Geolocation notifications when children enter/exit safe zones</li>
+                        <li><strong>Direct communication:</strong> Messages with teachers and school administration</li>
+                        <li><strong>Digital report cards:</strong> Instant access to children's academic reports</li>
+                        <li><strong>Attendance tracking:</strong> Daily presence confirmation</li>
+                        <li><strong>Multi-child management:</strong> Single dashboard for all children</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">⚖️</span> ARTICLE 3 - PARTY OBLIGATIONS</h2>
+                
+                <div class="obligations-grid">
+                    <div class="obligation-card">
+                        <h3><span class="emoji">🛡️</span> Educafric Obligations</h3>
+                        <h4>Technical Guarantees</h4>
+                        <ul>
+                            <li><strong>99.5% availability:</strong> 24/7 operational platform</li>
+                            <li><strong>Data security:</strong> AES-256 + TLS 1.3 encryption</li>
+                            <li><strong>Multilingual support:</strong> Native French and English</li>
+                            <li><strong>Automatic updates:</strong> Free new features</li>
+                            <li><strong>Daily backup:</strong> Automatic secure backup</li>
+                        </ul>
+                    </div>
+
+                    <div class="obligation-card">
+                        <h3><span class="emoji">🏫</span> Educational Institution Obligations</h3>
+                        <h4>Implementation</h4>
+                        <ul>
+                            <li><strong>Team training:</strong> Mandatory session participation</li>
+                            <li><strong>Compliant usage:</strong> Terms and conditions compliance</li>
+                            <li><strong>Platform promotion:</strong> Family adoption encouragement</li>
+                            <li><strong>Accurate data:</strong> Correct information provision</li>
+                            <li><strong>Student data protection:</strong> Absolute confidentiality</li>
+                        </ul>
+                    </div>
+
+                    <div class="obligation-card">
+                        <h3><span class="emoji">📚</span> Freelancer Obligations</h3>
+                        <h4>Professionalism</h4>
+                        <ul>
+                            <li><strong>Educafric certification:</strong> Mandatory platform training</li>
+                            <li><strong>Professional profile:</strong> Complete and accurate information</li>
+                            <li><strong>Parent communication:</strong> Transparency and regularity</li>
+                            <li><strong>Schedule compliance:</strong> Punctuality and commitment</li>
+                            <li><strong>Approved methods:</strong> Educational standards compliance</li>
+                        </ul>
+                    </div>
+
+                    <div class="obligation-card">
+                        <h3><span class="emoji">👨‍👩‍👧‍👦</span> Parent Obligations</h3>
+                        <h4>Family Engagement</h4>
+                        <ul>
+                            <li><strong>Active monitoring:</strong> Regular platform usage for child tracking</li>
+                            <li><strong>Accurate information:</strong> Provision of correct contact details</li>
+                            <li><strong>Respectful communication:</strong> Professional interaction with teachers</li>
+                            <li><strong>Fee payment:</strong> Timely subscription payment</li>
+                            <li><strong>Privacy protection:</strong> Safeguarding of access credentials</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><span class="emoji">💳</span> ARTICLE 7 - PAYMENTS AND BILLING</h2>
+                
+                <div class="payment-options">
+                    <div class="payment-card">
+                        <h4><span class="emoji">🍊</span> Orange Money</h4>
+                        <p><strong>Primary number:</strong> +237 656 200 472<br>
+                        <strong>Beneficiary name:</strong> AFRO METAVERSE MARKETING SARL<br>
+                        <strong>Mandatory reference:</strong> "EDUCAFRIC-[School/Freelancer/Parent Name]"<br>
+                        <strong>Fees:</strong> 1% of amount (minimum 100 CFA)<br>
+                        <strong>Confirmation:</strong> Instant with SMS</p>
+                    </div>
+
+                    <div class="payment-card">
+                        <h4><span class="emoji">🏦</span> Bank Transfer Afriland First Bank</h4>
+                        <p><strong>Account name:</strong> AFRO METAVERSE MARKETING SARL<br>
+                        <strong>Bank code:</strong> 10005<br>
+                        <strong>Branch code:</strong> 00024<br>
+                        <strong>Account number:</strong> 08750211001<br>
+                        <strong>Key:</strong> 91<br>
+                        <strong>IBAN:</strong> CM21 10005 00024 08750211001-91<br>
+                        <strong>SWIFT code:</strong> AFLACMCX</p>
+                    </div>
+
+                    <div class="payment-card">
+                        <h4><span class="emoji">💳</span> Stripe (Bank Cards)</h4>
+                        <p><strong>Accepted cards:</strong> Visa, Mastercard, American Express<br>
+                        <strong>Fees:</strong> 3.4% + 100 CFA per transaction<br>
+                        <strong>Security:</strong> Mandatory 3D Secure<br>
+                        <strong>Confirmation:</strong> Instant<br>
+                        <strong>Currencies:</strong> CFA, USD, EUR</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-zone">
+                <h2><span class="emoji">✍️</span> SIGNATURES</h2>
+                
+                <div class="obligations-grid">
+                    <div>
+                        <h3>For EDUCAFRIC:</h3>
+                        <p>Name: [Director Name]<br>
+                        Title: General Director<br>
+                        Date: _______________<br>
+                        Signature: _______________</p>
+                    </div>
+
+                    <div>
+                        <h3>For EDUCATIONAL INSTITUTION:</h3>
+                        <p>Institution: _______________<br>
+                        Name: _______________<br>
+                        Title: _______________<br>
+                        Date: _______________<br>
+                        Signature: _______________</p>
+                    </div>
+
+                    <div>
+                        <h3>For FREELANCER:</h3>
+                        <p>Name: _______________<br>
+                        Professional ID: _______________<br>
+                        Date: _______________<br>
+                        Signature: _______________</p>
+                    </div>
+
+                    <div>
+                        <h3>For PARENT:</h3>
+                        <p>Name: _______________<br>
+                        Child(ren): _______________<br>
+                        Contact: _______________<br>
+                        Date: _______________<br>
+                        Signature: _______________</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h2><span class="emoji">📞</span> EDUCAFRIC CONTACTS</h2>
+            <p><strong>AFRO METAVERSE MARKETING SARL</strong><br>
+            <strong>Address:</strong> Douala, Cameroon<br>
+            <strong>Phone:</strong> +237 656 200 472<br>
+            <strong>Email:</strong> contact@educafric.com<br>
+            <strong>Website:</strong> www.educafric.com</p>
+            
+            <div style="margin-top: 25px; font-style: italic; opacity: 0.9;">
+                <p><strong>Contract Version:</strong> 4.0 EN | <strong>Last Update:</strong> August 14, 2025<br>
+                <strong>Validity:</strong> January 1, 2025 - December 31, 2025</p>
+                <p><em>This contract has been translated from French and adapted to include comprehensive parent services. Both French and English versions have equal legal value.</em></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -144,32 +144,58 @@ const DocumentsContracts = () => {
       description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 pricing'
     },
     
-    // Partnership Contracts - NEW
+    // Partnership Contracts - UPDATED WITH REAL PRICING 2025
     {
       id: 27,
-      name: 'Contrat Établissements Scolaire Freelancers Parents 2025',
+      name: 'EDUCAFRIC Contrat Officiel 2025 Actualisé',
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
-      date: '2025-08-15',
+      date: '2025-01-15',
       status: 'finalized',
-      size: '45.8 KB',
+      size: '52.3 KB',
       format: 'HTML',
-      url: '/documents/contrat-partenariat-educafric-2025.html',
-      description: 'Contrat établissements scolaire freelancers parents - Document HTML officiel EducAfric by Afro Metaverse'
+      url: '/documents/educafric-contrat-officiel-2025-actualise.html',
+      description: 'Contrat officiel actualisé avec prix réels - École Publique: 25.000 CFA/an, École Privée: 75.000 CFA/an, Freelancers: 12.500-25.000 CFA'
     },
     {
       id: 28,
-      name: 'Partnership Contract Schools-Freelancers-Parents 2025 (English)',
+      name: 'Contrat Commercial EDUCAFRIC 2025 Actualisé',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Commercial Sales',
+      date: '2025-01-15',
+      status: 'finalized',
+      size: '48.7 KB',
+      format: 'HTML',
+      url: '/documents/contrat-commercial-educafric-2025-actualise.html',
+      description: 'Contrat commercial actualisé pour ventes - Toutes les offres avec tarification réelle et remises familiales'
+    },
+    {
+      id: 51,
+      name: 'Contrat Partenariat Établissements-Freelancers-Parents 2025 Actualisé',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Tous Partenaires',
+      date: '2025-01-15',
+      status: 'finalized',
+      size: '56.2 KB',
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-etablissements-freelancers-parents-2025-actualise.html',
+      description: 'Contrat de partenariat complet actualisé avec tarification réelle pour écoles, freelancers et parents'
+    },
+    {
+      id: 52,
+      name: 'Partnership Contract Schools-Freelancers-Parents 2025 (English Updated)',
       type: 'contract',
       category: 'contracts',
       school: 'All Partners',
-      date: '2025-08-14',
+      date: '2025-01-15',
       status: 'finalized',
-      size: '48.2 KB',
-      format: 'PDF',
-      url: '/documents/commercial-partnership-contract-en.html',
-      description: 'Official tripartite partnership contract for schools, freelancers and parents with current pricing and specific obligations for each party'
+      size: '54.1 KB',
+      format: 'HTML',
+      url: '/documents/partnership-contract-schools-freelancers-parents-2025-en.html',
+      description: 'Updated English partnership contract with real pricing for schools, freelancers and parents - No Enterprise plans'
     },
     
     // Bulk Import Templates - NEW
