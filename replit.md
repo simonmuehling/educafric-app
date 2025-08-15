@@ -19,6 +19,8 @@ Preferred communication style: Simple, everyday language.
 - ✓ Transformed all 19 markdown documents to professional HTML with PDF conversion
 - ✓ Created CSV template system for bulk data import (students, teachers, parents, grades, attendance)
 - ✓ Removed enterprise modules from school dashboard (saved for v2.0 in future-modules/enterprise/)
+- ✓ Updated all pricing across backend and frontend with corrected XAF amounts (August 15, 2025)
+- ✓ Fixed pricing in stripeService.ts, commercial documents, and frontend components  
 - → Next: Load testing and infrastructure scaling for 3500 users
 
 **CRITICAL USER PREFERENCES:**
@@ -27,12 +29,15 @@ Preferred communication style: Simple, everyday language.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
 - **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
-- **PRICING STRUCTURE CLARIFIED (August 2025)**:
+- **PRICING STRUCTURE UPDATED (August 15, 2025)**:
   - Schools: Annual plans only, no student limitations
-  - École Publique: 250,000 CFA/year
-  - École Privée: 750,000 CFA/year  
-  - École Entreprise: 150,000 CFA/year (training centers with bilingual dashboard)
-  - Freelancers: Only Professional plan (12,000 CFA/month or 120,000 CFA/year)
+  - École Publique: 50,000 XAF/year
+  - École Privée: 75,000 XAF/year  
+  - École Entreprise: 150,000 XAF/year (training centers with bilingual dashboard)
+  - École GPS: 50,000 XAF/year
+  - École Publique Complet (Basique + GPS): 90,000 XAF/year
+  - École Privée Complet (Basique + GPS): 115,000 XAF/year
+  - Freelancers: Professional plan (12,500 XAF/semester or 25,000 XAF/year)
   - Contact: Always use +237 657 004 011 / admin@educafric.com
 
 ## System Architecture

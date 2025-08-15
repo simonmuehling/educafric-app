@@ -227,7 +227,7 @@ export default function ModernSubscriptionPlans() {
     {
       id: 'private-school',
       name: t.privateSchool,
-      price: 100000,
+      price: 75000,
       currency: 'CFA',
       period: 'year',
       icon: <School className="w-8 h-8" />,

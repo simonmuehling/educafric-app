@@ -79,7 +79,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'school_public',
     name: 'École Publique',
-    price: 250000,
+    price: 50000,
     currency: 'xaf',
     interval: 'year',
     category: 'school',
@@ -88,7 +88,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'school_private',
     name: 'École Privée',
-    price: 750000,
+    price: 75000,
     currency: 'xaf',
     interval: 'year',
     category: 'school',
@@ -106,7 +106,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'school_geolocation',
     name: 'École GPS',
-    price: 25000,
+    price: 50000,
     currency: 'xaf',
     interval: 'year',
     category: 'school',
@@ -114,22 +114,41 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   // Plans Freelancers
   {
-    id: 'freelancer_professional_monthly',
-    name: 'Répétiteur Professionnel (Mensuel)',
-    price: 12000,
+    id: 'freelancer_professional_semester',
+    name: 'Répétiteur Professionnel (Semestriel)',
+    price: 12500,
     currency: 'xaf',
-    interval: 'month',
+    interval: 'semester',
     category: 'freelancer',
     features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication', 'billing_system', 'geolocation_tracking', 'teaching_zones', 'performance_analytics', 'digital_marketing', 'continuing_education', 'certification', 'phone_support']
   },
   {
     id: 'freelancer_professional_annual',
     name: 'Répétiteur Professionnel (Annuel)',
-    price: 120000,
+    price: 25000,
     currency: 'xaf',
     interval: 'year',
     category: 'freelancer',
     features: ['tutoring_interface', 'schedule_management', 'student_tracking', 'parent_communication', 'billing_system', 'geolocation_tracking', 'teaching_zones', 'performance_analytics', 'digital_marketing', 'continuing_education', 'certification', 'phone_support', 'annual_savings']
+  },
+  // Packages Complets Écoles
+  {
+    id: 'school_public_complete',
+    name: 'École Publique Complet (Basique + GPS)',
+    price: 90000,
+    currency: 'xaf',
+    interval: 'year',
+    category: 'school',
+    features: ['unlimited_students', 'class_management', 'attendance_system', 'digital_reports', 'parent_communication', 'admin_dashboard', 'student_gps_tracking', 'school_zone_monitoring', 'safety_alerts', 'location_analytics']
+  },
+  {
+    id: 'school_private_complete',
+    name: 'École Privée Complet (Basique + GPS)',
+    price: 115000,
+    currency: 'xaf',
+    interval: 'year',
+    category: 'school',
+    features: ['unlimited_students', 'advanced_analytics', 'custom_reports', 'whatsapp_integration', 'payment_processing', 'priority_support', 'student_gps_tracking', 'school_zone_monitoring', 'safety_alerts', 'location_analytics']
   }
 ];
 

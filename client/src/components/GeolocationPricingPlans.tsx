@@ -125,7 +125,7 @@ const GeolocationPricingPlans = () => {
       name: t.schoolPlan,
       icon: <GraduationCap className="w-8 h-8" />,
       color: 'from-green-500 to-green-600',
-      annualPrice: '35 000',
+      annualPrice: '50 000',
       duration: '1 an',
       features: t?.features?.school,
       stripeIds: {
@@ -193,7 +193,7 @@ const GeolocationPricingPlans = () => {
                 </tr>
                 <tr className="bg-green-50">
                   <td className="px-6 py-4 font-medium text-green-600">École</td>
-                  <td className="px-6 py-4 text-gray-900">35 000 CFA</td>
+                  <td className="px-6 py-4 text-gray-900">50 000 CFA</td>
                   <td className="px-6 py-4 text-gray-600">1 an</td>
                   <td className="px-6 py-4 text-gray-600">Surveillance campus, tous élèves, rapports</td>
                 </tr>
