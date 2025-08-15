@@ -147,16 +147,16 @@ const DocumentsContracts = () => {
     // Partnership Contracts - NEW
     {
       id: 27,
-      name: 'Contrat de Partenariat Écoles-Freelancers-Parents 2025 (Français)',
+      name: 'Contrat Établissements Scolaire Freelancers Parents 2025',
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
-      date: '2025-08-14',
+      date: '2025-08-15',
       status: 'finalized',
       size: '45.8 KB',
-      format: 'PDF',
-      url: '/documents/CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf',
-      description: 'Contrat officiel de partenariat tripartite pour écoles, freelancers et parents avec tarification actuelle et obligations spécifiques à chaque partie'
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-educafric-2025.html',
+      description: 'Contrat établissements scolaire freelancers parents - Document HTML officiel EducAfric by Afro Metaverse'
     },
     {
       id: 28,
