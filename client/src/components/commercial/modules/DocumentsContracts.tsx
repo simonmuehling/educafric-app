@@ -138,10 +138,10 @@ const DocumentsContracts = () => {
       school: 'Client Communication',
       date: '2025-08-15',
       status: 'finalized',
-      size: '5.2 KB',
+      size: '64 KB',
       format: 'PDF',
-      url: '/documents/parents_1753390442002.pdf',
-      description: 'Demande de proposition officielle écoles/parents : Services Educafric, géolocalisation, notifications SMS, tarifs réels 2025 - Écoles: 50,000-150,000 XAF/an (Publique 50,000, Privée 75,000, GPS 50,000, Complets 90,000-115,000), Parents: 12,000-18,000 XAF/an, Freelancers: 25,000 XAF/an - Official proposal request schools/parents: Educafric services, geolocation, SMS notifications, real 2025 pricing - Schools: 50,000-150,000 XAF/year (Public 50,000, Private 75,000, GPS 50,000, Complete 90,000-115,000), Parents: 12,000-18,000 XAF/year, Freelancers: 25,000 XAF/year'
+      url: '/documents/parent-school-partnership-proposal.pdf',
+      description: 'Official proposal request by Simon Abanda (CEO Educafric) for implementation of EDUCAFRIC digital learning platform - Features: instant notifications & international SMS, child geolocation, interactive timetables, digital absence register, unified communication, attendance reports & academic tracking - Comprehensive educational technology solution for schools, parents, teachers and students'
     },
     
     // Partnership Contracts - UPDATED WITH REAL PRICING 2025
