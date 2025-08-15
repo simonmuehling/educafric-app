@@ -72,9 +72,9 @@ Democratize access to educational technologies in Africa and modernize the educa
 
 #### 🏫 Public School Plan
 ```
-Price: 25,000 CFA/month (250,000 CFA/year)
+Price: 25,000 CFA/year
 Students included: Up to 200 students
-Annual savings: 50,000 CFA (2 free months)
+Activation: Immediate after payment
 ```
 
 **✅ Included Features:**
@@ -95,9 +95,9 @@ Annual savings: 50,000 CFA (2 free months)
 
 #### 🌟 Private School Plan
 ```
-Price: 75,000 CFA/month (750,000 CFA/year)
+Price: 75,000 CFA/year
 Students included: Up to 500 students
-Annual savings: 150,000 CFA (2 free months)
+Activation: Immediate after payment
 ```
 
 **✅ All Public Plan Features +:**
@@ -112,7 +112,7 @@ Annual savings: 150,000 CFA (2 free months)
 
 #### 💼 Enterprise School Plan
 ```
-Price: 150,000 CFA/month (1,500,000 CFA/year)
+Price: 1,500,000 CFA/year
 Students: Unlimited
 Complete custom solution
 ```
@@ -130,9 +130,9 @@ Complete custom solution
 
 #### 📖 Basic Tutor Plan
 ```
-Price: 5,000 CFA/month (50,000 CFA/year)
+Price: 12,500 CFA/semester (25,000 CFA/year)
 Students: Up to 10 students
-Free trial: 14 days included
+Activation: Immediate after payment
 ```
 
 **✅ Educational Tools:**
@@ -146,9 +146,10 @@ Free trial: 14 days included
 
 #### 🎯 Professional Tutor Plan
 ```
-Price: 12,000 CFA/month (120,000 CFA/year)
+Semester Price: 12,500 CFA/semester
+Annual Price: 25,000 CFA/year
 Students: Up to 50 students
-Annual savings: 24,000 CFA
+Annual savings: 50% with annual plan
 ```
 
 **✅ All Basic Plan Features +:**

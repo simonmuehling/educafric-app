@@ -24,7 +24,7 @@
 ## OFFRES TARIFAIRES OFFICIELLES EDUCAFRIC
 
 ### 🏫 **ÉCOLES PUBLIQUES**
-- **Abonnement École:** 50,000 CFA /an
+- **Abonnement École:** 25,000 CFA /an
 - **Abonnement Parent (par enfant):** 1,000-1,500 CFA /mois (12,000-18,000 CFA /an)
 - **Enseignant Freelance:** 25,000 CFA /an ou 12,500 CFA /semestre
 
@@ -33,8 +33,8 @@
 - **Abonnement Parent (par enfant):** 1,000-1,500 CFA /mois (12,000-18,000 CFA /an)
 - **Enseignant Freelance:** 25,000 CFA /an ou 12,500 CFA /semestre
 
-### 🏫 **ÉCOLES INTERNATIONALES**
-- **Abonnement École:** 100,000 CFA /an
+### 🏫 **ÉCOLES ENTERPRISE**
+- **Abonnement École:** 1,500,000 CFA /an
 - **Abonnement Parent (par enfant):** 1,500 CFA /mois (18,000 CFA /an)
 - **Enseignant Freelance:** 25,000 CFA /an ou 12,500 CFA /semestre
 

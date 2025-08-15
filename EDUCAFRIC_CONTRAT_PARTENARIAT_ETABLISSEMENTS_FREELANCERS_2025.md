@@ -72,9 +72,9 @@ Démocratiser l'accès aux technologies éducatives en Afrique et moderniser l'�
 
 #### 🏫 Plan École Publique
 ```
-Prix: 25.000 CFA/mois (250.000 CFA/an)
+Prix: 25.000 CFA/an
 Élèves inclus: Jusqu'à 200 élèves
-Économie annuelle: 50.000 CFA (2 mois gratuits)
+Activation: Immédiate après paiement
 ```
 
 **✅ Fonctionnalités Incluses:**
@@ -95,9 +95,9 @@ Prix: 25.000 CFA/mois (250.000 CFA/an)
 
 #### 🌟 Plan École Privée
 ```
-Prix: 75.000 CFA/mois (750.000 CFA/an)
+Prix: 75.000 CFA/an
 Élèves inclus: Jusqu'à 500 élèves
-Économie annuelle: 150.000 CFA (2 mois gratuits)
+Activation: Immédiate après paiement
 ```
 
 **✅ Tout du Plan Public +:**
@@ -112,7 +112,7 @@ Prix: 75.000 CFA/mois (750.000 CFA/an)
 
 #### 💼 Plan École Enterprise
 ```
-Prix: 150.000 CFA/mois (1.500.000 CFA/an)
+Prix: 1.500.000 CFA/an
 Élèves: Illimités
 Solution complète sur mesure
 ```
@@ -130,9 +130,9 @@ Solution complète sur mesure
 
 #### 📖 Plan Répétiteur Basique
 ```
-Prix: 5.000 CFA/mois (50.000 CFA/an)
+Prix: 12.500 CFA/semestre (25.000 CFA/an)
 Élèves: Jusqu'à 10 élèves
-Essai gratuit: 14 jours inclus
+Activation: Immédiate après paiement
 ```
 
 **✅ Outils Pédagogiques:**
@@ -146,9 +146,10 @@ Essai gratuit: 14 jours inclus
 
 #### 🎯 Plan Répétiteur Professionnel
 ```
-Prix: 12.000 CFA/mois (120.000 CFA/an)
+Prix Semestriel: 12.500 CFA/semestre
+Prix Annuel: 25.000 CFA/an
 Élèves: Jusqu'à 50 élèves
-Économie annuelle: 24.000 CFA
+Économie annuelle: 50% avec plan annuel
 ```
 
 **✅ Tout du Plan Basique +:**
