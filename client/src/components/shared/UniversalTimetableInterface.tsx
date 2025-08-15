@@ -553,7 +553,7 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(subjects) ? subjects : []).map((subject: any) => (
-                      <SelectItem key={subject.id} value={subject.name || ''}>{subject.name || ''}</SelectItem>
+                      <SelectItem key={subject.id} value={subject.name || 'no-subject'}>{subject.name || 'Aucun sujet'}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -572,8 +572,8 @@ const UniversalTimetableInterface: React.FC<UniversalTimetableProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {(Array.isArray(teachers) ? teachers : []).map((teacher: any) => (
-                      <SelectItem key={teacher.id} value={`${teacher.firstName || ''} ${teacher.lastName || ''}`}>
-                        {teacher.firstName || ''} {teacher.lastName || ''}
+                      <SelectItem key={teacher.id} value={`${teacher.firstName || 'Prénom'} ${teacher.lastName || 'Nom'}`}>
+                        {teacher.firstName || 'Prénom'} {teacher.lastName || 'Nom'}
                       </SelectItem>
                     ))}
                   </SelectContent>
