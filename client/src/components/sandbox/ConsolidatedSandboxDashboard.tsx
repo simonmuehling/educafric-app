@@ -602,8 +602,8 @@ const ConsolidatedSandboxDashboard = () => {
                 </CardTitle>
                 <CardDescription>
                   {language === 'fr' 
-                    ? 'Tutoriel basé sur la présentation officielle EDUCAFRIC 2025 avec contenu authentique pour chaque rôle utilisateur'
-                    : 'Tutorial based on the official EDUCAFRIC 2025 presentation with authentic content for each user role'
+                    ? 'Tutoriel interactif EDUCAFRIC 2025 actualisé avec IA, géolocalisation avancée, communications multicanal (SMS/WhatsApp), analytics prédictifs et fonctionnalités premium intelligentes pour tous les rôles.'
+                    : 'Updated interactive EDUCAFRIC 2025 tutorial with AI, advanced geolocation, multi-channel communications (SMS/WhatsApp), predictive analytics, and smart premium features for all roles.'
                   }
                 </CardDescription>
               </CardHeader>
@@ -666,7 +666,7 @@ const ConsolidatedSandboxDashboard = () => {
                     <Button 
                       className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
                       onClick={() => setShowTutorial(true)}
-                      data-testid="button-test-tutorial"
+                      data-testid="button-start-educafric-2025-tutorial"
                     >
                       <Play className="w-4 h-4 mr-2" />
                       {t.testTutorial}

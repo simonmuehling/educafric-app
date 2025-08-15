@@ -26,8 +26,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '👨‍🏫 Welcome, Teacher!' 
           },
           content: { 
-            fr: 'Accédez à 8 modules puissants : Mes Classes, Emploi du Temps, Présences, Notes, Devoirs, Bulletins (Premium), Communications et Mon Profil.',
-            en: 'Access 8 powerful modules: My Classes, Timetable, Attendance, Grades, Assignments, Report Cards (Premium), Communications, and My Profile.'
+            fr: 'Accédez à 8 modules EDUCAFRIC 2025 : Mes Classes avec analytics IA, Emploi du Temps interactif, Présences automatisées, Notes temps réel, Devoirs numériques, Bulletins Premium intelligents, Communications multicanal (SMS/WhatsApp), et Mon Profil enrichi.',
+            en: 'Access 8 EDUCAFRIC 2025 modules: My Classes with AI analytics, Interactive Timetable, Automated Attendance, Real-time Grades, Digital Assignments, Smart Premium Report Cards, Multi-channel Communications (SMS/WhatsApp), and Enhanced Profile.'
           },
           icon: Users,
           color: 'bg-blue-500'
@@ -38,8 +38,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '📊 Class Management' 
           },
           content: { 
-            fr: 'Mes Classes : Gérez tous vos élèves assignés, consultez les statistiques de classe et accédez rapidement aux profils étudiants.',
-            en: 'My Classes: Manage all your assigned students, view class statistics, and quickly access student profiles.'
+            fr: 'Mes Classes 2025 : Gérez vos élèves avec intelligence artificielle, analytics avancées, groupes adaptatifs, profils enrichis avec géolocalisation et suivi comportemental automatisé.',
+            en: 'My Classes 2025: Manage your students with artificial intelligence, advanced analytics, adaptive groups, enriched profiles with geolocation and automated behavioral tracking.'
           },
           icon: Users,
           color: 'bg-blue-500'
@@ -50,8 +50,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '✅ Attendance Tracking' 
           },
           content: { 
-            fr: 'Présences : Marquez les présences quotidiennes, suivez les retards et générez des rapports d\'assiduité automatiquement.',
-            en: 'Attendance: Mark daily attendance, track tardiness, and generate attendance reports automatically.'
+            fr: 'Présences 2025 : Marquage automatique via géolocalisation, reconnaissance faciale optionnelle, suivi des retards avec notifications parents instantanées SMS/WhatsApp, rapports d\'assiduité intelligents avec prédictions IA.',
+            en: 'Attendance 2025: Automatic marking via geolocation, optional facial recognition, tardiness tracking with instant SMS/WhatsApp parent notifications, smart attendance reports with AI predictions.'
           },
           icon: ClipboardCheck,
           color: 'bg-orange-500'
@@ -62,8 +62,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '📝 Grades & Assignments' 
           },
           content: { 
-            fr: 'Notes : Saisissez les notes, créez des évaluations et notifiez automatiquement les parents. Devoirs : Créez et gérez les devoirs avec pièces jointes.',
-            en: 'Grades: Enter grades, create assessments, and automatically notify parents. Assignments: Create and manage homework with file attachments.'
+            fr: 'Notes 2025 : Saisie vocale intelligente, évaluations interactives multimédia, notifications automatiques SMS/WhatsApp parents. Devoirs : Création multimédia avancée, soumissions temps réel, correction IA assistée, feedback personnalisé automatique.',
+            en: 'Grades 2025: Intelligent voice input, interactive multimedia assessments, automatic SMS/WhatsApp parent notifications. Assignments: Advanced multimedia creation, real-time submissions, AI-assisted correction, automatic personalized feedback.'
           },
           icon: BarChart3,
           color: 'bg-red-500'
@@ -74,8 +74,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '💼 Premium Features' 
           },
           content: { 
-            fr: 'Bulletins Premium : Générez des bulletins détaillés avec commentaires et évaluations comportementales. 7 fonctions gratuites + 1 premium.',
-            en: 'Premium Report Cards: Generate detailed report cards with comments and behavioral assessments. 7 free features + 1 premium.'
+            fr: 'Bulletins Premium 2025 : IA générative pour commentaires personnalisés, évaluations comportementales avancées, graphiques de progression interactifs, recommandations pédagogiques automatiques, export PDF personnalisable, interface bilingue complète.',
+            en: 'Premium Report Cards 2025: Generative AI for personalized comments, advanced behavioral assessments, interactive progress charts, automatic pedagogical recommendations, customizable PDF export, complete bilingual interface.'
           },
           icon: BookOpen,
           color: 'bg-purple-500'
@@ -88,8 +88,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '🎓 Welcome, Student!' 
           },
           content: { 
-            fr: 'Découvrez vos 13 modules : 5 gratuits (Paramètres, Emploi du Temps, Notes de base, Devoirs de base, Guide) et 8 premium avancés.',
-            en: 'Discover your 13 modules: 5 free (Settings, Schedule View, Basic Grades, Basic Homework, User Guide) and 8 advanced premium features.'
+            fr: 'Découvrez EDUCAFRIC 2025 : 13 modules évolués avec 5 gratuits (Paramètres avancés, Emploi du Temps interactif, Notes temps réel, Devoirs collaboratifs, Guide IA) et 8 premium avec géolocalisation, bulletins intelligents et analytics prédictifs.',
+            en: 'Discover EDUCAFRIC 2025: 13 evolved modules with 5 free (Advanced Settings, Interactive Schedule, Real-time Grades, Collaborative Homework, AI Guide) and 8 premium with geolocation, smart reports, and predictive analytics.'
           },
           icon: User,
           color: 'bg-green-500'
@@ -112,8 +112,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '⭐ Advanced Premium' 
           },
           content: { 
-            fr: 'Premium : Notes détaillées, devoirs complets avec soumission, bulletins officiels, suivi de progression et géolocalisation sécurisée.',
-            en: 'Premium: Detailed grades, complete homework with submission, official report cards, progress tracking, and secure geolocation.'
+            fr: 'Premium 2025 : Notes avec analytics IA, devoirs interactifs multimédias, bulletins avec commentaires génératifs, suivi comportemental avancé, géolocalisation intelligente avec zones sécurisées et alertes automatiques.',
+            en: 'Premium 2025: AI analytics grades, interactive multimedia homework, reports with generative comments, advanced behavioral tracking, smart geolocation with secure zones and automatic alerts.'
           },
           icon: BarChart3,
           color: 'bg-purple-500'
@@ -124,8 +124,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '💬 Communications' 
           },
           content: { 
-            fr: 'Communications Premium : Échangez avec vos enseignants, recevez des notifications instantanées et accédez aux modules d\'apprentissage.',
-            en: 'Premium Communications: Chat with your teachers, receive instant notifications, and access learning modules.'
+            fr: 'Communications 2025 : Messagerie instantanée multicanal (chat, SMS, WhatsApp), notifications intelligentes personnalisées, visioconférence intégrée, traduction automatique et modules d\'apprentissage adaptatifs avec IA.',
+            en: 'Communications 2025: Multi-channel instant messaging (chat, SMS, WhatsApp), personalized smart notifications, integrated video conferencing, automatic translation, and adaptive AI learning modules.'
           },
           icon: MessageCircle,
           color: 'bg-teal-500'
@@ -150,8 +150,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '💼 Welcome, Sales Rep!' 
           },
           content: { 
-            fr: 'Accédez à 6 modules commerciaux essentiels : Mes Écoles, Contacts, Paiements, Documents & Contrats, Statistiques et Rendez-vous.',
-            en: 'Access 6 essential commercial modules: My Schools, Contacts, Payments, Documents & Contracts, Statistics, and Appointments.'
+            fr: 'EDUCAFRIC 2025 Commercial : 6 modules CRM avancés avec IA prédictive - Mes Écoles (analytics 360°), Contacts intelligents, Paiements automatisés, Documents numériques sécurisés, Statistiques temps réel et Rendez-vous avec visioconférence.',
+            en: 'EDUCAFRIC 2025 Commercial: 6 advanced CRM modules with predictive AI - My Schools (360° analytics), Smart Contacts, Automated Payments, Secure Digital Documents, Real-time Statistics, and Video Conferencing Appointments.'
           },
           icon: Building2,
           color: 'bg-blue-600'
@@ -212,8 +212,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '👨‍👩‍👧‍👦 Welcome, Parent!' 
           },
           content: { 
-            fr: 'Suivez la scolarité de vos enfants avec 11 modules : 4 gratuits de base et 7 premium pour un suivi complet.',
-            en: 'Track your children\'s education with 11 modules: 4 basic free features and 7 premium for complete monitoring.'
+            fr: 'EDUCAFRIC 2025 Parents : Suivi intelligent avec 11 modules évolués - 4 gratuits (profils enfants, notifications de base, communications simples, planning) et 7 premium (géolocalisation temps réel, analytics comportementales, bulletins IA, alertes prédictives).',
+            en: 'EDUCAFRIC 2025 Parents: Smart tracking with 11 evolved modules - 4 free (children profiles, basic notifications, simple communications, schedule) and 7 premium (real-time geolocation, behavioral analytics, AI reports, predictive alerts).'
           },
           icon: Users,
           color: 'bg-pink-500'
@@ -224,8 +224,8 @@ export function SimpleTutorial({ isVisible, userRole, onClose }: SimpleTutorialP
             en: '🔒 Safety & Location' 
           },
           content: { 
-            fr: 'Géolocalisation Premium : Suivez la position de vos enfants en temps réel, recevez des alertes de sécurité et définissez des zones sûres.',
-            en: 'Premium Geolocation: Track your children\'s location in real-time, receive safety alerts, and set safe zones.'
+            fr: 'Géolocalisation 2025 : Suivi IA avancé avec prédiction de trajets, zones dynamiques adaptatives, alertes comportementales intelligentes, historique détaillé, reconnaissance d\'activités et notifications multicanal (SMS, WhatsApp, PWA).',
+            en: 'Geolocation 2025: Advanced AI tracking with route prediction, adaptive dynamic zones, intelligent behavioral alerts, detailed history, activity recognition, and multi-channel notifications (SMS, WhatsApp, PWA).'
           },
           icon: MessageCircle,
           color: 'bg-red-500'

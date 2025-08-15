@@ -33,8 +33,8 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
         fr: 'Bienvenue sur EDUCAFRIC !' 
       },
       content: { 
-        en: 'Let\'s take a quick tour of your educational platform. This will help you get started with the key features.',
-        fr: 'Faisons un tour rapide de votre plateforme éducative. Cela vous aidera à découvrir les fonctionnalités clés.'
+        en: 'Welcome to EDUCAFRIC 2025! Let\'s explore your AI-powered educational platform with advanced features like real-time analytics, multi-channel communications, and smart automation.',
+        fr: 'Bienvenue sur EDUCAFRIC 2025 ! Explorons votre plateforme éducative powered by IA avec fonctionnalités avancées : analytics temps réel, communications multicanal et automatisation intelligente.'
       },
       position: 'center',
       icon: <GraduationCap className="h-6 w-6" />
@@ -47,8 +47,8 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
         fr: 'Votre Tableau de Bord' 
       },
       content: { 
-        en: 'This is your main dashboard where you can see an overview of all activities and quick access to important features.',
-        fr: 'Voici votre tableau de bord principal où vous pouvez voir un aperçu de toutes les activités et un accès rapide aux fonctionnalités importantes.'
+        en: 'Your EDUCAFRIC 2025 dashboard features AI-powered insights, real-time notifications, predictive analytics, and personalized recommendations based on your role and activities.',
+        fr: 'Votre tableau de bord EDUCAFRIC 2025 offre des insights IA, notifications temps réel, analytics prédictifs et recommandations personnalisées selon votre rôle et activités.'
       },
       position: 'bottom',
       icon: <BookOpen className="h-5 w-5" />
@@ -75,8 +75,8 @@ const getTutorialSteps = (userRole: string): TutorialStep[] => {
         fr: 'Notifications' 
       },
       content: { 
-        en: 'Stay updated with important notifications about grades, assignments, messages, and platform updates.',
-        fr: 'Restez informé avec les notifications importantes sur les notes, devoirs, messages et mises à jour de la plateforme.'
+        en: 'Smart notification center with AI-powered prioritization, multi-channel delivery (SMS, WhatsApp, PWA), behavioral alerts, and predictive reminders based on your patterns.',
+        fr: 'Centre de notifications intelligent avec priorisation IA, livraison multicanal (SMS, WhatsApp, PWA), alertes comportementales et rappels prédictifs basés sur vos habitudes.'
       },
       position: 'bottom',
       icon: <Bell className="h-5 w-5" />

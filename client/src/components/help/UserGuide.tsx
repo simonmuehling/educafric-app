@@ -44,15 +44,15 @@ export default function UserGuide({ userType }: UserGuideProps) {
         'quick-start': {
           title: language === 'fr' ? 'Démarrage rapide' : 'Quick Start',
           description: language === 'fr' 
-            ? 'Commencez à utiliser EDUCAFRIC en quelques minutes'
-            : 'Start using EDUCAFRIC in just a few minutes',
+            ? 'Démarrez avec EDUCAFRIC 2025 : plateforme IA, analytics avancées, communications multicanal'
+            : 'Get started with EDUCAFRIC 2025: AI platform, advanced analytics, multi-channel communications',
           steps: [
             {
               id: 'login',
               title: language === 'fr' ? 'Se connecter' : 'Log in',
               description: language === 'fr' 
-                ? 'Utilisez vos identifiants fournis par votre école'
-                : 'Use your credentials provided by your school',
+                ? 'Connexion sécurisée EDUCAFRIC 2025 : identifiants école, authentification 2FA optionnelle, connexion biométrique'
+                : 'Secure EDUCAFRIC 2025 login: school credentials, optional 2FA authentication, biometric connection',
               tips: [
                 language === 'fr' ? 'Conservez vos identifiants en sécurité' : 'Keep your credentials secure',
                 language === 'fr' ? 'Contactez votre école si vous oubliez votre mot de passe' : 'Contact your school if you forget your password'
@@ -62,8 +62,8 @@ export default function UserGuide({ userType }: UserGuideProps) {
               id: 'dashboard',
               title: language === 'fr' ? 'Explorer le tableau de bord' : 'Explore the dashboard',
               description: language === 'fr'
-                ? 'Découvrez vos notes, devoirs et emploi du temps'
-                : 'Discover your grades, homework and schedule',
+                ? 'Tableau de bord 2025 : notes temps réel, devoirs interactifs, emploi du temps dynamique, analytics personnalisés'
+                : 'Dashboard 2025: real-time grades, interactive homework, dynamic schedule, personalized analytics',
               tips: [
                 language === 'fr' ? 'Vérifiez quotidiennement vos nouveaux devoirs' : 'Check daily for new homework',
                 language === 'fr' ? 'Utilisez le calendrier pour planifier vos études' : 'Use the calendar to plan your studies'

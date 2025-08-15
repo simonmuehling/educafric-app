@@ -28,13 +28,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
       home: 'Accueil',
       logout: 'Déconnexion',
       switchLanguage: 'English',
-      tutorial: 'Tutoriel'
+      tutorial: 'Tutoriel 2025'
     },
     en: {
       home: 'Home',
       logout: 'Sign Out',
       switchLanguage: 'Français',
-      tutorial: 'Tutorial'
+      tutorial: 'Tutorial 2025'
     }
   };
 
