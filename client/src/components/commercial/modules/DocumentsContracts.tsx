@@ -140,7 +140,7 @@ const DocumentsContracts = () => {
       status: 'finalized',
       size: '5.2 KB',
       format: 'PDF',
-      url: '/api/documents/22/view',
+      url: '/documents/parents_1755170063211.pdf',
       description: 'Official proposal request document for schools and parents: Educafric services, geolocation, SMS notifications, 2025 pricing'
     },
     
