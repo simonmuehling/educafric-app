@@ -13,7 +13,9 @@ function requireAuth(req: any, res: any, next: any) {
 // Sandbox data routes
 router.get('/students', requireAuth, async (req, res) => {
   const sandboxStudents = [
-    { id: 9004, name: 'Junior Kamga', age: 14, class: '3ème A', parentName: 'Marie Kamga', subjects: ['Math', 'French', 'Science', 'History'] }
+    { id: 9004, name: 'Junior Kamga', age: 14, class: '3ème A', parentName: 'Marie Kamga', subjects: ['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais'] },
+    { id: 9005, name: 'Stephanie Mbarga', age: 15, class: '3ème A', parentName: 'Paul Mbarga', subjects: ['Mathématiques', 'Français', 'Sciences', 'Anglais', 'Géographie'] },
+    { id: 9006, name: 'Carlos Essono', age: 13, class: '2nde B', parentName: 'Maria Essono', subjects: ['Mathématiques', 'Physique', 'Chimie', 'Anglais', 'Histoire'] }
   ];
   
   res.json({
@@ -36,9 +38,12 @@ router.get('/classes', requireAuth, async (req, res) => {
 
 router.get('/grades', requireAuth, async (req, res) => {
   const sandboxGrades = [
-    { id: 1, studentId: 9004, studentName: 'Junior Kamga', subject: 'Mathématiques', grade: 15.5, date: '2024-12-01', teacher: 'Paul Mvondo' },
-    { id: 2, studentId: 9004, studentName: 'Junior Kamga', subject: 'Français', grade: 13.8, date: '2024-12-02', teacher: 'Sophie Biya' },
-    { id: 3, studentId: 9004, studentName: 'Junior Kamga', subject: 'Sciences', grade: 16.2, date: '2024-12-03', teacher: 'Paul Mvondo' }
+    { id: 1, studentId: 9004, studentName: 'Junior Kamga', subject: 'Mathématiques', grade: 16.5, date: '2025-01-15', teacher: 'Paul Mvondo' },
+    { id: 2, studentId: 9004, studentName: 'Junior Kamga', subject: 'Français', grade: 14.8, date: '2025-01-14', teacher: 'Sophie Biya' },
+    { id: 3, studentId: 9004, studentName: 'Junior Kamga', subject: 'Sciences', grade: 17.2, date: '2025-01-13', teacher: 'Paul Mvondo' },
+    { id: 4, studentId: 9004, studentName: 'Junior Kamga', subject: 'Anglais', grade: 15.9, date: '2025-01-12', teacher: 'Sarah Johnson' },
+    { id: 5, studentId: 9005, studentName: 'Stephanie Mbarga', subject: 'Mathématiques', grade: 18.5, date: '2025-01-15', teacher: 'Paul Mvondo' },
+    { id: 6, studentId: 9005, studentName: 'Stephanie Mbarga', subject: 'Français', grade: 16.3, date: '2025-01-14', teacher: 'Sophie Biya' }
   ];
   
   res.json({
@@ -49,9 +54,11 @@ router.get('/grades', requireAuth, async (req, res) => {
 
 router.get('/homework', requireAuth, async (req, res) => {
   const sandboxHomework = [
-    { id: 1, subject: 'Mathématiques', title: 'Exercices sur les équations', dueDate: '2024-12-15', status: 'pending', teacher: 'Paul Mvondo' },
-    { id: 2, subject: 'Français', title: 'Rédaction: Mon Cameroun', dueDate: '2024-12-18', status: 'submitted', teacher: 'Sophie Biya' },
-    { id: 3, subject: 'Sciences', title: 'Rapport d\'expérience - La photosynthèse', dueDate: '2024-12-20', status: 'pending', teacher: 'Paul Mvondo' }
+    { id: 1, subject: 'Mathématiques', title: 'Exercices sur les fonctions', dueDate: '2025-01-20', status: 'pending', teacher: 'Paul Mvondo' },
+    { id: 2, subject: 'Français', title: 'Dissertation: L\'importance de l\'éducation en Afrique', dueDate: '2025-01-22', status: 'submitted', teacher: 'Sophie Biya' },
+    { id: 3, subject: 'Sciences', title: 'Projet: Les énergies renouvelables au Cameroun', dueDate: '2025-01-25', status: 'pending', teacher: 'Paul Mvondo' },
+    { id: 4, subject: 'Anglais', title: 'Essay: African Literature', dueDate: '2025-01-23', status: 'pending', teacher: 'Sarah Johnson' },
+    { id: 5, subject: 'Histoire', title: 'Recherche: L\'indépendance du Cameroun', dueDate: '2025-01-28', status: 'not_started', teacher: 'Dr. Atangana' }
   ];
   
   res.json({
@@ -62,8 +69,10 @@ router.get('/homework', requireAuth, async (req, res) => {
 
 router.get('/communications', requireAuth, async (req, res) => {
   const sandboxCommunications = [
-    { id: 1, from: 'Paul Mvondo', message: 'Réunion parents d\'élèves le 20 décembre', date: '2024-12-08', type: 'announcement' },
-    { id: 2, from: 'Dr. Nguetsop Carine', message: 'Félicitations pour les excellents résultats de Junior', date: '2024-12-07', type: 'personal' }
+    { id: 1, from: 'Paul Mvondo', message: 'Réunion parents d\'élèves pour la rentrée 2025 - 25 janvier à 14h', date: '2025-01-15', type: 'announcement' },
+    { id: 2, from: 'Dr. Nguetsop Carine', message: 'Félicitations pour l\'excellent travail de Junior ce trimestre', date: '2025-01-14', type: 'personal' },
+    { id: 3, from: 'Sophie Biya', message: 'Rappel: Concours de dissertation en français - inscription avant le 20 janvier', date: '2025-01-16', type: 'announcement' },
+    { id: 4, from: 'Administration', message: 'Nouvelle plateforme EDUCAFRIC disponible - Guide d\'utilisation en pièce jointe', date: '2025-01-15', type: 'system' }
   ];
   
   res.json({
@@ -74,9 +83,12 @@ router.get('/communications', requireAuth, async (req, res) => {
 
 router.get('/attendance', requireAuth, async (req, res) => {
   const sandboxAttendance = [
-    { id: 1, studentId: 9004, studentName: 'Junior Kamga', date: '2024-12-08', status: 'present', arrivalTime: '07:30' },
-    { id: 2, studentId: 9004, studentName: 'Junior Kamga', date: '2024-12-07', status: 'present', arrivalTime: '07:25' },
-    { id: 3, studentId: 9004, studentName: 'Junior Kamga', date: '2024-12-06', status: 'late', arrivalTime: '08:15' }
+    { id: 1, studentId: 9004, studentName: 'Junior Kamga', date: '2025-01-16', status: 'present', arrivalTime: '07:30' },
+    { id: 2, studentId: 9004, studentName: 'Junior Kamga', date: '2025-01-15', status: 'present', arrivalTime: '07:25' },
+    { id: 3, studentId: 9004, studentName: 'Junior Kamga', date: '2025-01-14', status: 'late', arrivalTime: '08:15' },
+    { id: 4, studentId: 9005, studentName: 'Stephanie Mbarga', date: '2025-01-16', status: 'present', arrivalTime: '07:20' },
+    { id: 5, studentId: 9005, studentName: 'Stephanie Mbarga', date: '2025-01-15', status: 'present', arrivalTime: '07:35' },
+    { id: 6, studentId: 9006, studentName: 'Carlos Essono', date: '2025-01-16', status: 'absent', arrivalTime: null, reason: 'Maladie' }
   ];
   
   res.json({
@@ -104,16 +116,17 @@ router.post('/login', (req, res) => {
 
   const profile = profiles[email as keyof typeof profiles];
   if (profile) {
-    req.session.sandboxUser = {
+    const sandboxUser = {
       ...profile,
       email,
       sandboxMode: true,
       schoolId: 999
     };
+    (req.session as any).sandboxUser = sandboxUser;
     
     res.json({
       success: true,
-      user: req.session.sandboxUser
+      user: sandboxUser
     });
   } else {
     res.status(401).json({ message: 'Invalid sandbox credentials' });

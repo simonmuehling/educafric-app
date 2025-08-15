@@ -23,20 +23,24 @@ const requireSandboxAuth = (req: any, res: any, next: any) => {
 router.get('/school/profile', requireSandboxAuth, (req, res) => {
   const schoolProfile = {
     id: 1,
-    name: 'École Internationale de Yaoundé - Sandbox',
-    type: 'Privé Bilingue',
-    address: 'Quartier Bastos, Yaoundé, Cameroun',
+    name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025',
+    type: 'Privé Bilingue Premium',
+    address: 'Quartier Bastos, Avenue Kennedy, Yaoundé, Cameroun',
     phone: '+237 222 123 456',
-    email: 'contact@eiy-sandbox.cm',
-    website: 'www.eiy-sandbox.cm',
+    email: 'contact@eiy-sandbox.educafric.com',
+    website: 'www.eiy-sandbox.educafric.com',
     director: 'Dr. Marie NKOMO',
-    studentsCount: 485,
-    teachersCount: 32,
-    classesCount: 18,
+    vicePrincipal: 'Prof. Paul ATANGANA',
+    studentsCount: 542,
+    teachersCount: 38,
+    classesCount: 22,
     established: 2010,
-    accreditation: 'Ministère de l\'Éducation du Cameroun',
-    curriculum: 'Programme Bilingue Franco-Anglais',
-    levels: ['Maternelle', 'Primaire', 'Collège', 'Lycée']
+    lastUpdate: '2025-01-15',
+    accreditation: 'Ministère de l\'Éducation du Cameroun - Accréditation Premium 2025',
+    curriculum: 'Programme Bilingue Franco-Anglais avec IA & Numérique',
+    levels: ['Maternelle', 'Primaire', 'Collège', 'Lycée'],
+    specializations: ['Sciences & Technologies', 'Langues & Littératures', 'Arts & Communication'],
+    facilities: ['Laboratoires numériques', 'Bibliothèque multimédia', 'Centre sportif', 'Auditorium']
   };
   
   res.json(schoolProfile);
@@ -152,13 +156,15 @@ router.post('/timetable/create', requireSandboxAuth, (req, res) => {
         { time: '08:00-09:00', subject: 'Mathématiques', teacher: 'Marie Nguesso', room: 'Salle 105' },
         { time: '09:00-10:00', subject: 'Français', teacher: 'Paul Essomba', room: 'Salle 102' },
         { time: '10:15-11:15', subject: 'Anglais', teacher: 'Sarah Johnson', room: 'Salle 201' },
-        { time: '11:15-12:15', subject: 'Sciences', teacher: 'Dr. Kamdem', room: 'Labo 1' }
+        { time: '11:15-12:15', subject: 'Sciences', teacher: 'Dr. Kamdem', room: 'Labo 1' },
+        { time: '14:00-15:00', subject: 'IA & Numérique', teacher: 'Tech. Mvondo', room: 'Salle Info' }
       ],
       tuesday: [
-        { time: '08:00-09:00', subject: 'Histoire', teacher: 'Prof. Mbarga', room: 'Salle 103' },
+        { time: '08:00-09:00', subject: 'Histoire-Géographie', teacher: 'Prof. Mbarga', room: 'Salle 103' },
         { time: '09:00-10:00', subject: 'Mathématiques', teacher: 'Marie Nguesso', room: 'Salle 105' },
         { time: '10:15-11:15', subject: 'EPS', teacher: 'Coach Biya', room: 'Gymnase' },
-        { time: '14:00-15:00', subject: 'Arts', teacher: 'Mme Fon', room: 'Atelier' }
+        { time: '14:00-15:00', subject: 'Arts & Communication', teacher: 'Mme Fon', room: 'Atelier' },
+        { time: '15:00-16:00', subject: 'Robotique', teacher: 'Ing. Nkomo', room: 'Labo Tech' }
       ],
       wednesday: [
         { time: '08:00-09:00', subject: 'Mathématiques', teacher: 'Marie Nguesso', room: 'Salle 105' },
@@ -179,7 +185,14 @@ router.post('/timetable/create', requireSandboxAuth, (req, res) => {
     },
     lastUpdated: new Date().toISOString(),
     term: 'Trimestre 2 - 2024/2025',
-    status: 'Actif'
+    academicYear: '2024-2025',
+    status: 'Actif',
+    innovations: {
+      aiIntegration: true,
+      digitalLearning: true,
+      bilingualSupport: true,
+      parentConnectivity: true
+    }
   };
   
   console.log(`📅 Emploi du temps créé pour ${newTimetable.class}`);
@@ -221,16 +234,25 @@ router.post('/messages/send', requireSandboxAuth, (req, res) => {
 // ===== DONNÉES DE TEST COMPLÈTES =====
 router.get('/test-data/complete', requireSandboxAuth, (req, res) => {
   const completeTestData = {
+    platform: {
+      name: 'EDUCAFRIC Sandbox Environment 2025',
+      version: '2.1.0',
+      lastUpdate: '2025-01-15',
+      features: ['Géolocalisation', 'Communication Multi-canal', 'Analytics Avancées', 'IA Éducative']
+    },
     school: {
-      name: 'École Internationale de Yaoundé - Sandbox',
-      studentsCount: 485,
-      teachersCount: 32,
-      classesCount: 18
+      name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC',
+      studentsCount: 542,
+      teachersCount: 38,
+      classesCount: 22,
+      digitalReadiness: 98.5
     },
     teachers: [
-      { id: 1, name: 'Marie Nguesso', subject: 'Mathématiques', classes: ['3ème A', '2nde B'] },
-      { id: 2, name: 'Paul Essomba', subject: 'Français', classes: ['3ème A', '1ère L'] },
-      { id: 3, name: 'Sarah Johnson', subject: 'Anglais', classes: ['3ème A', '2nde B', '1ère L'] }
+      { id: 1, name: 'Marie Nguesso', subject: 'Mathématiques', classes: ['3ème A', '2nde B'], specialty: 'Algèbre & IA' },
+      { id: 2, name: 'Paul Essomba', subject: 'Français', classes: ['3ème A', '1ère L'], specialty: 'Littérature Africaine' },
+      { id: 3, name: 'Sarah Johnson', subject: 'Anglais', classes: ['3ème A', '2nde B', '1ère L'], specialty: 'Communication Internationale' },
+      { id: 4, name: 'Dr. Kamdem', subject: 'Sciences', classes: ['3ème A', '2nde B'], specialty: 'Physique-Chimie' },
+      { id: 5, name: 'Tech. Mvondo', subject: 'IA & Numérique', classes: ['2nde B', '1ère S'], specialty: 'Intelligence Artificielle' }
     ],
     students: [
       { id: 1, name: 'Junior Mvondo', class: '3ème A', average: 15.6, attendance: 95.8 },
