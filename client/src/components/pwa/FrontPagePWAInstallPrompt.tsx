@@ -130,56 +130,67 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
         setIsInstalling(false);
       }
     } else {
-      // Try to trigger browser installation directly
+      // Direct installation attempt - trigger browser's install UI
       setIsInstalling(true);
       
-      // For browsers that support it, try to trigger installation
-      if ('serviceWorker' in navigator) {
-        try {
-          // Check if already installed
-          const registration = await navigator.serviceWorker.getRegistration();
-          if (registration) {
-            // Try to show installation prompt by reloading with special parameter
-            const url = new URL(window.location.href);
-            url.searchParams.set('install_pwa', 'true');
-            window.location.href = url.toString();
-            return;
+      try {
+        // Try to trigger installation event artificially
+        const installEvent = new Event('beforeinstallprompt');
+        window.dispatchEvent(installEvent);
+        
+        // For Chrome/Edge - try to trigger installation dialog
+        if (window.chrome || navigator.userAgent.includes('Edge')) {
+          // Hide popup and show instructions to user
+          setIsVisible(false);
+          
+          // Show a more direct message
+          if (language === 'fr') {
+            // Try opening chrome://flags or directing to menu
+            setTimeout(() => {
+              if (confirm('Voulez-vous installer EDUCAFRIC maintenant?\n\nCliquez OK puis cherchez "Installer EDUCAFRIC" dans le menu Chrome (⋮).')) {
+                // Focus on the address bar to help user see install icon
+                (document.querySelector('input[type="url"]') as HTMLInputElement)?.focus?.();
+              }
+            }, 100);
+          } else {
+            setTimeout(() => {
+              if (confirm('Do you want to install EDUCAFRIC now?\n\nClick OK then look for "Install EDUCAFRIC" in the Chrome menu (⋮).')) {
+                (document.querySelector('input[type="url"]') as HTMLInputElement)?.focus?.();
+              }
+            }, 100);
           }
-        } catch (error) {
-          console.log('[PWA] Service worker check failed:', error);
+          
+          setIsInstalling(false);
+          return;
         }
+        
+        // For Safari - direct instructions
+        if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+          setIsVisible(false);
+          
+          if (language === 'fr') {
+            setTimeout(() => {
+              alert('Pour installer EDUCAFRIC:\n\n1. Appuyez sur le bouton Partager (⬆️)\n2. Sélectionnez "Sur l\'écran d\'accueil"\n3. Appuyez sur "Ajouter"');
+            }, 100);
+          } else {
+            setTimeout(() => {
+              alert('To install EDUCAFRIC:\n\n1. Tap the Share button (⬆️)\n2. Select "Add to Home Screen"\n3. Tap "Add"');
+            }, 100);
+          }
+          
+          setIsInstalling(false);
+          return;
+        }
+        
+        // Close popup and direct user to browser menu
+        setIsVisible(false);
+        setIsInstalling(false);
+        
+      } catch (error) {
+        console.log('[PWA] Installation trigger failed:', error);
+        setIsInstalling(false);
+        setIsVisible(false);
       }
-      
-      // Fallback: Open browser-specific installation instructions
-      const userAgent = navigator.userAgent.toLowerCase();
-      let instructions = '';
-      
-      if (language === 'fr') {
-        if (userAgent.includes('chrome')) {
-          instructions = 'Chrome: Cliquez sur ⋮ (menu) → "Installer EDUCAFRIC"';
-        } else if (userAgent.includes('safari')) {
-          instructions = 'Safari: Cliquez sur Partager → "Sur l\'écran d\'accueil"';
-        } else if (userAgent.includes('firefox')) {
-          instructions = 'Firefox: Cliquez sur l\'icône + dans la barre d\'adresse';
-        } else {
-          instructions = 'Cherchez "Installer l\'application" dans votre navigateur';
-        }
-        alert(`Installation PWA:\n\n${instructions}\n\nL'application sera accessible depuis votre écran d'accueil.`);
-      } else {
-        if (userAgent.includes('chrome')) {
-          instructions = 'Chrome: Click ⋮ (menu) → "Install EDUCAFRIC"';
-        } else if (userAgent.includes('safari')) {
-          instructions = 'Safari: Click Share → "Add to Home Screen"';
-        } else if (userAgent.includes('firefox')) {
-          instructions = 'Firefox: Click + icon in address bar';
-        } else {
-          instructions = 'Look for "Install app" in your browser menu';
-        }
-        alert(`PWA Installation:\n\n${instructions}\n\nThe app will be accessible from your home screen.`);
-      }
-      
-      setIsInstalling(false);
-      setIsVisible(false);
     }
   };
 
