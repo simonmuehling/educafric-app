@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { pwaConnectionManager } from '@/services/PWAConnectionManager';
 import ConnectionStatusIndicator from '@/components/pwa/ConnectionStatusIndicator';
-import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt';
 
 interface ConnectionState {
   isOnline: boolean;
@@ -365,7 +364,9 @@ const PWAConnectionTester: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <PWAInstallPrompt />
+                <p className="text-sm text-gray-600">
+                  Le pop-up PWA optimisé est maintenant disponible sur la page d'accueil.
+                </p>
               </CardContent>
             </Card>
 

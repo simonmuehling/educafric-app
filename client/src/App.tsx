@@ -63,8 +63,6 @@ import SubscriptionManagement from "@/pages/SubscriptionManagement";
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
 import EducafricFooter from "@/components/EducafricFooter";
-import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
-import SmallPWAInstallNotification from "@/components/pwa/SmallPWAInstallNotification";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
@@ -484,7 +482,6 @@ function App() {
                 <TooltipProvider>
                   <FirebaseRedirectHandler />
                   <AppLayout>
-                    <SmallPWAInstallNotification />
                     <ConnectionStatusIndicator />
                     <Router />
                   </AppLayout>
