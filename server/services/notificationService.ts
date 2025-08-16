@@ -357,7 +357,7 @@ export interface NotificationData {
   recipient: User;
   template: string;
   data: Record<string, any>;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   language: 'en' | 'fr';
 }
 
@@ -444,7 +444,7 @@ export class NotificationService {
           title: notificationTitle,
           message: `Zone modification for student ${zoneData.childName}: ${notificationMessage}`,
           type: `safe_zone_${action}`,
-          priority: 'low' as const,
+          priority: 'medium' as const,
           category: 'security'
         });
       });
@@ -596,7 +596,9 @@ export class NotificationService {
           message: `Student safety alert: ${notificationMessage}`,
           type: alertType,
           priority,
-          category: 'security'
+          category: 'security',
+          actionUrl: undefined,
+          actionText: undefined
         });
       });
     }
@@ -832,7 +834,7 @@ export class NotificationService {
       title: string;
       message: string;
       type: string;
-      priority: string;
+      priority: 'low' | 'medium' | 'high' | 'urgent';
       category: string;
       actionUrl?: string;
       actionText?: string;
@@ -898,7 +900,7 @@ export class NotificationService {
       title: string;
       message: string;
       type: string;
-      priority: string;
+      priority: 'low' | 'medium' | 'high' | 'urgent';
       category: string;
       actionUrl?: string;
       actionText?: string;
@@ -981,7 +983,7 @@ export class NotificationService {
     user: User,
     templateKey: string,
     data: Record<string, any>,
-    priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
+    priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium'
   ): Promise<boolean[]> {
     const language = user.preferredLanguage || 'en';
     const notifications: NotificationData[] = [];
@@ -1068,7 +1070,7 @@ export class NotificationService {
 
       // Build message with proper parameters  
       const dataValues = Object.values(notification.data);
-      const message = templateFn(...dataValues as any);
+      const message = templateFn.apply(null, dataValues);
       
       const response = await vonage.sms.send({
         to: notification.recipient.phone!,
@@ -1128,7 +1130,7 @@ export class NotificationService {
     isLowGrade: boolean = false
   ): Promise<boolean[]> {
     const templateKey = isLowGrade ? 'LOW_GRADE' : 'NEW_GRADE';
-    const priority = isLowGrade ? 'high' : 'normal';
+    const priority = isLowGrade ? 'high' : 'medium';
     
     return this.sendSmartNotification(
       parent, 
