@@ -581,7 +581,9 @@ export class NotificationService {
           'You are outside safe zones. Your parents have been notified.',
         type: alertType,
         priority,
-        category: 'security'
+        category: 'security',
+        actionUrl: undefined,
+        actionText: undefined
       });
     }
 
@@ -806,7 +808,7 @@ export class NotificationService {
           `Connexion parent mise à jour: ${notificationMessage}` :
           `Parent connection updated: ${notificationMessage}`,
         type: `connection_${action}`,
-        priority: 'low',
+        priority: 'low' as const,
         category,
         actionUrl: '/student/profile',
         actionText: language === 'fr' ? 'Voir profil' : 'View Profile'
@@ -1049,9 +1051,15 @@ export class NotificationService {
       // Import Vonage dynamically to avoid startup errors if not configured
       const { Vonage } = await import('@vonage/server-sdk');
       
-      const vonage = new Vonage({
-        apiKey: process.env.VONAGE_API_KEY!,
-        apiSecret: process.env.VONAGE_API_SECRET!,
+      // Skip SMS if Vonage is not configured
+      if (!process.env.VONAGE_API_KEY || !process.env.VONAGE_API_SECRET) {
+        console.log('SMS sending skipped - Vonage not configured');
+        return true;
+      }
+      
+      const vonage = new (Vonage as any)({
+        apiKey: process.env.VONAGE_API_KEY,
+        apiSecret: process.env.VONAGE_API_SECRET
       });
 
       const template = SMS_TEMPLATES[notification.template as keyof typeof SMS_TEMPLATES];
@@ -1068,9 +1076,9 @@ export class NotificationService {
         return false;
       }
 
-      // Build message with proper parameters  
-      const dataValues = Object.values(notification.data);
-      const message = templateFn.apply(null, dataValues);
+      // Build message with proper parameters
+      const dataValues = Object.values(notification.data) as any[];
+      const message = (templateFn as any)(...dataValues);
       
       const response = await vonage.sms.send({
         to: notification.recipient.phone!,
