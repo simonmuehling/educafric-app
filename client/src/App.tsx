@@ -9,9 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 // import { handleRedirect } from "@/lib/firebase"; // Function not available
-import { useEffect, lazy, Suspense } from "react";
-
-
+import React, { useEffect, lazy, Suspense, useState } from "react";
 
 // Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
@@ -76,9 +74,6 @@ import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
 
-import { useState } from "react";
-import React from "react";
-
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -139,7 +134,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content - Full Width (No Sidebar) */}
       <div className="flex flex-col flex-1 h-screen overflow-y-auto">
         {children}
-        <InactivityMonitor warningTime={25} logoutTime={30} />
         <InactivityMonitor warningTime={25} logoutTime={30} />
       </div>
       {/* WebInspector removed to prevent fetch override interference with PWA analytics */}

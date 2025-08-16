@@ -20,16 +20,16 @@ class MemoryOptimizer {
     this.optimizeAnimations();
     this.optimizeNetworkRequests();
     
-    // Balanced cleanup for login performance optimization
+    // More efficient cleanup intervals for better performance
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
-    }, 30 * 1000); // 30 seconds - balanced for performance
+    }, 60 * 1000); // 1 minute - less aggressive for performance
 
-    // Less aggressive monitoring to reduce CPU overhead during login
+    // Much less aggressive monitoring to reduce CPU overhead
     this.performanceMonitor = setInterval(() => {
       this.checkMemoryUsage();
       this.triggerGarbageCollection();
-    }, 60 * 1000); // 1 minute - reduced for login speed
+    }, 120 * 1000); // 2 minutes - reduced for better performance
 
     // Silent mode for performance
   }

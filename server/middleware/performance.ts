@@ -61,14 +61,15 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
         console.error(`[CRITICAL] TIMEOUT: ${req.method} ${req.url} took ${duration}ms`);
       }
 
-      // Lower threshold for memory leak detection (50MB instead of 100MB)
-      if (memoryDiff > 50 * 1024 * 1024) {
-        console.error(`[CRITICAL] MEMORY_LEAK: ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
+      // Much higher threshold for memory leak detection to reduce noise (200MB+)
+      // Only log truly problematic memory usage, not normal Vite dev server usage
+      if (memoryDiff > 200 * 1024 * 1024 && !req.url.includes('/src/') && !req.url.includes('@vite')) {
+        console.error(`[CRITICAL_MEMORY] ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
         
-        // Force garbage collection if available
-        if (global.gc) {
+        // Force garbage collection if available, but less aggressively
+        if (global.gc && Math.random() < 0.1) { // Only 10% of the time
           try {
-            global.gc();
+            setImmediate(() => global.gc?.());
           } catch (gcError) {
             // Ignore GC errors
           }
