@@ -397,17 +397,17 @@ export class NotificationService {
       case 'created':
         template = 'SAFE_ZONE_CREATED';
         notificationTitle = language === 'fr' ? 'Nouvelle zone de sécurité' : 'New Safe Zone';
-        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName);
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](zoneData.zoneName, zoneData.childName);
         break;
       case 'updated':
         template = 'SAFE_ZONE_UPDATED';
         notificationTitle = language === 'fr' ? 'Zone de sécurité modifiée' : 'Safe Zone Updated';
-        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName, changes);
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](zoneData.zoneName, zoneData.childName, changes);
         break;
       case 'deleted':
         template = 'SAFE_ZONE_DELETED';
         notificationTitle = language === 'fr' ? 'Zone de sécurité supprimée' : 'Safe Zone Deleted';
-        notificationMessage = SMS_TEMPLATES[template][language](zoneData.zoneName, zoneData.childName);
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](zoneData.zoneName, zoneData.childName);
         break;
       default:
         return;
@@ -512,7 +512,7 @@ export class NotificationService {
       case 'zone_exit':
         template = 'ZONE_EXIT_ALERT';
         notificationTitle = language === 'fr' ? 'Sortie de zone de sécurité' : 'Left Safe Zone';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           alertData.childName, 
           alertData.zoneName || '', 
           alertData.time, 
@@ -523,7 +523,7 @@ export class NotificationService {
       case 'zone_entry':
         template = 'ZONE_ENTRY_CONFIRMATION';
         notificationTitle = language === 'fr' ? 'Entrée en zone de sécurité' : 'Entered Safe Zone';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           alertData.childName, 
           alertData.zoneName || '', 
           alertData.time
@@ -533,7 +533,7 @@ export class NotificationService {
       case 'out_of_all_zones':
         template = 'OUT_OF_ALL_ZONES';
         notificationTitle = language === 'fr' ? '🚨 HORS DE TOUTES LES ZONES' : '🚨 OUTSIDE ALL ZONES';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           alertData.childName, 
           alertData.currentLocation, 
           alertData.time
@@ -543,7 +543,7 @@ export class NotificationService {
       case 'extended_absence':
         template = 'EXTENDED_ABSENCE';
         notificationTitle = language === 'fr' ? 'Absence prolongée' : 'Extended Absence';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           alertData.childName, 
           alertData.duration || '', 
           alertData.currentLocation
@@ -678,7 +678,7 @@ export class NotificationService {
       case 'submitted':
         template = 'CONNECTION_REQUEST_SUBMITTED';
         notificationTitle = language === 'fr' ? 'Nouvelle demande de connexion' : 'New Connection Request';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.parentName, 
           requestData.studentName, 
           requestData.relationshipType || 'parent'
@@ -688,7 +688,7 @@ export class NotificationService {
       case 'approved':
         template = 'CONNECTION_REQUEST_APPROVED';
         notificationTitle = language === 'fr' ? 'Connexion approuvée' : 'Connection Approved';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.parentName, 
           requestData.studentName, 
           requestData.relationshipType || 'parent'
@@ -698,7 +698,7 @@ export class NotificationService {
       case 'rejected':
         template = 'CONNECTION_REQUEST_REJECTED';
         notificationTitle = language === 'fr' ? 'Connexion rejetée' : 'Connection Rejected';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.parentName, 
           requestData.studentName, 
           requestData.reason
@@ -708,7 +708,7 @@ export class NotificationService {
       case 'invitation_sent':
         template = 'CONNECTION_INVITATION_SENT';
         notificationTitle = language === 'fr' ? 'Invitation envoyée' : 'Invitation Sent';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.contactInfo || requestData.parentName, 
           requestData.studentName, 
           requestData.schoolName || 'School'
@@ -718,7 +718,7 @@ export class NotificationService {
       case 'invitation_received':
         template = 'CONNECTION_INVITATION_RECEIVED';
         notificationTitle = language === 'fr' ? 'Invitation reçue' : 'Invitation Received';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.schoolName || 'School', 
           requestData.studentName, 
           requestData.relationshipType || 'parent'
@@ -728,7 +728,7 @@ export class NotificationService {
       case 'max_reached':
         template = 'MAX_PARENTS_REACHED';
         notificationTitle = language === 'fr' ? '⚠️ Limite atteinte' : '⚠️ Limit Reached';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.studentName, 
           requestData.currentParentCount || 2
         );
@@ -738,7 +738,7 @@ export class NotificationService {
       case 'removed':
         template = 'PARENT_CONNECTION_REMOVED';
         notificationTitle = language === 'fr' ? 'Connexion supprimée' : 'Connection Removed';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.parentName, 
           requestData.studentName, 
           requestData.removedBy || 'Administrator'
@@ -748,7 +748,7 @@ export class NotificationService {
       case 'duplicate_blocked':
         template = 'DUPLICATE_CONNECTION_BLOCKED';
         notificationTitle = language === 'fr' ? 'Connexion en double bloquée' : 'Duplicate Connection Blocked';
-        notificationMessage = SMS_TEMPLATES[template][language](
+        notificationMessage = (SMS_TEMPLATES as any)[template][language](
           requestData.parentName, 
           requestData.studentName
         );

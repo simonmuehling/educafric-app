@@ -23,7 +23,7 @@ import { enhancedSecurityLogger, ipBlockingMiddleware, performanceMonitor, syste
 import { intrusionDetectionMiddleware, educationalSecurityRules } from "./middleware/intrusionDetection";
 import { sandboxIsolationMiddleware, sandboxAuthHelper } from "./middleware/sandboxSecurity";
 import { alertingService, setupScheduledAlerts } from "./services/alertingService";
-import { ownernotificationService } from "./services/ownernotificationService";
+import { ownerNotificationService } from "./services/ownerNotificationService";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
 // Two-factor authentication will be handled by separate routes
@@ -1542,11 +1542,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       // Get the notification service
-      const { notificationService } = await import('./services/notificationService');
-      const notificationService = notificationService.getInstance();
+      const { default: notificationServiceModule } = await import('./services/notificationService');
+      const notificationServiceInstance = notificationServiceModule.getInstance();
 
       // Send notifications to all concerned users when zone is modified
-      await notificationService.notifySafeZoneChange('updated', {
+      await notificationServiceInstance.notifySafeZoneChange('updated', {
         zoneName: name || `Zone ${zoneId}`,
         childName: 'Marie Kamdem', // In real implementation, get from database
         changes: ['radius', 'location'], // Track what changed
@@ -2752,10 +2752,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification based on method chosen
       if (methodType === 'sms' && user.phone && process.env.VONAGE_API_KEY && process.env.VONAGE_API_SECRET) {
         try {
-          const notificationService = notificationService.getInstance();
+          const notificationServiceInstance = notificationService.getInstance();
           const resetCode = resetToken.substring(0, 6).toUpperCase(); // Use first 6 chars as SMS code
           
-          await notificationService.sendNotification({
+          await notificationServiceInstance.sendNotification({
             type: 'sms',
             recipient: user,
             template: 'PASSWORD_RESET',
@@ -3151,7 +3151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         // Send notifications to recipients
-        await notificationService.sendNotification({
+        await notificationServiceInstance.sendNotification({
           type: 'teacher_message',
           title: `Message de ${messageData.senderName}`,
           message: `Nouveau message: ${messageData.subject}`,
@@ -3963,7 +3963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newTeacher = await storage.createTeacher(teacherData);
       
       // Send notification about teacher creation
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'teacher_added',
         title: 'Nouvel Enseignant Ajouté',
         message: `${firstName} ${lastName} a été ajouté comme enseignant`,
@@ -4065,7 +4065,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newStudent = await storage.createStudent(studentData);
       
       // Send notification about student creation
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'student_added',
         title: 'Nouvel Élève Inscrit',
         message: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
@@ -4095,7 +4095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedStudent = await storage.updateStudent(parseInt(id), updates);
       
       // Send notification about student update
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'student_updated',
         title: 'Élève Modifié',
         message: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
@@ -4124,7 +4124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteStudent(parseInt(id));
       
       // Send notification about student deletion
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'student_deleted',
         title: 'Élève Supprimé',
         message: `Élève supprimé avec toutes ses relations école`,
@@ -4154,7 +4154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
       
       // Send notification about student blocking
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'student_blocked',
         title: 'Élève Bloqué',
         message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
@@ -4183,7 +4183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const unblockedUser = await storage.unblockUserAccess(parseInt(id));
       
       // Send notification about student unblocking
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'student_unblocked',
         title: 'Élève Débloqué',
         message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
@@ -4243,7 +4243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newParent = await storage.createParent(parentData);
       
       // Send notification about parent creation
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'parent_added',
         title: 'Nouveau Parent Enregistré',
         message: `${firstName} ${lastName} a été enregistré comme parent`,
@@ -4273,7 +4273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedParent = await storage.updateParent(parseInt(id), updates);
       
       // Send notification about parent update
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'parent_updated',
         title: 'Parent Modifié',
         message: `${updatedParent.firstName} ${updatedParent.lastName} - Informations mises à jour`,
@@ -4302,7 +4302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteParent(parseInt(id));
       
       // Send notification about parent deletion
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'parent_deleted',
         title: 'Parent Supprimé',
         message: `Parent supprimé avec toutes ses relations école`,
@@ -4332,7 +4332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
       
       // Send notification about parent blocking
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'parent_blocked',
         title: 'Parent Bloqué',
         message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
@@ -4361,7 +4361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const unblockedUser = await storage.unblockUserAccess(parseInt(id));
       
       // Send notification about parent unblocking
-      await notificationService.sendNotification({
+      await notificationServiceInstance.sendNotification({
         type: 'parent_unblocked',
         title: 'Parent Débloqué',
         message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
@@ -7104,9 +7104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredLanguage: language
       };
 
-      const notificationService = notificationService.getInstance();
+      const notificationServiceInstance = notificationService.getInstance();
       
-      const success = await notificationService.sendNotification({
+      const success = await notificationServiceInstance.sendNotification({
         type: 'sms',
         recipient: testUser as any,
         template: template || 'PASSWORD_RESET',
@@ -7159,7 +7159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredLanguage: language
       };
 
-      const notificationService = notificationService.getInstance();
+      const notificationServiceInstance = notificationService.getInstance();
       const results: any[] = [];
       
       // Define all available SMS templates with sample data
@@ -7268,7 +7268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const test = templateTests[i];
         
         try {
-          const success = await notificationService.sendNotification({
+          const success = await notificationServiceInstance.sendNotification({
             type: 'sms',
             recipient: testUser as any,
             template: test.template,
@@ -11546,15 +11546,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const user = await storage.getUserById(userId);
             if (user) {
-              const { notificationService } = await import('./services/notificationService');
-              const notificationService = new notificationService();
+              const { default: NotificationService } = await import('./services/notificationService');
+              const notificationServiceInstance = new NotificationService();
               
               const message = user.preferredLanguage === 'fr' 
                 ? `🎉 Félicitations ! Votre abonnement ${planName} Educafric est maintenant actif. Accédez à toutes vos fonctionnalités premium immédiatement.`
                 : `🎉 Congratulations! Your ${planName} Educafric subscription is now active. Access all your premium features immediately.`;
 
               if (user.phone) {
-                await notificationService.sendNotification(user.phone, message);
+                await notificationServiceInstance.sendNotification(user.phone, message);
               }
             }
           } catch (notificationError) {
@@ -12322,7 +12322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Send PWA notification for immediate connection
         if (result.success) {
-          const notificationService = notificationService.getInstance();
+          const notificationServiceInstance = notificationService.getInstance();
           await notificationService.notifyConnectionRequest('approved', {
             parentName: `${user.firstName} ${user.lastName}`,
             parentId: parentId,
@@ -12338,7 +12338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Send PWA notification for connection request submission
         if (result.success) {
-          const notificationService = notificationService.getInstance();
+          const notificationServiceInstance = notificationService.getInstance();
           await notificationService.notifyConnectionRequest('submitted', {
             parentName: `${user.firstName} ${user.lastName}`,
             parentId: parentId,
@@ -12430,7 +12430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Send PWA notification for immediate connection
         if (result.success) {
-          const notificationService = notificationService.getInstance();
+          const notificationServiceInstance = notificationService.getInstance();
           await notificationService.notifyConnectionRequest('approved', {
             parentName: result.parentName || 'Parent',
             parentId: parentId,
@@ -12446,7 +12446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Send PWA notification for connection request submission
         if (result.success) {
-          const notificationService = notificationService.getInstance();
+          const notificationServiceInstance = notificationService.getInstance();
           await notificationService.notifyConnectionRequest('submitted', {
             parentName: `${parentData.firstName} ${parentData.lastName}`,
             studentName: `${user.firstName} ${user.lastName}`,
@@ -12551,7 +12551,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.approveConnectionRequest(parseInt(requestId), approved, reason, user.id);
       
       if (result.success) {
-        const notificationService = notificationService.getInstance();
+        const notificationServiceInstance = notificationService.getInstance();
         
         // Check parent limit before approving
         if (approved && result.parentCount >= 2) {
@@ -12619,7 +12619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check parent limit first
       const parentCount = await storage.getParentCount(studentId);
       if (parentCount >= 2) {
-        const notificationService = notificationService.getInstance();
+        const notificationServiceInstance = notificationService.getInstance();
         const studentData = await storage.getStudentById(studentId);
         
         await notificationService.notifyConnectionRequest('max_reached', {
@@ -12647,7 +12647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       if (result.success) {
-        const notificationService = notificationService.getInstance();
+        const notificationServiceInstance = notificationService.getInstance();
         const studentData = await storage.getStudentById(studentId);
         
         await notificationService.notifyConnectionRequest('invitation_sent', {
@@ -12683,7 +12683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.removeParentConnection(parseInt(connectionId), reason, user.id);
       
       if (result.success) {
-        const notificationService = notificationService.getInstance();
+        const notificationServiceInstance = notificationService.getInstance();
         
         await notificationService.notifyConnectionRequest('removed', {
           parentName: result.parentName,
@@ -12717,7 +12717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.blockDuplicateConnection(parentId, studentId, reason, user.id);
       
       if (result.success) {
-        const notificationService = notificationService.getInstance();
+        const notificationServiceInstance = notificationService.getInstance();
         
         await notificationService.notifyConnectionRequest('duplicate_blocked', {
           parentName: result.parentName,
