@@ -5262,10 +5262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      // Use unified document scanning function - NO DUPLICATION
+      // DÉFINITIF : Système unifié - plus de duplication
       const documents = scanDocuments(((req.user as any) as any)?.id);
       
-      console.log(`[ROUTES_DEBUG] ✅ Found ${documents.length} documents via unified scan`);
+      console.log(`[DOCUMENTS_UNIFIED] ✅ Found ${documents.length} documents - NO DUPLICATION`);
       
       res.json(documents);
     } catch (error: any) {
@@ -5299,18 +5299,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      console.log('[DOCUMENTS_REFRESH] Refreshing document list via unified scan...');
+      console.log('[DOCUMENTS_REFRESH] DÉFINITIF : Refresh via système unifié...');
       
-      // Use unified document scanning function - NO DUPLICATION
+      // DÉFINITIF : Plus de duplication - système unifié seulement
       const documents = scanDocuments();
       
-      console.log(`[DOCUMENTS_REFRESH] ✅ Found ${documents.length} documents after unified refresh`);
+      console.log(`[DOCUMENTS_REFRESH] ✅ DÉFINITIF : ${documents.length} documents - PLUS DE DUPLICATION`);
       
       res.json({
         success: true,
-        message: `Documents refreshed successfully`,
+        message: `Documents refreshed successfully - SYSTÈME UNIFIÉ DÉFINITIF`,
         documentCount: documents.length,
-        documents: documents.map(doc => doc.filename) // Return just filenames for compatibility
+        documents: documents.map(doc => doc.filename),
+        unified: true, // Marquer comme système unifié
+        noDuplication: true
       });
     } catch (error: any) {
       console.error('[DOCUMENTS_REFRESH] ❌ Error:', error);

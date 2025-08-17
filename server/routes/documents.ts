@@ -30,7 +30,7 @@ function generateDocumentMapping(): { [key: number]: string } {
         name: file,
         stats: fs.statSync(path.join(documentsPath, file))
       }))
-      .sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime()) // Sort by modification date (newest first)
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })) // Unified alphabetical ordering
       .map(item => item.name);
     
     documentFiles.forEach((file, index) => {
