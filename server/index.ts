@@ -52,6 +52,15 @@ app.use(jsOptimizationMiddleware);
 app.use(imageOptimizationMiddleware);
 app.use(bundleOptimizationMiddleware);
 
+// Domain redirection middleware - redirect educafric.com to www.educafric.com
+app.use((req, res, next) => {
+  const host = req.get('host');
+  if (host === 'educafric.com') {
+    return res.redirect(301, `https://www.educafric.com${req.url}`);
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
