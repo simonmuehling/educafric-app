@@ -24,6 +24,7 @@ import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
 import TimetableConfiguration from './modules/TimetableConfiguration';
 import FinancialManagement from './modules/FinancialManagement';
 import ReportsAnalytics from './modules/ReportsAnalytics';
+import SchoolSettings from './modules/SchoolSettings';
 
 import HelpCenter from '@/components/help/HelpCenter';
 import { FunctionalDirectorOverview } from './modules/FunctionalDirectorOverview';
@@ -339,6 +340,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-indigo-500',
       component: <MobileSchoolConfigurationGuide />
+    },
+    {
+      id: 'school-settings',
+      label: t.schoolSettings || (language === 'fr' ? 'Paramètres École' : 'School Settings'),
+      icon: <Building2 className="w-6 h-6" />,
+      color: 'bg-slate-600',
+      component: <SchoolSettings />
     }
   ];
 
