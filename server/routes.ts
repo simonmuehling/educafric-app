@@ -17200,7 +17200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generateMultiRoleGuideDocument(documentData);
       } else if (documentId === '10') {
         // For bulletin validation guide, serve the HTML file directly
-        const htmlPath = path.join(process.cwd(), 'client', 'public', 'documents', 'systeme-validation-bulletins-admin-commercial.html');
+        const htmlPath = path.join(process.cwd(), 'public', 'documents', 'systeme-validation-bulletins-admin-commercial.html');
         if (fs.existsSync(htmlPath)) {
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           return res.sendFile(htmlPath);

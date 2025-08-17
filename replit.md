@@ -10,6 +10,7 @@ Preferred communication style: Simple, everyday language.
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
+- **DOCUMENTS MUST APPEAR INSTANTLY:** User is frustrated that document creation takes hours - streamline to work immediately
 - **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
 - **DOCUMENT CREATION METHOD:** Use consolidated EDUCAFRIC system:
   1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`
