@@ -190,10 +190,18 @@ The EDUCAFRIC Team
       if (user.phone) {
         await notificationService.sendNotification({
           type: 'sms',
-          content: messages[lang].sms,
-          recipients: [user.id],
-          schoolId: user.schoolId || 1,
-          data: { userId: user.id, phone: user.phone }
+          recipient: user,
+          template: 'SUBSCRIPTION_REMINDER',
+          data: { 
+            userId: user.id, 
+            phone: user.phone,
+            message: messages[lang].sms,
+            daysLeft: daysLeft,
+            subscriptionPlan: user.subscriptionPlan,
+            subscriptionEnd: user.subscriptionEnd
+          },
+          priority: 'medium',
+          language: lang as 'en' | 'fr'
         });
         console.log(`[SUBSCRIPTION_REMINDER] SMS sent to ${user.firstName} ${user.lastName} (${user.phone})`);
       }
@@ -206,15 +214,18 @@ The EDUCAFRIC Team
         
         await notificationService.sendNotification({
           type: 'email',
-          content: messages[lang].emailBody,
-          recipients: [user.id],
-          schoolId: user.schoolId || 1,
+          recipient: user,
+          template: 'SUBSCRIPTION_REMINDER',
           data: {
             userId: user.id,
             subscriptionPlan: user.subscriptionPlan,
             subscriptionEnd: user.subscriptionEnd,
-            daysLeft: daysLeft
-          }
+            daysLeft: daysLeft,
+            emailSubject: messages[lang].emailSubject,
+            emailBody: messages[lang].emailBody
+          },
+          priority: 'medium',
+          language: lang as 'en' | 'fr'
         });
         console.log(`[SUBSCRIPTION_REMINDER] Email sent to ${user.firstName} ${user.lastName} (${user.email})`);
       }

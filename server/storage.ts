@@ -342,6 +342,7 @@ export interface IStorage {
   getCommercialRevenue(commercialId: number): Promise<any>;
   
   // ===== PLATFORM ADMIN METHODS =====
+  getAllUsers(): Promise<any[]>;
   getAllPlatformUsers(): Promise<any[]>;
   createPlatformUser(userData: any): Promise<any>;
   updatePlatformUser(userId: number, updates: any): Promise<any>;
@@ -2761,9 +2762,6 @@ export class DatabaseStorage implements IStorage {
   }
   
   // ===== PLATFORM ADMIN IMPLEMENTATIONS =====
-  async getAllPlatformUsers(): Promise<any[]> {
-    return [];
-  }
   
   async createPlatformUser(userData: any): Promise<any> {
     return userData;
@@ -2950,6 +2948,25 @@ export class DatabaseStorage implements IStorage {
   
   async getChildAttendance(childId: number): Promise<any[]> {
     return [];
+  }
+
+  // ===== MISSING getAllUsers IMPLEMENTATION =====
+  async getAllUsers(): Promise<any[]> {
+    try {
+      console.log('[STORAGE] Getting all users for subscription reminder service');
+      
+      const allUsers = await db.select().from(users);
+      console.log(`[STORAGE] Found ${allUsers.length} users in database`);
+      
+      return allUsers;
+    } catch (error) {
+      console.error('[STORAGE] getAllUsers error:', error);
+      return [];
+    }
+  }
+
+  async getAllPlatformUsers(): Promise<any[]> {
+    return this.getAllUsers(); // Alias for platform admin use
   }
 }
 
