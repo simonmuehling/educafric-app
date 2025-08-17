@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 

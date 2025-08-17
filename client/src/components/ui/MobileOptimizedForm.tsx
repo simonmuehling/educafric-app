@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Save } from 'lucide-react';

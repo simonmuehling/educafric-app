@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ModernCard } from '../../ui/ModernCard';
 import { Users, Mail, Phone, BookOpen, Award, Clock } from 'lucide-react';

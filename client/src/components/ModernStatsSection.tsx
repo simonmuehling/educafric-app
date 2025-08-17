@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, School, GraduationCap, Globe, Zap, Shield } from 'lucide-react';
 

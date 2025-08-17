@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// React import removed
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'wouter';

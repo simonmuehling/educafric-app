@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { Building, Users, DollarSign, TrendingUp, Phone, Mail, MapPin } from 'lucide-react';

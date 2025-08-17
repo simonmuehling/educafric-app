@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Zap, Smartphone, Database, MessageSquare, BarChart3, Settings, TestTube, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';

@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Activity, Server, Database, Wifi, AlertTriangle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

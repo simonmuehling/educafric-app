@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 
 interface MobileFormFieldProps {
   label: string;

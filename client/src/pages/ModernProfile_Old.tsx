@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';

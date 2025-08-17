@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { X, Save, Users, Clock, MapPin, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';

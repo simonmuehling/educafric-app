@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Lock, Crown, Zap, Star, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

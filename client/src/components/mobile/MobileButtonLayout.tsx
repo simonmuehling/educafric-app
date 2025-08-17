@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Edit, Trash2, Eye, MoreHorizontal } from 'lucide-react';

@@ -9,7 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 // import { handleRedirect } from "@/lib/firebase"; // Function not available
-import { useEffect, lazy, Suspense, useState, ReactNode } from "react";
+import React, { useEffect, lazy, Suspense, useState } from "react";
 
 // Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
@@ -79,7 +79,7 @@ import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDash
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: ReactNode }) {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -98,20 +98,20 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 // Main App Layout Component
-function AppLayout({ children }: { children: ReactNode }) {
+function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const { autoTrackPWAUsage } = usePWAAnalytics();
 
   // Initialize PWA analytics tracking
-  useEffect(() => {
+  React.useEffect(() => {
     // Auto-track PWA usage for all users (authenticated and anonymous)
     autoTrackPWAUsage(user?.id);
   }, [user?.id, autoTrackPWAUsage]);
 
   // Expose tutorial function globally
-  useEffect(() => {
+  React.useEffect(() => {
     (window as any).showTutorial = () => {
       console.log('[TUTORIAL] 🚀 Global tutorial trigger activated!');
       setTutorialVisible(true);

@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
 import ConsolidatedSandboxDashboard from '@/components/sandbox/ConsolidatedSandboxDashboard';

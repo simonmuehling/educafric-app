@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useLocation } from 'wouter';
 import { Home, LogOut, Globe, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { MessageSquare, Send, Users, Bell, Mail, MessageCircle } from 'lucide-react';

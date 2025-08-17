@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';

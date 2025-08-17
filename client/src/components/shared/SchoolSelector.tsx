@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Building, MapPin } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';

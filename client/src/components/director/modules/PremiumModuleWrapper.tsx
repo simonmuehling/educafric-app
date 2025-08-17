@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSandboxPremium } from '@/components/sandbox/SandboxPremiumProvider';
 import { useLanguage } from '@/contexts/LanguageContext';

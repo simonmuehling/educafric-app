@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare, Send, Users, Building2, GraduationCap, UserCog, Briefcase, FileText } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';

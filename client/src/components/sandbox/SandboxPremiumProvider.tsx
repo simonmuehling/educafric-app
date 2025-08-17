@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SandboxPremiumContextType {
@@ -22,19 +22,11 @@ export const useSandboxPremium = () => {
 };
 
 interface SandboxPremiumProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ children }) => {
-  // Safe way to access useAuth - handle case where AuthProvider isn't ready
-  let user = null;
-  try {
-    const authContext = useAuth();
-    user = authContext.user;
-  } catch (error) {
-    // AuthProvider not ready yet, user will be null
-    console.log('[SANDBOX_PREMIUM] AuthProvider not ready, using default values');
-  }
+  const { user } = useAuth();
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [contextKey, setContextKey] = useState(0);
   const refreshIntervalRef = useRef<NodeJS.Timeout>();

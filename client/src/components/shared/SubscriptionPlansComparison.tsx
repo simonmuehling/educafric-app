@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Check, X, Star, Shield, MapPin, Users, MessageSquare, Bell, CreditCard } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

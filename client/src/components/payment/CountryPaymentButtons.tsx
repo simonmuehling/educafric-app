@@ -2,7 +2,7 @@
  * Country Payment Buttons - Fully configured payment buttons by country
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery, useMutation } from '@tanstack/react-query';

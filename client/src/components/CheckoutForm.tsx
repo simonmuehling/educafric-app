@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';

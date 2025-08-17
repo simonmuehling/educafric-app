@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import FrontpageNavbar from '@/components/FrontpageNavbar';
 import { 

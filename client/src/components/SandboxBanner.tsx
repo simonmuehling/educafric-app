@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { TestTube, Play, Eye } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';

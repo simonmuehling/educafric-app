@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { User, Shield, MapPin, Clock, CheckCircle2, XCircle, Star } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Badge } from '@/components/ui/badge';

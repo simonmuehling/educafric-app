@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';

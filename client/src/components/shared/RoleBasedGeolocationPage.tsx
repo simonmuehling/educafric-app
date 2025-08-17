@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { ParentGeolocation } from '@/components/parent/modules/ParentGeolocation';
 import { SchoolGeolocation } from '@/components/geolocation/SchoolGeolocation';

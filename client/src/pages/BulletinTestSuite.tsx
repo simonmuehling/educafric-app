@@ -1,4 +1,4 @@
-// React import removed
+import React from 'react';
 import { FileText, QrCode, Shield, Plus, Eye, Download, TestTube } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
