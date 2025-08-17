@@ -5385,6 +5385,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download commercial document as PDF
+  app.get("/api/commercial/documents/:id/download", requireAuth, async (req, res) => {
+    try {
+      if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const documentId = req.params.id;
+      const currentUser = (req.user as any) as any;
+      
+      console.log(`[COMMERCIAL_PDF_DOWNLOAD] Generating PDF for: ${documentId}`);
+      
+      // Map document IDs to PDF generators
+      const pdfGenerators: Record<string, (data: any) => Promise<Buffer>> = {
+        'guide-complet-systeme-validation-bulletins-2025': PDFGenerator.generateBulletinValidationGuide,
+        'guide-commercial-bulletins-educafric-2025': PDFGenerator.generateBulletinGuideDocument,
+        'guide-commercial-bulletins-securises-2025-actualise': PDFGenerator.generateAdvancedBulletinGuideDocument,
+        'commercial-document': PDFGenerator.generateCommercialDocument,
+        'partnership-proposal': PDFGenerator.generateProposalDocument,
+        'system-report': PDFGenerator.generateSystemReport,
+        'guide-systeme-multi-role-commercial-fr-en': PDFGenerator.generateMultiRoleGuideDocument
+      };
+      
+      const generator = pdfGenerators[documentId];
+      if (!generator) {
+        return res.status(404).json({ message: 'PDF generator not found for this document' });
+      }
+      
+      const documentData = {
+        id: documentId,
+        title: `Document ${documentId}`,
+        user: currentUser,
+        type: 'commercial' as const
+      };
+      
+      const pdfBuffer = await generator(documentData);
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${documentId}.pdf"`);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.send(pdfBuffer);
+      
+      console.log(`[COMMERCIAL_PDF_DOWNLOAD] ✅ PDF generated successfully for ${documentId}`);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_PDF_DOWNLOAD] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to generate PDF' });
+    }
+  });
+
   // ===== SITE ADMIN COMMERCIAL MANAGEMENT API ROUTES =====
 
   // Get all commercials for site admin
@@ -5813,6 +5862,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           path: '/documents/guide-commercial-bulletins-securises-2025-actualise.html',
           status: 'active',
           createdAt: '2025-08-17T09:00:00Z'
+        },
+        {
+          id: 'guide-complet-systeme-validation-bulletins-2025',
+          title: 'Guide Complet Système Validation Bulletins 2025 (PDF)',
+          type: 'pdf-guide',
+          language: 'fr',
+          path: '/api/commercial/documents/guide-complet-systeme-validation-bulletins-2025/download',
+          status: 'active',
+          createdAt: '2025-08-17T15:20:00Z'
         }
       ];
       

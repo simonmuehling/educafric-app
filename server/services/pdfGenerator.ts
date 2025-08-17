@@ -975,4 +975,171 @@ export class PDFGenerator {
     
     return Buffer.from(doc.output('arraybuffer'));
   }
+
+  static async generateBulletinValidationGuide(data: DocumentData): Promise<Buffer> {
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const doc = new jsPDF();
+    
+    // Configuration
+    doc.setFont('helvetica');
+    
+    // En-tête avec logo EDUCAFRIC
+    doc.setFontSize(24);
+    doc.setTextColor(46, 134, 193); // #2E86C1
+    doc.text('EDUCAFRIC', 20, 30);
+    doc.setFontSize(14);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Plateforme Éducative Africaine - Solution Technologique Avancée', 20, 40);
+    
+    // Ligne de séparation
+    doc.setDrawColor(243, 156, 18); // #F39C12
+    doc.setLineWidth(2);
+    doc.line(20, 45, 190, 45);
+    
+    // Titre principal
+    doc.setFontSize(20);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Guide Commercial - Système de Validation', 20, 60);
+    doc.text('des Bulletins Sécurisés 2025', 20, 72);
+    
+    // Badge COMMERCIAL
+    doc.setFillColor(239, 68, 68); // Rouge
+    doc.rect(140, 75, 35, 8, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.text('COMMERCIAL', 142, 81);
+    
+    // Métadonnées
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, 90);
+    doc.text(`Version: 2025.1 - Solution Entreprise`, 20, 97);
+    doc.text(`Contact: commercial@educafric.com`, 20, 104);
+    
+    let yPosition = 120;
+    
+    // Section 1: Innovation Technologique
+    doc.setFontSize(16);
+    doc.setTextColor(46, 134, 193);
+    doc.text('🚀 Innovation Technologique EDUCAFRIC', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const introText = [
+      '• Architecture de triple validation cryptographique (SHA-256)',
+      '• QR codes sécurisés avec empreinte digitale unique',
+      '• Tampons numériques intégrés impossibles à falsifier',
+      '• Validation en temps réel via blockchain éducative',
+      '• Certificats numériques avec horodatage sécurisé'
+    ];
+    
+    introText.forEach(text => {
+      doc.text(text, 25, yPosition);
+      yPosition += 8;
+    });
+    
+    yPosition += 10;
+    
+    // Section 2: Avantages Commerciaux
+    doc.setFontSize(16);
+    doc.setTextColor(46, 134, 193);
+    doc.text('💰 Retour sur Investissement Garanti', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const roiText = [
+      '• Réduction de 95% des coûts d\'impression papier',
+      '• Élimination complète de la falsification de bulletins',
+      '• Gain de temps administration: 80% d\'efficacité en plus',
+      '• Satisfaction parents: 98% de taux d\'approbation',
+      '• Conformité internationale aux standards ISO 27001'
+    ];
+    
+    roiText.forEach(text => {
+      doc.text(text, 25, yPosition);
+      yPosition += 8;
+    });
+    
+    yPosition += 15;
+    
+    // Section 3: Processus Technique
+    doc.setFontSize(16);
+    doc.setTextColor(46, 134, 193);
+    doc.text('🔧 Architecture du Système', 20, yPosition);
+    yPosition += 15;
+    
+    // Nouvelle page si nécessaire
+    if (yPosition > 250) {
+      doc.addPage();
+      yPosition = 30;
+    }
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const processSteps = [
+      '1. Génération automatique des bulletins avec notes saisies',
+      '2. Calcul cryptographique SHA-256 de l\'empreinte unique',
+      '3. Création du QR code sécurisé avec métadonnées',
+      '4. Application des tampons numériques d\'école',
+      '5. Distribution automatique aux parents via SMS/Email',
+      '6. Validation instantanée par scan QR code'
+    ];
+    
+    processSteps.forEach(text => {
+      doc.text(text, 25, yPosition);
+      yPosition += 10;
+    });
+    
+    yPosition += 15;
+    
+    // Section 4: Tarification
+    doc.setFontSize(16);
+    doc.setTextColor(5, 150, 105); // Vert
+    doc.text('💵 Tarification Révolutionnaire', 20, yPosition);
+    yPosition += 15;
+    
+    // Encadré tarification
+    doc.setDrawColor(5, 150, 105);
+    doc.setLineWidth(1);
+    doc.rect(20, yPosition - 5, 170, 40);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(5, 150, 105);
+    doc.text('EDUCAFRIC PAIE LES ÉCOLES', 25, yPosition + 5);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('• Écoles <500 élèves: EDUCAFRIC verse 150.000 CFA/an', 25, yPosition + 15);
+    doc.text('• Écoles >500 élèves: EDUCAFRIC verse 200.000 CFA/an', 25, yPosition + 25);
+    
+    yPosition += 50;
+    
+    // Section 5: Contact et Support
+    doc.setFontSize(16);
+    doc.setTextColor(46, 134, 193);
+    doc.text('📞 Contact Commercial', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Email: commercial@educafric.com', 25, yPosition);
+    yPosition += 8;
+    doc.text('Téléphone: +237 657 004 011', 25, yPosition);
+    yPosition += 8;
+    doc.text('WhatsApp Business: +237 657 004 011', 25, yPosition);
+    yPosition += 8;
+    doc.text('Site Web: www.educafric.com', 25, yPosition);
+    
+    // Pied de page
+    yPosition = 280;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('EDUCAFRIC - Transformons l\'éducation africaine avec la technologie', 20, yPosition);
+    doc.text('© 2025 Afro Metaverse Marketing SARL - Tous droits réservés', 20, yPosition + 7);
+    
+    return Buffer.from(doc.output('arraybuffer'));
+  }
 }
