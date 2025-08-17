@@ -57,6 +57,7 @@ import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
+import SignatureTest from "@/pages/SignatureTest";
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -416,6 +417,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/modern-forms" component={ModernFormDemo} />
+      <Route path="/signature-test" component={SignatureTest} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
