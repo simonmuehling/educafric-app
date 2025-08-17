@@ -15,7 +15,6 @@ import express from "express";
 import geolocationRoutes from "./routes/geolocation";
 import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
 import documentsRouter from "./routes/documents";
-import fs from "fs";
 import { marked } from "marked";
 import { configureSecurityMiddleware, securityLogger, productionSessionConfig } from "./middleware/security";
 import { dataProtectionMiddleware, privacyLogger, setupDataRightsRoutes } from "./middleware/compliance";
@@ -3157,7 +3156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send notifications to recipients
         await notificationService.sendNotification({
           type: 'email',
-          message: `Nouveau message: ${messageData.subject}`,
+          content: `Nouveau message: ${messageData.subject}`,
           recipients: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
           schoolId: messageData.schoolId || 1,
           priority: messageData.priority === 'urgent' ? 'high' : 'medium',
@@ -3968,7 +3967,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about teacher creation
       await notificationService.sendNotification({
         type: 'email',
-        message: `${firstName} ${lastName} a été ajouté comme enseignant`,
+        content: `${firstName} ${lastName} a été ajouté comme enseignant`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'medium',
@@ -4069,7 +4068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student creation
       await notificationService.sendNotification({
         type: 'email',
-        message: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
+        content: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'medium',
@@ -4098,7 +4097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student update
       await notificationService.sendNotification({
         type: 'email',
-        message: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
+        content: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'medium',
@@ -4126,7 +4125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student deletion
       await notificationService.sendNotification({
         type: 'email',
-        message: `Élève supprimé avec toutes ses relations école`,
+        content: `Élève supprimé avec toutes ses relations école`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'high',
@@ -4155,7 +4154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student blocking
       await notificationService.sendNotification({
         type: 'email',
-        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        content: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'high',
@@ -4183,7 +4182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student unblocking
       await notificationService.sendNotification({
         type: 'email',
-        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        content: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'medium',
@@ -4299,7 +4298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent deletion
       await notificationService.sendNotification({
         type: 'email',
-        message: `Parent supprimé avec toutes ses relations école`,
+        content: `Parent supprimé avec toutes ses relations école`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'high',
@@ -4328,7 +4327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent blocking
       await notificationService.sendNotification({
         type: 'email',
-        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        content: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'high',
@@ -4356,7 +4355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent unblocking
       await notificationService.sendNotification({
         type: 'email',
-        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        content: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
         priority: 'medium',
@@ -5195,7 +5194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use the documents router to get the real document list
       const documentsPath = path.join(process.cwd(), 'public', 'documents');
-      const documents = [];
+      const documents: any[] = [];
       
       if (fs.existsSync(documentsPath)) {
         const files = fs.readdirSync(documentsPath);
@@ -5385,37 +5384,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[COMMERCIAL_PDF_DOWNLOAD] Generating PDF for: ${documentId}`);
       
-      // Map document IDs to PDF generators
-      const pdfGenerators: Record<string, (data: any) => Promise<Buffer>> = {
-        'guide-complet-systeme-validation-bulletins-2025': PDFGenerator.generateBulletinValidationGuide,
-        'guide-commercial-bulletins-educafric-2025': PDFGenerator.generateBulletinGuideDocument,
-        'guide-commercial-bulletins-securises-2025-actualise': PDFGenerator.generateAdvancedBulletinGuideDocument,
-        'commercial-document': PDFGenerator.generateCommercialDocument,
-        'partnership-proposal': PDFGenerator.generateProposalDocument,
-        'system-report': PDFGenerator.generateSystemReport,
-        'guide-systeme-multi-role-commercial-fr-en': PDFGenerator.generateMultiRoleGuideDocument
-      };
-      
-      const generator = pdfGenerators[documentId];
-      if (!generator) {
-        return res.status(404).json({ message: 'PDF generator not found for this document' });
-      }
-      
-      const documentData = {
-        id: documentId,
-        title: `Document ${documentId}`,
-        user: currentUser,
-        type: 'commercial' as const
-      };
-      
-      const pdfBuffer = await generator(documentData);
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${documentId}.pdf"`);
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      res.send(pdfBuffer);
-      
-      console.log(`[COMMERCIAL_PDF_DOWNLOAD] ✅ PDF generated successfully for ${documentId}`);
+      // Redirect to the documents router which handles real file serving
+      return res.redirect(`/documents/${documentId}/download`);
     } catch (error: any) {
       console.error('[COMMERCIAL_PDF_DOWNLOAD] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to generate PDF' });
@@ -9033,7 +9003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Récupérer les vraies statistiques de la base de données
-      const realStats = await storage.getPlatformStatistics(user.id);
+      const realStats = await storage.getAllUsers();
       
       // Statistiques système en temps réel
       const systemStats = {
@@ -14045,7 +14015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/bulletins/workflow", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
-      let bulletins = [];
+      let bulletins: any[] = [];
 
       if (user.role === 'Student' || user.role === 'Parent') {
         // Élèves et Parents reçoivent les bulletins

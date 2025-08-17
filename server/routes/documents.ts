@@ -434,7 +434,7 @@ router.post('/refresh', (req, res) => {
     const newMapping = generateDocumentMapping();
     
     // Update the mapping
-    Object.keys(documentMapping).forEach(key => delete documentMapping[key]);
+    Object.keys(documentMapping).forEach(key => delete (documentMapping as any)[key]);
     Object.assign(documentMapping, newMapping);
     
     const newCount = Object.keys(documentMapping).length;
