@@ -17119,7 +17119,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '6': 'Guide Marketing Digital',
         '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025',
         '8': 'Commercial Bulletin Guide - EDUCAFRIC 2025 (EN)',
-        '9': 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)'
+        '9': 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)',
+        '10': 'Guide Complet - Système de Validation des Bulletins EDUCAFRIC 2025'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -17139,6 +17140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generateBulletinGuideEnglishDocument(documentData);
       } else if (documentId === '9') {
         pdfBuffer = await PDFGenerator.generateMultiRoleGuideDocument(documentData);
+      } else if (documentId === '10') {
+        // Redirection vers le HTML pour le guide complet
+        return res.redirect('/documents/guide-complet-systeme-validation-bulletins-2025.html');
       } else {
         pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
       }
@@ -17181,7 +17185,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '6': 'Guide Marketing Digital',
         '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025',
         '8': 'Commercial Bulletin Guide - EDUCAFRIC 2025 (EN)',
-        '9': 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)'
+        '9': 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)',
+        '10': 'Guide Complet - Système de Validation des Bulletins EDUCAFRIC 2025'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -17201,6 +17206,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generateBulletinGuideEnglishDocument(documentData);
       } else if (documentId === '9') {
         pdfBuffer = await PDFGenerator.generateMultiRoleGuideDocument(documentData);
+      } else if (documentId === '10') {
+        // Redirection vers le HTML pour le guide complet
+        return res.redirect('/documents/guide-complet-systeme-validation-bulletins-2025.html');
       } else {
         pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
       }

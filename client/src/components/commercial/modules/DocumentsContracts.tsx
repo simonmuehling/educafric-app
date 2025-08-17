@@ -168,6 +168,19 @@ const DocumentsContracts = () => {
       url: '/documents/guide-systeme-multi-role-commercial-fr-en.html',
       description: 'Guide commercial complet bilingue sur le système multi-rôle EDUCAFRIC - Comment les commerciaux peuvent créer des profils Parent/Enseignant additionnels pour renforcer leur crédibilité et efficacité commerciale - Processus de détection automatique des rôles, basculement en temps réel, isolation sécurisée des données, scripts de vente authentiques - Complete bilingual commercial guide on EDUCAFRIC multi-role system - How sales representatives can create additional Parent/Teacher profiles to enhance credibility and commercial effectiveness - Automatic role detection process, real-time switching, secure data isolation, authentic sales scripts'
     },
+    {
+      id: 10,
+      name: 'Guide Complet - Système de Validation des Bulletins EDUCAFRIC 2025',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Technique',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '45.2 KB',
+      format: 'HTML',
+      url: '/documents/guide-complet-systeme-validation-bulletins-2025.html',
+      description: 'Guide technique complet du système de validation des bulletins EDUCAFRIC - Architecture de sécurisation avec triple validation : Cryptographie SHA-256, QR codes sécurisés, tampons numériques - Processus étape par étape : création, génération cryptographique, intégration QR codes, validation parents - Système anti-falsification avec hash unique, métadonnées sécurisées, vérification temps réel - Démonstrations visuelles et exemples concrets d\'implémentation'
+    },
     
     // Proposal Request Documents - FIXED URL
     {
