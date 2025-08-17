@@ -5181,6 +5181,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to generate friendly titles from filenames
+  function generateFriendlyTitle(filename: string): string {
+    // Remove file extension and replace hyphens/underscores with spaces
+    let title = filename.replace(/\.(md|pdf|html|txt)$/, '').replace(/[-_]/g, ' ');
+    
+    // Special handling for specific files
+    if (filename === 'parents_1753390442002.pdf') {
+      return 'Documentation Parent (PDF)';
+    }
+    if (filename === 'parent-school-partnership-proposal.pdf') {
+      return 'Partnership Proposal Parent-School (PDF)';
+    }
+    if (filename === '00-index-documents-alphabetique.html') {
+      return 'Index Alphabétique des Documents';
+    }
+    
+    // Capitalize first letter of each word
+    return title.split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
   // ===== COMMERCIAL DOCUMENTS API ROUTES =====
 
   // Get all documents for commercial dashboard - NOW USING AUTOMATIC SCANNING
@@ -5205,7 +5227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             file.endsWith('.html') ||
             file.endsWith('.txt')
           )
-          .sort();
+          .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Alphabetical order for mobile consistency
         
         documentFiles.forEach((filename, index) => {
           const filePath = path.join(documentsPath, filename);
@@ -5214,7 +5236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             documents.push({
               id: index + 1,
               userId: ((req.user as any) as any)?.id,
-              title: filename.replace(/\.(md|pdf|html|txt)$/, '').replace(/[-_]/g, ' '),
+              title: generateFriendlyTitle(filename),
               filename: filename,
               content: `Document: ${filename}`,
               type: filename.endsWith('.pdf') ? 'pdf' : filename.endsWith('.html') ? 'html' : filename.endsWith('.md') ? 'markdown' : 'text',
@@ -5283,7 +5305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           file.endsWith('.html') ||
           file.endsWith('.txt')
         )
-        .sort();
+        .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Consistent alphabetical ordering
       
       console.log(`[DOCUMENTS_REFRESH] ✅ Found ${documentFiles.length} documents after refresh`);
       
