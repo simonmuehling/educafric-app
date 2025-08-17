@@ -57,6 +57,14 @@ export const users = pgTable("users", {
   lastPwaAccess: timestamp("last_pwa_access"),
   pwaInstallDate: timestamp("pwa_install_date"),
   accessMethod: text("access_method").default("web"), // web, pwa, mobile
+  
+  // Teacher signature for bulletins (mandatory for principal teachers)
+  teacherSignatureUrl: text("teacher_signature_url"),
+  signatureUploadedAt: timestamp("signature_uploaded_at"),
+  isPrincipalTeacher: boolean("is_principal_teacher").default(false),
+  principalOfClassId: integer("principal_of_class_id"), // Class where teacher is principal
+  signatureRequired: boolean("signature_required").default(false), // Auto-set to true for principal teachers
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -289,6 +297,15 @@ export const schools = pgTable("schools", {
   primaryAdminId: integer("primary_admin_id"), // Directeur principal
   additionalAdmins: text("additional_admins").array(), // IDs des administrateurs supplémentaires
   adminSettings: jsonb("admin_settings"), // Configuration des permissions par admin
+  // Director signature and school stamp for reports
+  directorSignatureUrl: text("director_signature_url"), // Digital signature of the director
+  schoolStampUrl: text("school_stamp_url"), // Official school stamp/seal
+  schoolLogoUrl: text("school_logo_url"), // School logo for official documents
+  directorName: text("director_name"), // Full name of director for reports
+  directorTitle: text("director_title").default("Directeur/Directrice"), // Director's official title
+  signatureUploadedAt: timestamp("signature_uploaded_at"),
+  stampUploadedAt: timestamp("stamp_uploaded_at"),
+  logoUploadedAt: timestamp("logo_uploaded_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
