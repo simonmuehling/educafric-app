@@ -3,8 +3,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { CreditCard, Search, CheckCircle, XCircle, Clock, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
+import { CreditCard, Search, CheckCircle, XCircle, Clock, DollarSign, AlertTriangle, TrendingUp, UserCheck, Calendar, Shield } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import ModuleContainer from '../components/ModuleContainer';
 import StatCard from '../components/StatCard';
 
@@ -12,6 +17,14 @@ const PaymentAdministration = () => {
   const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [showManualActivation, setShowManualActivation] = useState(false);
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [activationReason, setActivationReason] = useState('');
+  const [activationDuration, setActivationDuration] = useState('');
+  
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const text = {
     fr: {
@@ -355,7 +368,13 @@ const PaymentAdministration = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={() => setShowManualActivation(!showManualActivation)}
+                data-testid="button-manual-activation"
+              >
                 {language === 'fr' ? 'Activation Manuelle' : 'Manual Activation'}
               </Button>
               <Button variant="outline" size="sm" className="w-full">
@@ -384,7 +403,231 @@ const PaymentAdministration = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Manual Subscription Activation Modal */}
+      {showManualActivation && (
+        <Card className="mt-6 border-2 border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-800">
+              <Shield className="w-5 h-5" />
+              {language === 'fr' ? 'Activation Manuelle d\'Abonnement' : 'Manual Subscription Activation'}
+            </CardTitle>
+            <CardDescription>
+              {language === 'fr' 
+                ? 'Réservé aux Site Admin et Carine Nguetsop - Activation directe d\'abonnements utilisateurs'
+                : 'Reserved for Site Admin and Carine Nguetsop - Direct user subscription activation'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ManualActivationForm 
+              language={language}
+              onClose={() => setShowManualActivation(false)}
+            />
+          </CardContent>
+        </Card>
+      )}
     </ModuleContainer>
+  );
+};
+
+// Manual Activation Form Component
+const ManualActivationForm: React.FC<{ language: string; onClose: () => void }> = ({ language, onClose }) => {
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [activationReason, setActivationReason] = useState('');
+  const [activationDuration, setActivationDuration] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const { toast } = useToast();
+  
+  // Fetch all users for selection
+  const { data: users = [] } = useQuery({
+    queryKey: ['/api/admin/users'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/users', {});
+      const data = await response.json();
+      return data.users || [];
+    }
+  });
+
+  // Available subscription plans
+  const subscriptionPlans = [
+    { id: 'parent_public_quarterly', name: language === 'fr' ? 'Parent École Publique (3.000 CFA/trimestre)' : 'Parent Public School (3,000 CFA/quarter)' },
+    { id: 'parent_private_quarterly', name: language === 'fr' ? 'Parent École Privée (4.500 CFA/trimestre)' : 'Parent Private School (4,500 CFA/quarter)' },
+    { id: 'parent_public_annual', name: language === 'fr' ? 'Parent École Publique (12.000 CFA/an)' : 'Parent Public School (12,000 CFA/year)' },
+    { id: 'parent_private_annual', name: language === 'fr' ? 'Parent École Privée (18.000 CFA/an)' : 'Parent Private School (18,000 CFA/year)' },
+    { id: 'school_public', name: language === 'fr' ? 'École Publique (50.000 CFA/an)' : 'Public School (50,000 CFA/year)' },
+    { id: 'school_private', name: language === 'fr' ? 'École Privée (75.000 CFA/an)' : 'Private School (75,000 CFA/year)' },
+    { id: 'freelancer_semester', name: language === 'fr' ? 'Répétiteur (12.500 CFA/semestre)' : 'Tutor (12,500 CFA/semester)' },
+    { id: 'freelancer_annual', name: language === 'fr' ? 'Répétiteur (25.000 CFA/an)' : 'Tutor (25,000 CFA/year)' }
+  ];
+
+  const activationDurations = [
+    { value: '3months', label: language === 'fr' ? '3 mois (trimestriel)' : '3 months (quarterly)' },
+    { value: '6months', label: language === 'fr' ? '6 mois (semestriel)' : '6 months (semester)' },
+    { value: '12months', label: language === 'fr' ? '12 mois (annuel)' : '12 months (annual)' },
+    { value: 'custom', label: language === 'fr' ? 'Durée personnalisée' : 'Custom duration' }
+  ];
+
+  const handleManualActivation = async () => {
+    if (!selectedUser || !selectedPlan || !activationDuration || !activationReason.trim()) {
+      toast({
+        title: language === 'fr' ? "Champs requis" : "Required fields",
+        description: language === 'fr' ? "Veuillez remplir tous les champs obligatoires" : "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/admin/manual-subscription-activation', {
+        userId: parseInt(selectedUser),
+        planId: selectedPlan,
+        duration: activationDuration,
+        reason: activationReason,
+        activatedBy: 'site_admin' // This will be determined by backend based on current user
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: language === 'fr' ? "Activation réussie" : "Activation successful",
+          description: language === 'fr' 
+            ? `Abonnement activé pour l'utilisateur ${result.user?.email}` 
+            : `Subscription activated for user ${result.user?.email}`,
+        });
+        
+        // Reset form
+        setSelectedUser('');
+        setSelectedPlan('');
+        setActivationReason('');
+        setActivationDuration('');
+        onClose();
+      } else {
+        throw new Error(result.message || 'Activation failed');
+      }
+    } catch (error: any) {
+      console.error('[MANUAL_ACTIVATION] Error:', error);
+      toast({
+        title: language === 'fr' ? "Erreur d'activation" : "Activation error",
+        description: error.message || (language === 'fr' ? "Échec de l'activation" : "Activation failed"),
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* User Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Sélectionner l\'utilisateur' : 'Select User'}
+        </label>
+        <Select value={selectedUser} onValueChange={setSelectedUser}>
+          <SelectTrigger data-testid="select-user">
+            <SelectValue placeholder={language === 'fr' ? 'Choisir un utilisateur...' : 'Choose a user...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((user: any) => (
+              <SelectItem key={user.id} value={user.id.toString()}>
+                {user.firstName} {user.lastName} ({user.email}) - {user.userType || user.role}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Plan Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Plan d\'abonnement' : 'Subscription Plan'}
+        </label>
+        <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+          <SelectTrigger data-testid="select-plan">
+            <SelectValue placeholder={language === 'fr' ? 'Choisir un plan...' : 'Choose a plan...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {subscriptionPlans.map((plan) => (
+              <SelectItem key={plan.id} value={plan.id}>
+                {plan.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Duration Selection */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Durée d\'activation' : 'Activation Duration'}
+        </label>
+        <Select value={activationDuration} onValueChange={setActivationDuration}>
+          <SelectTrigger data-testid="select-duration">
+            <SelectValue placeholder={language === 'fr' ? 'Choisir la durée...' : 'Choose duration...'} />
+          </SelectTrigger>
+          <SelectContent>
+            {activationDurations.map((duration) => (
+              <SelectItem key={duration.value} value={duration.value}>
+                {duration.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Activation Reason */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          {language === 'fr' ? 'Raison de l\'activation' : 'Activation Reason'}
+        </label>
+        <Textarea
+          value={activationReason}
+          onChange={(e) => setActivationReason(e.target.value)}
+          placeholder={language === 'fr' 
+            ? 'Expliquez pourquoi cet abonnement est activé manuellement...'
+            : 'Explain why this subscription is being manually activated...'
+          }
+          rows={3}
+          data-testid="textarea-reason"
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-4">
+        <Button
+          onClick={handleManualActivation}
+          disabled={isProcessing}
+          className="flex-1"
+          data-testid="button-activate"
+        >
+          {isProcessing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              {language === 'fr' ? 'Activation...' : 'Activating...'}
+            </>
+          ) : (
+            <>
+              <UserCheck className="w-4 h-4 mr-2" />
+              {language === 'fr' ? 'Activer l\'Abonnement' : 'Activate Subscription'}
+            </>
+          )}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onClose}
+          disabled={isProcessing}
+          data-testid="button-cancel"
+        >
+          {language === 'fr' ? 'Annuler' : 'Cancel'}
+        </Button>
+      </div>
+    </div>
   );
 };
 

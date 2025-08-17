@@ -11465,6 +11465,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual subscription activation for Site Admin and Carine Nguetsop
+  app.post("/api/admin/manual-subscription-activation", requireAuth, async (req, res) => {
+    try {
+      const adminUser = (req.user as any);
+      
+      // Check if user has permission for manual activation (Site Admin or Carine Nguetsop)
+      const isAuthorized = adminUser.role === 'SiteAdmin' || 
+                          (adminUser.email === 'carine.nguetsop@educafric.com' && adminUser.role === 'Commercial');
+      
+      if (!isAuthorized) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Access denied. Only Site Admin and Carine Nguetsop can manually activate subscriptions.' 
+        });
+      }
+
+      const { userId, planId, duration, reason } = req.body;
+
+      if (!userId || !planId || !duration || !reason) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: userId, planId, duration, reason' 
+        });
+      }
+
+      // Get target user
+      const targetUser = await storage.getUserById(userId);
+      if (!targetUser) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'User not found' 
+        });
+      }
+
+      // Calculate subscription end date based on duration
+      const startDate = new Date();
+      const endDate = new Date();
+      
+      switch (duration) {
+        case '3months':
+          endDate.setMonth(endDate.getMonth() + 3);
+          break;
+        case '6months':
+          endDate.setMonth(endDate.getMonth() + 6);
+          break;
+        case '12months':
+          endDate.setFullYear(endDate.getFullYear() + 1);
+          break;
+        default:
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Invalid duration. Use 3months, 6months, or 12months' 
+          });
+      }
+
+      // Update user subscription
+      const subscriptionData = {
+        subscriptionPlan: planId,
+        subscriptionStatus: 'active',
+        subscriptionStart: startDate.toISOString(),
+        subscriptionEnd: endDate.toISOString()
+      };
+
+      await storage.updateUser(userId, subscriptionData);
+
+      // Log the manual activation
+      console.log(`[MANUAL_ACTIVATION] User ${adminUser.email} (${adminUser.role}) manually activated subscription for user ${targetUser.email}`);
+      console.log(`[MANUAL_ACTIVATION] Plan: ${planId}, Duration: ${duration}, Reason: ${reason}`);
+
+      // Create notification for activated user
+      const notificationData = {
+        userId: userId,
+        title: 'Subscription Activated',
+        message: `Your ${planId} subscription has been manually activated and is now active until ${endDate.toLocaleDateString()}.`,
+        type: 'subscription_activated',
+        priority: 'normal',
+        isRead: false,
+        createdAt: new Date().toISOString()
+      };
+
+      // Store notification (assuming storage method exists)
+      try {
+        await storage.createNotification(notificationData);
+      } catch (notificationError) {
+        console.log('[MANUAL_ACTIVATION] Could not create notification:', notificationError);
+      }
+
+      res.json({
+        success: true,
+        message: 'Subscription activated successfully',
+        user: {
+          id: targetUser.id,
+          email: targetUser.email,
+          firstName: targetUser.firstName,
+          lastName: targetUser.lastName
+        },
+        subscription: {
+          planId,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          duration,
+          activatedBy: adminUser.email,
+          reason
+        }
+      });
+
+    } catch (error: any) {
+      console.error('[MANUAL_ACTIVATION] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to activate subscription: ' + error.message
+      });
+    }
+  });
+
   // Stripe webhook for instant subscription activation
   app.post("/api/stripe/webhook", async (req, res) => {
     try {
