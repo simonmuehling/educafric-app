@@ -20,6 +20,20 @@ const SchoolSettings: React.FC = () => {
     logoUrl: '',
     directorSignatureUrl: ''
   });
+  const [loading, setLoading] = useState(true);
+  const [schoolData, setSchoolData] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    website: "",
+    director: "",
+    studentsCount: 0,
+    teachersCount: 0,
+    classesCount: 0,
+    establishmentType: "",
+    academicYear: ""
+  });
 
   // Load real school data and branding on component mount
   useEffect(() => {
@@ -45,8 +59,8 @@ const SchoolSettings: React.FC = () => {
             name: "École Excellence Yaoundé",
             address: "Avenue Kennedy, Bastos, Yaoundé",
             phone: "+237 656 200 472",
-            email: "contact@excellence-yaounde?.edu?.cm",
-            website: "www.excellence-yaounde?.edu?.cm",
+            email: "contact@excellence-yaounde.edu.cm",
+            website: "www.excellence-yaounde.edu.cm",
             director: "Demo Director",
             studentsCount: 1247,
             teachersCount: 85,
@@ -77,8 +91,8 @@ const SchoolSettings: React.FC = () => {
           name: "École Excellence Yaoundé",
           address: "Avenue Kennedy, Bastos, Yaoundé",
           phone: "+237 656 200 472",
-          email: "contact@excellence-yaounde?.edu?.cm",
-          website: "www.excellence-yaounde?.edu?.cm",
+          email: "contact@excellence-yaounde.edu.cm",
+          website: "www.excellence-yaounde.edu.cm",
           director: "Demo Director",
           studentsCount: 1247,
           teachersCount: 85,
@@ -93,21 +107,6 @@ const SchoolSettings: React.FC = () => {
 
     loadSchoolData();
   }, []);
-
-  const [schoolData, setSchoolData] = useState({
-    name: "",
-    address: "",
-    phone: "",
-    email: "",
-    website: "",
-    director: "",
-    studentsCount: 0,
-    teachersCount: 0,
-    classesCount: 0,
-    establishmentType: "",
-    academicYear: ""
-  });
-  const [loading, setLoading] = useState(true);
 
   const handleSave = async () => {
     try {
