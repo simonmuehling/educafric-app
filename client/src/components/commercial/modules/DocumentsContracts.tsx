@@ -465,6 +465,112 @@ const DocumentsContracts = () => {
       description: 'Proposition tarifaire personnalisée flexible pour écoles françaises et francophones'
     },
 
+    // GUIDES DE CONFIGURATION EXISTANTS - MÊME CONFIG QUE "Documentation Parent (PDF)"
+    {
+      id: 201,
+      name: 'Guide Écoles Configuration Profil (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '13.5 KB',
+      format: 'PDF',
+      url: '/documents/guide-ecoles-configuration-profil-fr.html',
+      description: 'Guide complet de configuration profil école - Paramètres, utilisateurs, permissions, modules'
+    },
+    {
+      id: 202,
+      name: 'Guide Schools Profile Configuration (EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '12.8 KB',
+      format: 'PDF',
+      url: '/documents/guide-schools-profile-configuration-en.html',
+      description: 'Complete school profile configuration guide - Settings, users, permissions, modules'
+    },
+    {
+      id: 203,
+      name: 'Guide Enseignants Configuration (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '14.1 KB',
+      format: 'PDF',
+      url: '/documents/guide-enseignants-configuration-fr.html',
+      description: 'Guide configuration enseignants - Profil, classes, matières, bulletins'
+    },
+    {
+      id: 204,
+      name: 'Guide Parents Configuration Profil (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '11.3 KB',
+      format: 'PDF',
+      url: '/documents/guide-parents-configuration-profil-fr.html',
+      description: 'Guide configuration parents - Profil, enfants, notifications, géolocalisation'
+    },
+    {
+      id: 205,
+      name: 'Guide Parents Profile Configuration (EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '10.8 KB',
+      format: 'PDF',
+      url: '/documents/guide-parents-profile-configuration-en.html',
+      description: 'Parent profile configuration guide - Profile, children, notifications, geolocation'
+    },
+    {
+      id: 206,
+      name: 'Guide Élèves Configuration Profil (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '9.9 KB',
+      format: 'PDF',
+      url: '/documents/guide-eleves-configuration-profil-fr.html',
+      description: 'Guide configuration élèves - Profil, matières, devoirs, bulletins'
+    },
+    {
+      id: 207,
+      name: 'Guide Students Profile Configuration (EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '9.4 KB',
+      format: 'PDF',
+      url: '/documents/guide-students-profile-configuration-en.html',
+      description: 'Student profile configuration guide - Profile, subjects, homework, bulletins'
+    },
+    {
+      id: 208,
+      name: 'Guide Répétiteurs Configuration Profil (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '11.8 KB',
+      format: 'PDF',
+      url: '/documents/guide-repetiteurs-configuration-profil-fr.html',
+      description: 'Guide configuration répétiteurs - Profil, élèves, tarifs, planning'
+    },
+
     // Documents supplémentaires requis (pas de doublons)
     {
       id: 19,
