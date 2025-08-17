@@ -37,81 +37,68 @@ export class SubscriptionService {
    * Plans d'abonnement disponibles
    */
   static readonly SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
-    // Plans pour écoles (annuels uniquement)
-    'ecole_publique': {
-      id: 'ecole_publique',
-      name: 'École Publique',
+    // Plans pour écoles - NOUVEAU MODÈLE: EDUCAFRIC PAIE LES ÉCOLES
+    'ecole_500_plus': {
+      id: 'ecole_500_plus',
+      name: 'École 500+ élèves',
       type: 'school',
-      price: 250000,
+      price: -150000, // Négatif car EDUCAFRIC paie l'école
       currency: 'XAF',
       billing: 'annual',
       features: [
+        'EDUCAFRIC verse 150.000 CFA/an à l\'école',
+        'Paiement trimestriel: 50.000 CFA',
         'Gestion académique complète',
         'Bulletins personnalisés',
         'Communication parents-enseignants',
         'Géolocalisation des élèves',
         'Notifications SMS/Email',
         'Support prioritaire',
-        'Formation équipe',
-        'Sauvegarde automatique'
+        'Formation équipe gratuite'
       ],
       isActive: true
     },
-    'ecole_privee': {
-      id: 'ecole_privee',
-      name: 'École Privée',
+    'ecole_500_moins': {
+      id: 'ecole_500_moins',
+      name: 'École moins de 500 élèves',
       type: 'school',
-      price: 750000,
+      price: -200000, // Négatif car EDUCAFRIC paie l'école
       currency: 'XAF',
       billing: 'annual',
       features: [
-        'Toutes les fonctionnalités École Publique',
-        'Module commercial avancé',
-        'Gestion de la facturation',
-        'Rapports financiers détaillés',
-        'API personnalisée',
-        'Branding personnalisé',
-        'Support premium 24/7',
-        'Formation avancée équipe',
-        'Intégration systèmes tiers'
+        'EDUCAFRIC verse 200.000 CFA/an à l\'école',
+        'Paiement trimestriel: 66.670 CFA',
+        'Gestion académique complète',
+        'Bulletins personnalisés',
+        'Communication parents-enseignants',
+        'Géolocalisation des élèves',
+        'Notifications SMS/Email',
+        'Support prioritaire',
+        'Formation équipe gratuite',
+        'Bonus école petite taille'
       ],
       isActive: true
     },
-    'ecole_entreprise': {
-      id: 'ecole_entreprise',
-      name: 'École Entreprise',
-      type: 'school',
-      price: 150000,
-      currency: 'XAF',
-      billing: 'annual',
-      features: [
-        'Interface bilingue français/anglais',
-        'Gestion formations professionnelles',
-        'Certificats numériques',
-        'Module e-learning',
-        'Suivi compétences',
-        'Rapports de formation',
-        'Support technique',
-        'Formation utilisateurs'
-      ],
-      isActive: true
-    },
-    // Plan pour répétiteurs/freelancers
-    'repetiteur_professionnel': {
-      id: 'repetiteur_professionnel',
-      name: 'Répétiteur Professionnel',
+    // Plans pour répétiteurs/freelancers - Prix actualisés
+    'repetiteur_professionnel_semestriel': {
+      id: 'repetiteur_professionnel_semestriel',
+      name: 'Répétiteur Professionnel (Semestriel)',
       type: 'freelancer',
-      price: 12000,
+      price: 12500,
       currency: 'XAF',
-      billing: 'monthly',
+      billing: 'annual', // Semestriel (6 mois)
       features: [
         'Gestion élèves illimitée',
         'Planning personnalisé',
         'Suivi des progrès',
         'Communication parents',
         'Facturation simplifiée',
-        'Documents pédagogiques',
-        'Support standard'
+        'Géolocalisation et zones d\'enseignement',
+        'Outils de performance et analytics',
+        'Marketing digital',
+        'Formation continue',
+        'Certification professionnelle',
+        'Support téléphonique'
       ],
       limitations: {
         maxStudents: 50,
@@ -123,15 +110,16 @@ export class SubscriptionService {
       id: 'repetiteur_professionnel_annual',
       name: 'Répétiteur Professionnel (Annuel)',
       type: 'freelancer',
-      price: 120000,
+      price: 25000,
       currency: 'XAF',
       billing: 'annual',
       features: [
-        'Toutes les fonctionnalités mensuelles',
-        '2 mois gratuits',
+        'Toutes les fonctionnalités semestrielles',
+        'Économie annuelle',
         'Support prioritaire',
         'Formation avancée',
-        'Outils marketing'
+        'Outils marketing premium',
+        'Certification avancée'
       ],
       limitations: {
         maxStudents: 50,

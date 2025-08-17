@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap } from 'lucide-react';
+import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 // Import functional modules
 import FunctionalSiteAdminUsers from './modules/FunctionalSiteAdminUsers';
@@ -54,6 +55,35 @@ interface QuickAction {
 const SiteAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      const response = await apiRequest('POST', '/api/auth/logout', {});
+      const data = await response.json();
+      
+      if (data.message === 'Logged out successfully') {
+        // Clear all cached data
+        queryClient.clear();
+        
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès.",
+        });
+        
+        // Redirect to login page
+        window.location.href = '/login';
+      }
+    } catch (error: any) {
+      console.error('[LOGOUT] Error:', error);
+      toast({
+        title: "Erreur de déconnexion",
+        description: "Une erreur s'est produite lors de la déconnexion.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Platform statistics query
   const { data: platformStats, isLoading: statsLoading } = useQuery<PlatformStats>({
@@ -187,6 +217,16 @@ const SiteAdminDashboard: React.FC = () => {
             </div>
             <Button variant="outline" size="icon" className="self-end sm:self-auto">
               <Bell className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleLogout}
+              className="self-end sm:self-auto flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Déconnexion</span>
             </Button>
           </div>
         </div>

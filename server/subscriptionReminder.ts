@@ -66,25 +66,36 @@ export class SubscriptionReminderService {
   }
 
   /**
-   * Récupère les utilisateurs avec abonnements actifs
+   * Récupère les utilisateurs PARENTS avec abonnements actifs nécessitant des rappels
+   * NOUVEAU MODÈLE: Seuls les parents payent des abonnements (quarterly/annual)
    */
   private async getUsersWithActiveSubscriptions(): Promise<User[]> {
     try {
-      // Récupérer les utilisateurs avec abonnements actifs depuis la base de données
-      // Cette méthode devrait être implémentée dans storage pour récupérer tous les utilisateurs
-      // avec subscriptionStatus = 'active' et subscriptionEnd dans les 7 prochains jours
+      // NOUVEAU MODÈLE 2025: Récupérer uniquement les PARENTS avec abonnements actifs
+      // Les écoles ne payent plus - EDUCAFRIC leur verse de l'argent
       
-      // Pour l'instant, récupération manuelle des utilisateurs de test
-      const marie = await storage.getUserByEmail('marie.parent@test.educafric.com');
+      // Récupérer tous les utilisateurs et filtrer les parents
+      const allUsers = await storage.getUsers();
+      const parents = allUsers.filter(user => user.userType === 'Parent');
       const users: User[] = [];
       
-      if (marie && marie.subscriptionStatus === 'active' && marie.subscriptionEnd) {
-        users.push(marie);
+      for (const parent of parents) {
+        // Vérifier les parents avec abonnements qui expirent dans 7 jours
+        if (parent && parent.subscriptionStatus === 'active' && parent.subscriptionEnd) {
+          const now = new Date();
+          const subscriptionEnd = new Date(parent.subscriptionEnd);
+          const daysUntilExpiry = Math.ceil((subscriptionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // Rappel pour les abonnements qui expirent dans 7 jours ou moins
+          if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
+            users.push(parent);
+          }
+        }
       }
       
       return users;
     } catch (error) {
-      console.error('[SUBSCRIPTION_REMINDER] Error fetching users:', error);
+      console.error('[SUBSCRIPTION_REMINDER] Error fetching parent users:', error);
       return [];
     }
   }
@@ -101,8 +112,8 @@ export class SubscriptionReminderService {
     const subscriptionEnd = new Date(user.subscriptionEnd);
     const daysUntilExpiry = Math.ceil((subscriptionEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Envoyer rappel 7 jours avant expiration
-    if (daysUntilExpiry === 7) {
+    // Envoyer rappel 7 jours avant expiration (ou moins pour les abonnements trimestriels)
+    if (daysUntilExpiry <= 7 && daysUntilExpiry > 0) {
       const reminderKey = `${user.id}-${subscriptionEnd.toISOString().split('T')[0]}`;
       
       if (!this.reminders.has(user.id) || !this.reminders.get(user.id)?.reminderSent) {
