@@ -298,9 +298,9 @@ export class PDFGenerator {
     
     doc.setFontSize(11);
     doc.setTextColor(0, 0, 0);
-    doc.text('Phone: +237 657 004 011', 25, yPosition);
+    doc.text('Téléphone: +237 656 200 472', 25, yPosition);
     yPosition += 8;
-    doc.text('Email: admin@educafric.com', 25, yPosition);
+    doc.text('Email: info@educafric.com', 25, yPosition);
     yPosition += 8;
     doc.text('Coverage: All African Countries', 25, yPosition);
     
@@ -552,9 +552,9 @@ export class PDFGenerator {
     
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text('Téléphone: +237 657 004 011', 25, yPosition);
+    doc.text('Téléphone: +237 656 200 472', 25, yPosition);
     yPosition += 8;
-    doc.text('Email: admin@educafric.com', 25, yPosition);
+    doc.text('Email: info@educafric.com', 25, yPosition);
     yPosition += 8;
     doc.text('Démo gratuite: https://educafric.com/sandbox', 25, yPosition);
     
@@ -949,8 +949,8 @@ export class PDFGenerator {
       '• Timeout de session: 24h pour sécurité',
       '',
       'Support technique:',
-      '• Email: admin@educafric.com',
-      '• Téléphone: +237 657 004 011',
+      '• Email: info@educafric.com',
+      '• Téléphone: +237 656 200 472',
       '• Documentation: /documents/systeme-multi-role'
     ];
     
