@@ -58,6 +58,8 @@ Preferred communication style: Simple, everyday language.
 - ✓ **Contract Version 6.0:** Complete revision with new obligations and payment terms
 - ✓ **School Obligations:** Must promote parent subscriptions, maintain 30% affiliation rate
 - ✓ **Payment Methods:** Schools provide bank/Mobile Money details for EDUCAFRIC payments
+- ✓ **QUARTERLY BILLING CONFIRMATION (August 17, 2025):** Private school parent subscriptions confirmed at 4,500 CFA per quarter (18,000 CFA annually)
+- ✓ **PRICING VERIFICATION:** All systems aligned - Contract, Stripe Service, and Frontend all show 4,500 CFA/quarter for private schools
 
 **CRITICAL USER PREFERENCES:**
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
