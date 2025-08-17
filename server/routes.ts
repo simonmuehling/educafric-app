@@ -11379,6 +11379,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }).catch(error => {
       console.error('[BULLETIN_VALIDATION] Failed to register bulletin validation routes:', error);
     });
+    
+    // Bulletin CRUD routes
+    import('./routes/bulletinRoutes').then(({ default: bulletinRoutes }) => {
+      app.use('/api', bulletinRoutes);
+      console.log('[BULLETIN_CRUD] Bulletin CRUD routes registered successfully');
+    }).catch(error => {
+      console.error('[BULLETIN_CRUD] Failed to register bulletin CRUD routes:', error);
+    });
   } catch (error) {
     console.error('[WhatsApp] Failed to import routes:', error);
   }

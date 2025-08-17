@@ -59,6 +59,8 @@ import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
+const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
+const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -420,6 +422,8 @@ function Router() {
       <Route path="/modern-forms" component={ModernFormDemo} />
       <Route path="/signature-test" component={SignatureTest} />
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
+      <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
+      <Route path="/bulletin-tests" component={BulletinTestSuite} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
