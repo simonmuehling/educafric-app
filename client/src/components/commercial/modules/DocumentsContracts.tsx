@@ -372,6 +372,99 @@ const DocumentsContracts = () => {
       description: 'Guide EDUCAFRIC pour parents : fonctionnalités géolocalisation, notifications temps réel, suivi scolaire, tarifs réels 2025 - Parent École Publique: 12,000 XAF/an, Parent École Privée: 18,000 XAF/an, Parent GPS: 12,000 XAF/an'
     },
 
+    // LES 10 NOUVEAUX DOCUMENTS AJOUTÉS POUR ORDRE ALPHABÉTIQUE UNIFIÉ
+    {
+      id: 101,
+      name: 'Contrat Partenariat Commercial (FR)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Partenaires Commerciaux',
+      date: '2025-08-11',
+      status: 'finalized',
+      size: '15.4 KB',
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-commercial-fr.html',
+      description: 'Contrat de partenariat commercial pour équipe commerciale EDUCAFRIC avec commissions, territoires, objectifs'
+    },
+    {
+      id: 102,
+      name: 'Contrat Partenariat Établissements-Freelancers-Parents 2025 Actualisé',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Multi-Stakeholder',
+      date: '2025-08-15',
+      status: 'finalized',
+      size: '32.8 KB',
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-etablissements-freelancers-parents-2025-actualise.html',
+      description: 'Contrat actualisé multi-parties pour établissements, freelancers et parents avec tarification 2025'
+    },
+    {
+      id: 103,
+      name: 'Customized Pricing Proposal (EN)',
+      type: 'proposal',
+      category: 'pricing',
+      school: 'International Clients',
+      date: '2025-08-11',
+      status: 'finalized',
+      size: '18.2 KB',
+      format: 'HTML',
+      url: '/documents/customized-pricing-proposal-en.html',
+      description: 'English customized pricing proposal with flexible rates for international schools'
+    },
+    {
+      id: 104,
+      name: 'Educafric Commercial Brochure (EN)',
+      type: 'brochure',
+      category: 'marketing',
+      school: 'International Markets',
+      date: '2025-08-11',
+      status: 'finalized',
+      size: '24.1 KB',
+      format: 'HTML',
+      url: '/documents/educafric-commercial-brochure-en.html',
+      description: 'English commercial brochure for international market expansion'
+    },
+    {
+      id: 105,
+      name: 'Educafric Plans Abonnement Complets FR',
+      type: 'pricing',
+      category: 'pricing',
+      school: 'Documentation Officielle',
+      date: '2025-01-22',
+      status: 'finalized',
+      size: '45.3 KB',
+      format: 'HTML',
+      url: '/documents/Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
+      description: 'Plans d\'abonnement complets EDUCAFRIC avec tarification détaillée tous secteurs'
+    },
+    {
+      id: 106,
+      name: 'Partnership Contract Schools-Freelancers-Parents 2025 (EN)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'International Partners',
+      date: '2025-08-15',
+      status: 'finalized',
+      size: '38.5 KB',
+      format: 'HTML',
+      url: '/documents/partnership-contract-schools-freelancers-parents-2025-en.html',
+      description: 'English version of multi-stakeholder partnership contract updated 2025 pricing'
+    },
+    {
+      id: 107,
+      name: 'Proposition Tarifaire Personnalisée (FR)',
+      type: 'proposal',
+      category: 'pricing',
+      school: 'Clients Français',
+      date: '2025-08-11',
+      status: 'finalized',
+      size: '19.7 KB',
+      format: 'HTML',
+      url: '/documents/proposition-tarifaire-personnalisee-fr.html',
+      description: 'Proposition tarifaire personnalisée flexible pour écoles françaises et francophones'
+    },
+
     // Nouveaux documents bilingues requis
     {
       id: 17,
