@@ -1012,4 +1012,208 @@ export class PDFGenerator {
     
     return Buffer.from(doc.output('arraybuffer'));
   }
+
+  static async generateMultiRoleGuideDocument(data: DocumentData): Promise<Buffer> {
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const doc = new jsPDF();
+    
+    // Configuration
+    doc.setFont('helvetica');
+    
+    // En-tête avec branding EDUCAFRIC
+    doc.setFontSize(20);
+    doc.setTextColor(0, 121, 242); // #0079F2
+    doc.text('EDUCAFRIC', 20, 30);
+    doc.setFontSize(14);
+    doc.text('Système Multi-Rôle - Guide Commercial', 20, 40);
+    
+    // Ligne de séparation
+    doc.setDrawColor(0, 121, 242);
+    doc.setLineWidth(1);
+    doc.line(20, 45, 190, 45);
+    
+    // Métadonnées document
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Document ID: ${data.id}`, 20, 55);
+    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, 62);
+    doc.text(`Généré par: ${data.user.email}`, 20, 69);
+    doc.text(`Type: Guide Commercial Multi-Rôle`, 20, 76);
+    
+    // Titre principal
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Système Multi-Rôle EDUCAFRIC', 20, 90);
+    doc.setFontSize(14);
+    doc.text('Guide Commercial (Français / English)', 20, 100);
+    
+    // Section 1: Vue d'ensemble (Français)
+    let yPosition = 120;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 121, 242);
+    doc.text('1. VUE D\'ENSEMBLE DU SYSTÈME', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const overviewContent = [
+      'Le système multi-rôle EDUCAFRIC permet aux utilisateurs d\'avoir',
+      'plusieurs rôles simultanément sur un seul compte, optimisant',
+      'l\'expérience utilisateur et réduisant les coûts administratifs.',
+      '',
+      'Avantages clés:',
+      '• Un seul compte pour plusieurs fonctions',
+      '• Commutation instantanée entre les rôles',
+      '• Isolation complète des données par rôle',
+      '• Sécurité renforcée avec validation stricte',
+      '• Réduction des coûts de gestion'
+    ];
+    
+    overviewContent.forEach(line => {
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      doc.text(line, 25, yPosition);
+      yPosition += 8;
+    });
+    
+    // Section 2: Comment créer un rôle parent
+    yPosition += 10;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 121, 242);
+    doc.text('2. CRÉATION D\'UN RÔLE PARENT', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const parentCreationSteps = [
+      'Étapes pour ajouter un rôle parent à un compte commercial:',
+      '',
+      '1. Connectez-vous en tant que Commercial',
+      '2. Accédez à "Gestion Multi-Rôle" dans le menu',
+      '3. Cliquez sur "Ajouter un rôle Parent"',
+      '4. Remplissez les informations de liaison:',
+      '   - Numéro de téléphone de l\'enfant',
+      '   - Nom complet de l\'enfant',
+      '   - École de l\'enfant',
+      '5. Validez la création du lien parent-enfant',
+      '6. Le système crée automatiquement les permissions',
+      '',
+      'Sécurité:',
+      '• Validation obligatoire de l\'école',
+      '• Vérification du numéro de téléphone',
+      '• Isolation totale des données commerciales'
+    ];
+    
+    parentCreationSteps.forEach(line => {
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      doc.text(line, 25, yPosition);
+      yPosition += 6;
+    });
+    
+    // Nouvelle page pour la section anglaise
+    doc.addPage();
+    yPosition = 30;
+    
+    // Section English
+    doc.setFontSize(16);
+    doc.setTextColor(0, 121, 242);
+    doc.text('3. MULTI-ROLE SYSTEM OVERVIEW (ENGLISH)', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const englishOverview = [
+      'EDUCAFRIC\'s multi-role system allows users to have multiple',
+      'roles simultaneously on a single account, optimizing user',
+      'experience and reducing administrative costs.',
+      '',
+      'Key Benefits:',
+      '• Single account for multiple functions',
+      '• Instant role switching capability',
+      '• Complete data isolation per role',
+      '• Enhanced security with strict validation',
+      '• Reduced management costs',
+      '',
+      'How to Add Parent Role to Commercial Account:',
+      '',
+      '1. Login as Commercial user',
+      '2. Navigate to "Multi-Role Management"',
+      '3. Click "Add Parent Role"',
+      '4. Fill in linking information:',
+      '   - Child\'s phone number',
+      '   - Child\'s full name',
+      '   - Child\'s school',
+      '5. Validate parent-child connection',
+      '6. System automatically creates permissions',
+      '',
+      'Security Features:',
+      '• Mandatory school validation',
+      '• Phone number verification',
+      '• Complete commercial data isolation'
+    ];
+    
+    englishOverview.forEach(line => {
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      doc.text(line, 25, yPosition);
+      yPosition += 6;
+    });
+    
+    // Section technique
+    yPosition += 15;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 121, 242);
+    doc.text('4. SPÉCIFICATIONS TECHNIQUES', 20, yPosition);
+    yPosition += 15;
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    const technicalSpecs = [
+      'Architecture du système:',
+      '• Base de données: PostgreSQL avec isolation par rôle',
+      '• Authentification: Session-based avec validation 2FA',
+      '• Permissions: Matrix de contrôle d\'accès granulaire',
+      '• APIs: RESTful avec validation de rôle par endpoint',
+      '',
+      'Limitations et contraintes:',
+      '• Maximum 3 rôles par compte utilisateur',
+      '• Validation obligatoire école-parent-enfant',
+      '• Audit trail complet pour toutes les actions',
+      '• Timeout de session: 24h pour sécurité',
+      '',
+      'Support technique:',
+      '• Email: admin@educafric.com',
+      '• Téléphone: +237 657 004 011',
+      '• Documentation: /documents/systeme-multi-role'
+    ];
+    
+    technicalSpecs.forEach(line => {
+      if (yPosition > 260) {
+        doc.addPage();
+        yPosition = 30;
+      }
+      doc.text(line, 25, yPosition);
+      yPosition += 8;
+    });
+    
+    // Pied de page pour toutes les pages
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text('© 2025 EDUCAFRIC - Guide Commercial Multi-Rôle', 20, 285);
+      doc.text(`Page ${i}/${pageCount}`, 170, 285);
+    }
+    
+    return Buffer.from(doc.output('arraybuffer'));
+  }
 }

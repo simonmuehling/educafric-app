@@ -155,6 +155,19 @@ const DocumentsContracts = () => {
       url: '/documents/commercial-bulletin-guide-educafric-2025-en.html',
       description: 'Complete commercial guide for selling EDUCAFRIC digital report cards - Pricing: Public School 50,000 XAF/year, Private School 75,000 XAF/year, Enterprise School 150,000 XAF/year - Sales scripts, technical arguments, ROI benefits for principals and parents - African-style bulletin system with averages, rankings, personalized comments and digital signatures'
     },
+    {
+      id: 9,
+      name: 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '24.3 KB',
+      format: 'HTML',
+      url: '/documents/guide-systeme-multi-role-commercial-fr-en.html',
+      description: 'Guide commercial complet bilingue sur le système multi-rôle EDUCAFRIC - Comment les commerciaux peuvent créer des profils Parent/Enseignant additionnels pour renforcer leur crédibilité et efficacité commerciale - Processus de détection automatique des rôles, basculement en temps réel, isolation sécurisée des données, scripts de vente authentiques - Complete bilingual commercial guide on EDUCAFRIC multi-role system - How sales representatives can create additional Parent/Teacher profiles to enhance credibility and commercial effectiveness - Automatic role detection process, real-time switching, secure data isolation, authentic sales scripts'
+    },
     
     // Proposal Request Documents - FIXED URL
     {
@@ -450,6 +463,19 @@ const DocumentsContracts = () => {
       format: 'PDF',
       url: '/documents/tarifs-complets-educafric-2025.html',
       description: 'Tarifs détaillés réels depuis /subscribe - Cameroun 2025 - Écoles: Publique 50,000 XAF, Privée 75,000 XAF, Entreprise 150,000 XAF, GPS 50,000 XAF, Publique Complet 90,000 XAF, Privée Complet 115,000 XAF - Parents: Publique 12,000 XAF, Privée 18,000 XAF, GPS 12,000 XAF - Freelancers: 25,000 XAF/an - Géolocalisation, abonnements et services complets'
+    },
+    {
+      id: 54,
+      name: 'Système Multi-Rôle EDUCAFRIC - Guide Commercial (FR/EN)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Technique',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '87.4 KB',
+      format: 'PDF',
+      url: '/api/commercial/documents/9/view',
+      description: 'Guide complet du système multi-rôle EDUCAFRIC pour commerciaux - Comment ajouter un rôle parent à un compte commercial avec isolation complète des données, validation scolaire, et commutation instantanée entre rôles. Documentation bilingue français/anglais avec spécifications techniques et procédures de sécurité. Complete EDUCAFRIC multi-role system guide for commercial team - How to add parent role to commercial account with complete data isolation, school validation, and instant role switching. Bilingual French/English documentation with technical specifications and security procedures.'
     },
   ];
 
