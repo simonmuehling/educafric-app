@@ -200,16 +200,16 @@ const DocumentsContracts = () => {
     },
     {
       id: 53,
-      name: 'EDUCAFRIC Official Contract 2025 Updated - Version 6.0 (EN)',
+      name: 'EDUCAFRIC Official Contract 2025 Updated - Version 4.0 (EN)',
       type: 'contract',
       category: 'contracts',
       school: 'All Partners',
-      date: '2025-08-17',
+      date: '2025-08-14',
       status: 'finalized',
-      size: '54.1 KB',
+      size: '48.7 KB',
       format: 'HTML',
-      url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'VERSION 6.0 - Official contract updated August 17, 2025 with new payment model: EDUCAFRIC now pays schools. Public School: 50,000 XAF/year, Private School: 75,000 XAF/year, Enterprise School: 150,000 XAF/year, School GPS: 50,000 XAF/year, Public Complete: 90,000 XAF/year, Private Complete: 115,000 XAF/year - Parents: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - Freelancers Professional: 25,000 XAF/year'
+      url: '/documents/partnership-contract-schools-freelancers-parents-2025-en.html',
+      description: 'VERSION 4.0 - English version of official contract updated August 14, 2025 with parents integration. Public School: 50,000 XAF/year, Private School: 75,000 XAF/year, Enterprise School: 150,000 XAF/year, School GPS: 50,000 XAF/year, Public Complete: 90,000 XAF/year, Private Complete: 115,000 XAF/year - Parents: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - Freelancers Professional: 25,000 XAF/year'
     },
     {
       id: 28,
