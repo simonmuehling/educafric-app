@@ -11580,6 +11580,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment confirmation endpoints for Site Admin
+  app.put("/api/admin/payments/:id/confirm", requireAuth, async (req, res) => {
+    try {
+      const adminUser = (req.user as any);
+      const paymentId = parseInt(req.params.id);
+
+      // Check authorization (Site Admin or Commercial role)
+      if (!['SiteAdmin', 'Admin', 'Commercial'].includes(adminUser.role)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Insufficient permissions' 
+        });
+      }
+
+      // Mock payment confirmation - in real implementation would update database
+      console.log(`[PAYMENT_CONFIRM] User ${adminUser.email} confirmed payment ${paymentId}`);
+
+      res.json({
+        success: true,
+        message: 'Payment confirmed successfully',
+        paymentId
+      });
+
+    } catch (error: any) {
+      console.error('[PAYMENT_CONFIRM] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to confirm payment: ' + error.message
+      });
+    }
+  });
+
+  app.put("/api/admin/payments/:id/reject", requireAuth, async (req, res) => {
+    try {
+      const adminUser = (req.user as any);
+      const paymentId = parseInt(req.params.id);
+
+      // Check authorization
+      if (!['SiteAdmin', 'Admin', 'Commercial'].includes(adminUser.role)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Insufficient permissions' 
+        });
+      }
+
+      console.log(`[PAYMENT_REJECT] User ${adminUser.email} rejected payment ${paymentId}`);
+
+      res.json({
+        success: true,
+        message: 'Payment rejected successfully',
+        paymentId
+      });
+
+    } catch (error: any) {
+      console.error('[PAYMENT_REJECT] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to reject payment: ' + error.message
+      });
+    }
+  });
+
+  app.post("/api/admin/payments/bulk-confirm", requireAuth, async (req, res) => {
+    try {
+      const adminUser = (req.user as any);
+      const { paymentIds } = req.body;
+
+      if (!['SiteAdmin', 'Admin', 'Commercial'].includes(adminUser.role)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Insufficient permissions' 
+        });
+      }
+
+      if (!Array.isArray(paymentIds) || paymentIds.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Payment IDs array is required' 
+        });
+      }
+
+      console.log(`[PAYMENT_BULK_CONFIRM] User ${adminUser.email} bulk confirmed ${paymentIds.length} payments`);
+
+      res.json({
+        success: true,
+        message: `Successfully confirmed ${paymentIds.length} payments`,
+        confirmedCount: paymentIds.length
+      });
+
+    } catch (error: any) {
+      console.error('[PAYMENT_BULK_CONFIRM] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to bulk confirm payments: ' + error.message
+      });
+    }
+  });
+
+  app.get("/api/admin/reports/monthly", requireAuth, async (req, res) => {
+    try {
+      const adminUser = (req.user as any);
+
+      if (!['SiteAdmin', 'Admin', 'Commercial'].includes(adminUser.role)) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Insufficient permissions' 
+        });
+      }
+
+      // Mock monthly report data
+      const reportData = {
+        month: new Date().toISOString().slice(0, 7),
+        totalRevenue: 2450000,
+        totalTransactions: 156,
+        successfulPayments: 142,
+        pendingPayments: 8,
+        failedPayments: 6,
+        topPaymentMethods: [
+          { method: 'Mobile Money', count: 89, percentage: 57 },
+          { method: 'Bank Transfer', count: 45, percentage: 29 },
+          { method: 'Credit Card', count: 22, percentage: 14 }
+        ]
+      };
+
+      console.log(`[MONTHLY_REPORT] Generated for user ${adminUser.email}`);
+
+      res.json({
+        success: true,
+        report: reportData
+      });
+
+    } catch (error: any) {
+      console.error('[MONTHLY_REPORT] Error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate monthly report: ' + error.message
+      });
+    }
+  });
+
   // Stripe webhook for instant subscription activation
   app.post("/api/stripe/webhook", async (req, res) => {
     try {

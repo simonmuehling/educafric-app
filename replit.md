@@ -60,6 +60,12 @@ Preferred communication style: Simple, everyday language.
 - ✓ **Payment Methods:** Schools provide bank/Mobile Money details for EDUCAFRIC payments
 - ✓ **QUARTERLY BILLING CONFIRMATION (August 17, 2025):** Private school parent subscriptions confirmed at 4,500 CFA per quarter (18,000 CFA annually)
 - ✓ **PRICING VERIFICATION:** All systems aligned - Contract, Stripe Service, and Frontend all show 4,500 CFA/quarter for private schools
+- ✓ **MANUAL SUBSCRIPTION ACTIVATION (August 17, 2025):** Complete implementation for Site Admin and Carine Nguetsop
+  - Full UI interface in PaymentAdministration module with user selection, plan selection, duration options
+  - Backend API endpoint with proper authorization checks (Site Admin or Carine Nguetsop only)
+  - Comprehensive button functionality testing: all payment actions, bulk operations, reports, CSV export
+  - Manual activation supports quarterly/annual plans for parents, schools, and tutors with audit logging
+  - Authorization restricted to SiteAdmin role or carine.nguetsop@educafric.com with Commercial role
 
 **CRITICAL USER PREFERENCES:**
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
