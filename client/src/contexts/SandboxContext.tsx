@@ -1,27 +1,52 @@
-import * as React from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 interface SandboxContextType {
   isSandboxMode: boolean;
-  setSandboxMode: (enabled: boolean) => void;
+  isPremiumUnlocked: boolean;
+  sandboxUser: string | null;
 }
 
-// Static context without hooks for testing
-const defaultValue: SandboxContextType = {
-  isSandboxMode: true, // Enable sandbox by default for development
-  setSandboxMode: (enabled) => console.log('setSandboxMode called:', enabled)
-};
+const SandboxContext = createContext<SandboxContextType | undefined>(undefined);
 
-const SandboxContext = React.createContext<SandboxContextType>(defaultValue);
+export function SandboxProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
 
-export function SandboxProvider({ children }: { children: React.ReactNode }) {
-  // NO HOOKS - just static value to test if React works
+  // Check if user is in sandbox mode with enhanced detection
+  const isSandboxMode = Boolean(
+    user?.email?.includes('sandbox.demo@educafric.com') || 
+    user?.email?.includes('sandbox.') ||
+    user?.email?.includes('.demo@') ||
+    user?.role === 'SandboxUser' ||
+    (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))
+  );
+
+  // In sandbox mode, all premium features are unlocked
+  const isPremiumUnlocked = isSandboxMode;
+
+  // Get sandbox user type
+  const sandboxUser = user?.email?.includes('director.sandbox') ? 'director' :
+                     user?.email?.includes('teacher.sandbox') ? 'teacher' :
+                     user?.email?.includes('student.sandbox') ? 'student' :
+                     user?.email?.includes('parent.sandbox') ? 'parent' :
+                     user?.email?.includes('freelancer.sandbox') ? 'freelancer' :
+                     null;
+
   return (
-    <SandboxContext.Provider value={defaultValue}>
+    <SandboxContext.Provider value={{
+      isSandboxMode,
+      isPremiumUnlocked,
+      sandboxUser
+    }}>
       {children}
     </SandboxContext.Provider>
   );
 }
 
 export function useSandbox() {
-  return React.useContext(SandboxContext);
+  const context = useContext(SandboxContext);
+  if (context === undefined) {
+    throw new Error('useSandbox must be used within a SandboxProvider');
+  }
+  return context;
 }
