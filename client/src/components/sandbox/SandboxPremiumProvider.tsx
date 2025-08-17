@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import * as React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SandboxPremiumContextType {
@@ -11,10 +11,10 @@ interface SandboxPremiumContextType {
   refreshSandbox: () => void;
 }
 
-const SandboxPremiumContext = createContext<SandboxPremiumContextType | null>(null);
+const SandboxPremiumContext = React.createContext<SandboxPremiumContextType | null>(null);
 
 export const useSandboxPremium = () => {
-  const context = useContext(SandboxPremiumContext);
+  const context = React.useContext(SandboxPremiumContext);
   if (!context) {
     throw new Error('useSandboxPremium must be used within SandboxPremiumProvider');
   }
@@ -27,10 +27,10 @@ interface SandboxPremiumProviderProps {
 
 export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ children }) => {
   const { user } = useAuth();
-  const [lastRefresh, setLastRefresh] = useState(new Date());
-  const [contextKey, setContextKey] = useState(0);
-  const refreshIntervalRef = useRef<NodeJS.Timeout>();
-  const duplicateCheckRef = useRef<Set<string>>(new Set());
+  const [lastRefresh, setLastRefresh] = React.useState(new Date());
+  const [contextKey, setContextKey] = React.useState(0);
+  const refreshIntervalRef = React.useRef<NodeJS.Timeout>();
+  const duplicateCheckRef = React.useRef<Set<string>>(new Set());
 
   // Sandbox mode detection - stable check without setState
   const isSandboxUser = Boolean(
@@ -62,7 +62,7 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
   };
 
   // Auto-refresh every 5 minutes to prevent duplications (no initial refresh to avoid setState during render)
-  useEffect(() => {
+  React.useEffect(() => {
     if (isSandboxUser) {
       refreshIntervalRef.current = setInterval(() => {
         refreshSandbox();
