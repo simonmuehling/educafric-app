@@ -55,6 +55,12 @@ Preferred communication style: Simple, everyday language.
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
 - User does not want to repeat instructions about button functionality preservation
 - **DOCUMENT DIRECTORY STANDARD:** ALL documents MUST be placed in `/public/documents/` directory with lowercase kebab-case naming (never create documents in other locations)
+- **DOCUMENT CREATION METHOD (August 17, 2025):** Use consolidated EDUCAFRIC system:
+  1. Create specialized PDF generator method in `server/services/pdfGenerator.ts`
+  2. Add document to commercial docs list in `server/routes.ts` (both view and download routes)
+  3. Create HTML version in `/public/documents/` for web viewing
+  4. Update alphabetical index in `00-index-documents-alphabetique.html`
+  5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
 - **PRICING STRUCTURE UPDATED (August 15, 2025)**:
   - Schools: Annual plans only, no student limitations
   - École Publique: 50,000 XAF/year
