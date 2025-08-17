@@ -16829,7 +16829,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '3': 'Proposition Lycée Excellence',
         '4': 'Modèle Contrat Standard',
         '5': 'Conditions Générales de Vente',
-        '6': 'Guide Marketing Digital'
+        '6': 'Guide Marketing Digital',
+        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -16841,8 +16842,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'commercial' as const
       };
       
-      // Générer le PDF commercial pour visualisation
-      const pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
+      // Générer le PDF commercial pour visualisation - utiliser le générateur spécialisé pour bulletins
+      let pdfBuffer: Buffer;
+      if (documentId === '7') {
+        pdfBuffer = await PDFGenerator.generateBulletinGuideDocument(documentData);
+      } else {
+        pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
+      }
       
       // Configuration des headers pour affichage PDF inline
       res.setHeader('Content-Type', 'application/pdf');
@@ -16879,7 +16885,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '3': 'Proposition Lycée Excellence',
         '4': 'Modèle Contrat Standard',
         '5': 'Conditions Générales de Vente',
-        '6': 'Guide Marketing Digital'
+        '6': 'Guide Marketing Digital',
+        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -16891,8 +16898,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'commercial' as const
       };
       
-      // Générer le PDF commercial
-      const pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
+      // Générer le PDF commercial - utiliser le générateur spécialisé pour bulletins
+      let pdfBuffer: Buffer;
+      if (documentId === '7') {
+        pdfBuffer = await PDFGenerator.generateBulletinGuideDocument(documentData);
+      } else {
+        pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
+      }
       
       // Configuration des headers pour PDF
       const filename = `${docTitle.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
