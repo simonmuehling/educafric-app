@@ -11371,6 +11371,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }).catch(error => {
       console.error('[MULTI_ROLE] Failed to register multi-role routes:', error);
     });
+    
+    // Bulletin validation routes
+    import('./routes/bulletinValidationRoutes').then(({ default: bulletinValidationRoutes }) => {
+      app.use('/api', bulletinValidationRoutes);
+      console.log('[BULLETIN_VALIDATION] Bulletin validation routes registered successfully');
+    }).catch(error => {
+      console.error('[BULLETIN_VALIDATION] Failed to register bulletin validation routes:', error);
+    });
   } catch (error) {
     console.error('[WhatsApp] Failed to import routes:', error);
   }

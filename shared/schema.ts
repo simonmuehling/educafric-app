@@ -11,6 +11,10 @@ export * from "./geolocationSchema";
 export * from "./profileDeletionSchema";
 // Import email preferences schema
 export * from "./emailPreferencesSchema";
+// Import delegation schema
+export * from "./delegationSchema";
+// Import bulletin validation schema
+export * from "./bulletinValidationSchema";
 
 // Core user system with multi-role support
 export const users = pgTable("users", {

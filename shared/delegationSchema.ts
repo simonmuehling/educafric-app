@@ -46,29 +46,7 @@ export const permissionTemplates = pgTable("permission_templates", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Relations
-export const delegationsRelations = relations(delegations, ({ one, many }) => ({
-  delegator: one(users, {
-    fields: [delegations.delegatorId],
-    references: [users.id],
-  }),
-  delegatee: one(users, {
-    fields: [delegations.delegateeId], 
-    references: [users.id],
-  }),
-  history: many(delegationHistory),
-}));
-
-export const delegationHistoryRelations = relations(delegationHistory, ({ one }) => ({
-  delegation: one(delegations, {
-    fields: [delegationHistory.delegationId],
-    references: [delegations.id],
-  }),
-  performedByUser: one(users, {
-    fields: [delegationHistory.performedBy],
-    references: [users.id],
-  }),
-}));
+// Relations will be defined in the main schema after all tables are imported
 
 // Zod schemas
 export const insertDelegationSchema = createInsertSchema(delegations);
@@ -118,5 +96,4 @@ export const SYSTEM_PERMISSIONS = {
 
 export type SystemPermission = keyof typeof SYSTEM_PERMISSIONS;
 
-// Import reference to users table (this will be handled by the main schema import)
-declare const users: any;
+// Note: Relations will be defined in main schema.ts after all table imports

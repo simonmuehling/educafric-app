@@ -163,7 +163,7 @@ router.post('/switch-role', requireAuth, async (req, res) => {
     
     if (success) {
       // Update session with new role
-      req.user!.activeRole = newRole;
+      (req.user as any).activeRole = newRole;
       res.json({ 
         success: true, 
         activeRole: newRole,
