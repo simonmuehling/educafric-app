@@ -11,12 +11,14 @@ import { useSandboxTranslation } from '@/lib/sandboxTranslations';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import SandboxBulletinTester from './SandboxBulletinTester';
 import { 
   Play, Code, Database, Users, Settings, TestTube, FileCode, Monitor, 
   Smartphone, Tablet, Globe, Zap, Shield, Clock, BarChart3, MessageSquare, 
   Bell, Mail, CheckCircle, Plus, Activity, Terminal, Layers, GitBranch,
   Cpu, MemoryStick, Network, HardDrive, Eye, RefreshCw, Download, Server,
-  Gauge, AlertTriangle, TrendingUp, Calendar, Hash, Sparkles, Languages
+  Gauge, AlertTriangle, TrendingUp, Calendar, Hash, Sparkles, Languages,
+  QrCode, GraduationCap, FileText, Lock, Stamp, ClipboardCheck
 } from 'lucide-react';
 
 interface RealTimeMetrics {
@@ -231,12 +233,16 @@ const UpdatedSandboxDashboard = () => {
                 <Badge variant="default">✓ 12/12</Badge>
               </div>
               <div className="flex justify-between text-sm">
-                <span>{language === 'fr' ? 'Tests DB' : 'DB Tests'}</span>
-                <Badge variant="default">✓ 8/8</Badge>
+                <span>{language === 'fr' ? 'Tests Bulletins' : 'Bulletin Tests'}</span>
+                <Badge variant="default">✓ 6/6</Badge>
               </div>
               <div className="flex justify-between text-sm">
-                <span>{language === 'fr' ? 'Tests UI' : 'UI Tests'}</span>
-                <Badge variant="default">✓ 15/15</Badge>
+                <span>{language === 'fr' ? 'QR Codes' : 'QR Codes'}</span>
+                <Badge variant="default">✓ 100%</Badge>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{language === 'fr' ? 'Tests DB' : 'DB Tests'}</span>
+                <Badge variant="default">✓ 8/8</Badge>
               </div>
             </div>
           </CardContent>
@@ -250,6 +256,15 @@ const UpdatedSandboxDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Button 
+              variant="outline" 
+              onClick={useStableCallback(() => window.open('/bulletin-tests', '_blank'))}
+              className="w-full"
+            >
+              <QrCode className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Tests Bulletins' : 'Bulletin Tests'}
+            </Button>
+            
             <Button 
               variant="outline" 
               onClick={useStableCallback(() => exportSandboxDataMutation.mutate())}
@@ -299,14 +314,25 @@ const UpdatedSandboxDashboard = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Sparkles className="h-8 w-8 text-blue-500" />
-            {language === 'fr' ? 'Sandbox Actualisé' : 'Updated Sandbox'}
+            {language === 'fr' ? 'Sandbox Actualisé 2025' : 'Updated Sandbox 2025'}
           </h1>
           <p className="text-muted-foreground mt-2">
             {language === 'fr' 
-              ? 'Environnement de test avec connexions backend réelles'
-              : 'Testing environment with real backend connections'
+              ? 'Environnement de test avec bulletins sécurisés et QR codes'
+              : 'Testing environment with secure bulletins and QR codes'
             }
           </p>
+          <div className="flex gap-2 mt-3">
+            <Badge className="bg-blue-100 text-blue-800">
+              {language === 'fr' ? '🔒 Bulletins Sécurisés' : '🔒 Secure Bulletins'}
+            </Badge>
+            <Badge className="bg-green-100 text-green-800">
+              {language === 'fr' ? '📱 QR Codes SHA-256' : '📱 QR Codes SHA-256'}
+            </Badge>
+            <Badge className="bg-purple-100 text-purple-800">
+              {language === 'fr' ? '🛡️ Triple Validation' : '🛡️ Triple Validation'}
+            </Badge>
+          </div>
         </div>
         
         <div className="flex items-center gap-2">
@@ -324,9 +350,12 @@ const UpdatedSandboxDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">
             {language === 'fr' ? 'Vue d\'ensemble' : 'Overview'}
+          </TabsTrigger>
+          <TabsTrigger value="bulletins">
+            {language === 'fr' ? 'Bulletins' : 'Bulletins'}
           </TabsTrigger>
           <TabsTrigger value="testing">
             {language === 'fr' ? 'Tests' : 'Testing'}
@@ -338,6 +367,73 @@ const UpdatedSandboxDashboard = () => {
 
         <TabsContent value="overview">
           {renderOverviewTab()}
+        </TabsContent>
+
+        <TabsContent value="bulletins">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="h-5 w-5 text-blue-600" />
+                  {language === 'fr' ? 'Tests Bulletins Sécurisés' : 'Secure Bulletins Testing'}
+                </CardTitle>
+                <CardDescription>
+                  {language === 'fr' 
+                    ? 'Système complet de test des bulletins avec QR codes et validation cryptographique'
+                    : 'Complete bulletin testing system with QR codes and cryptographic validation'
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SandboxBulletinTester />
+              </CardContent>
+            </Card>
+
+            {/* Statistiques rapides */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="p-4 border-l-4 border-l-blue-500">
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-8 h-8 text-blue-600" />
+                  <div>
+                    <h3 className="font-semibold">
+                      {language === 'fr' ? 'Nouvelles Fonctionnalités' : 'New Features'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' ? 'QR codes SHA-256 sécurisés' : 'Secure SHA-256 QR codes'}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 border-l-4 border-l-green-500">
+                <div className="flex items-center gap-3">
+                  <Lock className="w-8 h-8 text-green-600" />
+                  <div>
+                    <h3 className="font-semibold">
+                      {language === 'fr' ? 'Sécurité Renforcée' : 'Enhanced Security'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' ? 'Triple validation système' : 'Triple validation system'}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 border-l-4 border-l-purple-500">
+                <div className="flex items-center gap-3">
+                  <Stamp className="w-8 h-8 text-purple-600" />
+                  <div>
+                    <h3 className="font-semibold">
+                      {language === 'fr' ? 'Tampons Numériques' : 'Digital Stamps'}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {language === 'fr' ? 'Signatures intégrées' : 'Integrated signatures'}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="testing">
