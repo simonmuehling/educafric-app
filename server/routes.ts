@@ -11866,42 +11866,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Two-Factor Authentication - Simplified system
-  app.get("/api/2fa/status", requireAuth, async (req, res) => {
+  app.get("/api/auth/2fa/status", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
       res.json({
-        success: true,
-        data: {
-          enabled: !!user.twoFactorEnabled,
-          verified: !!user.twoFactorVerifiedAt,
-          hasBackupCodes: !!user.twoFactorBackupCodes
-        }
+        enabled: false,
+        setupComplete: false,
+        backupCodesRemaining: 0,
+        methods: []
       });
     } catch (error: any) {
       res.status(500).json({ success: false, message: 'Failed to check 2FA status' });
     }
   });
 
-  app.post("/api/2fa/setup", requireAuth, async (req, res) => {
+  app.post("/api/auth/2fa/setup", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
-      // const setupData = await twoFactorService.generateSetup(user.email, user.firstName || 'User');
-      const setupData = { 
-        qrCode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-        secret: 'DEMO2FA' + Math.random().toString(36).substr(2, 10).toUpperCase(),
-        backupCodes: ['123456', '789012', '345678', '901234', '567890']
-      };
+      const secret = speakeasy.generateSecret({
+        name: `Educafric (${user.email})`,
+        issuer: 'Educafric'
+      });
+      
+      // Generate QR code
+      const qrCodeDataURL = await QRCode.toDataURL(secret.otpauth_url || '');
+      
+      // Generate backup codes
+      const backupCodes = Array.from({ length: 8 }, () => 
+        Math.random().toString(36).substr(2, 6).toUpperCase()
+      );
       
       res.json({
-        success: true,
-        data: setupData
+        qrCodeUrl: qrCodeDataURL,
+        manualEntryKey: secret.base32,
+        backupCodes,
+        instructions: {
+          title: "Configurer l'authentification à deux facteurs",
+          steps: [
+            "Téléchargez une application d'authentification (Google Authenticator, Authy, etc.)",
+            "Scannez le code QR ou entrez la clé manuellement",
+            "Entrez le code à 6 chiffres généré par l'application",
+            "Sauvegardez vos codes de récupération en lieu sûr"
+          ],
+          backupCodeWarning: "Ces codes ne peuvent être utilisés qu'une seule fois. Conservez-les en sécurité."
+        }
       });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: 'Failed to setup 2FA' });
+      res.status(500).json({ message: 'Failed to setup 2FA' });
     }
   });
 
-  app.post("/api/2fa/enable", requireAuth, async (req, res) => {
+  app.post("/api/auth/2fa/enable", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
       const { verificationCode, secret } = req.body;
@@ -11928,26 +11943,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[2FA] Two-Factor Authentication enabled for user ${user.email}`);
 
       res.json({
-        success: true,
         message: '2FA enabled successfully',
-        data: {
-          backupCodes,
-          enabled: true
-        }
+        backupCodes,
+        enabled: true
       });
     } catch (error: any) {
       res.status(500).json({ success: false, message: 'Failed to enable 2FA' });
     }
   });
 
-  app.post("/api/2fa/disable", requireAuth, async (req, res) => {
+  app.post("/api/auth/2fa/disable", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
       const { password, verificationCode } = req.body;
 
       if (!password || !verificationCode) {
         return res.status(400).json({ 
-          success: false, 
           message: 'Password and verification code required' 
         });
       }
@@ -11956,7 +11967,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isValidPassword) {
         return res.status(400).json({ 
-          success: false, 
           message: 'Invalid password' 
         });
       }
@@ -11966,7 +11976,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isValidCode) {
         return res.status(400).json({ 
-          success: false, 
           message: 'Invalid verification code' 
         });
       }

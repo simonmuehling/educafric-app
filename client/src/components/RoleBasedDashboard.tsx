@@ -1,6 +1,6 @@
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
-import { useEffect } from 'react';
 
 export default function RoleBasedDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
