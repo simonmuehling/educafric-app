@@ -187,29 +187,29 @@ const DocumentsContracts = () => {
     // Partnership Contracts - UPDATED WITH REAL PRICING 2025
     {
       id: 27,
-      name: 'EDUCAFRIC Contrat Officiel 2025 Actualisé (FR)',
+      name: 'EDUCAFRIC Contrat Officiel 2025 Actualisé - Version 6.0 (FR)',
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
-      date: '2025-01-15',
+      date: '2025-08-17',
       status: 'finalized',
-      size: '52.3 KB',
+      size: '54.1 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Contrat officiel actualisé avec prix réels 2025 - École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an (12,500 XAF/semestre)'
+      description: 'VERSION 6.0 - Contrat officiel actualisé du 17 août 2025 avec nouveau modèle de paiement : EDUCAFRIC paie maintenant les établissements. École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an'
     },
     {
       id: 53,
-      name: 'EDUCAFRIC Official Contract 2025 Updated (EN)',
+      name: 'EDUCAFRIC Official Contract 2025 Updated - Version 6.0 (EN)',
       type: 'contract',
       category: 'contracts',
       school: 'All Partners',
-      date: '2025-08-15',
+      date: '2025-08-17',
       status: 'finalized',
-      size: '50.1 KB',
+      size: '54.1 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Updated official contract with complete real pricing from /subscribe - Public School: 50,000 XAF/year, Private School: 75,000 XAF/year, Enterprise School: 150,000 XAF/year, School GPS: 50,000 XAF/year, Public Complete: 90,000 XAF/year, Private Complete: 115,000 XAF/year - Parents: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - Freelancers Professional: 25,000 XAF/year (12,500 XAF/semester)'
+      description: 'VERSION 6.0 - Official contract updated August 17, 2025 with new payment model: EDUCAFRIC now pays schools. Public School: 50,000 XAF/year, Private School: 75,000 XAF/year, Enterprise School: 150,000 XAF/year, School GPS: 50,000 XAF/year, Public Complete: 90,000 XAF/year, Private Complete: 115,000 XAF/year - Parents: Public 12,000 XAF/year, Private 18,000 XAF/year, GPS 12,000 XAF/year - Freelancers Professional: 25,000 XAF/year'
     },
     {
       id: 28,
