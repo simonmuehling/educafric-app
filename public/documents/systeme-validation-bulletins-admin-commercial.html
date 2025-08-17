@@ -217,56 +217,7 @@
             <div class="status-step">VERIFIED</div>
         </div>
 
-        <h2>🏗️ ARCHITECTURE SYSTÈME BULLETINS</h2>
 
-        <h3>Base de Données Complète</h3>
-        <div class="code-block">
--- Table principale bulletins
-bulletins: {
-  id: PRIMARY KEY
-  student_id: FOREIGN KEY
-  academic_year: VARCHAR
-  semester: ENUM('1', '2', 'annual')
-  status: ENUM('draft', 'submitted', 'approved', 'published', 'verified')
-  teacher_id: FOREIGN KEY (créateur)
-  director_id: FOREIGN KEY (validateur)
-  created_at: TIMESTAMP
-  updated_at: TIMESTAMP
-  published_at: TIMESTAMP
-  verification_code: VARCHAR (QR unique)
-}
-
--- Notes détaillées par matière
-bulletin_grades: {
-  id: PRIMARY KEY
-  bulletin_id: FOREIGN KEY
-  subject: VARCHAR
-  grade: DECIMAL(4,2) -- Note sur 20
-  coefficient: INTEGER
-  teacher_comment: TEXT
-  created_at: TIMESTAMP
-}
-
--- Processus d'approbation
-bulletin_approvals: {
-  id: PRIMARY KEY
-  bulletin_id: FOREIGN KEY
-  approver_id: FOREIGN KEY
-  approval_type: ENUM('teacher_submit', 'director_approve', 'parent_view')
-  status: ENUM('pending', 'approved', 'rejected')
-  comments: TEXT
-  approved_at: TIMESTAMP
-}
-        </div>
-
-        <h3>APIs de Validation Implémentées</h3>
-        <div class="api-endpoint">POST /api/bulletins - Création bulletin (Enseignant)</div>
-        <div class="api-endpoint">GET /api/bulletins/student/:studentId - Consultation bulletins</div>
-        <div class="api-endpoint">PATCH /api/bulletins/:id/submit - Soumission validation (Enseignant)</div>
-        <div class="api-endpoint">PATCH /api/bulletins/:id/approve - Approbation (Directeur)</div>
-        <div class="api-endpoint">PATCH /api/bulletins/:id/publish - Publication (Directeur)</div>
-        <div class="api-endpoint">GET /api/bulletins/:id/pdf - Génération PDF</div>
-        <div class="api-endpoint">POST /api/bulletins/:id/verify - Vérification QR code</div>
 
         <h2>🏢 GUIDE SITE ADMIN</h2>
 
