@@ -26,7 +26,12 @@ function generateDocumentMapping(): { [key: number]: string } {
         file.endsWith('.html') ||
         file.endsWith('.txt')
       )
-      .sort(); // Sort alphabetically for consistent ordering
+      .map(file => ({
+        name: file,
+        stats: fs.statSync(path.join(documentsPath, file))
+      }))
+      .sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime()) // Sort by modification date (newest first)
+      .map(item => item.name);
     
     documentFiles.forEach((file, index) => {
       mapping[index + 1] = file;
