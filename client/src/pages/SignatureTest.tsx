@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SignaturePad } from "../components/SignaturePad";
 import { BulletinSignatureModal } from "../components/BulletinSignatureModal";
+import { SchoolAssetUploader } from "../components/SchoolAssetUploader";
 import { PenTool, FileText, School, Stamp, Award } from "lucide-react";
 
 /**
@@ -152,33 +153,12 @@ export default function SignatureTest() {
       </Card>
 
       {/* Section Assets École */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Stamp className="w-5 h-5 text-orange-600" />
-            Assets de l'École
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Button variant="outline" className="h-20 flex-col">
-              <School className="w-6 h-6 mb-1" />
-              <span className="text-sm">Logo École</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <Stamp className="w-6 h-6 mb-1" />
-              <span className="text-sm">Tampon</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col">
-              <PenTool className="w-6 h-6 mb-1" />
-              <span className="text-sm">Signature Dir.</span>
-            </Button>
-          </div>
-          <p className="text-sm text-gray-600 text-center">
-            Uploadez les assets officiels de votre établissement
-          </p>
-        </CardContent>
-      </Card>
+      <SchoolAssetUploader 
+        schoolId={mockUser.schoolId}
+        onAssetUploaded={(assetType, assetUrl) => {
+          console.log(`Asset ${assetType} uploaded:`, assetUrl);
+        }}
+      />
 
       {/* Informations de Test */}
       <Card className="border-dashed border-2 border-blue-200 bg-blue-50">
