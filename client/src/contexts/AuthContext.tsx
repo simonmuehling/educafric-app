@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       }
     } catch (error) {
-      console.log('Not authenticated');
+      // Silently handle auth check - reduces console spam
       setUser(null);
     } finally {
       setIsLoading(false);

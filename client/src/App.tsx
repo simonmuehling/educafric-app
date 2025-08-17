@@ -433,18 +433,23 @@ function Router() {
 
 // Firebase Redirect Handler Component (simplified without reCAPTCHA)
 function FirebaseRedirectHandler() {
+  const [initialized, setInitialized] = useState(false);
+  
   useEffect(() => {
-    // Handle Firebase redirect result on app initialization (simplified)
+    // Only initialize once to prevent repeated logs
+    if (initialized) return;
+    
     const checkRedirect = async () => {
       try {
         console.log('Firebase redirect handler initialized (simplified)');
+        setInitialized(true);
       } catch (error) {
         console.error('Firebase redirect handling error:', error);
       }
     };
     
     checkRedirect();
-  }, []);
+  }, [initialized]);
 
   return null;
 }

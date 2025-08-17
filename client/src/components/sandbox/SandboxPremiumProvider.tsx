@@ -13,13 +13,16 @@ interface SandboxPremiumContextType {
 
 const SandboxPremiumContext = createContext<SandboxPremiumContextType | null>(null);
 
-export const useSandboxPremium = () => {
+// Fixed for Fast Refresh compatibility
+const useSandboxPremiumHook = () => {
   const context = useContext(SandboxPremiumContext);
   if (!context) {
     throw new Error('useSandboxPremium must be used within SandboxPremiumProvider');
   }
   return context;
 };
+
+export const useSandboxPremium = useSandboxPremiumHook;
 
 interface SandboxPremiumProviderProps {
   children: React.ReactNode;

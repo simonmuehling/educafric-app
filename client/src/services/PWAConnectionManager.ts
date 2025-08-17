@@ -32,8 +32,8 @@ class PWAConnectionManager {
   private reconnectTimeout: number | null = null;
   private notificationQueue: NotificationQueue[] = [];
   private maxRetries = 5;
-  private pingIntervalMs = 30000; // 30 secondes
-  private reconnectDelayMs = 5000; // 5 secondes
+  private pingIntervalMs = 120000; // 2 minutes (reduced from 30s)
+  private reconnectDelayMs = 10000; // 10 secondes
 
   private listeners: Array<(state: ConnectionState) => void> = [];
 
