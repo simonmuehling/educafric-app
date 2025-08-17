@@ -75,8 +75,8 @@ export class SubscriptionReminderService {
       // Les écoles ne payent plus - EDUCAFRIC leur verse de l'argent
       
       // Récupérer tous les utilisateurs et filtrer les parents
-      const allUsers = await storage.getUsers();
-      const parents = allUsers.filter(user => user.userType === 'Parent');
+      const allUsers = await storage.getAllUsers();
+      const parents = allUsers.filter((user: any) => user.userType === 'Parent');
       const users: User[] = [];
       
       for (const parent of parents) {
@@ -190,8 +190,10 @@ The EDUCAFRIC Team
       if (user.phone) {
         await notificationService.sendNotification({
           type: 'sms',
-          message: messages[lang].sms,
-          data: { userId: user.id, phone: user.phone, title: 'Subscription Reminder' }
+          content: messages[lang].sms,
+          recipients: [user.id],
+          schoolId: user.schoolId || 1,
+          data: { userId: user.id, phone: user.phone }
         });
         console.log(`[SUBSCRIPTION_REMINDER] SMS sent to ${user.firstName} ${user.lastName} (${user.phone})`);
       }
@@ -204,13 +206,14 @@ The EDUCAFRIC Team
         
         await notificationService.sendNotification({
           type: 'email',
-          message: messages[lang].emailBody,
+          content: messages[lang].emailBody,
+          recipients: [user.id],
+          schoolId: user.schoolId || 1,
           data: {
             userId: user.id,
             subscriptionPlan: user.subscriptionPlan,
             subscriptionEnd: user.subscriptionEnd,
-            daysLeft: daysLeft,
-            title: messages[lang].emailSubject
+            daysLeft: daysLeft
           }
         });
         console.log(`[SUBSCRIPTION_REMINDER] Email sent to ${user.firstName} ${user.lastName} (${user.email})`);

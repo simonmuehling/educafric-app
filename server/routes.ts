@@ -2411,7 +2411,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
     
-    res.json(statsData[serviceId] || { message: 'No stats available for this service' });
+    const result = (statsData as any)[serviceId];
+    res.json(result || { message: 'No stats available for this service' });
   });
 
   // Additional sandbox APIs for complete dashboard functionality
@@ -3155,7 +3156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send notifications to recipients
         await notificationService.sendNotification({
           type: 'email',
-          title: `Message de ${messageData.senderName}`,
           message: `Nouveau message: ${messageData.subject}`,
           recipients: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
           schoolId: messageData.schoolId || 1,
@@ -3967,7 +3967,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about teacher creation
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Nouvel Enseignant Ajouté',
         message: `${firstName} ${lastName} a été ajouté comme enseignant`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4069,7 +4068,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student creation
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Nouvel Élève Inscrit',
         message: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4099,7 +4097,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student update
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Élève Modifié',
         message: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4128,7 +4125,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student deletion
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Élève Supprimé',
         message: `Élève supprimé avec toutes ses relations école`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4158,7 +4154,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student blocking
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Élève Bloqué',
         message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4187,7 +4182,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about student unblocking
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Élève Débloqué',
         message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4247,7 +4241,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent creation
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Nouveau Parent Enregistré',
         message: `${firstName} ${lastName} a été enregistré comme parent`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4277,7 +4270,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent update
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Parent Modifié',
         message: `${updatedParent.firstName} ${updatedParent.lastName} - Informations mises à jour`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4306,7 +4298,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent deletion
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Parent Supprimé',
         message: `Parent supprimé avec toutes ses relations école`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4336,7 +4327,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent blocking
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Parent Bloqué',
         message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -4365,7 +4355,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notification about parent unblocking
       await notificationService.sendNotification({
         type: 'email',
-        title: 'Parent Débloqué',
         message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
         recipients: [((req.user as any) as any).id],
         schoolId: 1,
@@ -6458,7 +6447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/attendance", requireAuth, requireRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const attendanceData = req.body; // insertAttendanceSchema.parse(req.body);
-      const attendance = await storage.createAttendance(attendanceData);
+      const attendance = await storage.createAttendance(attendanceData, req.user?.id || 0);
       res.status(201).json(attendance);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -7273,12 +7262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (i < templateTests.length - 1) {
             await new Promise(resolve => setTimeout(resolve, delay));
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error sending ${test.template}:`, error);
           results.push({
             template: test.template,
             success: false,
-            error: error.message,
+            error: error?.message || 'Unknown error',
             data: test.data,
             order: i + 1
           });
@@ -7376,19 +7365,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[QR_SCAN] Parent ${user.id} scanning QR token: ${qrToken}`);
       
       // Valider le QR code
-      const validation = await storage.validateQRCodeConnection(qrToken, user.id);
+      const validation = await storage.validateQRCodeConnection(qrToken, user.id, 'parent');
       
       if (validation.success && validation.studentId) {
         // Créer la connexion (nécessite encore validation école)
         const connection = await storage.createParentChildConnection(
           user.id, 
           validation.studentId, 
-          'qr_code',
-          {
-            qrToken,
-            relationshipType: 'parent',
-            notes: 'Connection via QR code scan'
-          }
+          'qr_code'
         );
         
         res.json({
@@ -7435,7 +7419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: studentLastName
       };
       
-      const request = await storage.createManualConnectionRequest(parentData, studentSearchData);
+      const request = await storage.createManualConnectionRequest(parentData, studentSearchData, user.id);
       
       res.json({
         success: true,
@@ -7461,7 +7445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[SCHOOL_VALIDATION] School ${approval ? 'approving' : 'rejecting'} request ${requestId}`);
       
-      const validation = await storage.validateManualConnectionRequest(parseInt(requestId), approval);
+      const validation = await storage.validateManualConnectionRequest(parseInt(requestId), approval, user.id);
       
       res.json({
         success: true,
@@ -7858,7 +7842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Authentification requise" });
       }
 
-      const permissions = await storage.getSchoolAdminPermissions(parseInt(userId), parseInt(schoolId));
+      const permissions = await storage.getSchoolAdminPermissions(parseInt(userId));
       res.json({ permissions });
     } catch (error: any) {
       console.error('Error fetching admin permissions:', error);
@@ -7878,7 +7862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Accès refusé - Directeur principal requis" });
       }
 
-      const updatedAdmin = await storage.updateAdministratorPermissions(parseInt(adminId), permissions);
+      const updatedAdmin = await storage.updateAdministratorPermissions(parseInt(adminId), permissions, parseInt(schoolId));
       console.log(`[SCHOOL_ADMIN] 🔄 Updated permissions for admin ${adminId}: ${permissions.join(', ')}`);
       res.json(updatedAdmin);
     } catch (error: any) {
@@ -7897,7 +7881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Accès refusé - Directeur requis" });
       }
 
-      const availableTeachers = await storage.getAvailableTeachers(parseInt(schoolId));
+      const availableTeachers = await storage.getAvailableTeachers(parseInt(schoolId), user.id);
       console.log(`[SCHOOL_ADMIN] 👥 Retrieved ${availableTeachers.length} available teachers for school ${schoolId}`);
       res.json(availableTeachers);
     } catch (error: any) {
@@ -8985,7 +8969,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       // Récupérer les vraies statistiques de la base de données
-      const realStats = await storage.getPlatformStatistics();
+      const realStats = await storage.getPlatformStatistics(user.id);
       
       // Statistiques système en temps réel
       const systemStats = {
@@ -11792,7 +11776,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 : `🎉 Congratulations! Your ${planName} Educafric subscription is now active. Access all your premium features immediately.`;
 
               if (user.phone) {
-                await notificationService.sendNotification(user.phone, message);
+                await notificationService.sendNotification({ 
+                  type: 'sms', 
+                  message, 
+                  recipients: [user.id], 
+                  schoolId: user.schoolId || 1 
+                });
               }
             }
           } catch (notificationError) {
@@ -11811,7 +11800,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Advanced health check with comprehensive monitoring
   app.get("/api/health", (req, res) => {
-    const healthData = systemHealthCheck();
+    const healthData = systemHealthCheck(req.ip || 'unknown');
     res.json(healthData);
   });
   

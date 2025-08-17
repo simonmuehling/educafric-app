@@ -143,6 +143,7 @@ export interface IStorage {
   getUserById(id: number): Promise<User | null>;
   getUserByEmail(email: string): Promise<User | null>;
   getUserByPasswordResetToken(token: string): Promise<User | null>;
+  getAllUsers(): Promise<User[]>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
   deleteUser(id: number): Promise<void>;
   verifyPassword(user: User, password: string): Promise<boolean>;
