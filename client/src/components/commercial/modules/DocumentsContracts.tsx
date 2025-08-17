@@ -564,6 +564,12 @@ const DocumentsContracts = () => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            doc.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+      
+      // DEBUG: Log nouveaux documents pour voir s'ils passent le filtre
+      if (doc.id >= 101 && doc.id <= 107) {
+        console.log(`DEBUG: Document ${doc.name} - Category: ${doc.category}, Selected: ${selectedCategory}, Matches: ${matchesCategory}`);
+      }
+      
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
