@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth } from './AuthContext';
+import { AuthContext } from './AuthContext';
 
 interface SandboxContextType {
   isSandboxMode: boolean;
@@ -10,14 +10,15 @@ interface SandboxContextType {
 const SandboxContext = createContext<SandboxContextType | undefined>(undefined);
 
 export function SandboxProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  // Use AuthContext directly instead of useAuth hook to avoid circular dependency
+  const authContext = useContext(AuthContext);
+  const user = authContext?.user;
 
   // Check if user is in sandbox mode with enhanced detection
   const isSandboxMode = Boolean(
     user?.email?.includes('sandbox.demo@educafric.com') || 
     user?.email?.includes('sandbox.') ||
     user?.email?.includes('.demo@') ||
-    user?.role === 'SandboxUser' ||
     (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))
   );
 
