@@ -570,6 +570,32 @@ const DocumentsContracts = () => {
       url: '/documents/guide-repetiteurs-configuration-profil-fr.html',
       description: 'Guide configuration répétiteurs - Profil, élèves, tarifs, planning'
     },
+    {
+      id: 209,
+      name: 'Guide Freelancers Configuration Profil (EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '11.5 KB',
+      format: 'PDF',
+      url: '/documents/guide-tutors-profile-configuration-en.html',
+      description: 'Freelancer/Tutor profile configuration guide - Profile, students, rates, scheduling'
+    },
+    {
+      id: 210,
+      name: 'Guide Tuteurs Configuration Profil (FR)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '12.1 KB',
+      format: 'PDF',
+      url: '/documents/guide-tuteurs-configuration-profil-fr.html',
+      description: 'Guide configuration tuteurs/freelancers - Profil, étudiants, tarifs, planification'
+    },
 
     // Documents supplémentaires requis (pas de doublons)
     {
