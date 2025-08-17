@@ -55,9 +55,18 @@ app.use(bundleOptimizationMiddleware);
 // Domain redirection middleware - redirect educafric.com to www.educafric.com
 app.use((req, res, next) => {
   const host = req.get('host');
-  if (host === 'educafric.com') {
+  const protocol = req.header('x-forwarded-proto') || 'https';
+  
+  // Redirect non-www to www
+  if (host === 'educafric.com' || host === 'educafric.com:443') {
+    return res.redirect(301, `${protocol}://www.educafric.com${req.url}`);
+  }
+  
+  // Also handle HTTP to HTTPS redirect for www
+  if (host === 'www.educafric.com' && protocol === 'http') {
     return res.redirect(301, `https://www.educafric.com${req.url}`);
   }
+  
   next();
 });
 
