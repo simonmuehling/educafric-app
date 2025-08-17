@@ -9,6 +9,19 @@
 - ❌ Code dupliqué dans `server/routes/documents.ts`
 - ❌ Logique de tri différente partout
 - ❌ Titres générés différemment
+- ❌ Les 10 nouveaux documents apparaissaient séparément
+
+### Les 10 nouveaux documents maintenant intégrés :
+1. `contrat-partenariat-commercial-fr.html`
+2. `educafric-commercial-brochure-en.html`
+3. `educafric-sales-pitch-en.html`
+4. `proposition-tarifaire-personnalisee-fr.html`
+5. `customized-pricing-proposal-en.html`
+6. `guide-commercial-modules-premium.html`
+7. `contrat-commercial-educafric-2025-actualise.html`
+8. `contrat-partenariat-etablissements-freelancers-parents-2025-actualise.html`
+9. `partnership-contract-schools-freelancers-parents-2025-en.html`
+10. `Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html`
 
 ### Nouveau système unifié (DÉFINITIF) :
 - ✅ **Une seule fonction** : `scanDocuments()`

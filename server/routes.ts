@@ -5198,10 +5198,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         file.endsWith('.pdf') || 
         file.endsWith('.html') ||
         file.endsWith('.txt')
-      )
-      .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Unified alphabetical ordering
+      );
     
-    // IMPORTANT: Sort files by name FIRST for consistent IDs
+    // SEUL TRI NÉCESSAIRE : ordre alphabétique français
     const sortedFiles = documentFiles.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
     
     sortedFiles.forEach((filename, index) => {
