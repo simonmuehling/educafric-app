@@ -16830,7 +16830,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '4': 'Modèle Contrat Standard',
         '5': 'Conditions Générales de Vente',
         '6': 'Guide Marketing Digital',
-        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025'
+        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025',
+        '8': 'Commercial Bulletin Guide - EDUCAFRIC 2025 (EN)'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -16846,6 +16847,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pdfBuffer: Buffer;
       if (documentId === '7') {
         pdfBuffer = await PDFGenerator.generateBulletinGuideDocument(documentData);
+      } else if (documentId === '8') {
+        pdfBuffer = await PDFGenerator.generateBulletinGuideEnglishDocument(documentData);
       } else {
         pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
       }
@@ -16886,7 +16889,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '4': 'Modèle Contrat Standard',
         '5': 'Conditions Générales de Vente',
         '6': 'Guide Marketing Digital',
-        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025'
+        '7': 'Guide Commerciaux - Bulletins EDUCAFRIC 2025',
+        '8': 'Commercial Bulletin Guide - EDUCAFRIC 2025 (EN)'
       };
 
       const docTitle = commercialDocs[documentId as keyof typeof commercialDocs] || 'Document Commercial';
@@ -16902,6 +16906,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pdfBuffer: Buffer;
       if (documentId === '7') {
         pdfBuffer = await PDFGenerator.generateBulletinGuideDocument(documentData);
+      } else if (documentId === '8') {
+        pdfBuffer = await PDFGenerator.generateBulletinGuideEnglishDocument(documentData);
       } else {
         pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
       }

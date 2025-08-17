@@ -61,6 +61,10 @@ Preferred communication style: Simple, everyday language.
   3. Create HTML version in `/public/documents/` for web viewing
   4. Update alphabetical index in `00-index-documents-alphabetique.html`
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
+  ✅ **COMPLETED EXAMPLE:** Bulletin sales guides (FR & EN) created successfully using this method
+  - Route 7: Guide Commerciaux - Bulletins EDUCAFRIC 2025 (French)
+  - Route 8: Commercial Report Cards Guide - EDUCAFRIC 2025 EN (English)
+  - Both visible in commercial interface and alphabetical index
 - **PRICING STRUCTURE UPDATED (August 15, 2025)**:
   - Schools: Annual plans only, no student limitations
   - École Publique: 50,000 XAF/year

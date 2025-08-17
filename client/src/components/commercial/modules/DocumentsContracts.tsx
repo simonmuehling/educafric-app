@@ -115,6 +115,7 @@ const DocumentsContracts = () => {
       url: '/documents/guide-freemium-premium-commercial-fr-en.html',
       description: '🚀 GUIDE COMMERCIAL COMPLET INTERACTIF BILINGUE avec boutons changement de langue - ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, Entreprise 150,000 XAF/an, GPS 50,000 XAF/an, Publique Complet 90,000 XAF/an (économie 10,000), Privée Complet 115,000 XAF/an (économie 10,000) - PARENTS: Publique 1,000 XAF/mois (12,000/an), Privée 1,500 XAF/mois (18,000/an), GPS 1,000 XAF/mois (12,000/an) avec réductions familiales - FREELANCERS: Professionnel 12,500 XAF/semestre, 25,000 XAF/an - 🚀 COMPLETE INTERACTIVE BILINGUAL COMMERCIAL GUIDE with language toggle buttons - SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, Enterprise 150,000 XAF/year, GPS 50,000 XAF/year, Public Complete 90,000 XAF/year (save 10,000), Private Complete 115,000 XAF/year (save 10,000) - PARENTS: Public 1,000 XAF/month (12,000/year), Private 1,500 XAF/month (18,000/year), GPS 1,000 XAF/month (12,000/year) with family discounts - FREELANCERS: Professional 12,500 XAF/semester, 25,000 XAF/year'
     },
+
     {
       id: 26,
       name: 'EDUCAFRIC Prospection Kit - English Version',
@@ -127,6 +128,32 @@ const DocumentsContracts = () => {
       format: 'PDF',
       url: '/documents/educafric-sales-pitch-en.html',
       description: 'Complete English sales kit for Douala & Yaoundé: phone scripts, face-to-face pitch, WhatsApp templates, targeting strategy with cultural considerations'
+    },
+    {
+      id: 7,
+      name: 'Guide Commercial Bulletins EDUCAFRIC 2025 (Français)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '18.5 KB',
+      format: 'PDF',
+      url: '/documents/guide-commercial-bulletins-educafric-2025.html',
+      description: 'Guide commercial complet pour vendre les bulletins numériques EDUCAFRIC - Tarification: École Publique 50,000 XAF/an, École Privée 75,000 XAF/an, École Entreprise 150,000 XAF/an - Scripts de vente, argumentaires techniques, avantages ROI pour directeurs et parents - Système de bulletins africains avec moyennes, rangs, appréciations personnalisées et signatures numériques'
+    },
+    {
+      id: 8,
+      name: 'Commercial Bulletin Guide EDUCAFRIC 2025 (English)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '17.8 KB',
+      format: 'PDF',
+      url: '/documents/commercial-bulletin-guide-educafric-2025-en.html',
+      description: 'Complete commercial guide for selling EDUCAFRIC digital report cards - Pricing: Public School 50,000 XAF/year, Private School 75,000 XAF/year, Enterprise School 150,000 XAF/year - Sales scripts, technical arguments, ROI benefits for principals and parents - African-style bulletin system with averages, rankings, personalized comments and digital signatures'
     },
     
     // Proposal Request Documents - FIXED URL
