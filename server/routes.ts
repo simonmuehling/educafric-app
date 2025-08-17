@@ -5201,7 +5201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       )
       .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Unified alphabetical ordering
     
-    documentFiles.forEach((filename, index) => {
+    // IMPORTANT: Sort files by name FIRST for consistent IDs
+    const sortedFiles = documentFiles.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+    
+    sortedFiles.forEach((filename, index) => {
       const filePath = path.join(documentsPath, filename);
       try {
         const stats = fs.statSync(filePath);
