@@ -465,33 +465,7 @@ const DocumentsContracts = () => {
       description: 'Proposition tarifaire personnalisée flexible pour écoles françaises et francophones'
     },
 
-    // Nouveaux documents bilingues requis
-    {
-      id: 17,
-      name: 'Contrat de Partenariat Commercial (FR)',
-      type: 'contract',
-      category: 'legal',
-      school: 'Documents Légaux',
-      date: '2025-08-11',
-      status: 'finalized',
-      size: '2.8 MB',
-      format: 'HTML',
-      url: '/documents/contrat-partenariat-commercial-fr.html',
-      description: 'Contrat de partenariat commercial pour établissements scolaires - Version française'
-    },
-    {
-      id: 18,
-      name: 'Commercial Partnership Contract (EN)',
-      type: 'contract',
-      category: 'legal',
-      school: 'Legal Documents',
-      date: '2025-08-11',
-      status: 'finalized',
-      size: '2.7 MB',
-      format: 'HTML',
-      url: '/documents/commercial-partnership-contract-en.html',
-      description: 'Commercial partnership contract for educational institutions - English version'
-    },
+    // Documents supplémentaires requis (pas de doublons)
     {
       id: 19,
       name: 'Brochure Commerciale Educafric (FR)',
