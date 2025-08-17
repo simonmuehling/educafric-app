@@ -17,7 +17,7 @@ const documentMapping: { [key: number]: string } = {
   7: 'Demande_Etablissement_1753390157502.pdf',
   8: 'Demande_ministre-8_1753390184314.pdf',
   9: 'Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
-  10: 'parents_1753390442002.pdf',
+  10: 'systeme-validation-bulletins-admin-commercial.html',
   11: 'EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
   12: 'EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
   13: 'EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',

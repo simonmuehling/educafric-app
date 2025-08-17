@@ -7,6 +7,7 @@ import path from "path";
 import { homeworkUpload, getFileInfo } from "./upload";
 import bcrypt from "bcrypt";
 import passport from "passport";
+import fs from "fs";
 import { Strategy as LocalStrategy } from "passport-local";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -17197,6 +17198,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generateBulletinGuideEnglishDocument(documentData);
       } else if (documentId === '9') {
         pdfBuffer = await PDFGenerator.generateMultiRoleGuideDocument(documentData);
+      } else if (documentId === '10') {
+        // For bulletin validation guide, serve the HTML file directly
+        const htmlPath = path.join(process.cwd(), 'client', 'public', 'documents', 'systeme-validation-bulletins-admin-commercial.html');
+        if (fs.existsSync(htmlPath)) {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.sendFile(htmlPath);
+        } else {
+          throw new Error('Bulletin validation guide HTML file not found');
+        }
       } else {
         pdfBuffer = await PDFGenerator.generateCommercialDocument(documentData);
       }
