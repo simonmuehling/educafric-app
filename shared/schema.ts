@@ -35,6 +35,13 @@ export const users = pgTable("users", {
   subscriptionStart: text("subscription_start"),
   subscriptionEnd: text("subscription_end"),
   
+  // Administrative delegation fields
+  delegatedPermissions: text("delegated_permissions").array(), // List of delegated permissions
+  delegatedByUserId: integer("delegated_by_user_id"), // Who delegated these permissions
+  delegationLevel: text("delegation_level"), // full, limited, specific
+  delegationExpiry: timestamp("delegation_expiry"), // When delegation expires
+  canDelegate: boolean("can_delegate").default(false), // Can this user delegate to others
+  
   // Security fields
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
   twoFactorSecret: text("two_factor_secret"),
