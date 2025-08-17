@@ -5181,6 +5181,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Unified document scanning function - NO DUPLICATION
+  function scanDocuments(userId?: number): any[] {
+    const documentsPath = path.join(process.cwd(), 'public', 'documents');
+    const documents: any[] = [];
+    
+    if (!fs.existsSync(documentsPath)) {
+      console.warn('[DOCUMENTS_UNIFIED] Documents directory not found');
+      return documents;
+    }
+    
+    const files = fs.readdirSync(documentsPath);
+    const documentFiles = files
+      .filter(file => 
+        file.endsWith('.md') || 
+        file.endsWith('.pdf') || 
+        file.endsWith('.html') ||
+        file.endsWith('.txt')
+      )
+      .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Unified alphabetical ordering
+    
+    documentFiles.forEach((filename, index) => {
+      const filePath = path.join(documentsPath, filename);
+      try {
+        const stats = fs.statSync(filePath);
+        documents.push({
+          id: index + 1,
+          userId: userId || null,
+          title: generateFriendlyTitle(filename),
+          filename: filename,
+          content: `Document: ${filename}`,
+          type: filename.endsWith('.pdf') ? 'pdf' : filename.endsWith('.html') ? 'html' : filename.endsWith('.md') ? 'markdown' : 'text',
+          status: 'active',
+          language: filename.includes('-fr') || filename.includes('francais') ? 'fr' : filename.includes('-en') || filename.includes('english') ? 'en' : 'fr',
+          category: filename.includes('guide') ? 'guide' : filename.includes('contrat') ? 'contract' : filename.includes('tarif') || filename.includes('pricing') ? 'pricing' : 'document',
+          downloadUrl: `/api/commercial/documents/${index + 1}/download`,
+          viewUrl: `/api/commercial/documents/${index + 1}/view`,
+          fileSize: stats.size,
+          createdAt: stats.birthtime.toISOString(),
+          updatedAt: stats.mtime.toISOString()
+        });
+      } catch (error) {
+        console.warn(`[DOCUMENTS_UNIFIED] Error reading stats for ${filename}:`, error);
+      }
+    });
+    
+    return documents;
+  }
+
   // Helper function to generate friendly titles from filenames
   function generateFriendlyTitle(filename: string): string {
     // Remove file extension and replace hyphens/underscores with spaces
@@ -5205,7 +5253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== COMMERCIAL DOCUMENTS API ROUTES =====
 
-  // Get all documents for commercial dashboard - NOW USING AUTOMATIC SCANNING
+  // Get all documents for commercial dashboard - UNIFIED SCANNING
   app.get("/api/commercial/documents", requireAuth, async (req, res) => {
     console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! User:`, ((req.user as any) as any)?.id);
     try {
@@ -5214,48 +5262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      // Use the documents router to get the real document list
-      const documentsPath = path.join(process.cwd(), 'public', 'documents');
-      const documents: any[] = [];
+      // Use unified document scanning function - NO DUPLICATION
+      const documents = scanDocuments(((req.user as any) as any)?.id);
       
-      if (fs.existsSync(documentsPath)) {
-        const files = fs.readdirSync(documentsPath);
-        const documentFiles = files
-          .filter(file => 
-            file.endsWith('.md') || 
-            file.endsWith('.pdf') || 
-            file.endsWith('.html') ||
-            file.endsWith('.txt')
-          )
-          .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Alphabetical order for mobile consistency
-        
-        documentFiles.forEach((filename, index) => {
-          const filePath = path.join(documentsPath, filename);
-          try {
-            const stats = fs.statSync(filePath);
-            documents.push({
-              id: index + 1,
-              userId: ((req.user as any) as any)?.id,
-              title: generateFriendlyTitle(filename),
-              filename: filename,
-              content: `Document: ${filename}`,
-              type: filename.endsWith('.pdf') ? 'pdf' : filename.endsWith('.html') ? 'html' : filename.endsWith('.md') ? 'markdown' : 'text',
-              status: 'active',
-              language: filename.includes('-fr') || filename.includes('francais') ? 'fr' : filename.includes('-en') || filename.includes('english') ? 'en' : 'fr',
-              category: filename.includes('guide') ? 'guide' : filename.includes('contrat') ? 'contract' : filename.includes('tarif') || filename.includes('pricing') ? 'pricing' : 'document',
-              downloadUrl: `/api/commercial/documents/${index + 1}/download`,
-              viewUrl: `/api/commercial/documents/${index + 1}/view`,
-              fileSize: stats.size,
-              createdAt: stats.birthtime.toISOString(),
-              updatedAt: stats.mtime.toISOString()
-            });
-          } catch (error) {
-            console.warn(`[DOCUMENTS] Error reading stats for ${filename}:`, error);
-          }
-        });
-      }
-      
-      console.log(`[ROUTES_DEBUG] ✅ Found ${documents.length} documents automatically`);
+      console.log(`[ROUTES_DEBUG] ✅ Found ${documents.length} documents via unified scan`);
       
       res.json(documents);
     } catch (error: any) {
@@ -5282,38 +5292,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Refresh documents endpoint - forces re-scan of documents directory
+  // Refresh documents endpoint - UNIFIED SCANNING
   app.post("/api/commercial/documents/refresh", requireAuth, async (req, res) => {
     try {
       if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      console.log('[DOCUMENTS_REFRESH] Refreshing document list...');
+      console.log('[DOCUMENTS_REFRESH] Refreshing document list via unified scan...');
       
-      // Force refresh by calling the documents router refresh endpoint
-      const documentsPath = path.join(process.cwd(), 'public', 'documents');
-      if (!fs.existsSync(documentsPath)) {
-        fs.mkdirSync(documentsPath, { recursive: true });
-      }
+      // Use unified document scanning function - NO DUPLICATION
+      const documents = scanDocuments();
       
-      const files = fs.readdirSync(documentsPath);
-      const documentFiles = files
-        .filter(file => 
-          file.endsWith('.md') || 
-          file.endsWith('.pdf') || 
-          file.endsWith('.html') ||
-          file.endsWith('.txt')
-        )
-        .sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })); // Consistent alphabetical ordering
-      
-      console.log(`[DOCUMENTS_REFRESH] ✅ Found ${documentFiles.length} documents after refresh`);
+      console.log(`[DOCUMENTS_REFRESH] ✅ Found ${documents.length} documents after unified refresh`);
       
       res.json({
         success: true,
         message: `Documents refreshed successfully`,
-        documentCount: documentFiles.length,
-        documents: documentFiles
+        documentCount: documents.length,
+        documents: documents.map(doc => doc.filename) // Return just filenames for compatibility
       });
     } catch (error: any) {
       console.error('[DOCUMENTS_REFRESH] ❌ Error:', error);
