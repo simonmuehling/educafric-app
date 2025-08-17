@@ -10,7 +10,15 @@ interface SandboxContextType {
 const SandboxContext = createContext<SandboxContextType | undefined>(undefined);
 
 export function SandboxProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  // Safe way to access useAuth - handle case where AuthProvider isn't ready
+  let user = null;
+  try {
+    const authContext = useAuth();
+    user = authContext.user;
+  } catch (error) {
+    // AuthProvider not ready yet, user will be null
+    console.log('[SANDBOX] AuthProvider not ready, using default values');
+  }
 
   // Check if user is in sandbox mode with enhanced detection
   const isSandboxMode = Boolean(
