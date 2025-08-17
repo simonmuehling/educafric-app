@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { AuthContext } from '@/contexts/AuthContext';
 
 interface SandboxPremiumContextType {
   hasFullAccess: boolean;
@@ -26,7 +26,9 @@ interface SandboxPremiumProviderProps {
 }
 
 export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+  // Use AuthContext directly to avoid circular dependency issues
+  const authContext = useContext(AuthContext);
+  const user = authContext?.user;
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [contextKey, setContextKey] = useState(0);
   const refreshIntervalRef = useRef<NodeJS.Timeout>();
@@ -39,7 +41,6 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
       user?.email?.includes('sandbox.') ||
       user?.email?.includes('.demo@') ||
       user?.email?.includes('test.educafric.com') ||
-      user?.role === 'SandboxUser' ||
       (typeof window !== 'undefined' && window.location?.pathname.includes('/sandbox'))
     )
   );
