@@ -6,31 +6,42 @@ import { marked } from 'marked';
 
 const router = Router();
 
-// Document mapping for commercial documents
-const documentMapping: { [key: number]: string } = {
-  1: 'guide-notifications-educafric.md',
-  2: 'tarifs-plans-francais.md',
-  3: 'pricing-plans-english.md',
-  4: 'politique-confidentialite.md',
-  5: 'technical-architecture.md',
-  6: 'EDUCAFRIC_COMMERCIAL_GUIDE_ENGLISH.md',
-  7: 'Demande_Etablissement_1753390157502.pdf',
-  8: 'Demande_ministre-8_1753390184314.pdf',
-  9: 'Educafric_Plans_Abonnement_Complets_FR (1)_1753390205509.html',
-  10: 'systeme-validation-bulletins-admin-commercial.html',
-  11: 'EDUCAFRIC_COMPREHENSIVE_PAGE_INVENTORY.md',
-  12: 'EDUCAFRIC_NOTIFICATION_CONTENT_REFERENCE.md',
-  13: 'EDUCAFRIC_PLANS_ABONNEMENT_COMPLETS.md',
-  14: 'EDUCAFRIC_INFORMATION_FREEMIUM_ECOLES_AFRICAINES.md',
-  15: 'EDUCAFRIC_SERVICES_GEOLOCALISATION_COMPARISON.md',
-  16: 'EDUCAFRIC_CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025.md',
-  17: 'EDUCAFRIC_ECONOMIES_FINANCIERES_ECOLES_AFRICAINES.md',
-  18: 'EDUCAFRIC_BROCHURE_COMMERCIALE_PERSUASIVE.md',
-  19: 'Educafric_Document_Commercial.pdf',
-  20: 'Educafric_Presentation.pdf',
-  21: 'CONTRAT_PARTENARIAT_ETABLISSEMENTS_FREELANCERS_2025_1753866001857.pdf',
-  22: 'parents_1753390442002.pdf'
-};
+// Auto-generate document mapping by scanning the documents directory
+function generateDocumentMapping(): { [key: number]: string } {
+  const documentsPath = path.join(process.cwd(), 'public', 'documents');
+  const mapping: { [key: number]: string } = {};
+  
+  if (!fs.existsSync(documentsPath)) {
+    console.warn('[DOCUMENTS] Documents directory not found, creating it...');
+    fs.mkdirSync(documentsPath, { recursive: true });
+    return mapping;
+  }
+  
+  try {
+    const files = fs.readdirSync(documentsPath);
+    const documentFiles = files
+      .filter(file => 
+        file.endsWith('.md') || 
+        file.endsWith('.pdf') || 
+        file.endsWith('.html') ||
+        file.endsWith('.txt')
+      )
+      .sort(); // Sort alphabetically for consistent ordering
+    
+    documentFiles.forEach((file, index) => {
+      mapping[index + 1] = file;
+    });
+    
+    console.log(`[DOCUMENTS] Auto-generated mapping for ${documentFiles.length} documents`);
+    return mapping;
+  } catch (error) {
+    console.error('[DOCUMENTS] Error scanning documents directory:', error);
+    return mapping;
+  }
+}
+
+// Generate the document mapping automatically
+const documentMapping = generateDocumentMapping();
 
 // Serve static files from uploads directory
 router.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
@@ -366,6 +377,80 @@ router.get('/:filename/pdf', async (req, res) => {
   } catch (error) {
     console.error('PDF generation error:', error);
     res.status(500).json({ error: 'PDF generation failed' });
+  }
+});
+
+// API endpoint to list all available documents
+router.get('/list', (req, res) => {
+  try {
+    const documents = Object.entries(documentMapping).map(([id, filename]) => {
+      const filePath = path.join(process.cwd(), 'public', 'documents', filename);
+      const exists = fs.existsSync(filePath);
+      
+      // Get file stats if exists
+      let fileInfo = null;
+      if (exists) {
+        try {
+          const stats = fs.statSync(filePath);
+          fileInfo = {
+            size: stats.size,
+            modified: stats.mtime,
+            created: stats.birthtime
+          };
+        } catch (error) {
+          console.warn(`[DOCUMENTS] Error reading file stats for ${filename}:`, error);
+        }
+      }
+      
+      return {
+        id: parseInt(id),
+        filename,
+        title: filename.replace(/\.(md|pdf|html|txt)$/, '').replace(/[-_]/g, ' '),
+        type: filename.split('.').pop() || 'unknown',
+        exists,
+        fileInfo,
+        downloadUrl: `/api/commercial/documents/${id}/download`,
+        viewUrl: `/api/commercial/documents/${id}/view`
+      };
+    });
+    
+    res.json({
+      success: true,
+      documents: documents.filter(doc => doc.exists), // Only return existing documents
+      total: documents.filter(doc => doc.exists).length
+    });
+  } catch (error) {
+    console.error('[DOCUMENTS] List error:', error);
+    res.status(500).json({ error: 'Failed to list documents' });
+  }
+});
+
+// API endpoint to refresh document mapping (useful after adding new files)
+router.post('/refresh', (req, res) => {
+  try {
+    const oldCount = Object.keys(documentMapping).length;
+    
+    // Re-generate the mapping
+    const newMapping = generateDocumentMapping();
+    
+    // Update the mapping
+    Object.keys(documentMapping).forEach(key => delete documentMapping[key]);
+    Object.assign(documentMapping, newMapping);
+    
+    const newCount = Object.keys(documentMapping).length;
+    
+    console.log(`[DOCUMENTS] Refreshed mapping: ${oldCount} → ${newCount} documents`);
+    
+    res.json({
+      success: true,
+      message: `Document mapping refreshed successfully`,
+      oldCount,
+      newCount,
+      added: newCount - oldCount
+    });
+  } catch (error) {
+    console.error('[DOCUMENTS] Refresh error:', error);
+    res.status(500).json({ error: 'Failed to refresh document mapping' });
   }
 });
 

@@ -5184,7 +5184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== COMMERCIAL DOCUMENTS API ROUTES =====
 
-  // Get all documents for commercial dashboard
+  // Get all documents for commercial dashboard - NOW USING AUTOMATIC SCANNING
   app.get("/api/commercial/documents", requireAuth, async (req, res) => {
     console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! User:`, ((req.user as any) as any)?.id);
     try {
@@ -5193,108 +5193,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      // Demo documents data + Sales Kits
-      const documentsData = [
-        {
-          id: 1,
-          userId: ((req.user as any) as any).id,
-          title: "Proposition École Bilingue Yaoundé",
-          content: "Proposition commerciale détaillée pour l'implémentation d'EDUCAFRIC à l'École Bilingue de Yaoundé.",
-          type: "proposal",
-          status: "sent",
-          language: "fr",
-          clientInfo: {
-            name: "École Bilingue de Yaoundé",
-            email: "direction@ecolebilingueyaounde.cm",
-            phone: "+237 222 345 678",
-            institution: "École Bilingue de Yaoundé",
-            address: "Yaoundé, Cameroun"
-          },
-          createdAt: "2024-12-15T10:30:00Z",
-          updatedAt: "2024-12-15T14:20:00Z"
-        },
-        {
-          id: 2,
-          userId: ((req.user as any) as any).id,
-          title: "Contrat Collège Moderne Douala",
-          content: "Contrat de service pour l'intégration complète de la plateforme EDUCAFRIC au Collège Moderne de Douala.",
-          type: "contract",
-          status: "signed",
-          language: "fr",
-          clientInfo: {
-            name: "Collège Moderne Douala",
-            email: "admin@collegemoderndouala.cm",
-            phone: "+237 233 456 789",
-            institution: "Collège Moderne Douala",
-            address: "Douala, Cameroun"
-          },
-          createdAt: "2024-12-10T09:15:00Z",
-          updatedAt: "2024-12-20T16:45:00Z"
-        },
-        // ===== KITS DE PROSPECTION COMMERCIALE =====
-        {
-          id: 3,
-          userId: ((req.user as any) as any).id,
-          title: "Kit de Prospection Complet EDUCAFRIC",
-          content: "Kit complet de prospection pour les commerciaux - Stratégies, argumentaires et approches pour Douala et Yaoundé",
-          type: "sales_kit",
-          status: "active",
-          language: "fr",
-          category: "prospection",
-          downloadUrl: "/attached_assets/KIT_PROSPECTION_EDUCAFRIC_COMPLET.md",
-          createdAt: "2025-01-29T10:00:00Z",
-          updatedAt: "2025-01-29T10:00:00Z"
-        },
-        {
-          id: 4,
-          userId: ((req.user as any) as any).id,
-          title: "Scripts Commerciaux EDUCAFRIC",
-          content: "Scripts détaillés pour approche téléphonique et emails de première approche",
-          type: "sales_kit",
-          status: "active",
-          language: "fr",
-          category: "scripts",
-          downloadUrl: "/attached_assets/SCRIPTS_COMMERCIAUX_EDUCAFRIC.md",
-          createdAt: "2025-01-29T10:00:00Z",
-          updatedAt: "2025-01-29T10:00:00Z"
-        },
-        {
-          id: 5,
-          userId: ((req.user as any) as any).id,
-          title: "Fiches Argumentaires EDUCAFRIC",
-          content: "Arguments détaillés pour chaque objection client et présentation des avantages",
-          type: "sales_kit",
-          status: "active",
-          language: "fr",
-          category: "argumentaires",
-          downloadUrl: "/attached_assets/FICHES_ARGUMENTAIRES_EDUCAFRIC.md",
-          createdAt: "2025-01-29T10:00:00Z",
-          updatedAt: "2025-01-29T10:00:00Z"
-        },
-        {
-          id: 6,
-          userId: ((req.user as any) as any).id,
-          title: "Contenu Flyers EDUCAFRIC",
-          content: "Contenu marketing pour flyers et supports de communication commerciale",
-          type: "sales_kit",
-          status: "active",
-          language: "fr",
-          category: "marketing",
-          downloadUrl: "/attached_assets/FLYERS_EDUCAFRIC_CONTENT.md",
-          createdAt: "2025-01-29T10:00:00Z",
-          updatedAt: "2025-01-29T10:00:00Z"
-        }
-      ];
+      // Use the documents router to get the real document list
+      const documentsPath = path.join(process.cwd(), 'public', 'documents');
+      const documents = [];
       
-      console.log(`[COMMERCIAL_DOCUMENTS] ✅ Found ${documentsData.length} documents for commercial ${((req.user as any) as any).id}`);
-      res.json(documentsData);
+      if (fs.existsSync(documentsPath)) {
+        const files = fs.readdirSync(documentsPath);
+        const documentFiles = files
+          .filter(file => 
+            file.endsWith('.md') || 
+            file.endsWith('.pdf') || 
+            file.endsWith('.html') ||
+            file.endsWith('.txt')
+          )
+          .sort();
+        
+        documentFiles.forEach((filename, index) => {
+          const filePath = path.join(documentsPath, filename);
+          try {
+            const stats = fs.statSync(filePath);
+            documents.push({
+              id: index + 1,
+              userId: ((req.user as any) as any)?.id,
+              title: filename.replace(/\.(md|pdf|html|txt)$/, '').replace(/[-_]/g, ' '),
+              filename: filename,
+              content: `Document: ${filename}`,
+              type: filename.endsWith('.pdf') ? 'pdf' : filename.endsWith('.html') ? 'html' : filename.endsWith('.md') ? 'markdown' : 'text',
+              status: 'active',
+              language: filename.includes('-fr') || filename.includes('francais') ? 'fr' : filename.includes('-en') || filename.includes('english') ? 'en' : 'fr',
+              category: filename.includes('guide') ? 'guide' : filename.includes('contrat') ? 'contract' : filename.includes('tarif') || filename.includes('pricing') ? 'pricing' : 'document',
+              downloadUrl: `/api/commercial/documents/${index + 1}/download`,
+              viewUrl: `/api/commercial/documents/${index + 1}/view`,
+              fileSize: stats.size,
+              createdAt: stats.birthtime.toISOString(),
+              updatedAt: stats.mtime.toISOString()
+            });
+          } catch (error) {
+            console.warn(`[DOCUMENTS] Error reading stats for ${filename}:`, error);
+          }
+        });
+      }
+      
+      console.log(`[ROUTES_DEBUG] ✅ Found ${documents.length} documents automatically`);
+      
+      res.json(documents);
     } catch (error: any) {
       console.error('[COMMERCIAL_DOCUMENTS] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to fetch commercial documents' });
     }
   });
 
-  // Download document
+  // Download document - REDIRECT TO DOCUMENTS ROUTER
   app.get("/api/commercial/documents/:id/download", requireAuth, async (req, res) => {
     try {
       if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
@@ -5302,14 +5251,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const documentId = req.params.id;
-      const content = `EDUCAFRIC - Document Commercial ${documentId}\n\nDocument téléchargé le ${new Date().toLocaleString('fr-FR')}\n\nContenu du document...`;
       
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Disposition', `attachment; filename="document-${documentId}.txt"`);
-      res.send(content);
+      // Redirect to the documents router which handles real file serving
+      return res.redirect(`/documents/${documentId}/download`);
+      
     } catch (error: any) {
       console.error('[DOCUMENT_DOWNLOAD] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to download document' });
+    }
+  });
+
+  // Refresh documents endpoint - forces re-scan of documents directory
+  app.post("/api/commercial/documents/refresh", requireAuth, async (req, res) => {
+    try {
+      if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      console.log('[DOCUMENTS_REFRESH] Refreshing document list...');
+      
+      // Force refresh by calling the documents router refresh endpoint
+      const documentsPath = path.join(process.cwd(), 'public', 'documents');
+      if (!fs.existsSync(documentsPath)) {
+        fs.mkdirSync(documentsPath, { recursive: true });
+      }
+      
+      const files = fs.readdirSync(documentsPath);
+      const documentFiles = files
+        .filter(file => 
+          file.endsWith('.md') || 
+          file.endsWith('.pdf') || 
+          file.endsWith('.html') ||
+          file.endsWith('.txt')
+        )
+        .sort();
+      
+      console.log(`[DOCUMENTS_REFRESH] ✅ Found ${documentFiles.length} documents after refresh`);
+      
+      res.json({
+        success: true,
+        message: `Documents refreshed successfully`,
+        documentCount: documentFiles.length,
+        documents: documentFiles
+      });
+    } catch (error: any) {
+      console.error('[DOCUMENTS_REFRESH] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to refresh documents' });
     }
   });
 
