@@ -18,7 +18,7 @@ interface SubscriptionPlan {
   name: string;
   price: number;
   currency: string;
-  interval: 'month' | 'year' | 'semester';
+  interval: 'month' | 'year' | 'semester' | 'quarter';
   features: string[];
   category: 'parent' | 'school' | 'freelancer';
 }
@@ -408,7 +408,7 @@ const Subscribe: React.FC = () => {
                   <div className="flex justify-between items-start mb-2">
                     <CardTitle className="text-lg">{plan.name}</CardTitle>
                     <Badge variant="secondary" className="text-xs">
-                      {plan.interval === 'month' ? 'Mensuel' : plan.interval === 'year' ? 'Annuel' : 'Semestriel'}
+                      {plan.interval === 'month' ? 'Mensuel' : plan.interval === 'year' ? 'Annuel' : plan.interval === 'semester' ? 'Semestriel' : 'Trimestriel'}
                     </Badge>
                   </div>
                   <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
@@ -416,7 +416,7 @@ const Subscribe: React.FC = () => {
                     <span className="text-sm text-gray-500 ml-1">{plan.currency.toUpperCase()}</span>
                   </div>
                   <CardDescription>
-                    Par {plan.interval === 'month' ? 'mois' : plan.interval === 'year' ? 'an' : 'semestre'}
+                    Par {plan.interval === 'month' ? 'mois' : plan.interval === 'year' ? 'an' : plan.interval === 'semester' ? 'semestre' : 'trimestre'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

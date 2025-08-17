@@ -49,6 +49,16 @@ Preferred communication style: Simple, everyday language.
   - **OPTIMIZATION COMPLETE:** CDN readiness guides, load testing tools, and launch procedures documented
 - → **NEXT PHASE:** Production deployment and 3500-user rollout
 
+**MAJOR CONTRACT RESTRUCTURE (August 17, 2025):** Revolutionary payment model implemented
+- ✓ **NEW PAYMENT MODEL:** EDUCAFRIC now pays schools instead of schools paying EDUCAFRIC
+- ✓ **School Payments:** 150,000 CFA/year (≥500 students), 200,000 CFA/year (<500 students)
+- ✓ **Quarterly School Payments:** 50,000 CFA and 66,670 CFA per quarter respectively
+- ✓ **Parent Quarterly Subscriptions:** Public schools 3,000 CFA/quarter, Private schools 4,500 CFA/quarter
+- ✓ **Updated Stripe Service:** Added quarterly billing support (3-month intervals)
+- ✓ **Contract Version 6.0:** Complete revision with new obligations and payment terms
+- ✓ **School Obligations:** Must promote parent subscriptions, maintain 30% affiliation rate
+- ✓ **Payment Methods:** Schools provide bank/Mobile Money details for EDUCAFRIC payments
+
 **CRITICAL USER PREFERENCES:**
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards

@@ -14,13 +14,13 @@ export interface SubscriptionPlan {
   name: string;
   price: number;
   currency: string;
-  interval: 'month' | 'year' | 'semester';
+  interval: 'month' | 'year' | 'semester' | 'quarter';
   features: string[];
   category: 'parent' | 'school' | 'freelancer';
 }
 
 export const subscriptionPlans: SubscriptionPlan[] = [
-  // Plans Parents
+  // Plans Parents - École Publique
   {
     id: 'parent_public_monthly',
     name: 'Parent École Publique (Mensuel)',
@@ -31,6 +31,15 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support']
   },
   {
+    id: 'parent_public_quarterly',
+    name: 'Parent École Publique (Trimestriel)',
+    price: 3000,
+    currency: 'xaf',
+    interval: 'quarter',
+    category: 'parent',
+    features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support', 'quarterly_savings']
+  },
+  {
     id: 'parent_public_annual',
     name: 'Parent École Publique (Annuel)',
     price: 12000,
@@ -39,6 +48,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     category: 'parent',
     features: ['student_tracking', 'real_time_notifications', 'grade_access', 'teacher_communication', 'bilingual_support', 'priority_support']
   },
+  // Plans Parents - École Privée
   {
     id: 'parent_private_monthly',
     name: 'Parent École Privée (Mensuel)',
@@ -47,6 +57,15 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     interval: 'month',
     category: 'parent',
     features: ['student_tracking', 'real_time_notifications', 'advanced_gps', 'emergency_button', 'grade_access', 'priority_communication']
+  },
+  {
+    id: 'parent_private_quarterly',
+    name: 'Parent École Privée (Trimestriel)',
+    price: 4500,
+    currency: 'xaf',
+    interval: 'quarter',
+    category: 'parent',
+    features: ['student_tracking', 'real_time_notifications', 'advanced_gps', 'emergency_button', 'grade_access', 'priority_communication', 'quarterly_savings']
   },
   {
     id: 'parent_private_annual',
@@ -305,6 +324,9 @@ export class StripeService {
         recurring: plan.interval === 'semester' ? {
           interval: 'month',
           interval_count: 6
+        } : plan.interval === 'quarter' ? {
+          interval: 'month',
+          interval_count: 3
         } : {
           interval: plan.interval
         },
@@ -350,6 +372,8 @@ export class StripeService {
         expirationDate.setFullYear(expirationDate.getFullYear() + 1);
       } else if (plan?.interval === 'semester') {
         expirationDate.setMonth(expirationDate.getMonth() + 6);
+      } else if (plan?.interval === 'quarter') {
+        expirationDate.setMonth(expirationDate.getMonth() + 3);
       }
       
       // Mettre à jour l'utilisateur
