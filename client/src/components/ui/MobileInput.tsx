@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 
 interface MobileInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;

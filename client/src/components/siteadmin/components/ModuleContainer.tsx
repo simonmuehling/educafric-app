@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { cn } from '@/lib/utils';
 
 interface ModuleContainerProps {

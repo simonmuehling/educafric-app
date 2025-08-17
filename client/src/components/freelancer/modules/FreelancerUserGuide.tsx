@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { HelpCircle, BookOpen, Users, Calendar, MessageSquare, BarChart3, CreditCard, Video, Download, ExternalLink } from 'lucide-react';

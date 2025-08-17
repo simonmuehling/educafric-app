@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { CheckCircle, Sparkles, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

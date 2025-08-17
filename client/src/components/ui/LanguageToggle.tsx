@@ -1,7 +1,7 @@
 // 🌍 EDUCAFRIC LANGUAGE TOGGLE COMPONENT
 // Following the perfect bilingual methodology with hierarchical translation support
 
-import React from 'react';
+// React import removed
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';

@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 

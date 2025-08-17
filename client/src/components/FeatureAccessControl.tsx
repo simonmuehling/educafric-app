@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useAuth } from '@/contexts/AuthContext';
 // import { useSandbox } from '@/contexts/SandboxContext';
 import { useSandboxPremium } from '@/components/sandbox/SandboxPremiumProvider';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CardDescription, CardTitle } from '@/components/ui/card';
 import { 
   Users, 

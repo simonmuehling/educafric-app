@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';

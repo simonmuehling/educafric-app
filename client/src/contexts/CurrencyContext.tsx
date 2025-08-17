@@ -3,7 +3,7 @@
  * Provides currency detection and formatting throughout the application
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 interface CurrencyContextType {
   countryCode: string;

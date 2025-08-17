@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import SiteAdminDashboard from '@/components/siteadmin/SiteAdminDashboard';
 
 const AdminPage: React.FC = () => {

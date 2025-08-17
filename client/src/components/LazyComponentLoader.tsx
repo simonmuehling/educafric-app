@@ -1,5 +1,5 @@
 // Chargeur de composants lazy optimisé pour Educafric
-import React, { Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 // Composant de chargement optimisé

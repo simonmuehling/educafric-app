@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Check, Crown, Users, MessageCircle, Bell, BookOpen, Calendar, CreditCard, BarChart } from 'lucide-react';

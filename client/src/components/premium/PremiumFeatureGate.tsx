@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useAuth } from '@/contexts/AuthContext';
 import PremiumUpgradeOverlay from './PremiumUpgradeOverlay';
 import LockedModuleCard from './LockedModuleCard';

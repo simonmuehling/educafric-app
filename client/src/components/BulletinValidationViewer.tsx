@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shield, QrCode, CheckCircle, XCircle, Eye, Download, Stamp } from 'lucide-react';
 import { ModernCard } from '@/components/ui/ModernCard';

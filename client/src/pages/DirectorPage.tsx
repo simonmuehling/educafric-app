@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import DirectorDashboard from '@/components/director/DirectorDashboard';
 
 const DirectorPage: React.FC = () => {

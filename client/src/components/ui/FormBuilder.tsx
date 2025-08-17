@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useForm, Controller } from 'react-hook-form';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import CommercialDashboard from '@/components/commercial/CommercialDashboard';
 
 const CommercialPage: React.FC = () => {

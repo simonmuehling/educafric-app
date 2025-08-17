@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, School, Mail, Phone, MapPin, Calendar, Users, Settings, Save, Upload, Image, FileSignature, Check, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';

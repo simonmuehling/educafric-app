@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
+// React import removed
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { GraduationCap, Lock, Crown, BookOpen, FileText, Video, Image, Puzzle, BarChart3, Share2 } from 'lucide-react';

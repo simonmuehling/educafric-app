@@ -1,24 +1,24 @@
 import { createLazyComponent } from '../utils/consolidated.ts';
-import React, { lazy, LazyExoticComponent, ComponentType, Suspense, useState, useEffect, useCallback } from 'react';
+import { lazy, LazyExoticComponent, ComponentType, Suspense, useState, useEffect, useCallback, ReactNode, createElement } from 'react';
 
 // Lazy loading utility with error boundary
 export function withLazyLoading<P extends object>(
   Component: LazyExoticComponent<ComponentType<P>>,
-  fallback?: React.ReactNode
+  fallback?: ReactNode
 ) {
   return function LazyLoadedComponent(props: P) {
-    return React.createElement(
+    return createElement(
       Suspense,
       { 
-        fallback: fallback || React.createElement(
+        fallback: fallback || createElement(
           'div',
           { className: 'flex items-center justify-center p-8' },
-          React.createElement('div', { 
+          createElement('div', { 
             className: 'animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full' 
           })
         )
       },
-      React.createElement(Component, props as any)
+      createElement(Component, props as any)
     );
   };
 }

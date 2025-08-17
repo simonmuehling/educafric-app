@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { User, Shield, MapPin, Crown, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

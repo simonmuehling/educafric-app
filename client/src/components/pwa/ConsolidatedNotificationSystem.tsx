@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { X, Bell, CheckCircle, AlertTriangle, Info, AlertCircle, BookOpen, Users } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { unifiedNotificationService, UnifiedNotification, NotificationType } from '@/services/unifiedNotificationService';

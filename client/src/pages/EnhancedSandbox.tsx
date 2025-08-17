@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import ConsolidatedSandboxDashboard from '@/components/sandbox/ConsolidatedSandboxDashboard';

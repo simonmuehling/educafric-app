@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useQuery } from '@tanstack/react-query';
 import SchoolGeolocation from '@/components/geolocation/SchoolGeolocation';
 

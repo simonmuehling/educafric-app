@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { useAuth } from '@/contexts/AuthContext';
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 

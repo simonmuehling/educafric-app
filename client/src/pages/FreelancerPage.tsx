@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import FreelancerDashboard from '@/components/freelancer/FreelancerDashboard';
 
 const FreelancerPage: React.FC = () => {

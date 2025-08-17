@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { translations, getTranslation, type Language, type TranslationKey } from '@/lib/translations';
 
 // Backward compatibility type

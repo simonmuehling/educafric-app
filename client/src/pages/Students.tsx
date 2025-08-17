@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import StudentDashboard from '@/components/student/StudentDashboard';
 
 const Students: React.FC = () => {

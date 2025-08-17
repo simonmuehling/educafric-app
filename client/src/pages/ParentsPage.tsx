@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import ParentDashboard from '@/components/parent/ParentDashboard';
 
 const ParentsPage: React.FC = () => {

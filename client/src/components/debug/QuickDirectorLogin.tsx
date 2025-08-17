@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';

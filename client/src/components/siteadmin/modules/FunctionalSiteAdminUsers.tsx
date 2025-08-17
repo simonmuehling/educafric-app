@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, Search, Filter, UserCheck, UserX, Shield } from 'lucide-react';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

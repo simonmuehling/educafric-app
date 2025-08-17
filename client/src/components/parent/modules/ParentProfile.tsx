@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 
 const ParentProfile: React.FC = () => {

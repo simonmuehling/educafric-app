@@ -3,7 +3,7 @@
  * Shows detected currency and allows testing currency conversion
  */
 
-import React from 'react';
+// React import removed
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

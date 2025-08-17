@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import CreateAssignment from './CreateAssignment';
 import AdvancedTimetableSystem from './AdvancedTimetableSystem';
 import InterProfileCommunications from './InterProfileCommunications';

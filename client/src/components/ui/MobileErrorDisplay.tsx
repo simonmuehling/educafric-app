@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { AlertTriangle, X, CheckCircle, Info, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

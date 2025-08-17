@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
+// React import removed
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CheckSquare, Lock, Crown, Calendar, Clock, BarChart3, AlertCircle } from 'lucide-react';

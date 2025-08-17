@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import { RefreshCw, CheckCircle, Clock } from 'lucide-react';
 import { useSandboxAutoscale } from '@/hooks/useSandboxAutoscale';
 import { Button } from '@/components/ui/button';

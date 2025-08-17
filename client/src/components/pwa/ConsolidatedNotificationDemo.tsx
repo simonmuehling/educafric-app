@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnifiedNotifications } from './ConsolidatedNotificationSystem';
 import { unifiedNotificationService } from '@/services/unifiedNotificationService';

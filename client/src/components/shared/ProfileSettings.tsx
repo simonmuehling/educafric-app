@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { User, Mail, Phone, MapPin, Globe, Save, Eye, EyeOff, Shield, Bell } from 'lucide-react';
 import { BilingualTwoFactorSetup } from './BilingualTwoFactorSetup';
 import { SubscriptionPlanDisplay } from './SubscriptionPlanDisplay';

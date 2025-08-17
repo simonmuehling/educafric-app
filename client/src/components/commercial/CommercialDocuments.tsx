@@ -1,4 +1,4 @@
-import React from 'react';
+// React import removed
 import CommercialDocumentManagement from './modules/CommercialDocumentManagement';
 
 const CommercialDocuments: React.FC = () => {

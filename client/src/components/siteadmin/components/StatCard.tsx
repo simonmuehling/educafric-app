@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
+// React import removed
 import { cn } from '@/lib/utils';
 
 interface StatCardProps {
