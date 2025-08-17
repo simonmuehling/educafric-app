@@ -307,7 +307,7 @@ export const generateFinancialProjectionPDF = async (data: FinancialProjectionDa
   pdf.setFontSize(8);
   pdf.setTextColor(128, 128, 128);
   pdf.text('EDUCAFRIC - Plateforme Éducative Africaine', margin, pageHeight - 10);
-  pdf.text('www.educafric.com | info@www.educafric.com', pageWidth - margin - 60, pageHeight - 10);
+  pdf.text('www.educafric.com | info@educafric.com | +237 6 56 20 04 72', pageWidth - margin - 80, pageHeight - 10);
 
   return pdf;
 };

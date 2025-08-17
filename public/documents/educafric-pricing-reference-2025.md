@@ -64,8 +64,9 @@
 - **Fonctionnalités**: Interface tutorat, gestion planning, suivi étudiants, communication parents, système facturation, tracking géolocalisation, zones enseignement, analytics performance, marketing digital, formation continue, certification, support téléphonique
 
 ## CONTACT OFFICIEL
-- **Téléphone**: +237 657 004 011
-- **Email**: admin@educafric.com
+- **Téléphone**: +237 6 56 20 04 72
+- **Email**: info@educafric.com
+- **WhatsApp**: https://wa.me/237657004011
 - **Site**: https://www.educafric.com
 
 ## NOTES IMPORTANTES

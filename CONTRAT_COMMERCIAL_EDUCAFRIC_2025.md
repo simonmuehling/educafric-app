@@ -233,9 +233,8 @@
 
 **Siège Social:** Yaoundé, Cameroun  
 **Email général:** info@educafric.com  
-**Support technique:** support@educafric.com  
-**Commercial:** commercial@educafric.com  
-**WhatsApp Business:** +237 656 200 472  
+**Téléphone:** +237 6 56 20 04 72  
+**WhatsApp Business:** https://wa.me/237657004011  
 **Site web:** https://www.educafric.com  
 
 ---
