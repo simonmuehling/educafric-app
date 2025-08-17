@@ -2,7 +2,6 @@ import { createLazyComponent } from '../utils/consolidated.ts';
 import React, { lazy, LazyExoticComponent, ComponentType, Suspense, useState, useEffect, useCallback } from 'react';
 
 // Lazy loading utility with error boundary
-export 
 export function withLazyLoading<P extends object>(
   Component: LazyExoticComponent<ComponentType<P>>,
   fallback?: React.ReactNode
@@ -19,7 +18,7 @@ export function withLazyLoading<P extends object>(
           })
         )
       },
-      React.createElement(Component, props)
+      React.createElement(Component, props as any)
     );
   };
 }
