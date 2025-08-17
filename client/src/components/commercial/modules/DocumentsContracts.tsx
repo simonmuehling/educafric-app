@@ -506,6 +506,19 @@ const DocumentsContracts = () => {
       description: 'Guide configuration enseignants - Profil, classes, matières, bulletins'
     },
     {
+      id: 211,
+      name: 'Guide Teachers Configuration (EN)',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Familles',
+      date: '2025-08-17',
+      status: 'finalized',
+      size: '13.3 KB',
+      format: 'PDF',
+      url: '/documents/guide-teachers-configuration-en.html',
+      description: 'Teacher profile configuration guide - Profile, classes, subjects, bulletins'
+    },
+    {
       id: 204,
       name: 'Guide Parents Configuration Profil (FR)',
       type: 'guide',
