@@ -28,10 +28,11 @@ export default function SecurityAudit() {
 
   const handleSecurityAction = async (action: string) => {
     try {
-      const result = await apiRequest('POST', `/api/admin/security/${action}`, {});
+      const response = await apiRequest('POST', `/api/admin/security/${action}`, {});
+      const result = await response.json();
       toast({
         title: "Action de sécurité exécutée",
-        description: result.message || `Action ${action} terminée avec succès`,
+        description: result?.message || `Action ${action} terminée avec succès`,
       });
     } catch (error) {
       toast({
