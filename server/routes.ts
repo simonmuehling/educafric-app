@@ -5795,6 +5795,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           path: '/documents/customized-pricing-proposal-en.html',
           status: 'active',
           createdAt: '2025-01-22T10:00:00Z'
+        },
+        {
+          id: 'guide-complet-systeme-validation-bulletins-2025',
+          title: 'Guide Complet - Système de Validation des Bulletins EDUCAFRIC 2025',
+          type: 'guide',
+          language: 'fr',
+          path: '/documents/guide-complet-systeme-validation-bulletins-2025.html',
+          status: 'active',
+          createdAt: '2025-08-17T10:00:00Z'
+        },
+        {
+          id: 'guide-commercial-bulletins-securises-2025-actualise',
+          title: 'Guide Commercial - Bulletins Sécurisés EDUCAFRIC 2025 (Actualisé)',
+          type: 'guide',
+          language: 'fr',
+          path: '/documents/guide-commercial-bulletins-securises-2025-actualise.html',
+          status: 'active',
+          createdAt: '2025-08-17T09:00:00Z'
         }
       ];
       
