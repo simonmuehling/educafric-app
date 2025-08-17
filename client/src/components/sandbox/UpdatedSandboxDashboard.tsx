@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { AuthContext } from '@/contexts/AuthContext';
 import { useSandboxPremium } from './SandboxPremiumProvider';
 import { useSandboxTranslation } from '@/lib/sandboxTranslations';
 import { useToast } from '@/hooks/use-toast';
@@ -43,7 +43,8 @@ interface TestResult {
 const UpdatedSandboxDashboard = () => {
   const { language } = useLanguage();
   const translate = useSandboxTranslation(language as 'fr' | 'en');
-  const { user } = useAuth();
+  const authContext = useContext(AuthContext);
+  const user = authContext?.user;
   const { hasFullAccess } = useSandboxPremium();
   const { toast } = useToast();
   const queryClient = useQueryClient();
