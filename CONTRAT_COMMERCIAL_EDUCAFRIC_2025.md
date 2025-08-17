@@ -236,7 +236,7 @@
 **Support technique:** support@educafric.com  
 **Commercial:** commercial@educafric.com  
 **WhatsApp Business:** +237 656 200 472  
-**Site web:** https://educafric.com  
+**Site web:** https://www.educafric.com  
 
 ---
 

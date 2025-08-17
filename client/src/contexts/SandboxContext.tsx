@@ -16,7 +16,7 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
 
   // Check if user is in sandbox mode with enhanced detection
   const isSandboxMode = Boolean(
-    user?.email?.includes('sandbox.demo@educafric.com') || 
+    user?.email?.includes('sandbox.demo@www.educafric.com') || 
     user?.email?.includes('sandbox.') ||
     user?.email?.includes('.demo@') ||
     (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))

@@ -61,16 +61,16 @@
     "teacher": {
       "firstName": "Marie",
       "lastName": "Nguesso",
-      "email": "marie.nguesso@test.educafric.com",
+      "email": "marie.nguesso@test.www.educafric.com",
       "subject": "Mathématiques",
       "phone": "+237677889900"
     },
     "student": {
       "firstName": "Junior",
       "lastName": "Mvondo",
-      "email": "junior.mvondo@test.educafric.com",
+      "email": "junior.mvondo@test.www.educafric.com",
       "class": "3ème A",
-      "parentEmail": "parent.mvondo@test.educafric.com"
+      "parentEmail": "parent.mvondo@test.www.educafric.com"
     },
     "parent": null,
     "freelancer": null,

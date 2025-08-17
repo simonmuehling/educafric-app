@@ -13,11 +13,11 @@ const COOKIE_FILE = 'test-cookies';
 
 // Test credentials for different roles
 const TEST_ACCOUNTS = {
-  admin: { email: 'school.admin@test.educafric.com', password: 'admin123', role: 'Admin' },
-  teacher: { email: 'teacher.demo@test.educafric.com', password: 'teacher123', role: 'Teacher' },
-  parent: { email: 'parent.demo@test.educafric.com', password: 'parent123', role: 'Parent' },
-  student: { email: 'student.demo@test.educafric.com', password: 'student123', role: 'Student' },
-  director: { email: 'director.demo@test.educafric.com', password: 'director123', role: 'Director' }
+  admin: { email: 'school.admin@test.www.educafric.com', password: 'admin123', role: 'Admin' },
+  teacher: { email: 'teacher.demo@test.www.educafric.com', password: 'teacher123', role: 'Teacher' },
+  parent: { email: 'parent.demo@test.www.educafric.com', password: 'parent123', role: 'Parent' },
+  student: { email: 'student.demo@test.www.educafric.com', password: 'student123', role: 'Student' },
+  director: { email: 'director.demo@test.www.educafric.com', password: 'director123', role: 'Director' }
 };
 
 let testResults = {

@@ -389,10 +389,10 @@ function Router() {
                 <div className="text-sm text-gray-500">
                   <p className="font-medium mb-2">Working Test Accounts:</p>
                   <ul className="space-y-1 text-xs">
-                    <li>• simon.admin@educafric.com (Site Admin) ✓</li>
+                    <li>• simon.admin@www.educafric.com (Site Admin) ✓</li>
                     <li>• parent.kamdem@gmail.com (Parent)</li>
-                    <li>• teacher.demo@test.educafric.com (Teacher)</li>
-                    <li>• student.demo@test.educafric.com (Student)</li>
+                    <li>• teacher.demo@test.www.educafric.com (Teacher)</li>
+                    <li>• student.demo@test.www.educafric.com (Student)</li>
                   </ul>
                   <p className="mt-3 text-xs">All passwords: "password"</p>
                 </div>

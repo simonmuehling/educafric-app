@@ -33,10 +33,10 @@ echo ""
 echo "🔐 Test 2: Parent Authentication"
 AUTH_RESPONSE=$(curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "parent.demo@test.educafric.com", "password": "password"}' \
+  -d '{"email": "parent.demo@test.www.educafric.com", "password": "password"}' \
   -c /tmp/parent_test_session.txt -s 2>/dev/null)
 
-if echo "$AUTH_RESPONSE" | grep -q "parent.demo@test.educafric.com" 2>/dev/null; then
+if echo "$AUTH_RESPONSE" | grep -q "parent.demo@test.www.educafric.com" 2>/dev/null; then
     echo -e "${GREEN}✅ Parent authentication successful${NC}"
     ((PASSED_TESTS++))
 else

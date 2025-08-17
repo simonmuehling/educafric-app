@@ -66,7 +66,7 @@
 ## CONTACT OFFICIEL
 - **Téléphone**: +237 657 004 011
 - **Email**: admin@educafric.com
-- **Site**: https://educafric.com
+- **Site**: https://www.educafric.com
 
 ## NOTES IMPORTANTES
 - Tous les prix sont en Francs CFA (XAF)

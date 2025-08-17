@@ -6,6 +6,8 @@ Educafric is a comprehensive African educational technology platform providing a
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+**Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional

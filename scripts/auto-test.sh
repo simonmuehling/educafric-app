@@ -17,10 +17,10 @@ fi
 # Run Authentication Test
 AUTH_TEST=$(curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "parent.demo@test.educafric.com", "password": "password"}' \
+  -d '{"email": "parent.demo@test.www.educafric.com", "password": "password"}' \
   -c /tmp/auto_test_session.txt -s 2>/dev/null)
 
-if ! echo "$AUTH_TEST" | grep -q "parent.demo@test.educafric.com"; then
+if ! echo "$AUTH_TEST" | grep -q "parent.demo@test.www.educafric.com"; then
     echo "❌ Authentication system failed"
     exit 1
 fi

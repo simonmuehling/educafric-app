@@ -328,7 +328,7 @@
       "status": "EXCELLENT - 100% Success Rate"
     },
     "testDataIssue": {
-      "problem": "Test accounts (@test.educafric.com) appearing in logs",
+      "problem": "Test accounts (@test.www.educafric.com) appearing in logs",
       "impact": "Creates confusion about real vs test user activity",
       "solution": "Implement proper test/production environment separation"
     },
