@@ -10,7 +10,7 @@ const OptimizedLoading = () => (
 // Pages critiques - Lazy loading pour production 3500+ users
 const LazyStudentsComponent = lazy(() => import('@/pages/Students'));
 const LazyTeachersComponent = lazy(() => import('@/pages/Teachers'));
-const LazyProfileComponent = lazy(() => import('@/pages/ProfileSettings'));
+const LazyProfileComponent = lazy(() => import('@/pages/ModernProfile'));
 
 // Dashboard pages - Gros composants
 const LazyDirectorPageComponent = lazy(() => import('@/pages/DirectorPage'));

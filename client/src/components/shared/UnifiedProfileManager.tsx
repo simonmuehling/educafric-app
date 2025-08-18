@@ -294,26 +294,60 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     }
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Les mots de passe ne correspondent pas." : "Passwords do not match.",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Mot de passe modifié",
-      description: "Votre mot de passe a été mis à jour avec succès.",
-    });
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Le mot de passe doit contenir au moins 8 caractères." : "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "Mot de passe modifié" : "Password Changed",
+          description: language === 'fr' ? "Votre mot de passe a été mis à jour avec succès." : "Your password has been updated successfully.",
+        });
+
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Password change failed');
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de changer le mot de passe." : "Failed to change password.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleNotificationSave = async () => {
@@ -349,7 +383,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
   const handleDeleteAccount = async () => {
     try {
-      const response = await fetch('/api/profile/delete', {
+      const response = await fetch('/api/auth/delete-account', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -359,18 +393,19 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
       if (response.ok) {
         toast({
-          title: "Compte supprimé",
-          description: "Votre compte a été supprimé avec succès.",
+          title: language === 'fr' ? "Compte supprimé" : "Account Deleted",
+          description: language === 'fr' ? "Votre compte a été supprimé avec succès." : "Your account has been deleted successfully.",
         });
         // Rediriger vers la page de connexion
         window.location.href = '/login';
       } else {
-        throw new Error('Erreur lors de la suppression');
+        const error = await response.json();
+        throw new Error(error.message || 'Account deletion failed');
       }
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le compte.",
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de supprimer le compte." : "Failed to delete account.",
         variant: "destructive",
       });
     }
