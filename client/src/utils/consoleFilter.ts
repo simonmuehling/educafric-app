@@ -1,6 +1,23 @@
 // Console filter for removing spam messages in development
 export const setupConsoleFilter = () => {
   if (import.meta.env.PROD) return; // Only filter in development
+  
+  // Override global error handler to catch MIME type errors
+  window.addEventListener('error', (event) => {
+    if (event.message && event.message.includes('is not a valid JavaScript MIME type')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && typeof event.reason === 'string' && 
+        event.reason.includes('is not a valid JavaScript MIME type')) {
+      event.preventDefault();
+      return false;
+    }
+  });
 
   // Original console methods
   const originalLog = console.log;
@@ -40,6 +57,8 @@ export const setupConsoleFilter = () => {
     /Disconnected from polkadot/i,
     /Manifest.*validation.*failed/i,
     /PWA.*installation.*blocked/i,
+    /TypeError.*is not a valid JavaScript MIME type/i,
+    /TypeError.*'text\/html'.*MIME type/i,
   ];
 
   // Filter function
@@ -52,6 +71,13 @@ export const setupConsoleFilter = () => {
     const message = args.join(' ');
     if (!shouldFilter(message)) {
       originalLog.apply(console, args);
+    }
+  };
+  
+  console.error = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldFilter(message)) {
+      console.warn.apply(console, args);
     }
   };
 
