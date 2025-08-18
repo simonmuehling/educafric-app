@@ -756,7 +756,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 59,
-      name: 'Educ Presentation (1)',
+      name: 'Educ Presentation - Établissements',
       type: 'presentation',
       category: 'marketing',
       school: 'Commercial Team',
@@ -765,11 +765,11 @@ const DocumentsContracts = () => {
       size: '2.3 MB',
       format: 'PDF',
       url: '/documents/educ-presentation-1.pdf',
-      description: 'Présentation EDUCAFRIC version 1 - Format condensé pour prospection commerciale.'
+      description: 'Présentation EDUCAFRIC pour établissements scolaires - Solutions complètes pour directeurs et administrateurs.'
     },
     {
       id: 60,
-      name: 'Educ Presentation (3)',
+      name: 'Educ Presentation - Parents',
       type: 'presentation',
       category: 'marketing',
       school: 'Commercial Team',
@@ -778,11 +778,11 @@ const DocumentsContracts = () => {
       size: '571 KB',
       format: 'PDF',
       url: '/documents/educ-presentation-3.pdf',
-      description: 'Présentation EDUCAFRIC version 3 - Optimisée pour démonstrations client.'
+      description: 'Présentation EDUCAFRIC pour parents - Géolocalisation, suivi académique, communication avec établissement.'
     },
     {
       id: 61,
-      name: 'Educ Presentation (4)',
+      name: 'Educ Presentation - Enseignants',
       type: 'presentation',
       category: 'marketing',
       school: 'Commercial Team',
@@ -791,7 +791,7 @@ const DocumentsContracts = () => {
       size: '552 KB',
       format: 'PDF',
       url: '/documents/educ-presentation-4.pdf',
-      description: 'Présentation EDUCAFRIC version 4 - Dernière version avec mises à jour pricing 2025.'
+      description: 'Présentation EDUCAFRIC pour enseignants - Gestion de classe, bulletins, communication parents.'
     },
   ];
 
