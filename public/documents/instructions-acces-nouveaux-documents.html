@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructions d'Accès aux Nouveaux Documents - EDUCAFRIC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px;
+        }
+        .alert-box {
+            background: linear-gradient(135deg, #E8F5E8 0%, #D4F5D4 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+            margin: 20px 0;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, #FFF3CD 0%, #FFEAA7 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #FFC107;
+            margin: 20px 0;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        ul li {
+            margin: 10px 0;
+            padding-left: 10px;
+        }
+        .success-icon {
+            color: #4CAF50;
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📋 EDUCAFRIC</div>
+            <div class="subtitle">Instructions d'Accès aux Nouveaux Documents</div>
+        </div>
+
+        <div class="content">
+            <div class="alert-box">
+                <h3><span class="success-icon">✅</span>Nouveaux Documents Ajoutés avec Succès !</h3>
+                <p>Trois nouveaux documents de configuration ont été ajoutés au système EDUCAFRIC :</p>
+                <ul>
+                    <li><strong>✅ Présentation Écoles Configuration</strong> - Guide complet pour établissements</li>
+                    <li><strong>✅ Présentation Parents Configuration</strong> - Guide paramétrage parents</li>
+                    <li><strong>✅ Présentation Enseignant Configuration</strong> - Guide configuration enseignants</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h3>⚠️ Accès Requis : Compte Commercial</h3>
+                <p>Ces documents sont accessibles uniquement via le <strong>tableau de bord Commercial</strong>. Vous devez vous connecter avec un compte ayant le rôle "Commercial" pour les voir.</p>
+            </div>
+
+            <h2>📋 Instructions d'Accès Étape par Étape</h2>
+
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Connexion au Compte Commercial</strong>
+                <p>Connectez-vous à EDUCAFRIC avec un compte ayant le rôle "Commercial", "Admin" ou "SiteAdmin".</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Accès au Tableau de Bord Commercial</strong>
+                <p>Une fois connecté, accédez au tableau de bord Commercial depuis le menu principal.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Module Documents</strong>
+                <p>Cliquez sur le module "Documents" ou "Gestion des Documents Commerciaux" dans le tableau de bord.</p>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Visualisation des Documents</strong>
+                <p>Vous verrez la liste complète des documents, incluant les 3 nouveaux guides de configuration.</p>
+            </div>
+
+            <h2>🔧 Détails Techniques</h2>
+
+            <div class="alert-box">
+                <h4>Système de Détection Automatique</h4>
+                <ul>
+                    <li><strong>API Endpoint :</strong> <code>/api/commercial/documents</code></li>
+                    <li><strong>Fonction de Scan :</strong> <code>scanDocuments()</code> détecte automatiquement tous les fichiers</li>
+                    <li><strong>Localisation :</strong> <code>/public/documents/presentation-*-configuration.*</code></li>
+                    <li><strong>Formats disponibles :</strong> HTML interactif et PDF original</li>
+                    <li><strong>Tri alphabétique :</strong> Documents classés par ordre alphabétique français</li>
+                </ul>
+            </div>
+
+            <h2>📁 Documents Créés</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #FF6B6B;">
+                    <h4>🏫 Écoles</h4>
+                    <p><code>presentation-ecoles-configuration.html/.pdf</code></p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #4ECDC4;">
+                    <h4>👨‍👩‍👧‍👦 Parents</h4>
+                    <p><code>presentation-parents-configuration.html/.pdf</code></p>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #FFA726;">
+                    <h4>🎓 Enseignants</h4>
+                    <p><code>presentation-enseignant-configuration.html/.pdf</code></p>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚡ Vérification Immédiate</h4>
+                <p>Si vous ne voyez pas les nouveaux documents après vous être connecté en tant que Commercial, vérifiez :</p>
+                <ul>
+                    <li>Votre rôle utilisateur (doit être Commercial, Admin ou SiteAdmin)</li>
+                    <li>Rechargez la page du module Documents</li>
+                    <li>Vérifiez la console navigateur pour d'éventuelles erreurs</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>EDUCAFRIC</strong> - Système de Documents Automatique</p>
+            <p>📧 support@educafric.com | 🌐 www.educafric.com</p>
+            <p><em>Document généré automatiquement - 18 août 2025</em></p>
+        </div>
+    </div>
+</body>
+</html>
