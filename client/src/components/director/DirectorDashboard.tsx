@@ -17,7 +17,7 @@ import FunctionalDirectorTeacherManagement from './modules/FunctionalDirectorTea
 import SchoolAttendanceManagement from './modules/SchoolAttendanceManagement';
 import ParentRequestsNew from './modules/ParentRequestsNew';
 import DelegateAdministrators from './modules/DelegateAdministrators';
-import GeolocationManagement from './modules/GeolocationManagement';
+
 import BulletinApprovalNew from './modules/BulletinApprovalNew';
 import BulletinValidation from './modules/BulletinValidation';
 import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
@@ -59,7 +59,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       'switchToAdministrators': 'administrators',
       'switchToStudent-management': 'students',
       'switchToAttendance-management': 'attendance',
-      'switchToGeolocation': 'geolocation',
       'switchToSubscription': 'subscription'
     };
     
@@ -129,7 +128,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       communications: 'Communications',
       teacherAbsence: 'Teacher Absences',
       parentRequests: 'Parent Requests',
-      geolocation: 'Geolocation',
+
       bulletinApproval: 'Bulletin Approval',
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
@@ -279,26 +278,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       color: 'bg-teal-500',
       component: <ParentRequestsNew />
     },
-    {
-      id: 'geolocation',
-      label: t.geolocation,
-      icon: <Award className="w-6 h-6" />,
-      color: 'bg-emerald-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Géolocalisation Sécurisée"
-          userType="School"
-          features={[
-            "Suivi GPS temps réel de tous les élèves",
-            "Zones de sécurité personnalisables",
-            "Alertes automatiques parents/école",
-            "Rapports de fréquentation géolocalisés"
-          ]}
-        >
-          <GeolocationManagement />
-        </PremiumFeatureGate>
-      )
-    },
+
     {
       id: 'bulletin-validation',
       label: t.bulletinApproval,
