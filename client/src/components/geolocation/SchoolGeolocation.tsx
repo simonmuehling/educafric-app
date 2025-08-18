@@ -245,10 +245,6 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [trackingConfigs, setTrackingConfigs] = useState<TrackingConfig[]>([]);
   const [trackingDevices, setTrackingDevices] = useState<TrackingDevice[]>([]);
-  
-  // Firebase state
-  const [trackingConfigs, setTrackingConfigs] = useState<TrackingConfig[]>([]);
-  const [trackingDevices, setTrackingDevices] = useState<TrackingDevice[]>([]);
 
   // Fetch school statistics
   const { data: schoolStats } = useQuery({
