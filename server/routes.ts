@@ -5753,6 +5753,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
             type: 'sales_kit',
             status: 'active',
             createdAt: '2025-01-29T10:00:00Z'
+          },
+          {
+            id: 3,
+            commercialId: 10,
+            title: 'Guide Schools Configuration (FR)',
+            type: 'guide',
+            status: 'active',
+            createdAt: '2025-08-18T14:00:00Z',
+            downloadUrl: '/documents/guide-schools-configuration-fr.pdf',
+            viewUrl: '/documents/guide-schools-configuration-fr.html'
+          },
+          {
+            id: 4,
+            commercialId: 10,
+            title: 'Guide Teachers Configuration (FR)',
+            type: 'guide',
+            status: 'active',
+            createdAt: '2025-08-18T14:00:00Z',
+            downloadUrl: '/documents/guide-teachers-configuration-fr.pdf',
+            viewUrl: '/documents/guide-teachers-configuration-fr.html'
+          },
+          {
+            id: 5,
+            commercialId: 10,
+            title: 'Guide Parents Configuration (FR)',
+            type: 'guide',
+            status: 'active',
+            createdAt: '2025-08-18T14:00:00Z',
+            downloadUrl: '/documents/guide-parents-configuration-fr.pdf',
+            viewUrl: '/documents/guide-parents-configuration-fr.html'
           }
         ],
         12: [ // Carine Nguetsop
