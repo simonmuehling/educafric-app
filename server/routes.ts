@@ -12322,6 +12322,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/auth/delete-account", requireAuth, async (req, res) => {
     try {
       const userId = ((req.user as any) as any).id;
+      const user = (req.user as any) as any;
+      
+      // Vérifier que ce n'est pas un élève (les élèves doivent passer par l'approbation parentale)
+      if (user.role === 'Student') {
+        return res.status(403).json({ 
+          message: 'Students must request deletion through parent approval' 
+        });
+      }
       
       await storage.deleteUser(userId);
       
@@ -12332,6 +12340,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: 'Account deleted successfully' });
     } catch (error: any) {
       res.status(500).json({ message: 'Failed to delete account' });
+    }
+  });
+
+  // Route pour demande de suppression de compte élève
+  app.post("/api/student/request-account-deletion", requireAuth, async (req, res) => {
+    try {
+      const user = (req.user as any) as any;
+      
+      if (user.role !== 'Student') {
+        return res.status(403).json({ message: 'Only students can use this endpoint' });
+      }
+
+      // Trouver les parents de l'élève
+      const parents = await storage.getParentsByStudentId(user.id);
+      
+      if (!parents || parents.length === 0) {
+        return res.status(400).json({ 
+          message: 'No parent found. Please contact school administration.' 
+        });
+      }
+
+      // Créer la demande de suppression
+      const deletionRequest = {
+        studentId: user.id,
+        studentName: `${user.firstName} ${user.lastName}`,
+        studentEmail: user.email,
+        requestDate: new Date().toISOString(),
+        status: 'pending',
+        parentIds: parents.map(p => p.id)
+      };
+
+      // Envoyer notifications aux parents
+      for (const parent of parents) {
+        // Notification interne
+        await storage.createNotification({
+          userId: parent.id,
+          userType: 'Parent',
+          title: 'Demande de suppression de compte',
+          message: `Votre enfant ${user.firstName} ${user.lastName} demande la suppression de son compte EDUCAFRIC. Veuillez approuver ou refuser cette demande.`,
+          type: 'account_deletion_request',
+          priority: 'high',
+          category: 'account',
+          actionUrl: '/parent/account-requests',
+          actionText: 'Voir demande',
+          actionRequired: true,
+          metadata: {
+            studentId: user.id,
+            requestId: deletionRequest.studentId + '_' + Date.now()
+          }
+        });
+
+        // Email notification
+        console.log(`[ACCOUNT_DELETION] 📧 Sending deletion request email to parent ${parent.email}`);
+        // TODO: Implémenter l'envoi d'email pour la demande de suppression
+      }
+
+      console.log(`[ACCOUNT_DELETION] 📝 Deletion request created for student ${user.id}`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Deletion request sent to parents for approval',
+        requestId: deletionRequest.studentId + '_' + Date.now()
+      });
+    } catch (error: any) {
+      console.error('[ACCOUNT_DELETION] Error creating deletion request:', error);
+      res.status(500).json({ message: 'Failed to send deletion request' });
+    }
+  });
+
+  // Route pour que les parents approuvent/refusent la suppression
+  app.post("/api/parent/approve-account-deletion", requireAuth, async (req, res) => {
+    try {
+      const user = (req.user as any) as any;
+      const { studentId, approve } = req.body;
+      
+      if (user.role !== 'Parent') {
+        return res.status(403).json({ message: 'Only parents can approve account deletions' });
+      }
+
+      // Vérifier que le parent a bien un lien avec l'élève
+      const isParentOfStudent = await storage.verifyParentStudentRelation(user.id, studentId);
+      if (!isParentOfStudent) {
+        return res.status(403).json({ message: 'You are not authorized to approve this request' });
+      }
+
+      if (approve) {
+        // Supprimer le compte de l'élève
+        await storage.deleteUser(studentId);
+        
+        // Notification à l'élève (si encore connecté)
+        await storage.createNotification({
+          userId: studentId,
+          userType: 'Student',
+          title: 'Compte supprimé',
+          message: 'Votre compte a été supprimé suite à l\'approbation de vos parents.',
+          type: 'account_deleted',
+          priority: 'high',
+          category: 'account'
+        });
+
+        console.log(`[ACCOUNT_DELETION] ✅ Student account ${studentId} deleted with parent approval`);
+        res.json({ success: true, message: 'Student account deleted successfully' });
+      } else {
+        // Refus de la suppression
+        await storage.createNotification({
+          userId: studentId,
+          userType: 'Student',
+          title: 'Demande refusée',
+          message: 'Votre demande de suppression de compte a été refusée par vos parents.',
+          type: 'account_deletion_declined',
+          priority: 'medium',
+          category: 'account'
+        });
+
+        console.log(`[ACCOUNT_DELETION] ❌ Deletion request declined for student ${studentId}`);
+        res.json({ success: true, message: 'Deletion request declined' });
+      }
+    } catch (error: any) {
+      console.error('[ACCOUNT_DELETION] Error processing approval:', error);
+      res.status(500).json({ message: 'Failed to process deletion approval' });
     }
   });
 

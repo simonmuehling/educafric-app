@@ -205,8 +205,10 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       confirmPassword: 'Confirmer le mot de passe',
       changePassword: 'Changer le mot de passe',
       deleteAccount: 'Supprimer mon compte',
-      deleteAccountWarning: 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
-      confirmDelete: 'Confirmer la suppression',
+      deleteAccountWarning: userType === 'student' 
+        ? 'Une demande sera envoyée à vos parents pour approbation de la suppression de votre compte.'
+        : 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
+      confirmDelete: userType === 'student' ? 'Envoyer la demande' : 'Confirmer la suppression',
       cancel: 'Annuler',
       emailNotifications: 'Notifications Email',
       smsNotifications: 'Notifications SMS',
@@ -242,8 +244,10 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       confirmPassword: 'Confirm Password',
       changePassword: 'Change Password',
       deleteAccount: 'Delete my account',
-      deleteAccountWarning: 'This action is irreversible. All your data will be permanently deleted.',
-      confirmDelete: 'Confirm deletion',
+      deleteAccountWarning: userType === 'student'
+        ? 'A request will be sent to your parents for approval to delete your account.'
+        : 'This action is irreversible. All your data will be permanently deleted.',
+      confirmDelete: userType === 'student' ? 'Send request' : 'Confirm deletion',
       cancel: 'Cancel',
       emailNotifications: 'Email Notifications',
       smsNotifications: 'SMS Notifications',
@@ -383,6 +387,29 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
   const handleDeleteAccount = async () => {
     try {
+      // Pour les élèves, envoyer une demande d'approbation aux parents
+      if (userType === 'student') {
+        const response = await fetch('/api/student/request-account-deletion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          toast({
+            title: language === 'fr' ? "Demande envoyée" : "Request Sent",
+            description: language === 'fr' ? "Une demande de suppression a été envoyée à vos parents pour approbation." : "A deletion request has been sent to your parents for approval.",
+          });
+        } else {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to send deletion request');
+        }
+        return;
+      }
+
+      // Pour les enseignants et autres rôles, suppression directe
       const response = await fetch('/api/auth/delete-account', {
         method: 'DELETE',
         headers: {
@@ -405,7 +432,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
     } catch (error) {
       toast({
         title: language === 'fr' ? "Erreur" : "Error",
-        description: language === 'fr' ? "Impossible de supprimer le compte." : "Failed to delete account.",
+        description: language === 'fr' ? "Impossible de traiter la demande de suppression." : "Failed to process deletion request.",
         variant: "destructive",
       });
     }

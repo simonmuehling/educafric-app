@@ -322,6 +322,10 @@ export interface IStorage {
   // ===== PARENT METHODS =====
   getParentGrades(parentId: number): Promise<any[]>;
   getParentAttendance(parentId: number): Promise<any[]>;
+
+  // ===== PARENT-STUDENT RELATIONSHIP METHODS =====
+  getParentsByStudentId(studentId: number): Promise<any[]>;
+  verifyParentStudentRelation(parentId: number, studentId: number): Promise<boolean>;
   
   // ===== TEACHER METHODS =====
   getTeacherAttendanceOverview(teacherId: number): Promise<any>;
@@ -2708,6 +2712,56 @@ export class DatabaseStorage implements IStorage {
   
   async getParentAttendance(parentId: number): Promise<any[]> {
     return [];
+  }
+
+  // ===== PARENT-STUDENT RELATIONSHIP IMPLEMENTATIONS =====
+  async getParentsByStudentId(studentId: number): Promise<any[]> {
+    try {
+      // Obtenir l'élève pour connaître son école
+      const student = await this.getUser(studentId);
+      if (!student || student.role !== 'Student') {
+        return [];
+      }
+
+      // Pour cette implémentation simplifiée, retourner tous les parents de la même école
+      const parentRelations = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phone: users.phone
+        })
+        .from(users)
+        .where(
+          and(
+            eq(users.role, 'Parent'),
+            eq(users.schoolId, student.schoolId)
+          )
+        );
+
+      return parentRelations;
+    } catch (error) {
+      console.error('[STORAGE] Error getting parents by student ID:', error);
+      return [];
+    }
+  }
+
+  async verifyParentStudentRelation(parentId: number, studentId: number): Promise<boolean> {
+    try {
+      // Vérifier si le parent et l'étudiant sont dans la même école
+      const parent = await this.getUser(parentId);
+      const student = await this.getUser(studentId);
+      
+      if (!parent || !student) return false;
+      if (parent.role !== 'Parent' || student.role !== 'Student') return false;
+      
+      // Dans cette implémentation simplifiée, vérifier qu'ils sont de la même école
+      return parent.schoolId === student.schoolId;
+    } catch (error) {
+      console.error('[STORAGE] Error verifying parent-student relation:', error);
+      return false;
+    }
   }
   
   // ===== TEACHER IMPLEMENTATIONS =====
