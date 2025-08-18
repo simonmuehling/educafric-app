@@ -38,6 +38,10 @@ class FastModuleLoader {
       'config-guide': () => import('@/components/director/modules/MobileSchoolConfigurationGuide'),
       'school-settings': () => import('@/components/director/modules/SchoolSettings'),
       
+      // Additional specific mappings for problematic modules
+      'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'TeacherAbsenceManager': () => import('@/components/director/modules/TeacherAbsenceManager'),
+      
       // Legacy module names for compatibility
       'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
       'StudentManagement': () => import('@/components/director/modules/StudentManagement'),
@@ -122,6 +126,7 @@ class FastModuleLoader {
       'attendance', 'communications', 'teacher-absence', 'parent-requests',
       'bulletin-validation', 'notifications', 'school-administrators', 'reports',
       'help', 'config-guide', 'school-settings',
+      'FunctionalDirectorProfile', 'TeacherAbsenceManager',
       
       // Parent modules
       'MyChildren', 'FunctionalParentMessages', 'ParentGeolocation',

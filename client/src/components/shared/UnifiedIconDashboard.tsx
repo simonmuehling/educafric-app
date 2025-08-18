@@ -41,6 +41,22 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const { preloadModule, getModule, isReady } = useFastModules();
 
+  // Preload ALL modules immediately when dashboard opens
+  useEffect(() => {
+    const preloadAllModules = async () => {
+      const moduleIds = modules.map(m => m.id);
+      console.log(`[UNIFIED_DASHBOARD] 🚀 Preloading ${moduleIds.length} modules for instant access`);
+      
+      // Preload all modules in parallel for maximum speed
+      const preloadPromises = moduleIds.map(id => preloadModule(id));
+      await Promise.allSettled(preloadPromises);
+      
+      console.log(`[UNIFIED_DASHBOARD] ✅ All modules preloaded and ready`);
+    };
+
+    preloadAllModules();
+  }, [modules, preloadModule]);
+
   const handleModuleClick = async (moduleId: string) => {
     console.log(`[UNIFIED_DASHBOARD] 🚀 Fast switching to module: ${moduleId}`);
     
@@ -48,12 +64,12 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
     const preloadedComponent = getModule(moduleId);
     if (preloadedComponent) {
       console.log(`[UNIFIED_DASHBOARD] ⚡ Instant load: ${moduleId}`);
+      setActiveModule(moduleId);
     } else {
       console.log(`[UNIFIED_DASHBOARD] 🔄 Loading module: ${moduleId}`);
       await preloadModule(moduleId);
+      setActiveModule(moduleId);
     }
-    
-    setActiveModule(moduleId);
   };
 
   const handleModuleHover = (moduleId: string) => {
