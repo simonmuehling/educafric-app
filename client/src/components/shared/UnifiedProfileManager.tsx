@@ -809,13 +809,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
                         {t.cancel}
                       </AlertDialogCancel>
                       <AlertDialogAction 
-                        onClick={() => {
-                          handleDeleteAccount();
-                          toast({
-                            title: "Email d'au revoir envoyé",
-                            description: "Un email de confirmation a été envoyé à votre adresse.",
-                          });
-                        }}
+                        onClick={handleDeleteAccount}
                         className="bg-red-600 hover:bg-red-700"
                         data-testid="button-confirm-delete"
                       >
