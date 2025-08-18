@@ -5292,21 +5292,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get all documents for commercial dashboard - UNIFIED SCANNING
   app.get("/api/commercial/documents", requireAuth, async (req, res) => {
-    console.log(`[ROUTES_DEBUG] 🔥 CommercialDocuments route REACHED! User:`, ((req.user as any) as any)?.id);
+    const user = req.user as any;
+    console.log(`[COMMERCIAL_DOCS_DEBUG] 🔥 Route accessed by user:`, {
+      id: user?.id,
+      email: user?.email,
+      role: user?.role,
+      isAuthenticated: !!user
+    });
+    
     try {
-      if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
-        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, ((req.user as any) as any)?.role);
+      if (!user || !['Commercial', 'Admin', 'SiteAdmin'].includes(user.role)) {
+        console.log(`[COMMERCIAL_DOCS_DEBUG] ❌ Access denied for role:`, user?.role);
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      // DÉFINITIF : Système unifié - plus de duplication
-      const documents = scanDocuments(((req.user as any) as any)?.id);
+      console.log(`[COMMERCIAL_DOCS_DEBUG] ✅ Access granted - scanning documents...`);
       
-      console.log(`[DOCUMENTS_UNIFIED] ✅ Found ${documents.length} documents - NO DUPLICATION`);
+      // Appel du système unifié scanDocuments
+      const documents = scanDocuments(user.id);
+      
+      console.log(`[COMMERCIAL_DOCS_DEBUG] 📄 Documents found:`, {
+        total: documents.length,
+        sample: documents.slice(0, 3).map(d => ({ id: d.id, title: d.title, fileName: d.fileName }))
+      });
+      
+      // Filtrer spécifiquement les documents de configuration pour debug
+      const configDocs = documents.filter(d => 
+        d.fileName && d.fileName.includes('guide') && d.fileName.includes('configuration')
+      );
+      
+      console.log(`[COMMERCIAL_DOCS_DEBUG] 🔧 Configuration documents:`, {
+        count: configDocs.length,
+        files: configDocs.map(d => d.fileName)
+      });
       
       res.json(documents);
     } catch (error: any) {
-      console.error('[COMMERCIAL_DOCUMENTS] ❌ Error:', error);
+      console.error('[COMMERCIAL_DOCS_DEBUG] ❌ Error:', error);
       res.status(500).json({ message: 'Failed to fetch commercial documents' });
     }
   });

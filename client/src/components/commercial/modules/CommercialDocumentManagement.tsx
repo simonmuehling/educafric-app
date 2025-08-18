@@ -145,13 +145,25 @@ const CommercialDocumentManagement: React.FC = () => {
     queryKey: ['/api/commercial/documents'],
     queryFn: async () => {
       try {
+        console.log('[FRONTEND_DEBUG] 📞 Calling /api/commercial/documents...');
         const response = await fetch('/api/commercial/documents', { credentials: 'include' });
+        
+        console.log('[FRONTEND_DEBUG] 📡 Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch documents');
+          throw new Error(`Failed to fetch documents: ${response.status} ${response.statusText}`);
         }
-        return await response.json();
+        
+        const data = await response.json();
+        console.log('[FRONTEND_DEBUG] 📄 Documents received:', {
+          total: data.length,
+          configDocs: data.filter(d => d.fileName?.includes('guide') && d.fileName?.includes('configuration')).length,
+          sample: data.slice(0, 3).map(d => ({ id: d.id, title: d.title, fileName: d.fileName }))
+        });
+        
+        return data;
       } catch (error) {
-        console.error('Error fetching commercial documents:', error);
+        console.error('[FRONTEND_DEBUG] ❌ Error fetching commercial documents:', error);
         return [];
       }
     }
