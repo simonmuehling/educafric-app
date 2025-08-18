@@ -37,6 +37,8 @@ export const setupConsoleFilter = () => {
     /TronLink initiated/i,
     /Provider initialised/i,
     /Disconnected from polkadot/i,
+    /Manifest.*validation.*failed/i,
+    /PWA.*installation.*blocked/i,
   ];
 
   // Filter function
