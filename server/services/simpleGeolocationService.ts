@@ -182,6 +182,43 @@ export class SimpleGeolocationService {
     };
   }
 
+  async createDevice(deviceData: any) {
+    console.log('[GEOLOCATION_SERVICE] 📱 Creating device:', deviceData);
+    
+    const device = {
+      id: Date.now(),
+      studentId: deviceData.studentId,
+      deviceType: deviceData.deviceType,
+      deviceId: deviceData.deviceId,
+      isActive: true,
+      batteryLevel: Math.floor(Math.random() * 100) + 1,
+      lastUpdate: new Date().toISOString(),
+      emergencyMode: false,
+      ...deviceData
+    };
+    
+    console.log('[GEOLOCATION_SERVICE] ✅ Device created:', device);
+    return device;
+  }
+
+  async getDevicesForStudent(studentId: number) {
+    console.log(`[GEOLOCATION_SERVICE] 📱 Getting devices for student ${studentId}`);
+    
+    // Return mock devices for demo
+    return [
+      {
+        id: 1,
+        studentId: studentId,
+        deviceType: 'smartphone',
+        deviceId: `DEVICE_${studentId}_001`,
+        isActive: true,
+        batteryLevel: 85,
+        lastUpdate: new Date().toISOString(),
+        emergencyMode: false
+      }
+    ];
+  }
+
   // Generate mock children data
   private generateMockChildren() {
     return SimpleGeolocationService.generateMockChildren();

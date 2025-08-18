@@ -266,6 +266,11 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
     retry: false
   });
 
+  // Safe data with fallbacks
+  const safeschoolStats = schoolStats || { activeDevices: 0, activeZones: 0, activeAlerts: 0, totalDevices: 0, emergencyDevices: 0, totalZones: 0 };
+  const safeSafeZones = safeZones || [];
+  const safeAlerts = alerts || [];
+
   // Fetch devices for selected student
   const { data: studentDevices } = useQuery({
     queryKey: [`/api/geolocation/devices/student/${selectedStudent}`],
@@ -276,9 +281,12 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   // Seed demo data mutation
   const seedDemoMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/geolocation/seed-demo/${schoolId}`, {
-        method: 'POST'
+      const response = await fetch(`/api/geolocation/seed-demo/${schoolId}`, {
+        method: 'POST',
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to seed demo data');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -333,10 +341,14 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/geolocation/safe-zones', {
+      const response = await fetch('/api/geolocation/safe-zones', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ ...data, schoolId })
       });
+      if (!response.ok) throw new Error('Failed to create safe zone');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -359,10 +371,14 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   // Toggle safe zone mutation
   const toggleSafeZoneMutation = useMutation({
     mutationFn: async ({ zoneId, isActive }: { zoneId: number; isActive: boolean }) => {
-      return await apiRequest(`/api/geolocation/safe-zones/${zoneId}/toggle`, {
+      const response = await fetch(`/api/geolocation/safe-zones/${zoneId}/toggle`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ isActive })
       });
+      if (!response.ok) throw new Error('Failed to toggle safe zone');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -376,9 +392,12 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   // Resolve alert mutation
   const resolveAlertMutation = useMutation({
     mutationFn: async (alertId: number) => {
-      return await apiRequest(`/api/geolocation/alerts/${alertId}/resolve`, {
-        method: 'PATCH'
+      const response = await fetch(`/api/geolocation/alerts/${alertId}/resolve`, {
+        method: 'PATCH',
+        credentials: 'include'
       });
+      if (!response.ok) throw new Error('Failed to resolve alert');
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -386,6 +405,88 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
         description: 'Alerte résolue'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/geolocation/alerts'] });
+    }
+  });
+
+  // Device form  
+  const deviceForm = useForm({
+    resolver: zodResolver(deviceSchema),
+    defaultValues: {
+      studentId: 0,
+      deviceType: 'smartphone' as const,
+      deviceId: ''
+    }
+  });
+
+  // Emergency contact form
+  const emergencyContactForm = useForm({
+    resolver: zodResolver(emergencyContactSchema),
+    defaultValues: {
+      studentId: 0,
+      name: '',
+      relationship: 'parent' as const,
+      phone: '',
+      email: '',
+      priority: 1
+    }
+  });
+
+  // Create device mutation
+  const createDeviceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/geolocation/devices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ...data, schoolId })
+      });
+      if (!response.ok) throw new Error('Failed to create device');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Succès',
+        description: 'Appareil ajouté avec succès'
+      });
+      setShowDeviceDialog(false);
+      deviceForm.reset();
+      queryClient.invalidateQueries({ queryKey: [`/api/geolocation/devices/student/${selectedStudent}`] });
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de l\'ajout de l\'appareil',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Create emergency contact mutation
+  const createEmergencyContactMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/geolocation/emergency-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ ...data, schoolId })
+      });
+      if (!response.ok) throw new Error('Failed to create emergency contact');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Succès',
+        description: 'Contact d\'urgence ajouté avec succès'
+      });
+      setShowContactDialog(false);
+      emergencyContactForm.reset();
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de l\'ajout du contact d\'urgence',
+        variant: 'destructive'
+      });
     }
   });
 
@@ -618,7 +719,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {safeZones?.map((zone: any) => (
+              {safeSafeZones?.map((zone: any) => (
                 <Card key={zone.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -668,7 +769,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
             </div>
 
             <div className="space-y-4">
-              {alerts?.map((alert: any) => (
+              {safeAlerts?.map((alert: any) => (
                 <Card key={alert.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start">
@@ -726,9 +827,98 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
 
           {/* Devices Tab */}
           <TabsContent value="devices" className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold">Gestion des Appareils</h3>
-              <p className="text-sm text-muted-foreground">Surveillance des dispositifs de localisation</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold">Gestion des Appareils</h3>
+                <p className="text-sm text-muted-foreground">Surveillance des dispositifs de localisation</p>
+              </div>
+              {config.canManageDevices && (
+                <Dialog open={showDeviceDialog} onOpenChange={setShowDeviceDialog}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-device" className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter Appareil
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Ajouter un Appareil</DialogTitle>
+                      <DialogDescription>
+                        Enregistrer un nouvel appareil de géolocalisation pour un élève
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...deviceForm}>
+                      <form onSubmit={deviceForm.handleSubmit((data) => createDeviceMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={deviceForm.control}
+                          name="studentId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Élève</FormLabel>
+                              <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-device-student">
+                                    <SelectValue placeholder="Sélectionner un élève" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="1">Marie Dubois</SelectItem>
+                                  <SelectItem value="2">Jean Martin</SelectItem>
+                                  <SelectItem value="3">Sophie Kamga</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={deviceForm.control}
+                          name="deviceType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Type d'appareil</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-device-type">
+                                    <SelectValue placeholder="Choisir le type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="smartphone">Smartphone</SelectItem>
+                                  <SelectItem value="smartwatch">Montre Connectée</SelectItem>
+                                  <SelectItem value="gps_tracker">Traceur GPS</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={deviceForm.control}
+                          name="deviceId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>ID de l'appareil</FormLabel>
+                              <FormControl>
+                                <Input data-testid="input-device-id" placeholder="Ex: IMEI-123456789" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex space-x-2">
+                          <Button data-testid="button-cancel-device" type="button" variant="outline" onClick={() => setShowDeviceDialog(false)} className="flex-1">
+                            Annuler
+                          </Button>
+                          <Button data-testid="button-create-device" type="submit" disabled={createDeviceMutation.isPending} className="flex-1">
+                            Ajouter
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
 
             {config.showStudentSelection && (
@@ -1302,7 +1492,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100">Appareils Actifs</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeDevices || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.activeDevices || 0}</p>
                 </div>
                 <Activity className="h-8 w-8 text-blue-200" />
               </div>
@@ -1314,7 +1504,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100">Zones Sécurisées</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeZones || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.activeZones || 0}</p>
                 </div>
                 <Shield className="h-8 w-8 text-green-200" />
               </div>
@@ -1326,7 +1516,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-orange-100">Alertes Actives</p>
-                  <p className="text-2xl font-bold">{schoolStats?.activeAlerts || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.activeAlerts || 0}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-orange-200" />
               </div>
@@ -1338,7 +1528,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-100">Total Appareils</p>
-                  <p className="text-2xl font-bold">{schoolStats?.totalDevices || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.totalDevices || 0}</p>
                 </div>
                 <Users className="h-8 w-8 text-purple-200" />
               </div>
@@ -1350,7 +1540,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-red-100">Mode Urgence</p>
-                  <p className="text-2xl font-bold">{schoolStats?.emergencyDevices || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.emergencyDevices || 0}</p>
                 </div>
                 <Zap className="h-8 w-8 text-red-200" />
               </div>
@@ -1362,7 +1552,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-teal-100">Total Zones</p>
-                  <p className="text-2xl font-bold">{schoolStats?.totalZones || 0}</p>
+                  <p className="text-2xl font-bold">{safeschoolStats?.totalZones || 0}</p>
                 </div>
                 <Target className="h-8 w-8 text-teal-200" />
               </div>
