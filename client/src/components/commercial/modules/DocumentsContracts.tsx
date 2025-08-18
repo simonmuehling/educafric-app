@@ -741,6 +741,58 @@ const DocumentsContracts = () => {
       url: '/documents/guide-parents-configuration-fr.html',
       description: 'Guide de configuration pour parents - Paramétrage du profil, connexion aux enfants, notifications, géolocalisation, et suivi académique.'
     },
+    {
+      id: 58,
+      name: 'Educ Presentation - Version Principale',
+      type: 'presentation',
+      category: 'marketing',
+      school: 'Commercial Team',
+      date: '2025-08-04',
+      status: 'finalized',
+      size: '17.3 MB',
+      format: 'PDF',
+      url: '/documents/educ-presentation-principal.pdf',
+      description: 'Présentation principale EDUCAFRIC - Document commercial complet avec fonctionnalités, tarifs, et démonstrations pour prospects.'
+    },
+    {
+      id: 59,
+      name: 'Educ Presentation (1)',
+      type: 'presentation',
+      category: 'marketing',
+      school: 'Commercial Team',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '2.3 MB',
+      format: 'PDF',
+      url: '/documents/educ-presentation-1.pdf',
+      description: 'Présentation EDUCAFRIC version 1 - Format condensé pour prospection commerciale.'
+    },
+    {
+      id: 60,
+      name: 'Educ Presentation (3)',
+      type: 'presentation',
+      category: 'marketing',
+      school: 'Commercial Team',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '571 KB',
+      format: 'PDF',
+      url: '/documents/educ-presentation-3.pdf',
+      description: 'Présentation EDUCAFRIC version 3 - Optimisée pour démonstrations client.'
+    },
+    {
+      id: 61,
+      name: 'Educ Presentation (4)',
+      type: 'presentation',
+      category: 'marketing',
+      school: 'Commercial Team',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '552 KB',
+      format: 'PDF',
+      url: '/documents/educ-presentation-4.pdf',
+      description: 'Présentation EDUCAFRIC version 4 - Dernière version avec mises à jour pricing 2025.'
+    },
   ];
 
   const filteredDocuments = documents
