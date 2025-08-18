@@ -629,74 +629,109 @@ const UnifiedSchoolSettings: React.FC = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <Mail className="w-5 h-5 text-blue-600" />
                     <div>
-                      <p className="font-medium">{t.emailNotifications}</p>
+                      <p className="font-medium text-gray-800">{t.emailNotifications}</p>
                       <p className="text-sm text-gray-600">Notifications par email</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.emailNotifications} />
+                  <Switch 
+                    checked={notificationSettings?.emailNotifications || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ emailNotifications: checked });
+                    }}
+                    data-testid="switch-email-notifications"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <Smartphone className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-medium">{t.smsNotifications}</p>
+                      <p className="font-medium text-gray-800">{t.smsNotifications}</p>
                       <p className="text-sm text-gray-600">Notifications SMS</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.smsNotifications} />
+                  <Switch 
+                    checked={notificationSettings?.smsNotifications || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ smsNotifications: checked });
+                    }}
+                    data-testid="switch-sms-notifications"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <Bell className="w-5 h-5 text-purple-600" />
                     <div>
-                      <p className="font-medium">{t.pushNotifications}</p>
+                      <p className="font-medium text-gray-800">{t.pushNotifications}</p>
                       <p className="text-sm text-gray-600">Notifications push</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.pushNotifications} />
+                  <Switch 
+                    checked={notificationSettings?.pushNotifications || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ pushNotifications: checked });
+                    }}
+                    data-testid="switch-push-notifications"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-orange-600" />
                     <div>
-                      <p className="font-medium">{t.parentUpdates}</p>
+                      <p className="font-medium text-gray-800">{t.parentUpdates}</p>
                       <p className="text-sm text-gray-600">Mises à jour pour parents</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.parentUpdates} />
+                  <Switch 
+                    checked={notificationSettings?.parentUpdates || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ parentUpdates: checked });
+                    }}
+                    data-testid="switch-parent-updates"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <GraduationCap className="w-5 h-5 text-red-600" />
                     <div>
-                      <p className="font-medium">{t.teacherAlerts}</p>
+                      <p className="font-medium text-gray-800">{t.teacherAlerts}</p>
                       <p className="text-sm text-gray-600">Alertes pour enseignants</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.teacherAlerts} />
+                  <Switch 
+                    checked={notificationSettings?.teacherAlerts || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ teacherAlerts: checked });
+                    }}
+                    data-testid="switch-teacher-alerts"
+                  />
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-3">
                     <Settings className="w-5 h-5 text-gray-600" />
                     <div>
-                      <p className="font-medium">{t.systemMaintenance}</p>
+                      <p className="font-medium text-gray-800">{t.systemMaintenance}</p>
                       <p className="text-sm text-gray-600">Maintenance système</p>
                     </div>
                   </div>
-                  <Switch defaultChecked={notificationSettings?.systemMaintenance} />
+                  <Switch 
+                    checked={notificationSettings?.systemMaintenance || false}
+                    onCheckedChange={(checked) => {
+                      updateNotificationsMutation.mutate({ systemMaintenance: checked });
+                    }}
+                    data-testid="switch-system-maintenance"
+                  />
                 </div>
               </div>
               
-              <Button
-                onClick={() => updateNotificationsMutation.mutate({})}
-                disabled={updateNotificationsMutation.isPending}
-              >
-                {updateNotificationsMutation.isPending ? t.loading : t.save}
-              </Button>
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">
+                  ℹ️ Les modifications sont sauvegardées automatiquement lors du changement des paramètres.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
