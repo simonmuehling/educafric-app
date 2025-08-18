@@ -1,5 +1,19 @@
 # Guide de Prévention des Erreurs Console - EDUCAFRIC
 
+## 🎯 Objectif
+Éliminer définitivement les erreurs console récurrentes dans Educafric pour une expérience utilisateur optimale.
+
+## ✅ Problème MIME Type Résolu (2025-08-18)
+**Erreur**: `TypeError: 'text/html' is not a valid JavaScript MIME type`
+
+**Cause**: Paramètre `type: 'module'` dans l'enregistrement Service Worker causait un conflit MIME type.
+
+**Solution appliquée**:
+- Suppression du paramètre `type: 'module'` 
+- Validation du Content-Type avant enregistrement SW
+- Filtrage console étendu pour masquer ces erreurs
+- Gestion des erreurs `unhandledrejection`
+
 ## 🛡️ Stratégies de Prévention des Erreurs Console
 
 ### 1. **Vérification Systématique des Ressources PWA**
