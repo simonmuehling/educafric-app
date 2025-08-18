@@ -247,27 +247,34 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   const [trackingDevices, setTrackingDevices] = useState<TrackingDevice[]>([]);
 
   // Fetch school statistics
-  const { data: schoolStats } = useQuery({
+  const { data: schoolStats } = useQuery<{
+    activeDevices: number;
+    activeZones: number;
+    activeAlerts: number;
+    totalDevices: number;
+    emergencyDevices: number;
+    totalZones: number;
+  }>({
     queryKey: [`/api/geolocation/stats/school/${schoolId}`],
     retry: false
   });
 
   // Fetch safe zones
-  const { data: safeZones } = useQuery({
+  const { data: safeZones } = useQuery<any[]>({
     queryKey: [`/api/geolocation/safe-zones/school/${schoolId}`],
     retry: false
   });
 
   // Fetch alerts
-  const { data: alerts } = useQuery({
+  const { data: alerts } = useQuery<any[]>({
     queryKey: ['/api/geolocation/alerts', { schoolId }],
     retry: false
   });
 
   // Safe data with fallbacks
   const safeschoolStats = schoolStats || { activeDevices: 0, activeZones: 0, activeAlerts: 0, totalDevices: 0, emergencyDevices: 0, totalZones: 0 };
-  const safeSafeZones = safeZones || [];
-  const safeAlerts = alerts || [];
+  const safeSafeZones = Array.isArray(safeZones) ? safeZones : [];
+  const safeAlerts = Array.isArray(alerts) ? alerts : [];
 
   // Fetch devices for selected student
   const { data: studentDevices } = useQuery({
@@ -811,7 +818,7 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
                   </CardContent>
                 </Card>
               ))}
-              {(!alerts || alerts.length === 0) && (
+              {(!safeAlerts || safeAlerts.length === 0) && (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />

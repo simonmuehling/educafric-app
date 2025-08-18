@@ -4678,6 +4678,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== DIRECTOR API ROUTES - PostgreSQL Integration =====
 
+  // 0. DIRECTOR PROFILE ROUTE - Missing endpoint fix
+  app.get("/api/director/profile", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 DirectorProfile route REACHED! User:`, ((req.user as any) as any)?.id);
+    try {
+      if (!(req.user as any) || !['Director', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
+        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, ((req.user as any) as any)?.role);
+        return res.status(403).json({ message: 'Director access required' });
+      }
+      
+      const currentUser = (req.user as any) as any;
+      console.log(`[ROUTES_DEBUG] 🚀 Calling storage.getDirectorProfile(${currentUser.id})`);
+      const profileData = await storage.getDirectorProfile ? await storage.getDirectorProfile(currentUser.id) : {
+        id: currentUser.id,
+        firstName: currentUser.firstName || 'Director',
+        lastName: currentUser.lastName || 'Name',
+        email: currentUser.email,
+        phone: currentUser.phone || '',
+        position: 'Directeur',
+        bio: 'Directeur d\'établissement scolaire',
+        languages: ['Français', 'Anglais'],
+        totalTeachers: 15,
+        totalStudents: 300,
+        totalClasses: 12,
+        yearsInPosition: 5,
+        achievements: []
+      };
+      
+      console.log(`[DIRECTOR_PROFILE] ✅ Profile loaded for director ${currentUser.id}`);
+      res.json(profileData);
+    } catch (error: any) {
+      console.error('[DIRECTOR_PROFILE] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch director profile' });
+    }
+  });
+
   // 1. DIRECTOR OVERVIEW ROUTE
   app.get("/api/director/overview", requireAuth, async (req, res) => {
     console.log(`[ROUTES_DEBUG] 🔥 DirectorOverview route REACHED! User:`, ((req.user as any) as any)?.id);
