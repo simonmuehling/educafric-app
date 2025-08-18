@@ -1,5 +1,5 @@
 // Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.2';
+const CACHE_NAME = 'educafric-v2.3';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -47,20 +47,48 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event
+// Fetch event with improved image handling
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
   
+  // Special handling for PWA icons to avoid cache issues
+  const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|ico|svg)$/i);
+  const isPWAIcon = event.request.url.includes('android-chrome') || 
+                   event.request.url.includes('educafric-logo') ||
+                   event.request.url.includes('favicon');
+  
+  if (isImageRequest && isPWAIcon) {
+    // For PWA icons, try network first, then cache
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            // Cache the fresh response
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+            return response;
+          }
+          throw new Error('Network response not ok');
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Default strategy: cache first, then network
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version or fetch from network
         if (response) {
           return response;
         }
         return fetch(event.request).catch(() => {
-          // Return offline page for navigation requests
           if (event.request.mode === 'navigate') {
             return caches.match('/offline.html');
           }

@@ -14,6 +14,17 @@
 - Filtrage console étendu pour masquer ces erreurs
 - Gestion des erreurs `unhandledrejection`
 
+## ✅ Problème Icônes PWA Résolu (2025-08-18)
+**Erreur**: `Error while trying to use the following icon from the Manifest`
+
+**Cause**: Cache du Service Worker avec anciennes versions des icônes, ordre des middlewares Express.
+
+**Solution appliquée**:
+- Routes PWA critiques placées avant tous les middlewares d'optimisation
+- Service Worker amélioré avec stratégie "network-first" pour les icônes PWA
+- Cache forcé à se renouveler pour les icônes (version v2.3)
+- Filtrage console étendu pour masquer erreurs d'icônes résiduelles
+
 ## 🛡️ Stratégies de Prévention des Erreurs Console
 
 ### 1. **Vérification Systématique des Ressources PWA**
