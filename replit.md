@@ -39,9 +39,10 @@ Preferred communication style: Simple, everyday language.
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
 
 **Recent Documents Added (2025-08-18):**
-- ✅ **Présentation Écoles Configuration** : Guide complet de configuration pour établissements scolaires
-- ✅ **Présentation Parents Configuration** : Guide de paramétrage pour parents africains
-- ✅ **Présentation Enseignant Configuration** : Guide de configuration pour enseignants et pédagogues
+- ✅ **Guide Schools Configuration (FR)** : `guide-schools-configuration-fr.html/.pdf` - Guide complet établissements
+- ✅ **Guide Parents Configuration (FR)** : `guide-parents-configuration-fr.html/.pdf` - Guide paramétrage parents  
+- ✅ **Guide Teachers Configuration (FR)** : `guide-teachers-configuration-fr.html/.pdf` - Guide configuration enseignants
+- Documents renommés pour correspondre au pattern existant (`guide-teachers-configuration-en.html`)
 - Tous documents automatiquement détectés par `scanDocuments()` et accessibles via module Documents commerciaux
 
 ## System Architecture
