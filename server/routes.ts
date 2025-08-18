@@ -8675,41 +8675,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/commercial/documents", requireAuth, (req, res) => {
-    if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
-      return res.status(403).json({ message: 'Commercial access required' });
-    }
-    
-    const documents = [
-      {
-        id: 1,
-        name: 'Contrat Excellence School 2024',
-        type: 'contract',
-        school: 'École Primaire Bilingue Excellence',
-        status: 'signed',
-        createdDate: '2024-01-01',
-        signedDate: '2024-01-05'
-      },
-      {
-        id: 2,
-        name: 'Proposition Commerciale Saint-Michel',
-        type: 'proposal',
-        school: 'Collège Saint-Michel',
-        status: 'sent',
-        createdDate: '2024-01-15'
-      },
-      {
-        id: 3,
-        name: 'Devis Bamenda Technical',
-        type: 'quote',
-        school: 'Lycée Technique de Bamenda',
-        status: 'draft',
-        createdDate: '2024-01-20'
-      }
-    ];
-    
-    res.json(documents);
-  });
+  // SUPPRIMÉ: Route dupliquée qui retournait des données statiques
+  // La vraie route est à la ligne 5294 avec scanDocuments()
 
   app.get("/api/commercial/appointments", requireAuth, (req, res) => {
     if (!(req.user as any) || !['Commercial', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
