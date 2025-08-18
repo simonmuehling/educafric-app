@@ -39,8 +39,8 @@ const RoleBasedGeolocationPage = () => {
     );
   }
 
-  // All other roles use the generic school geolocation interface
-  return <SchoolGeolocation userRole={user.role} userId={user.id} schoolId={user.schoolId || 1} />;
+  // For any other role that might need geolocation (like Commercial), use the generic interface
+  return <SchoolGeolocation userRole={user.role as any} userId={user.id} schoolId={user.schoolId || 1} />;
 };
 
 export default RoleBasedGeolocationPage;

@@ -111,9 +111,10 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       schoolAdministrators: 'Administrateurs Délégués',
 
       finances: 'Finances',
-      reports: 'Rapports',
+      reports: 'Rapports', 
       help: 'Aide',
-      configGuide: 'Guide Configuration'
+      configGuide: 'Guide Configuration',
+      schoolSettings: 'Paramètres École'
     },
     en: {
       title: 'Director Dashboard',
@@ -136,7 +137,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       finances: 'Finances',
       reports: 'Reports',
       help: 'Help',
-      configGuide: 'Configuration Guide'
+      configGuide: 'Configuration Guide',
+      schoolSettings: 'School Settings'
     }
   };
 
