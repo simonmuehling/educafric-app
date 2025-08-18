@@ -243,6 +243,8 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   const [showDeviceDialog, setShowDeviceDialog] = useState(false);
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [trackingConfigs, setTrackingConfigs] = useState<TrackingConfig[]>([]);
+  const [trackingDevices, setTrackingDevices] = useState<TrackingDevice[]>([]);
   
   // Firebase state
   const [trackingConfigs, setTrackingConfigs] = useState<TrackingConfig[]>([]);
