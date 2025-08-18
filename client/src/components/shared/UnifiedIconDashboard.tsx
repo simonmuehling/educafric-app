@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
-import { useInstantModules } from '@/hooks/useInstantModules';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import OptimizedModuleWrapper from '@/components/ui/OptimizedModuleWrapper';
 
 interface IconModule {
@@ -39,18 +39,27 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const t = text[language as keyof typeof text];
 
-  const { switchToModule, preloadOnHover, isModuleReady } = useInstantModules();
+  const { preloadModule, getModule, isReady } = useFastModules();
 
   const handleModuleClick = async (moduleId: string) => {
     console.log(`[UNIFIED_DASHBOARD] 🚀 Fast switching to module: ${moduleId}`);
     
-    // Try instant switch first
-    await switchToModule(moduleId);
+    // Check if module is already preloaded
+    const preloadedComponent = getModule(moduleId);
+    if (preloadedComponent) {
+      console.log(`[UNIFIED_DASHBOARD] ⚡ Instant load: ${moduleId}`);
+    } else {
+      console.log(`[UNIFIED_DASHBOARD] 🔄 Loading module: ${moduleId}`);
+      await preloadModule(moduleId);
+    }
+    
     setActiveModule(moduleId);
   };
 
   const handleModuleHover = (moduleId: string) => {
-    preloadOnHover(moduleId);
+    if (!isReady(moduleId)) {
+      preloadModule(moduleId);
+    }
   };
 
   const handleBackClick = () => {

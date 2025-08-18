@@ -6,7 +6,7 @@ import {
   MessageSquare, Settings, HelpCircle, User
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import { useModulePreloader } from '@/utils/modulePreloader';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import MySchoolsModule from './modules/MySchoolsModule';
 import CommercialCRM from './modules/CommercialCRM';
 import ContactsManagement from './modules/ContactsManagement';
@@ -32,7 +32,7 @@ interface CommercialDashboardProps {
 
 const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   const { language } = useLanguage();
-  const { preloadModule } = useModulePreloader();
+  const { preloadModule } = useFastModules();
 
   // Preload modules when dashboard loads
   useEffect(() => {

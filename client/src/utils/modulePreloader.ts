@@ -18,11 +18,35 @@ class ModulePreloader {
   // Preload critical modules immediately
   async preloadCriticalModules() {
     const criticalModules = [
+      // Commercial modules
       'DocumentsContracts',
       'CommercialStatistics', 
       'ContactsManagement',
       'MySchools',
-      'WhatsAppManager'
+      'WhatsAppManager',
+      'CommercialCRM',
+      'CallsAppointments',
+      
+      // Director/School modules
+      'AdministratorManagement',
+      'AttendanceManagement', 
+      'ClassManagement',
+      'BulletinValidation',
+      'Communications',
+      'StudentManagement',
+      'TeacherManagement',
+      
+      // Parent modules
+      'MyChildren',
+      'FunctionalParentMessages',
+      'ParentAttendance',
+      'BulletinVerification',
+      'FamilyConnections',
+      'ParentGeolocation',
+      'FunctionalParentPayments',
+      'ParentSubscription',
+      'DeviceConfigurationGuide',
+      'FunctionalParentGrades'
     ];
 
     for (const moduleName of criticalModules) {
@@ -41,6 +65,7 @@ class ModulePreloader {
       let componentImport;
       
       switch (moduleName) {
+        // Commercial modules
         case 'DocumentsContracts':
           componentImport = await import('@/components/commercial/modules/DocumentsContracts');
           break;
@@ -62,6 +87,79 @@ class ModulePreloader {
         case 'CallsAppointments':
           componentImport = await import('@/components/commercial/modules/CallsAppointments');
           break;
+          
+        // Director/School modules
+        case 'StudentManagement':
+        case 'students':
+          componentImport = await import('@/components/director/modules/StudentManagement');
+          break;
+        case 'TeacherManagement':
+        case 'teachers':
+          componentImport = await import('@/components/director/modules/TeacherManagement');
+          break;
+        case 'ClassManagement':
+        case 'classes':
+          componentImport = await import('@/components/director/modules/ClassManagement');
+          break;
+        case 'AdministratorManagement':
+        case 'administrators':
+          componentImport = await import('@/components/director/modules/AdministratorManagement');
+          break;
+        case 'BulletinValidation':
+        case 'bulletin-validation':
+          componentImport = await import('@/components/director/modules/BulletinValidation');
+          break;
+        case 'AttendanceManagement':
+        case 'attendance':
+          componentImport = await import('@/components/director/modules/AttendanceManagement');
+          break;
+        case 'Communications':
+        case 'settings':
+          componentImport = await import('@/components/director/modules/Communications');
+          break;
+          
+        // Parent modules
+        case 'MyChildren':
+        case 'children':
+          componentImport = await import('@/components/parent/modules/MyChildren');
+          break;
+        case 'FunctionalParentMessages':
+        case 'messages':
+          componentImport = await import('@/components/parent/modules/FunctionalParentMessages');
+          break;
+        case 'ParentAttendance':
+        case 'attendance-parent':
+          componentImport = await import('@/components/parent/modules/ParentAttendance');
+          break;
+        case 'BulletinVerification':
+        case 'bulletins':
+          componentImport = await import('@/components/parent/modules/BulletinVerification');
+          break;
+        case 'FamilyConnections':
+        case 'family':
+          componentImport = await import('@/components/parent/modules/FamilyConnections');
+          break;
+        case 'ParentGeolocation':
+        case 'geolocation':
+          componentImport = await import('@/components/parent/modules/ParentGeolocation');
+          break;
+        case 'FunctionalParentPayments':
+        case 'payments':
+          componentImport = await import('@/components/parent/modules/FunctionalParentPayments');
+          break;
+        case 'ParentSubscription':
+        case 'subscription':
+          componentImport = await import('@/components/parent/modules/ParentSubscription');
+          break;
+        case 'DeviceConfigurationGuide':
+        case 'configuration':
+          componentImport = await import('@/components/parent/modules/DeviceConfigurationGuide');
+          break;
+        case 'FunctionalParentGrades':
+        case 'grades':
+          componentImport = await import('@/components/parent/modules/FunctionalParentGrades');
+          break;
+          
         default:
           console.warn(`Module ${moduleName} not found in preloader`);
           return null;
