@@ -8,6 +8,12 @@ Preferred communication style: Simple, everyday language.
 
 **Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
+**Console Error Prevention (Added 2025-08-18)**: 
+- Always validate PWA resources before deployment using `./scripts/validate-pwa.sh`
+- Console filtering is active to eliminate external script spam (MessageEvent, page_all.js, etc.)
+- PWA manifest and Service Worker must be verified after any icon/manifest changes
+- Use `npm run validate-pwa` before major releases
+
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
 - ALWAYS preserve button functionality when making changes - buttons must remain functional
