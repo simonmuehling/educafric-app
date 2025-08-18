@@ -15,6 +15,7 @@ export const setupConsoleFilter = () => {
     /gt-provider-bridge/i,
     /page_all\.js/i,
     /is not a valid JavaScript MIME type/i,
+    /'text\/html' is not a valid JavaScript MIME type/i,
     /Service Worker registration/i,
     /Error while trying to use the following icon from the Manifest/i,
     /Download error or resource isn't a valid image/i,

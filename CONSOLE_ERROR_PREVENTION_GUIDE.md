@@ -13,6 +13,7 @@
 - Validation du Content-Type avant enregistrement SW
 - Filtrage console étendu pour masquer ces erreurs
 - Gestion des erreurs `unhandledrejection`
+- Désenregistrement forcé des SW en développement
 
 ## ✅ Problème Icônes PWA Résolu (2025-08-18)
 **Erreur**: `Error while trying to use the following icon from the Manifest`

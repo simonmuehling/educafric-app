@@ -34,6 +34,12 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 } else {
   console.log('[PWA] Service Worker registration disabled for development');
+  // Prevent any residual SW loading attempts
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(reg => reg.unregister());
+    }).catch(() => {});
+  }
 }
 
 // Setup console filtering to reduce spam in development
