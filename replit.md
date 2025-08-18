@@ -38,6 +38,12 @@ Preferred communication style: Simple, everyday language.
   4. Update alphabetical index in `00-index-documents-alphabetique.html`
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
 
+**Recent Documents Added (2025-08-18):**
+- ✅ **Présentation Écoles Configuration** : Guide complet de configuration pour établissements scolaires
+- ✅ **Présentation Parents Configuration** : Guide de paramétrage pour parents africains
+- ✅ **Présentation Enseignant Configuration** : Guide de configuration pour enseignants et pédagogues
+- Tous documents automatiquement détectés par `scanDocuments()` et accessibles via module Documents commerciaux
+
 ## System Architecture
 
 ### Frontend Architecture
