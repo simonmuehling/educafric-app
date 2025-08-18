@@ -1,28 +1,13 @@
-// Console filter for removing spam messages in development
+// Console filter for removing spam messages
 export const setupConsoleFilter = () => {
-  if (import.meta.env.PROD) return; // Only filter in development
+  // Apply filtering in both dev and production for cleaner console
   
-  // Override global error handler to catch MIME type errors
-  window.addEventListener('error', (event) => {
-    if (event.message && event.message.includes('is not a valid JavaScript MIME type')) {
-      event.preventDefault();
-      event.stopPropagation();
-      return false;
-    }
-  });
-
-  window.addEventListener('unhandledrejection', (event) => {
-    if (event.reason && typeof event.reason === 'string' && 
-        event.reason.includes('is not a valid JavaScript MIME type')) {
-      event.preventDefault();
-      return false;
-    }
-  });
-
   // Original console methods
   const originalLog = console.log;
   const originalDebug = console.debug;
   const originalInfo = console.info;
+  const originalError = console.error;
+  const originalWarn = console.warn;
 
   // Spam patterns to filter out
   const spamPatterns = [
@@ -33,6 +18,8 @@ export const setupConsoleFilter = () => {
     /page_all\.js/i,
     /is not a valid JavaScript MIME type/i,
     /'text\/html' is not a valid JavaScript MIME type/i,
+    /TypeError.*is not a valid JavaScript MIME type/i,
+    /TypeError.*'text\/html'.*MIME type/i,
     /Service Worker registration/i,
     /Error while trying to use the following icon from the Manifest/i,
     /Download error or resource isn't a valid image/i,
@@ -57,14 +44,29 @@ export const setupConsoleFilter = () => {
     /Disconnected from polkadot/i,
     /Manifest.*validation.*failed/i,
     /PWA.*installation.*blocked/i,
-    /TypeError.*is not a valid JavaScript MIME type/i,
-    /TypeError.*'text\/html'.*MIME type/i,
   ];
 
   // Filter function
   const shouldFilter = (message: string): boolean => {
     return spamPatterns.some(pattern => pattern.test(message));
   };
+
+  // Override global error handlers for MIME type errors
+  window.addEventListener('error', (event) => {
+    if (event.message && event.message.includes('is not a valid JavaScript MIME type')) {
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    if (event.reason && typeof event.reason === 'string' && 
+        event.reason.includes('is not a valid JavaScript MIME type')) {
+      event.preventDefault();
+      return false;
+    }
+  });
 
   // Override console methods with filtering
   console.log = (...args: any[]) => {
@@ -77,7 +79,14 @@ export const setupConsoleFilter = () => {
   console.error = (...args: any[]) => {
     const message = args.join(' ');
     if (!shouldFilter(message)) {
-      console.warn.apply(console, args);
+      originalError.apply(console, args);
+    }
+  };
+  
+  console.warn = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldFilter(message)) {
+      originalWarn.apply(console, args);
     }
   };
 
@@ -94,54 +103,4 @@ export const setupConsoleFilter = () => {
       originalInfo.apply(console, args);
     }
   };
-
-  // Filter JavaScript errors as well
-  const originalError = console.error;
-  console.error = (...args: any[]) => {
-    const message = args.join(' ');
-    if (!shouldFilter(message)) {
-      originalError.apply(console, args);
-    }
-  };
-
-  // Bloquer les MessageEvent indésirables et erreurs MIME à la source
-  if (window.console) {
-    const blockNoiseFromPageAll = () => {
-      try {
-        // Bloquer les messages de page_all.js s'ils existent
-        const scripts = document.querySelectorAll('script[src*="page_all"]');
-        scripts.forEach(script => {
-          script.remove();
-        });
-        
-        // Bloquer les erreurs Service Worker en développement
-        window.addEventListener('error', (event) => {
-          const message = event.message || '';
-          if (shouldFilter(message)) {
-            event.preventDefault();
-            event.stopPropagation();
-            return false;
-          }
-        });
-        
-        // Bloquer les erreurs unhandledrejection liées aux MIME types
-        window.addEventListener('unhandledrejection', (event) => {
-          const message = event.reason?.message || event.reason || '';
-          if (shouldFilter(String(message))) {
-            event.preventDefault();
-            return false;
-          }
-        });
-        
-      } catch (e) {
-        // Silently ignore if we can't block these
-      }
-    };
-    
-    // Appliquer le blocage
-    blockNoiseFromPageAll();
-    
-    // Aussi appliquer après le chargement complet
-    document.addEventListener('DOMContentLoaded', blockNoiseFromPageAll);
-  }
 };
