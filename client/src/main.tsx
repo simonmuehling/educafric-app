@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { setupConsoleFilter } from "./utils/consoleFilter";
 
 // Register Service Worker for PWA functionality - Only in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -28,5 +29,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 } else {
   console.log('[PWA] Service Worker registration disabled for development');
 }
+
+// Setup console filtering to reduce spam in development
+setupConsoleFilter();
 
 createRoot(document.getElementById("root")!).render(<App />);

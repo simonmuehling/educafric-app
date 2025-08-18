@@ -9,12 +9,16 @@ export const setupConsoleFilter = () => {
 
   // Spam patterns to filter out
   const spamPatterns = [
+    /MessageEvent/i,
+    /PAGE_SCRIPT_LOADED/i,
+    /ETHEREUM_READY/i,
+    /gt-provider-bridge/i,
+    /page_all\.js/i,
     /MessageEvent.*stripe/i,
     /MessageEvent.*replit\.dev/i,
     /MessageEvent.*js\.stripe\.com/i,
     /MessageEvent.*m\.stripe\.network/i,
     /MessageEvent.*setImmediate/i,
-    /MessageEvent.*page_all\.js/i,
     /page_all\.js.*init command/i,
     /page_all\.js.*MessageEvent/i,
     /\[MEMORY_OPTIMIZER\] Nettoyage terminé en \d+\.\d+ms$/,

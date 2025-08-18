@@ -49,15 +49,7 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/assets/demo-video_1753219636069.mp4",
-      "sizes": "1920x1080",
-      "type": "video/mp4",
-      "form_factor": "wide",
-      "label": "Educafric Platform Demo"
-    }
-  ],
+  "screenshots": [],
   "categories": ["education", "productivity", "social"],
   "lang": "fr-FR",
   "dir": "ltr"

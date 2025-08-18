@@ -6,7 +6,8 @@ const urlsToCache = [
   '/offline.html',
   '/educafric-logo-128.png',
   '/educafric-logo-512.png',
-  '/android-icon-192x192.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
   '/favicon.ico'
 ];
 
