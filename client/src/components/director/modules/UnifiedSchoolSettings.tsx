@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +22,7 @@ import {
 import { 
   Settings, School, Shield, Bell, MapPin, Clock, Users, 
   BookOpen, GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, FileSignature
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
@@ -78,6 +78,16 @@ const UnifiedSchoolSettings: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Logo and signature upload refs and state
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [signatureUploading, setSignatureUploading] = useState(false);
+  const [schoolBranding, setSchoolBranding] = useState({
+    logoUrl: '',
+    directorSignatureUrl: ''
+  });
 
   const text = {
     fr: {
@@ -87,10 +97,13 @@ const UnifiedSchoolSettings: React.FC = () => {
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
       securityTab: 'Sécurité',
+      brandingTab: 'Image École',
       save: 'Enregistrer',
       cancel: 'Annuler',
       edit: 'Modifier',
       loading: 'Chargement...',
+      logoSchool: 'Logo de l\'École',
+      directorSignature: 'Signature du Directeur',
       schoolName: 'Nom de l\'École',
       address: 'Adresse',
       phone: 'Téléphone',
@@ -141,10 +154,13 @@ const UnifiedSchoolSettings: React.FC = () => {
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
       securityTab: 'Security',
+      brandingTab: 'School Branding',
       save: 'Save',
       cancel: 'Cancel',
       edit: 'Edit',
       loading: 'Loading...',
+      logoSchool: 'School Logo',
+      directorSignature: 'Director Signature',
       schoolName: 'School Name',
       address: 'Address',
       phone: 'Phone',
@@ -338,8 +354,128 @@ const UnifiedSchoolSettings: React.FC = () => {
     }
   });
 
+  // Load school branding data
+  useEffect(() => {
+    const loadBrandingData = async () => {
+      try {
+        console.log('[SCHOOL_SETTINGS] 📡 Loading branding data...');
+        const brandingResponse = await fetch('/api/school/1/branding', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (brandingResponse.ok) {
+          const brandingData = await brandingResponse.json();
+          console.log('[SCHOOL_SETTINGS] ✅ Branding data loaded:', brandingData);
+          setSchoolBranding(brandingData);
+        } else {
+          console.log('[SCHOOL_SETTINGS] ⚠️ Branding data not found, using defaults');
+        }
+      } catch (error) {
+        console.error('[SCHOOL_SETTINGS] ❌ Error loading branding data:', error);
+      }
+    };
+
+    loadBrandingData();
+  }, []);
+
+  // Handle logo upload
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez sélectionner une image' : 'Please select an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setLogoUploading(true);
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    try {
+      const response = await fetch('/api/school/1/branding/logo', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setSchoolBranding(prev => ({ ...prev, logoUrl: result.logoUrl }));
+        toast({
+          title: language === 'fr' ? 'Succès' : 'Success',
+          description: language === 'fr' ? 'Logo téléchargé avec succès' : 'Logo uploaded successfully'
+        });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Erreur lors du téléchargement du logo' : 'Failed to upload logo',
+        variant: 'destructive'
+      });
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  // Handle signature upload
+  const handleSignatureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez sélectionner une image' : 'Please select an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setSignatureUploading(true);
+    const formData = new FormData();
+    formData.append('signature', file);
+
+    try {
+      const response = await fetch('/api/school/1/signatures/director', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setSchoolBranding(prev => ({ ...prev, directorSignatureUrl: result.signatureUrl }));
+        toast({
+          title: language === 'fr' ? 'Succès' : 'Success',
+          description: language === 'fr' ? 'Signature téléchargée avec succès' : 'Signature uploaded successfully'
+        });
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Signature upload error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Erreur lors du téléchargement de la signature' : 'Failed to upload signature',
+        variant: 'destructive'
+      });
+    } finally {
+      setSignatureUploading(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
+    { id: 'branding', label: t.brandingTab, icon: Image },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell },
     { id: 'security', label: t.securityTab, icon: Shield }
@@ -367,7 +503,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Navigation */}
         <div className="hidden md:block">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
@@ -503,6 +639,142 @@ const UnifiedSchoolSettings: React.FC = () => {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Branding Tab */}
+        <TabsContent value="branding" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Image className="w-5 h-5" />
+                {t.brandingTab}
+              </CardTitle>
+              <CardDescription>
+                {language === 'fr' ? 'Logo et signature pour vos documents officiels' : 'Logo and signature for your official documents'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo Upload Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Image className="w-5 h-5" />
+                  {t.logoSchool}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Button
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={logoUploading}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      {logoUploading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+                          {language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Upload className="w-4 h-4" />
+                          {language === 'fr' ? 'Télécharger Logo' : 'Upload Logo'}
+                        </div>
+                      )}
+                    </Button>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      {language === 'fr' 
+                        ? 'Format: PNG, JPG. Taille recommandée: 200x200px'
+                        : 'Format: PNG, JPG. Recommended size: 200x200px'
+                      }
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg h-32">
+                    {schoolBranding.logoUrl ? (
+                      <img 
+                        src={schoolBranding.logoUrl} 
+                        alt="School Logo" 
+                        className="max-h-28 max-w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-center text-gray-500">
+                        <Image className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-sm">
+                          {language === 'fr' ? 'Aucun logo' : 'No logo'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Signature Upload Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <FileSignature className="w-5 h-5" />
+                  {t.directorSignature}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Button
+                      onClick={() => signatureInputRef.current?.click()}
+                      disabled={signatureUploading}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      {signatureUploading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+                          {language === 'fr' ? 'Téléchargement...' : 'Uploading...'}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Upload className="w-4 h-4" />
+                          {language === 'fr' ? 'Télécharger Signature' : 'Upload Signature'}
+                        </div>
+                      )}
+                    </Button>
+                    <input
+                      ref={signatureInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleSignatureUpload}
+                    />
+                    <p className="text-sm text-gray-500 mt-2">
+                      {language === 'fr' 
+                        ? 'Format: PNG, JPG. Fond transparent recommandé'
+                        : 'Format: PNG, JPG. Transparent background recommended'
+                      }
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg h-32">
+                    {schoolBranding.directorSignatureUrl ? (
+                      <img 
+                        src={schoolBranding.directorSignatureUrl} 
+                        alt="Director Signature" 
+                        className="max-h-28 max-w-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-center text-gray-500">
+                        <FileSignature className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-sm">
+                          {language === 'fr' ? 'Aucune signature' : 'No signature'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

@@ -29,7 +29,8 @@ class FastModuleLoader {
       'attendance': () => import('@/components/director/modules/AttendanceManagement'),
       'Communications': () => import('@/components/director/modules/Communications'),
       'settings': () => import('@/components/director/modules/Communications'),
-      'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
+      'SchoolSettings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
       
       // Parent modules (real ones)
