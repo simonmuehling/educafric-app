@@ -49,6 +49,13 @@ const FunctionalDirectorProfile: React.FC = () => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<DirectorProfile>>({});
+  
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // Fetch director profile data
   const { data: profile, isLoading } = useQuery<DirectorProfile>({
@@ -104,12 +111,70 @@ const FunctionalDirectorProfile: React.FC = () => {
     setIsEditing(false);
   };
 
+  // Password change handler
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Les mots de passe ne correspondent pas." : "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Le mot de passe doit contenir au moins 8 caractères." : "Password must be at least 8 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "Mot de passe modifié" : "Password Changed",
+          description: language === 'fr' ? "Votre mot de passe a été mis à jour avec succès." : "Your password has been updated successfully.",
+        });
+
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Password change failed');
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de changer le mot de passe." : "Failed to change password.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const text = {
     fr: {
       title: 'Mon Profil Directeur',
       subtitle: 'Gérez vos informations professionnelles et administratives',
       personalInfo: 'Informations Personnelles',
       professionalInfo: 'Informations Professionnelles',
+      security: 'Sécurité',
       achievements: 'Réalisations',
       stats: 'Statistiques',
       edit: 'Modifier',
@@ -132,13 +197,22 @@ const FunctionalDirectorProfile: React.FC = () => {
       totalClasses: 'Classes Totales',
       yearsInPosition: 'Années au Poste',
       recentAchievements: 'Réalisations récentes',
-      loading: 'Chargement du profil...'
+      loading: 'Chargement du profil...',
+      currentPassword: 'Mot de passe actuel',
+      newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      changePassword: 'Changer le mot de passe',
+      passwordSecurity: 'Sécurité du mot de passe',
+      deleteAccount: 'Supprimer mon compte',
+      deleteAccountWarning: 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.',
+      confirmDelete: 'Confirmer la suppression'
     },
     en: {
       title: 'My Director Profile',
       subtitle: 'Manage your professional and administrative information',
       personalInfo: 'Personal Information',
       professionalInfo: 'Professional Information',
+      security: 'Security',
       achievements: 'Achievements',
       stats: 'Statistics',
       edit: 'Edit',
@@ -161,7 +235,15 @@ const FunctionalDirectorProfile: React.FC = () => {
       totalClasses: 'Total Classes',
       yearsInPosition: 'Years in Position',
       recentAchievements: 'Recent Achievements',
-      loading: 'Loading profile...'
+      loading: 'Loading profile...',
+      currentPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm Password',
+      changePassword: 'Change Password',
+      passwordSecurity: 'Password Security',
+      deleteAccount: 'Delete my account',
+      deleteAccountWarning: 'This action is irreversible. All your data will be permanently deleted.',
+      confirmDelete: 'Confirm deletion'
     }
   };
 
@@ -222,7 +304,7 @@ const FunctionalDirectorProfile: React.FC = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="personal" className="flex flex-col items-center gap-1 py-3" title={t.personalInfo}>
               <User className="w-5 h-5" />
               <span className="text-xs hidden sm:block">{t.personalInfo}</span>
@@ -230,6 +312,10 @@ const FunctionalDirectorProfile: React.FC = () => {
             <TabsTrigger value="professional" className="flex flex-col items-center gap-1 py-3" title={t.professionalInfo}>
               <Building className="w-5 h-5" />
               <span className="text-xs hidden sm:block">{t.professionalInfo}</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex flex-col items-center gap-1 py-3" title={t.security}>
+              <Shield className="w-5 h-5" />
+              <span className="text-xs hidden sm:block">{t.security}</span>
             </TabsTrigger>
             <TabsTrigger value="achievements" className="flex flex-col items-center gap-1 py-3" title={t.achievements}>
               <Award className="w-5 h-5" />
@@ -396,6 +482,61 @@ const FunctionalDirectorProfile: React.FC = () => {
                     type="number"
                     data-testid="input-experience"
                   />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2" />
+                  {t.passwordSecurity}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">{t.currentPassword}</label>
+                    <Input
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                      placeholder={language === 'fr' ? 'Entrez votre mot de passe actuel' : 'Enter your current password'}
+                      data-testid="input-current-password"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.newPassword}</label>
+                    <Input
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                      placeholder={language === 'fr' ? 'Nouveau mot de passe (min. 8 caractères)' : 'New password (min. 8 characters)'}
+                      data-testid="input-new-password"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.confirmPassword}</label>
+                    <Input
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      placeholder={language === 'fr' ? 'Confirmez le nouveau mot de passe' : 'Confirm new password'}
+                      data-testid="input-confirm-password"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handlePasswordChange}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                    data-testid="button-change-password"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    {t.changePassword}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
