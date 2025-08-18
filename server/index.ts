@@ -45,6 +45,48 @@ app.use(performanceMiddleware);
 app.use(cacheControlMiddleware);
 app.use(memoryCleanupMiddleware);
 
+// PWA CRITICAL ROUTES - MUST BE FIRST TO AVOID MIDDLEWARE INTERFERENCE
+
+// Fix Service Worker MIME type
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.sendFile('sw.js', { root: 'public' });
+});
+
+// Fix manifest MIME type
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile('manifest.json', { root: 'public' });
+});
+
+// Fix critical PWA icons MIME types
+const pwaIcons = [
+  'android-chrome-192x192.png',
+  'android-chrome-512x512.png', 
+  'educafric-logo-128.png',
+  'educafric-logo-512.png',
+  'android-icon-192x192.png',
+  'apple-touch-icon.png',
+  'favicon.png'
+];
+
+pwaIcons.forEach(iconName => {
+  app.get(`/${iconName}`, (req, res) => {
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.sendFile(iconName, { root: 'public' });
+  });
+});
+
+// Fix favicon.ico specifically
+app.get('/favicon.ico', (req, res) => {
+  res.setHeader('Content-Type', 'image/x-icon');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  res.sendFile('favicon.ico', { root: 'public' });
+});
+
 // Asset optimizations
 app.use(assetOptimizationMiddleware);
 app.use(cssOptimizationMiddleware);
@@ -107,45 +149,7 @@ app.use(express.static('public', {
   }
 }));
 
-// Fix Service Worker MIME type
-app.get('/sw.js', (req, res) => {
-  res.setHeader('Content-Type', 'application/javascript');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile('sw.js', { root: 'public' });
-});
 
-// Fix manifest MIME type
-app.get('/manifest.json', (req, res) => {
-  res.setHeader('Content-Type', 'application/manifest+json');
-  res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.sendFile('manifest.json', { root: 'public' });
-});
-
-// Fix critical PWA icons MIME types - must be before other middleware
-const pwaIcons = [
-  'android-chrome-192x192.png',
-  'android-chrome-512x512.png', 
-  'educafric-logo-128.png',
-  'educafric-logo-512.png',
-  'android-icon-192x192.png',
-  'apple-touch-icon.png',
-  'favicon.png'
-];
-
-pwaIcons.forEach(iconName => {
-  app.get(`/${iconName}`, (req, res) => {
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'public, max-age=86400');
-    res.sendFile(iconName, { root: 'public' });
-  });
-});
-
-// Fix favicon.ico specifically
-app.get('/favicon.ico', (req, res) => {
-  res.setHeader('Content-Type', 'image/x-icon');
-  res.setHeader('Cache-Control', 'public, max-age=86400');
-  res.sendFile('favicon.ico', { root: 'public' });
-});
 
 app.use((req, res, next) => {
   const start = Date.now();
