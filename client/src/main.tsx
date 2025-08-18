@@ -7,10 +7,16 @@ import { setupConsoleFilter } from "./utils/consoleFilter";
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     try {
-      // Only register if service worker file exists
-      const response = await fetch('/sw.js', { method: 'HEAD' });
-      if (response.ok) {
-        const registration = await navigator.serviceWorker.register('/sw.js');
+      // Check if service worker file exists and has correct MIME type
+      const response = await fetch('/sw.js', { 
+        method: 'HEAD',
+        headers: { 'Accept': 'application/javascript' }
+      });
+      
+      if (response.ok && response.headers.get('content-type')?.includes('javascript')) {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/'
+        });
         console.log('[PWA] Service Worker registered:', registration);
         localStorage.setItem('pwa-sw-registered', 'true');
         
@@ -19,7 +25,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
           console.log('[PWA] Service Worker update found');
         });
       } else {
-        console.log('[PWA] Service Worker file not found, skipping registration');
+        console.log('[PWA] Service Worker file not found or wrong MIME type, skipping registration');
       }
       
     } catch (error: any) {

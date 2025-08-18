@@ -14,6 +14,8 @@ export const setupConsoleFilter = () => {
     /ETHEREUM_READY/i,
     /gt-provider-bridge/i,
     /page_all\.js/i,
+    /is not a valid JavaScript MIME type/i,
+    /Service Worker registration/i,
     /MessageEvent.*stripe/i,
     /MessageEvent.*replit\.dev/i,
     /MessageEvent.*js\.stripe\.com/i,
@@ -58,7 +60,16 @@ export const setupConsoleFilter = () => {
     }
   };
 
-  // Bloquer les MessageEvent indésirables à la source
+  // Filter JavaScript errors as well
+  const originalError = console.error;
+  console.error = (...args: any[]) => {
+    const message = args.join(' ');
+    if (!shouldFilter(message)) {
+      originalError.apply(console, args);
+    }
+  };
+
+  // Bloquer les MessageEvent indésirables et erreurs MIME à la source
   if (window.console) {
     const blockNoiseFromPageAll = () => {
       try {
@@ -68,8 +79,24 @@ export const setupConsoleFilter = () => {
           script.remove();
         });
         
-        // Simple filtrage sans override - plus sûr
-        // Note: Nous laissons postMessage fonctionner normalement pour éviter des erreurs TypeScript complexes
+        // Bloquer les erreurs Service Worker en développement
+        window.addEventListener('error', (event) => {
+          const message = event.message || '';
+          if (shouldFilter(message)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+        });
+        
+        // Bloquer les erreurs unhandledrejection liées aux MIME types
+        window.addEventListener('unhandledrejection', (event) => {
+          const message = event.reason?.message || event.reason || '';
+          if (shouldFilter(String(message))) {
+            event.preventDefault();
+            return false;
+          }
+        });
         
       } catch (e) {
         // Silently ignore if we can't block these
