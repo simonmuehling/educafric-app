@@ -166,7 +166,6 @@ interface ConsolidatedNotificationProviderProps {
 }
 
 export const ConsolidatedNotificationProvider: React.FC<ConsolidatedNotificationProviderProps> = ({ children }) => {
-  const { language } = useLanguage();
   const [notifications, setNotifications] = useState<UnifiedNotification[]>([]);
 
   const removeNotification = useCallback((id: string) => {
@@ -201,24 +200,24 @@ export const ConsolidatedNotificationProvider: React.FC<ConsolidatedNotification
   }, []);
 
   const sendGrade = useCallback((studentName: string, subject: string, grade: string) => {
-    unifiedNotificationService.grade(studentName, subject, grade, language);
-  }, [language]);
+    unifiedNotificationService.grade(studentName, subject, grade, 'fr');
+  }, []);
 
   const sendAttendance = useCallback((studentName: string, status: 'present' | 'absent') => {
-    unifiedNotificationService.attendance(studentName, status, language);
-  }, [language]);
+    unifiedNotificationService.attendance(studentName, status, 'fr');
+  }, []);
 
   const sendHomework = useCallback((subject: string, dueDate: string) => {
-    unifiedNotificationService.homework(subject, dueDate, language);
-  }, [language]);
+    unifiedNotificationService.homework(subject, dueDate, 'fr');
+  }, []);
 
   const sendEmergency = useCallback((message: string) => {
-    unifiedNotificationService.emergency(message, language);
-  }, [language]);
+    unifiedNotificationService.emergency(message, 'fr');
+  }, []);
 
   const sendTest = useCallback(() => {
-    unifiedNotificationService.test(language);
-  }, [language]);
+    unifiedNotificationService.test('fr');
+  }, []);
 
   return (
     <NotificationContext.Provider value={{
