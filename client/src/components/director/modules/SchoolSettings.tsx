@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, School, Mail, Phone, MapPin, Calendar, Users, Settings, Save, Upload, Image, FileSignature, Check, X } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { ArrowLeft, School, Mail, Phone, MapPin, Calendar, Users, Settings, Save, Upload, Image, FileSignature, Check, X, Shield, Bell, Globe, Database, Clock } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 
 const SchoolSettings: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const signatureInputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +38,44 @@ const SchoolSettings: React.FC = () => {
     teachersCount: 0,
     classesCount: 0,
     establishmentType: "",
-    academicYear: ""
+    academicYear: "",
+    description: "",
+    establishedYear: 2000,
+    studentCapacity: 1000
+  });
+
+  // Configuration settings
+  const [schoolConfig, setSchoolConfig] = useState({
+    academicYear: '2024-2025',
+    gradeSystem: 'numeric' as 'numeric' | 'letter' | 'african',
+    language: 'bilingual' as 'fr' | 'en' | 'bilingual',
+    timezone: 'Africa/Douala',
+    currency: 'XAF',
+    attendanceRequired: true,
+    bulletinAutoApproval: false,
+    parentNotifications: true,
+    geolocationEnabled: true
+  });
+
+  // Notification settings
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: true,
+    pushNotifications: true,
+    parentUpdates: true,
+    teacherAlerts: true,
+    systemMaintenance: false,
+    emergencyAlerts: true
+  });
+
+  // Security settings
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorAuth: false,
+    sessionTimeout: 30,
+    passwordExpiry: 90,
+    loginAttempts: 5,
+    ipWhitelist: [] as string[],
+    backupFrequency: 'weekly' as 'daily' | 'weekly' | 'monthly'
   });
 
   // Load real school data and branding on component mount
