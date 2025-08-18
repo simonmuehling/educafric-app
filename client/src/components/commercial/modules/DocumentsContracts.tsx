@@ -702,6 +702,45 @@ const DocumentsContracts = () => {
       url: '/api/commercial/documents/9/view',
       description: 'Guide complet du système multi-rôle EDUCAFRIC pour commerciaux - Comment ajouter un rôle parent à un compte commercial avec isolation complète des données, validation scolaire, et commutation instantanée entre rôles. Documentation bilingue français/anglais avec spécifications techniques et procédures de sécurité. Complete EDUCAFRIC multi-role system guide for commercial team - How to add parent role to commercial account with complete data isolation, school validation, and instant role switching. Bilingual French/English documentation with technical specifications and security procedures.'
     },
+    {
+      id: 55,
+      name: 'Guide Schools Configuration (FR)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Établissements',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '42.3 KB',
+      format: 'HTML',
+      url: '/documents/guide-schools-configuration-fr.html',
+      description: 'Guide complet de configuration pour les établissements scolaires - Paramétrage initial, gestion des utilisateurs, modules disponibles, et optimisation pour les écoles africaines.'
+    },
+    {
+      id: 56,
+      name: 'Guide Teachers Configuration (FR)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Enseignants',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '38.7 KB',
+      format: 'HTML',
+      url: '/documents/guide-teachers-configuration-fr.html',
+      description: 'Guide de configuration pour enseignants - Paramétrage du tableau de bord, gestion des classes, bulletins, et outils pédagogiques EDUCAFRIC.'
+    },
+    {
+      id: 57,
+      name: 'Guide Parents Configuration (FR)',
+      type: 'guide',
+      category: 'technical',
+      school: 'Documentation Parents',
+      date: '2025-08-18',
+      status: 'finalized',
+      size: '35.9 KB',
+      format: 'HTML',
+      url: '/documents/guide-parents-configuration-fr.html',
+      description: 'Guide de configuration pour parents - Paramétrage du profil, connexion aux enfants, notifications, géolocalisation, et suivi académique.'
+    },
   ];
 
   const filteredDocuments = documents
