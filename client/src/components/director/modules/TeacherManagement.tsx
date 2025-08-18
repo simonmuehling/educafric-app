@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter } from 'lucide-react';
+import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +26,7 @@ const TeacherManagement: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    subjects: '',
+    subjects: [] as string[],
     classes: '',
     experience: '',
     qualification: ''
@@ -40,6 +41,18 @@ const TeacherManagement: React.FC = () => {
       return response.json();
     }
   });
+
+  // Récupération des matières de l'école
+  const { data: subjectsResponse } = useQuery({
+    queryKey: ['/api/subjects/school'],
+    queryFn: async () => {
+      const response = await fetch('/api/subjects/school');
+      if (!response.ok) throw new Error('Failed to fetch subjects');
+      return response.json();
+    }
+  });
+
+  const subjects = Array.isArray(subjectsResponse) ? subjectsResponse : [];
 
   // Assurer que teachers est toujours un array
   const teachers = Array.isArray(teachersResponse) ? teachersResponse : 
@@ -101,11 +114,11 @@ const TeacherManagement: React.FC = () => {
     if (!teacher) return false;
     const fullName = (teacher.firstName || '') + ' ' + (teacher.lastName || '');
     const email = teacher.email || '';
-    const subjects = Array.isArray(teacher.subjects) ? teacher?.subjects?.join(', ') : teacher.subjects || '';
+    const teacherSubjects = Array.isArray(teacher.subjects) ? teacher.subjects.join(', ') : (teacher.subjects || '');
     
     return fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
            email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           subjects.toLowerCase().includes(searchTerm.toLowerCase());
+           teacherSubjects.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const getStatusColor = (status: string) => {
@@ -139,7 +152,7 @@ const TeacherManagement: React.FC = () => {
                   name: '',
                   email: '',
                   phone: '',
-                  subjects: '',
+                  subjects: [],
                   classes: '',
                   experience: '',
                   qualification: ''
@@ -223,7 +236,7 @@ const TeacherManagement: React.FC = () => {
                     name: '',
                     email: '',
                     phone: '',
-                    subjects: '',
+                    subjects: [],
                     classes: '',
                     experience: '',
                     qualification: ''
@@ -402,7 +415,7 @@ const TeacherManagement: React.FC = () => {
                             name: `${String(teacher?.firstName) || "N/A"} ${String(teacher?.lastName) || "N/A"}`,
                             email: teacher.email,
                             phone: teacher.phone || '',
-                            subjects: '',
+                            subjects: Array.isArray(teacher.subjects) ? teacher.subjects : [],
                             classes: '',
                             experience: '',
                             qualification: ''
@@ -506,13 +519,41 @@ const TeacherManagement: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="subjects">{language === 'fr' ? 'Matières enseignées' : 'Subjects Taught'}</Label>
-                    <Input
-                      id="subjects"
-                      value={String(formData?.subjects) || "N/A"}
-                      onChange={(e) => setFormData({...formData, subjects: e?.target?.value})}
-                      placeholder={language === 'fr' ? 'Mathématiques, Physique' : 'Mathematics, Physics'}
-                    />
+                    <Label>{language === 'fr' ? 'Matières enseignées' : 'Subjects Taught'}</Label>
+                    <div className="grid grid-cols-2 gap-3 mt-2 p-4 border rounded-lg bg-gray-50">
+                      {subjects.map((subject: any) => (
+                        <div key={subject.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`subject-${subject.id}`}
+                            checked={formData.subjects.includes(subject.nameFr || subject.nameEn)}
+                            onCheckedChange={(checked) => {
+                              const subjectName = language === 'fr' ? subject.nameFr : subject.nameEn;
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  subjects: [...formData.subjects, subjectName]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  subjects: formData.subjects.filter(s => s !== subjectName)
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`subject-${subject.id}`} className="text-sm">
+                            {language === 'fr' ? subject.nameFr : subject.nameEn}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    {formData.subjects.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600">
+                          {language === 'fr' ? 'Matières sélectionnées:' : 'Selected subjects:'} {formData.subjects.join(', ')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -629,12 +670,41 @@ const TeacherManagement: React.FC = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="edit-subjects">{language === 'fr' ? 'Matières enseignées' : 'Subjects Taught'}</Label>
-                    <Input
-                      id="edit-subjects"
-                      value={String(formData?.subjects) || "N/A"}
-                      onChange={(e) => setFormData({...formData, subjects: e?.target?.value})}
-                    />
+                    <Label>{language === 'fr' ? 'Matières enseignées' : 'Subjects Taught'}</Label>
+                    <div className="grid grid-cols-2 gap-3 mt-2 p-4 border rounded-lg bg-gray-50">
+                      {subjects.map((subject: any) => (
+                        <div key={subject.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-subject-${subject.id}`}
+                            checked={formData.subjects.includes(subject.nameFr || subject.nameEn)}
+                            onCheckedChange={(checked) => {
+                              const subjectName = language === 'fr' ? subject.nameFr : subject.nameEn;
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  subjects: [...formData.subjects, subjectName]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  subjects: formData.subjects.filter(s => s !== subjectName)
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`edit-subject-${subject.id}`} className="text-sm">
+                            {language === 'fr' ? subject.nameFr : subject.nameEn}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                    {formData.subjects.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600">
+                          {language === 'fr' ? 'Matières sélectionnées:' : 'Selected subjects:'} {formData.subjects.join(', ')}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
                   <div>

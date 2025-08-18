@@ -434,7 +434,69 @@ export class DatabaseStorage implements IStorage {
   async getAdministrationTeachers(schoolId: number): Promise<any[]> { return []; }
   async getAdministrationStudents(schoolId: number): Promise<any[]> { return []; }
   async getAdministrationParents(schoolId: number): Promise<any[]> { return []; }
-  async createTeacher(data: any): Promise<any> { return data; }
+  async createTeacher(data: any): Promise<any> { 
+    console.log('[STORAGE] Creating teacher with data:', data);
+    
+    // Create the teacher user account
+    const teacherUser = {
+      email: data.email,
+      password: 'defaultPassword123', // Should be hashed in real implementation
+      role: 'Teacher',
+      firstName: data.name.split(' ')[0] || data.name,
+      lastName: data.name.split(' ').slice(1).join(' ') || '',
+      phone: data.phone,
+      schoolId: data.schoolId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    try {
+      const [newUser] = await db.insert(users).values(teacherUser).returning();
+      
+      // Process subjects - ensure they exist in the subjects table
+      if (data.subjects && Array.isArray(data.subjects)) {
+        for (const subjectName of data.subjects) {
+          // Check if subject exists, if not create it
+          const existingSubject = await db.select()
+            .from(subjects)
+            .where(sql`name_fr = ${subjectName} OR name_en = ${subjectName}`)
+            .limit(1);
+          
+          if (existingSubject.length === 0) {
+            // Create new subject
+            await db.insert(subjects).values({
+              nameFr: subjectName,
+              nameEn: subjectName,
+              code: subjectName.substring(0, 3).toUpperCase(),
+              coefficient: '1.00',
+              schoolId: data.schoolId
+            });
+            console.log(`[STORAGE] Created new subject: ${subjectName}`);
+          }
+        }
+      }
+      
+      const result = {
+        id: newUser.id,
+        name: `${newUser.firstName} ${newUser.lastName}`,
+        email: newUser.email,
+        phone: newUser.phone,
+        subjects: data.subjects || [],
+        classes: data.classes || '',
+        experience: data.experience || '',
+        qualification: data.qualification || '',
+        role: newUser.role,
+        schoolId: newUser.schoolId,
+        createdAt: newUser.createdAt
+      };
+      
+      console.log('[STORAGE] Teacher created successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('[STORAGE] Error creating teacher:', error);
+      throw error;
+    }
+  }
   async updateTeacher(id: number, data: any): Promise<any> { return data; }
   async deleteTeacher(id: number): Promise<void> {}
   async blockUserAccess(userId: number, reason: string): Promise<any> { return {}; }
@@ -506,7 +568,31 @@ export class DatabaseStorage implements IStorage {
   async createTeacherRecord(teacher: any): Promise<any> { return {}; }
   async getTeacher(id: number): Promise<any | null> { return null; }
   async updateTeacherRecord(id: number, updates: any): Promise<any> { return {}; }
-  async getTeachersBySchool(schoolId: number): Promise<any[]> { return []; }
+  async getTeachersBySchool(schoolId: number): Promise<any[]> { 
+    try {
+      const teachers = await db.select().from(users).where(
+        sql`school_id = ${schoolId} AND role = 'Teacher'`
+      );
+      
+      return teachers.map(teacher => ({
+        id: teacher.id,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        name: `${teacher.firstName} ${teacher.lastName}`,
+        email: teacher.email,
+        phone: teacher.phone,
+        role: teacher.role,
+        schoolId: teacher.schoolId,
+        subjects: [], // Will be populated with actual subject relations in a real implementation
+        classes: [], // Will be populated with actual class relations in a real implementation
+        status: 'Actif',
+        createdAt: teacher.createdAt
+      }));
+    } catch (error) {
+      console.error('[STORAGE] Error fetching teachers:', error);
+      return [];
+    }
+  }
 
   // Class management methods (avoiding duplicates with above)
 
