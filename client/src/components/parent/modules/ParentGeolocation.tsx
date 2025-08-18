@@ -78,17 +78,17 @@ export const ParentGeolocation = () => {
 
   // Real API calls using TanStack Query - Complete Storage-Route-API-Frontend Chain
   const { data: childrenData, isLoading: childrenLoading } = useQuery<Child[]>({
-    queryKey: ['/api/parent/geolocation/children'],
+    queryKey: ['/api/geolocation/parent/children'],
     enabled: !!user
   });
 
   const { data: safeZonesData, isLoading: zonesLoading } = useQuery<SafeZone[]>({
-    queryKey: ['/api/parent/geolocation/safe-zones'],
+    queryKey: ['/api/geolocation/parent/safe-zones'],
     enabled: !!user
   });
 
   const { data: alertsData, isLoading: alertsLoading } = useQuery<GeolocationAlert[]>({
-    queryKey: ['/api/parent/geolocation/alerts'],
+    queryKey: ['/api/geolocation/parent/alerts'],
     enabled: !!user
   });
 
@@ -123,7 +123,7 @@ export const ParentGeolocation = () => {
   // Create safe zone mutation
   const createSafeZoneMutation = useMutation({
     mutationFn: async (zoneData: any) => {
-      const response = await fetch('/api/parent/geolocation/safe-zones', {
+      const response = await fetch('/api/geolocation/safe-zones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -133,7 +133,7 @@ export const ParentGeolocation = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/parent/geolocation/safe-zones'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
       setShowAddZone(false);
     }
   });
@@ -141,18 +141,8 @@ export const ParentGeolocation = () => {
   // Stable callback handlers - moved to top level to avoid hooks rule violations
   const handleViewZoneMap = useStableCallback((zone: SafeZone) => {
     console.log(`[PARENT_GEOLOCATION] 🗺️ View safe zone ${zone.name || ''} on map`);
-    fetch(`/api/parent/geolocation/safe-zones/${zone.id}/map`, {
-      method: 'GET',
-      credentials: 'include'
-    }).then(async response => {
-      if (response.ok) {
-        const zoneMapData = await response.json();
-        console.log(`[PARENT_GEOLOCATION] ✅ Zone map data:`, zoneMapData);
-        setShowMapModal({show: true, type: 'zone', data: {zone, zoneMapData}});
-      }
-    }).catch(error => {
-      console.error('[PARENT_GEOLOCATION] View zone map error:', error);
-    });
+    // For now, just show the zone data in a modal - map integration can be added later
+    setShowMapModal({show: true, type: 'zone', data: {zone, coordinates: zone.coordinates}});
   });
 
   const handleModifyZone = useStableCallback((zone: SafeZone) => {

@@ -50,6 +50,7 @@ export const geolocationAlerts = pgTable("geolocation_alerts", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id").notNull(),
   deviceId: integer("device_id").notNull(),
+  schoolId: integer("school_id").notNull(),
   alertType: text("alert_type").notNull(),
   priority: text("priority").notNull(),
   message: text("message").notNull(),
