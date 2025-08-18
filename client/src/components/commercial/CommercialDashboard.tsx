@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
@@ -6,6 +6,7 @@ import {
   MessageSquare, Settings, HelpCircle, User
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
+import { useModulePreloader } from '@/utils/modulePreloader';
 import MySchoolsModule from './modules/MySchoolsModule';
 import CommercialCRM from './modules/CommercialCRM';
 import ContactsManagement from './modules/ContactsManagement';
@@ -31,6 +32,19 @@ interface CommercialDashboardProps {
 
 const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   const { language } = useLanguage();
+  const { preloadModule } = useModulePreloader();
+
+  // Preload modules when dashboard loads
+  useEffect(() => {
+    const criticalModules = [
+      'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
+      'MySchools', 'WhatsAppManager', 'CommercialCRM'
+    ];
+    
+    criticalModules.forEach(module => {
+      preloadModule(module);
+    });
+  }, [preloadModule]);
   
   const text = {
     fr: {

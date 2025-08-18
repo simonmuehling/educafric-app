@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { setupConsoleFilter } from "./utils/consoleFilter";
+import { modulePreloader } from "./utils/modulePreloader";
 
 // Register Service Worker for PWA functionality - Only in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -44,5 +45,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 
 // Setup console filtering to reduce spam in development
 setupConsoleFilter();
+
+// Initialize module preloading for faster performance
+modulePreloader.preloadCriticalModules();
 
 createRoot(document.getElementById("root")!).render(<App />);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
+import { useInstantModules } from '@/hooks/useInstantModules';
+import OptimizedModuleWrapper from '@/components/ui/OptimizedModuleWrapper';
 
 interface IconModule {
   id: string;
@@ -37,8 +39,18 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const t = text[language as keyof typeof text];
 
-  const handleModuleClick = (moduleId: string) => {
+  const { switchToModule, preloadOnHover, isModuleReady } = useInstantModules();
+
+  const handleModuleClick = async (moduleId: string) => {
+    console.log(`[UNIFIED_DASHBOARD] 🚀 Fast switching to module: ${moduleId}`);
+    
+    // Try instant switch first
+    await switchToModule(moduleId);
     setActiveModule(moduleId);
+  };
+
+  const handleModuleHover = (moduleId: string) => {
+    preloadOnHover(moduleId);
   };
 
   const handleBackClick = () => {
@@ -87,8 +99,9 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
             <div
               key={module.id}
               onClick={() => handleModuleClick(module.id)}
-              className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"
-              style={{ animationDelay: `${index * 50}ms` }}
+              onMouseEnter={() => handleModuleHover(module.id)}
+              className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"
+              style={{ animationDelay: `${index * 30}ms` }}
               data-testid={module.id === 'grades' ? 'student-grades' : module.id === 'assignments' ? 'student-homework' : `module-${module.id}`}
             >
               {/* Compact mobile layout */}
@@ -143,7 +156,9 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
           {/* Mobile-optimized module content container */}
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 overflow-hidden">
             <div className="w-full overflow-x-auto">
-              {activeModuleData.component}
+              <OptimizedModuleWrapper moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
+                {activeModuleData.component}
+              </OptimizedModuleWrapper>
             </div>
           </div>
         </div>
