@@ -110,7 +110,7 @@ class HostingerMailService {
     const text = this.generateSystemReportText(reportData);
 
     return await this.sendEmail({
-      to: 'admin@educafric.com',
+      to: 'simonpmuehling@gmail.com',
       subject: `📊 EDUCAFRIC System Report - ${new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' })}`,
       html,
       text
@@ -131,7 +131,7 @@ class HostingerMailService {
       console.log(`[HOSTINGER_MAIL] Sending commercial login alert for ${commercialData.name}`);
       
       const success = await this.sendEmail({
-        to: 'admin@educafric.com', // Email du destinataire pour les alertes
+        to: 'simonpmuehling@gmail.com', // Email du destinataire pour les alertes
         subject: `🔔 ALERTE: Connexion Commercial - ${commercialData.name}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

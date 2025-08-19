@@ -22747,7 +22747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Email de rapport quotidien envoyé avec succès !',
         service: 'Hostinger SMTP',
         timestamp: new Date().toISOString(),
-        recipient: 'admin@educafric.com'
+        recipient: 'simonpmuehling@gmail.com'
       });
     } catch (error: any) {
       console.error('[DAILY_REPORT_TEST] Error:', error);

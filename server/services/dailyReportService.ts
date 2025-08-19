@@ -80,7 +80,7 @@ export class DailyReportService {
       
       const mailOptions = {
         from: `"EDUCAFRIC Platform" <no-reply@educafric.com>`,
-        to: 'admin@educafric.com',
+        to: 'simonpmuehling@gmail.com',
         subject: `📊 Rapport Quotidien EDUCAFRIC - ${reportData.date}`,
         html: emailTemplate
       };
