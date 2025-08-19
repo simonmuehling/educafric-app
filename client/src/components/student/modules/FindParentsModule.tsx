@@ -124,7 +124,7 @@ const FindParentsModule: React.FC = () => {
       qrGeneratedDesc: 'Share this code with your parents for quick connection',
       messagePlaceholder: 'Hello, I am your child on EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
-      phonePlaceholder: '+237657004011',
+      phonePlaceholder: '+237656200472',
       error: 'Error',
       fillRequired: 'Please fill the parent email or phone',
       validEmail: 'Please enter a valid email',
@@ -178,7 +178,7 @@ const FindParentsModule: React.FC = () => {
       qrGeneratedDesc: 'Partagez ce code avec vos parents pour une connexion rapide',
       messagePlaceholder: 'Bonjour, je suis votre enfant sur EDUCAFRIC...',
       emailPlaceholder: 'parent@email.com',
-      phonePlaceholder: '+237657004011',
+      phonePlaceholder: '+237656200472',
       error: 'Erreur',
       fillRequired: 'Veuillez remplir l\'email ou le téléphone du parent',
       validEmail: 'Veuillez entrer un email valide',
@@ -618,8 +618,8 @@ const FindParentsModule: React.FC = () => {
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       {language === 'fr' ? 
-                        'Format: +237657004011 ou 657004011' :
-                        'Format: +237657004011 or 657004011'
+                        'Format: +237656200472 ou 656200472' :
+                        'Format: +237656200472 or 656200472'
                       }
                     </p>
                   </div>
