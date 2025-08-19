@@ -1,17 +1,14 @@
 import nodemailer from 'nodemailer';
 import { storage } from '../storage';
 
-// Configuration du service email Gmail pour les rapports quotidiens
+// Configuration du service email Hostinger pour les rapports quotidiens
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  host: 'smtp.hostinger.com',
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER || 'simonpmuehling@gmail.com',
-    pass: process.env.EMAIL_PASSWORD || ''
-  },
-  tls: {
-    rejectUnauthorized: false
+    user: 'no-reply@educafric.com',
+    pass: 'Douala12-educonnect12'
   }
 });
 
@@ -82,8 +79,8 @@ export class DailyReportService {
       }
       
       const mailOptions = {
-        from: `"EDUCAFRIC Platform" <simonpmuehling@gmail.com>`,
-        to: 'simonpmuehling@gmail.com',
+        from: `"EDUCAFRIC Platform" <no-reply@educafric.com>`,
+        to: 'admin@educafric.com',
         subject: `📊 Rapport Quotidien EDUCAFRIC - ${reportData.date}`,
         html: emailTemplate
       };
