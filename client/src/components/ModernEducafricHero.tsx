@@ -37,6 +37,16 @@ export default function ModernEducafricHero() {
               }
             </h1>
 
+            {/* Slogan */}
+            <div className="inline-block">
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent mb-6">
+                {language === 'fr' 
+                  ? 'Révolutionner l\'École, Transformer l\'Avenir'
+                  : 'Revolutionize School, Transform the Future'
+                }
+              </h2>
+            </div>
+
             {/* Subtitle */}
             <p className="text-xl text-white/90 leading-relaxed">
               {language === 'fr'
