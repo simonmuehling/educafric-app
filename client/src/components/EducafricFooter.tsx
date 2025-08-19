@@ -40,7 +40,7 @@ const EducafricFooter = () => {
       { label: t.termsOfService, href: "/terms-of-service", icon: FileText }
     ],
     contact: [
-      { label: "admin@educafric.com", href: "mailto:admin@educafric.com", icon: Mail },
+      { label: "info@educafric.com", href: "mailto:info@educafric.com", icon: Mail },
       { label: "+237 656 200 472", href: "tel:+237656200472", icon: Phone }
     ],
     social: [

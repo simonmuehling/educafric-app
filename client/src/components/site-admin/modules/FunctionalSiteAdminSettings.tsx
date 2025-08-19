@@ -25,7 +25,7 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   // Platform settings state
   const [generalSettings, setGeneralSettings] = useState({
     platformName: 'EDUCAFRIC',
-    supportEmail: 'admin@educafric.com',
+    supportEmail: 'info@educafric.com',
     supportPhone: '+237 600 000 000',
     maxSchoolsPerCommercial: 50,
     defaultTrialDays: 30,

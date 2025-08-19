@@ -39,7 +39,7 @@ export class AlertingService {
   private setupAlertChannels() {
     // Owner contact information for critical alerts
     this.ownerContacts = {
-      emails: ['admin@educafric.com', 'support@educafric.com'],
+      emails: ['info@educafric.com', 'support@educafric.com'],
       phones: ['+41768017000', '+237657004011'], // Owner's actual phone numbers
       name: 'Platform Administrator'
     };

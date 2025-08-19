@@ -26,7 +26,7 @@ export class CriticalAlertingService {
 
   constructor() {
     this.ownerContacts = {
-      emails: ['admin@educafric.com', 'support@educafric.com'],
+      emails: ['info@educafric.com', 'support@educafric.com'],
       phones: {
         primary: '+237657004011',   // Cameroon primary contact
         secondary: '+41768017000'   // Switzerland secondary contact
