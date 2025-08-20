@@ -9,7 +9,7 @@ interface OwnerContact {
 
 class OwnerNotificationService {
   private ownerContact: OwnerContact = {
-    emails: ['info@educafric.com', 'support@educafric.com'],
+    emails: ['simonpmuehling@gmail.com', 'info@educafric.com'],
     phones: ['+237657004011', '+41768017000'], // Actual owner contact numbers
     name: 'Platform Administrator',
     timezone: 'Africa/Douala'

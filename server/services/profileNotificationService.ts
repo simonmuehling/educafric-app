@@ -95,7 +95,7 @@ export class ProfileNotificationService {
 
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
             <p style="color: #666; margin: 0; font-size: 14px;">
-              📞 Support : +237 657 004 011 | 📧 admin@educafric.com
+              📞 Support : +237 657 004 011 | 📧 simonpmuehling@gmail.com
             </p>
             <p style="color: #999; margin: 10px 0 0 0; font-size: 12px;">
               © 2025 Educafric - Plateforme éducative pour l'Afrique
@@ -199,7 +199,7 @@ Educafric - L'éducation digitale africaine`;
       `;
 
       await sendHostingerMail({
-        to: 'admin@educafric.com',
+        to: 'simonpmuehling@gmail.com',
         subject,
         html: htmlContent
       });

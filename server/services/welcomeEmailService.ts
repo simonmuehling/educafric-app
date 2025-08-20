@@ -165,7 +165,7 @@ Plateforme de gestion scolaire bilingue pour l'Afrique
   private async sendAdminNotification(schoolData: SchoolWelcomeData): Promise<void> {
     try {
       await hostingerMailService.sendEmail({
-        to: 'admin@educafric.com',
+        to: 'simonpmuehling@gmail.com',
         subject: `🏫 Nouvelle école inscrite : ${schoolData.schoolName}`,
         html: `
           <h2>Nouvelle inscription école</h2>

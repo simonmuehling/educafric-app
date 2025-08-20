@@ -251,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     </div>
     <div class="footer">
         <p><strong>Educafric</strong> - Plateforme éducative pour l'Afrique</p>
-        <p>📧 admin@educafric.com | 📞 +237 600 000 000</p>
+        <p>📧 simonpmuehling@gmail.com | 📞 +237 600 000 000</p>
     </div>
 </body>
 </html>`;
@@ -6154,7 +6154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const systemSettings = {
         general: {
           platformName: 'EDUCAFRIC',
-          supportEmail: 'admin@educafric.com',
+          supportEmail: 'simonpmuehling@gmail.com',
           supportPhone: '+237 600 000 000',
           maxSchoolsPerCommercial: 50,
           defaultTrialDays: 30,
