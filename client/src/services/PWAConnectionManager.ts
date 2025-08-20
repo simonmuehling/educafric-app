@@ -32,15 +32,19 @@ class PWAConnectionManager {
   private reconnectTimeout: number | null = null;
   private notificationQueue: NotificationQueue[] = [];
   private maxRetries = 5;
-  private pingIntervalMs = 120000; // 2 minutes (reduced from 30s)
+  private pingIntervalMs = 300000; // 5 minutes (reduced frequency to prevent memory issues)
   private reconnectDelayMs = 10000; // 10 secondes
 
   private listeners: Array<(state: ConnectionState) => void> = [];
 
   constructor() {
-    this.initializeConnectionMonitoring();
-    this.startPeriodicPing();
-    this.setupServiceWorkerSync();
+    // Only initialize if not already initialized to prevent memory leaks
+    if (typeof window !== 'undefined' && !(window as any).__pwa_connection_initialized) {
+      this.initializeConnectionMonitoring();
+      this.startPeriodicPing();
+      this.setupServiceWorkerSync();
+      (window as any).__pwa_connection_initialized = true;
+    }
   }
 
   /**
@@ -375,6 +379,8 @@ class PWAConnectionManager {
    * Nettoie les ressources
    */
   public destroy() {
+    console.log('[PWA_CONNECTION] 🧹 Cleaning up resources...');
+    
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
       this.pingInterval = null;
@@ -387,6 +393,11 @@ class PWAConnectionManager {
 
     this.listeners = [];
     this.notificationQueue = [];
+    
+    // Clear global initialization flag
+    if (typeof window !== 'undefined') {
+      delete (window as any).__pwa_connection_initialized;
+    }
   }
 }
 

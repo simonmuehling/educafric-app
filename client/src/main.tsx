@@ -3,6 +3,7 @@ import App from "./App";
 import "./index.css";
 import { setupConsoleFilter } from "./utils/consoleFilter";
 import { fastModuleLoader } from "./utils/fastModuleLoader";
+import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
 // Register Service Worker for PWA functionality - Only in production
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

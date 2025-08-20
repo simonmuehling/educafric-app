@@ -104,11 +104,16 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const { autoTrackPWAUsage } = usePWAAnalytics();
 
-  // Initialize PWA analytics tracking
+  // Initialize PWA analytics tracking - Fixed to prevent render loops
   React.useEffect(() => {
-    // Auto-track PWA usage for all users (authenticated and anonymous)
-    autoTrackPWAUsage(user?.id);
-  }, [user?.id, autoTrackPWAUsage]);
+    // Only track once per session to prevent crashes
+    const sessionKey = 'app_pwa_tracking_initialized';
+    if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey)) {
+      console.log('[APP] Initializing PWA analytics (one-time)');
+      autoTrackPWAUsage(user?.id);
+      window.sessionStorage?.setItem(sessionKey, 'true');
+    }
+  }, []); // Remove dependencies to prevent loops
 
   // Expose tutorial function globally
   React.useEffect(() => {

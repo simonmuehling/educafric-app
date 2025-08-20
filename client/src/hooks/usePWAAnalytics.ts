@@ -6,6 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 // Global in-flight request deduplication map to prevent networking memory overflow
 const inFlightRequests = new Map<string, Promise<any>>();
 
+// Memory cleanup for in-flight requests
+setInterval(() => {
+  if (inFlightRequests.size > 50) {
+    console.log('[PWA_ANALYTICS] Clearing old in-flight requests to prevent memory overflow');
+    inFlightRequests.clear();
+  }
+}, 60000); // Clean every minute
+
 // Request deduplication helper to prevent Chrome networking memory issues
 async function fetchOnce<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
   if (inFlightRequests.has(key)) {
@@ -131,6 +139,13 @@ export const usePWAAnalytics = () => {
 
   // Auto-detect and track PWA usage - with render loop prevention
   const autoTrackPWAUsage = useCallback((userId?: number) => {
+    // Debounce to prevent multiple calls in rapid succession
+    const debounceKey = `auto-track-debounce-${userId || 'anonymous'}`;
+    if ((window as any)[debounceKey]) {
+      return; // Already processing
+    }
+    (window as any)[debounceKey] = true;
+    setTimeout(() => delete (window as any)[debounceKey], 5000);
     try {
       // Skip tracking for sandbox users
       if (isSandboxUser) {
