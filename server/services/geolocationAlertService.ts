@@ -62,12 +62,21 @@ class GeolocationAlertService {
 
     console.log('[GEOLOCATION_ALERTS] 🔄 Starting location monitoring...');
     
-    // Check student locations every 30 seconds
-    this.monitoringInterval = setInterval(() => {
-      this.checkAllStudentLocations();
+    // Check student locations every 30 seconds with proper error handling
+    this.monitoringInterval = setInterval(async () => {
+      try {
+        await this.checkAllStudentLocations();
+      } catch (error) {
+        console.error('[GEOLOCATION_ALERTS] ❌ Monitoring error:', error);
+        // Continue monitoring even if one check fails
+      }
     }, 30000);
 
     console.log('[GEOLOCATION_ALERTS] ✅ Location monitoring started (30s intervals)');
+    
+    // Add graceful shutdown handler
+    process.on('SIGTERM', () => this.stopMonitoring());
+    process.on('SIGINT', () => this.stopMonitoring());
   }
 
   /**
@@ -79,6 +88,13 @@ class GeolocationAlertService {
       this.monitoringInterval = null;
       console.log('[GEOLOCATION_ALERTS] 🛑 Location monitoring stopped');
     }
+    
+    // Clear tracking data to prevent memory leaks
+    this.studentTracking.clear();
+    
+    // Remove process listeners
+    process.removeAllListeners('SIGTERM');
+    process.removeAllListeners('SIGINT');
   }
 
   /**
@@ -234,6 +250,24 @@ class GeolocationAlertService {
   private async checkAllStudentLocations(): Promise<void> {
     console.log('[GEOLOCATION_ALERTS] 🔍 Checking all student locations...');
     
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Location check timeout')), 10000)
+      );
+
+      const locationCheckPromise = this.performLocationCheck();
+      
+      await Promise.race([locationCheckPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('[GEOLOCATION_ALERTS] ❌ Error checking locations:', error);
+    }
+  }
+
+  /**
+   * Perform the actual location check with proper error handling
+   */
+  private async performLocationCheck(): Promise<void> {
     // In a real implementation, this would:
     // 1. Query database for all active students with geolocation enabled
     // 2. Get their latest location updates
