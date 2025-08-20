@@ -104,11 +104,17 @@ class PWAConnectionManager {
     try {
       const startTime = Date.now();
       
+      // Create AbortController for better browser compatibility
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const response = await fetch('/api/health', {
         method: 'GET',
         cache: 'no-cache',
-        signal: AbortSignal.timeout(10000) // Timeout 10s
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       const endTime = Date.now();
       const latency = endTime - startTime;
@@ -231,23 +237,34 @@ class PWAConnectionManager {
    * Intercepte les erreurs de fetch pour détecter les problèmes de connexion
    */
   private interceptFetchErrors() {
+    // Only intercept if not already intercepted to prevent multiple wrappings
+    if ((window as any).__pwa_fetch_intercepted) {
+      return;
+    }
+    
     const originalFetch = window.fetch;
     
     window.fetch = async (...args) => {
       try {
         const response = await originalFetch(...args);
         
-        if (!response.ok && response.status >= 500) {
+        // Only log connection issues for our API endpoints
+        if (!response.ok && response.status >= 500 && args[0]?.toString().includes('/api/')) {
           this.handleConnectionError();
         }
         
         return response;
       } catch (error) {
-        console.warn('[PWA_CONNECTION] Fetch error intercepted:', error);
-        this.handleConnectionError();
+        // Only log network errors for our API endpoints
+        if (args[0]?.toString().includes('/api/')) {
+          console.warn('[PWA_CONNECTION] Network error for API endpoint:', error);
+          this.handleConnectionError();
+        }
         throw error;
       }
     };
+    
+    (window as any).__pwa_fetch_intercepted = true;
   }
 
   /**
