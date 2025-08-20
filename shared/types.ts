@@ -180,6 +180,7 @@ export interface NotificationData {
   subType: string;
   title: string;
   message: string;
+  content?: string; // Additional content field for detailed notifications
   recipientIds: number[];
   sendSMS?: boolean;
   sendWhatsApp?: boolean;
@@ -187,6 +188,7 @@ export interface NotificationData {
   sendPush?: boolean;
   priority: 'low' | 'medium' | 'high' | 'critical';
   metadata?: Record<string, any>;
+  userType?: string; // Add userType field for notification targeting
 }
 
 // GPS Tracking types

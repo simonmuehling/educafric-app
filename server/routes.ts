@@ -16714,7 +16714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: reportId,
         action,
         comment,
-        validatedBy: user.name,
+        validatedBy: `${user.firstName} ${user.lastName}`,
         validatedAt: new Date().toISOString()
       };
 
@@ -16860,8 +16860,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const profile = {
         id: user.id,
-        firstName: user.name.split(' ')[0] || 'Marie',
-        lastName: user.name.split(' ')[1] || 'Nguesso',
+        firstName: user.firstName || 'Marie',
+        lastName: user.lastName || 'Nguesso',
         email: user.email,
         phone: '+237 656 200 473',
         location: 'Yaoundé, Cameroun',
@@ -16971,7 +16971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transfer = {
         id: Date.now(),
         ...transferData,
-        processedBy: user.name,
+        processedBy: `${user.firstName} ${user.lastName}`,
         processedAt: new Date().toISOString(),
         status: 'approved'
       };
