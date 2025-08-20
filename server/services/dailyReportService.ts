@@ -188,7 +188,7 @@ export class DailyReportService {
           
           <div class="footer">
             <p><strong>EDUCAFRIC - Révolutionner l'Éducation en Afrique</strong></p>
-            <p>Email: admin@educafric.com | Web: www.educafric.com</p>
+            <p>Email: simonpmuehling@gmail.com | Web: www.educafric.com</p>
             <p>&copy; 2025 EDUCAFRIC. Tous droits réservés.</p>
           </div>
         </div>
