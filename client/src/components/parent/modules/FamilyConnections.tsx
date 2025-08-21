@@ -57,12 +57,26 @@ const FamilyConnections: React.FC = () => {
   // Fetch family connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<FamilyConnection[]>({
     queryKey: ['/api/family/connections'],
+    queryFn: async () => {
+      const response = await fetch('/api/family/connections', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch family connections');
+      return response.json();
+    },
     enabled: !!user
   });
 
   // Fetch messages for selected connection
   const { data: messages = [], isLoading: messagesLoading } = useQuery<FamilyMessage[]>({
     queryKey: ['/api/family/messages', selectedConnection],
+    queryFn: async () => {
+      const response = await fetch(`/api/family/messages/${selectedConnection}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch messages');
+      return response.json();
+    },
     enabled: !!selectedConnection
   });
 

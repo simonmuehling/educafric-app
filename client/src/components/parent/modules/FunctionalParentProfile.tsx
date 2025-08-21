@@ -58,6 +58,13 @@ const FunctionalParentProfile: React.FC = () => {
   // Fetch parent profile data
   const { data: profile, isLoading } = useQuery<ParentProfile>({
     queryKey: ['/api/parent/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/profile', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch parent profile');
+      return response.json();
+    },
     enabled: !!user
   });
 

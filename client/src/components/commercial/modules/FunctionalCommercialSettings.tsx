@@ -51,6 +51,13 @@ const FunctionalCommercialSettings: React.FC = () => {
   // Fetch user profile
   const { data: profile, isLoading } = useQuery({
     queryKey: ['/api/commercial/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/commercial/profile', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch commercial profile');
+      return response.json();
+    },
     enabled: !!user
   });
 
