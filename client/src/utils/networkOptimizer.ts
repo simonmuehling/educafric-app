@@ -69,7 +69,7 @@ class NetworkOptimizer {
         signal: AbortSignal.timeout(this.config.timeout)
       };
 
-      let lastError: Error;
+      let lastError: Error = new Error('Network request failed');
       
       // Retry mechanism for unstable connections
       for (let attempt = 1; attempt <= this.config.retries; attempt++) {
