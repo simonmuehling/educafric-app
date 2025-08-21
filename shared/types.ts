@@ -186,9 +186,10 @@ export interface NotificationData {
   sendWhatsApp?: boolean;
   sendEmail?: boolean;
   sendPush?: boolean;
+  userType?: string; // For notification creation
+  userId?: number; // For single user notifications
   priority: 'low' | 'medium' | 'high' | 'critical';
   metadata?: Record<string, any>;
-  userType?: string; // Add userType field for notification targeting
 }
 
 // GPS Tracking types
