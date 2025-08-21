@@ -60,6 +60,15 @@ const FunctionalDirectorProfile: React.FC = () => {
   // Fetch director profile data
   const { data: profile, isLoading } = useQuery<DirectorProfile>({
     queryKey: ['/api/director/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/profile', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch director profile');
+      }
+      return response.json();
+    },
     enabled: !!user
   });
 
