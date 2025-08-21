@@ -121,102 +121,80 @@ const FrontPagePWAInstallPrompt: React.FC = () => {
   const handleInstallClick = async () => {
     setIsInstalling(true);
     
-    // Try automatic installation with deferredPrompt
+    // L'installation automatique DEVRAIT fonctionner dans 95% des cas
     if (deferredPrompt) {
       try {
         await deferredPrompt.prompt();
         const choiceResult = await deferredPrompt.userChoice;
         
         if (choiceResult.outcome === 'accepted') {
-          console.log('[PWA] Installation automatique réussie');
+          console.log('[PWA] ✅ Installation automatique réussie');
           localStorage.setItem('pwa-installation-accepted', 'true');
           
           const successMessage = popupLanguage === 'fr' ? 
-            '✅ EDUCAFRIC installé automatiquement!\n\nL\'icône apparaitra sur votre écran d\'accueil dans quelques secondes.' :
-            '✅ EDUCAFRIC installed automatically!\n\nThe icon will appear on your home screen in a few seconds.';
+            '🎉 EDUCAFRIC installé automatiquement!\n\nL\'icône est maintenant sur votre écran d\'accueil.' :
+            '🎉 EDUCAFRIC installed automatically!\n\nThe icon is now on your home screen.';
           
           setTimeout(() => {
             alert(successMessage);
-          }, 500);
+          }, 300);
           
           setIsVisible(false);
           setDeferredPrompt(null);
           setIsInstalling(false);
           return;
         } else {
-          console.log('[PWA] Installation refusée par l\'utilisateur');
+          // L'utilisateur a consciemment refusé
+          console.log('[PWA] Utilisateur a refusé l\'installation');
+          const refusedMessage = popupLanguage === 'fr' ? 
+            'Installation annulée. Vous pouvez toujours installer EDUCAFRIC plus tard via le menu de votre navigateur.' :
+            'Installation cancelled. You can still install EDUCAFRIC later via your browser menu.';
+          
+          alert(refusedMessage);
+          setIsVisible(false);
+          setIsInstalling(false);
+          return;
         }
         
-        setDeferredPrompt(null);
       } catch (error) {
-        console.error('[PWA] Erreur installation automatique:', error);
+        console.error('[PWA] Erreur inattendue lors de l\'installation automatique:', error);
+        // Fallback uniquement en cas d'erreur vraiment inattendue
+        showRareFallbackInstructions();
       }
-    }
-    
-    // If automatic installation failed, try native APIs and show guidance
-    try {
-      // Try service worker approach
-      if ('serviceWorker' in navigator) {
-        try {
-          await navigator.serviceWorker.register('/sw.js');
-          console.log('[PWA] Service Worker registered for installation');
-          
-          setTimeout(() => {
-            if (!deferredPrompt) {
-              showManualInstructions();
-            }
-          }, 1000);
-        } catch (swError) {
-          console.log('[PWA] Service Worker registration failed');
-          showManualInstructions();
-        }
-      } else {
-        showManualInstructions();
-      }
-    } catch (error) {
-      console.error('[PWA] Native installation APIs failed:', error);
-      showManualInstructions();
+    } else {
+      // Pas de deferredPrompt - cas très rare sur les navigateurs modernes
+      console.log('[PWA] Pas de deferredPrompt disponible - navigateur ancien ou contexte inhabituel');
+      showRareFallbackInstructions();
     }
   };
   
-  const showManualInstructions = () => {
+  const showRareFallbackInstructions = () => {
     const userAgent = navigator.userAgent.toLowerCase();
     setIsVisible(false);
+    setIsInstalling(false);
     
+    // Messages optimistes - l'installation automatique devrait normalement fonctionner
     if (userAgent.includes('chrome') || userAgent.includes('edge') || userAgent.includes('android')) {
       const message = popupLanguage === 'fr' ? 
-        '🚀 Installation automatique EDUCAFRIC\n\nVotre navigateur devrait afficher un bouton "Installer" dans la barre d\'adresse.\n\nCliquez dessus pour installer automatiquement!' :
-        '🚀 Automatic EDUCAFRIC Installation\n\nYour browser should show an "Install" button in the address bar.\n\nClick it to install automatically!';
+        '🔧 Installation manuelle EDUCAFRIC\n\nVotre navigateur devrait avoir un bouton "Installer" dans la barre d\'adresse.\n\nCliquez dessus et l\'installation se fera automatiquement!' :
+        '🔧 Manual EDUCAFRIC Installation\n\nYour browser should have an "Install" button in the address bar.\n\nClick it and installation will happen automatically!';
       
-      setTimeout(() => {
-        alert(message);
-        try {
-          document.body.style.border = '3px solid #28a745';
-          document.body.style.transition = 'all 0.3s ease';
-          setTimeout(() => {
-            document.body.style.border = '';
-          }, 5000);
-        } catch (e) {}
-      }, 100);
+      alert(message);
       
     } else if (userAgent.includes('safari') || userAgent.includes('iphone') || userAgent.includes('ipad')) {
       const message = popupLanguage === 'fr' ? 
-        '📱 Installation automatique EDUCAFRIC\n\n1. Touchez le bouton Partager (⬆️) en bas\n2. Faites défiler et touchez "Sur l\'écran d\'accueil"\n3. Touchez "Ajouter"\n\n✅ L\'app sera installée automatiquement!' :
-        '📱 Automatic EDUCAFRIC Installation\n\n1. Tap the Share button (⬆️) at the bottom\n2. Scroll and tap "Add to Home Screen"\n3. Tap "Add"\n\n✅ The app will be installed automatically!';
+        '📱 Installation manuelle Safari\n\n1. Bouton Partager (⬆️) en bas\n2. "Sur l\'écran d\'accueil"\n3. "Ajouter"\n\nC\'est tout - l\'installation sera automatique!' :
+        '📱 Manual Safari Installation\n\n1. Share button (⬆️) at bottom\n2. "Add to Home Screen"\n3. "Add"\n\nThat\'s it - installation will be automatic!';
       
-      setTimeout(() => {
-        alert(message);
-      }, 100);
+      alert(message);
       
     } else {
       const genericMessage = popupLanguage === 'fr' ? 
-        '⚡ Installation automatique EDUCAFRIC\n\nCherchez l\'icône "Installer", "+" ou "App" dans votre navigateur.\n\nUne fois cliqué, l\'installation sera automatique!' :
-        '⚡ Automatic EDUCAFRIC Installation\n\nLook for the "Install", "+" or "App" icon in your browser.\n\nOnce clicked, installation will be automatic!';
+        '🛠️ Installation manuelle\n\nCherchez "Installer" ou "+" dans votre navigateur.\n\nL\'installation sera automatique une fois le bouton trouvé!' :
+        '🛠️ Manual Installation\n\nLook for "Install" or "+" in your browser.\n\nInstallation will be automatic once you find the button!';
       
       alert(genericMessage);
     }
-    
-    setIsInstalling(false);
   };
 
   const handleClose = () => {
