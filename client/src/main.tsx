@@ -5,8 +5,8 @@ import { setupConsoleFilter } from "./utils/consoleFilter";
 import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
-// Register Service Worker for PWA functionality - Enabled for testing notifications
-if ('serviceWorker' in navigator) {
+// Register Service Worker for PWA functionality - Only in production
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', async () => {
     try {
       // Check if service worker file exists and has correct MIME type
@@ -35,7 +35,7 @@ if ('serviceWorker' in navigator) {
     }
   });
 } else {
-  console.log('[PWA] Service Worker not supported by this browser');
+  console.log('[PWA] Service Worker registration disabled for development');
 }
 
 // Setup console filtering to reduce spam in development

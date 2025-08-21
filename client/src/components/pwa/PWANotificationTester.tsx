@@ -1,86 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, TestTube } from 'lucide-react';
-import { usePWANotifications } from '@/hooks/usePWANotifications';
+import { Bell, TestTube, Check, X } from 'lucide-react';
+import hybridNotificationService from '@/services/hybridNotificationService';
 
 const PWANotificationTester: React.FC = () => {
-  const { testNotification } = usePWANotifications(null, false);
+  const [status, setStatus] = useState(hybridNotificationService.getStatus());
 
-  const testSecurityAlert = () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SHOW_NOTIFICATION',
-        title: '🚨 Alerte de sécurité EDUCAFRIC',
-        options: {
-          body: 'Test d\'alerte de géolocalisation - Votre enfant a quitté une zone de sécurité.',
-          icon: '/educafric-logo-128.png',
-          badge: '/android-icon-192x192.png',
-          tag: 'security-test',
-          requireInteraction: true,
-          actions: [
-            {
-              action: 'view_location',
-              title: 'Voir position',
-              icon: '/icons/location.png'
-            },
-            {
-              action: 'dismiss',
-              title: 'Fermer',
-              icon: '/icons/close.png'
-            }
-          ],
-          vibrate: [200, 100, 200, 100, 200]
-        }
-      });
-    }
-  };
-
-  const testGradeNotification = () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SHOW_NOTIFICATION',
-        title: '📚 Nouvelle note EDUCAFRIC',
-        options: {
-          body: 'Emma a reçu une nouvelle note en Mathématiques : 18/20 - Excellent travail !',
-          icon: '/educafric-logo-128.png',
-          tag: 'grade-test',
-          requireInteraction: false,
-          actions: [
-            {
-              action: 'view_grades',
-              title: 'Voir notes',
-              icon: '/icons/grades.png'
-            }
-          ]
-        }
-      });
-    }
-  };
-
-  const testHomeworkReminder = () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SHOW_NOTIFICATION',
-        title: '📝 Rappel devoir EDUCAFRIC',
-        options: {
-          body: 'N\'oubliez pas : Devoir de Français à rendre demain - Analyse de texte',
-          icon: '/educafric-logo-128.png',
-          tag: 'homework-reminder',
-          requireInteraction: false
-        }
-      });
-    }
-  };
+  useEffect(() => {
+    // Update status when component mounts
+    setStatus(hybridNotificationService.getStatus());
+  }, []);
 
   const requestPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        testNotification();
-      } else {
-        alert('Permission de notification refusée. Activez-les dans les paramètres de votre navigateur.');
-      }
+    const granted = await hybridNotificationService.requestPermission();
+    setStatus(hybridNotificationService.getStatus());
+    
+    if (!granted) {
+      alert('Permission de notification refusée. Activez-les dans les paramètres de votre navigateur.');
     }
   };
 
@@ -118,7 +55,7 @@ const PWANotificationTester: React.FC = () => {
         {currentPermission === 'granted' && (
           <>
             <Button 
-              onClick={testNotification}
+              onClick={() => hybridNotificationService.testBasicNotification()}
               variant="outline"
               className="w-full"
             >
@@ -127,7 +64,7 @@ const PWANotificationTester: React.FC = () => {
             </Button>
             
             <Button 
-              onClick={testSecurityAlert}
+              onClick={() => hybridNotificationService.testSecurityAlert()}
               variant="destructive"
               className="w-full"
             >
@@ -135,7 +72,7 @@ const PWANotificationTester: React.FC = () => {
             </Button>
             
             <Button 
-              onClick={testGradeNotification}
+              onClick={() => hybridNotificationService.testGradeNotification()}
               variant="default"
               className="w-full bg-green-600 hover:bg-green-700"
             >
@@ -143,7 +80,7 @@ const PWANotificationTester: React.FC = () => {
             </Button>
             
             <Button 
-              onClick={testHomeworkReminder}
+              onClick={() => hybridNotificationService.testHomeworkReminder()}
               variant="outline"
               className="w-full"
             >
@@ -153,12 +90,30 @@ const PWANotificationTester: React.FC = () => {
         )}
         
         <div className="text-xs text-gray-500 mt-4">
-          <p>💡 Conseils :</p>
-          <ul className="list-disc list-inside mt-1 space-y-1">
-            <li>Les notifications fonctionnent même si l'onglet est fermé</li>
-            <li>Vous pouvez les désactiver dans les paramètres du navigateur</li>
-            <li>Sur mobile, elles apparaissent comme des notifications système</li>
-          </ul>
+          <p className="font-semibold mb-2">📊 État du système :</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              {status.notificationSupport ? <Check className="w-3 h-3 text-green-500" /> : <X className="w-3 h-3 text-red-500" />}
+              <span>Support notifications: {status.notificationSupport ? 'Oui' : 'Non'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {status.hasNotificationPermission ? <Check className="w-3 h-3 text-green-500" /> : <X className="w-3 h-3 text-red-500" />}
+              <span>Permission accordée: {status.hasNotificationPermission ? 'Oui' : 'Non'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {status.hasServiceWorker ? <Check className="w-3 h-3 text-green-500" /> : <X className="w-3 h-3 text-gray-400" />}
+              <span>Service Worker: {status.hasServiceWorker ? 'Actif' : 'Mode direct'}</span>
+            </div>
+          </div>
+          
+          <div className="mt-3">
+            <p>💡 Conseils :</p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
+              <li>Fonctionne avec ou sans Service Worker</li>
+              <li>Notifications directes dans le navigateur en développement</li>
+              <li>Notifications système complètes en production</li>
+            </ul>
+          </div>
         </div>
       </CardContent>
     </Card>
