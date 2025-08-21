@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { usePWANotifications } from "@/hooks/usePWANotifications";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
@@ -61,6 +62,7 @@ import SignatureTest from "@/pages/SignatureTest";
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
 const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
 const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
+const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 
 // System components - Optimisés pour 3500+ utilisateurs
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
@@ -429,6 +431,7 @@ function Router() {
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
       <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
       <Route path="/bulletin-tests" component={BulletinTestSuite} />
+      <Route path="/pwa-notifications-test" component={PWANotificationTest} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />
