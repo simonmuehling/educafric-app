@@ -1,37 +1,14 @@
 import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
   UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import FunctionalDirectorProfile from './modules/FunctionalDirectorProfile';
-import TeacherManagement from './modules/TeacherManagement';
-import StudentManagement from './modules/StudentManagement';
-import ClassManagement from './modules/ClassManagement';
-import FunctionalDirectorClassManagement from './modules/FunctionalDirectorClassManagement';
-import FunctionalDirectorStudentManagement from './modules/FunctionalDirectorStudentManagement';
-import FunctionalDirectorTeacherManagement from './modules/FunctionalDirectorTeacherManagement';
-import SchoolAttendanceManagement from './modules/SchoolAttendanceManagement';
-import ParentRequestsNew from './modules/ParentRequestsNew';
-import DelegateAdministrators from './modules/DelegateAdministrators';
-
-import BulletinApprovalNew from './modules/BulletinApprovalNew';
-import BulletinValidation from './modules/BulletinValidation';
-import TeacherAbsenceManager from './modules/TeacherAbsenceManager';
-import TimetableConfiguration from './modules/TimetableConfiguration';
-import FinancialManagement from './modules/FinancialManagement';
-import ReportsAnalytics from './modules/ReportsAnalytics';
-import SchoolSettings from './modules/SchoolSettings';
-
-import HelpCenter from '@/components/help/HelpCenter';
-import { FunctionalDirectorOverview } from './modules/FunctionalDirectorOverview';
-import { FunctionalDirectorTeachers } from './modules/FunctionalDirectorTeachers';
-import CommunicationsCenter from './modules/CommunicationsCenter';
-import MobileSchoolConfigurationGuide from './modules/MobileSchoolConfigurationGuide';
-import NotificationCenter from '@/components/shared/NotificationCenter';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 
 
 // Import Premium components
@@ -43,6 +20,32 @@ interface DirectorDashboardProps {
 
 const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) => {
   const { language } = useLanguage();
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Stable callback for handling quick actions
   const stableHandleQuickActions = useStableCallback((event: CustomEvent) => {
@@ -150,14 +153,14 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.overview,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalDirectorOverview />
+      component: createDynamicModule('overview')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <FunctionalDirectorProfile />
+      component: createDynamicModule('settings')
     },
     {
       id: 'teachers',
@@ -175,7 +178,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Outils de communication intégrés"
           ]}
         >
-          <FunctionalDirectorTeacherManagement />
+          {createDynamicModule('teachers')}
         </PremiumFeatureGate>
       )
     },
@@ -195,7 +198,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Rapports d'analyse comportementale"
           ]}
         >
-          <FunctionalDirectorStudentManagement />
+          {createDynamicModule('students')}
         </PremiumFeatureGate>
       )
     },
@@ -215,7 +218,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Analytics de performance par classe"
           ]}
         >
-          <FunctionalDirectorClassManagement />
+          {createDynamicModule('classes')}
         </PremiumFeatureGate>
       )
     },
@@ -235,7 +238,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Notifications automatiques de changements"
           ]}
         >
-          <TimetableConfiguration />
+          {createDynamicModule('timetable')}
         </PremiumFeatureGate>
       )
     },
@@ -244,7 +247,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.attendance,
       icon: <CheckCircle className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: <SchoolAttendanceManagement />
+      component: createDynamicModule('attendance')
     },
     {
       id: 'communications',
@@ -262,7 +265,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Intégration avec systèmes de notation"
           ]}
         >
-          <CommunicationsCenter />
+          {createDynamicModule('communications')}
         </PremiumFeatureGate>
       )
     },
@@ -271,14 +274,14 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.teacherAbsence,
       icon: <UserX className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <TeacherAbsenceManager />
+      component: createDynamicModule('teacher-absence')
     },
     {
       id: 'parent-requests',
       label: t.parentRequests,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <ParentRequestsNew />
+      component: createDynamicModule('parent-requests')
     },
 
     {
@@ -286,49 +289,49 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.bulletinApproval,
       icon: <ClipboardList className="w-6 h-6" />,
       color: 'bg-cyan-500',
-      component: <BulletinValidation />
+      component: createDynamicModule('bulletin-validation')
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Director" userId={1} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'school-administrators',
       label: t.schoolAdministrators,
       icon: <Shield className="w-6 h-6" />,
       color: 'bg-amber-500',
-      component: <DelegateAdministrators />
+      component: createDynamicModule('school-administrators')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-violet-500',
-      component: <ReportsAnalytics />
+      component: createDynamicModule('reports')
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-rose-500',
-      component: <HelpCenter userType="school" />
+      component: createDynamicModule('help')
     },
     {
       id: 'config-guide',
       label: t.configGuide,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <MobileSchoolConfigurationGuide />
+      component: createDynamicModule('config-guide')
     },
     {
       id: 'school-settings',
       label: t.schoolSettings || (language === 'fr' ? 'Paramètres École' : 'School Settings'),
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-slate-600',
-      component: <SchoolSettings />
+      component: createDynamicModule('school-settings')
     }
   ];
 

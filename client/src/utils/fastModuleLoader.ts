@@ -1,6 +1,5 @@
-// ⚠️  DEPRECATED: Use unifiedModuleLoader.ts instead
-// This file is kept for compatibility but will be removed
-// Simplified fast module loader for EDUCAFRIC dashboards
+// Optimized module loader for EDUCAFRIC dashboards - Bundle size optimized
+// Pure dynamic imports only - no static imports to avoid bundle conflicts
 import React from 'react';
 
 interface ModuleCache {
@@ -117,27 +116,27 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // Preload critical modules
+  // Optimized: Preload only essential modules, load others on-demand
   async preloadCriticalModules() {
     const criticalModules = [
-      // Commercial modules
-      'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement',
+      // Only preload the most commonly used modules to reduce initial bundle size
+      'settings', 'overview', 'teachers', 'students', 'classes', 
+      'help', 'notifications',
       
-      // Director modules - ALL for instant loading
-      'overview', 'settings', 'teachers', 'students', 'classes', 'timetable',
-      'attendance', 'communications', 'teacher-absence', 'parent-requests',
-      'bulletin-validation', 'notifications', 'school-administrators', 'reports',
-      'help', 'config-guide', 'school-settings',
-      'FunctionalDirectorProfile', 'TeacherAbsenceManager',
+      // Essential parent modules
+      'MyChildren', 'FunctionalParentMessages',
       
-      // Parent modules
-      'MyChildren', 'FunctionalParentMessages', 'ParentGeolocation',
-      'FunctionalParentPayments', 'FunctionalParentGrades'
+      // Essential commercial modules
+      'DocumentsContracts', 'CommercialStatistics'
     ];
 
-    // Preload in parallel for speed
-    const preloadPromises = criticalModules.map(module => this.preloadModule(module));
-    await Promise.allSettled(preloadPromises);
+    // Preload in smaller batches to reduce memory pressure
+    const batchSize = 5;
+    for (let i = 0; i < criticalModules.length; i += batchSize) {
+      const batch = criticalModules.slice(i, i + batchSize);
+      const batchPromises = batch.map(module => this.preloadModule(module));
+      await Promise.allSettled(batchPromises);
+    }
     
     console.log(`[FAST_LOADER] 🚀 Preloaded ${Object.keys(this.cache).length} critical modules`);
   }
