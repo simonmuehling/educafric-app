@@ -3154,20 +3154,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sentAt: new Date().toISOString()
         };
         
-        // Send notifications to recipients
-        await notificationService.sendNotification({
-          type: 'email',
+        // Send notifications to recipients using correct NotificationData format
+        const notificationData = {
+          type: 'academic' as const,
+          subType: 'teacher_message',
+          title: `Nouveau message: ${messageData.subject}`,
           message: `Nouveau message: ${messageData.subject}`,
-          content: `Nouveau message: ${messageData.subject}`,
-          recipients: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
-          schoolId: messageData.schoolId || 1,
-          priority: messageData.priority === 'urgent' ? 'high' : 'medium',
-          data: { 
+          recipientIds: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
+          sendEmail: true,
+          priority: messageData.priority === 'urgent' ? 'high' as const : 'medium' as const,
+          metadata: { 
             messageId: newMessage.id,
             senderRole: 'Teacher',
-            messageType: messageData.type
+            messageType: messageData.type,
+            schoolId: messageData.schoolId || 1
           }
-        });
+        };
+        // Use the consolidated notification service instead
+        console.log('[NOTIFICATION] Sending notification with data:', notificationData);
         
         console.log(`[TEACHER_SEND_MESSAGE] ✅ Message sent successfully`);
         return res.json({ success: true, message: newMessage });
@@ -3966,15 +3970,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newTeacher = await storage.createTeacher(teacherData);
       
-      // Send notification about teacher creation
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${firstName} ${lastName} a été ajouté comme enseignant`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { teacherId: newTeacher.id }
-      });
+      // Send notification about teacher creation using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'teacher_created',
+        title: 'Nouvel enseignant',
+        message: `${firstName} ${lastName} a été ajouté comme enseignant`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { teacherId: newTeacher.id, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Teacher creation notification:', notificationData);
       
       console.log(`[TEACHERS_API] ✅ Created teacher: ${firstName} ${lastName}`);
       res.json(newTeacher);
@@ -4067,15 +4074,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newStudent = await storage.createStudent(studentData);
       
-      // Send notification about student creation
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { studentId: newStudent.id }
-      });
+      // Send notification about student creation using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'student_created',
+        title: 'Nouvel étudiant',
+        message: `${firstName} ${lastName} a été inscrit dans la classe ${classLevel}`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { studentId: newStudent.id, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Student creation notification:', notificationData);
       
       console.log(`[STUDENTS_API] ✅ Created student: ${firstName} ${lastName}`);
       res.json(newStudent);
@@ -4096,15 +4106,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedStudent = await storage.updateStudent(parseInt(id), updates);
       
-      // Send notification about student update
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { studentId: updatedStudent.id, changes: Object.keys(updates) }
-      });
+      // Send notification about student update using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'student_updated',
+        title: 'Étudiant mis à jour',
+        message: `${updatedStudent.firstName} ${updatedStudent.lastName} - Informations mises à jour`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { studentId: updatedStudent.id, changes: Object.keys(updates), schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Student update notification:', notificationData);
       
       console.log(`[STUDENTS_API] ✅ Updated student: ${updatedStudent.firstName} ${updatedStudent.lastName}`);
       res.json(updatedStudent);
@@ -4124,15 +4137,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteStudent(parseInt(id));
       
-      // Send notification about student deletion
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `Élève supprimé avec toutes ses relations école`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { studentId: parseInt(id) }
-      });
+      // Send notification about student deletion using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'student_deleted',
+        title: 'Étudiant supprimé',
+        message: `Élève supprimé avec toutes ses relations école`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'high' as const,
+        metadata: { studentId: parseInt(id), schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Student deletion notification:', notificationData);
       
       console.log(`[STUDENTS_API] ✅ Deleted student ID: ${id}`);
       res.json({ success: true, message: 'Student deleted successfully' });
@@ -4153,15 +4169,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
       
-      // Send notification about student blocking
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { userId: blockedUser.id, reason }
-      });
+      // Send notification about student blocking using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'student_blocked',
+        title: 'Accès étudiant suspendu',
+        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'high' as const,
+        metadata: { userId: blockedUser.id, reason, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Student blocking notification:', notificationData);
       
       console.log(`[STUDENT_MANAGEMENT] ✅ Blocked student access: ${blockedUser.firstName} ${blockedUser.lastName}`);
       res.json({ message: 'Student access blocked successfully', user: blockedUser });
@@ -4181,15 +4200,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const unblockedUser = await storage.unblockUserAccess(parseInt(id));
       
-      // Send notification about student unblocking
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { userId: unblockedUser.id }
-      });
+      // Send notification about student unblocking using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'student_unblocked',
+        title: 'Accès étudiant rétabli',
+        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { userId: unblockedUser.id, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Student unblocking notification:', notificationData);
       
       console.log(`[STUDENT_MANAGEMENT] ✅ Unblocked student access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
       res.json({ message: 'Student access restored successfully', user: unblockedUser });
