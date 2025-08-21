@@ -20,7 +20,7 @@ export class TutorialApi {
       console.error('[TUTORIAL_API] Failed to get tutorial status:', response.status, response.statusText);
       // Return default tutorial status instead of throwing
       return {
-        isCompleted: false,
+        hasCompleted: false,
         currentStep: 0,
         totalSteps: 10,
         userRole: userRole,
