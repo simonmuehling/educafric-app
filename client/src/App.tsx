@@ -18,7 +18,7 @@ import Login from "@/pages/Login";
 import PasswordReset from "@/pages/PasswordReset";
 import NotFound from "@/pages/not-found";
 
-// Critical optimisation pour 3500+ users - Lazy loading obligatoire
+// UNIFIED MODULE LOADING - Eliminates Fast/Lazy confusion for 3500+ users
 import { 
   LazyStudents, 
   LazyTeachers, 
@@ -37,6 +37,9 @@ import {
   LazyEnhancedSandbox,
   LazyUIShowcase
 } from "@/components/LazyLoader";
+
+// Initialize network optimizer for connection quality improvements
+import "@/utils/networkOptimizer";
 
 // Light components - Regular imports OK
 import Subscribe from "@/pages/Subscribe";

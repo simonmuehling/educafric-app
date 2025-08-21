@@ -33,6 +33,7 @@ import { sendGoodbyeEmail } from "./emailService";
 import { dailyReportService } from "./services/dailyReportService";
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema, updateProfileSchema } from "@shared/schemas";
 import { User } from "@shared/schema";
+import { NotificationData } from "@shared/types";
 import { z } from "zod";
 import { stripeService, subscriptionPlans } from './services/stripeService';
 import { subscriptionManager } from './services/subscriptionManager';
@@ -3156,6 +3157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send notifications to recipients
         await notificationService.sendNotification({
           type: 'email',
+          message: `Nouveau message: ${messageData.subject}`,
           content: `Nouveau message: ${messageData.subject}`,
           recipients: Array.isArray(messageData.recipientIds) ? messageData.recipientIds : [messageData.recipientIds],
           schoolId: messageData.schoolId || 1,
@@ -6575,7 +6577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let attendance: any[] = [];
       
       if (studentId) {
-        attendance = await storage.getAttendanceByStudent(parseInt(studentId as string));
+        attendance = await storage.getAttendanceByStudent(parseInt(studentId as string), parseInt(classId as string) || undefined);
       } else if (classId && date) {
         attendance = await storage.getAttendanceByClass(parseInt(classId as string));
       } else {
@@ -6591,7 +6593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/attendance", requireAuth, requireRole(['Teacher', 'Admin']), async (req, res) => {
     try {
       const attendanceData = req.body; // insertAttendanceSchema.parse(req.body);
-      const attendance = await storage.createAttendance(attendanceData, req.user?.id || 0);
+      const attendance = await storage.createAttendance(attendanceData);
       res.status(201).json(attendance);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

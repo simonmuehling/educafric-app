@@ -1,3 +1,5 @@
+// ⚠️  DEPRECATED: Use unifiedModuleLoader.ts instead
+// This file is kept for compatibility but will be removed
 // Simplified fast module loader for EDUCAFRIC dashboards
 import React from 'react';
 

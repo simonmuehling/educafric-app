@@ -1,4 +1,5 @@
 import { User } from '@shared/schema';
+import { NotificationData as SharedNotificationData } from '@shared/types';
 
 // Consolidated Bilingual SMS Templates - Cost-efficient for African markets
 export const SMS_TEMPLATES = {
@@ -352,7 +353,8 @@ export const WHATSAPP_TEMPLATES = {
   }
 };
 
-export interface NotificationData {
+// Legacy notification data for existing service methods
+export interface LegacyNotificationData {
   type: 'sms' | 'email' | 'whatsapp' | 'push';
   recipient: User;
   template: string;
@@ -360,6 +362,9 @@ export interface NotificationData {
   priority: 'low' | 'medium' | 'high' | 'urgent';
   language: 'en' | 'fr';
 }
+
+// Use modern notification data from shared types
+export type NotificationData = SharedNotificationData;
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -953,7 +958,7 @@ export class NotificationService {
   }
 
   // Consolidated notification sending
-  async sendNotification(notification: NotificationData): Promise<boolean> {
+  async sendNotification(notification: LegacyNotificationData): Promise<boolean> {
     try {
       switch (notification.type) {
         case 'sms':
@@ -975,7 +980,7 @@ export class NotificationService {
   }
 
   // Send multiple notifications efficiently
-  async sendBatch(notifications: NotificationData[]): Promise<boolean[]> {
+  async sendBatch(notifications: LegacyNotificationData[]): Promise<boolean[]> {
     const promises = notifications.map(notification => this.sendNotification(notification));
     return Promise.all(promises);
   }
@@ -988,7 +993,7 @@ export class NotificationService {
     priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium'
   ): Promise<boolean[]> {
     const language = user.preferredLanguage || 'en';
-    const notifications: NotificationData[] = [];
+    const notifications: LegacyNotificationData[] = [];
 
     // Always send push notifications
     notifications.push({
@@ -1041,7 +1046,7 @@ export class NotificationService {
     return this.sendBatch(notifications);
   }
 
-  private async sendSMS(notification: NotificationData): Promise<boolean> {
+  private async sendSMS(notification: LegacyNotificationData): Promise<boolean> {
     if (!process.env.VONAGE_API_KEY || !process.env.VONAGE_API_SECRET) {
       console.warn('Vonage credentials not configured');
       return false;
@@ -1094,21 +1099,21 @@ export class NotificationService {
     }
   }
 
-  private async sendEmail(notification: NotificationData): Promise<boolean> {
+  private async sendEmail(notification: LegacyNotificationData): Promise<boolean> {
     // Email implementation would go here
     // For now, just log the email content
     console.log(`Email notification sent to ${notification.recipient.email}`);
     return true;
   }
 
-  private async sendWhatsApp(notification: NotificationData): Promise<boolean> {
+  private async sendWhatsApp(notification: LegacyNotificationData): Promise<boolean> {
     // WhatsApp Business API implementation would go here
     // For now, just log the WhatsApp content
     console.log(`WhatsApp notification sent to ${notification.recipient.whatsappNumber}`);
     return true;
   }
 
-  private async sendPushNotification(notification: NotificationData): Promise<boolean> {
+  private async sendPushNotification(notification: LegacyNotificationData): Promise<boolean> {
     // Push notification implementation would go here
     // For now, just log the push notification
     console.log(`Push notification sent to user ${notification.recipient.id}`);
