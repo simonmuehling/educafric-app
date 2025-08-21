@@ -17,7 +17,17 @@ export class TutorialApi {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get tutorial status: ${response.statusText}`);
+      console.error('[TUTORIAL_API] Failed to get tutorial status:', response.status, response.statusText);
+      // Return default tutorial status instead of throwing
+      return {
+        isCompleted: false,
+        currentStep: 0,
+        totalSteps: 10,
+        userRole: userRole,
+        tutorialVersion: tutorialVersion,
+        completedSteps: [],
+        lastUpdated: new Date().toISOString()
+      };
     }
 
     return response.json();
@@ -49,7 +59,15 @@ export class TutorialApi {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to get tutorial analytics: ${response.statusText}`);
+      console.error('[TUTORIAL_API] Failed to get tutorial analytics:', response.status, response.statusText);
+      // Return empty analytics instead of throwing
+      return {
+        totalUsers: 0,
+        completedTutorials: 0,
+        averageCompletionTime: 0,
+        mostCommonExitPoint: 'unknown',
+        tutorialVersions: []
+      };
     }
 
     return response.json();

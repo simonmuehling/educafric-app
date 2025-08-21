@@ -4262,15 +4262,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newParent = await storage.createParent(parentData);
       
-      // Send notification about parent creation
-      await notificationService.sendNotification({
-        type: 'email',
+      // Send notification about parent creation using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'parent_created',
+        title: 'Nouveau parent',
         message: `${firstName} ${lastName} a été enregistré comme parent`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { parentId: newParent.id }
-      });
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { parentId: newParent.id, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Parent creation notification:', notificationData);
       
       console.log(`[PARENTS_API] ✅ Created parent: ${firstName} ${lastName}`);
       res.json(newParent);
@@ -4291,15 +4294,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedParent = await storage.updateParent(parseInt(id), updates);
       
-      // Send notification about parent update
-      await notificationService.sendNotification({
-        type: 'email',
+      // Send notification about parent update using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'parent_updated',
+        title: 'Parent mis à jour',
         message: `${updatedParent.firstName} ${updatedParent.lastName} - Informations mises à jour`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { parentId: updatedParent.id, changes: Object.keys(updates) }
-      });
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { parentId: updatedParent.id, changes: Object.keys(updates), schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Parent update notification:', notificationData);
       
       console.log(`[PARENTS_API] ✅ Updated parent: ${updatedParent.firstName} ${updatedParent.lastName}`);
       res.json(updatedParent);
@@ -4319,15 +4325,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.deleteParent(parseInt(id));
       
-      // Send notification about parent deletion
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `Parent supprimé avec toutes ses relations école`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { parentId: parseInt(id) }
-      });
+      // Send notification about parent deletion using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'parent_deleted',
+        title: 'Parent supprimé',
+        message: `Parent supprimé avec toutes ses relations école`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'high' as const,
+        metadata: { parentId: parseInt(id), schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Parent deletion notification:', notificationData);
       
       console.log(`[PARENTS_API] ✅ Deleted parent ID: ${id}`);
       res.json({ success: true, message: 'Parent deleted successfully' });
@@ -4348,15 +4357,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const blockedUser = await storage.blockUserAccess(parseInt(id), reason || 'Accès bloqué par l\'administration');
       
-      // Send notification about parent blocking
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'high',
-        data: { userId: blockedUser.id, reason }
-      });
+      // Send notification about parent blocking using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'parent_blocked',
+        title: 'Accès parent suspendu',
+        message: `${blockedUser.firstName} ${blockedUser.lastName} - Accès école suspendu`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'high' as const,
+        metadata: { userId: blockedUser.id, reason, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Parent blocking notification:', notificationData);
       
       console.log(`[PARENT_MANAGEMENT] ✅ Blocked parent access: ${blockedUser.firstName} ${blockedUser.lastName}`);
       res.json({ message: 'Parent access blocked successfully', user: blockedUser });
@@ -4376,15 +4388,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const unblockedUser = await storage.unblockUserAccess(parseInt(id));
       
-      // Send notification about parent unblocking
-      await notificationService.sendNotification({
-        type: 'email',
-        content: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
-        recipients: [((req.user as any) as any).id],
-        schoolId: 1,
-        priority: 'medium',
-        data: { userId: unblockedUser.id }
-      });
+      // Send notification about parent unblocking using correct format
+      const notificationData = {
+        type: 'administrative' as const,
+        subType: 'parent_unblocked',
+        title: 'Accès parent rétabli',
+        message: `${unblockedUser.firstName} ${unblockedUser.lastName} - Accès école rétabli`,
+        recipientIds: [((req.user as any) as any).id],
+        sendEmail: true,
+        priority: 'medium' as const,
+        metadata: { userId: unblockedUser.id, schoolId: 1 }
+      };
+      console.log('[NOTIFICATION] Parent unblocking notification:', notificationData);
       
       console.log(`[PARENT_MANAGEMENT] ✅ Unblocked parent access: ${unblockedUser.firstName} ${unblockedUser.lastName}`);
       res.json({ message: 'Parent access restored successfully', user: unblockedUser });

@@ -131,20 +131,6 @@ export class SimpleGeolocationService {
     return simulatedAlert;
   }
 
-  async getDevicesForStudent(studentId: number) {
-    console.log(`[GEOLOCATION_SERVICE] 📱 Getting devices for student ${studentId}`);
-    return [
-      {
-        id: 1,
-        studentId,
-        deviceType: 'smartphone',
-        deviceId: `device_${studentId.toString().padStart(3, '0')}`,
-        isActive: true,
-        batteryLevel: 85,
-        lastUpdate: new Date().toISOString()
-      }
-    ];
-  }
 
   async getLocationHistory(deviceId: string, limit: number = 50) {
     console.log(`[GEOLOCATION_SERVICE] 📍 Getting location history for device ${deviceId}`);
