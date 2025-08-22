@@ -5,7 +5,7 @@ import {
   Settings, Clock, MapPin, FileText, HelpCircle, Bell, User, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import FunctionalFreelancerProfile from './modules/FunctionalFreelancerProfile';
+import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 import FunctionalFreelancerStudents from './modules/FunctionalFreelancerStudents';
 import FunctionalFreelancerSessions from './modules/FunctionalFreelancerSessions';
 import FunctionalFreelancerPayments from './modules/FunctionalFreelancerPayments';
@@ -76,7 +76,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalFreelancerProfile />
+      component: <UnifiedProfileManager userType="freelancer" showPhotoUpload={true} />
     },
     {
       id: 'students',

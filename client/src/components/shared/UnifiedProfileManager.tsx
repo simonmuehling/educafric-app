@@ -19,7 +19,7 @@ import { EMAIL_CATEGORIES, EMAIL_FREQUENCY_OPTIONS, type EmailPreferences, type 
 import MobileIconTabNavigation from './MobileIconTabNavigation';
 
 interface UnifiedProfileManagerProps {
-  userType: 'teacher' | 'student' | 'parent';
+  userType: 'teacher' | 'student' | 'parent' | 'freelancer';
   showPhotoUpload?: boolean;
 }
 
@@ -187,7 +187,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       title: {
         teacher: 'Paramètres Enseignant',
         student: 'Paramètres Élève', 
-        parent: 'Paramètres Parent'
+        parent: 'Paramètres Parent',
+        freelancer: 'Paramètres Répétiteur'
       },
       subtitle: 'Gérez vos informations personnelles et paramètres',
       profile: 'Profil',
@@ -226,7 +227,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
       title: {
         teacher: 'Teacher Settings',
         student: 'Student Settings',
-        parent: 'Parent Settings'
+        parent: 'Parent Settings',
+        freelancer: 'Freelancer Settings'
       },
       subtitle: 'Manage your personal information and settings',
       profile: 'Profile',
