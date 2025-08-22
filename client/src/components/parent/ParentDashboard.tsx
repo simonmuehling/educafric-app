@@ -341,7 +341,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: createDynamicModule('profile')
+      component: createDynamicModule('parent-profile')
     },
     {
       id: 'multirole',

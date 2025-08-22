@@ -97,7 +97,10 @@ class FastModuleLoader {
       
       // Missing Student modules that were causing slow loading
       'achievements': () => import('@/components/student/modules/StudentAchievements'),
-      'profile': () => import('@/components/student/modules/StudentProfile'),
+      'student-profile': () => import('@/components/student/modules/StudentProfile'),
+      'teacher-profile': () => import('@/components/teacher/modules/FunctionalTeacherProfile'),
+      'parent-profile': () => import('@/components/parent/modules/FunctionalParentProfile'),
+      'profile': () => import('@/components/student/modules/StudentProfile'), // Legacy compatibility
       'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
       'multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'),
       
@@ -136,7 +139,10 @@ class FastModuleLoader {
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
       
       // Freelancer modules (matching dashboard IDs exactly)
-      'settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
       'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
       'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),

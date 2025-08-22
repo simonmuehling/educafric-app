@@ -277,7 +277,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: language === 'fr' ? 'Paramètres Étudiant' : 'Student Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: createDynamicModule('profile')
+      component: createDynamicModule('student-profile')
     },
     {
       id: 'help',
