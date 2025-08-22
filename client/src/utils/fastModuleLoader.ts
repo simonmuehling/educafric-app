@@ -123,35 +123,38 @@ class FastModuleLoader {
     return importFn ? importFn() : null;
   }
 
-  // Preload a module
+  // AGGRESSIVE preload with forced caching for critical modules
   async preloadModule(moduleName: string): Promise<React.ComponentType<any> | null> {
-    // Return cached if available
+    // Return cached immediately if available
     if (this.cache[moduleName]) {
+      console.log(`[FAST_LOADER] 🎯 ${moduleName} served from cache instantly`);
       return this.cache[moduleName];
     }
 
     // Return loading promise if already loading
     if (this.loadingPromises.has(moduleName)) {
+      console.log(`[FAST_LOADER] ⏳ ${moduleName} already loading...`);
       return this.loadingPromises.get(moduleName)!;
     }
 
-    // Start loading
+    // Start aggressive loading
     const importPromise = this.getModuleImport(moduleName);
     if (!importPromise) {
-      console.warn(`[FAST_LOADER] Module ${moduleName} not found`);
+      console.warn(`[FAST_LOADER] ⚠️ Module ${moduleName} not found in mapping`);
       return null;
     }
 
+    console.log(`[FAST_LOADER] 🚀 Starting aggressive load for ${moduleName}`);
     const loadingPromise = importPromise
       .then(module => {
         const Component = module.default || module;
         this.cache[moduleName] = Component;
         this.loadingPromises.delete(moduleName);
-        console.log(`[FAST_LOADER] ✅ Module ${moduleName} preloaded`);
+        console.log(`[FAST_LOADER] ⚡ ${moduleName} loaded and cached successfully`);
         return Component;
       })
       .catch(error => {
-        console.error(`[FAST_LOADER] ❌ Failed to preload ${moduleName}:`, error);
+        console.error(`[FAST_LOADER] ❌ CRITICAL: Failed to preload ${moduleName}:`, error);
         this.loadingPromises.delete(moduleName);
         return null;
       });
@@ -165,45 +168,43 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // ULTRA-OPTIMIZED: Preload critical modules instantly with PRIORITY for slow student modules
+  // HYPER-OPTIMIZED: Force immediate preload with aggressive caching
   async preloadCriticalModules() {
-    // PRIORITY 1: Student modules that were loading slowly
-    const studentPriorityModules = [
-      'timetable', 'grades', 'assignments', 'attendance', 'messages'
-    ];
+    // CRITICAL STUDENT MODULES - Force preload immediately
+    const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages'];
     
-    // PRIORITY 2: All other critical modules
-    const otherCriticalModules = [
-      // Common modules
-      'settings', 'overview', 'notifications', 'help',
-      
-      // Director modules (most commonly used)
+    console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
+    
+    // Load critical modules in parallel but wait for ALL to complete
+    const criticalPromises = criticalStudentModules.map(async (module) => {
+      try {
+        console.log(`[FAST_LOADER] 🎯 Force loading ${module}...`);
+        const component = await this.preloadModule(module);
+        console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
+        return component;
+      } catch (error) {
+        console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`, error);
+        return null;
+      }
+    });
+    
+    await Promise.all(criticalPromises);
+    
+    // Now load other modules in background
+    const otherModules = [
+      'timetable', 'settings', 'overview', 'notifications', 'help',
       'teachers', 'students', 'classes',
-      
-      // Parent modules (essential - using actual dashboard IDs)
       'subscription', 'children', 'geolocation', 'payments', 'family',
-      
-      // Remaining Student modules
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
-      
-      // Freelancer modules (essential - using actual dashboard IDs)  
-      'settings', 'students', 'sessions', 'payments', 'schedule', 'resources', 'communications',
-      
-      // Commercial modules
+      'sessions', 'schedule', 'resources', 'communications',
       'DocumentsContracts', 'CommercialStatistics'
     ];
     
-    // Load student priority modules FIRST and INSTANTLY
-    console.log('[FAST_LOADER] 🚀 PRIORITY: Loading critical student modules first...');
-    const priorityPromises = studentPriorityModules.map(module => this.preloadModule(module));
-    await Promise.allSettled(priorityPromises);
-    
-    // Then load all other modules
-    const allPromises = otherCriticalModules.map(module => this.preloadModule(module));
-
-    await Promise.allSettled(allPromises);
-    
-    console.log(`[FAST_LOADER] ⚡ ULTRA-FAST loaded ${Object.keys(this.cache).length} modules - Student priority modules loaded first!`);
+    // Background loading - don't block
+    const backgroundPromises = otherModules.map(module => this.preloadModule(module));
+    Promise.allSettled(backgroundPromises).then(() => {
+      console.log(`[FAST_LOADER] 🚀 COMPLETED: ${Object.keys(this.cache).length} total modules cached`);
+    });
   }
 
   // Clear cache to prevent memory leaks
