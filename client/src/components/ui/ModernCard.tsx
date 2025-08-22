@@ -65,7 +65,66 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   );
 };
 
-// Alias pour compatibilité
-export const ModernStatsCard = ModernCard;
+// Stats Card Component
+interface ModernStatsCardProps {
+  title: string;
+  value: string;
+  icon?: React.ReactNode;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+  gradient?: 'blue' | 'green' | 'purple' | 'orange' | 'red';
+  className?: string;
+}
+
+export const ModernStatsCard: React.FC<ModernStatsCardProps> = ({
+  title,
+  value,
+  icon,
+  trend,
+  gradient = 'blue',
+  className
+}) => {
+  const gradientClasses = {
+    blue: 'from-blue-500 to-blue-600',
+    green: 'from-green-500 to-green-600',
+    purple: 'from-purple-500 to-purple-600',
+    orange: 'from-orange-500 to-orange-600',
+    red: 'from-red-500 to-red-600'
+  };
+
+  return (
+    <Card className={cn(
+      'bg-gradient-to-r text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1',
+      gradientClasses[gradient],
+      className
+    )}>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <p className="text-white/80 text-sm font-medium mb-1">{title}</p>
+            <p className="text-2xl font-bold text-white mb-2">{value}</p>
+            {trend && (
+              <div className="flex items-center gap-1">
+                <span className={cn(
+                  'text-xs font-medium',
+                  trend.isPositive ? 'text-green-200' : 'text-red-200'
+                )}>
+                  {trend.isPositive ? '↗' : '↘'} {Math.abs(trend.value)}%
+                </span>
+              </div>
+            )}
+          </div>
+          {icon && (
+            <div className="p-3 bg-white/20 rounded-full">
+              {icon}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default ModernCard;

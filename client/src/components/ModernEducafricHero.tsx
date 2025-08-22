@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles, Zap, Globe } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap, Globe, Leaf, Recycle } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function ModernEducafricHero() {
@@ -55,6 +55,43 @@ export default function ModernEducafricHero() {
               }
             </p>
 
+            {/* Environmental Impact Banner */}
+            <div className="glass-card p-4 rounded-2xl border border-green-300/30 bg-green-500/10 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 bg-green-400/20 rounded-full flex items-center justify-center">
+                    <Leaf className="w-6 h-6 text-green-300" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-semibold text-lg mb-1">
+                    {language === 'fr' 
+                      ? '🌍 Impact Environnemental Positif' 
+                      : '🌍 Positive Environmental Impact'
+                    }
+                  </h3>
+                  <p className="text-green-100 text-sm leading-relaxed">
+                    {language === 'fr'
+                      ? 'En digitalisant l\'éducation, Educafric contribue à préserver l\'environnement africain. Chaque bulletin numérique économise 3 feuilles de papier, soit plus de 8,500 arbres protégés par an.'
+                      : 'By digitalizing education, Educafric helps preserve the African environment. Each digital report card saves 3 sheets of paper, protecting over 8,500 trees annually.'
+                    }
+                  </p>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-green-200">
+                    <span className="flex items-center gap-1">
+                      <Recycle className="w-3 h-3" />
+                      {language === 'fr' ? '100% Numérique' : '100% Digital'}
+                    </span>
+                    <span>
+                      {language === 'fr' ? '• 8,500+ Arbres Protégés' : '• 8,500+ Trees Protected'}
+                    </span>
+                    <span>
+                      {language === 'fr' ? '• Zéro Papier' : '• Zero Paper'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/demo">
@@ -65,8 +102,8 @@ export default function ModernEducafricHero() {
               </Link>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 pt-8">
+            {/* Stats - Enhanced with Environmental Impact */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8">
               <div className="text-center">
                 <div className="text-3xl font-bold text-white mb-1">2,847</div>
                 <div className="text-sm text-white/70">
@@ -83,6 +120,15 @@ export default function ModernEducafricHero() {
                 <div className="text-3xl font-bold text-white mb-1">45</div>
                 <div className="text-sm text-white/70">
                   {language === 'fr' ? 'Écoles' : 'Schools'}
+                </div>
+              </div>
+              <div className="text-center bg-green-500/20 rounded-lg p-3 border border-green-300/30">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Leaf className="w-4 h-4 text-green-300" />
+                  <div className="text-3xl font-bold text-green-300">8.5K</div>
+                </div>
+                <div className="text-xs text-green-200">
+                  {language === 'fr' ? 'Arbres Protégés' : 'Trees Protected'}
                 </div>
               </div>
             </div>
