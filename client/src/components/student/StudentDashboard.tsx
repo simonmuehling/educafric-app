@@ -6,15 +6,7 @@ import {
   BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import StudentTimetable from './modules/StudentTimetable';
-import StudentGrades from './modules/StudentGrades';
-import StudentHomework from './modules/StudentHomework';
-import StudentCommunications from './modules/StudentCommunications';
-import FunctionalStudentProfile from './modules/FunctionalStudentProfile';
-import FunctionalStudentBulletins from './modules/FunctionalStudentBulletins';
-import FunctionalStudentAttendance from './modules/FunctionalStudentAttendance';
-import FunctionalStudentClasses from './modules/FunctionalStudentClasses';
-import StudentProgress from './modules/StudentProgress';
+// Dynamic imports only - no static imports to enable fast loading
 
 // import StudentAchievements from './modules/StudentAchievements';
 import HelpCenter from '@/components/help/HelpCenter';
@@ -23,8 +15,7 @@ import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
-import ChildParentConnection from './ChildParentConnection';
-import FindParentsModule from './modules/FindParentsModule';
+// Dynamic components loaded via fastModuleLoader
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -100,56 +91,56 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalStudentClasses />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'grades',
       label: t.grades,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <StudentGrades />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <StudentHomework />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'bulletins',
       label: t.notes,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalStudentBulletins />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: <FunctionalStudentAttendance />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'progress',
       label: t.library,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: <StudentProgress />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'messages',
       label: t.messages,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <StudentCommunications />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'parentConnection',
       label: t.parentConnection,
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-600',
-      component: <FindParentsModule />
+      component: null // Loaded dynamically via fastModuleLoader
     },
     {
       id: 'achievements',

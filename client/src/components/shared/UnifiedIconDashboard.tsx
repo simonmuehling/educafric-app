@@ -186,7 +186,26 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 overflow-hidden">
             <div className="w-full overflow-x-auto">
               <OptimizedModuleWrapper moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
-                {activeModuleData.component}
+                {(() => {
+                  // Si le module a un component défini, l'utiliser
+                  if (activeModuleData.component) {
+                    return activeModuleData.component;
+                  }
+                  
+                  // Sinon, charger dynamiquement via fastModuleLoader
+                  const DynamicComponent = getModule(activeModule);
+                  if (DynamicComponent) {
+                    return <DynamicComponent />;
+                  }
+                  
+                  // Afficher un loading si le module n'est pas encore chargé
+                  return (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="ml-2 text-gray-600">Chargement du module...</span>
+                    </div>
+                  );
+                })()}
               </OptimizedModuleWrapper>
             </div>
           </div>
