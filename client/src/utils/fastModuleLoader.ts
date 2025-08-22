@@ -73,9 +73,9 @@ class FastModuleLoader {
       'FamilyConnections': () => import('@/components/parent/modules/FamilyConnections'),
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
       
-      // Student modules (matching dashboard IDs exactly)
-      'timetable': () => import('@/components/student/modules/FunctionalStudentClasses'),
-      'grades': () => import('@/components/student/modules/StudentGrades'),
+      // Student modules (matching dashboard IDs exactly) - ULTRA-OPTIMIZED FOR SPEED
+      'timetable': () => import('@/components/student/modules/StudentTimetable'),
+      'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
       'assignments': () => import('@/components/student/modules/StudentHomework'),
       'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
@@ -165,9 +165,15 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // Optimized: Preload critical modules instantly in parallel for ALL roles
+  // ULTRA-OPTIMIZED: Preload critical modules instantly with PRIORITY for slow student modules
   async preloadCriticalModules() {
-    const criticalModules = [
+    // PRIORITY 1: Student modules that were loading slowly
+    const studentPriorityModules = [
+      'timetable', 'grades', 'assignments', 'attendance', 'messages'
+    ];
+    
+    // PRIORITY 2: All other critical modules
+    const otherCriticalModules = [
       // Common modules
       'settings', 'overview', 'notifications', 'help',
       
@@ -175,10 +181,10 @@ class FastModuleLoader {
       'teachers', 'students', 'classes',
       
       // Parent modules (essential - using actual dashboard IDs)
-      'subscription', 'children', 'messages', 'grades', 'attendance', 'geolocation', 'payments', 'family',
+      'subscription', 'children', 'geolocation', 'payments', 'family',
       
-      // Student modules (essential - using actual dashboard IDs) - ALL MODULES for instant loading
-      'timetable', 'assignments', 'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
+      // Remaining Student modules
+      'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
       
       // Freelancer modules (essential - using actual dashboard IDs)  
       'settings', 'students', 'sessions', 'payments', 'schedule', 'resources', 'communications',
@@ -186,12 +192,18 @@ class FastModuleLoader {
       // Commercial modules
       'DocumentsContracts', 'CommercialStatistics'
     ];
+    
+    // Load student priority modules FIRST and INSTANTLY
+    console.log('[FAST_LOADER] 🚀 PRIORITY: Loading critical student modules first...');
+    const priorityPromises = studentPriorityModules.map(module => this.preloadModule(module));
+    await Promise.allSettled(priorityPromises);
+    
+    // Then load all other modules
+    const allPromises = otherCriticalModules.map(module => this.preloadModule(module));
 
-    // Preload ALL in parallel for maximum speed - no batching delays
-    const allPromises = criticalModules.map(module => this.preloadModule(module));
     await Promise.allSettled(allPromises);
     
-    console.log(`[FAST_LOADER] ⚡ Instant loaded ${Object.keys(this.cache).length} critical modules for ALL roles`);
+    console.log(`[FAST_LOADER] ⚡ ULTRA-FAST loaded ${Object.keys(this.cache).length} modules - Student priority modules loaded first!`);
   }
 
   // Clear cache to prevent memory leaks
