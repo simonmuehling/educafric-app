@@ -13489,10 +13489,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Using imported notificationService
         
         await notificationService.notifyConnectionRequest('removed', {
-          parentName: result.parentName,
-          parentId: result.parentId,
-          studentName: result.studentName,
-          studentId: result.studentId,
+          parentName: 'Unknown Parent',
+          parentId: 0,
+          studentName: 'Unknown Student', 
+          studentId: 0,
           removedBy: `${user.firstName} ${user.lastName}`,
           reason: reason,
           schoolName: user.schoolName || 'School',
@@ -13524,9 +13524,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Using imported notificationService
         
         await notificationService.notifyConnectionRequest('duplicate_blocked', {
-          parentName: result.parentName,
+          parentName: 'Unknown Parent',
           parentId: parentId,
-          studentName: result.studentName,
+          studentName: 'Unknown Student',
           studentId: studentId,
           schoolName: user.schoolName || 'School',
           schoolId: user.schoolId,
@@ -21313,7 +21313,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notifications  
       await notificationService.sendNotification({
         type: 'push',
-        title: 'Bulletin signé',
         message: `Le bulletin de ${studentName} (${className}) a été signé par ${signerName} (${signerRole})`,
         priority: 'medium',
         category: 'academic',
