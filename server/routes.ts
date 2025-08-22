@@ -8254,6 +8254,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Communications duplicate route fragments cleaned up
 
+  // Unified Messages API - Klapp-inspired consolidated messaging
+  app.get("/api/messages/unified", requireAuth, async (req, res) => {
+    try {
+      const user = (req.user as any) as any;
+      const { tab = 'all', channel, search, limit = 50 } = req.query;
+      
+      console.log('[UNIFIED_MESSAGES_API] 📨 Get unified messages request:', {
+        user: user.email,
+        tab,
+        channel,
+        search,
+        limit
+      });
+
+      // Mock unified messages data from all channels
+      const unifiedMessages = [
+        {
+          id: 'msg_1',
+          channel: 'sms',
+          from: { name: 'Direction École', role: 'Director', avatar: null },
+          to: { name: user.name || user.email, role: user.role },
+          subject: null,
+          content: 'Rappel: Réunion parents-professeurs demain à 15h. Merci de confirmer votre présence.',
+          priority: 'medium',
+          category: 'academic',
+          status: 'delivered',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          isRead: false,
+          isStarred: false,
+          threadId: 'thread_1'
+        },
+        {
+          id: 'msg_2',
+          channel: 'whatsapp',
+          from: { name: 'Prof. Jean Mbarga', role: 'Teacher', avatar: null },
+          to: { name: user.name || user.email, role: user.role },
+          subject: null,
+          content: 'Bonjour, les devoirs de mathématiques sont disponibles sur la plateforme. Date limite: vendredi.',
+          priority: 'low',
+          category: 'academic',
+          status: 'read',
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          isRead: true,
+          isStarred: true,
+          threadId: 'thread_2'
+        },
+        {
+          id: 'msg_3',
+          channel: 'email',
+          from: { name: 'Comptabilité', role: 'Admin', avatar: null },
+          to: { name: user.name || user.email, role: user.role },
+          subject: 'Facture mensuelle disponible',
+          content: 'Votre facture pour le mois de janvier 2025 est maintenant disponible dans votre espace personnel.',
+          priority: 'medium',
+          category: 'financial',
+          status: 'delivered',
+          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          isRead: false,
+          isStarred: false,
+          threadId: 'thread_3'
+        },
+        {
+          id: 'msg_4',
+          channel: 'pwa',
+          from: { name: 'Système Educafric', role: 'System', avatar: null },
+          to: { name: user.name || user.email, role: user.role },
+          subject: null,
+          content: 'Nouvelle note disponible en Mathématiques: 16/20. Félicitations pour vos progrès !',
+          priority: 'low',
+          category: 'academic',
+          status: 'delivered',
+          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          isRead: true,
+          isStarred: false,
+          threadId: 'thread_4'
+        },
+        {
+          id: 'msg_5',
+          channel: 'app',
+          from: { name: 'Direction Pédagogique', role: 'Director', avatar: null },
+          to: { name: user.name || user.email, role: user.role },
+          subject: 'Convocation individuelle',
+          content: 'Vous êtes convoqué(e) pour un entretien le 2 février à 14h concernant les résultats du trimestre.',
+          priority: 'high',
+          category: 'administrative',
+          status: 'sent',
+          timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          isRead: false,
+          isStarred: true,
+          threadId: 'thread_5'
+        }
+      ];
+
+      // Filter by tab
+      let filteredMessages = unifiedMessages;
+      switch (tab) {
+        case 'inbox':
+          filteredMessages = unifiedMessages.filter(msg => msg.to.name === (user.name || user.email));
+          break;
+        case 'sent':
+          filteredMessages = unifiedMessages.filter(msg => msg.from.name.includes(user.role || 'User'));
+          break;
+        case 'starred':
+          filteredMessages = unifiedMessages.filter(msg => msg.isStarred);
+          break;
+        case 'archived':
+          filteredMessages = [];
+          break;
+        default: // 'all'
+          filteredMessages = unifiedMessages;
+      }
+
+      // Filter by channel
+      if (channel && channel !== 'all') {
+        filteredMessages = filteredMessages.filter(msg => msg.channel === channel);
+      }
+
+      // Filter by search
+      if (search && typeof search === 'string') {
+        const searchLower = search.toLowerCase();
+        filteredMessages = filteredMessages.filter(msg =>
+          msg.content.toLowerCase().includes(searchLower) ||
+          msg.from.name.toLowerCase().includes(searchLower) ||
+          (msg.subject && msg.subject.toLowerCase().includes(searchLower))
+        );
+      }
+
+      // Apply limit
+      filteredMessages = filteredMessages.slice(0, Number(limit));
+
+      res.json(filteredMessages);
+    } catch (error) {
+      console.error('[UNIFIED_MESSAGES_API] ❌ Error fetching unified messages:', error);
+      res.status(500).json({ message: 'Error fetching unified messages' });
+    }
+  });
+
+  app.post("/api/messages/unified", requireAuth, async (req, res) => {
+    try {
+      const user = (req.user as any) as any;
+      const { recipients, subject, content, channel, priority, category } = req.body;
+      
+      console.log('[UNIFIED_MESSAGES_API] 📤 Send unified message request:', {
+        user: user.email,
+        recipients,
+        channel,
+        priority,
+        category
+      });
+
+      // Validate required fields
+      if (!content || !content.trim()) {
+        return res.status(400).json({ message: 'Message content is required' });
+      }
+
+      if (!recipients || !recipients.trim()) {
+        return res.status(400).json({ message: 'Recipients are required' });
+      }
+
+      // Mock message sending logic
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Simulate different channel behaviors
+      const channelResults = {
+        sms: { sent: true, messageId, cost: '0.05 CFA' },
+        whatsapp: { sent: true, messageId, cost: '0.03 CFA' },
+        email: { sent: true, messageId, cost: '0.00 CFA' },
+        pwa: { sent: true, messageId, cost: '0.00 CFA' },
+        app: { sent: true, messageId, cost: '0.00 CFA' }
+      };
+
+      const result = channelResults[channel as keyof typeof channelResults] || channelResults.app;
+
+      // Create message record
+      const newMessage = {
+        id: messageId,
+        channel,
+        from: { name: user.name || user.email, role: user.role, avatar: null },
+        to: { name: recipients, role: 'Recipient' },
+        subject: subject || null,
+        content: content.trim(),
+        priority: priority || 'medium',
+        category: category || 'general',
+        status: 'sent',
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        isStarred: false,
+        threadId: `thread_${messageId}`
+      };
+
+      console.log('[UNIFIED_MESSAGES_API] ✅ Message sent successfully:', {
+        messageId,
+        channel,
+        recipients,
+        status: 'sent'
+      });
+
+      res.json({
+        success: true,
+        message: 'Message sent successfully',
+        data: {
+          messageId,
+          channel,
+          status: 'sent',
+          timestamp: newMessage.timestamp,
+          cost: result.cost,
+          recipients: recipients.split(',').length
+        }
+      });
+
+    } catch (error) {
+      console.error('[UNIFIED_MESSAGES_API] ❌ Error sending unified message:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Error sending message',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   app.get("/api/communications/history", requireAuth, async (req, res) => {
     try {
       const user = (req.user as any) as any;
