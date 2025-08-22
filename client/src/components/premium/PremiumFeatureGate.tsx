@@ -40,6 +40,13 @@ const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
     
     // Pour les comptes sandbox/test SEULEMENT, donner accès gratuit
     if (user.email?.includes('test.educafric.com') || user.email?.includes('sandbox')) {
+      console.log('[PREMIUM_GATE] 🎯 Sandbox user detected, granting free access:', user.email);
+      return true;
+    }
+
+    // FREELANCER DEMO ACCESS - Allow full access for freelancer demos
+    if (user.role === 'Freelancer' && user.email?.includes('demo')) {
+      console.log('[PREMIUM_GATE] 🎓 Freelancer demo user detected, granting access:', user.email);
       return true;
     }
 
