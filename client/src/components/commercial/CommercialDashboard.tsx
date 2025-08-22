@@ -71,6 +71,14 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
+    // ALWAYS call hooks in the same order - move useEffect before conditional return
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [ModuleComponent, moduleName]);
+    
     if (ModuleComponent) {
       const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
@@ -78,12 +86,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       }
       return React.createElement(ModuleComponent);
     }
-    
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
