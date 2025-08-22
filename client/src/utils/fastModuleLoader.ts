@@ -13,7 +13,14 @@ class FastModuleLoader {
   // Fast module mapping for real modules that exist
   private getModuleImport(moduleName: string): Promise<any> | null {
     const moduleMap: { [key: string]: () => Promise<any> } = {
-      // Commercial modules
+      // Commercial modules (matching dashboard IDs exactly) - ONLY EXISTING MODULES
+      'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
+      'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
+      'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
+      'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
+      
+      // Additional Commercial module aliases
       'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
       'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'ContactsManagement': () => import('@/components/commercial/modules/ContactsManagement'),
@@ -143,7 +150,11 @@ class FastModuleLoader {
       'FunctionalFreelancerSchedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'FunctionalFreelancerResources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
       'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
+      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
+      
+      // SiteAdmin modules - Using shared components for now until specific modules are created
+      'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
+      'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager')
     };
 
     const importFn = moduleMap[moduleName];

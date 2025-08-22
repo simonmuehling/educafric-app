@@ -79,7 +79,9 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       return React.createElement(ModuleComponent);
     }
     
+    // Préchargement à la demande seulement pour modules non-critiques
     React.useEffect(() => {
+      console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
       preloadModule(moduleName);
     }, []);
     
@@ -95,7 +97,33 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     );
   };
 
-  // Preload modules when dashboard loads
+  // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
+  React.useEffect(() => {
+    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[COMMERCIAL_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[COMMERCIAL_DASHBOARD] ✅ ${moduleName} module ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('[COMMERCIAL_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
+    };
+    
+    forceLoadCriticalModules();
+  }, [preloadModule]);
+
+  // Preload modules when dashboard loads (LEGACY - keeping for compatibility)
   useEffect(() => {
     const criticalModules = [
       'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
@@ -150,63 +178,63 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.mySchools,
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createDynamicModule('schools')
+      component: createDynamicModule('commercial-schools')
     },
     {
       id: 'leads',
       label: t.leads,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createDynamicModule('leads')
+      component: createDynamicModule('commercial-contacts')
     },
     {
       id: 'contacts',
       label: t.contacts,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createDynamicModule('contacts')
+      component: createDynamicModule('commercial-contacts')
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createDynamicModule('payments')
+      component: createDynamicModule('commercial-documents')
     },
     {
       id: 'documents',
       label: t.documents,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createDynamicModule('documents')
+      component: createDynamicModule('commercial-documents')
     },
     {
       id: 'statistics',
       label: t.statistics,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: createDynamicModule('statistics')
+      component: createDynamicModule('commercial-statistics')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <TrendingUp className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: createDynamicModule('reports')
+      component: createDynamicModule('commercial-statistics')
     },
     {
       id: 'appointments',
       label: t.appointments,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createDynamicModule('appointments')
+      component: createDynamicModule('commercial-contacts')
     },
     {
       id: 'whatsapp',
       label: t.whatsapp,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
-      component: createDynamicModule('whatsapp')
+      component: createDynamicModule('commercial-whatsapp')
     },
     {
       id: 'settings',

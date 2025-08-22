@@ -70,6 +70,32 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     preloadDirectorApiData();
   }, [user, queryClient]);
   
+  // FORCE IMMEDIATE preload of critical slow modules - Director specific
+  React.useEffect(() => {
+    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-attendance', 'director-communications'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[DIRECTOR_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[DIRECTOR_DASHBOARD] ✅ ${moduleName} module ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
+    };
+    
+    forceLoadCriticalModules();
+  }, [preloadModule]);
+  
   // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
@@ -82,7 +108,9 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       return React.createElement(ModuleComponent);
     }
     
+    // Préchargement à la demande seulement pour modules non-critiques
     React.useEffect(() => {
+      console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
       preloadModule(moduleName);
     }, []);
     
