@@ -262,10 +262,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session(pgSessionConfig));
 
   app.use(passport.initialize());
-  // Apply passport session selectively - exclude health and public endpoints
+  // Apply passport session selectively - exclude auth and public endpoints
   app.use('/api', (req: any, res: any, next: any) => {
-    // Skip authentication middleware for health checks and public endpoints
-    const publicPaths = ['/api/health', '/api/currency', '/api/analytics/pwa'];
+    // Skip authentication middleware for auth routes and public endpoints
+    const publicPaths = [
+      '/api/health', 
+      '/api/currency', 
+      '/api/analytics/pwa',
+      '/api/auth/login',
+      '/api/auth/register',
+      '/api/auth/firebase-sync'
+    ];
     if (publicPaths.some(path => req.path.startsWith(path))) {
       return next();
     }
