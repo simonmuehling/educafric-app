@@ -20,9 +20,9 @@ const MobileIconTabNavigation: React.FC<MobileIconTabProps> = ({
   className = ''
 }) => {
   return (
-    <div className={cn("block md:hidden", className)}>
-      {/* Mobile: Icon Grid Navigation */}
-      <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-lg">
+    <div className={cn("block", className)}>
+      {/* Navigation par onglets - Visible sur toutes les tailles */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gray-50 rounded-lg">
         {tabs.map((tab) => {
           const IconComponent = tab.icon;
           return (
