@@ -81,14 +81,11 @@ passport.deserializeUser(async (id: string | number, done) => {
       }
     }
     
-    // Handle regular database users
-    console.log(`[PASSPORT] Looking up database user ID: ${id}`);
+    // Handle regular database users - optimized for 3500+ users
     const user = await storage.getUserById(id as number);
     if (user) {
-      console.log(`[PASSPORT] Database user found: ${user.email}`);
       done(null, user);
     } else {
-      console.log(`[PASSPORT] Database user not found: ${id}`);
       done(null, false);
     }
   } catch (error) {
