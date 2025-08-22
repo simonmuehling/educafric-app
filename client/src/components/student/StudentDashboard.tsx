@@ -36,7 +36,9 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
         '/api/student/grades',
         '/api/student/homework', 
         '/api/student/attendance',
-        '/api/student/messages'
+        '/api/student/messages',
+        '/api/student/geolocation/safe-zones',
+        '/api/student/geolocation/device-status'
       ];
       
       // Preload all critical API data simultaneously

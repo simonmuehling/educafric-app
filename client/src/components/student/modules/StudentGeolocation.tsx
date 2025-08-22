@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { NotificationCenter } from '@/components/shared/NotificationCenter';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 import { 
   MapPin, 
   Shield, 
@@ -132,7 +132,7 @@ const StudentGeolocation: React.FC = () => {
   });
 
   // Fetch recent geolocation notifications for this student
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<any[]>({
     queryKey: ['/api/notifications', 'Student', 15, 'security', false], // Student ID 15, security category
     retry: false,
   });
@@ -232,17 +232,17 @@ const StudentGeolocation: React.FC = () => {
       </div>
 
       {/* Recent Notifications - Only show if there are unread geolocation notifications */}
-      {notifications.length > 0 && (
+      {Array.isArray(notifications) && notifications.length > 0 && (
         <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
           <CardHeader>
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <Bell className="w-5 h-5 text-amber-500" />
-              {translations.notifications} ({notifications.filter((n: any) => !n.isRead).length})
+              {translations.notifications} ({Array.isArray(notifications) ? notifications.filter((n: any) => !n.isRead).length : 0})
             </h3>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {notifications.slice(0, 2).map((notification: any) => (
+              {Array.isArray(notifications) && notifications.slice(0, 2).map((notification: any) => (
                 <div 
                   key={notification.id} 
                   className={`p-3 border rounded-lg ${notification.isRead ? 'bg-gray-50' : 'bg-white border-amber-300'}`}
@@ -266,7 +266,7 @@ const StudentGeolocation: React.FC = () => {
                 </div>
               ))}
               
-              {notifications.length > 2 && (
+              {Array.isArray(notifications) && notifications.length > 2 && (
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -274,7 +274,7 @@ const StudentGeolocation: React.FC = () => {
                   data-testid="button-view-all-notifications"
                 >
                   <Bell className="w-4 h-4 mr-2" />
-                  {translations.viewNotifications} ({notifications.length})
+                  {translations.viewNotifications} ({Array.isArray(notifications) ? notifications.length : 0})
                 </Button>
               )}
             </div>
