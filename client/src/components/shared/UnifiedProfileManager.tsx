@@ -29,10 +29,6 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Debug: Log tab changes
-  useEffect(() => {
-    console.log('[PROFILE_MANAGER] Active tab changed to:', activeTab);
-  }, [activeTab]);
   const { toast } = useToast();
   const { language } = useLanguage();
   const { user } = useAuth();

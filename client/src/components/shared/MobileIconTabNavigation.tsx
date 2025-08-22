@@ -29,10 +29,7 @@ const MobileIconTabNavigation: React.FC<MobileIconTabProps> = ({
             <Button
               key={tab.value}
               variant={activeTab === tab.value ? "default" : "outline"}
-              onClick={() => {
-                console.log('[TAB_NAVIGATION] Clicked tab:', tab.value);
-                onTabChange(tab.value);
-              }}
+              onClick={() => onTabChange(tab.value)}
               className={cn(
                 "flex flex-col items-center gap-2 h-auto py-4 text-xs",
                 activeTab === tab.value 

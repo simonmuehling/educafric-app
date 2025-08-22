@@ -53,9 +53,10 @@ class FastModuleLoader {
       'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
       
-      // Parent modules (real ones)
+      // Parent modules (real ones - ALL modules for instant loading)
       'MyChildren': () => import('@/components/parent/modules/MyChildren'),
       'children': () => import('@/components/parent/modules/MyChildren'),
+      'FunctionalParentChildren': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'FunctionalParentMessages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'ParentGeolocation': () => import('@/components/parent/modules/ParentGeolocation'),
@@ -66,8 +67,46 @@ class FastModuleLoader {
       'subscription': () => import('@/components/parent/modules/ParentSubscription'),
       'FunctionalParentGrades': () => import('@/components/parent/modules/FunctionalParentGrades'),
       'grades': () => import('@/components/parent/modules/FunctionalParentGrades'),
+      'FunctionalParentAttendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
+      'attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
       'FamilyConnections': () => import('@/components/parent/modules/FamilyConnections'),
-      'family': () => import('@/components/parent/modules/FamilyConnections')
+      'family': () => import('@/components/parent/modules/FamilyConnections'),
+      'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
+      'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      
+      // Student modules (ALL for instant loading)
+      'StudentTimetable': () => import('@/components/student/modules/StudentTimetable'),
+      'timetable': () => import('@/components/student/modules/StudentTimetable'),
+      'StudentGrades': () => import('@/components/student/modules/StudentGrades'),
+      'StudentHomework': () => import('@/components/student/modules/StudentHomework'),
+      'assignments': () => import('@/components/student/modules/StudentHomework'),
+      'homework': () => import('@/components/student/modules/StudentHomework'),
+      'StudentCommunications': () => import('@/components/student/modules/StudentCommunications'),
+      'FunctionalStudentProfile': () => import('@/components/student/modules/FunctionalStudentProfile'),
+      'profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
+      'FunctionalStudentBulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      'FunctionalStudentAttendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'FunctionalStudentClasses': () => import('@/components/student/modules/FunctionalStudentClasses'),
+      'classes': () => import('@/components/student/modules/FunctionalStudentClasses'),
+      'StudentProgress': () => import('@/components/student/modules/StudentProgress'),
+      'progress': () => import('@/components/student/modules/StudentProgress'),
+      'FindParentsModule': () => import('@/components/student/modules/FindParentsModule'),
+      'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
+      
+      // Freelancer modules (ALL for instant loading)  
+      'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'FunctionalFreelancerSessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
+      'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
+      'FunctionalFreelancerPayments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
+      'FunctionalFreelancerSchedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
+      'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
+      'FunctionalFreelancerResources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
+      'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
+      'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
     };
 
     const importFn = moduleMap[moduleName];
@@ -116,17 +155,28 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // Optimized: Preload critical modules instantly in parallel
+  // Optimized: Preload critical modules instantly in parallel for ALL roles
   async preloadCriticalModules() {
     const criticalModules = [
-      // Most commonly used modules for instant loading
-      'settings', 'overview', 'teachers', 'students', 'classes', 
-      'help', 'notifications',
+      // Common modules
+      'settings', 'overview', 'notifications', 'help',
       
-      // Essential parent modules
-      'MyChildren', 'FunctionalParentMessages',
+      // Director modules (most commonly used)
+      'teachers', 'students', 'classes',
       
-      // Essential commercial modules
+      // Parent modules (essential)
+      'MyChildren', 'FunctionalParentChildren', 'FunctionalParentMessages', 'FunctionalParentGrades',
+      'FunctionalParentAttendance', 'FunctionalParentPayments', 'geolocation',
+      
+      // Student modules (essential)
+      'StudentTimetable', 'StudentGrades', 'StudentHomework', 'FunctionalStudentAttendance',
+      'FunctionalStudentBulletins', 'StudentProgress',
+      
+      // Freelancer modules (essential)
+      'FunctionalFreelancerStudents', 'FunctionalFreelancerSessions', 'FunctionalFreelancerSchedule',
+      'FunctionalFreelancerPayments',
+      
+      // Commercial modules
       'DocumentsContracts', 'CommercialStatistics'
     ];
 
@@ -134,7 +184,7 @@ class FastModuleLoader {
     const allPromises = criticalModules.map(module => this.preloadModule(module));
     await Promise.allSettled(allPromises);
     
-    console.log(`[FAST_LOADER] ⚡ Instant loaded ${Object.keys(this.cache).length} critical modules`);
+    console.log(`[FAST_LOADER] ⚡ Instant loaded ${Object.keys(this.cache).length} critical modules for ALL roles`);
   }
 
   // Clear cache to prevent memory leaks
