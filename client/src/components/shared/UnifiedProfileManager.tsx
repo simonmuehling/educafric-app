@@ -28,6 +28,11 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
   showPhotoUpload = false 
 }) => {
   const [activeTab, setActiveTab] = useState('profile');
+
+  // Debug: Log tab changes
+  useEffect(() => {
+    console.log('[PROFILE_MANAGER] Active tab changed to:', activeTab);
+  }, [activeTab]);
   const { toast } = useToast();
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -171,7 +176,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
   const toggleEmailCategory = (categoryFields: readonly string[], enabled: boolean) => {
     const updates: Partial<EmailPreferences> = {};
     categoryFields.forEach(field => {
-      updates[field as keyof EmailPreferences] = enabled;
+      (updates as any)[field] = enabled;
     });
     setEmailPreferences(prev => ({ ...prev, ...updates }));
     setHasEmailChanges(true);
