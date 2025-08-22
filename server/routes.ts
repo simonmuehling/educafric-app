@@ -4982,6 +4982,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // MISSING DIRECTOR ROUTES - Fix for 404 errors
+  app.get("/api/director/analytics", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 DirectorAnalytics route REACHED! User:`, ((req.user as any) as any)?.id);
+    try {
+      if (!(req.user as any) || !['Director', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
+        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, ((req.user as any) as any)?.role);
+        return res.status(403).json({ message: 'Director access required' });
+      }
+      
+      const currentUser = (req.user as any) as any;
+      console.log(`[ROUTES_DEBUG] 🚀 Calling storage.getReportsOverview(${currentUser.schoolId}) for analytics`);
+      const analyticsData = await storage.getReportsOverview(currentUser.schoolId);
+      
+      console.log(`[DIRECTOR_ANALYTICS] ✅ Analytics generated for school ${currentUser.schoolId}`);
+      res.json(analyticsData);
+    } catch (error: any) {
+      console.error('[DIRECTOR_ANALYTICS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics data' });
+    }
+  });
+
+  app.get("/api/director/settings", requireAuth, async (req, res) => {
+    console.log(`[ROUTES_DEBUG] 🔥 DirectorSettings route REACHED! User:`, ((req.user as any) as any)?.id);
+    try {
+      if (!(req.user as any) || !['Director', 'Admin', 'SiteAdmin'].includes(((req.user as any) as any).role)) {
+        console.log(`[ROUTES_DEBUG] ❌ Access denied for user role:`, ((req.user as any) as any)?.role);
+        return res.status(403).json({ message: 'Director access required' });
+      }
+      
+      const currentUser = (req.user as any) as any;
+      console.log(`[ROUTES_DEBUG] 🚀 Loading settings for director ${currentUser.id}`);
+      
+      // Return basic settings structure
+      const settingsData = {
+        schoolInfo: {
+          name: currentUser.schoolName || 'École Non Configurée',
+          address: currentUser.schoolAddress || '',
+          phone: currentUser.schoolPhone || '',
+          email: currentUser.email || ''
+        },
+        preferences: {
+          language: 'fr',
+          timezone: 'Africa/Douala',
+          currency: 'CFA',
+          notifications: {
+            email: true,
+            sms: true,
+            push: true
+          }
+        },
+        security: {
+          twoFactorEnabled: false,
+          lastPasswordChange: new Date().toISOString(),
+          sessionTimeout: 30
+        }
+      };
+      
+      console.log(`[DIRECTOR_SETTINGS] ✅ Settings loaded for director ${currentUser.id}`);
+      res.json(settingsData);
+    } catch (error: any) {
+      console.error('[DIRECTOR_SETTINGS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch settings data' });
+    }
+  });
+
   // ===== COMMERCIAL API ROUTES - PostgreSQL Integration =====
 
   // 1. COMMERCIAL SCHOOLS ROUTE
