@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,
   Calendar, FileText, Clock, Bell, DollarSign,
@@ -9,25 +10,11 @@ import {
   ChevronDown, Mail, Heart
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import ChildrenManagement from './modules/ChildrenManagement';
-import ParentCommunicationsBidirectional from './modules/ParentCommunicationsBidirectional';
-import ParentProfile from './modules/ParentProfile';
-import { WhatsAppNotifications } from './modules/WhatsAppNotifications';
-
-import { ParentGeolocation } from './modules/ParentGeolocation';
-import HelpCenter from '@/components/help/HelpCenter';
-
-// Import new functional modules
-import FunctionalParentChildren from './modules/FunctionalParentChildren';
-import FunctionalParentMessages from './modules/FunctionalParentMessages';
-import FunctionalParentGrades from './modules/FunctionalParentGrades';
-import FunctionalParentAttendance from './modules/FunctionalParentAttendance';
-import FunctionalParentPayments from './modules/FunctionalParentPayments';
-import FamilyConnections from './modules/FamilyConnections';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
-import ParentRequestManager from './modules/ParentRequestManager';
+// Dynamic components loaded via fastModuleLoader
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
@@ -41,6 +28,32 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Stable event handlers that survive server restarts
   const handleSwitchToGrades = useStableCallback(() => {
@@ -103,14 +116,14 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: <SubscriptionStatusCard />
+      component: createDynamicModule('subscription')
     },
     {
       id: 'children',
       label: t.myChildren,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalParentChildren />
+      component: createDynamicModule('children')
     },
     {
       id: 'messages',
@@ -128,7 +141,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Pièces jointes et photos"
           ]}
         >
-          <FunctionalParentMessages />
+          {createDynamicModule('messages')}
         </PremiumFeatureGate>
       )
     },
@@ -148,7 +161,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Téléchargement PDF professionnel"
           ]}
         >
-          <FunctionalParentGrades />
+          {createDynamicModule('grades')}
         </PremiumFeatureGate>
       )
     },
@@ -168,7 +181,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Rapport mensuel automatique"
           ]}
         >
-          <FunctionalParentAttendance />
+          {createDynamicModule('attendance')}
         </PremiumFeatureGate>
       )
     },
@@ -188,7 +201,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Reçus PDF téléchargeables"
           ]}
         >
-          <FunctionalParentPayments />
+          {createDynamicModule('payments')}
         </PremiumFeatureGate>
       )
     },
@@ -208,7 +221,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Historique des déplacements"
           ]}
         >
-          <ParentGeolocation />
+          {createDynamicModule('geolocation')}
         </PremiumFeatureGate>
       )
     },
@@ -228,7 +241,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Chat temps réel avec statut en ligne"
           ]}
         >
-          <FamilyConnections />
+          {createDynamicModule('family')}
         </PremiumFeatureGate>
       )
     },
@@ -244,14 +257,14 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.requests,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <ParentRequestManager />
+      component: createDynamicModule('requests')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <ParentProfile />
+      component: createDynamicModule('profile')
     },
     {
       id: 'multirole',
@@ -275,7 +288,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-cyan-500',
-      component: <HelpCenter userType="parent" />
+      component: createDynamicModule('help')
     }
   ];
 

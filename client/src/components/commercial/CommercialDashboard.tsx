@@ -7,24 +7,8 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { useFastModules } from '@/utils/fastModuleLoader';
-import MySchoolsModule from './modules/MySchoolsModule';
-import CommercialCRM from './modules/CommercialCRM';
-import ContactsManagement from './modules/ContactsManagement';
-import PaymentConfirmation from './modules/PaymentConfirmation';
-import DocumentsContracts from './modules/DocumentsContracts';
-import CommercialStatistics from './modules/CommercialStatistics';
-import CallsAppointments from './modules/CallsAppointments';
-import Messages from './modules/Messages';
-import WhatsAppManager from './modules/WhatsAppManager';
-import HelpCenter from '@/components/help/HelpCenter';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
-import FunctionalCommercialSchools from './modules/FunctionalCommercialSchools';
-import FunctionalCommercialLeads from './modules/FunctionalCommercialLeads';
-import FunctionalCommercialReports from './modules/FunctionalCommercialReports';
-import FunctionalCommercialSettings from './modules/FunctionalCommercialSettings';
-import FunctionalCommercialAppointments from './modules/FunctionalCommercialAppointments';
-import FunctionalCommercialWhatsApp from './modules/FunctionalCommercialWhatsApp';
-import FunctionalCommercialStatistics from './modules/FunctionalCommercialStatistics';
 
 interface CommercialDashboardProps {
   activeModule?: string;
@@ -32,7 +16,32 @@ interface CommercialDashboardProps {
 
 const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
   const { language } = useLanguage();
-  const { preloadModule } = useFastModules();
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Preload modules when dashboard loads
   useEffect(() => {
@@ -89,70 +98,70 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.mySchools,
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalCommercialSchools />
+      component: createDynamicModule('schools')
     },
     {
       id: 'leads',
       label: t.leads,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalCommercialLeads />
+      component: createDynamicModule('leads')
     },
     {
       id: 'contacts',
       label: t.contacts,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <ContactsManagement />
+      component: createDynamicModule('contacts')
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <PaymentConfirmation />
+      component: createDynamicModule('payments')
     },
     {
       id: 'documents',
       label: t.documents,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <DocumentsContracts />
+      component: createDynamicModule('documents')
     },
     {
       id: 'statistics',
       label: t.statistics,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <FunctionalCommercialStatistics />
+      component: createDynamicModule('statistics')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <TrendingUp className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: <FunctionalCommercialReports />
+      component: createDynamicModule('reports')
     },
     {
       id: 'appointments',
       label: t.appointments,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <FunctionalCommercialAppointments />
+      component: createDynamicModule('appointments')
     },
     {
       id: 'whatsapp',
       label: t.whatsapp,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
-      component: <FunctionalCommercialWhatsApp />
+      component: createDynamicModule('whatsapp')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-600',
-      component: <FunctionalCommercialSettings />
+      component: createDynamicModule('settings')
     },
     {
       id: 'multirole',
@@ -176,7 +185,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: <HelpCenter userType="school" />
+      component: createDynamicModule('help')
     }
   ];
 

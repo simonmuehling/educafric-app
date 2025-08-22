@@ -1,19 +1,13 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
   Settings, Clock, MapPin, FileText, HelpCircle, Bell, User, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
-import FunctionalFreelancerStudents from './modules/FunctionalFreelancerStudents';
-import FunctionalFreelancerSessions from './modules/FunctionalFreelancerSessions';
-import FunctionalFreelancerPayments from './modules/FunctionalFreelancerPayments';
-import FunctionalFreelancerSchedule from './modules/FunctionalFreelancerSchedule';
-import FunctionalFreelancerResources from './modules/FunctionalFreelancerResources';
-import FreelancerCommunications from './modules/FreelancerCommunications';
-import FreelancerGeolocation from './modules/FreelancerGeolocation';
-import HelpCenter from '@/components/help/HelpCenter';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
@@ -28,6 +22,32 @@ interface FreelancerDashboardProps {
 
 const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) => {
   const { language } = useLanguage();
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   const text = {
     fr: {
@@ -69,14 +89,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: <SubscriptionStatusCard />
+      component: createDynamicModule('subscription')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <UnifiedProfileManager userType="freelancer" showPhotoUpload={true} />
+      component: createDynamicModule('settings')
     },
     {
       id: 'students',
@@ -94,7 +114,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Communication directe avec parents"
           ]}
         >
-          <FunctionalFreelancerStudents />
+          {createDynamicModule('students')}
         </PremiumFeatureGate>
       )
     },
@@ -114,7 +134,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Rapports détaillés par session"
           ]}
         >
-          <FunctionalFreelancerSessions />
+          {createDynamicModule('sessions')}
         </PremiumFeatureGate>
       )
     },
@@ -134,7 +154,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Paiements Orange Money & MTN"
           ]}
         >
-          <FunctionalFreelancerPayments />
+          {createDynamicModule('payments')}
         </PremiumFeatureGate>
       )
     },
@@ -154,7 +174,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Optimisation des trajets"
           ]}
         >
-          <FunctionalFreelancerSchedule />
+          {createDynamicModule('schedule')}
         </PremiumFeatureGate>
       )
     },
@@ -174,7 +194,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Templates professionnels"
           ]}
         >
-          <FunctionalFreelancerResources />
+          {createDynamicModule('resources')}
         </PremiumFeatureGate>
       )
     },
@@ -194,7 +214,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Support client prioritaire"
           ]}
         >
-          <FreelancerCommunications />
+          {createDynamicModule('communications')}
         </PremiumFeatureGate>
       )
     },
@@ -214,7 +234,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Calcul des frais de déplacement"
           ]}
         >
-          <FreelancerGeolocation />
+          {createDynamicModule('geolocation')}
         </PremiumFeatureGate>
       )
     },
@@ -247,7 +267,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-cyan-500',
-      component: <HelpCenter userType="freelancer" />
+      component: createDynamicModule('help')
     }
   ];
 

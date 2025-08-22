@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,25 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 // Import functional modules
-import FunctionalSiteAdminUsers from './modules/FunctionalSiteAdminUsers';
-import FunctionalSiteAdminSchools from './modules/FunctionalSiteAdminSchools';
-import FunctionalSiteAdminSystemHealth from './modules/FunctionalSiteAdminSystemHealth';
-import FunctionalSiteAdminSettings from './modules/FunctionalSiteAdminSettings';
-import SMSTestSuite from '@/components/sandbox/SMSTestSuite';
-import FunctionalSiteAdminDocuments from './modules/FunctionalSiteAdminDocuments';
-import AdminCommunication from './modules/AdminCommunication';
-import AnalyticsBusiness from './modules/AnalyticsBusiness';
-import UnifiedCommercialManagement from './modules/UnifiedCommercialManagement';
-import ContentManagement from './modules/ContentManagement';
-import FirebaseIntegration from './modules/FirebaseIntegration';
-import MultiRoleManagement from './modules/MultiRoleManagement';
-import PaymentAdministration from './modules/PaymentAdministration';
-import PlatformManagement from './modules/PlatformManagement';
-import PreviewModule from './modules/PreviewModule';
-import SchoolManagement from './modules/SchoolManagement';
-import SecurityAudit from './modules/SecurityAudit';
-import UserManagement from './modules/UserManagement';
-import DocumentPermissionsManager from './DocumentPermissionsManager';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 
 interface PlatformStats {
   totalUsers: number;
@@ -57,6 +40,30 @@ const SiteAdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Chargement du module...</p>
+        </div>
+      </div>
+    );
+  };
 
   const handleLogout = async () => {
     try {
@@ -540,75 +547,75 @@ const SiteAdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
-            <FunctionalSiteAdminUsers />
+            {createDynamicModule('users')}
           </TabsContent>
 
           <TabsContent value="schools" className="mt-6">
-            <FunctionalSiteAdminSchools />
+            {createDynamicModule('schools')}
           </TabsContent>
 
           <TabsContent value="user-mgmt" className="mt-6">
-            <UserManagement />
+            {createDynamicModule('user-mgmt')}
           </TabsContent>
 
           <TabsContent value="school-mgmt" className="mt-6">
-            <SchoolManagement />
+            {createDynamicModule('school-mgmt')}
           </TabsContent>
 
           <TabsContent value="documents" className="mt-6">
-            <FunctionalSiteAdminDocuments />
+            {createDynamicModule('documents')}
           </TabsContent>
 
           <TabsContent value="doc-permissions" className="mt-6">
-            <DocumentPermissionsManager />
+            {createDynamicModule('doc-permissions')}
           </TabsContent>
 
           <TabsContent value="content" className="mt-6">
-            <ContentManagement />
+            {createDynamicModule('content')}
           </TabsContent>
 
           <TabsContent value="communication" className="mt-6">
-            <AdminCommunication />
+            {createDynamicModule('communication')}
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-6">
-            <UnifiedCommercialManagement />
+            {createDynamicModule('commercial')}
           </TabsContent>
 
           <TabsContent value="payments" className="mt-6">
-            <PaymentAdministration />
+            {createDynamicModule('payments')}
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
-            <AnalyticsBusiness />
+            {createDynamicModule('analytics')}
           </TabsContent>
 
           <TabsContent value="multi-role" className="mt-6">
-            <MultiRoleManagement />
+            {createDynamicModule('multi-role')}
           </TabsContent>
 
           <TabsContent value="security" className="mt-6">
-            <SecurityAudit />
+            {createDynamicModule('security')}
           </TabsContent>
 
           <TabsContent value="firebase" className="mt-6">
-            <FirebaseIntegration />
+            {createDynamicModule('firebase')}
           </TabsContent>
 
           <TabsContent value="platform" className="mt-6">
-            <PlatformManagement />
+            {createDynamicModule('platform')}
           </TabsContent>
 
           <TabsContent value="preview" className="mt-6">
-            <PreviewModule />
+            {createDynamicModule('preview')}
           </TabsContent>
 
           <TabsContent value="health" className="mt-6">
-            <FunctionalSiteAdminSystemHealth />
+            {createDynamicModule('health')}
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            <FunctionalSiteAdminSettings />
+            {createDynamicModule('settings')}
           </TabsContent>
         </Tabs>
       </div>

@@ -1,25 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
   MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import FunctionalTeacherClasses from './modules/FunctionalTeacherClasses';
-import AttendanceManagement from './modules/AttendanceManagement';
-import FunctionalTeacherGrades from './modules/FunctionalTeacherGrades';
-import FunctionalTeacherAssignments from './modules/FunctionalTeacherAssignments';
-import CreateEducationalContent from './modules/CreateEducationalContent';
-import ReportCardManagement from './modules/ReportCardManagement';
-import EnhancedTeacherCommunications from './modules/EnhancedTeacherCommunications';
-import TeacherTimetable from './modules/TeacherTimetable';
-import FunctionalTeacherProfile from './modules/FunctionalTeacherProfile';
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
-import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
-import HelpCenter from '@/components/help/HelpCenter';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
 
 interface TeacherDashboardProps {
@@ -30,6 +21,32 @@ interface TeacherDashboardProps {
 const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState<string>(activeModule || '');
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Stable event handlers that survive server restarts
   useStableEventHandler(() => {
@@ -100,56 +117,56 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.classes,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: <FunctionalTeacherClasses />
+      component: createDynamicModule('classes')
     },
     {
       id: 'timetable',
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: <TeacherTimetable />
+      component: createDynamicModule('timetable')
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: <AttendanceManagement />
+      component: createDynamicModule('attendance')
     },
     {
       id: 'grades',
       label: t.grades,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: <FunctionalTeacherGrades />
+      component: createDynamicModule('grades')
     },
     {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: <FunctionalTeacherAssignments />
+      component: createDynamicModule('assignments')
     },
     {
       id: 'content',
       label: t.content,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: <CreateEducationalContent />
+      component: createDynamicModule('content')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <ReportCardManagement />
+      component: createDynamicModule('reports')
     },
     {
       id: 'communications',
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <EnhancedTeacherCommunications />
+      component: createDynamicModule('communications')
     },
 
     {
@@ -206,14 +223,14 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <HelpCenter userType="teacher" />
+      component: createDynamicModule('help')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Enseignant' : 'Teacher Settings',
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-600',
-      component: <UnifiedProfileManager userType="teacher" showPhotoUpload={true} />
+      component: createDynamicModule('profile')
     }
   ];
 
