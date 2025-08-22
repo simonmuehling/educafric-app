@@ -61,6 +61,11 @@ class FastModuleLoader {
       'family': () => import('@/components/parent/modules/FamilyConnections'),
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
       
+      // CRITICAL MISSING Parent modules that were causing slow loading!
+      'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
+      'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'), 
+      'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
+      
       // Additional Parent module aliases  
       'MyChildren': () => import('@/components/parent/modules/MyChildren'),
       'FunctionalParentChildren': () => import('@/components/parent/modules/FunctionalParentChildren'),

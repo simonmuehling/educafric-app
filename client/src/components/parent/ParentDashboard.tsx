@@ -78,7 +78,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Parent specific
   React.useEffect(() => {
-    const criticalModules = ['children', 'messages', 'grades', 'attendance', 'payments', 'geolocation'];
+    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -107,7 +107,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      const isCritical = ['children', 'grades', 'attendance', 'messages', 'payments'].includes(moduleName);
+      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments'].includes(moduleName);
       if (isCritical) {
         console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
       }
@@ -218,7 +218,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Pièces jointes et photos"
           ]}
         >
-          {createDynamicModule('messages')}
+          {createDynamicModule('parent-messages')}
         </PremiumFeatureGate>
       )
     },
@@ -238,7 +238,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Téléchargement PDF professionnel"
           ]}
         >
-          {createDynamicModule('grades')}
+          {createDynamicModule('parent-grades')}
         </PremiumFeatureGate>
       )
     },
@@ -258,7 +258,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Rapport mensuel automatique"
           ]}
         >
-          {createDynamicModule('attendance')}
+          {createDynamicModule('parent-attendance')}
         </PremiumFeatureGate>
       )
     },
