@@ -22,13 +22,13 @@ class FastModuleLoader {
       
       // Director modules (real ones) - ALL modules for instant loading
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
-      'settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
-      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
-      'timetable': () => import('@/components/director/modules/TimetableConfiguration'),
-      'attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
-      'communications': () => import('@/components/director/modules/CommunicationsCenter'),
+      'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
+      'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
       'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
@@ -53,65 +53,64 @@ class FastModuleLoader {
       'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
       
-      // Parent modules (real ones - ALL modules for instant loading)
+      // Parent modules (matching dashboard IDs exactly)
+      'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
+      'children': () => import('@/components/parent/modules/FunctionalParentChildren'),
+      'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
+      'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
+      'family': () => import('@/components/parent/modules/FamilyConnections'),
+      'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      
+      // Additional Parent module aliases  
       'MyChildren': () => import('@/components/parent/modules/MyChildren'),
-      'parent-children': () => import('@/components/parent/modules/MyChildren'),
       'FunctionalParentChildren': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'FunctionalParentMessages': () => import('@/components/parent/modules/FunctionalParentMessages'),
-      'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'ParentGeolocation': () => import('@/components/parent/modules/ParentGeolocation'),
-      'parent-geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'FunctionalParentPayments': () => import('@/components/parent/modules/FunctionalParentPayments'),
-      'parent-payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'ParentSubscription': () => import('@/components/parent/modules/ParentSubscription'),
-      'parent-subscription': () => import('@/components/parent/modules/ParentSubscription'),
       'FunctionalParentGrades': () => import('@/components/parent/modules/FunctionalParentGrades'),
-      'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'),
       'FunctionalParentAttendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
-      'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
       'FamilyConnections': () => import('@/components/parent/modules/FamilyConnections'),
-      'parent-family': () => import('@/components/parent/modules/FamilyConnections'),
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
-      'parent-request-manager': () => import('@/components/parent/modules/ParentRequestManager'),
       
-      // Student modules (ALL for instant loading)
+      // Student modules (matching dashboard IDs exactly)
+      'timetable': () => import('@/components/student/modules/FunctionalStudentClasses'),
+      'grades': () => import('@/components/student/modules/StudentGrades'),
+      'assignments': () => import('@/components/student/modules/StudentHomework'),
+      'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'progress': () => import('@/components/student/modules/StudentProgress'),
+      'messages': () => import('@/components/student/modules/StudentCommunications'),
+      'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
+      
+      // Additional Student module aliases
       'StudentTimetable': () => import('@/components/student/modules/StudentTimetable'),
-      'student-timetable': () => import('@/components/student/modules/StudentTimetable'),
       'StudentGrades': () => import('@/components/student/modules/StudentGrades'),
-      'student-grades': () => import('@/components/student/modules/StudentGrades'),
       'StudentHomework': () => import('@/components/student/modules/StudentHomework'),
-      'student-assignments': () => import('@/components/student/modules/StudentHomework'),
-      'student-homework': () => import('@/components/student/modules/StudentHomework'),
       'StudentCommunications': () => import('@/components/student/modules/StudentCommunications'),
-      'student-communications': () => import('@/components/student/modules/StudentCommunications'),
       'FunctionalStudentProfile': () => import('@/components/student/modules/FunctionalStudentProfile'),
-      'student-profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
       'FunctionalStudentBulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
-      'student-bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
       'FunctionalStudentAttendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
-      'student-attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'FunctionalStudentClasses': () => import('@/components/student/modules/FunctionalStudentClasses'),
-      'student-classes': () => import('@/components/student/modules/FunctionalStudentClasses'),
       'StudentProgress': () => import('@/components/student/modules/StudentProgress'),
-      'student-progress': () => import('@/components/student/modules/StudentProgress'),
       'FindParentsModule': () => import('@/components/student/modules/FindParentsModule'),
-      'student-parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
-      // Freelancer modules (ALL for instant loading)  
+      // Freelancer modules (matching dashboard IDs exactly)
+      'settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
+      'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
+      'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
+      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      
+      // Additional Freelancer module aliases
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
-      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
       'FunctionalFreelancerSessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
-      'freelancer-sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'FunctionalFreelancerPayments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
-      'freelancer-payments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
       'FunctionalFreelancerSchedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
-      'freelancer-schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'FunctionalFreelancerResources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'freelancer-resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
       'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
-      'freelancer-geolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
+      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
     };
 
     const importFn = moduleMap[moduleName];
@@ -169,17 +168,14 @@ class FastModuleLoader {
       // Director modules (most commonly used)
       'teachers', 'students', 'classes',
       
-      // Parent modules (essential)
-      'MyChildren', 'FunctionalParentChildren', 'FunctionalParentMessages', 'FunctionalParentGrades',
-      'FunctionalParentAttendance', 'FunctionalParentPayments', 'ParentGeolocation',
+      // Parent modules (essential - using actual dashboard IDs)
+      'subscription', 'children', 'messages', 'grades', 'attendance', 'geolocation', 'payments', 'family',
       
-      // Student modules (essential)
-      'StudentTimetable', 'StudentGrades', 'StudentHomework', 'FunctionalStudentAttendance',
-      'FunctionalStudentBulletins', 'StudentProgress',
+      // Student modules (essential - using actual dashboard IDs)
+      'timetable', 'assignments', 'bulletins', 'progress', 'parentConnection',
       
-      // Freelancer modules (essential)
-      'FunctionalFreelancerStudents', 'FunctionalFreelancerSessions', 'FunctionalFreelancerSchedule',
-      'FunctionalFreelancerPayments', 'FreelancerCommunications',
+      // Freelancer modules (essential - using actual dashboard IDs)  
+      'settings', 'students', 'sessions', 'payments', 'schedule', 'resources', 'communications',
       
       // Commercial modules
       'DocumentsContracts', 'CommercialStatistics'
