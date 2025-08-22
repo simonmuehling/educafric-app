@@ -7,16 +7,8 @@ import {
   BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-// Dynamic imports only - no static imports to enable fast loading
-
-// import StudentAchievements from './modules/StudentAchievements';
-import HelpCenter from '@/components/help/HelpCenter';
-import StudentProfile from './modules/StudentProfile';
-import NotificationCenter from '@/components/shared/NotificationCenter';
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
-import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
+// Optimized: All modules loaded dynamically for ultra-fast loading
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
-// Dynamic components loaded via fastModuleLoader
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -174,91 +166,42 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.achievements,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: <div className="p-3 sm:p-6">
-        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Réussites</h3>
-        <div className="grid grid-cols-1 gap-3 sm:gap-4">
-          <div className="bg-yellow-50 p-3 sm:p-4 rounded-lg border-l-4 border-yellow-400">
-            <div className="flex items-center">
-              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-2" />
-              <span className="font-medium text-sm sm:text-base">Excellent Élève</span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">Moyenne générale de 17/20</p>
-          </div>
-          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border-l-4 border-green-400">
-            <div className="flex items-center">
-              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2" />
-              <span className="font-medium text-sm sm:text-base">Participation Active</span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1">95% de présence</p>
-          </div>
-        </div>
-      </div>
+      component: createDynamicModule('achievements')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Étudiant' : 'Student Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: <UnifiedProfileManager userType="student" showPhotoUpload={true} />
+      component: createDynamicModule('profile')
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-slate-500',
-      component: <HelpCenter userType="student" />
+      component: createDynamicModule('help')
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Student" userId={1} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'geolocation',
       label: 'Géolocalisation',
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <div className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Géolocalisation Parent</h3>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">
-            Votre localisation est suivie par vos parents pour votre sécurité.
-          </p>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm">Statut:</span>
-              <span className="text-sm font-medium text-green-600">Activé</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Zone actuelle:</span>
-              <span className="text-sm font-medium">École</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm">Dernière mise à jour:</span>
-              <span className="text-sm font-medium">Il y a 2 min</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      component: createDynamicModule('student-geolocation')
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: <UniversalMultiRoleSwitch 
-        currentUserRole="Student"
-        onRoleSwitch={(role) => {
-          console.log(`[STUDENT_DASHBOARD] 🔄 Role switch requested: ${role}`);
-          if (role === 'Teacher') {
-            window.location.href = '/teacher';
-          } else if (role === 'Parent') {
-            window.location.href = '/parent';
-          }
-        }} 
-      />
+      component: createDynamicModule('multirole')
     }
   ];
 

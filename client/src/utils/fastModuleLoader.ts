@@ -83,6 +83,12 @@ class FastModuleLoader {
       'messages': () => import('@/components/student/modules/StudentCommunications'),
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
+      // Missing Student modules that were causing slow loading
+      'achievements': () => import('@/components/student/modules/StudentAchievements'),
+      'profile': () => import('@/components/student/modules/StudentProfile'),
+      'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
+      'multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'),
+      
       // Additional Student module aliases
       'StudentTimetable': () => import('@/components/student/modules/StudentTimetable'),
       'StudentGrades': () => import('@/components/student/modules/StudentGrades'),
@@ -171,8 +177,8 @@ class FastModuleLoader {
       // Parent modules (essential - using actual dashboard IDs)
       'subscription', 'children', 'messages', 'grades', 'attendance', 'geolocation', 'payments', 'family',
       
-      // Student modules (essential - using actual dashboard IDs)
-      'timetable', 'assignments', 'bulletins', 'progress', 'parentConnection',
+      // Student modules (essential - using actual dashboard IDs) - ALL MODULES for instant loading
+      'timetable', 'assignments', 'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
       
       // Freelancer modules (essential - using actual dashboard IDs)  
       'settings', 'students', 'sessions', 'payments', 'schedule', 'resources', 'communications',
