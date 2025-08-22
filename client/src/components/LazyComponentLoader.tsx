@@ -2,11 +2,10 @@
 import React, { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
-// Composant de chargement optimisé
+// Composant de chargement ultra-rapide
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center p-8">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <span className="ml-2 text-gray-600">Chargement...</span>
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
   </div>
 );
 
@@ -137,8 +136,7 @@ export class ComponentPreloader {
       const preloadFn = this.preloadQueue.shift();
       if (preloadFn) {
         await preloadFn();
-        // Délai pour éviter de bloquer le thread principal
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Pas de délai - chargement immédiat pour performance optimale
       }
     }
 

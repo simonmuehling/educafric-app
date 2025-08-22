@@ -116,10 +116,10 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // Optimized: Preload only essential modules, load others on-demand
+  // Optimized: Preload critical modules instantly in parallel
   async preloadCriticalModules() {
     const criticalModules = [
-      // Only preload the most commonly used modules to reduce initial bundle size
+      // Most commonly used modules for instant loading
       'settings', 'overview', 'teachers', 'students', 'classes', 
       'help', 'notifications',
       
@@ -130,15 +130,11 @@ class FastModuleLoader {
       'DocumentsContracts', 'CommercialStatistics'
     ];
 
-    // Preload in smaller batches to reduce memory pressure
-    const batchSize = 5;
-    for (let i = 0; i < criticalModules.length; i += batchSize) {
-      const batch = criticalModules.slice(i, i + batchSize);
-      const batchPromises = batch.map(module => this.preloadModule(module));
-      await Promise.allSettled(batchPromises);
-    }
+    // Preload ALL in parallel for maximum speed - no batching delays
+    const allPromises = criticalModules.map(module => this.preloadModule(module));
+    await Promise.allSettled(allPromises);
     
-    console.log(`[FAST_LOADER] 🚀 Preloaded ${Object.keys(this.cache).length} critical modules`);
+    console.log(`[FAST_LOADER] ⚡ Instant loaded ${Object.keys(this.cache).length} critical modules`);
   }
 
   // Clear cache to prevent memory leaks

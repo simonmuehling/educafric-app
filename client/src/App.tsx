@@ -41,6 +41,9 @@ import {
 // Initialize network optimizer for connection quality improvements
 import "@/utils/networkOptimizer";
 
+// Initialize global module preloader for instant loading
+import { fastModuleLoader } from "@/utils/fastModuleLoader";
+
 // Light components - Regular imports OK
 import Subscribe from "@/pages/Subscribe";
 import Demo from "@/pages/Demo";
@@ -62,6 +65,20 @@ import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
+
+// Global module preloader for instant UI response
+const useGlobalModulePreloader = () => {
+  useEffect(() => {
+    const startGlobalPreload = async () => {
+      console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
+      await fastModuleLoader.preloadCriticalModules();
+      console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+    };
+    
+    // Start preloading immediately when app loads
+    startGlobalPreload();
+  }, []);
+};
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
 const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
 const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
@@ -466,6 +483,9 @@ function FirebaseRedirectHandler() {
 }
 
 function App() {
+  // Global module preloader for instant UI response
+  useGlobalModulePreloader();
+  
   useEffect(() => {
     // Configuration du filtre de console pour réduire le spam
     import("@/utils/consoleFilter").then(({ setupConsoleFilter }) => {

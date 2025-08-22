@@ -41,35 +41,39 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const { preloadModule, getModule, isReady } = useFastModules();
 
-  // Preload ALL modules immediately when dashboard opens
+  // Ultra-fast preload ALL modules instantly when dashboard opens  
   useEffect(() => {
     const preloadAllModules = async () => {
       const moduleIds = modules.map(m => m.id);
-      console.log(`[UNIFIED_DASHBOARD] 🚀 Preloading ${moduleIds.length} modules for instant access`);
+      console.log(`[UNIFIED_DASHBOARD] ⚡ Instant preloading ${moduleIds.length} modules`);
       
-      // Preload all modules in parallel for maximum speed
+      // Preload ALL modules immediately in parallel - no delays
       const preloadPromises = moduleIds.map(id => preloadModule(id));
-      await Promise.allSettled(preloadPromises);
+      const results = await Promise.allSettled(preloadPromises);
       
-      console.log(`[UNIFIED_DASHBOARD] ✅ All modules preloaded and ready`);
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      console.log(`[UNIFIED_DASHBOARD] 🚀 ${successful}/${moduleIds.length} modules instantly ready`);
     };
 
+    // Start preloading immediately without any delays
     preloadAllModules();
   }, [modules, preloadModule]);
 
   const handleModuleClick = async (moduleId: string) => {
-    console.log(`[UNIFIED_DASHBOARD] 🚀 Fast switching to module: ${moduleId}`);
+    console.log(`[UNIFIED_DASHBOARD] ⚡ Switching to module: ${moduleId}`);
     
-    // Check if module is already preloaded
+    // Check if module is already preloaded (should be instant)
     const preloadedComponent = getModule(moduleId);
     if (preloadedComponent) {
-      console.log(`[UNIFIED_DASHBOARD] ⚡ Instant load: ${moduleId}`);
+      console.log(`[UNIFIED_DASHBOARD] 🚀 Instant load: ${moduleId}`);
       setActiveModule(moduleId);
-    } else {
-      console.log(`[UNIFIED_DASHBOARD] 🔄 Loading module: ${moduleId}`);
-      await preloadModule(moduleId);
-      setActiveModule(moduleId);
+      return;
     }
+
+    // Fallback: load module if not preloaded (should rarely happen)
+    console.log(`[UNIFIED_DASHBOARD] 🔄 Fallback loading: ${moduleId}`);
+    setActiveModule(moduleId); // Set immediately for instant UI response
+    preloadModule(moduleId); // Load in background
   };
 
   const handleModuleHover = (moduleId: string) => {
