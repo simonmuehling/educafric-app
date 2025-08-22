@@ -12589,26 +12589,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  console.log('[PWA_ANALYTICS] ✅ PWA Analytics routes registered successfully');
-
-  // Notification routes
-  try {
-    setupNotificationRoutes(app);
-  } catch (error) {
-    console.warn('[NOTIFICATIONS] Error registering notification routes:', error);
-  }
-  console.log('[SYSTEM_REPORTS] System reports routes registered successfully');
-
   // Register configuration routes
   app.use('/api/school', configurationRoutes);
-  console.log('[CONFIG_GUIDE] Configuration guide routes registered successfully');
   
   // Register bulk import routes
   app.use('/api/bulk', bulkImportRoutes);
   
   // Register subscription management routes
   registerSubscriptionRoutes(app);
-  console.log('[BULK_IMPORT] Bulk import routes registered successfully');
   
   // Clean Student Routes - Replace all old student routes with clean architecture
   // Student routes handled inline above

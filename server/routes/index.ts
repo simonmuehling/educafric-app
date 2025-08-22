@@ -30,7 +30,7 @@ import gradesRoutes from './grades';
 // Import existing routes
 import subscriptionRoutes from "./subscription";
 import autofixRoutes from "./autofix";
-import multiRoleRoutes from "./multiRole";
+import multiRoleRoutes from "./multiRoleRoutes";
 import systemReportsRoutes from "./systemReportsRoutes";
 import setupNotificationRoutes from "./notificationRoutes";
 import { registerSiteAdminRoutes } from "./siteAdminRoutes";
@@ -54,17 +54,8 @@ function requireAuth(req: any, res: any, next: any) {
 import { welcomeEmailService } from "../services/welcomeEmailService";
 
 // Import geolocation routes
-import {
-  updateLocation,
-  getFamilyLocations,
-  createSafeZone,
-  getSafeZones,
-  triggerEmergencyPanic,
-  createFamilyNetwork,
-  getGeofenceAlerts,
-  getLocationAnalytics,
-  registerDevice
-} from "./geolocationRoutes";
+import geolocationRoutes from "./geolocation";
+import enhancedGeolocationRoutes from "./enhancedGeolocation";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure security middleware (helmet, cors, rate limiting)
@@ -129,16 +120,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/classes', classesRoutes);
   app.use('/api/grades', gradesRoutes);
 
-  // Geolocation routes
-  app.post('/api/location/update', updateLocation);
-  app.get('/api/location/family', getFamilyLocations);
-  app.post('/api/location/safe-zone', createSafeZone);
-  app.get('/api/location/safe-zones', getSafeZones);
-  app.post('/api/location/emergency', triggerEmergencyPanic);
-  app.post('/api/location/family-network', createFamilyNetwork);
-  app.get('/api/location/alerts', getGeofenceAlerts);
-  app.get('/api/location/analytics', getLocationAnalytics);
-  app.post('/api/location/register-device', registerDevice);
+  // Geolocation routes - using modular approach
+  app.use('/api/geolocation', geolocationRoutes);
+  app.use('/api/location', enhancedGeolocationRoutes);
 
   // System health check
   app.get('/api/health', systemHealthCheck);
