@@ -45,11 +45,7 @@ class DatabasePool {
     
     for (let i = 0; i < this.maxConnections; i++) {
       try {
-        const sql = neon(process.env.DATABASE_URL!, {
-          connectionTimeoutMillis: 10000,
-          maxRetries: 3,
-          retryDelay: 1000
-        });
+        const sql = neon(process.env.DATABASE_URL!);
         
         const db = drizzle(sql, { schema });
         this.connections.push({

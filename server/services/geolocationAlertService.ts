@@ -39,6 +39,8 @@ interface LocationAlert {
 class GeolocationAlertService {
   private notificationService: NotificationService;
   private monitoringInterval: NodeJS.Timeout | null = null;
+  private sigTermHandler: (() => void) | null = null;
+  private sigIntHandler: (() => void) | null = null;
   private studentTracking: Map<number, {
     lastKnownLocation: StudentLocation;
     lastSafeZoneExit?: string;
@@ -62,7 +64,7 @@ class GeolocationAlertService {
 
     console.log('[GEOLOCATION_ALERTS] 🔄 Starting location monitoring...');
     
-    // Check student locations every 30 seconds with proper error handling
+    // Check student locations every 2 minutes (more efficient than 30 seconds)
     this.monitoringInterval = setInterval(async () => {
       try {
         await this.checkAllStudentLocations();
@@ -70,13 +72,15 @@ class GeolocationAlertService {
         console.error('[GEOLOCATION_ALERTS] ❌ Monitoring error:', error);
         // Continue monitoring even if one check fails
       }
-    }, 30000);
+    }, 120000);
 
-    console.log('[GEOLOCATION_ALERTS] ✅ Location monitoring started (30s intervals)');
+    console.log('[GEOLOCATION_ALERTS] ✅ Location monitoring started (2min intervals)');
     
-    // Add graceful shutdown handler
-    process.on('SIGTERM', () => this.stopMonitoring());
-    process.on('SIGINT', () => this.stopMonitoring());
+    // Add graceful shutdown handler with proper listener management
+    this.sigTermHandler = () => this.stopMonitoring();
+    this.sigIntHandler = () => this.stopMonitoring();
+    process.on('SIGTERM', this.sigTermHandler);
+    process.on('SIGINT', this.sigIntHandler);
   }
 
   /**
@@ -92,9 +96,15 @@ class GeolocationAlertService {
     // Clear tracking data to prevent memory leaks
     this.studentTracking.clear();
     
-    // Remove process listeners
-    process.removeAllListeners('SIGTERM');
-    process.removeAllListeners('SIGINT');
+    // Remove specific process listeners to avoid interfering with other services
+    if (this.sigTermHandler) {
+      process.removeListener('SIGTERM', this.sigTermHandler);
+      this.sigTermHandler = null;
+    }
+    if (this.sigIntHandler) {
+      process.removeListener('SIGINT', this.sigIntHandler);
+      this.sigIntHandler = null;
+    }
   }
 
   /**

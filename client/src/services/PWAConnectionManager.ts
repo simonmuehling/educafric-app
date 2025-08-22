@@ -133,7 +133,8 @@ class PWAConnectionManager {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      console.warn('[PWA_CONNECTION] ⚠️ Ping échoué:', error);
+      // Silently handle ping failures to reduce console noise
+      this.state.quality = 'poor';
       this.handleConnectionError();
     }
 
@@ -165,8 +166,9 @@ class PWAConnectionManager {
         this.performHealthCheck();
       }, delay);
     } else {
-      console.error('[PWA_CONNECTION] ❌ Échec de reconnexion après', this.maxRetries, 'tentatives');
+      // Handle connection failure gracefully
       this.state.quality = 'offline';
+      this.state.isConnected = false;
     }
   }
 

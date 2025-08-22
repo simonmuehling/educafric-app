@@ -54,7 +54,7 @@ class NotificationService {
       }
       return false;
     } catch (error) {
-      console.error('Failed to initialize notification service:', error);
+      // Handle initialization failure gracefully
       return false;
     }
   }
@@ -62,7 +62,7 @@ class NotificationService {
   // Request notification permissions
   async requestPermissions(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+      // Browser doesn't support notifications - handle gracefully
       return 'denied';
     }
 
@@ -73,7 +73,7 @@ class NotificationService {
   async showPWANotification(options: PWANotificationOptions): Promise<boolean> {
     const permission = await this.requestPermissions();
     if (permission !== 'granted') {
-      console.warn('Notification permission not granted');
+      // Permission not granted - handle gracefully
       return false;
     }
 

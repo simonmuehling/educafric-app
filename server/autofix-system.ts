@@ -19,6 +19,12 @@ export class AutoFixSystem {
   async detectAndFixError(error: any, context?: any): Promise<boolean> {
     if (this.isFixing) return false;
     
+    // In production, disable aggressive auto-fixes to prevent data corruption
+    if (process.env.NODE_ENV === 'production') {
+      console.log(`[AUTOFIX] Production mode - logging error instead of auto-fixing: ${error.message || error.toString()}`);
+      return false;
+    }
+    
     const errorMessage = error.message || error.toString();
     const errorKey = this.generateErrorKey(errorMessage, context);
     
@@ -85,45 +91,12 @@ export class AutoFixSystem {
     if (!columnMatch) return false;
     
     const columnName = columnMatch[1];
-    console.log(`[AUTOFIX] Adding missing column: ${columnName}`);
     
-    try {
-      // Common column definitions
-      const columnDefinitions: { [key: string]: string } = {
-        'stripe_payment_intent_id': 'TEXT',
-        'subscription_plan': 'TEXT DEFAULT \'free\'',
-        'subscription_start': 'TIMESTAMP DEFAULT NOW()',
-        'subscription_end': 'TIMESTAMP',
-        'last_login': 'TIMESTAMP',
-        'firebase_uid': 'TEXT UNIQUE',
-        'two_factor_secret': 'TEXT',
-        'two_factor_verified_at': 'TIMESTAMP',
-        'two_factor_backup_codes': 'TEXT[]',
-        'device_tokens': 'TEXT[]',
-        'notification_preferences': 'JSONB DEFAULT \'{}\'',
-        'geolocation_enabled': 'BOOLEAN DEFAULT false',
-        'emergency_contacts': 'TEXT[]'
-      };
-      
-      const columnType = columnDefinitions[columnName] || 'TEXT';
-      
-      // Add column to users table (most common case)
-      const sql = `ALTER TABLE users ADD COLUMN IF NOT EXISTS ${columnName} ${columnType};`;
-      
-      // Execute SQL fix
-      const { stdout, stderr } = await execAsync(`echo "${sql}" | psql $DATABASE_URL`);
-      
-      if (stderr && !stderr.includes('already exists')) {
-        throw new Error(stderr);
-      }
-      
-      console.log(`[AUTOFIX] ✅ Added column ${columnName} to users table`);
-      return true;
-      
-    } catch (error) {
-      console.error(`[AUTOFIX] Failed to add column ${columnName}:`, error);
-      return false;
-    }
+    // SAFETY: Never automatically modify database schema in production
+    console.log(`[AUTOFIX] Database column issue detected: ${columnName} - manual schema update required`);
+    console.log(`[AUTOFIX] Run 'npm run db:push' to sync schema changes`);
+    
+    return false; // Always return false to prevent automatic schema changes
   }
 
   private async fixTypeScriptError(errorMessage: string): Promise<boolean> {
