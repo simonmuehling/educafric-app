@@ -202,19 +202,18 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       />
     },
     {
-      id: 'profile',
-      label: language === 'fr' ? 'Paramètres Enseignant' : 'Teacher Settings',
-      icon: <User className="w-6 h-6" />,
-      color: 'bg-gray-500',
-      component: <UnifiedProfileManager userType="teacher" showPhotoUpload={true} />
-    },
-
-    {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-emerald-500',
       component: <HelpCenter userType="teacher" />
+    },
+    {
+      id: 'profile',
+      label: language === 'fr' ? 'Paramètres Enseignant' : 'Teacher Settings',
+      icon: <Settings className="w-6 h-6" />,
+      color: 'bg-gray-600',
+      component: <UnifiedProfileManager userType="teacher" showPhotoUpload={true} />
     }
   ];
 
