@@ -262,7 +262,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session(pgSessionConfig));
 
   app.use(passport.initialize());
-  app.use(passport.session());
+  // Apply passport session only to API routes, not Vite dev routes
+  app.use('/api', passport.session());
   
   // Enterprise session middleware - Silent mode for 3500+ users
   app.use((req: any, res: any, next: any) => {
