@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
@@ -20,17 +22,66 @@ interface DirectorDashboardProps {
 
 const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // Dynamic module component creator
+  // AGGRESSIVE API DATA PRELOADING - Director APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadDirectorApiData = async () => {
+      console.log('[DIRECTOR_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/director/teachers',
+        '/api/director/students',
+        '/api/director/classes',
+        '/api/director/analytics',
+        '/api/director/settings'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[DIRECTOR_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          console.log(`[DIRECTOR_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL DIRECTOR API DATA PRELOADED!');
+    };
+    
+    preloadDirectorApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
     React.useEffect(() => {
       preloadModule(moduleName);
     }, []);
@@ -39,8 +90,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          <p className="mt-2 text-indigo-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
         </div>
       </div>

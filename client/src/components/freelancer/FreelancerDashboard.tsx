@@ -1,6 +1,8 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, DollarSign, BarChart3, BookOpen, MessageSquare,
   Settings, Clock, MapPin, FileText, HelpCircle, Bell, User, Star
@@ -22,17 +24,65 @@ interface FreelancerDashboardProps {
 
 const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // Dynamic module component creator (same as DirectorDashboard)
+  // AGGRESSIVE API DATA PRELOADING - Freelancer APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadFreelancerApiData = async () => {
+      console.log('[FREELANCER_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/freelancer/students',
+        '/api/freelancer/sessions',
+        '/api/freelancer/schedule',
+        '/api/freelancer/payments'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[FREELANCER_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          console.log(`[FREELANCER_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[FREELANCER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[FREELANCER_DASHBOARD] 🎯 ALL FREELANCER API DATA PRELOADED!');
+    };
+    
+    preloadFreelancerApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      const isCritical = ['students', 'sessions', 'schedule', 'payments'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[FREELANCER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
     React.useEffect(() => {
       preloadModule(moduleName);
     }, []);
@@ -40,9 +90,9 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-purple-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
         </div>
       </div>

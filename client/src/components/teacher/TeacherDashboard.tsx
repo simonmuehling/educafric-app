@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler } from '@/hooks/useStableCallback';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
   MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail
@@ -20,18 +22,67 @@ interface TeacherDashboardProps {
 
 const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState<string>(activeModule || '');
   const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
-  // Dynamic module component creator (same as DirectorDashboard)
+  // AGGRESSIVE API DATA PRELOADING - Teacher APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadTeacherApiData = async () => {
+      console.log('[TEACHER_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/teacher/grades',
+        '/api/teacher/classes',
+        '/api/teacher/assignments',
+        '/api/teacher/attendance',
+        '/api/teacher/communications'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[TEACHER_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          console.log(`[TEACHER_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[TEACHER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[TEACHER_DASHBOARD] 🎯 ALL TEACHER API DATA PRELOADED!');
+    };
+    
+    preloadTeacherApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      const isCritical = ['grades', 'classes', 'assignments', 'attendance', 'communications'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[TEACHER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
     React.useEffect(() => {
       preloadModule(moduleName);
     }, []);
@@ -39,9 +90,9 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-blue-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
         </div>
       </div>

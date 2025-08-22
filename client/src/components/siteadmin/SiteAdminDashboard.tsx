@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useAuth } from '@/contexts/AuthContext';
 import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,19 +39,67 @@ interface QuickAction {
 const SiteAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // Dynamic module component creator (same as DirectorDashboard)
+  // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadSiteAdminApiData = async () => {
+      console.log('[SITEADMIN_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/siteadmin/platform-stats',
+        '/api/siteadmin/users',
+        '/api/siteadmin/schools',
+        '/api/siteadmin/analytics',
+        '/api/siteadmin/system-health'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[SITEADMIN_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          console.log(`[SITEADMIN_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[SITEADMIN_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[SITEADMIN_DASHBOARD] 🎯 ALL SITEADMIN API DATA PRELOADED!');
+    };
+    
+    preloadSiteAdminApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      const isCritical = ['platform-stats', 'users', 'schools', 'analytics', 'system-health'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[SITEADMIN_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
     React.useEffect(() => {
       preloadModule(moduleName);
     }, []);
@@ -58,8 +107,10 @@ const SiteAdminDashboard: React.FC = () => {
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Chargement du module...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-2 text-red-600">
+            {apiDataPreloaded ? '⚡ Finalisation...' : 'Chargement du module...'}
+          </p>
         </div>
       </div>
     );

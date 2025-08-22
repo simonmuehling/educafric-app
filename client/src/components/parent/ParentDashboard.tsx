@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,
   Calendar, FileText, Clock, Bell, DollarSign,
@@ -27,18 +28,66 @@ interface ParentDashboardProps {
 const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
   const { getModule, preloadModule } = useFastModules();
+  const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
-  // Dynamic module component creator (same as DirectorDashboard)
+  // AGGRESSIVE API DATA PRELOADING - Parent APIs
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadParentApiData = async () => {
+      console.log('[PARENT_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/parent/children',
+        '/api/parent/grades',
+        '/api/parent/attendance',
+        '/api/parent/messages',
+        '/api/parent/payments'
+      ];
+      
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[PARENT_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5
+          });
+          console.log(`[PARENT_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[PARENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[PARENT_DASHBOARD] 🎯 ALL PARENT API DATA PRELOADED!');
+    };
+    
+    preloadParentApiData();
+  }, [user, queryClient]);
+  
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      const isCritical = ['children', 'grades', 'attendance', 'messages', 'payments'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
     React.useEffect(() => {
       preloadModule(moduleName);
     }, []);
@@ -46,9 +95,9 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-green-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
         </div>
       </div>
