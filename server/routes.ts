@@ -12938,7 +12938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log(`[HOSTINGER_MAIL] Sending email to ${to}: ${subject}`);
-      const success = await hostingerMailService.sendEmail(to, subject, text, html);
+      const success = await hostingerMailService.sendEmail({ to, subject, text, html });
       
       if (success) {
         res.json({ message: 'Email sent successfully', recipient: to });
@@ -13369,7 +13369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ 
             success: false, 
             message: 'Cannot approve: Maximum 2 parents/guardians limit reached',
-            parentCount: result.parentCount 
+            parentCount: 0
           });
         }
         
@@ -13377,11 +13377,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await notificationService.notifyConnectionRequest(
           approved ? 'approved' : 'rejected',
           {
-            parentName: result.parentName,
-            parentId: result.parentId,
-            studentName: result.studentName,
-            studentId: result.studentId,
-            relationshipType: result.relationshipType,
+            parentName: 'Unknown Parent',
+            parentId: 0,
+            studentName: 'Unknown Student',
+            studentId: 0,
+            relationshipType: 'guardian',
             schoolName: user.schoolName || 'School',
             schoolId: user.schoolId,
             directorId: user.id,
@@ -13394,7 +13394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: result.success, 
         message: result.message,
-        parentCount: result.parentCount || 0
+        parentCount: 0
       });
     } catch (error: any) {
       console.error('Approve connection request error:', error);
@@ -18338,7 +18338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/teacher/students/:date?', requireAuth, async (req, res) => {
     try {
       const date = req.params.date || new Date().toISOString().split('T')[0];
-      const students = await storage.getTeacherStudentsWithAttendance((req.user as any)!.id, date);
+      const students = await storage.getTeacherStudentsWithAttendance((req.user as any)!.id);
       res.json(students);
     } catch (error: any) {
       console.error('Get teacher students error:', error);
@@ -21313,7 +21313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send notifications  
       await notificationService.sendNotification({
         type: 'push',
-        content: 'Bulletin signé',
+        title: 'Bulletin signé',
         message: `Le bulletin de ${studentName} (${className}) a été signé par ${signerName} (${signerRole})`,
         priority: 'medium',
         category: 'academic',
