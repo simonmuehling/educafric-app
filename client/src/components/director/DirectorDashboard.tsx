@@ -100,6 +100,14 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
+    // Always preload modules on demand (moved outside conditional to fix React hooks rule)
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [moduleName, ModuleComponent]);
+    
     if (ModuleComponent) {
       const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
@@ -107,12 +115,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       }
       return React.createElement(ModuleComponent);
     }
-    
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
