@@ -22084,6 +22084,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Commercial Statistics - Default endpoint (redirects to 'month')
+  app.get("/api/commercial/statistics", requireAuth, async (req, res) => {
+    try {
+      if (!(req.user as any) || (req.user as any).role !== 'Commercial') {
+        return res.status(403).json({ message: 'Commercial access required' });
+      }
+      
+      const defaultPeriod = 'month';
+      const stats = await storage.getCommercialStatistics((req.user as any).id, defaultPeriod);
+      
+      console.log(`[COMMERCIAL_STATISTICS] ✅ Retrieved ${defaultPeriod} statistics for commercial ${(req.user as any).id}`);
+      res.json(stats);
+    } catch (error: any) {
+      console.error('[COMMERCIAL_STATISTICS] ❌ Error:', error);
+      res.status(500).json({ message: 'Failed to fetch statistics' });
+    }
+  });
+
   // Commercial Statistics with Dynamic Periods
   app.get("/api/commercial/statistics/:period", requireAuth, async (req, res) => {
     try {
