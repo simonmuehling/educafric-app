@@ -101,6 +101,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
+    // ALWAYS call hooks in the same order - move useEffect before conditional return
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [ModuleComponent, moduleName]);
+    
     if (ModuleComponent) {
       const isCritical = ['students', 'sessions', 'schedule', 'payments'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
@@ -108,12 +116,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       }
       return React.createElement(ModuleComponent);
     }
-    
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
