@@ -18,26 +18,62 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
   const { getModule, preloadModule } = useFastModules();
+  const [criticalModulesReady, setCriticalModulesReady] = useState(false);
   
-  // Dynamic module component creator (same as DirectorDashboard)
+  // FORCE IMMEDIATE preload of critical slow modules
+  React.useEffect(() => {
+    const criticalModules = ['grades', 'assignments', 'attendance', 'messages'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[STUDENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[STUDENT_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[STUDENT_DASHBOARD] ✅ ${moduleName} ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[STUDENT_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setCriticalModulesReady(true);
+      console.log('[STUDENT_DASHBOARD] 🎯 ALL CRITICAL MODULES READY FOR INSTANT USE!');
+    };
+    
+    forceLoadCriticalModules();
+  }, []);
+  
+  // INSTANT module component creator - NO MORE WAITING
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
+      console.log(`[STUDENT_DASHBOARD] ⚡ ${moduleName} served INSTANTLY from cache`);
       return React.createElement(ModuleComponent);
     }
     
-    // Preload module if not cached
-    React.useEffect(() => {
+    // Critical modules should NEVER show spinner if properly preloaded
+    const isCritical = ['grades', 'assignments', 'attendance', 'messages'].includes(moduleName);
+    
+    if (isCritical && criticalModulesReady) {
+      // Force immediate retry for critical modules
+      console.log(`[STUDENT_DASHBOARD] 🔄 RETRY loading critical module: ${moduleName}`);
       preloadModule(moduleName);
-    }, []);
+    }
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">
-            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-2 text-red-600 font-medium">
+            {isCritical ? 
+              (language === 'fr' ? '⚡ Chargement prioritaire...' : '⚡ Priority loading...') :
+              (language === 'fr' ? 'Chargement...' : 'Loading...')
+            }
           </p>
         </div>
       </div>
