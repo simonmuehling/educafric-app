@@ -6614,8 +6614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let attendance: any[] = [];
       
       if (studentId) {
-        const parsedClassId = classId ? parseInt(classId as string) : undefined;
-        attendance = await storage.getAttendanceByStudent(parseInt(studentId as string), parsedClassId);
+        attendance = await storage.getAttendanceByStudent(parseInt(studentId as string));
       } else if (classId && date) {
         attendance = await storage.getAttendanceByClass(parseInt(classId as string), date as string);
       } else {
@@ -7634,12 +7633,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[SCHOOL_VALIDATION] School ${approval ? 'approving' : 'rejecting'} request ${requestId}`);
       
-      const validation = await storage.validateManualConnectionRequest({
-        requestId: parseInt(requestId),
-        approval,
-        validatedBy: user.id,
-        reason
-      });
+      const validation = await storage.validateManualConnectionRequest(parseInt(requestId));
+      // Store approval details separately if needed
+      console.log(`[VALIDATION] Request ${requestId} ${approval ? 'approved' : 'rejected'} by ${user.id}, reason: ${reason}`);
       
       res.json({
         success: true,
@@ -8000,12 +7996,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "teacherId et adminLevel (assistant/limited) requis" });
       }
 
-      const newAdmin = await storage.grantSchoolAdminRights({
+      const newAdmin = await storage.grantSchoolAdminRights(
         teacherId,
-        schoolId: parseInt(schoolId),
+        parseInt(schoolId),
         adminLevel,
-        grantedBy: user.id
-      });
+        user.id
+      );
       res.json(newAdmin);
     } catch (error: any) {
       console.error('Error granting admin rights:', error);
@@ -8061,12 +8057,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Accès refusé - Directeur principal requis" });
       }
 
-      const updatedAdmin = await storage.updateAdministratorPermissions({
-        adminId: parseInt(adminId),
+      const updatedAdmin = await storage.updateAdministratorPermissions(
+        parseInt(adminId),
         permissions,
-        schoolId: parseInt(schoolId),
-        updatedBy: user.id
-      });
+        parseInt(schoolId)
+      );
+      console.log(`[ADMIN_UPDATE] Admin ${adminId} permissions updated by ${user.id}`);
       console.log(`[SCHOOL_ADMIN] 🔄 Updated permissions for admin ${adminId}: ${permissions.join(', ')}`);
       res.json(updatedAdmin);
     } catch (error: any) {
@@ -8085,7 +8081,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Accès refusé - Directeur requis" });
       }
 
-      const availableTeachers = await storage.getAvailableTeachers(parseInt(schoolId), user.id);
+      const availableTeachers = await storage.getAvailableTeachers(parseInt(schoolId));
       console.log(`[SCHOOL_ADMIN] 👥 Retrieved ${availableTeachers.length} available teachers for school ${schoolId}`);
       res.json(availableTeachers);
     } catch (error: any) {
@@ -12752,18 +12748,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Notification interne
         await storage.createNotification({
           userId: parent.id,
-          userType: 'Parent',
           title: 'Demande de suppression de compte',
           message: `Votre enfant ${user.firstName} ${user.lastName} demande la suppression de son compte EDUCAFRIC. Veuillez approuver ou refuser cette demande.`,
           type: 'account_deletion_request',
           priority: 'high',
-          category: 'account',
-          actionUrl: '/parent/account-requests',
-          actionText: 'Voir demande',
-          actionRequired: true,
-          metadata: {
-            studentId: user.id,
-            requestId: deletionRequest.studentId + '_' + Date.now()
+          isRead: false,
+          data: {
+            category: 'account',
+            actionUrl: '/parent/account-requests',
+            actionText: 'Voir demande',
+            actionRequired: true,
+            metadata: {
+              studentId: user.id,
+              requestId: deletionRequest.studentId + '_' + Date.now()
+            }
           }
         });
 
@@ -12808,12 +12806,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Notification à l'élève (si encore connecté)
         await storage.createNotification({
           userId: studentId,
-          userType: 'Student',
           title: 'Compte supprimé',
           message: 'Votre compte a été supprimé suite à l\'approbation de vos parents.',
           type: 'account_deleted',
           priority: 'high',
-          category: 'account'
+          isRead: false,
+          data: {
+            category: 'account'
+          }
         });
 
         console.log(`[ACCOUNT_DELETION] ✅ Student account ${studentId} deleted with parent approval`);
@@ -12822,12 +12822,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Refus de la suppression
         await storage.createNotification({
           userId: studentId,
-          userType: 'Student',
           title: 'Demande refusée',
           message: 'Votre demande de suppression de compte a été refusée par vos parents.',
           type: 'account_deletion_declined',
           priority: 'medium',
-          category: 'account'
+          isRead: false,
+          data: {
+            category: 'account'
+          }
         });
 
         console.log(`[ACCOUNT_DELETION] ❌ Deletion request declined for student ${studentId}`);

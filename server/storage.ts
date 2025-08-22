@@ -2890,7 +2890,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(users.role, 'Parent'),
-            eq(users.schoolId, student.schoolId)
+            student.schoolId ? eq(users.schoolId, student.schoolId) : sql`1=0`
           )
         );
 
