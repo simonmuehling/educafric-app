@@ -40,6 +40,11 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id: string | number, done) => {
   try {
+    // Validate input
+    if (!id) {
+      return done(null, false);
+    }
+
     // Handle sandbox users
     if (typeof id === 'string' && id.startsWith('sandbox:')) {
       const sandboxId = parseInt(id.replace('sandbox:', ''));
@@ -73,23 +78,32 @@ passport.deserializeUser(async (id: string | number, done) => {
             motto: 'Excellence et Innovation Pédagogique'
           }
         };
-        done(null, sandboxUser);
-        return;
+        return done(null, sandboxUser);
       } else {
-        done(null, false);
-        return;
+        return done(null, false);
       }
     }
     
-    // Handle regular database users - optimized for 3500+ users
-    const user = await storage.getUserById(id as number);
-    if (user) {
-      done(null, user);
-    } else {
-      done(null, false);
+    // Handle regular database users - with safe fallback
+    try {
+      const userId = typeof id === 'string' ? parseInt(id) : id;
+      if (isNaN(userId as number)) {
+        return done(null, false);
+      }
+      
+      const user = await storage.getUserById(userId as number);
+      if (user) {
+        return done(null, user);
+      } else {
+        return done(null, false);
+      }
+    } catch (dbError) {
+      console.error('[AUTH_ERROR] Database error during deserialization:', dbError);
+      return done(null, false); // Fail gracefully, don't crash
     }
   } catch (error) {
-    done(error);
+    console.error('[AUTH_ERROR] Deserialization error:', error);
+    return done(null, false); // Fail gracefully, don't propagate error
   }
 });
 

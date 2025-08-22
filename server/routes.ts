@@ -262,8 +262,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session(pgSessionConfig));
 
   app.use(passport.initialize());
-  // Apply passport session only to API routes, not Vite dev routes
-  app.use('/api', passport.session());
+  // Apply passport session selectively - exclude health and public endpoints
+  app.use('/api', (req: any, res: any, next: any) => {
+    // Skip authentication middleware for health checks and public endpoints
+    const publicPaths = ['/api/health', '/api/currency', '/api/analytics/pwa'];
+    if (publicPaths.some(path => req.path.startsWith(path))) {
+      return next();
+    }
+    // Apply passport session for authenticated routes only
+    passport.session()(req, res, next);
+  });
   
   // Enterprise session middleware - Silent mode for 3500+ users
   app.use((req: any, res: any, next: any) => {
