@@ -55,9 +55,12 @@ export default function EducafricHero() {
 
   const t = text[language];
 
-  if (!mounted) return null;
-
-  return (
+  // Don't return early - instead conditionally render content
+  return !mounted ? (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  ) : (
     <section className="relative min-h-screen flex items-center justify-center gradient-hero overflow-hidden">
       {/* Background Patterns */}
       <div className="absolute inset-0 opacity-10">
