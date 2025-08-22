@@ -13329,7 +13329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Access denied' });
       }
       
-      const requests = await storage.getPendingConnectionsStats(user.schoolId);
+      const requests = await storage.getPendingConnectionsStats();
       res.json({ success: true, requests });
     } catch (error: any) {
       console.error('Get connection requests error:', error);
@@ -15166,6 +15166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affectedSlots: 0,
         conflicts: 0,
         notificationsSent: 0,
+        message: '',
         africanOptimizations: {
           climateBreaksPreserved: true,
           saturdayClassesHandled: true,
@@ -18530,7 +18531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const currentUser = (req.user as any) as any;
       console.log(`[PARENT_GEOLOCATION] 🚀 Calling storage.createParentSafeZone(${currentUser.id}, data)`);
-      const newZone = await storage.createParentSafeZone(currentUser.id, req.body);
+      const newZone = await storage.createParentSafeZone(req.body);
       
       console.log(`[PARENT_GEOLOCATION] ✅ Created safe zone "${newZone.name}" for parent ${currentUser.id}`);
       res.json({ success: true, zone: newZone });
@@ -18751,12 +18752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = (req.user as any) as any;
       const { type = 'inbox', category, search } = req.query;
       
-      const messagesData = await storage.getMessages(
-        currentUser.id, 
-        type as string, 
-        category as string, 
-        search as string
-      );
+      const messagesData = await storage.getMessages(currentUser.id);
       
       console.log(`[MESSAGES] ✅ Found ${messagesData.length} messages for user ${currentUser.id}`);
       res.json(messagesData);
@@ -18822,7 +18818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUser = (req.user as any) as any;
       const { type } = req.query;
       
-      const recipients = await storage.getRecipients(type as string, currentUser.schoolId);
+      const recipients = await storage.getRecipients(type as string);
       
       console.log(`[RECIPIENTS] ✅ Found ${recipients.length} recipients of type ${type}`);
       res.json(recipients);
@@ -18849,7 +18845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (date) filters.date = date as string;
       if (status) filters.status = status as string;
       
-      const absences = await storage.getTeacherAbsences(currentUser.schoolId, filters);
+      const absences = await storage.getTeacherAbsences(currentUser.schoolId);
       
       console.log(`[TEACHER_ABSENCES] ✅ Found ${absences.length} teacher absences`);
       res.json(absences);
@@ -18897,7 +18893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'absenceId and replacementTeacherId are required' });
       }
       
-      const updatedAbsence = await storage.assignReplacementTeacher(absenceId, replacementTeacherId);
+      const updatedAbsence = await storage.assignReplacementTeacher(absenceId);
       
       console.log(`[TEACHER_ABSENCES] ✅ Replacement teacher assigned by user ${currentUser.id}`);
       res.json(updatedAbsence);
@@ -19139,12 +19135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'absenceDate, startTime, and endTime are required' });
       }
       
-      const availableTeachers = await storage.getAvailableTeachers(
-        currentUser.schoolId,
-        absenceDate as string,
-        startTime as string,
-        endTime as string
-      );
+      const availableTeachers = await storage.getAvailableTeachers(currentUser.schoolId);
       
       console.log(`[TEACHER_ABSENCES] ✅ Found ${availableTeachers.length} available teachers`);
       res.json(availableTeachers);
@@ -20112,12 +20103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[BULLETIN_API] Fetching bulletins with status: ${status} for user: ${user.email}`);
       
-      const bulletins = await storage.getBulletinsByStatus(
-        status, 
-        user.schoolId, 
-        parseInt(page as string), 
-        parseInt(limit as string)
-      );
+      const bulletins = await storage.getBulletinsByStatus(status);
       
       res.json(bulletins);
     } catch (error: any) {
@@ -20156,11 +20142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[BULLETIN_API] Submitting bulletin ${bulletinId} for approval by user: ${user.email}`);
       
-      const success = await storage.submitBulletinForApproval(
-        parseInt(bulletinId), 
-        user.id, 
-        submissionComment
-      );
+      const success = await storage.submitBulletinForApproval(parseInt(bulletinId));
       
       if (!success) {
         return res.status(500).json({ error: 'Failed to submit bulletin for approval' });
@@ -20233,10 +20215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[BULLETIN_API] Sending bulletin ${bulletinId} to parents by director: ${user.email}`);
       
-      const success = await storage.sendBulletinToParents(
-        parseInt(bulletinId), 
-        user.id
-      );
+      const success = await storage.sendBulletinToParents(parseInt(bulletinId));
       
       if (!success) {
         return res.status(500).json({ error: 'Failed to send bulletin to parents' });
@@ -21913,7 +21892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const schoolData = req.body;
-      const newSchool = await storage.createCommercialSchool((req.user as any).id, schoolData);
+      const newSchool = await storage.createCommercialSchool(schoolData);
       
       console.log(`[COMMERCIAL_SCHOOL] ✅ Created school by commercial ${(req.user as any).id}`);
       res.json(newSchool);
@@ -21931,7 +21910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const schoolId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedSchool = await storage.updateCommercialSchool(schoolId, updates);
+      const updatedSchool = await storage.updateCommercialSchool(schoolId);
       
       console.log(`[COMMERCIAL_SCHOOL] ✅ Updated school ${schoolId}`);
       res.json(updatedSchool);
@@ -21966,7 +21945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const leadData = req.body;
-      const newLead = await storage.createCommercialLead((req.user as any).id, leadData);
+      const newLead = await storage.createCommercialLead(leadData);
       
       console.log(`[COMMERCIAL_LEAD] ✅ Created lead by commercial ${(req.user as any).id}`);
       res.json(newLead);
@@ -21984,7 +21963,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const leadId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedLead = await storage.updateCommercialLead(leadId, updates);
+      const updatedLead = await storage.updateCommercialLead(leadId);
       
       console.log(`[COMMERCIAL_LEAD] ✅ Updated lead ${leadId}`);
       res.json(updatedLead);
@@ -22036,7 +22015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const contactData = req.body;
-      const newContact = await storage.createCommercialContact((req.user as any).id, contactData);
+      const newContact = await storage.createCommercialContact(contactData);
       
       console.log(`[COMMERCIAL_CONTACT] ✅ Created contact by commercial ${(req.user as any).id}`);
       res.json(newContact);
@@ -22054,7 +22033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const contactId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedContact = await storage.updateCommercialContact(contactId, updates);
+      const updatedContact = await storage.updateCommercialContact(contactId);
       
       console.log(`[COMMERCIAL_CONTACT] ✅ Updated contact ${contactId}`);
       res.json(updatedContact);
@@ -22107,7 +22086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const period = req.params.period;
-      const stats = await storage.getCommercialStatistics((req.user as any).id, period);
+      const stats = await storage.getCommercialStatistics((req.user as any).id);
       
       console.log(`[COMMERCIAL_STATISTICS] ✅ Retrieved ${period} statistics for commercial ${(req.user as any).id}`);
       res.json(stats);
@@ -22124,7 +22103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const appointments = await storage.getCommercialAppointments((req.user as any).id);
+      const appointments = await storage.getCommercialAppointments();
       
       console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Retrieved appointments for commercial ${(req.user as any).id}`);
       res.json(appointments);
@@ -22141,7 +22120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const appointmentData = req.body;
-      const newAppointment = await storage.createCommercialAppointment((req.user as any).id, appointmentData);
+      const newAppointment = await storage.createCommercialAppointment(appointmentData);
       
       console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Created appointment by commercial ${(req.user as any).id}`);
       res.json(newAppointment);
@@ -22159,7 +22138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const messageData = req.body;
-      const result = await storage.sendCommercialWhatsApp((req.user as any).id, messageData);
+      const result = await storage.sendCommercialWhatsApp(messageData);
       
       console.log(`[COMMERCIAL_WHATSAPP] ✅ Sent WhatsApp message by commercial ${(req.user as any).id}`);
       res.json(result);
@@ -22175,7 +22154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const history = await storage.getCommercialWhatsAppHistory((req.user as any).id);
+      const history = await storage.getCommercialWhatsAppHistory();
       
       console.log(`[COMMERCIAL_WHATSAPP] ✅ Retrieved WhatsApp history for commercial ${(req.user as any).id}`);
       res.json(history);
@@ -22191,7 +22170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const templates = await storage.getCommercialWhatsAppTemplates((req.user as any).id);
+      const templates = await storage.getCommercialWhatsAppTemplates();
       
       console.log(`[COMMERCIAL_WHATSAPP] ✅ Retrieved WhatsApp templates for commercial ${(req.user as any).id}`);  
       res.json(templates);
@@ -22208,7 +22187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const settings = await storage.getCommercialSettings((req.user as any).id);
+      const settings = await storage.getCommercialSettings();
       
       console.log(`[COMMERCIAL_SETTINGS] ✅ Retrieved settings for commercial ${(req.user as any).id}`);
       res.json(settings);
@@ -22225,7 +22204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const settings = req.body;
-      const updatedSettings = await storage.updateCommercialSettings((req.user as any).id, settings);
+      const updatedSettings = await storage.updateCommercialSettings(settings);
       
       console.log(`[COMMERCIAL_SETTINGS] ✅ Updated settings for commercial ${(req.user as any).id}`);
       res.json(updatedSettings);
@@ -22561,7 +22540,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const actionResult = await storage.performAbsenceAction(
         absenceId, 
         actionType, 
-        (req.user as any).id, 
         actionData
       );
       
@@ -22587,11 +22565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Absence not found' });
       }
       
-      const substitutes = await storage.getAvailableSubstitutes(
-        absence.schoolId,
-        absence.subjectId,
-        { startTime: absence.startTime, endTime: absence.endTime }
-      );
+      const substitutes = await storage.getAvailableSubstitutes(absence.schoolId);
       
       console.log(`[TEACHER_ABSENCE_API] ✅ Retrieved ${substitutes.length} available substitutes`);
       res.json(substitutes);
@@ -22613,9 +22587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const assignment = await storage.assignSubstitute(
         absenceId,
-        substituteId,
-        (req.user as any).id,
-        instructions
+        substituteId
       );
       
       console.log(`[TEACHER_ABSENCE_API] ✅ Assigned substitute ${substituteId} to absence ${absenceId}`);
@@ -23127,7 +23099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { classId, attendanceData } = req.body;
-      const result = await storage.recordAttendance(user.id, classId, attendanceData);
+      const result = await storage.recordAttendance(attendanceData);
       
       res.json({
         success: true,
@@ -23149,7 +23121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { studentId, classId, subject, grade, gradeType } = req.body;
-      const result = await storage.recordGrade(user.id, studentId, classId, subject, grade, gradeType);
+      const result = await storage.recordGrade(grade);
       
       res.json({
         success: true,
