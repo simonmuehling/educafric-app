@@ -378,8 +378,8 @@ export interface IStorage {
   getAuditLogs(filters?: any): Promise<any[]>;
   getSystemHealth(): Promise<any>;
   getPerformanceMetrics(): Promise<any>;
-  generatePlatformReport(reportType: string, params: any): Promise<any>;
-  exportPlatformData(dataType: string): Promise<any>;
+  generatePlatformReport(params: { reportType: string; filters: any }): Promise<any>;
+  exportPlatformData(params: { dataType: string; format: string }): Promise<any>;
   getPlatformStatistics(): Promise<any>;
   getAllUsersWithDetails(): Promise<any[]>;
   
@@ -3035,12 +3035,20 @@ export class DatabaseStorage implements IStorage {
     return {};
   }
   
-  async generatePlatformReport(reportType: string, params: any): Promise<any> {
-    return {};
+  async generatePlatformReport(params: { reportType: string; filters: any }): Promise<any> {
+    console.log(`[STORAGE] Generating ${params.reportType} report with filters:`, params.filters);
+    return { reportType: params.reportType, data: [], generated: new Date() };
   }
   
-  async exportPlatformData(dataType: string): Promise<any> {
-    return {};
+  async exportPlatformData(params: { dataType: string; format: string }): Promise<any> {
+    console.log(`[STORAGE] Exporting ${params.dataType} data in ${params.format} format`);
+    return { 
+      exportId: `export_${Date.now()}`, 
+      dataType: params.dataType, 
+      format: params.format,
+      status: 'processing',
+      downloadUrl: null 
+    };
   }
   
   async getPlatformStatistics(): Promise<any> {

@@ -12560,7 +12560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { deviceType, userAgent } = req.body;
 
       // Skip tracking for sandbox users
-      if (user?.sandboxMode === true || (req.session?.passport?.user && typeof req.session.passport.user === 'string' && req.session.passport.user.startsWith('sandbox:'))) {
+      if (user?.sandboxMode === true || ((req.session as any)?.passport?.user && typeof (req.session as any).passport.user === 'string' && (req.session as any).passport.user.startsWith('sandbox:'))) {
         console.log('[PWA_ANALYTICS] Skipping installation tracking for sandbox user:', user?.email);
         return res.json({ success: true, message: 'Sandbox user - tracking disabled' });
       }
@@ -14341,7 +14341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalPoints += (grade.grade * grade.coefficient);
         totalCoefficients += grade.coefficient;
       });
-      const generalAverage = totalCoefficients > 0 ? (totalPoints / totalCoefficients).toFixed(2) : 0;
+      const generalAverage = totalCoefficients > 0 ? (totalPoints / totalCoefficients).toFixed(2) : "0";
 
       const newBulletin = {
         id: Date.now(), // Mock ID generation
@@ -16158,28 +16158,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { search = '', role = 'all', status = 'all', page = 1, limit = 20 } = req.query;
       
+      // Safely convert query parameters to correct types
+      const pageNum = typeof page === 'string' ? parseInt(page, 10) : typeof page === 'number' ? page : 1;
+      const limitNum = typeof limit === 'string' ? parseInt(limit, 10) : typeof limit === 'number' ? limit : 20;
+      const searchStr = typeof search === 'string' ? search : '';
+      const roleStr = typeof role === 'string' ? role : 'all';
+      const statusStr = typeof status === 'string' ? status : 'all';
+      
       const users = await storage.getAllUsers();
       
       let filteredUsers = users.filter(user => {
-        const matchesSearch = !search || 
-          user.firstName?.toLowerCase().includes(search.toString().toLowerCase()) ||
-          user.lastName?.toLowerCase().includes(search.toString().toLowerCase()) ||
-          user.email.toLowerCase().includes(search.toString().toLowerCase());
+        const matchesSearch = !searchStr || 
+          user.firstName?.toLowerCase().includes(searchStr.toLowerCase()) ||
+          user.lastName?.toLowerCase().includes(searchStr.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchStr.toLowerCase());
         
-        const matchesRole = role === 'all' || user.role === role;
-        const matchesStatus = status === 'all' || user.subscriptionStatus === status;
+        const matchesRole = roleStr === 'all' || user.role === roleStr;
+        const matchesStatus = statusStr === 'all' || user.subscriptionStatus === statusStr;
         
         return matchesSearch && matchesRole && matchesStatus;
       });
 
-      const startIndex = (parseInt(page) - 1) * parseInt(limit);
-      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + parseInt(limit));
+      const startIndex = (pageNum - 1) * limitNum;
+      const paginatedUsers = filteredUsers.slice(startIndex, startIndex + limitNum);
 
       res.json({
         users: paginatedUsers,
         totalUsers: filteredUsers.length,
-        totalPages: Math.ceil(filteredUsers.length / parseInt(limit)),
-        currentPage: parseInt(page)
+        totalPages: Math.ceil(filteredUsers.length / limitNum),
+        currentPage: pageNum
       });
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -16293,14 +16300,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return matchesSearch && matchesType && matchesStatus;
       });
 
-      const startIndex = (Number(page) - 1) * Number(limit);
-      const paginatedSchools = filteredSchools.slice(startIndex, startIndex + Number(limit));
+      // Safely convert query parameters to correct types
+      const pageNum = typeof page === 'string' ? parseInt(page, 10) : typeof page === 'number' ? page : 1;
+      const limitNum = typeof limit === 'string' ? parseInt(limit, 10) : typeof limit === 'number' ? limit : 20;
+      
+      const startIndex = (pageNum - 1) * limitNum;
+      const paginatedSchools = filteredSchools.slice(startIndex, startIndex + limitNum);
 
       res.json({
         schools: paginatedSchools,
         totalSchools: filteredSchools.length,
-        totalPages: Math.ceil(filteredSchools.length / parseInt(limit)),
-        currentPage: parseInt(page)
+        totalPages: Math.ceil(filteredSchools.length / limitNum),
+        currentPage: pageNum
       });
     } catch (error: any) {
       console.error('Error fetching schools:', error);
@@ -17929,9 +17940,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: req.body.metadata
       };
 
-      Object.keys(updates).forEach(key => 
-        updates[key] === undefined && delete updates[key]
-      );
+      Object.keys(updates).forEach(key => {
+        if ((updates as any)[key] === undefined) {
+          delete (updates as any)[key];
+        }
+      });
 
       const updatedDocument = await storage.updateCommercialDocument(id, updates);
       console.log(`[COMMERCIAL_DOCS_API] Updated document ${id}: ${updatedDocument.title}`);
@@ -21309,10 +21322,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Notification access required' });
       }
       
-      // Send notifications
+      // Send notifications  
       await notificationService.sendNotification({
-        type: 'bulletin_signed',
-        title: 'Bulletin signé',
+        type: 'push',
+        content: 'Bulletin signé',
         message: `Le bulletin de ${studentName} (${className}) a été signé par ${signerName} (${signerRole})`,
         priority: 'medium',
         category: 'academic',
@@ -23816,8 +23829,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter schools based on query
       let filteredSchools = educafricSchools;
-      if (query && query.length >= 2) {
-        const searchQuery = query.toString().toLowerCase();
+      const queryStr = typeof query === 'string' ? query : '';
+      if (queryStr && queryStr.length >= 2) {
+        const searchQuery = queryStr.toLowerCase();
         filteredSchools = educafricSchools.filter(school => 
           school.name.toLowerCase().includes(searchQuery) ||
           school.city.toLowerCase().includes(searchQuery) ||
@@ -24026,7 +24040,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'User ID required' });
       }
 
-      const notifications = await storage.getUserNotifications(parseInt(userId), userRole as string);
+      const userIdNum = typeof userId === 'string' ? parseInt(userId, 10) : parseInt(String(userId), 10);
+      const notifications = await storage.getUserNotifications(userIdNum, userRole as string);
       res.json(notifications);
     } catch (error: any) {
       console.error('[NOTIFICATIONS_API] Get notifications error:', error);
