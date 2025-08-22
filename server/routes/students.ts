@@ -41,6 +41,15 @@ router.get('/school', requireAuth, async (req, res) => {
 router.get('/class/:classId', requireAuth, async (req, res) => {
   try {
     const classId = parseInt(req.params.classId);
+    
+    // Validate class ID parameter
+    if (isNaN(classId) || classId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid class ID provided'
+      });
+    }
+    
     const students = await storage.getStudentsByClass(classId);
     
     res.json({
@@ -48,7 +57,7 @@ router.get('/class/:classId', requireAuth, async (req, res) => {
       students: students || []
     });
   } catch (error) {
-    console.error('[STUDENTS_API] Error fetching class students:', error);
+    console.error('[STUDENTS_API] Error fetching class students');
     res.status(500).json({
       success: false,
       message: 'Failed to fetch students'
@@ -60,6 +69,15 @@ router.get('/class/:classId', requireAuth, async (req, res) => {
 router.get('/:id', requireAuth, async (req, res) => {
   try {
     const studentId = parseInt(req.params.id);
+    
+    // Validate student ID parameter
+    if (isNaN(studentId) || studentId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid student ID provided'
+      });
+    }
+    
     const student = await storage.getStudent(studentId);
     
     if (!student) {

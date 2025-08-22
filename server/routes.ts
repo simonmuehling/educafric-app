@@ -11721,56 +11721,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register critical alerting routes
   registerCriticalAlertingRoutes(app);
   
-  // WhatsApp Business API routes
+  // WhatsApp Business API routes - Using async/await for better error handling
   try {
-    import('./routes/whatsapp').then(({ default: whatsappRoutes }) => {
+    // Register WhatsApp routes
+    try {
+      const { default: whatsappRoutes } = await import('./routes/whatsapp');
       app.use('/api/whatsapp', whatsappRoutes);
       console.log('[WhatsApp] Routes registered successfully');
-    }).catch(error => {
-      console.error('[WhatsApp] Failed to register routes:', error);
-    });
+    } catch (error) {
+      console.error('[WhatsApp] Failed to register routes');
+    }
     
-    // WhatsApp testing routes
-    import('./routes/test-whatsapp').then(({ default: testWhatsAppRoutes }) => {
+    // Register WhatsApp testing routes
+    try {
+      const { default: testWhatsAppRoutes } = await import('./routes/test-whatsapp');
       app.use('/api/test', testWhatsAppRoutes);
       console.log('[WhatsApp] Test routes registered successfully');
-    }).catch(error => {
-      console.error('[WhatsApp] Failed to register test routes:', error);
-    });
+    } catch (error) {
+      console.error('[WhatsApp] Failed to register test routes');
+    }
     
-    // WhatsApp setup helper routes
-    import('./routes/whatsapp-setup-helper').then(({ default: setupHelperRoutes }) => {
+    // Register WhatsApp setup helper routes
+    try {
+      const { default: setupHelperRoutes } = await import('./routes/whatsapp-setup-helper');
       app.use('/api/whatsapp-setup', setupHelperRoutes);
       console.log('[WhatsApp] Setup helper routes registered successfully');
-    }).catch(error => {
-      console.error('[WhatsApp] Failed to register setup helper routes:', error);
-    });
+    } catch (error) {
+      console.error('[WhatsApp] Failed to register setup helper routes');
+    }
     
-    // Multi-role management routes
-    import('./routes/multiRoleRoutes').then(({ default: multiRoleRoutes }) => {
+    // Register Multi-role management routes
+    try {
+      const { default: multiRoleRoutes } = await import('./routes/multiRoleRoutes');
       app.use('/api/multirole', multiRoleRoutes);
       console.log('[MULTI_ROLE] Multi-role routes registered successfully');
-    }).catch(error => {
-      console.error('[MULTI_ROLE] Failed to register multi-role routes:', error);
-    });
+    } catch (error) {
+      console.error('[MULTI_ROLE] Failed to register multi-role routes');
+    }
     
-    // Bulletin validation routes
-    import('./routes/bulletinValidationRoutes').then(({ default: bulletinValidationRoutes }) => {
+    // Register Bulletin validation routes
+    try {
+      const { default: bulletinValidationRoutes } = await import('./routes/bulletinValidationRoutes');
       app.use('/api', bulletinValidationRoutes);
       console.log('[BULLETIN_VALIDATION] Bulletin validation routes registered successfully');
-    }).catch(error => {
-      console.error('[BULLETIN_VALIDATION] Failed to register bulletin validation routes:', error);
-    });
+    } catch (error) {
+      console.error('[BULLETIN_VALIDATION] Failed to register bulletin validation routes');
+    }
     
-    // Bulletin CRUD routes
-    import('./routes/bulletinRoutes').then(({ default: bulletinRoutes }) => {
+    // Register Bulletin CRUD routes
+    try {
+      const { default: bulletinRoutes } = await import('./routes/bulletinRoutes');
       app.use('/api', bulletinRoutes);
       console.log('[BULLETIN_CRUD] Bulletin CRUD routes registered successfully');
-    }).catch(error => {
-      console.error('[BULLETIN_CRUD] Failed to register bulletin CRUD routes:', error);
-    });
+    } catch (error) {
+      console.error('[BULLETIN_CRUD] Failed to register bulletin CRUD routes');
+    }
   } catch (error) {
-    console.error('[WhatsApp] Failed to import routes:', error);
+    console.error('[ROUTES] Critical error in route registration');
   }
   
   // Setup data rights endpoints for GDPR compliance

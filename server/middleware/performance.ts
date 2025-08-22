@@ -56,22 +56,26 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
       const endMemory = process.memoryUsage().rss;
       const memoryDiff = endMemory - startMemory;
 
-      // Ultra-minimal logging for 3500+ user scale
-      if (duration > 10000) { // Only log extremely slow requests (>10s)
-        console.error(`[CRITICAL] TIMEOUT: ${req.method} ${req.url} took ${duration}ms`);
+      // Optimized logging for 3500+ user scale - reduced thresholds
+      if (duration > 3000) { // Log slow requests over 3s (reduced from 10s)
+        console.warn(`[SLOW_REQUEST] ${req.method} ${req.url} took ${duration}ms`);
+      }
+      
+      if (duration > 8000) { // Only error log for extremely slow requests
+        console.error(`[CRITICAL_TIMEOUT] ${req.method} ${req.url} took ${duration}ms`);
       }
 
-      // Much higher threshold for memory leak detection to reduce noise (200MB+)
-      // Only log truly problematic memory usage, not normal Vite dev server usage
-      if (memoryDiff > 200 * 1024 * 1024 && !req.url.includes('/src/') && !req.url.includes('@vite')) {
-        console.error(`[CRITICAL_MEMORY] ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
+      // Reduced memory threshold for better leak detection (50MB from 200MB)
+      // Exclude Vite dev server routes to reduce noise
+      if (memoryDiff > 50 * 1024 * 1024 && !req.url.includes('/src/') && !req.url.includes('@vite') && !req.url.includes('/@react-refresh')) {
+        console.warn(`[MEMORY_USAGE] ${req.method} ${req.url} used ${(memoryDiff / 1024 / 1024).toFixed(2)}MB`);
         
-        // Force garbage collection if available, but less aggressively
-        if (global.gc && Math.random() < 0.1) { // Only 10% of the time
+        // Only trigger GC for very large memory usage (100MB+)
+        if (memoryDiff > 100 * 1024 * 1024 && global.gc && Math.random() < 0.05) {
           try {
             setImmediate(() => global.gc?.());
           } catch (gcError) {
-            // Ignore GC errors
+            // Ignore GC errors silently
           }
         }
       }
@@ -114,11 +118,11 @@ export const cacheControlMiddleware = (req: Request, res: Response, next: NextFu
   next();
 };
 
-// Memory cleanup middleware - active memory management
+// Memory cleanup middleware - safer memory management
 export const memoryCleanupMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Trigger garbage collection every 100 requests for large static files
-  if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2)$/) && Math.random() < 0.01) {
-    // 1% chance to trigger GC for static assets
+  // Less aggressive GC - only for very large assets and less frequently
+  if (req.url.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2)$/) && Math.random() < 0.005) {
+    // 0.5% chance to trigger GC for static assets (reduced from 1%)
     if (global.gc) {
       try {
         setImmediate(() => global.gc?.());
@@ -128,18 +132,25 @@ export const memoryCleanupMiddleware = (req: Request, res: Response, next: NextF
     }
   }
   
-  // Clean up request data after response
+  // Safer cleanup - don't delete core request properties
   res.on('finish', () => {
-    // Clear any request-specific data that might cause memory leaks
     try {
-      if (req.body) {
-        delete req.body;
+      // Only clean up large files/uploads to prevent memory leaks
+      if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+        // Clear file buffers but preserve request structure
+        req.files.forEach((file: any) => {
+          if (file.buffer) {
+            file.buffer = null;
+          }
+        });
       }
-      if (req.files) {
-        delete req.files;
+      
+      // Clear large request bodies (>1MB) but preserve structure
+      if (req.body && typeof req.body === 'string' && req.body.length > 1024 * 1024) {
+        req.body = null;
       }
     } catch (error) {
-      // Ignore cleanup errors
+      // Ignore cleanup errors silently
     }
   });
   

@@ -98,39 +98,33 @@ passport.deserializeUser(async (id: string | number, done) => {
         return done(null, false);
       }
     } catch (dbError) {
-      console.error('[AUTH_ERROR] Database error during deserialization:', dbError);
+      // Log error without sensitive details
+      console.error('[AUTH_ERROR] Database connection error during user deserialization');
       return done(null, false); // Fail gracefully, don't crash
     }
   } catch (error) {
-    console.error('[AUTH_ERROR] Deserialization error:', error);
+    // Log error without sensitive details
+    console.error('[AUTH_ERROR] User deserialization failed');
     return done(null, false); // Fail gracefully, don't propagate error
   }
 });
 
 // Authentication routes
 router.get('/me', async (req, res) => {
-  console.log(`[AUTH_LOG] GET /api/auth/me from ${req.ip}`);
-  console.log(`[SESSION_DEBUG] GET /api/auth/me`);
-  console.log(`[SESSION_DEBUG] Session ID: ${req.sessionID}`);
-  
-  const cookieHeader = req.headers.cookie || 'NONE';
-  console.log(`[SESSION_DEBUG] Cookies received: ${cookieHeader}`);
-  console.log(`[SESSION_DEBUG] Session data:`, req.session);
-  
-  if (!req.isAuthenticated()) {
-    console.log(`[AUTH_FAIL] GET /api/auth/me - No valid session found`);
-    console.log(`[AUTH_DEBUG] isAuthenticated: ${req.isAuthenticated()}`);
-    console.log(`[AUTH_DEBUG] user: ${!!req.user}`);
-    console.log(`[AUTH_DEBUG] session: ${!!req.session}`);
-    console.log(`[AUTH_DEBUG] sessionID: ${req.sessionID}`);
+  try {
+    if (!req.isAuthenticated()) {
+      // Only log minimal non-sensitive information for security auditing
+      console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     
+    // Only log successful authentication without sensitive user data
     console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
-    return res.status(401).json({ message: 'Authentication required' });
+    res.json({ user: req.user });
+  } catch (error) {
+    console.error('[AUTH_ERROR] Error processing authentication:', error);
+    res.status(500).json({ message: 'Authentication error' });
   }
-  
-  console.log(`[AUTH_SUCCESS] GET /api/auth/me - User authenticated: ${(req.user as any).email || (req.user as any).name}`);
-  console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
-  res.json({ user: req.user });
 });
 
 router.post('/register', async (req, res) => {
@@ -151,11 +145,14 @@ router.post('/register', async (req, res) => {
     const { password, ...userWithoutPassword } = user;
     res.status(201).json(userWithoutPassword);
   } catch (error) {
-    console.error('Registration error:', error);
+    // Log error without exposing sensitive details
     if (error instanceof z.ZodError) {
+      console.warn('[AUTH_VALIDATION] Registration validation failed');
       return res.status(400).json({ message: 'Validation failed', errors: error.errors });
     }
-    res.status(500).json({ message: 'Internal server error' });
+    
+    console.error('[AUTH_ERROR] Registration failed');
+    res.status(500).json({ message: 'Registration failed' });
   }
 });
 
@@ -164,12 +161,18 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Logout failed' });
-    }
-    res.json({ message: 'Logged out successfully' });
-  });
+  try {
+    req.logout((err) => {
+      if (err) {
+        console.error('[AUTH_ERROR] Logout failed');
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.json({ message: 'Logged out successfully' });
+    });
+  } catch (error) {
+    console.error('[AUTH_ERROR] Logout error');
+    res.status(500).json({ message: 'Logout error' });
+  }
 });
 
 export default router;

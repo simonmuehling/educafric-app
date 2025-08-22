@@ -261,8 +261,8 @@ class GeolocationAlertService {
     console.log('[GEOLOCATION_ALERTS] 🔍 Checking all student locations...');
     
     try {
-      // Add timeout to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
+      // Add timeout to prevent hanging with proper error handling
+      const timeoutPromise = new Promise<never>((_, reject) => 
         setTimeout(() => reject(new Error('Location check timeout')), 10000)
       );
 
@@ -270,7 +270,11 @@ class GeolocationAlertService {
       
       await Promise.race([locationCheckPromise, timeoutPromise]);
     } catch (error) {
-      console.error('[GEOLOCATION_ALERTS] ❌ Error checking locations:', error);
+      if (error instanceof Error && error.message === 'Location check timeout') {
+        console.warn('[GEOLOCATION_ALERTS] ⏰ Location check timed out');
+      } else {
+        console.error('[GEOLOCATION_ALERTS] ❌ Error checking locations');
+      }
     }
   }
 
@@ -287,17 +291,22 @@ class GeolocationAlertService {
     const activeStudents = [15]; // Demo student ID
     
     for (const studentId of activeStudents) {
-      // Simulate location update
-      const mockLocation: StudentLocation = {
-        studentId,
-        latitude: 4.0511 + (Math.random() - 0.5) * 0.01,
-        longitude: 9.7679 + (Math.random() - 0.5) * 0.01,
-        timestamp: new Date().toISOString(),
-        accuracy: 10,
-        address: 'Position simulée, Douala'
-      };
-      
-      await this.processLocationUpdate(mockLocation);
+      try {
+        // Simulate location update
+        const mockLocation: StudentLocation = {
+          studentId,
+          latitude: 4.0511 + (Math.random() - 0.5) * 0.01,
+          longitude: 9.7679 + (Math.random() - 0.5) * 0.01,
+          timestamp: new Date().toISOString(),
+          accuracy: 10,
+          address: 'Position simulée, Douala'
+        };
+        
+        await this.processLocationUpdate(mockLocation);
+      } catch (error) {
+        console.error(`[GEOLOCATION_ALERTS] ❌ Error processing location for student ${studentId}`);
+        // Continue with other students even if one fails
+      }
     }
   }
 

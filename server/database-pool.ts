@@ -54,7 +54,8 @@ class DatabasePool {
           inUse: false,
           created: Date.now(),
           lastUsed: Date.now(),
-          requestCount: 0
+          requestCount: 0,
+          isHealthy: true
         });
         
         this.stats.totalConnections++;
@@ -78,12 +79,17 @@ class DatabasePool {
     for (const conn of this.connections) {
       if (!conn.inUse) {
         try {
-          // Simple health check query
-          await conn.db.execute('SELECT 1');
+          // Simple health check query with timeout
+          await Promise.race([
+            conn.db.execute('SELECT 1'),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 5000))
+          ]);
           healthyConnections++;
           conn.lastUsed = Date.now();
+          conn.isHealthy = true;
         } catch (error) {
-          console.warn(`[DB_POOL] ⚠️ Connection ${conn.id} health check failed:`, error);
+          conn.isHealthy = false;
+          console.warn(`[DB_POOL] ⚠️ Connection ${conn.id} health check failed`);
         }
       }
     }
@@ -107,7 +113,8 @@ class DatabasePool {
         const conn = this.connections[this.currentIndex];
         this.currentIndex = (this.currentIndex + 1) % this.maxConnections;
         
-        if (!conn.inUse) {
+        // Prefer healthy, available connections
+        if (!conn.inUse && conn.isHealthy !== false) {
           conn.inUse = true;
           conn.lastUsed = Date.now();
           conn.requestCount++;
@@ -119,15 +126,25 @@ class DatabasePool {
       }
 
       if (!connection) {
-        // All connections busy - use least recently used
-        const lruConnection = this.connections
-          .sort((a, b) => a.lastUsed - b.lastUsed)[0];
+        // All connections busy - find the healthiest LRU connection
+        const availableConnections = this.connections
+          .filter(conn => conn.isHealthy !== false)
+          .sort((a, b) => a.lastUsed - b.lastUsed);
         
-        console.warn(`[DB_POOL] ⚠️ All connections busy, reusing LRU connection ${lruConnection.id}`);
-        connection = lruConnection;
-        connection.inUse = true;
-        connection.lastUsed = Date.now();
-        connection.requestCount++;
+        if (availableConnections.length > 0) {
+          connection = availableConnections[0];
+          console.warn(`[DB_POOL] ⚠️ All connections busy, reusing LRU healthy connection ${connection.id}`);
+          connection.inUse = true;
+          connection.lastUsed = Date.now();
+          connection.requestCount++;
+        } else {
+          // Fallback to any connection if all are marked unhealthy
+          connection = this.connections[0];
+          console.warn(`[DB_POOL] ⚠️ All connections busy, using fallback connection ${connection.id}`);
+          connection.inUse = true;
+          connection.lastUsed = Date.now();
+          connection.requestCount++;
+        }
       }
 
       this.stats.queuedRequests--;
@@ -147,8 +164,8 @@ class DatabasePool {
     } catch (error) {
       this.stats.queuedRequests--;
       this.stats.failedRequests++;
-      console.error(`[DB_POOL] ❌ Failed to get connection:`, error);
-      throw error;
+      console.error('[DB_POOL] ❌ Failed to acquire database connection');
+      throw new Error('Database connection unavailable');
     }
   }
 
@@ -187,8 +204,17 @@ class DatabasePool {
     try {
       const result = await queryFn(connection.db);
       return result;
+    } catch (queryError) {
+      // Log database errors without exposing sensitive details
+      console.error('[DB_POOL] Query execution failed');
+      throw queryError;
     } finally {
-      connection.release();
+      // Ensure connection is always released, even if query fails
+      try {
+        connection.release();
+      } catch (releaseError) {
+        console.error('[DB_POOL] Failed to release connection');
+      }
     }
   }
 
