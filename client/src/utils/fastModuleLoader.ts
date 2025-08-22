@@ -30,7 +30,7 @@ class FastModuleLoader {
       'attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
-      'parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
+      'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/DelegateAdministrators'),
@@ -55,58 +55,63 @@ class FastModuleLoader {
       
       // Parent modules (real ones - ALL modules for instant loading)
       'MyChildren': () => import('@/components/parent/modules/MyChildren'),
-      'children': () => import('@/components/parent/modules/MyChildren'),
+      'parent-children': () => import('@/components/parent/modules/MyChildren'),
       'FunctionalParentChildren': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'FunctionalParentMessages': () => import('@/components/parent/modules/FunctionalParentMessages'),
-      'messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
+      'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'ParentGeolocation': () => import('@/components/parent/modules/ParentGeolocation'),
-      'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
+      'parent-geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'FunctionalParentPayments': () => import('@/components/parent/modules/FunctionalParentPayments'),
-      'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
+      'parent-payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'ParentSubscription': () => import('@/components/parent/modules/ParentSubscription'),
-      'subscription': () => import('@/components/parent/modules/ParentSubscription'),
+      'parent-subscription': () => import('@/components/parent/modules/ParentSubscription'),
       'FunctionalParentGrades': () => import('@/components/parent/modules/FunctionalParentGrades'),
-      'grades': () => import('@/components/parent/modules/FunctionalParentGrades'),
+      'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'),
       'FunctionalParentAttendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
-      'attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
+      'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
       'FamilyConnections': () => import('@/components/parent/modules/FamilyConnections'),
-      'family': () => import('@/components/parent/modules/FamilyConnections'),
+      'parent-family': () => import('@/components/parent/modules/FamilyConnections'),
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
-      'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      'parent-request-manager': () => import('@/components/parent/modules/ParentRequestManager'),
       
       // Student modules (ALL for instant loading)
       'StudentTimetable': () => import('@/components/student/modules/StudentTimetable'),
-      'timetable': () => import('@/components/student/modules/StudentTimetable'),
+      'student-timetable': () => import('@/components/student/modules/StudentTimetable'),
       'StudentGrades': () => import('@/components/student/modules/StudentGrades'),
+      'student-grades': () => import('@/components/student/modules/StudentGrades'),
       'StudentHomework': () => import('@/components/student/modules/StudentHomework'),
-      'assignments': () => import('@/components/student/modules/StudentHomework'),
-      'homework': () => import('@/components/student/modules/StudentHomework'),
+      'student-assignments': () => import('@/components/student/modules/StudentHomework'),
+      'student-homework': () => import('@/components/student/modules/StudentHomework'),
       'StudentCommunications': () => import('@/components/student/modules/StudentCommunications'),
+      'student-communications': () => import('@/components/student/modules/StudentCommunications'),
       'FunctionalStudentProfile': () => import('@/components/student/modules/FunctionalStudentProfile'),
-      'profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
+      'student-profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
       'FunctionalStudentBulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
-      'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      'student-bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
       'FunctionalStudentAttendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'student-attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'FunctionalStudentClasses': () => import('@/components/student/modules/FunctionalStudentClasses'),
-      'classes': () => import('@/components/student/modules/FunctionalStudentClasses'),
+      'student-classes': () => import('@/components/student/modules/FunctionalStudentClasses'),
       'StudentProgress': () => import('@/components/student/modules/StudentProgress'),
-      'progress': () => import('@/components/student/modules/StudentProgress'),
+      'student-progress': () => import('@/components/student/modules/StudentProgress'),
       'FindParentsModule': () => import('@/components/student/modules/FindParentsModule'),
-      'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
+      'student-parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Freelancer modules (ALL for instant loading)  
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
-      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
       'FunctionalFreelancerSessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
-      'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
+      'freelancer-sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'FunctionalFreelancerPayments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
+      'freelancer-payments': () => import('@/components/freelancer/modules/FunctionalFreelancerPayments'),
       'FunctionalFreelancerSchedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
-      'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
+      'freelancer-schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'FunctionalFreelancerResources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
+      'freelancer-resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
       'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
-      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
+      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
+      'freelancer-geolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation')
     };
 
     const importFn = moduleMap[moduleName];
@@ -166,7 +171,7 @@ class FastModuleLoader {
       
       // Parent modules (essential)
       'MyChildren', 'FunctionalParentChildren', 'FunctionalParentMessages', 'FunctionalParentGrades',
-      'FunctionalParentAttendance', 'FunctionalParentPayments', 'geolocation',
+      'FunctionalParentAttendance', 'FunctionalParentPayments', 'ParentGeolocation',
       
       // Student modules (essential)
       'StudentTimetable', 'StudentGrades', 'StudentHomework', 'FunctionalStudentAttendance',
@@ -174,7 +179,7 @@ class FastModuleLoader {
       
       // Freelancer modules (essential)
       'FunctionalFreelancerStudents', 'FunctionalFreelancerSessions', 'FunctionalFreelancerSchedule',
-      'FunctionalFreelancerPayments',
+      'FunctionalFreelancerPayments', 'FreelancerCommunications',
       
       // Commercial modules
       'DocumentsContracts', 'CommercialStatistics'
