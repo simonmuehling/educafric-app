@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useStableEventHandler } from '@/hooks/useStableCallback';
+import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
   BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
@@ -24,6 +25,32 @@ interface StudentDashboardProps {
 const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const { language } = useLanguage();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
+  const { getModule, preloadModule } = useFastModules();
+  
+  // Dynamic module component creator (same as DirectorDashboard)
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    if (ModuleComponent) {
+      return React.createElement(ModuleComponent);
+    }
+    
+    // Preload module if not cached
+    React.useEffect(() => {
+      preloadModule(moduleName);
+    }, []);
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">
+            {language === 'fr' ? 'Chargement du module...' : 'Loading module...'}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   // Stable event handlers that survive server restarts
   useStableEventHandler(() => {
@@ -91,56 +118,56 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('timetable')
     },
     {
       id: 'grades',
       label: t.grades,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('grades')
     },
     {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('assignments')
     },
     {
       id: 'bulletins',
       label: t.notes,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('bulletins')
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('attendance')
     },
     {
       id: 'progress',
       label: t.library,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('progress')
     },
     {
       id: 'messages',
       label: t.messages,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('messages')
     },
     {
       id: 'parentConnection',
       label: t.parentConnection,
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-600',
-      component: null // Loaded dynamically via fastModuleLoader
+      component: createDynamicModule('parentConnection')
     },
     {
       id: 'achievements',

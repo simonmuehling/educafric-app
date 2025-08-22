@@ -193,7 +193,7 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
                   }
                   
                   // Sinon, charger dynamiquement via fastModuleLoader
-                  const DynamicComponent = getModule(activeModule);
+                  const DynamicComponent = getModule(activeModule || '');
                   if (DynamicComponent) {
                     return <DynamicComponent />;
                   }
