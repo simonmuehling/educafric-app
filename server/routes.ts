@@ -52,6 +52,7 @@ import subscriptionRoutes from "./routes/subscription";
 import autofixRoutes from "./routes/autofix";
 import multiRoleRoutes from "./routes/multiRoleRoutes";
 import { MultiRoleService } from "./services/multiRoleService";
+import authRoutes from "./routes/auth";
 import { subscriptionReminderService } from "./subscriptionReminder";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
 import { hostingerMailService } from "./services/hostingerMailService";
@@ -12616,6 +12617,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/sandbox', (await import('./routes/sandbox-data')).default);
   
   // Multi-role detection and management routes
+  // Register auth routes to configure passport strategies
+  app.use('/api/auth', authRoutes);
   app.use('/api/auth', multiRoleRoutes);
   
   // Tutorial system routes
