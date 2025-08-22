@@ -690,7 +690,7 @@ const UnifiedMessagesCenter: React.FC<UnifiedMessagesCenterProps> = ({ className
                 />
               </div>
 
-              {newMessage.channel === 'email' && (
+              {(newMessage.channel === 'email' || newMessage.channel === 'app') && (
                 <div>
                   <label className="block text-sm font-medium mb-2">{t.composer.subject}</label>
                   <Input
