@@ -106,6 +106,28 @@ class FastModuleLoader {
       'StudentProgress': () => import('@/components/student/modules/StudentProgress'),
       'FindParentsModule': () => import('@/components/student/modules/FindParentsModule'),
       
+      // Teacher modules (matching dashboard IDs exactly) - CRITICAL MISSING MAPPINGS!
+      'teacher-classes': () => import('@/components/teacher/modules/FunctionalMyClasses'),
+      'teacher-timetable': () => import('@/components/teacher/modules/TeacherTimetable'),
+      'teacher-attendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
+      'teacher-grades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
+      'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
+      'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
+      'teacher-reports': () => import('@/components/teacher/modules/ReportCards'),
+      'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
+      
+      // Additional Teacher module aliases
+      'FunctionalMyClasses': () => import('@/components/teacher/modules/FunctionalMyClasses'),
+      'TeacherTimetable': () => import('@/components/teacher/modules/TeacherTimetable'),
+      'FunctionalTeacherAttendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
+      'FunctionalTeacherGrades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
+      'FunctionalTeacherAssignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
+      'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
+      'ReportCards': () => import('@/components/teacher/modules/ReportCards'),
+      'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
+      'TeacherProfileSettings': () => import('@/components/teacher/modules/TeacherProfileSettings'),
+      'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
+      
       // Freelancer modules (matching dashboard IDs exactly)
       'settings': () => import('@/components/shared/UnifiedProfileManager'),
       'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),

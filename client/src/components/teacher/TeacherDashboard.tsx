@@ -71,6 +71,32 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     preloadTeacherApiData();
   }, [user, queryClient]);
   
+  // FORCE IMMEDIATE preload of critical slow modules - Teacher specific
+  React.useEffect(() => {
+    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-communications', 'teacher-timetable'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[TEACHER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[TEACHER_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[TEACHER_DASHBOARD] ✅ ${moduleName} module ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[TEACHER_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('[TEACHER_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
+    };
+    
+    forceLoadCriticalModules();
+  }, [preloadModule]);
+  
   // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
@@ -83,7 +109,9 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       return React.createElement(ModuleComponent);
     }
     
+    // Préchargement à la demande seulement pour modules non-critiques
     React.useEffect(() => {
+      console.log(`[TEACHER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
       preloadModule(moduleName);
     }, []);
     
@@ -168,56 +196,56 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.classes,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createDynamicModule('classes')
+      component: createDynamicModule('teacher-classes')
     },
     {
       id: 'timetable',
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createDynamicModule('timetable')
+      component: createDynamicModule('teacher-timetable')
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createDynamicModule('attendance')
+      component: createDynamicModule('teacher-attendance')
     },
     {
       id: 'grades',
       label: t.grades,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createDynamicModule('grades')
+      component: createDynamicModule('teacher-grades')
     },
     {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: createDynamicModule('assignments')
+      component: createDynamicModule('teacher-assignments')
     },
     {
       id: 'content',
       label: t.content,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: createDynamicModule('content')
+      component: createDynamicModule('teacher-content')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createDynamicModule('reports')
+      component: createDynamicModule('teacher-reports')
     },
     {
       id: 'communications',
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: createDynamicModule('communications')
+      component: createDynamicModule('teacher-communications')
     },
 
     {
