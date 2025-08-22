@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         origin: { y: 0.7 }
       });
       
+      // Force check auth status after successful login
+      await checkAuthStatus();
+      
       // Immediate navigation to dashboard (no delay)
       setLocation('/dashboard');
     } catch (error: any) {
