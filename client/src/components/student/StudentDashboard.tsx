@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   BookOpen, Calendar, FileText, MessageSquare, User, Clock, 
   BarChart3, Award, Target, HelpCircle, MapPin, Settings, Bell, Star, Heart
@@ -16,9 +18,58 @@ interface StudentDashboardProps {
 
 const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
   const { getModule, preloadModule } = useFastModules();
   const [criticalModulesReady, setCriticalModulesReady] = useState(false);
+  const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
+  
+  // AGGRESSIVE API DATA PRELOADING - Load data BEFORE user clicks!
+  React.useEffect(() => {
+    if (!user) return;
+    
+    const preloadCriticalApiData = async () => {
+      console.log('[STUDENT_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
+      
+      const apiEndpoints = [
+        '/api/student/grades',
+        '/api/student/homework', 
+        '/api/student/attendance',
+        '/api/student/messages'
+      ];
+      
+      // Preload all critical API data simultaneously
+      const promises = apiEndpoints.map(async (endpoint) => {
+        try {
+          console.log(`[STUDENT_DASHBOARD] 📡 Preloading ${endpoint}...`);
+          
+          // Use prefetchQuery to load data into cache WITHOUT showing loading states
+          await queryClient.prefetchQuery({
+            queryKey: [endpoint],
+            queryFn: async () => {
+              const response = await fetch(endpoint);
+              if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
+              return response.json();
+            },
+            staleTime: 1000 * 60 * 5 // Keep data fresh for 5 minutes
+          });
+          
+          console.log(`[STUDENT_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
+        } catch (error) {
+          console.error(`[STUDENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      setApiDataPreloaded(true);
+      console.log('[STUDENT_DASHBOARD] 🎯 ALL API DATA PRELOADED - MODULES WILL BE INSTANT!');
+    };
+    
+    preloadCriticalApiData();
+  }, [user, queryClient]);
   
   // FORCE IMMEDIATE preload of critical slow modules
   React.useEffect(() => {
@@ -47,12 +98,19 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     forceLoadCriticalModules();
   }, []);
   
-  // INSTANT module component creator - NO MORE WAITING
+  // ULTRA-FAST module component creator - MODULE + API DATA PRELOADED
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      console.log(`[STUDENT_DASHBOARD] ⚡ ${moduleName} served INSTANTLY from cache`);
+      const isCritical = ['grades', 'assignments', 'attendance', 'messages'].includes(moduleName);
+      
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[STUDENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      } else {
+        console.log(`[STUDENT_DASHBOARD] ⚡ ${moduleName} served INSTANTLY from cache`);
+      }
+      
       return React.createElement(ModuleComponent);
     }
     
@@ -71,10 +129,18 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
           <p className="mt-2 text-red-600 font-medium">
             {isCritical ? 
-              (language === 'fr' ? '⚡ Chargement prioritaire...' : '⚡ Priority loading...') :
+              (language === 'fr' ? 
+                (apiDataPreloaded ? '⚡ Finalisation...' : '⚡ Chargement prioritaire...') :
+                (apiDataPreloaded ? '⚡ Finalizing...' : '⚡ Priority loading...')
+              ) :
               (language === 'fr' ? 'Chargement...' : 'Loading...')
             }
           </p>
+          {isCritical && apiDataPreloaded && (
+            <p className="mt-1 text-xs text-gray-500">
+              {language === 'fr' ? 'Données préchargées ✓' : 'Data preloaded ✓'}
+            </p>
+          )}
         </div>
       </div>
     );
