@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useStripe, useElements, Elements, PaymentElement } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -10,8 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, AlertCircle, CreditCard, Shield, Users, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-// Initialiser Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
+// 🚀 LAZY LOADING STRIPE - Ne charge que quand nécessaire pour éviter cookies warnings
+let stripePromise: Promise<any> | null = null;
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = import('@stripe/stripe-js').then(({ loadStripe }) =>
+      loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '')
+    );
+  }
+  return stripePromise;
+};
 
 interface SubscriptionPlan {
   id: string;
@@ -200,6 +207,25 @@ const Subscribe: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'parent' | 'school' | 'freelancer'>('parent');
+  const [stripeLoaded, setStripeLoaded] = useState<any>(null);
+
+  // 🚀 Charger Stripe uniquement quand on affiche le paiement
+  useEffect(() => {
+    if (selectedPlan && !stripeLoaded) {
+      console.log('[STRIPE_OPTIMIZATION] 🔄 Loading Stripe on-demand...');
+      getStripe().then((stripe) => {
+        setStripeLoaded(stripe);
+        console.log('[STRIPE_OPTIMIZATION] ✅ Stripe loaded successfully');
+      }).catch((error) => {
+        console.error('[STRIPE_OPTIMIZATION] ❌ Error loading Stripe:', error);
+        toast({
+          title: "Erreur de chargement",
+          description: "Impossible de charger le système de paiement",
+          variant: "destructive",
+        });
+      });
+    }
+  }, [selectedPlan, stripeLoaded, toast]);
 
   // Récupérer les plans disponibles
   const { data: plansData, isLoading: plansLoading } = useQuery({
@@ -326,25 +352,32 @@ const Subscribe: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Elements 
-                stripe={stripePromise} 
-                options={{ 
-                  mode: 'payment',
-                  currency: 'usd', // Stripe requiert USD
-                  appearance: {
-                    theme: 'stripe',
-                    variables: {
-                      colorPrimary: '#3b82f6',
+              {!stripeLoaded ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Chargement du système de paiement...</span>
+                </div>
+              ) : (
+                <Elements 
+                  stripe={stripeLoaded} 
+                  options={{ 
+                    mode: 'payment',
+                    currency: 'usd', // Stripe requiert USD
+                    appearance: {
+                      theme: 'stripe',
+                      variables: {
+                        colorPrimary: '#3b82f6',
+                      }
                     }
-                  }
-                }}
-              >
-                <PaymentForm 
-                  planId={selectedPlan.id}
-                  plan={selectedPlan}
-                  onSuccess={handlePaymentSuccess}
-                />
-              </Elements>
+                  }}
+                >
+                  <PaymentForm 
+                    planId={selectedPlan.id}
+                    plan={selectedPlan}
+                    onSuccess={handlePaymentSuccess}
+                  />
+                </Elements>
+              )}
             </CardContent>
           </Card>
         </div>
