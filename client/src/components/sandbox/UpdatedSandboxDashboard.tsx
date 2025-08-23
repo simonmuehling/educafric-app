@@ -50,13 +50,21 @@ const UpdatedSandboxDashboard = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Récupération des métriques en temps réel
-  const { data: realTimeMetrics, isLoading: metricsLoading } = useQuery({
+  // Récupération des métriques en temps réel with improved error handling
+  const { data: realTimeMetrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ['/api/sandbox/real-time-metrics'],
     enabled: !!user,
-    refetchInterval: 2000,
-    staleTime: 1000
+    refetchInterval: 5000, // Less aggressive refresh
+    staleTime: 2000,
+    retry: 1 // Limit retries to prevent spam
   });
+  
+  // Handle errors separately (TanStack Query v5 pattern)
+  useEffect(() => {
+    if (metricsError) {
+      console.log('Sandbox metrics temporarily unavailable');
+    }
+  }, [metricsError]);
 
   // Tests sandbox complets avec callback stable
   const stableRunFullTests = useStableCallback(async () => {

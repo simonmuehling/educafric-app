@@ -57,20 +57,24 @@ export const SandboxPremiumProvider: React.FC<SandboxPremiumProviderProps> = ({ 
     // Clear duplicate tracking
     duplicateCheckRef.current.clear();
     
-    // Force component re-render to clear any stale data
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('sandbox-refresh'));
+    // Force component re-render to clear any stale data (with error handling)
+    try {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('sandbox-refresh'));
+      }
+    } catch (error) {
+      console.log('Sandbox refresh event failed (non-critical)');
     }
     
     console.log('🔄 Sandbox Autoscale: Refreshed at', now.toLocaleTimeString());
   };
 
-  // Auto-refresh every 5 minutes to prevent duplications (no initial refresh to avoid setState during render)
+  // Auto-refresh every 20 minutes to prevent duplications (less aggressive)
   useEffect(() => {
     if (isSandboxUser) {
       refreshIntervalRef.current = setInterval(() => {
         refreshSandbox();
-      }, 5 * 60 * 1000); // 5 minutes
+      }, 20 * 60 * 1000); // 20 minutes - less aggressive
 
       return () => {
         if (refreshIntervalRef.current) {

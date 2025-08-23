@@ -51,11 +51,12 @@ const BilingualSandboxDashboard = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  // Fetch real sandbox metrics
-  const { data: sandboxMetrics, isLoading: metricsLoading } = useQuery({
+  // Fetch real sandbox metrics with better error handling
+  const { data: sandboxMetrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ['/api/sandbox/metrics'],
     enabled: !!user,
-    refetchInterval: 5000
+    refetchInterval: 10000, // Reduced frequency to prevent spam
+    retry: 2 // Limit retries
   });
 
   // Mutation pour exécuter les tests sandbox
