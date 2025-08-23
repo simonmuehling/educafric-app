@@ -372,6 +372,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     return { top: `${top}px`, left: `${left}px` };
   };
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared
   if (!isVisible || tourSteps.length === 0) return null;
 
   const currentStepData = tourSteps[currentStep];

@@ -258,6 +258,7 @@ export const SimplifiedOnboarding: React.FC<SimplifiedOnboardingProps> = ({
     }
   }, [isVisible, language]);
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared  
   if (!isVisible) return null;
 
   const progress = calculateProgress();
