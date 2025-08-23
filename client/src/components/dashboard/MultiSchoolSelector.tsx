@@ -108,6 +108,7 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
     );
   }
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared  
   if (!schools || !schools.canManageMultiple) {
     return null; // Don't show if teacher only has one school
   }

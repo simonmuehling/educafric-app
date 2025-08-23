@@ -238,6 +238,7 @@ const InactivityMonitor: React.FC<InactivityMonitorProps> = ({
     };
   }, [user, checkSessionStatus]);
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared  
   if (!user) return null;
 
   return (

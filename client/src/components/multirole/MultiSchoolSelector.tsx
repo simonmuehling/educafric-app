@@ -72,6 +72,7 @@ export default function MultiSchoolSelector({ className }: MultiSchoolSelectorPr
     }
   };
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared
   if ((Array.isArray(schools) ? schools.length : 0) <= 1) {
     return null; // Don't show selector if teacher only has one school
   }

@@ -50,6 +50,7 @@ const MobileFormWrapper: React.FC<MobileFormWrapperProps> = ({
 
   const t = text[language];
 
+  // ✅ HOOK BUG FIX: Move return after all hooks are declared
   if (!isOpen) return null;
 
   if (isMobile) {

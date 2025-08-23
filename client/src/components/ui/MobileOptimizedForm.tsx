@@ -34,6 +34,7 @@ const MobileOptimizedForm: React.FC<MobileOptimizedFormProps> = ({
   className = '',
   maxHeight = 'max-h-[80vh]'
 }) => {
+  // ✅ HOOK BUG FIX: No hooks in this component, safe return
   if (!isOpen) return null;
 
   return (
