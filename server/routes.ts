@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   try {
-    registerSiteAdminRoutes(app);
+    registerSiteAdminRoutes(app, requireAuth);
   } catch (error) {
     console.warn('[ROUTES] Site admin routes failed to register:', error);
   }
