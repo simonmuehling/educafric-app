@@ -219,18 +219,24 @@ class PWAConnectionManager {
    * Configure la synchronisation en arrière-plan via Service Worker
    */
   private setupServiceWorkerSync() {
-    if ('serviceWorker' in navigator) {
+    // Configuration du sync en arrière-plan corrigé pour éviter InvalidAccessError
+    if ('serviceWorker' in navigator && 'serviceWorker' in window) {
       navigator.serviceWorker.ready.then((registration) => {
-        console.log('[PWA_CONNECTION] 🔄 Service Worker sync configuré');
-        
-        // Vérifier si l'API sync est disponible
+        // Feature detect avant utilisation
         if ('sync' in registration) {
-          (registration as any).sync.register('background-sync').catch((error: any) => {
-            console.warn('[PWA_CONNECTION] Erreur sync:', error);
-          });
-        } else {
-          console.log('[PWA_CONNECTION] Background sync non supporté');
+          try {
+            // Tag court (max 64 chars) et descriptif
+            const syncTag = 'pwa-sync';
+            (registration as any).sync.register(syncTag);
+            console.log('[PWA_CONNECTION] 🔄 Background sync enregistré');
+          } catch (error: any) {
+            // Silent fail - pas critique pour l'app
+            console.log('[PWA_CONNECTION] Background sync non disponible');
+          }
         }
+      }).catch(() => {
+        // Service worker pas disponible, ce n'est pas critique
+        console.log('[PWA_CONNECTION] Service Worker non disponible');
       });
     }
   }

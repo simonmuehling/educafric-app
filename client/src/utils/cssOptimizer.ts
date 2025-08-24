@@ -15,23 +15,30 @@ class CSSOptimizer {
     'globals.css'
   ];
 
-  // PRELOAD CRITICAL CSS avec priorité élevée
-  preloadCriticalCSS(): void {
+  // LOAD CRITICAL CSS directement (plus de preload inutilisé)
+  loadCriticalCSS(): void {
     const head = document.head;
     
     this.criticalCSS.forEach(cssFile => {
       if (this.loadedCSS.has(cssFile)) return;
       
-      // Preload link pour téléchargement instantané
-      const preloadLink = document.createElement('link');
-      preloadLink.rel = 'preload';
-      preloadLink.as = 'style';
-      preloadLink.href = `/src/${cssFile}`;
-      preloadLink.onload = () => {
-        console.log(`[CSS_OPT] ⚡ ${cssFile} preloaded`);
+      // Charger directement comme stylesheet - plus rapide et sans avertissement
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `/src/${cssFile}`;
+      link.setAttribute('data-critical', 'true');
+      
+      // Priorité élevée pour le CSS critique
+      if ('fetchPriority' in link) {
+        (link as any).fetchPriority = 'high';
+      }
+      
+      link.onload = () => {
+        console.log(`[CSS_OPT] ⚡ ${cssFile} loaded (critical)`);
       };
       
-      head.appendChild(preloadLink);
+      // Insérer en premier pour charger rapidement
+      head.insertBefore(link, head.firstChild);
       this.loadedCSS.add(cssFile);
     });
   }
@@ -136,7 +143,7 @@ export const cssOptimizer = new CSSOptimizer();
 // Initialize CSS optimization immediately
 export const initializeCSSOptimization = () => {
   cssOptimizer.optimizeCriticalStyles();
-  cssOptimizer.preloadCriticalCSS();
+  cssOptimizer.loadCriticalCSS();
   cssOptimizer.deferNonCriticalStyles();
   
   console.log('[CSS_OPT] 🚀 CSS optimization initialized');

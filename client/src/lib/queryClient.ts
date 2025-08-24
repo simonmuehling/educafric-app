@@ -76,12 +76,17 @@ async function defaultQueryFn({ queryKey }: { queryKey: readonly unknown[] }) {
     return null;
   }
 
+  // Handle 401 gracefully - don't try to parse HTML as JSON
+  if (res.status === 401) {
+    return null;
+  }
+
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`${res.status} ${res.statusText} :: ${text.slice(0, 120)}`);
   }
 
-  // Check content type
+  // Check content type before trying to parse JSON
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
     const sample = (await res.text().catch(() => '')).slice(0, 120);
