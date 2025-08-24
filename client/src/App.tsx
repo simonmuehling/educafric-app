@@ -43,7 +43,7 @@ import {
 } from "@/components/LazyLoader";
 
 // Individual Dashboard Components
-import { LazyStudentDashboard, LazyTeacherDashboard } from "@/components/LazyComponentLoader";
+import { LazyStudentDashboard, LazyTeacherDashboard, LazyFreelancerDashboard } from "@/components/LazyComponentLoader";
 
 // Initialize network optimizer for connection quality improvements
 import "@/utils/networkOptimizer";
@@ -314,7 +314,7 @@ function Router() {
       
       <Route path="/freelancer">
         <ProtectedRoute>
-          <LazyFreelancerPage />
+          <LazyFreelancerDashboard />
         </ProtectedRoute>
       </Route>
       
