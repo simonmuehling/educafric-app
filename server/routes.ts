@@ -177,6 +177,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TIMETABLE ROUTES =====
+  app.get('/api/timetables', requireAuth, async (req: any, res) => {
+    try {
+      const schoolId = req.user?.schoolId || 1;
+      const timetables = await storage.getTimetableForSchool(schoolId);
+      res.json(timetables);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch timetables' });
+    }
+  });
+
+  app.get('/api/student/timetable', requireAuth, async (req: any, res) => {
+    try {
+      const timetables = await storage.getTimetableForClass(1);
+      res.json(timetables);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch student timetable' });
+    }
+  });
+
+  app.post('/api/timetables', requireAuth, async (req: any, res) => {
+    try {
+      const result = await storage.createTimetableEntry(req.body);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create timetable entry' });
+    }
+  });
+
   // Register API route modules
   app.use('/api/notifications', notificationsRouter);
   app.use('/api/teachers', teachersRouter);

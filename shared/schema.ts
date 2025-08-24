@@ -149,12 +149,14 @@ export const communicationLogs = pgTable("communication_logs", {
 
 export const timetableSlots = pgTable("timetable_slots", {
   id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
   classId: integer("class_id").notNull(),
   subjectId: integer("subject_id").notNull(),
   teacherId: integer("teacher_id").notNull(),
-  dayOfWeek: text("day_of_week"),
-  startTime: text("start_time"),
-  endTime: text("end_time"),
+  dayOfWeek: text("day_of_week").notNull(),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time").notNull(),
+  room: text("room"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
