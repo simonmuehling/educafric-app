@@ -739,15 +739,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add parent children route
+  app.get("/api/parent/children", requireAuth, async (req, res) => {
+    try {
+      const children = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          fullName: 'Marie Kouame',
+          email: 'marie.kouame@saintjoseph.edu',
+          class: '6ème A',
+          level: '6ème',
+          school: 'École Saint-Joseph',
+          age: 12,
+          status: 'active',
+          average: 15.2,
+          attendance: 95
+        },
+        {
+          id: 2,
+          firstName: 'Paul',
+          lastName: 'Kouame',
+          fullName: 'Paul Kouame',
+          email: 'paul.kouame@saintjoseph.edu',
+          class: '3ème B',
+          level: '3ème',
+          school: 'École Saint-Joseph',
+          age: 15,
+          status: 'active',
+          average: 13.8,
+          attendance: 88
+        }
+      ];
+      res.json({ success: true, children });
+    } catch (error) {
+      console.error('[PARENT_CHILDREN] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch children' });
+    }
+  });
+
   // Add missing parent timetable route
   app.get("/api/parent/children/:childId/timetable", requireAuth, async (req, res) => {
     try {
       const { childId } = req.params;
+      // Emploi du temps complet pour les enfants camerounais
       const timetable = [
-        { id: 1, dayOfWeek: 1, startTime: '08:00', endTime: '09:00', subjectName: 'Mathématiques', teacherName: 'M. Martin', room: 'Salle 101' },
-        { id: 2, dayOfWeek: 1, startTime: '09:00', endTime: '10:00', subjectName: 'Français', teacherName: 'Mme Dubois', room: 'Salle 102' },
-        { id: 3, dayOfWeek: 2, startTime: '08:00', endTime: '09:00', subjectName: 'Histoire', teacherName: 'M. Lambert', room: 'Salle 103' },
-        { id: 4, dayOfWeek: 2, startTime: '10:00', endTime: '11:00', subjectName: 'Sciences', teacherName: 'Mme Moreau', room: 'Salle 104' }
+        // Lundi (dayOfWeek: 1)
+        { id: 1, dayOfWeek: 1, startTime: '07:30', endTime: '08:20', subjectName: 'Mathématiques', teacherName: 'M. Martin', room: 'Salle 101' },
+        { id: 2, dayOfWeek: 1, startTime: '08:20', endTime: '09:10', subjectName: 'Français', teacherName: 'Mme Dubois', room: 'Salle 102' },
+        { id: 3, dayOfWeek: 1, startTime: '09:30', endTime: '10:20', subjectName: 'Histoire-Géographie', teacherName: 'M. Lambert', room: 'Salle 103' },
+        { id: 4, dayOfWeek: 1, startTime: '10:20', endTime: '11:10', subjectName: 'Sciences Physiques', teacherName: 'Mme Moreau', room: 'Laboratoire' },
+        { id: 5, dayOfWeek: 1, startTime: '11:30', endTime: '12:20', subjectName: 'Anglais', teacherName: 'Miss Johnson', room: 'Salle 105' },
+        
+        // Mardi (dayOfWeek: 2)
+        { id: 6, dayOfWeek: 2, startTime: '07:30', endTime: '08:20', subjectName: 'Français', teacherName: 'Mme Dubois', room: 'Salle 102' },
+        { id: 7, dayOfWeek: 2, startTime: '08:20', endTime: '09:10', subjectName: 'Mathématiques', teacherName: 'M. Martin', room: 'Salle 101' },
+        { id: 8, dayOfWeek: 2, startTime: '09:30', endTime: '10:20', subjectName: 'Sciences Naturelles', teacherName: 'Dr. Ngozi', room: 'Laboratoire Bio' },
+        { id: 9, dayOfWeek: 2, startTime: '10:20', endTime: '11:10', subjectName: 'Éducation Civique', teacherName: 'M. Kouame', room: 'Salle 104' },
+        { id: 10, dayOfWeek: 2, startTime: '11:30', endTime: '12:20', subjectName: 'Sport', teacherName: 'Coach Mbeki', room: 'Terrain' },
+        
+        // Mercredi (dayOfWeek: 3)
+        { id: 11, dayOfWeek: 3, startTime: '07:30', endTime: '08:20', subjectName: 'Mathématiques', teacherName: 'M. Martin', room: 'Salle 101' },
+        { id: 12, dayOfWeek: 3, startTime: '08:20', endTime: '09:10', subjectName: 'Histoire-Géographie', teacherName: 'M. Lambert', room: 'Salle 103' },
+        { id: 13, dayOfWeek: 3, startTime: '09:30', endTime: '10:20', subjectName: 'Anglais', teacherName: 'Miss Johnson', room: 'Salle 105' },
+        { id: 14, dayOfWeek: 3, startTime: '10:20', endTime: '11:10', subjectName: 'Arts Plastiques', teacherName: 'Mme Tchoula', room: 'Atelier Art' },
+        
+        // Jeudi (dayOfWeek: 4)
+        { id: 15, dayOfWeek: 4, startTime: '07:30', endTime: '08:20', subjectName: 'Français', teacherName: 'Mme Dubois', room: 'Salle 102' },
+        { id: 16, dayOfWeek: 4, startTime: '08:20', endTime: '09:10', subjectName: 'Sciences Physiques', teacherName: 'Mme Moreau', room: 'Laboratoire' },
+        { id: 17, dayOfWeek: 4, startTime: '09:30', endTime: '10:20', subjectName: 'Mathématiques', teacherName: 'M. Martin', room: 'Salle 101' },
+        { id: 18, dayOfWeek: 4, startTime: '10:20', endTime: '11:10', subjectName: 'Musique', teacherName: 'M. Biya', room: 'Salle Musique' },
+        { id: 19, dayOfWeek: 4, startTime: '11:30', endTime: '12:20', subjectName: 'Informatique', teacherName: 'M. Digital', room: 'Salle Info' },
+        
+        // Vendredi (dayOfWeek: 5)
+        { id: 20, dayOfWeek: 5, startTime: '07:30', endTime: '08:20', subjectName: 'Éducation Civique', teacherName: 'M. Kouame', room: 'Salle 104' },
+        { id: 21, dayOfWeek: 5, startTime: '08:20', endTime: '09:10', subjectName: 'Sciences Naturelles', teacherName: 'Dr. Ngozi', room: 'Laboratoire Bio' },
+        { id: 22, dayOfWeek: 5, startTime: '09:30', endTime: '10:20', subjectName: 'Anglais', teacherName: 'Miss Johnson', room: 'Salle 105' },
+        { id: 23, dayOfWeek: 5, startTime: '10:20', endTime: '11:10', subjectName: 'Sport', teacherName: 'Coach Mbeki', room: 'Terrain' },
+        
+        // Samedi (dayOfWeek: 6) - Demi-journée
+        { id: 24, dayOfWeek: 6, startTime: '07:30', endTime: '08:20', subjectName: 'Révisions Générales', teacherName: 'Divers', room: 'Classes' },
+        { id: 25, dayOfWeek: 6, startTime: '08:20', endTime: '09:10', subjectName: 'Activités Parascolaires', teacherName: 'Animateurs', room: 'Cour' }
       ];
       res.json({ success: true, timetable, childId: parseInt(childId) });
     } catch (error) {
