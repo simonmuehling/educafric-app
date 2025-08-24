@@ -231,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(ipBlockingMiddleware);
   app.use(performanceMonitor);
   app.use(enhancedSecurityLogger);
-  // app.use(intrusionDetectionMiddleware); // Temporarily disabled for API testing
+  app.use(intrusionDetectionMiddleware);
   
   // Data protection compliance
   app.use(dataProtectionMiddleware);
@@ -21296,15 +21296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Notification access required' });
       }
       
-      // Send notifications  
+      // Send notifications using legacy format
       await notificationService.sendNotification({
         type: 'push',
-        message: `Le bulletin de ${studentName} (${className}) a été signé par ${signerName} (${signerRole})`,
+        recipient: req.user as any,
+        template: 'bulletin_signed',
+        data: { bulletinId, studentName, className, signerRole, signerName },
         priority: 'medium',
-        category: 'academic',
-        recipients: [((req.user as any) as any).id],
-        schoolId: ((req.user as any) as any).schoolId || 1,
-        data: { bulletinId, studentName, className, signerRole, signerName }
+        language: 'fr'
       });
       
       console.log(`[BULLETIN_NOTIFICATIONS] ✅ Sent notification for bulletin ${bulletinId}`);
@@ -23296,7 +23295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { studentId, sessionData } = req.body;
-      const result = await storage.scheduleFreelancerSession(user.id, studentId, sessionData);
+      const result = await storage.scheduleFreelancerSession(sessionData);
       
       res.json({
         success: true,
