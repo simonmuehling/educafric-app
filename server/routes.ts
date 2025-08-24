@@ -6,10 +6,11 @@ import path from "path";
 import fs from "fs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import passport from "passport";
 import { marked } from "marked";
 
 // Import middleware
-import { configureSecurityMiddleware } from "./middleware/security";
+import { configureSecurityMiddleware, productionSessionConfig } from "./middleware/security";
 import { requireAuth } from "./middleware/auth";
 
 // Import route modules
@@ -73,6 +74,21 @@ const logoUpload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure security middleware
   configureSecurityMiddleware(app);
+  
+  // Configure session middleware - MUST be before passport initialization
+  const PgSession = connectPgSimple(session);
+  app.use(session({
+    ...productionSessionConfig,
+    store: new PgSession({
+      conString: process.env.DATABASE_URL,
+      tableName: 'session',
+      createTableIfMissing: true,
+    })
+  }));
+  
+  // Initialize passport middleware - MUST be after session middleware
+  app.use(passport.initialize());
+  app.use(passport.session());
   
   // Serve static files
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
