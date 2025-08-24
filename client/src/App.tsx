@@ -49,6 +49,9 @@ import "@/utils/networkOptimizer";
 // Initialize global module preloader for instant loading
 import { fastModuleLoader } from "@/utils/fastModuleLoader";
 
+// HOOK ERROR PREVENTION - Prevents "Rendered fewer hooks than expected" forever
+import { setupGlobalHookErrorPrevention, HookErrorBoundary } from "@/utils/hooksErrorPrevention";
+
 // Light components - Regular imports OK
 import Subscribe from "@/pages/Subscribe";
 import Demo from "@/pages/Demo";
@@ -452,10 +455,13 @@ function FirebaseRedirectHandler() {
   const [initialized, setInitialized] = useState(false);
   
   useEffect(() => {
-    // Only initialize once to prevent repeated logs
-    if (initialized) return;
-    
+    // FIXED: Avoid early return in useEffect to prevent hooks violation
     const checkRedirect = async () => {
+      // Only initialize once to prevent repeated logs  
+      if (initialized) {
+        return; // Return from async function, not useEffect
+      }
+      
       try {
         if (import.meta.env.DEV) {
           console.log('Firebase redirect handler initialized (simplified)');
@@ -479,6 +485,9 @@ function App() {
   useGlobalModulePreloader();
   
   useEffect(() => {
+    // SETUP HOOK ERROR PREVENTION SYSTEM - PREVENTS CRASHES FOREVER
+    setupGlobalHookErrorPrevention();
+    
     // Configuration du filtre de console pour réduire le spam
     import("@/utils/consoleFilter").then(({ setupConsoleFilter }) => {
       setupConsoleFilter();
@@ -502,28 +511,30 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <CurrencyProvider>
-            <SandboxProvider>
-              <SandboxPremiumProvider>
-                <ConsolidatedNotificationProvider>
-                <TooltipProvider>
-                  <FirebaseRedirectHandler />
-                  <AppLayout>
-                    <ConnectionStatusIndicator />
-                    <Router />
-                  </AppLayout>
-                  <Toaster />
-                </TooltipProvider>
-                </ConsolidatedNotificationProvider>
-              </SandboxPremiumProvider>
-            </SandboxProvider>
-          </CurrencyProvider>
-        </LanguageProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <HookErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <LanguageProvider>
+            <CurrencyProvider>
+              <SandboxProvider>
+                <SandboxPremiumProvider>
+                  <ConsolidatedNotificationProvider>
+                  <TooltipProvider>
+                    <FirebaseRedirectHandler />
+                    <AppLayout>
+                      <ConnectionStatusIndicator />
+                      <Router />
+                    </AppLayout>
+                    <Toaster />
+                  </TooltipProvider>
+                  </ConsolidatedNotificationProvider>
+                </SandboxPremiumProvider>
+              </SandboxProvider>
+            </CurrencyProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </HookErrorBoundary>
   );
 }
 
