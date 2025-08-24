@@ -42,6 +42,9 @@ import {
   LazyUIShowcase
 } from "@/components/LazyLoader";
 
+// Individual Dashboard Components
+import { LazyStudentDashboard, LazyTeacherDashboard } from "@/components/LazyComponentLoader";
+
 // Initialize network optimizer for connection quality improvements
 import "@/utils/networkOptimizer";
 
@@ -239,7 +242,7 @@ function Router() {
       
       <Route path="/student">
         <ProtectedRoute>
-          <LazyStudents />
+          <LazyStudentDashboard />
         </ProtectedRoute>
       </Route>
       
@@ -251,7 +254,7 @@ function Router() {
       
       <Route path="/teacher">
         <ProtectedRoute>
-          <LazyTeachers />
+          <LazyTeacherDashboard />
         </ProtectedRoute>
       </Route>
 
