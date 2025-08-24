@@ -47,7 +47,7 @@ class UnifiedModuleLoader {
   private secondaryModules: ModuleConfig[] = [
     // Less frequently used components
     { component: () => import('@/components/director/modules/ReportsAnalytics'), strategy: 'lazy', priority: 4 },
-    { component: () => import('@/components/director/modules/SchoolSettings'), strategy: 'lazy', priority: 4 },
+    { component: () => import('@/components/director/modules/UnifiedSchoolSettings'), strategy: 'lazy', priority: 4 },
     { component: () => import('@/pages/BulletinValidationTest'), strategy: 'lazy', priority: 5 },
     { component: () => import('@/pages/UIShowcase'), strategy: 'lazy', priority: 5 },
   ];

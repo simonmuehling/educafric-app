@@ -72,7 +72,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   
   // FORCE IMMEDIATE preload of critical slow modules - Director specific
   React.useEffect(() => {
-    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-attendance', 'director-communications'];
+    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
