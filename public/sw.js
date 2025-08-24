@@ -1,5 +1,5 @@
 // Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.3';
+const CACHE_NAME = 'educafric-v2.4-auth-fix';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -47,10 +47,25 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event with improved image handling
+// Fetch event with improved caching strategy to fix authentication issues
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
+  
+  const url = new URL(event.request.url);
+  
+  // 🚫 NEVER cache authentication and API endpoints
+  const isAuthEndpoint = url.pathname.includes('/api/auth') || 
+                         url.pathname.includes('/auth') ||
+                         url.pathname.includes('/api/') ||
+                         url.pathname.includes('/login') ||
+                         url.pathname.includes('/logout');
+  
+  if (isAuthEndpoint) {
+    // For auth/API endpoints: ALWAYS use network, never cache
+    event.respondWith(fetch(event.request));
+    return;
+  }
   
   // Special handling for PWA icons to avoid cache issues
   const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|ico|svg)$/i);
@@ -81,18 +96,53 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Default strategy: cache first, then network
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
+  // For static assets (CSS, JS, images): cache first strategy
+  const isStaticAsset = event.request.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i) ||
+                       url.pathname.includes('/assets/') ||
+                       url.pathname.includes('/static/');
+  
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response;
           }
-        });
+          return fetch(event.request).then((fetchResponse) => {
+            if (fetchResponse.ok) {
+              const responseClone = fetchResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return fetchResponse;
+          });
+        })
+    );
+    return;
+  }
+  
+  // For navigation and dynamic content: network first, cache fallback
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Only cache successful responses for non-auth content
+        if (response.ok && !isAuthEndpoint) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback to cache only for navigation requests
+        if (event.request.mode === 'navigate') {
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/offline.html');
+          });
+        }
+        return caches.match(event.request);
       })
   );
 });

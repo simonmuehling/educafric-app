@@ -102,8 +102,20 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
 // Cache control middleware for static assets
 export const cacheControlMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
+    // 🚫 AGGRESSIVE anti-cache for authentication endpoints
+    if (req.url.includes('/api/auth') || 
+        req.url.includes('/auth') || 
+        req.url.includes('/login') || 
+        req.url.includes('/logout') ||
+        req.url.includes('/api/me')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Last-Modified', new Date().toUTCString());
+      res.setHeader('ETag', Math.random().toString(36)); // Force unique ETag
+    }
     // Set cache headers for static assets
-    if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    else if (req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
       res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
       res.setHeader('ETag', `"${Date.now()}"`);
     } else if (req.url.startsWith('/api/')) {
