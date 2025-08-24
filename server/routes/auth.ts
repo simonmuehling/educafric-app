@@ -177,6 +177,56 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
   res.json({ user: req.user });
 });
 
+// Sandbox login endpoint
+router.post('/sandbox-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Define sandbox profiles
+    const sandboxProfiles = {
+      'sandbox.parent@educafric.demo': { id: 9001, name: 'Marie Kamga', role: 'Parent' },
+      'sandbox.teacher@educafric.demo': { id: 9002, name: 'Paul Mvondo', role: 'Teacher' },
+      'sandbox.freelancer@educafric.demo': { id: 9003, name: 'Sophie Biya', role: 'Freelancer' },
+      'sandbox.student@educafric.demo': { id: 9004, name: 'Junior Kamga', role: 'Student' },
+      'sandbox.admin@educafric.demo': { id: 9005, name: 'Dr. Nguetsop Carine', role: 'Admin' },
+      'sandbox.director@educafric.demo': { id: 9006, name: 'Prof. Atangana Michel', role: 'Director' }
+    };
+    
+    const profile = sandboxProfiles[email as keyof typeof sandboxProfiles];
+    
+    if (!profile || password !== 'sandbox123') {
+      return res.status(401).json({ message: 'Invalid sandbox credentials' });
+    }
+    
+    // Create sandbox user object
+    const sandboxUser = {
+      ...profile,
+      email,
+      subscription: 'premium',
+      sandboxMode: true,
+      premiumFeatures: true,
+      schoolId: 999,
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
+    
+    // Login the user
+    req.login(sandboxUser, (err) => {
+      if (err) {
+        console.error('[SANDBOX_LOGIN] Error:', err);
+        return res.status(500).json({ message: 'Sandbox login failed' });
+      }
+      
+      console.log(`[SANDBOX_LOGIN] ✅ ${profile.name} (${profile.role}) logged in successfully`);
+      res.json({ user: sandboxUser });
+    });
+    
+  } catch (error) {
+    console.error('[SANDBOX_LOGIN] Error:', error);
+    res.status(500).json({ message: 'Sandbox login error' });
+  }
+});
+
 router.post('/logout', (req, res) => {
   try {
     req.logout((err) => {

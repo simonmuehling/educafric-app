@@ -155,28 +155,44 @@ const SandboxLogin = () => {
     setIsLogging(profile.id);
     
     try {
-      // Use the login function from AuthContext for proper session management
-      await login(profile.email, 'sandbox123');
-      console.log('✅ Sandbox login successful, navigating to dashboard');
+      // Direct sandbox login using the specific sandbox endpoint
+      const response = await fetch('/api/auth/sandbox-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: profile.email,
+          password: 'sandbox123'
+        }),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('✅ Sandbox login successful, navigating to dashboard:', userData);
         
-      // Navigate to role-specific dashboard immediately
-      const roleRoutes = {
-        Parent: '/parent',
-        Student: '/student',
-        Teacher: '/teacher',
-        Freelancer: '/freelancer',
-        Admin: '/admin',
-        Director: '/director',
-        SiteAdmin: '/admin'
-      };
-      
-      const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-      console.log('🎯 Navigating to:', targetRoute);
-      
-      // Navigate using wouter
-      setTimeout(() => {
-        setLocation(targetRoute);
-      }, 100);
+        // Navigate to role-specific dashboard immediately
+        const roleRoutes = {
+          Parent: '/parent',
+          Student: '/student',
+          Teacher: '/teacher',
+          Freelancer: '/freelancer',
+          Admin: '/admin',
+          Director: '/director',
+          SiteAdmin: '/admin'
+        };
+        
+        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+        console.log('🎯 Navigating to:', targetRoute);
+        
+        // Navigate using wouter
+        setTimeout(() => {
+          setLocation(targetRoute);
+        }, 100);
+      } else {
+        const error = await response.json();
+        console.error('Sandbox login failed:', error);
+      }
     } catch (error) {
       console.error('Sandbox login error:', error);
     } finally {
