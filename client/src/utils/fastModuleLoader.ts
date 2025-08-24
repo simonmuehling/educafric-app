@@ -279,12 +279,24 @@ class FastModuleLoader {
     
     // Now load other modules in background
     const otherModules = [
+      // Director modules
       'timetable', 'director-timetable', 'settings', 'overview', 'notifications', 'help',
-      'teachers', 'students', 'classes',
-      'subscription', 'children', 'geolocation', 'payments', 'family',
+      'teachers', 'students', 'classes', 'school-administrators', 'reports',
+      
+      // Student modules  
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
-      'sessions', 'schedule', 'resources', 'communications',
-      'DocumentsContracts', 'CommercialStatistics'
+      
+      // Parent modules
+      'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance',
+      
+      // Teacher modules
+      'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-content', 'teacher-reports', 'teacher-communications',
+      
+      // Freelancer modules
+      'freelancer-students', 'sessions', 'schedule', 'resources', 'freelancer-communications',
+      
+      // Commercial modules
+      'DocumentsContracts', 'CommercialStatistics', 'communications'
     ];
     
     // Background loading - don't block

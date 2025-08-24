@@ -17,6 +17,9 @@ import { requireAuth } from "./middleware/auth";
 // Import route modules
 import notificationsRouter from "./routes/api/notifications";
 import teachersRouter from "./routes/api/teachers";
+import studentsRouter from "./routes/students";
+import studentRoutesApi from "./routes/studentRoutes";
+import freelancerRouter from "./routes/freelancer";
 import sandboxRouter from "./routes/api/sandbox";
 import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
@@ -205,6 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register API route modules
   app.use('/api/notifications', notificationsRouter);
   app.use('/api/teachers', teachersRouter);
+  app.use('/api/students', studentsRouter);
+  app.use('/api/student', studentRoutesApi);
+  app.use('/api/freelancer', freelancerRouter);
   app.use('/api/sandbox', sandboxRouter);
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
   app.use('/api/schools', schoolsRouter);

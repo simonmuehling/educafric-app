@@ -209,6 +209,29 @@ export class ModularStorage {
   async deleteParent(id: number) { return this.deleteUser(id); }
   async getSchoolStudents(schoolId: number) { return []; }
   async getSchoolParents(schoolId: number) { return []; }
+  
+  // === FREELANCER METHODS ===
+  async getFreelancerProfile(freelancerId: number) {
+    return { id: freelancerId, name: 'John Freelancer', speciality: 'Mathematics', experience: '5 years' };
+  }
+  
+  async getFreelancerStudents(freelancerId: number) {
+    return [
+      { id: 1, name: 'Alice Student', level: '6ème', subject: 'Mathematics' },
+      { id: 2, name: 'Bob Student', level: '5ème', subject: 'Physics' }
+    ];
+  }
+  
+  async getFreelancerSessions(freelancerId: number) {
+    return [
+      { id: 1, studentId: 1, subject: 'Mathematics', date: '2025-08-24', duration: 60, status: 'completed' },
+      { id: 2, studentId: 2, subject: 'Physics', date: '2025-08-25', duration: 90, status: 'scheduled' }
+    ];
+  }
+  
+  async updateFreelancerProfile(freelancerId: number, data: any) {
+    return { id: freelancerId, ...data };
+  }
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
   // === TEACHER ABSENCE METHODS ===
