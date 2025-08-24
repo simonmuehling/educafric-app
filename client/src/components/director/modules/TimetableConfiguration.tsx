@@ -248,7 +248,7 @@ const TimetableConfiguration: React.FC = () => {
                 if (className && day && timeSlot && subject && teacher && room) {
                   // Add to timetables array (in real app, would save to API)
                   const newEntry = {
-                    id: `import-${Date.now()}-${importedCount}`,
+                    id: Date.now() + importedCount,
                     className: className.trim(),
                     day: day.trim().toLowerCase(),
                     timeSlot: timeSlot.trim(),
