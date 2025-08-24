@@ -71,7 +71,7 @@ const FunctionalDirectorProfile: React.FC = () => {
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 10, // 10 minutes cache - profile data changes rarely
-    cacheTime: 1000 * 60 * 30  // 30 minutes in memory cache
+    gcTime: 1000 * 60 * 30  // 30 minutes in memory cache (TanStack Query v5 uses gcTime)
   });
 
   // Update profile mutation

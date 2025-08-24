@@ -38,10 +38,12 @@ const FunctionalFreelancerStudents: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Fetch freelancer students data from PostgreSQL API
+  // ✅ OPTIMIZED: Fetch freelancer students data with fast cache configuration
   const { data: students = [], isLoading } = useQuery<FreelancerStudent[]>({
     queryKey: ['/api/freelancer/students'],
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutes cache - student data changes slowly
+    gcTime: 1000 * 60 * 15 // 15 minutes in memory cache (TanStack Query v5 uses gcTime)
   });
 
   const text = {
