@@ -94,6 +94,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
+  // 🚫 CRITICAL: PUBLIC ENDPOINTS MUST BE FIRST (before any /api middleware)
+  // Health check endpoint - MUST be public (no authentication required)
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      routes: 'refactored'
+    });
+  });
+
+  // 🚫 CRITICAL: Authentication endpoints must be public
+  app.use('/api/auth', authRoutes);
+
   // Serve static files
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 
@@ -171,9 +184,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/geolocation', geolocationRoutes);
   app.use('/api/enhanced-geolocation', enhancedGeolocationRoutes);
   app.use('/api/documents', documentsRouter);
-  app.use('/api/auth', authRoutes);
   app.use('/api/subscription', subscriptionRoutes);
-  app.use('/api', administrationRoutes);
+  
+  // 🚫 WARNING: Keep administration routes LAST to prevent route interception
+  // This route catches ALL /api/* requests, so it must come after specific routes
+  app.use('/api/administration', administrationRoutes);
   app.use('/api/autofix', autofixRoutes);
   app.use('/api/multi-role', multiRoleRoutes);
   app.use('/api/system-reports', systemReportsRoutes);
@@ -209,15 +224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('[ROUTES] Notification routes failed to register:', error);
   }
-
-  // Health check endpoint - MUST be public (no authentication required)
-  app.get('/api/health', (req, res) => {
-    res.json({ 
-      status: 'healthy', 
-      timestamp: new Date().toISOString(),
-      routes: 'refactored'
-    });
-  });
 
   console.log('All routes configured ✅');
 
