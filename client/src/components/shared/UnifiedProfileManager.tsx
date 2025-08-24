@@ -123,14 +123,14 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
   // Always fetch email preferences (moved out of conditional rendering)
   const { data: emailPrefs, isLoading: emailPrefsLoading } = useQuery({
     queryKey: ['/api/email-preferences'],
-    queryFn: () => apiRequest('/api/email-preferences', 'GET'),
+    queryFn: () => apiRequest('GET', '/api/email-preferences'),
     retry: false,
   });
 
   // Always define email preferences mutation (moved out of conditional rendering)
   const updateEmailPreferencesMutation = useMutation({
     mutationFn: async (updates: UpdateEmailPreferences) => {
-      return apiRequest('/api/email-preferences', 'PATCH', updates);
+      return apiRequest('PATCH', '/api/email-preferences', updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/email-preferences'] });

@@ -20,6 +20,13 @@ class FastModuleLoader {
       'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
       
+      // Missing Commercial modules - Corrected mappings with existing files
+      'appointments': () => import('@/components/commercial/modules/FunctionalCommercialAppointments'),
+      'whatsapp': () => import('@/components/commercial/modules/FunctionalCommercialWhatsApp'),
+      'schools': () => import('@/components/commercial/modules/FunctionalCommercialSchools'),
+      'leads': () => import('@/components/commercial/modules/FunctionalCommercialLeads'),
+      'contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      
       // Additional Commercial module aliases
       'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
       'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
