@@ -96,11 +96,9 @@ import PWANotificationTest from "@/pages/PWANotificationTest";
 import BulletinValidationTest from "@/pages/BulletinValidationTest";
 import Schools from "@/pages/Schools";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
-// PasswordReset already imported above  
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import SignatureTest from "@/pages/SignatureTest";
-// NotFound already imported above
 import BulletinCreationTest from "@/pages/BulletinCreationTest";
 import BulletinTestSuite from "@/pages/BulletinTestSuite";
 
@@ -341,7 +339,7 @@ function Router() {
       </Route>
       <Route path="/sandbox-demo">
         <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySandboxLogin />
+          <LazySandboxDemo />
         </Suspense>
       </Route>
       
@@ -416,14 +414,9 @@ function Router() {
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="space-y-4">
                 <div className="text-sm text-gray-500">
-                  <p className="font-medium mb-2">Working Test Accounts:</p>
-                  <ul className="space-y-1 text-xs">
-                    <li>• simon.admin@www.educafric.com (Site Admin) ✓</li>
-                    <li>• parent.kamdem@gmail.com (Parent)</li>
-                    <li>• teacher.demo@test.www.educafric.com (Teacher)</li>
-                    <li>• student.demo@test.www.educafric.com (Student)</li>
-                  </ul>
-                  <p className="mt-3 text-xs">All passwords: "password"</p>
+                  <p className="font-medium mb-2">Sandbox Environment</p>
+                  <p className="text-xs">Use the login form to access your test account.</p>
+                  <p className="text-xs mt-2">Contact your administrator for test credentials.</p>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/login'}

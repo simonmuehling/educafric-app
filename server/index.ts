@@ -134,8 +134,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+// Duplicate JSON parser removed - already configured above with 1mb limit
 
 // 🚫 CRITICAL: Optimized static asset serving for production performance
 app.use('/assets', express.static('dist/public/assets', {

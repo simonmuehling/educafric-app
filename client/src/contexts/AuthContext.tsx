@@ -32,15 +32,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiRequest('POST', '/api/auth/login', { email, password });
       
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          throw new Error('Login failed - Invalid response from server');
+        }
+        throw new Error(errorData.message || 'Login failed');
+      }
+      
       let userData;
       try {
         userData = await response.json();
       } catch (jsonError) {
         throw new Error('Invalid response from server during login');
-      }
-      
-      if (!response.ok) {
-        throw new Error(userData.message || 'Login failed');
       }
       
       setUser(userData);
