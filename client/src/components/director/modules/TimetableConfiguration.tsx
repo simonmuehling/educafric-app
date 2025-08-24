@@ -57,10 +57,30 @@ const TimetableConfiguration: React.FC = () => {
 
   const fetchTimetables = async () => {
     try {
-      const response = await fetch('/api/timetables');
+      const response = await fetch('/api/sandbox/timetable/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ class: '6ème A' })
+      });
       if (response.ok) {
         const data = await response.json();
-        setTimetables(data);
+        // Convert sandbox format to table format
+        const tableData = [];
+        Object.entries(data.schedule || {}).forEach(([day, slots]: [string, any]) => {
+          slots.forEach((slot: any, index: number) => {
+            tableData.push({
+              id: `${day}-${index}`,
+              className: data.class,
+              day: day,
+              timeSlot: slot.time,
+              subject: slot.subject,
+              teacher: slot.teacher,
+              room: slot.room
+            });
+          });
+        });
+        setTimetables(tableData);
       }
     } catch (error) {
       console.error('Error fetching timetables:', error);

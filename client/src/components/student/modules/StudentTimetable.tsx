@@ -44,10 +44,13 @@ const StudentTimetable: React.FC = () => {
   const t = text[language as keyof typeof text];
 
   const { data: timetableData, isLoading, error } = useQuery({
-    queryKey: ['/api/student/timetable'],
+    queryKey: ['/api/sandbox/timetable/create'],
     queryFn: async () => {
-      const response = await fetch('/api/student/timetable', {
-        credentials: 'include'
+      const response = await fetch('/api/sandbox/timetable/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ class: '3ème A' })
       });
       if (!response.ok) throw new Error('Failed to fetch timetable');
       return response.json();

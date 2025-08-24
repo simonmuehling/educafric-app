@@ -49,6 +49,7 @@ import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes"
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import { registerSubscriptionRoutes } from "./routes/subscriptionRoutes";
 import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
+import { storage } from "./storage";
 
 // Configure multer for file uploads
 const logoStorage = multer.diskStorage({
@@ -174,35 +175,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[DOCUMENTS] Error serving PDF:', error);
       res.status(500).json({ message: 'Error serving PDF' });
-    }
-  });
-
-  // ===== TIMETABLE ROUTES =====
-  app.get('/api/timetables', requireAuth, async (req: any, res) => {
-    try {
-      const schoolId = req.user?.schoolId || 1;
-      const timetables = await storage.getTimetableForSchool(schoolId);
-      res.json(timetables);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch timetables' });
-    }
-  });
-
-  app.get('/api/student/timetable', requireAuth, async (req: any, res) => {
-    try {
-      const timetables = await storage.getTimetableForClass(1);
-      res.json(timetables);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch student timetable' });
-    }
-  });
-
-  app.post('/api/timetables', requireAuth, async (req: any, res) => {
-    try {
-      const result = await storage.createTimetableEntry(req.body);
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to create timetable entry' });
     }
   });
 
