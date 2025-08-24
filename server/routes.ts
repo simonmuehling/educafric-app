@@ -280,6 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teacher classes route - provide fallback data since this is requested by frontend
   app.get("/api/teacher/classes", requireAuth, async (req, res) => {
     try {
       const classes = [
@@ -288,6 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       res.json({ success: true, classes });
     } catch (error) {
+      console.error('[TEACHER_CLASSES] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch teacher classes' });
     }
   });
@@ -340,18 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Routes Parent
-  app.get("/api/parent/children", requireAuth, async (req, res) => {
-    try {
-      const children = [
-        { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', school: 'Collège Central' },
-        { id: 2, firstName: 'Paul', lastName: 'Kouame', class: '4ème B', school: 'Collège Central' }
-      ];
-      res.json({ success: true, children });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Failed to fetch children' });
-    }
-  });
+  // Routes Parent - REMOVED duplicate (handled by parentRouter)
 
   app.get("/api/parent/safe-zones", requireAuth, async (req, res) => {
     try {
@@ -678,6 +669,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, students, schoolId });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Failed to fetch school students' });
+    }
+  });
+
+  // Add missing parent-child connection routes
+  app.get("/api/school/parent-child-connections", requireAuth, async (req, res) => {
+    try {
+      const connections = [
+        { id: 1, parentId: 10, childId: 1, status: 'approved', createdAt: '2025-08-20' },
+        { id: 2, parentId: 11, childId: 2, status: 'approved', createdAt: '2025-08-18' }
+      ];
+      res.json({ success: true, connections });
+    } catch (error) {
+      console.error('[PARENT_CHILD_CONNECTIONS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent-child connections' });
+    }
+  });
+
+  // Add missing parent routes (grades, attendance, messages, payments)
+  app.get("/api/parent/grades", requireAuth, async (req, res) => {
+    try {
+      const grades = [
+        { id: 1, childName: 'Marie Kouame', subject: 'Mathématiques', grade: 15.5, date: '2025-08-20' },
+        { id: 2, childName: 'Marie Kouame', subject: 'Français', grade: 14.0, date: '2025-08-18' }
+      ];
+      res.json({ success: true, grades });
+    } catch (error) {
+      console.error('[PARENT_GRADES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch child grades' });
+    }
+  });
+
+  app.get("/api/parent/attendance", requireAuth, async (req, res) => {
+    try {
+      const attendance = [
+        { id: 1, childName: 'Marie Kouame', date: '2025-08-24', status: 'present', subject: 'Mathématiques' },
+        { id: 2, childName: 'Marie Kouame', date: '2025-08-23', status: 'absent', subject: 'Français' }
+      ];
+      res.json({ success: true, attendance });
+    } catch (error) {
+      console.error('[PARENT_ATTENDANCE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch attendance data' });
+    }
+  });
+
+  app.get("/api/parent/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        { id: 1, from: 'École Saint-Joseph', subject: 'Réunion parents', message: 'Réunion prévue le 30 août', date: '2025-08-24' },
+        { id: 2, from: 'Mme Dubois', subject: 'Notes de Marie', message: 'Excellents résultats ce trimestre', date: '2025-08-22' }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      console.error('[PARENT_MESSAGES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch messages' });
+    }
+  });
+
+  app.get("/api/parent/payments", requireAuth, async (req, res) => {
+    try {
+      const payments = [
+        { id: 1, description: 'Frais de scolarité Q1', amount: 50000, status: 'paid', dueDate: '2025-08-15', paidDate: '2025-08-10' },
+        { id: 2, description: 'Frais de cantine', amount: 25000, status: 'pending', dueDate: '2025-08-30', paidDate: null }
+      ];
+      res.json({ success: true, payments });
+    } catch (error) {
+      console.error('[PARENT_PAYMENTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch payment data' });
     }
   });
 

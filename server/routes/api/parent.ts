@@ -1,11 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
-
-// Simple auth middleware for now
-function requireAuth(req: any, res: any, next: any) {
-  // For now, just pass through - will implement proper auth when needed
-  next();
-}
+import { requireAuth } from '../../middleware/auth';
 
 // Extended request interface for authenticated routes
 interface AuthenticatedRequest extends Request {
@@ -17,6 +12,11 @@ const router = Router();
 // Get children for parent geolocation
 router.get('/geolocation/children', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const parentId = req.user.id;
     
     // Get all children connected to this parent - placeholder implementation
@@ -30,8 +30,8 @@ router.get('/geolocation/children', requireAuth, async (req: AuthenticatedReques
     const childrenWithLocation = await Promise.all(
       children.map(async (child: any) => {
         try {
-          const devices = await storage.getTrackingDevices(1); // Simplified for now
-          const lastLocation = devices.length > 0 ? devices[0].lastLocation : null;
+          const devices: any[] = await storage.getTrackingDevices(1); // Simplified for now
+          const lastLocation = devices && devices.length > 0 && devices[0] && devices[0].lastLocation ? devices[0].lastLocation : null;
           
           return {
             id: child.id,
@@ -79,6 +79,11 @@ router.get('/geolocation/children', requireAuth, async (req: AuthenticatedReques
 // Get geolocation alerts for parent
 router.get('/geolocation/alerts', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const parentId = (req.user as any).id;
     
     // Get recent geolocation alerts for parent's children - placeholder
@@ -94,6 +99,11 @@ router.get('/geolocation/alerts', requireAuth, async (req: AuthenticatedRequest,
 // Get specific child location
 router.get('/geolocation/children/:childId/location', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const parentId = (req.user as any).id;
     const { childId } = req.params;
     
@@ -101,7 +111,7 @@ router.get('/geolocation/children/:childId/location', requireAuth, async (req: A
     const child = { firstName: 'Test', lastName: 'Child' }; // Simplified for stability
 
     // Get current location for the child - placeholder
-    const devices = await storage.getTrackingDevices(1); // Simplified for now
+    const devices: any[] = await storage.getTrackingDevices(1); // Simplified for now
     const location = null; // Placeholder
     
     if (!location) {
@@ -133,11 +143,16 @@ router.get('/geolocation/children/:childId/location', requireAuth, async (req: A
 // Get children for parent (general)
 router.get('/children', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const parentId = req.user.id;
     const children: any[] = []; // Simplified for stability
     res.json(children);
   } catch (error: any) {
-    // Error handled gracefully
+    console.error('[PARENT_API] Error fetching children:', error);
     res.status(500).json({ message: 'Failed to fetch children' });
   }
 });
@@ -145,6 +160,11 @@ router.get('/children', requireAuth, async (req: AuthenticatedRequest, res: Resp
 // Add child connection request
 router.post('/children/connect', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const parentId = req.user.id;
     const { childEmail, schoolCode } = req.body;
     

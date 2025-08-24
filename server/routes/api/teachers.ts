@@ -1,17 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
-
-// Simple auth middleware for now
-function requireAuth(req: any, res: any, next: any) {
-  // For now, just pass through - will implement proper auth when needed
-  next();
-}
+import { requireAuth } from '../../middleware/auth';
 
 const router = Router();
 
 // Get teachers for the authenticated user's school
 router.get('/school', requireAuth, async (req: any, res: Response) => {
   try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
     const user = req.user;
     if (!user?.schoolId) {
       return res.status(400).json({ message: 'No school associated with user' });
