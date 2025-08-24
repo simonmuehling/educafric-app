@@ -269,6 +269,21 @@ const FunctionalFreelancerStudents: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <MobileActions
+            actions={[
+              {
+                icon: <UserPlus className="w-5 h-5" />,
+                label: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
+                onClick: async () => {
+                  console.log('[FREELANCER_STUDENTS] 👥 Adding student...');
+                  try {
+                    // Mock student data for demo
+                    const studentData = {
+                      firstName: 'Jean',
+                      lastName: 'Dupont',
+                      email: 'jean.dupont@email.com',
+                      phone: '+237 6 90 000 001',
+                      grade: '6ème',
                       subject: 'Mathématiques',
                       parentContact: '+237 6 90 000 000'
                     };
@@ -299,12 +314,11 @@ const FunctionalFreelancerStudents: React.FC = () => {
                     });
                   }
                 },
-                color: 'bg-blue-600 hover:bg-blue-700'
+                variant: 'primary'
               },
               {
-                id: 'schedule-session',
-                label: language === 'fr' ? 'Programmer Cours' : 'Schedule Session',
                 icon: <Clock className="w-5 h-5" />,
+                label: language === 'fr' ? 'Programmer Cours' : 'Schedule Session',
                 onClick: async () => {
                   console.log('[FREELANCER_STUDENTS] 📅 Scheduling session...');
                   try {
