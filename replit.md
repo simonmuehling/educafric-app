@@ -6,6 +6,13 @@ Educafric is a comprehensive African educational technology platform providing a
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+**EXEMPTION PREMIUM PERMANENTE (Implémentée 2025-08-24)** :
+- ✅ Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium
+- ✅ Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
+- ✅ Exemptions appliquées dans middleware subscriptionMiddleware.ts et service subscriptionService.ts
+- ✅ Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement
+- ✅ Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking
+
 **Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
 **Console Error Prevention (Completed 2025-08-18)**: 

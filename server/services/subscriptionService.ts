@@ -34,6 +34,29 @@ export interface SchoolSubscription {
 export class SubscriptionService {
   
   /**
+   * Vérifier si un utilisateur est exempt des restrictions premium
+   * (comptes sandbox et @test.educafric.com)
+   */
+  private static isSandboxOrTestUser(userEmail: string): boolean {
+    if (!userEmail) return false;
+    
+    const email = userEmail.toLowerCase();
+    
+    // Exemptions permanentes pour comptes sandbox et test
+    const exemptPatterns = [
+      '@test.educafric.com',
+      'sandbox@',
+      'demo@',
+      'test@',
+      '.sandbox@',
+      '.demo@',
+      '.test@'
+    ];
+    
+    return exemptPatterns.some(pattern => email.includes(pattern));
+  }
+  
+  /**
    * Plans d'abonnement disponibles
    */
   static readonly SUBSCRIPTION_PLANS: Record<string, SubscriptionPlan> = {
@@ -159,7 +182,12 @@ export class SubscriptionService {
   /**
    * Vérifier si une école peut accéder à une fonctionnalité
    */
-  static async canAccessFeature(schoolId: number, feature: string): Promise<boolean> {
+  static async canAccessFeature(schoolId: number, feature: string, userEmail?: string): Promise<boolean> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[SUBSCRIPTION_SERVICE] User ${userEmail} is exempt from feature restrictions - access granted`);
+      return true;
+    }
     const subscription = await this.getSchoolSubscription(schoolId);
     
     // Mode sandbox : accès complet
@@ -234,12 +262,17 @@ export class SubscriptionService {
   /**
    * Vérifier les limites freemium
    */
-  static async checkFreemiumLimits(schoolId: number, resourceType: string, currentCount: number): Promise<{
+  static async checkFreemiumLimits(schoolId: number, resourceType: string, currentCount: number, userEmail?: string): Promise<{
     canAdd: boolean;
     limit: number;
     remaining: number;
     message?: string;
   }> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[SUBSCRIPTION_SERVICE] User ${userEmail} is exempt from freemium limits`);
+      return { canAdd: true, limit: 999999, remaining: 999999, message: 'Unlimited (Sandbox)' };
+    }
     const subscription = await this.getSchoolSubscription(schoolId);
     
     // Mode sandbox ou premium : pas de limites
@@ -277,7 +310,7 @@ export class SubscriptionService {
   /**
    * Obtenir les fonctionnalités disponibles pour une école
    */
-  static async getAvailableFeatures(schoolId: number): Promise<{
+  static async getAvailableFeatures(schoolId: number, userEmail?: string): Promise<{
     features: string[];
     restrictions: string[];
     planName: string;

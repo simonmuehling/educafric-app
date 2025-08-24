@@ -8,6 +8,29 @@ interface AuthenticatedRequest extends Request {
 }
 
 /**
+ * Vérifier si un utilisateur est exempt des restrictions premium
+ * (comptes sandbox et @test.educafric.com)
+ */
+const isSandboxOrTestUser = (user: any): boolean => {
+  if (!user || !user.email) return false;
+  
+  const email = user.email.toLowerCase();
+  
+  // Exemptions pour comptes sandbox et test
+  const exemptPatterns = [
+    '@test.educafric.com',
+    'sandbox@',
+    'demo@',
+    'test@',
+    '.sandbox@',
+    '.demo@',
+    '.test@'
+  ];
+  
+  return exemptPatterns.some(pattern => email.includes(pattern));
+};
+
+/**
  * Middleware pour vérifier les permissions d'abonnement
  */
 export const checkSubscriptionFeature = (requiredFeature: string) => {
@@ -19,6 +42,14 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
       }
 
       const user = req.user;
+      
+      // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+      if (isSandboxOrTestUser(user)) {
+        console.log(`[PREMIUM_EXEMPT] User ${user.email} is exempt from premium restrictions`);
+        req.subscription = { isPremium: true, planName: 'Sandbox Unlimited', isExempt: true };
+        return next();
+      }
+
       const schoolId = user.schoolId;
 
       if (!schoolId) {
@@ -26,11 +57,11 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
       }
 
       // Vérifier si l'utilisateur peut accéder à cette fonctionnalité
-      const canAccess = await SubscriptionService.canAccessFeature(schoolId, requiredFeature);
+      const canAccess = await SubscriptionService.canAccessFeature(schoolId, requiredFeature, user.email);
 
       if (!canAccess) {
         // Obtenir les détails de l'abonnement pour la réponse
-        const subscriptionDetails = await SubscriptionService.getAvailableFeatures(schoolId);
+        const subscriptionDetails = await SubscriptionService.getAvailableFeatures(schoolId, user.email);
         
         return res.status(403).json({
           error: 'Premium subscription required',
@@ -63,7 +94,16 @@ export const checkFreemiumLimits = (resourceType: string) => {
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const schoolId = req.user.schoolId;
+      const user = req.user;
+      
+      // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+      if (isSandboxOrTestUser(user)) {
+        console.log(`[LIMITS_EXEMPT] User ${user.email} is exempt from freemium limits`);
+        req.limits = { canAdd: true, limit: 999999, remaining: 999999, message: 'Unlimited (Sandbox)' };
+        return next();
+      }
+
+      const schoolId = user.schoolId;
       
       // Obtenir le nombre actuel de ressources
       let currentCount = 0;
@@ -86,7 +126,7 @@ export const checkFreemiumLimits = (resourceType: string) => {
       }
 
       // Vérifier les limites
-      const limitCheck = await SubscriptionService.checkFreemiumLimits(schoolId, resourceType, currentCount);
+      const limitCheck = await SubscriptionService.checkFreemiumLimits(schoolId, resourceType, currentCount, user.email);
 
       if (!limitCheck.canAdd) {
         return res.status(403).json({
@@ -145,7 +185,7 @@ export const injectSubscriptionInfo = () => {
       }
 
       const schoolId = req.user.schoolId;
-      const subscriptionInfo = await SubscriptionService.getAvailableFeatures(schoolId);
+      const subscriptionInfo = await SubscriptionService.getAvailableFeatures(schoolId, req.user.email);
       
       // Ajouter les informations d'abonnement aux réponses
       res.subscriptionInfo = subscriptionInfo;
