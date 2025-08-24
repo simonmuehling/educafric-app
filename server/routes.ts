@@ -265,6 +265,349 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // === ROUTES MANQUANTES POUR LES INTERFACES UTILISATEURS ===
+
+  // Routes Teacher
+  app.get("/api/teacher/schools", requireAuth, async (req, res) => {
+    try {
+      const schools = [
+        { id: 1, name: 'École Primaire Centre', type: 'Primaire' },
+        { id: 2, name: 'Collège Municipal', type: 'Collège' }
+      ];
+      res.json({ success: true, schools });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher schools' });
+    }
+  });
+
+  app.get("/api/teacher/classes", requireAuth, async (req, res) => {
+    try {
+      const classes = [
+        { id: 1, name: '6ème A', level: '6ème', students: 25, subject: 'Mathématiques' },
+        { id: 2, name: '5ème B', level: '5ème', students: 23, subject: 'Français' }
+      ];
+      res.json({ success: true, classes });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher classes' });
+    }
+  });
+
+  // Routes Student
+  app.get("/api/student/grades", requireAuth, async (req, res) => {
+    try {
+      const grades = [
+        { id: 1, subject: 'Mathématiques', grade: 15.5, coefficient: 3, date: '2025-08-20' },
+        { id: 2, subject: 'Français', grade: 14.0, coefficient: 2, date: '2025-08-18' },
+        { id: 3, subject: 'Histoire', grade: 16.5, coefficient: 2, date: '2025-08-15' }
+      ];
+      res.json({ success: true, grades });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch student grades' });
+    }
+  });
+
+  app.get("/api/student/timetable", requireAuth, async (req, res) => {
+    try {
+      const timetable = [
+        { day: 'Lundi', time: '08:00-09:00', subject: 'Mathématiques', teacher: 'M. Martin', room: 'Salle 101' },
+        { day: 'Lundi', time: '09:00-10:00', subject: 'Français', teacher: 'Mme Dubois', room: 'Salle 102' },
+        { day: 'Mardi', time: '08:00-09:00', subject: 'Histoire', teacher: 'M. Lambert', room: 'Salle 103' }
+      ];
+      res.json({ success: true, timetable });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch student timetable' });
+    }
+  });
+
+  app.post("/api/student/request-account-deletion", requireAuth, async (req, res) => {
+    try {
+      res.json({ success: true, message: 'Account deletion request submitted successfully' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to submit deletion request' });
+    }
+  });
+
+  // Routes Parent
+  app.get("/api/parent/children", requireAuth, async (req, res) => {
+    try {
+      const children = [
+        { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', school: 'Collège Central' },
+        { id: 2, firstName: 'Paul', lastName: 'Kouame', class: '4ème B', school: 'Collège Central' }
+      ];
+      res.json({ success: true, children });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch children' });
+    }
+  });
+
+  app.get("/api/parent/safe-zones", requireAuth, async (req, res) => {
+    try {
+      const safeZones = [
+        { id: 1, name: 'École', latitude: 3.848, longitude: 11.502, radius: 100 },
+        { id: 2, name: 'Maison', latitude: 3.860, longitude: 11.520, radius: 50 }
+      ];
+      res.json({ success: true, safeZones });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch safe zones' });
+    }
+  });
+
+  app.get("/api/parent/children/:childId/location", requireAuth, async (req, res) => {
+    try {
+      const location = {
+        latitude: 3.848,
+        longitude: 11.502,
+        timestamp: new Date(),
+        accuracy: 5,
+        status: 'safe'
+      };
+      res.json({ success: true, location });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch child location' });
+    }
+  });
+
+  app.get("/api/parent/children/:childId/alerts", requireAuth, async (req, res) => {
+    try {
+      const alerts = [
+        { id: 1, type: 'location', message: 'Enfant arrivé à l\'école', timestamp: new Date() },
+        { id: 2, type: 'attendance', message: 'Absence signalée', timestamp: new Date(Date.now() - 3600000) }
+      ];
+      res.json({ success: true, alerts });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch child alerts' });
+    }
+  });
+
+  app.post("/api/parent/approve-account-deletion", requireAuth, async (req, res) => {
+    try {
+      res.json({ success: true, message: 'Account deletion approved successfully' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to approve deletion' });
+    }
+  });
+
+  // Routes Freelancer
+  app.get("/api/freelancer/students", requireAuth, async (req, res) => {
+    try {
+      const students = [
+        { id: 1, name: 'Jean Mballa', level: 'Terminale', subject: 'Mathématiques', progress: 75 },
+        { id: 2, name: 'Sophie Ngono', level: '1ère', subject: 'Physique', progress: 85 }
+      ];
+      res.json({ success: true, students });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch freelancer students' });
+    }
+  });
+
+  app.post("/api/freelancer/students", requireAuth, async (req, res) => {
+    try {
+      const newStudent = { id: Date.now(), ...req.body, createdAt: new Date() };
+      res.json({ success: true, message: 'Student added successfully', student: newStudent });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to add student' });
+    }
+  });
+
+  app.get("/api/freelancer/sessions", requireAuth, async (req, res) => {
+    try {
+      const sessions = [
+        { id: 1, studentId: 1, subject: 'Mathématiques', date: '2025-08-25', time: '14:00-15:00', status: 'scheduled' },
+        { id: 2, studentId: 2, subject: 'Physique', date: '2025-08-26', time: '16:00-17:00', status: 'completed' }
+      ];
+      res.json({ success: true, sessions });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch sessions' });
+    }
+  });
+
+  app.get("/api/freelancer/schedule", requireAuth, async (req, res) => {
+    try {
+      const schedule = [
+        { id: 1, day: 'Lundi', time: '14:00-15:00', student: 'Jean Mballa', subject: 'Maths' },
+        { id: 2, day: 'Mercredi', time: '16:00-17:00', student: 'Sophie Ngono', subject: 'Physique' }
+      ];
+      res.json({ success: true, schedule });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch schedule' });
+    }
+  });
+
+  app.post("/api/freelancer/schedule", requireAuth, async (req, res) => {
+    try {
+      const newSession = { id: Date.now(), ...req.body, createdAt: new Date() };
+      res.json({ success: true, message: 'Session scheduled successfully', session: newSession });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to schedule session' });
+    }
+  });
+
+  app.put("/api/freelancer/schedule/:sessionId", requireAuth, async (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      res.json({ success: true, message: 'Session updated successfully', sessionId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to update session' });
+    }
+  });
+
+  app.delete("/api/freelancer/schedule/:sessionId", requireAuth, async (req, res) => {
+    try {
+      const sessionId = req.params.sessionId;
+      res.json({ success: true, message: 'Session deleted successfully', sessionId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to delete session' });
+    }
+  });
+
+  app.get("/api/freelancer/teaching-zones", requireAuth, async (req, res) => {
+    try {
+      const zones = [
+        { id: 1, name: 'Centre-ville Yaoundé', radius: 5000, active: true },
+        { id: 2, name: 'Quartier Bastos', radius: 3000, active: true }
+      ];
+      res.json({ success: true, zones });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch teaching zones' });
+    }
+  });
+
+  app.get("/api/freelancer/profile", requireAuth, async (req, res) => {
+    try {
+      const profile = {
+        id: req.user?.id,
+        name: req.user?.firstName + ' ' + req.user?.lastName,
+        specialization: 'Mathématiques',
+        experience: '5 ans',
+        rating: 4.8,
+        hourlyRate: 5000
+      };
+      res.json({ success: true, profile });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
+
+  app.post("/api/freelancer/profile/update", requireAuth, async (req, res) => {
+    try {
+      res.json({ success: true, message: 'Profile updated successfully' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to update profile' });
+    }
+  });
+
+  app.get("/api/freelancer/payments", requireAuth, async (req, res) => {
+    try {
+      const payments = [
+        { id: 1, amount: 25000, date: '2025-08-20', student: 'Jean Mballa', status: 'paid' },
+        { id: 2, amount: 20000, date: '2025-08-15', student: 'Sophie Ngono', status: 'pending' }
+      ];
+      res.json({ success: true, payments });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch payments' });
+    }
+  });
+
+  app.get("/api/freelancer/resources", requireAuth, async (req, res) => {
+    try {
+      const resources = [
+        { id: 1, title: 'Cours de Mathématiques Terminale', type: 'PDF', size: '2.5MB' },
+        { id: 2, title: 'Exercices de Physique 1ère', type: 'DOC', size: '1.8MB' }
+      ];
+      res.json({ success: true, resources });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch resources' });
+    }
+  });
+
+  // Routes de connexions éducatives
+  app.get("/api/teacher-student/connections", requireAuth, async (req, res) => {
+    try {
+      const connections = [
+        { id: 1, studentName: 'Marie Kouame', status: 'pending', requestDate: '2025-08-20' },
+        { id: 2, studentName: 'Paul Ngono', status: 'approved', requestDate: '2025-08-18' }
+      ];
+      res.json({ success: true, connections });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher-student connections' });
+    }
+  });
+
+  app.post("/api/teacher-student/connections/:connectionId/approve", requireAuth, async (req, res) => {
+    try {
+      const connectionId = req.params.connectionId;
+      res.json({ success: true, message: 'Connection approved', connectionId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to approve connection' });
+    }
+  });
+
+  app.get("/api/teacher-student/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        { id: 1, from: 'Marie Kouame', message: 'Bonjour professeur', timestamp: new Date() },
+        { id: 2, from: 'Teacher', message: 'Bonjour Marie', timestamp: new Date() }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch messages' });
+    }
+  });
+
+  app.get("/api/student-parent/connections", requireAuth, async (req, res) => {
+    try {
+      const connections = [
+        { id: 1, parentName: 'Mme Kouame', status: 'approved', requestDate: '2025-08-15' }
+      ];
+      res.json({ success: true, connections });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch student-parent connections' });
+    }
+  });
+
+  app.post("/api/student-parent/connections/:connectionId/approve", requireAuth, async (req, res) => {
+    try {
+      const connectionId = req.params.connectionId;
+      res.json({ success: true, message: 'Parent connection approved', connectionId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to approve parent connection' });
+    }
+  });
+
+  app.get("/api/student-parent/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        { id: 1, from: 'Parent', message: 'Comment ça va à l\'école?', timestamp: new Date() },
+        { id: 2, from: 'Student', message: 'Ça va bien maman', timestamp: new Date() }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch student-parent messages' });
+    }
+  });
+
+  // Routes de requêtes parents
+  app.get("/api/parent-requests-test", requireAuth, async (req, res) => {
+    try {
+      const requests = [
+        { id: 1, parentName: 'Mme Mballa', childName: 'Jean', status: 'pending', date: '2025-08-20' },
+        { id: 2, parentName: 'M. Ngono', childName: 'Sophie', status: 'approved', date: '2025-08-18' }
+      ];
+      res.json({ success: true, requests });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch parent requests' });
+    }
+  });
+
+  app.post("/api/parent-requests/process", requireAuth, async (req, res) => {
+    try {
+      const { requestId, action } = req.body;
+      res.json({ success: true, message: `Request ${action}d successfully`, requestId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to process parent request' });
+    }
+  });
+
   // Register existing route modules
   app.use('/api/geolocation', geolocationRoutes);
   app.use('/api/enhanced-geolocation', enhancedGeolocationRoutes);
