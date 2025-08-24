@@ -74,8 +74,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   React.useEffect(() => {
     // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
     const criticalModules = [
-      'overview', 'teachers', 'director-students', 'classes', 'director-attendance', 
-      'director-communications', 'director-timetable', 'director-settings', 'help',
+      'overview', 'teachers', 'students', 'classes', 'attendance', 
+      'communications', 'timetable', 'settings', 'help',
       'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
     ];
     
@@ -110,8 +110,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     if (ModuleComponent) {
       // ✅ EXTENDED critical list - matches preloaded modules exactly
       const isCritical = [
-        'overview', 'teachers', 'director-students', 'classes', 'director-attendance', 
-        'director-communications', 'director-timetable', 'director-settings', 'help',
+        'overview', 'teachers', 'students', 'classes', 'attendance', 
+        'communications', 'timetable', 'settings', 'help',
         'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
       ].includes(moduleName);
       if (isCritical && apiDataPreloaded) {

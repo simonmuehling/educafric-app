@@ -19,17 +19,17 @@ class FastModuleLoader {
       'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
       
-      // Director modules (core dashboard modules only)
+      // Director modules (core dashboard modules only) - FIXED: Exact matching IDs
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
-      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
-      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
-      'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
-      'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
-      'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
+      'timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
+      'communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
-      'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
+      'parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/DelegateAdministrators'),
@@ -62,11 +62,11 @@ class FastModuleLoader {
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
       
       // Student modules (matching dashboard IDs exactly) - ULTRA-OPTIMIZED FOR SPEED
-      'timetable': () => import('@/components/student/modules/StudentTimetable'),
+      'student-timetable': () => import('@/components/student/modules/StudentTimetable'),
       'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
       'assignments': () => import('@/components/student/modules/StudentHomework'),
       'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
-      'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'student-attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'messages': () => import('@/components/student/modules/StudentCommunications'),
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
@@ -118,12 +118,11 @@ class FastModuleLoader {
       'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
-      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
       'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
       
       // Additional Freelancer module aliases
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
