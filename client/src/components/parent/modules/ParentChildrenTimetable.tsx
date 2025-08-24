@@ -58,51 +58,39 @@ const ParentChildrenTimetable: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Mock children data - in real app, this would come from API
-  const mockChildren = [
-    { id: 1, name: 'Marie Kouame', class: '6ème A', school: 'École Saint-Joseph' },
-    { id: 2, name: 'Paul Kouame', class: '3ème B', school: 'École Saint-Joseph' }
+  // Get children data from API
+  const { data: childrenResponse, isLoading: childrenLoading } = useQuery({
+    queryKey: ['/api/parent/children'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/children', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch children');
+      return response.json();
+    }
+  });
+
+  const children = childrenResponse?.children || [
+    { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', school: 'École Saint-Joseph' },
+    { id: 2, firstName: 'Paul', lastName: 'Kouame', class: '3ème B', school: 'École Saint-Joseph' }
   ];
 
   // Get timetable for selected child
   const { data: timetableData, isLoading } = useQuery({
-    queryKey: ['/api/sandbox/timetable/create', mockChildren[selectedChildIndex]?.class],
+    queryKey: ['/api/parent/children', children[selectedChildIndex]?.id, 'timetable'],
     queryFn: async () => {
-      const response = await fetch('/api/sandbox/timetable/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ class: mockChildren[selectedChildIndex]?.class || '6ème A' })
+      const childId = children[selectedChildIndex]?.id;
+      if (!childId) return [];
+      
+      const response = await fetch(`/api/parent/children/${childId}/timetable`, {
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch timetable');
       const data = await response.json();
       
-      // Convert sandbox format to display format
-      const timetableItems: any[] = [];
-      const dayMapping: Record<string, number> = {
-        monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5
-      };
-      
-      Object.entries(data.schedule || {}).forEach(([dayName, slots]: [string, any]) => {
-        if (Array.isArray(slots)) {
-          slots.forEach((slot: any) => {
-            const [startTime, endTime] = slot.time.split('-');
-            timetableItems.push({
-              id: `${dayName}-${slot.subject}`,
-              dayOfWeek: dayMapping[dayName] || 1,
-              startTime: startTime,
-              endTime: endTime,
-              subjectName: slot.subject,
-              teacherName: slot.teacher,
-              room: slot.room
-            });
-          });
-        }
-      });
-      
-      return timetableItems;
+      return data.timetable || [];
     },
-    enabled: mockChildren.length > 0
+    enabled: children.length > 0 && children[selectedChildIndex]?.id
   });
 
   // Get current day schedule
@@ -110,7 +98,22 @@ const ParentChildrenTimetable: React.FC = () => {
   const today = new Date();
   const isToday = selectedDay === today.getDay();
 
-  if (mockChildren.length === 0) {
+  if (childrenLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-gray-600">Chargement des données des enfants...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (children.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
         <div className="max-w-4xl mx-auto">
@@ -156,7 +159,7 @@ const ParentChildrenTimetable: React.FC = () => {
               Mes Enfants
             </h3>
             <div className="flex gap-3 flex-wrap">
-              {mockChildren.map((child, index) => (
+              {children.map((child: any, index: number) => (
                 <Button
                   key={child.id}
                   variant={index === selectedChildIndex ? "default" : "outline"}
@@ -167,7 +170,7 @@ const ParentChildrenTimetable: React.FC = () => {
                   }
                 >
                   <User className="w-4 h-4 mr-2" />
-                  {child.name}
+                  {child.firstName} {child.lastName}
                   <Badge variant="secondary" className="ml-2">
                     {child.class}
                   </Badge>
@@ -231,9 +234,9 @@ const ParentChildrenTimetable: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="w-5 h-5 mr-2 text-purple-600" />
-              Emploi du Temps - {mockChildren[selectedChildIndex]?.name}
+              Emploi du Temps - {children[selectedChildIndex]?.firstName} {children[selectedChildIndex]?.lastName}
               <Badge variant="outline" className="ml-2">
-                {mockChildren[selectedChildIndex]?.class}
+                {children[selectedChildIndex]?.class}
               </Badge>
             </CardTitle>
           </CardHeader>

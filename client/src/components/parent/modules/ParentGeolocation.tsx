@@ -387,35 +387,41 @@ export const ParentGeolocation = () => {
         <div className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ModernCard gradient="blue">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-blue-600">{t.activeDevices}</p>
-                  <p className="text-2xl font-bold text-blue-900">{children.length}</p>
+            <Card className="bg-gradient-to-r from-blue-400 to-blue-600 border-0">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-100">{t.activeDevices}</p>
+                    <p className="text-2xl font-bold text-white">{children.length}</p>
+                  </div>
+                  <Smartphone className="w-8 h-8 text-blue-200" />
                 </div>
-                <Smartphone className="w-8 h-8 text-blue-500" />
-              </div>
-            </ModernCard>
+              </CardContent>
+            </Card>
 
-            <ModernCard gradient="green">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-green-600">{t.safeZonesCount}</p>
-                  <p className="text-2xl font-bold text-green-900">{safeZones.length}</p>
+            <Card className="bg-gradient-to-r from-green-400 to-green-600 border-0">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-100">{t.safeZonesCount}</p>
+                    <p className="text-2xl font-bold text-white">{safeZones.length}</p>
+                  </div>
+                  <Shield className="w-8 h-8 text-green-200" />
                 </div>
-                <Shield className="w-8 h-8 text-green-500" />
-              </div>
-            </ModernCard>
+              </CardContent>
+            </Card>
 
-            <ModernCard gradient="orange">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-orange-600">{t.todayAlerts}</p>
-                  <p className="text-2xl font-bold text-orange-900">{alerts.filter(a => !a.resolved).length}</p>
+            <Card className="bg-gradient-to-r from-orange-400 to-orange-600 border-0">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-orange-100">{t.todayAlerts}</p>
+                    <p className="text-2xl font-bold text-white">{alerts.filter(a => !a.resolved).length}</p>
+                  </div>
+                  <AlertTriangle className="w-8 h-8 text-orange-200" />
                 </div>
-                <AlertTriangle className="w-8 h-8 text-orange-500" />
-              </div>
-            </ModernCard>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Children Status */}
