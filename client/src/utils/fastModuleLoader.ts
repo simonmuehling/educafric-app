@@ -10,45 +10,21 @@ class FastModuleLoader {
   private cache: ModuleCache = {};
   private loadingPromises: Map<string, Promise<React.ComponentType<any>>> = new Map();
 
-  // Fast module mapping for real modules that exist
+  // ⚠️ PROTECTED MODULE MAPPING - ORGANIZED BY DASHBOARD TYPE TO PREVENT CONFLICTS
   private getModuleImport(moduleName: string): Promise<any> | null {
+    // STRICT SEPARATION BY DASHBOARD TYPE - DO NOT MIX!
     const moduleMap: { [key: string]: () => Promise<any> } = {
-      // Commercial modules (matching dashboard IDs exactly) - ONLY EXISTING MODULES
-      'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
-      'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
-      'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
-      'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
-      'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
       
-      // Missing Commercial modules - Corrected mappings with existing files
-      'appointments': () => import('@/components/commercial/modules/FunctionalCommercialAppointments'),
-      'whatsapp': () => import('@/components/commercial/modules/FunctionalCommercialWhatsApp'),
-      'schools': () => import('@/components/commercial/modules/FunctionalCommercialSchools'),
-      'leads': () => import('@/components/commercial/modules/FunctionalCommercialLeads'),
-      'contacts': () => import('@/components/commercial/modules/ContactsManagement'),
-      
-      // Additional Commercial module aliases
-      'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
-      'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
-      'ContactsManagement': () => import('@/components/commercial/modules/ContactsManagement'),
-      'MySchools': () => import('@/components/commercial/modules/MySchools'),
-      'WhatsAppManager': () => import('@/components/commercial/modules/WhatsAppManager'),
-      
-      // Director modules (real ones) - ALL modules for instant loading
+      // =============================================
+      // 🏢 DIRECTOR/SCHOOL MODULES - DO NOT MODIFY WITHOUT TESTING
+      // =============================================
+      // CORE DIRECTOR MODULES (exact IDs from DirectorDashboard.tsx)
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
-      
-      // MODULES ÉCOLE MANQUANTS - IDs exacts du DirectorDashboard
-      'director-settings-profile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
-      'director-attendance-school': () => import('@/components/director/modules/SchoolAttendanceManagement'),
-      'director-communications-center': () => import('@/components/director/modules/CommunicationsCenter'),
-      'director-parent-requests-main': () => import('@/components/director/modules/ParentRequestsNew'),
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
-      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'), // ⚠️ CRITICAL: Must point to Director module!
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
       'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
-      'timetable-configuration': () => import('@/components/director/modules/TimetableConfiguration'),
-      'director-timetable-full': () => import('@/components/director/modules/TimetableConfiguration'),
       'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
@@ -60,6 +36,27 @@ class FastModuleLoader {
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      
+      // =============================================
+      // 💼 COMMERCIAL MODULES - SEPARATE SECTION
+      // =============================================
+      'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
+      'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
+      'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
+      'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
+      
+      // COMMERCIAL DASHBOARD MODULE IDs
+      'appointments': () => import('@/components/commercial/modules/FunctionalCommercialAppointments'),
+      'whatsapp': () => import('@/components/commercial/modules/FunctionalCommercialWhatsApp'),
+      'schools': () => import('@/components/commercial/modules/FunctionalCommercialSchools'),
+      'leads': () => import('@/components/commercial/modules/FunctionalCommercialLeads'),
+      'contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      
+      // DIRECTOR LEGACY/ALTERNATIVE ALIASES (for backward compatibility)
+      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      'timetable-configuration': () => import('@/components/director/modules/TimetableConfiguration'),
+      'director-timetable-full': () => import('@/components/director/modules/TimetableConfiguration'),
       
       // Additional specific mappings for problematic modules
       'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
@@ -154,16 +151,14 @@ class FastModuleLoader {
       'TeacherProfileSettings': () => import('@/components/teacher/modules/TeacherProfileSettings'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
       
-      // Freelancer modules (matching dashboard IDs exactly)
-      'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
-      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      // =============================================
+      // 🎓 FREELANCER MODULES - SEPARATE SECTION
+      // =============================================
+      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'), // Note: renamed to avoid conflicts
       'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
       
       // Additional Freelancer module aliases
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
@@ -174,13 +169,45 @@ class FastModuleLoader {
       'FreelancerCommunications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
       'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
       
+      // =============================================
+      // 🔧 SHARED SETTINGS MODULES
+      // =============================================
+      'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
+      
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
       'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager')
     };
 
+    // VALIDATION: Check for duplicate keys to prevent conflicts
+    this.validateModuleMappings(moduleMap);
+
     const importFn = moduleMap[moduleName];
     return importFn ? importFn() : null;
+  }
+
+  // ✅ PROTECTION: Validate module mappings to prevent conflicts
+  private validateModuleMappings(moduleMap: { [key: string]: () => Promise<any> }) {
+    const keys = Object.keys(moduleMap);
+    const duplicates = keys.filter((key, index) => keys.indexOf(key) !== index);
+    
+    if (duplicates.length > 0) {
+      console.error(`[FAST_LOADER] 🚨 CRITICAL: Duplicate module mappings found:`, duplicates);
+      console.error(`[FAST_LOADER] 🚨 This will cause module loading conflicts!`);
+    }
+
+    // Validate critical director modules
+    const criticalDirectorModules = ['overview', 'students', 'teachers', 'classes'];
+    const missingCritical = criticalDirectorModules.filter(module => !moduleMap[module]);
+    
+    if (missingCritical.length > 0) {
+      console.error(`[FAST_LOADER] 🚨 CRITICAL: Missing director modules:`, missingCritical);
+    }
+
+    console.log(`[FAST_LOADER] ✅ Module validation complete: ${keys.length} modules mapped`);
   }
 
   // AGGRESSIVE preload with forced caching for critical modules
@@ -200,7 +227,7 @@ class FastModuleLoader {
     // Start aggressive loading
     const importPromise = this.getModuleImport(moduleName);
     if (!importPromise) {
-      console.warn(`[FAST_LOADER] ⚠️ Module ${moduleName} not found in mapping`);
+      console.warn(`[FAST_LOADER] ⚠️ Module ${moduleName} not found in mapping - check fastModuleLoader.ts`);
       return null;
     }
 

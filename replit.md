@@ -13,6 +13,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement
 - ✅ Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking
 
+**PROTECTION ANTI-CONFLIT MODULES (Implémentée 2025-08-24)** :
+- ✅ Système de mapping des modules réorganisé avec séparation stricte par dashboard
+- ✅ Validation automatique des mappings pour détecter les conflits et doublons
+- ✅ Protection spéciale pour le module 'students' : DOIT pointer vers FunctionalDirectorStudentManagement
+- ✅ Structure organisée : Director → Commercial → Parent → Student → Teacher → Freelancer → Shared
+- ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
+- ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
+
 **Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
 **Console Error Prevention (Completed 2025-08-18)**: 
