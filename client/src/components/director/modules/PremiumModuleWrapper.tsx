@@ -24,10 +24,9 @@ export const PremiumModuleWrapper: React.FC<PremiumModuleWrapperProps> = ({
 
   // Check if user should have premium access
   const isSandboxUser = Boolean(
-    user?.email?.includes('demo@test?.educafric?.com') || 
+    user?.email?.includes('@test.educafric.com') || 
     user?.email?.includes('sandbox.') || 
     user?.email?.includes('.demo@') ||
-    user?.email?.includes('test?.educafric?.com') ||
     (user as any)?.sandboxMode ||
     isPremiumUnlocked
   );

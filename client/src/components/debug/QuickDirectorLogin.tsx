@@ -11,7 +11,7 @@ const QuickDirectorLogin: React.FC = () => {
   const handleDirectorLogin = async () => {
     try {
       console.log('🎯 Quick Director Login starting...');
-      await login('director.demo@test?.educafric?.com', 'password');
+      await login('director.demo@test.educafric.com', 'password');
       console.log('✅ Director login successful - should redirect automatically');
     } catch (error) {
       console.error('❌ Director login failed:', error);
@@ -37,7 +37,7 @@ const QuickDirectorLogin: React.FC = () => {
           🏫 Connexion Directeur Immédiate
         </Button>
         <div className="text-xs text-gray-500 border-t pt-2">
-          director.demo@test?.educafric?.com
+          director.demo@test.educafric.com
         </div>
       </div>
     </Card>

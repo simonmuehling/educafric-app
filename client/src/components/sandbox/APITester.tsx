@@ -66,11 +66,11 @@ const APITester = () => {
 
   const sampleBodies = {
     '/api/auth/login': JSON.stringify({
-      email: "parent.demo@test?.educafric?.com",
+      email: "parent.demo@test.educafric.com",
       password: "password"
     }, null, 2),
     '/api/auth/register': JSON.stringify({
-      email: "test@educafric.com",
+      email: "test@test.educafric.com",
       password: "password",
       firstName: "Test",
       lastName: "User",
