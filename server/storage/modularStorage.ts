@@ -232,8 +232,33 @@ export class ModularStorage {
   async updateFreelancerProfile(freelancerId: number, data: any) {
     return { id: freelancerId, ...data };
   }
+  
+  // === TEACHER METHODS ===
+  async getTeachersBySchool(schoolId: number) {
+    return [
+      { id: 1, firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@school.com', phone: '+237123456789', role: 'Teacher', schoolId },
+      { id: 2, firstName: 'Jean', lastName: 'Kouame', email: 'jean.kouame@school.com', phone: '+237987654321', role: 'Teacher', schoolId }
+    ];
+  }
+  
+  async getTeacher(teacherId: number) {
+    return { id: teacherId, firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@school.com', role: 'Teacher' };
+  }
+  
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
+  async getStudentsBySchool(schoolId: number) { 
+    return [
+      { id: 1, firstName: 'Alice', lastName: 'Martin', email: 'alice.martin@school.com', className: '6ème A', schoolId },
+      { id: 2, firstName: 'Bob', lastName: 'Dupont', email: 'bob.dupont@school.com', className: '5ème B', schoolId }
+    ];
+  }
+  async getStudentsByClass(classId: number) {
+    return [
+      { id: 1, firstName: 'Alice', lastName: 'Martin', email: 'alice.martin@school.com', classId },
+      { id: 2, firstName: 'Bob', lastName: 'Dupont', email: 'bob.dupont@school.com', classId }
+    ];
+  }
   // === TEACHER ABSENCE METHODS ===
   async getTeacherAbsences(schoolId?: number, teacherId?: number) {
     console.log(`[STORAGE] Getting teacher absences for school ${schoolId}, teacher ${teacherId}`);
