@@ -21917,7 +21917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const schoolId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedSchool = await storage.updateCommercialSchool(schoolId);
+      const updatedSchool = await storage.updateCommercialSchool(schoolId, updates);
       
       console.log(`[COMMERCIAL_SCHOOL] ✅ Updated school ${schoolId}`);
       res.json(updatedSchool);
@@ -21970,7 +21970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const leadId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedLead = await storage.updateCommercialLead(leadId);
+      const updatedLead = await storage.updateCommercialLead(leadId, updates);
       
       console.log(`[COMMERCIAL_LEAD] ✅ Updated lead ${leadId}`);
       res.json(updatedLead);
@@ -22040,7 +22040,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const contactId = parseInt(req.params.id);
       const updates = req.body;
-      const updatedContact = await storage.updateCommercialContact(contactId);
+      const updatedContact = await storage.updateCommercialContact(contactId, updates);
       
       console.log(`[COMMERCIAL_CONTACT] ✅ Updated contact ${contactId}`);
       res.json(updatedContact);
@@ -22075,7 +22075,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const defaultPeriod = 'month';
-      const stats = await storage.getCommercialStatistics((req.user as any).id, defaultPeriod);
+      const stats = await storage.getCommercialStatistics((req.user as any).id);
       
       console.log(`[COMMERCIAL_STATISTICS] ✅ Retrieved ${defaultPeriod} statistics for commercial ${(req.user as any).id}`);
       res.json(stats);
@@ -22110,7 +22110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const appointments = await storage.getCommercialAppointments();
+      const appointments = await storage.getCommercialAppointments((req.user as any).id);
       
       console.log(`[COMMERCIAL_APPOINTMENTS] ✅ Retrieved appointments for commercial ${(req.user as any).id}`);
       res.json(appointments);
@@ -22161,7 +22161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const history = await storage.getCommercialWhatsAppHistory();
+      const history = await storage.getCommercialWhatsAppHistory((req.user as any).id);
       
       console.log(`[COMMERCIAL_WHATSAPP] ✅ Retrieved WhatsApp history for commercial ${(req.user as any).id}`);
       res.json(history);
@@ -22194,7 +22194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: 'Commercial access required' });
       }
       
-      const settings = await storage.getCommercialSettings();
+      const settings = await storage.getCommercialSettings((req.user as any).id);
       
       console.log(`[COMMERCIAL_SETTINGS] ✅ Retrieved settings for commercial ${(req.user as any).id}`);
       res.json(settings);
@@ -22211,7 +22211,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const settings = req.body;
-      const updatedSettings = await storage.updateCommercialSettings(settings);
+      const updatedSettings = await storage.updateCommercialSettings((req.user as any).id, settings);
       
       console.log(`[COMMERCIAL_SETTINGS] ✅ Updated settings for commercial ${(req.user as any).id}`);
       res.json(updatedSettings);
