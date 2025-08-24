@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
-import { useFastModules } from '@/utils/consolidatedModuleLoader';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 

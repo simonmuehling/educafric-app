@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useFastModules } from '@/utils/consolidatedModuleLoader';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 

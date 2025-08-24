@@ -8,7 +8,7 @@ import {
   MessageSquare, Settings, HelpCircle, User
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
-import { useFastModules } from '@/utils/consolidatedModuleLoader';
+import { useFastModules } from '@/utils/fastModuleLoader';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 
