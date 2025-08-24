@@ -129,10 +129,6 @@ passport.deserializeUser(async (id: string | number, done) => {
 // Authentication routes
 router.get('/me', async (req, res) => {
   try {
-    console.log('[COOKIE_DEBUG] /me request cookies:', req.headers.cookie);
-    console.log('[COOKIE_DEBUG] /me session ID:', req.sessionID); 
-    console.log('[COOKIE_DEBUG] /me session authenticated:', req.isAuthenticated());
-    
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: 'Authentication required' });
     }
@@ -207,9 +203,6 @@ router.post('/login', (req, res, next) => {
         }
         
         // Successfully authenticated and session created
-        console.log('[AUTH_SUCCESS] Session saved successfully');
-        console.log('[COOKIE_DEBUG] Login response session ID:', req.sessionID);
-        console.log('[COOKIE_DEBUG] Response will set cookie for domain:', req.get('host'));
         res.json({ user: user });
       });
     });

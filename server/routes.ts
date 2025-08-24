@@ -79,8 +79,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure session middleware - MUST be before passport initialization
   const PgSession = connectPgSimple(session);
   
-  // Debug session configuration
-  console.log('[SESSION_DEBUG] Configuring session with DATABASE_URL:', !!process.env.DATABASE_URL);
   
   app.use(session({
     ...productionSessionConfig,
