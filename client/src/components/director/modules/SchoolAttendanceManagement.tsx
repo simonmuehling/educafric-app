@@ -8,7 +8,7 @@ import { UserCheck, Calendar, Clock, AlertTriangle, Users, CheckCircle, XCircle 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
-const SchoolAttendanceManagement = () => {
+const SchoolAttendanceManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -158,7 +158,7 @@ const SchoolAttendanceManagement = () => {
       value: absentCount.toString(),
       icon: <XCircle className="w-5 h-5" />,
       trend: { value: 1, isPositive: false },
-      gradient: 'pink' as const
+      gradient: 'purple' as const
     },
     {
       title: t.lateArrivals,
