@@ -103,11 +103,11 @@ class ModulePreloader {
           break;
         case 'AdministratorManagement':
         case 'administrators':
-          componentImport = await import('@/components/director/modules/AdministratorManagement');
+          componentImport = await import('@/components/director/modules/AdministratorManagementFunctional');
           break;
         case 'BulletinValidation':
         case 'bulletin-validation':
-          componentImport = await import('@/components/director/modules/BulletinValidation');
+          componentImport = await import('@/components/director/modules/BulletinApprovalNew');
           break;
         case 'AttendanceManagement':
         case 'attendance':

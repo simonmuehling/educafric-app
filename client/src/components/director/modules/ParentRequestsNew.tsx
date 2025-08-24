@@ -329,28 +329,28 @@ const ParentRequestsNew = () => {
   const stats = [
     {
       title: t.totalRequests,
-      value: totalRequests,
+      value: totalRequests.toString(),
       icon: <FileText className="w-6 h-6" />,
       trend: { value: 12, isPositive: true },
       gradient: 'blue' as const,
     },
     {
       title: t.pendingRequests,
-      value: pendingRequests,
+      value: pendingRequests.toString(),
       icon: <Clock className="w-6 h-6" />,
       trend: { value: 5, isPositive: false },
       gradient: 'orange' as const,
     },
     {
       title: t.approvedRequests,
-      value: approvedRequests,
+      value: approvedRequests.toString(),
       icon: <CheckCircle className="w-6 h-6" />,
       trend: { value: 15, isPositive: true },
       gradient: 'green' as const,
     },
     {
       title: t.rejectedRequests,
-      value: rejectedRequests,
+      value: rejectedRequests.toString(),
       icon: <XCircle className="w-6 h-6" />,
       trend: { value: 8, isPositive: false },
       gradient: 'purple' as const,

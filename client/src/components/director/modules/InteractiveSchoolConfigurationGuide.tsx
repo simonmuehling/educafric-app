@@ -374,15 +374,18 @@ const InteractiveSchoolConfigurationGuide = () => {
         const status = getStepStatus(step.id);
         
         return (
-          <ModernCard 
-            key={step.id} 
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              status === 'completed' ? 'bg-green-50 border-green-200' : 
-              status === 'in-progress' ? 'bg-blue-50 border-blue-200' :
-              'bg-white hover:bg-gray-50'
-            }`}
+          <div 
+            key={step.id}
+            className="cursor-pointer transition-all hover:shadow-lg"
             onClick={() => handleStepClick(step, index)}
           >
+            <ModernCard 
+              className={`${
+                status === 'completed' ? 'bg-green-50 border-green-200' : 
+                status === 'in-progress' ? 'bg-blue-50 border-blue-200' :
+                'bg-white hover:bg-gray-50'
+              }`}
+            >
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
@@ -445,6 +448,7 @@ const InteractiveSchoolConfigurationGuide = () => {
               </div>
             </div>
           </ModernCard>
+          </div>
         );
       })}
     </div>

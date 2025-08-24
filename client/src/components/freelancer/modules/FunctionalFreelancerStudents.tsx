@@ -41,6 +41,13 @@ const FunctionalFreelancerStudents: React.FC = () => {
   // Fetch freelancer students data from PostgreSQL API
   const { data: students = [], isLoading } = useQuery<FreelancerStudent[]>({
     queryKey: ['/api/freelancer/students'],
+    queryFn: async () => {
+      const response = await fetch('/api/freelancer/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch freelancer students');
+      return response.json();
+    },
     enabled: !!user
   });
 

@@ -38,13 +38,13 @@ class FastModuleLoader {
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
       'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
-      'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
+      'bulletin-validation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
-      'school-administrators': () => import('@/components/director/modules/DelegateAdministrators'),
+      'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/MobileSchoolConfigurationGuide'),
-      'school-settings': () => import('@/components/director/modules/SchoolSettings'),
+      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       
       // Additional specific mappings for problematic modules
       'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
@@ -54,11 +54,11 @@ class FastModuleLoader {
       'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
       'StudentManagement': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
-      'BulletinValidation': () => import('@/components/director/modules/BulletinValidation'),
+      'BulletinValidation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'AttendanceManagement': () => import('@/components/director/modules/AttendanceManagement'),
       'Communications': () => import('@/components/director/modules/Communications'),
-      'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
-      'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
+      'SchoolSettings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       
       // Parent modules (matching dashboard IDs exactly)
       'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
