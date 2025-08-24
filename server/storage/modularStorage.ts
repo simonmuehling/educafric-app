@@ -253,6 +253,7 @@ export class ModularStorage {
       { id: 2, firstName: 'Bob', lastName: 'Dupont', email: 'bob.dupont@school.com', className: '5ème B', schoolId }
     ];
   }
+  
   async getStudentsByClass(classId: number) {
     return [
       { id: 1, firstName: 'Alice', lastName: 'Martin', email: 'alice.martin@school.com', classId },

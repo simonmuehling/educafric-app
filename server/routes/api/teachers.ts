@@ -27,8 +27,7 @@ router.get('/school', requireAuth, async (req: any, res: Response) => {
       email: teacher.email,
       phone: teacher.phone,
       role: teacher.role,
-      status: 'active', // Will implement blocking when storage supports it
-      lastLogin: teacher.lastLogin || null
+      status: 'active' // Will implement blocking when storage supports it
     }));
 
     res.json(teachersData);
