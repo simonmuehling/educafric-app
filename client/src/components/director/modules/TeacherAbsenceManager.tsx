@@ -119,12 +119,22 @@ const TeacherAbsenceManager: React.FC = () => {
   // Fetch teacher absences
   const { data: absences = [], isLoading: absencesLoading } = useQuery<TeacherAbsence[]>({
     queryKey: ['/api/school/teacher-absences'],
+    queryFn: async () => {
+      const response = await fetch('/api/school/teacher-absences', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch teacher absences');
+      return response.json();
+    },
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
   });
 
   // Fetch absence statistics
   const { data: stats } = useQuery<AbsenceStats>({
     queryKey: ['/api/school/teacher-absences-stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/school/teacher-absences-stats', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch absence statistics');
+      return response.json();
+    },
     refetchInterval: 60000, // Refresh every minute
   });
 
