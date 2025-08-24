@@ -31,7 +31,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const response = await apiRequest('POST', '/api/auth/login', { email, password });
-      const userData = await response.json();
+      
+      let userData;
+      try {
+        userData = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response from server during login');
+      }
       
       if (!response.ok) {
         throw new Error(userData.message || 'Login failed');
@@ -58,9 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLocation('/dashboard');
     } catch (error: any) {
       console.error('Login error:', {
-        message: error.message,
+        message: error.message || 'Unknown login error',
         stack: error.stack,
-        response: error.response?.data
+        response: error.response?.data || 'No response data'
       });
       throw error;
     } finally {
@@ -82,16 +88,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const response = await apiRequest('POST', '/api/auth/register', userData);
-      const newUser = await response.json();
+      
+      let newUser;
+      try {
+        newUser = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response from server during registration');
+      }
       
       if (!response.ok) {
         throw new Error(newUser.message || 'Registration failed');
       }
       
-      // Enhanced registration notification with user details
-      const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
-      const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
-      console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email || ''}`);
+      // Registration notification only in dev mode for performance
+      if (import.meta.env.DEV) {
+        const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
+        const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
+        console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email || ''}`);
+      }
     } catch (error: any) {
       console.error('Registration error:', error);
       throw error;
@@ -103,13 +117,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const requestPasswordReset = async (email: string) => {
     try {
       const response = await apiRequest('POST', '/api/auth/forgot-password', { email });
-      const data = await response.json();
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response from server during password reset request');
+      }
       
       if (!response.ok) {
         throw new Error(data.message || 'Failed to send password reset email');
       }
       
-      console.log(`📧 Password reset requested for: ${email}`);
+      if (import.meta.env.DEV) {
+        console.log(`📧 Password reset requested for: ${email}`);
+      }
     } catch (error: any) {
       console.error('Password reset request error:', error);
       throw error;
@@ -123,13 +145,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         confirmPassword
       });
-      const data = await response.json();
+      
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error('Invalid response from server during password reset');
+      }
       
       if (!response.ok) {
         throw new Error(data.message || 'Failed to reset password');
       }
       
-      console.log('🔐 Password reset successful');
+      if (import.meta.env.DEV) {
+        console.log('🔐 Password reset successful');
+      }
     } catch (error: any) {
       console.error('Password reset error:', error);
       throw error;
@@ -141,8 +171,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiRequest('GET', '/api/auth/me');
       
       if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
+        try {
+          const userData = await response.json();
+          // Validate userData has expected structure
+          if (userData && typeof userData === 'object' && userData.user) {
+            setUser(userData.user);
+          } else if (userData && userData.id) {
+            setUser(userData);
+          } else {
+            console.warn('Invalid user data structure received');
+            setUser(null);
+          }
+        } catch (jsonError) {
+          console.warn('Failed to parse auth response JSON');
+          setUser(null);
+        }
       } else {
         setUser(null);
       }

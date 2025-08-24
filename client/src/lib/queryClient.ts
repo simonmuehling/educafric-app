@@ -2,8 +2,13 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    try {
+      const text = await res.text();
+      throw new Error(`${res.status}: ${text || res.statusText || 'Unknown error'}`);
+    } catch (parseError) {
+      // If response parsing fails, throw original status error
+      throw new Error(`${res.status}: ${res.statusText || 'Request failed'}`);
+    }
   }
 }
 
@@ -12,15 +17,31 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    // Validate inputs
+    if (!method || typeof method !== 'string') {
+      throw new Error('Invalid HTTP method provided');
+    }
+    if (!url || typeof url !== 'string') {
+      throw new Error('Invalid URL provided');
+    }
+    
+    const res = await fetch(url, {
+      method,
+      headers: data ? { "Content-Type": "application/json" } : {},
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    // Enhance error with context for better debugging
+    if (error instanceof Error) {
+      error.message = `API Request failed (${method} ${url}): ${error.message}`;
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

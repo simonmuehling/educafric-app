@@ -7,7 +7,13 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
-  console.error(`[${new Date().toISOString()}] Error on ${req.method} ${req.path}:`, error);
+  // Only log detailed errors in development to prevent sensitive data leakage
+  if (process.env.NODE_ENV === 'development') {
+    console.error(`[${new Date().toISOString()}] Error on ${req.method} ${req.path}:`, error);
+  } else {
+    // Production: Log minimal error info without sensitive details
+    console.error(`[${new Date().toISOString()}] Error ${error.constructor.name} on ${req.method} ${req.path}`);
+  }
 
   if (error instanceof ValidationError) {
     return res.status(400).json({
@@ -72,8 +78,14 @@ export function requireRole(...roles: string[]) {
     }
     
     const user = req.user as AuthenticatedUser;
+    
+    // Type guard to ensure user object is valid
+    if (!user || typeof user !== 'object' || !user.role) {
+      throw new UnauthorizedError('Invalid user session');
+    }
+    
     const hasRole = roles.includes(user.role) || 
-                   user.secondaryRoles?.some((r) => roles.includes(r));
+                   (Array.isArray(user.secondaryRoles) && user.secondaryRoles.some((r) => roles.includes(r)));
     
     if (!hasRole) {
       throw new ForbiddenError('Insufficient permissions for this resource');

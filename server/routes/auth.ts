@@ -31,10 +31,20 @@ passport.use(new LocalStrategy(
 ));
 
 passport.serializeUser((user: any, done) => {
-  if (user.sandboxMode) {
-    done(null, `sandbox:${user.id}`);
-  } else {
-    done(null, user.id);
+  try {
+    // Validate user object exists and has required properties
+    if (!user || typeof user !== 'object' || !user.id) {
+      return done(new Error('Invalid user object for serialization'));
+    }
+    
+    if (user.sandboxMode) {
+      done(null, `sandbox:${user.id}`);
+    } else {
+      done(null, user.id);
+    }
+  } catch (error) {
+    console.error('[AUTH_ERROR] User serialization failed');
+    done(error);
   }
 });
 
@@ -45,9 +55,16 @@ passport.deserializeUser(async (id: string | number, done) => {
       return done(null, false);
     }
 
-    // Handle sandbox users
+    // Handle sandbox users with safe ID parsing
     if (typeof id === 'string' && id.startsWith('sandbox:')) {
-      const sandboxId = parseInt(id.replace('sandbox:', ''));
+      const sandboxIdStr = id.replace('sandbox:', '');
+      const sandboxId = parseInt(sandboxIdStr);
+      
+      // Validate the parsed ID is a valid number
+      if (isNaN(sandboxId) || sandboxId <= 0) {
+        console.warn('[AUTH_WARNING] Invalid sandbox ID format:', sandboxIdStr);
+        return done(null, false);
+      }
       
       // Return sandbox user data (reconstruct from sandboxProfiles)
       const sandboxProfiles = {

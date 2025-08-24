@@ -27,14 +27,16 @@ import {
 // Load environment variables
 // Vonage credentials should be set in Replit Secrets:
 // VONAGE_API_KEY, VONAGE_API_SECRET, VONAGE_FROM_NUMBER
-if (!process.env.VONAGE_API_KEY) {
-  console.warn('[SECURITY] VONAGE_API_KEY not set in environment variables');
-}
-if (!process.env.VONAGE_API_SECRET) {
-  console.warn('[SECURITY] VONAGE_API_SECRET not set in environment variables');
-}
-if (!process.env.VONAGE_FROM_NUMBER) {
-  console.warn('[SECURITY] VONAGE_FROM_NUMBER not set in environment variables');
+if (process.env.NODE_ENV === 'development') {
+  if (!process.env.VONAGE_API_KEY) {
+    console.warn('[SECURITY] VONAGE_API_KEY not set in environment variables');
+  }
+  if (!process.env.VONAGE_API_SECRET) {
+    console.warn('[SECURITY] VONAGE_API_SECRET not set in environment variables');
+  }
+  if (!process.env.VONAGE_FROM_NUMBER) {
+    console.warn('[SECURITY] VONAGE_FROM_NUMBER not set in environment variables');
+  }
 }
 // Stripe keys will be automatically loaded from Replit Secrets
 

@@ -75,9 +75,13 @@ import SignatureTest from "@/pages/SignatureTest";
 const useGlobalModulePreloader = () => {
   useEffect(() => {
     const startGlobalPreload = async () => {
-      console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
+      if (import.meta.env.DEV) {
+        console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
+      }
       await fastModuleLoader.preloadCriticalModules();
-      console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+      if (import.meta.env.DEV) {
+        console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+      }
     };
     
     // Start preloading immediately when app loads
@@ -136,7 +140,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     // Only track once per session to prevent crashes
     const sessionKey = 'app_pwa_tracking_initialized';
     if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey)) {
-      console.log('[APP] Initializing PWA analytics (one-time)');
+      if (import.meta.env.DEV) {
+        console.log('[APP] Initializing PWA analytics (one-time)');
+      }
       autoTrackPWAUsage(user?.id);
       window.sessionStorage?.setItem(sessionKey, 'true');
     }
@@ -145,7 +151,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   // Expose tutorial function globally
   React.useEffect(() => {
     (window as any).showTutorial = () => {
-      console.log('[TUTORIAL] 🚀 Global tutorial trigger activated!');
+      if (import.meta.env.DEV) {
+        console.log('[TUTORIAL] 🚀 Global tutorial trigger activated!');
+      }
       setTutorialVisible(true);
     };
     
@@ -449,10 +457,14 @@ function FirebaseRedirectHandler() {
     
     const checkRedirect = async () => {
       try {
-        console.log('Firebase redirect handler initialized (simplified)');
+        if (import.meta.env.DEV) {
+          console.log('Firebase redirect handler initialized (simplified)');
+        }
         setInitialized(true);
       } catch (error) {
-        console.error('Firebase redirect handling error:', error);
+        if (import.meta.env.DEV) {
+          console.error('Firebase redirect handling error:', error);
+        }
       }
     };
     
