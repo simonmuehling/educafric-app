@@ -25,7 +25,23 @@ interface ParentDashboardProps {
   activeModule?: string;
 }
 
-const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
+// Gate component - minimal hooks, conditions only
+const ParentDashboardGate = ({ activeModule }: ParentDashboardProps) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  
+  return <ParentDashboardContent activeModule={activeModule} />;
+};
+
+// Content component - all hooks here
+const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -102,7 +118,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ULTRA-FAST module component creator
+  // ✅ HOOK-SAFE module component creator - NO HOOKS INSIDE
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
@@ -114,12 +130,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       return React.createElement(ModuleComponent);
     }
     
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
-    
+    // ✅ NO useEffect here - preloading handled elsewhere
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -131,6 +142,25 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       </div>
     );
   };
+
+  // ✅ Preload missing modules - SEPARATE useEffect with all hooks called
+  const missingModules = ['requests', 'parent-profile', 'help'];
+  React.useEffect(() => {
+    const preloadMissingModules = async () => {
+      for (const moduleName of missingModules) {
+        const ModuleComponent = getModule(moduleName);
+        if (!ModuleComponent) {
+          console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+          try {
+            await preloadModule(moduleName);
+          } catch (error) {
+            console.warn(`[PARENT_DASHBOARD] Failed to preload ${moduleName}:`, error);
+          }
+        }
+      }
+    };
+    preloadMissingModules();
+  }, [getModule, preloadModule]);
 
   // Stable event handlers that survive server restarts
   const handleSwitchToGrades = useStableCallback(() => {
@@ -379,4 +409,4 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   );
 };
 
-export default ParentDashboard;
+export default ParentDashboardGate;
