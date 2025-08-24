@@ -7,11 +7,12 @@ export function configureSecurityMiddleware(app: Express) {
   // Trust proxy for rate limiting in cloud environments
   app.set('trust proxy', 1);
   
-  // Helmet.js with CSP DISABLED for debugging
+  // Helmet.js with CSP DISABLED for debugging and X-Frame-Options disabled for Replit iframe
   app.use(helmet({
     contentSecurityPolicy: false, // Completely disable CSP to test cookie functionality
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    frameguard: false, // Disable X-Frame-Options to allow iframe display in Replit
     crossOriginOpenerPolicy: { policy: "unsafe-none" },
     hsts: false // Disable HSTS for development
   }));

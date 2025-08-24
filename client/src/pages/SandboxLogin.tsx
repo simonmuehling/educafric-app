@@ -156,35 +156,27 @@ const SandboxLogin = () => {
     
     try {
       // Use the login function from AuthContext for proper session management
-      const result = await login({
-        email: profile.email,
-        password: 'sandbox123'
-      });
-
-      if (result) {
-        console.log('✅ Sandbox login successful, navigating to dashboard:', result);
+      await login(profile.email, 'sandbox123');
+      console.log('✅ Sandbox login successful, navigating to dashboard');
         
-        // Navigate to role-specific dashboard immediately
-        const roleRoutes = {
-          Parent: '/parent',
-          Student: '/student',
-          Teacher: '/teacher',
-          Freelancer: '/freelancer',
-          Admin: '/admin',
-          Director: '/director',
-          SiteAdmin: '/admin'
-        };
-        
-        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        console.log('🎯 Navigating to:', targetRoute);
-        
-        // Navigate using wouter
-        setTimeout(() => {
-          setLocation(targetRoute);
-        }, 100);
-      } else {
-        console.error('Sandbox login failed');
-      }
+      // Navigate to role-specific dashboard immediately
+      const roleRoutes = {
+        Parent: '/parent',
+        Student: '/student',
+        Teacher: '/teacher',
+        Freelancer: '/freelancer',
+        Admin: '/admin',
+        Director: '/director',
+        SiteAdmin: '/admin'
+      };
+      
+      const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+      console.log('🎯 Navigating to:', targetRoute);
+      
+      // Navigate using wouter
+      setTimeout(() => {
+        setLocation(targetRoute);
+      }, 100);
     } catch (error) {
       console.error('Sandbox login error:', error);
     } finally {
