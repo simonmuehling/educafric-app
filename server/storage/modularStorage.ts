@@ -130,9 +130,251 @@ export class ModularStorage {
   async getSchoolParents(schoolId: number) { return []; }
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
-  async getAvailableSubstitutes(schoolId: number) { return []; }
-  async assignSubstitute(absenceId: number, substituteId: number) { return { success: true }; }
-  async getAbsenceReports(teacherId: number) { return []; }
+  // === TEACHER ABSENCE METHODS ===
+  async getTeacherAbsences(schoolId?: number, teacherId?: number) {
+    console.log(`[STORAGE] Getting teacher absences for school ${schoolId}, teacher ${teacherId}`);
+    // Mock comprehensive teacher absence data
+    const mockAbsences = [
+      {
+        id: 1,
+        teacherId: 101,
+        teacherName: 'Marie Dubois',
+        schoolId: 1,
+        classId: 201,
+        className: '6ème A',
+        subjectId: 301,
+        subjectName: 'Mathématiques',
+        absenceDate: '2025-08-24',
+        startTime: '08:00',
+        endTime: '12:00',
+        reason: 'Maladie',
+        reasonCategory: 'health',
+        isPlanned: false,
+        status: 'pending',
+        priority: 'high',
+        totalAffectedStudents: 25,
+        affectedClasses: [{
+          classId: 201,
+          className: '6ème A',
+          subjectId: 301,
+          subjectName: 'Mathématiques',
+          period: 'Matinée'
+        }],
+        parentsNotified: false,
+        studentsNotified: false,
+        adminNotified: true,
+        replacementTeacherId: null,
+        substituteName: null,
+        substituteConfirmed: false,
+        substituteInstructions: '',
+        isResolved: false,
+        impactAssessment: 'high',
+        createdAt: '2025-08-24T06:30:00Z',
+        updatedAt: '2025-08-24T06:30:00Z'
+      },
+      {
+        id: 2,
+        teacherId: 102,
+        teacherName: 'Jean Kouam',
+        schoolId: 1,
+        classId: 202,
+        className: '5ème B',
+        subjectId: 302,
+        subjectName: 'Français',
+        absenceDate: '2025-08-25',
+        startTime: '14:00',
+        endTime: '16:00',
+        reason: 'Formation pédagogique',
+        reasonCategory: 'training',
+        isPlanned: true,
+        status: 'resolved',
+        priority: 'medium',
+        totalAffectedStudents: 22,
+        affectedClasses: [{
+          classId: 202,
+          className: '5ème B',
+          subjectId: 302,
+          subjectName: 'Français',
+          period: 'Après-midi'
+        }],
+        parentsNotified: true,
+        studentsNotified: true,
+        adminNotified: true,
+        replacementTeacherId: 103,
+        substituteName: 'Paul Martin',
+        substituteConfirmed: true,
+        substituteInstructions: 'Continuer le chapitre 3 du manuel',
+        isResolved: true,
+        impactAssessment: 'low',
+        createdAt: '2025-08-20T10:00:00Z',
+        updatedAt: '2025-08-24T09:15:00Z'
+      }
+    ];
+    
+    if (teacherId) {
+      return mockAbsences.filter(absence => absence.teacherId === teacherId);
+    }
+    if (schoolId) {
+      return mockAbsences.filter(absence => absence.schoolId === schoolId);
+    }
+    return mockAbsences;
+  }
+
+  async getTeacherAbsenceStats(schoolId?: number) {
+    console.log(`[STORAGE] Getting teacher absence stats for school ${schoolId}`);
+    return {
+      totalAbsences: 12,
+      thisMonth: 5,
+      lastMonth: 3,
+      trend: 'increasing',
+      averagePerWeek: 1.2,
+      byCategory: [
+        { category: 'health', count: 6, percentage: 50 },
+        { category: 'training', count: 3, percentage: 25 },
+        { category: 'personal', count: 2, percentage: 17 },
+        { category: 'emergency', count: 1, percentage: 8 }
+      ],
+      byStatus: [
+        { status: 'resolved', count: 8, percentage: 67 },
+        { status: 'pending', count: 3, percentage: 25 },
+        { status: 'cancelled', count: 1, percentage: 8 }
+      ],
+      impactMetrics: {
+        totalStudentsAffected: 287,
+        averageStudentsPerAbsence: 24,
+        totalNotificationsSent: 156,
+        substituteSuccessRate: 85
+      },
+      performance: {
+        averageResolutionTime: 4.2,
+        notificationSpeed: 0.8,
+        substituteAssignmentSpeed: 2.1
+      }
+    };
+  }
+
+  async createTeacherAbsence(absenceData: any) {
+    console.log(`[STORAGE] Creating teacher absence:`, absenceData);
+    const newAbsence = {
+      id: Date.now(),
+      ...absenceData,
+      status: 'pending',
+      isResolved: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    return newAbsence;
+  }
+
+  async updateTeacherAbsence(absenceId: number, updates: any) {
+    console.log(`[STORAGE] Updating teacher absence ${absenceId}:`, updates);
+    return {
+      ...updates,
+      id: absenceId,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  async performAbsenceAction(absenceId: number, actionType: string, actionData: any) {
+    console.log(`[STORAGE] Performing action ${actionType} on absence ${absenceId}:`, actionData);
+    
+    const actions = {
+      assign_substitute: () => ({
+        success: true,
+        message: 'Remplaçant assigné avec succès',
+        substitute: actionData.substituteName,
+        notificationsSent: ['teacher', 'students', 'parents']
+      }),
+      notify_parents: () => ({
+        success: true,
+        message: 'Parents notifiés',
+        notificationsSent: actionData.parentIds?.length || 0
+      }),
+      mark_resolved: () => ({
+        success: true,
+        message: 'Absence marquée comme résolue',
+        resolvedAt: new Date().toISOString()
+      }),
+      cancel_absence: () => ({
+        success: true,
+        message: 'Absence annulée',
+        cancelledAt: new Date().toISOString()
+      })
+    };
+
+    return actions[actionType as keyof typeof actions]?.() || {
+      success: false,
+      message: 'Action non supportée'
+    };
+  }
+
+  async getAvailableSubstitutes(schoolId: number) {
+    console.log(`[STORAGE] Getting available substitutes for school ${schoolId}`);
+    return [
+      {
+        id: 103,
+        name: 'Paul Martin',
+        subject: 'Sciences',
+        email: 'paul.martin@ecole.cm',
+        phone: '+237655432109',
+        available: true,
+        experience: '8 ans',
+        rating: 4.5
+      },
+      {
+        id: 104,
+        name: 'Sophie Ngono',
+        subject: 'Histoire',
+        email: 'sophie.ngono@ecole.cm',
+        phone: '+237652147896',
+        available: true,
+        experience: '5 ans',
+        rating: 4.2
+      },
+      {
+        id: 105,
+        name: 'Françoise Mbida',
+        subject: 'Anglais',
+        email: 'francoise.mbida@ecole.cm',
+        phone: '+237658741963',
+        available: false,
+        experience: '12 ans',
+        rating: 4.8
+      }
+    ];
+  }
+
+  async assignSubstitute(absenceId: number, substituteId: number) {
+    console.log(`[STORAGE] Assigning substitute ${substituteId} to absence ${absenceId}`);
+    return {
+      success: true,
+      absenceId,
+      substituteId,
+      assignedAt: new Date().toISOString(),
+      notificationsSent: true
+    };
+  }
+
+  async getAbsenceReports(teacherId?: number, schoolId?: number) {
+    console.log(`[STORAGE] Getting absence reports for teacher ${teacherId}, school ${schoolId}`);
+    return [
+      {
+        id: 1,
+        teacherId: teacherId || 101,
+        teacherName: 'Marie Dubois',
+        month: 'Août 2025',
+        totalAbsences: 3,
+        totalHours: 12,
+        categories: {
+          health: 2,
+          training: 1,
+          personal: 0
+        },
+        impact: 'Moyen',
+        substituteRate: 100
+      }
+    ];
+  }
   async getClassesBySchool(schoolId: number) { return this.getSchoolClasses(schoolId); }
   async getClass(classId: number) { return null; }
   async createClass(classData: any) { return { success: true }; }

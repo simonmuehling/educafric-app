@@ -22,7 +22,7 @@ router.get('/subjects', requireAuth, async (req: AuthenticatedRequest, res: Resp
       return res.status(400).json({ message: 'No school associated with user' });
     }
 
-    const subjects = await storage.getSubjectsBySchool(user.schoolId);
+    const subjects = await storage.getSchoolSubjects(user.schoolId);
     res.json(subjects);
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error fetching subjects:', error);
@@ -212,6 +212,160 @@ router.put('/notifications', requireAuth, async (req: AuthenticatedRequest, res:
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error updating school notifications:', error);
     res.status(500).json({ message: 'Failed to update school notifications' });
+  }
+});
+
+// === TEACHER ABSENCE ROUTES ===
+
+// Get teacher absences for school
+router.get('/teacher-absences', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const absences = await storage.getTeacherAbsences(user.schoolId);
+    res.json(absences);
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error fetching teacher absences:', error);
+    res.status(500).json({ message: 'Failed to fetch teacher absences' });
+  }
+});
+
+// Get teacher absence statistics
+router.get('/teacher-absences-stats', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const stats = await storage.getTeacherAbsenceStats(user.schoolId);
+    res.json(stats);
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error fetching absence stats:', error);
+    res.status(500).json({ message: 'Failed to fetch absence statistics' });
+  }
+});
+
+// Create new teacher absence
+router.post('/teacher-absences', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const absenceData = {
+      ...req.body,
+      schoolId: user.schoolId,
+      reportedBy: user.id
+    };
+
+    const newAbsence = await storage.createTeacherAbsence(absenceData);
+    
+    // TODO: Send notifications via unified messaging system
+    console.log(`[TEACHER_ABSENCE] New absence created: ${newAbsence.id}`);
+    
+    res.status(201).json({
+      message: 'Teacher absence created successfully',
+      absence: newAbsence
+    });
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error creating teacher absence:', error);
+    res.status(500).json({ message: 'Failed to create teacher absence' });
+  }
+});
+
+// Perform action on teacher absence
+router.post('/teacher-absences/:absenceId/actions', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const absenceId = parseInt(req.params.absenceId);
+    const { actionType, actionData } = req.body;
+
+    const result = await storage.performAbsenceAction(absenceId, actionType, actionData);
+    
+    if (result.success) {
+      // TODO: Send notifications via unified messaging system based on action
+      if (actionType === 'assign_substitute' || actionType === 'notify_parents') {
+        console.log(`[TEACHER_ABSENCE] Should send notifications for action: ${actionType}`);
+      }
+    }
+    
+    res.json(result);
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error performing absence action:', error);
+    res.status(500).json({ message: 'Failed to perform action' });
+  }
+});
+
+// Get available substitute teachers
+router.get('/substitute-teachers', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const substitutes = await storage.getAvailableSubstitutes(user.schoolId);
+    res.json(substitutes);
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error fetching substitute teachers:', error);
+    res.status(500).json({ message: 'Failed to fetch substitute teachers' });
+  }
+});
+
+// Assign substitute teacher to absence
+router.post('/teacher-absences/assign-replacement', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const { absenceId, replacementTeacherId } = req.body;
+    
+    const result = await storage.assignSubstitute(absenceId, replacementTeacherId);
+    
+    if (result.success) {
+      // TODO: Send notifications to all affected parties
+      console.log(`[TEACHER_ABSENCE] Substitute assigned successfully: ${replacementTeacherId}`);
+    }
+    
+    res.json({
+      message: 'Substitute teacher assigned successfully',
+      ...result
+    });
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error assigning substitute:', error);
+    res.status(500).json({ message: 'Failed to assign substitute teacher' });
+  }
+});
+
+// Get absence reports
+router.get('/teacher-absence-reports', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user?.schoolId) {
+      return res.status(400).json({ message: 'No school associated with user' });
+    }
+
+    const { teacherId } = req.query;
+    const reports = await storage.getAbsenceReports(
+      teacherId ? parseInt(teacherId as string) : undefined, 
+      user.schoolId
+    );
+    
+    res.json(reports);
+  } catch (error: any) {
+    console.error('[SCHOOLS_API] Error fetching absence reports:', error);
+    res.status(500).json({ message: 'Failed to fetch absence reports' });
   }
 });
 

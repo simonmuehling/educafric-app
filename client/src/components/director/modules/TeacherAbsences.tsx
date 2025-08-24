@@ -76,34 +76,35 @@ const TeacherAbsences = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch teacher absences
+  // Fetch teacher absences - UPDATED TO USE SCHOOL ROUTES
   const { data: absences = [], isLoading } = useQuery({
-    queryKey: ['/api/teacher-absences'],
+    queryKey: ['/api/schools/teacher-absences'],
     queryFn: async () => {
-      const response = await fetch('/api/teacher-absences');
+      const response = await fetch('/api/schools/teacher-absences', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch teacher absences');
       return response.json();
     }
   });
 
-  // Fetch available replacement teachers from school
+  // Fetch available replacement teachers - UPDATED TO USE SCHOOL ROUTES  
   const { data: replacementTeachers = [] } = useQuery({
-    queryKey: ['/api/teachers/school/available'],
+    queryKey: ['/api/schools/substitute-teachers'],
     queryFn: async () => {
-      const response = await fetch('/api/teachers/school/available');
+      const response = await fetch('/api/schools/substitute-teachers', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch replacement teachers');
       return response.json();
     }
   });
 
-  // Assign replacement teacher mutation
+  // Assign replacement teacher mutation - UPDATED TO USE SCHOOL ROUTES
   const assignReplacementMutation = useMutation({
     mutationFn: async ({ absenceId, replacementTeacherId }: any) => {
-      const response = await fetch('/api/teacher-absences/assign-replacement', {
+      const response = await fetch('/api/schools/teacher-absences/assign-replacement', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           absenceId,
           replacementTeacherId
@@ -113,7 +114,7 @@ const TeacherAbsences = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teacher-absences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences'] });
       alert(t.replacementFound);
       setShowReplacementModal(false);
       setSelectedAbsence(null);

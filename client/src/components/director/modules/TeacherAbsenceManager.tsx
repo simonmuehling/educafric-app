@@ -116,22 +116,22 @@ const TeacherAbsenceManager: React.FC = () => {
   const [pendingAbsenceData, setPendingAbsenceData] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  // Fetch teacher absences
+  // Fetch teacher absences - UPDATED TO USE SCHOOL ROUTES
   const { data: absences = [], isLoading: absencesLoading } = useQuery<TeacherAbsence[]>({
-    queryKey: ['/api/school/teacher-absences'],
+    queryKey: ['/api/schools/teacher-absences'],
     queryFn: async () => {
-      const response = await fetch('/api/school/teacher-absences', { credentials: 'include' });
+      const response = await fetch('/api/schools/teacher-absences', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch teacher absences');
       return response.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
   });
 
-  // Fetch absence statistics
+  // Fetch absence statistics - UPDATED TO USE SCHOOL ROUTES
   const { data: stats } = useQuery<AbsenceStats>({
-    queryKey: ['/api/school/teacher-absences-stats'],
+    queryKey: ['/api/schools/teacher-absences-stats'],
     queryFn: async () => {
-      const response = await fetch('/api/school/teacher-absences-stats', { credentials: 'include' });
+      const response = await fetch('/api/schools/teacher-absences-stats', { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch absence statistics');
       return response.json();
     },
@@ -145,7 +145,7 @@ const TeacherAbsenceManager: React.FC = () => {
       actionType: string;
       actionData: any;
     }) => {
-      const response = await fetch(`/api/school/teacher-absences/${absenceId}/actions`, {
+      const response = await fetch(`/api/schools/teacher-absences/${absenceId}/actions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -161,8 +161,8 @@ const TeacherAbsenceManager: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences-stats'] });
       setShowQuickActions(null);
       toast({
         title: "Action effectuée",
@@ -209,8 +209,8 @@ const TeacherAbsenceManager: React.FC = () => {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school/teacher-absences-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/schools/teacher-absences-stats'] });
       setShowAbsenceForm(false);
       toast({
         title: "Absence déclarée",
