@@ -16,26 +16,13 @@ export function configureSecurityMiddleware(app: Express) {
     hsts: false // Disable HSTS for development
   }));
 
-  // CORS configuration for African educational context - Fixed for session persistence
+  // Simplified CORS configuration to fix authentication errors
   app.use(cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, Postman, etc.)
-      if (!origin) return callback(null, true);
-      
-      // Allow all replit domains and localhost
-      if (origin.includes('replit.dev') || 
-          origin.includes('replit.app') || 
-          origin.includes('localhost') ||
-          origin.includes('educafric.com')) {
-        return callback(null, true);
-      }
-      
-      return callback(null, true); // Allow all origins for now to test
-    },
+    origin: true, // Allow all origins to prevent auth blocking
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
     credentials: true,
-    optionsSuccessStatus: 200 // For legacy browser support
+    optionsSuccessStatus: 200
   }));
 
   // Rate limiting DISABLED for 1000+ concurrent users support
@@ -65,22 +52,20 @@ export function configureSecurityMiddleware(app: Express) {
   // No rate limiting applied - supporting 1000+ concurrent users
   console.log('[RATE_LIMITING] DISABLED - Supporting 1000+ concurrent users');
   
-  // Minimal auth logging for performance
+  // Simplified middleware to prevent errors
   app.use((req, res, next) => {
-    // Remove auth logging to improve login speed
-    next();
-  });
-
-  // Request size limits for African mobile networks
-  app.use((req, res, next) => {
-    if (req.path.includes('/upload')) {
-      // Higher limit for file uploads
-      req.setTimeout(60000); // 60 seconds for uploads
-    } else {
-      // Standard timeout for API requests
-      req.setTimeout(30000); // 30 seconds
+    // Basic timeout without complex logic
+    try {
+      if (req.path.includes('/upload')) {
+        req.setTimeout(60000);
+      } else {
+        req.setTimeout(30000);
+      }
+      next();
+    } catch (error) {
+      console.error('[SECURITY_ERROR]', error);
+      next(); // Continue even if timeout setting fails
     }
-    next();
   });
 }
 
