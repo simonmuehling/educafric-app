@@ -13,42 +13,72 @@ class ConsolidatedModuleLoader {
   private preloadQueue: string[] = [];
   private isPreloading = false;
 
-  // ULTRA-SIMPLIFIED MODULE MAPPING - No duplicates, only essentials
+  // MODULE MAPPING CORRIGÉ - Utilise les vrais fichiers Functional
   private getModuleImport(moduleName: string): (() => Promise<any>) | null {
-    // Core dashboard modules only - streamlined for speed
-    const coreModules: Record<string, () => Promise<any>> = {
-      // Director (most used)
+    const realModules: Record<string, () => Promise<any>> = {
+      // DIRECTOR - Modules réels qui existent
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
+      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
+      'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
+      'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
+      'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
+      'school-administrators': () => import('@/components/director/modules/DelegateAdministrators'),
+      'reports': () => import('@/components/director/modules/ReportsAnalytics'),
+      'school-settings': () => import('@/components/director/modules/SchoolSettings'),
       
-      // Parent (high usage)
+      // PARENT - Modules réels
       'children': () => import('@/components/parent/modules/FunctionalParentChildren'),
+      'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
+      'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'),
+      'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
+      'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'family': () => import('@/components/parent/modules/FamilyConnections'),
+      'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      'parent-profile': () => import('@/components/parent/modules/FunctionalParentProfile'),
       
-      // Teacher (daily use)
+      // TEACHER - Modules réels
       'teacher-classes': () => import('@/components/teacher/modules/FunctionalMyClasses'),
       'teacher-grades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
       'teacher-attendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
+      'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
+      'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
+      'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
+      'teacher-reports': () => import('@/components/teacher/modules/ReportCards'),
+      'teacher-timetable': () => import('@/components/teacher/modules/TeacherTimetable'),
+      'teacher-profile': () => import('@/components/teacher/modules/FunctionalTeacherProfile'),
       
-      // Student (frequent)
+      // STUDENT - Modules réels
       'timetable': () => import('@/components/student/modules/StudentTimetable'),
       'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
+      'assignments': () => import('@/components/student/modules/StudentHomework'),
       'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'messages': () => import('@/components/student/modules/StudentCommunications'),
+      'progress': () => import('@/components/student/modules/StudentProgress'),
+      'achievements': () => import('@/components/student/modules/StudentAchievements'),
+      'student-profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
+      'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
+      'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
-      // Commercial (business critical)
-      'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
-      'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      // COMMERCIAL - Si ça existe
+      'commercial-schools': () => import('@/components/commercial/modules/MySchools').catch(() => null),
+      'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement').catch(() => null),
       
-      // Shared essentials
+      // SHARED - Modules partagés
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'profile': () => import('@/components/shared/UnifiedProfileManager'),
-      'help': () => import('@/components/help/HelpCenter')
+      'help': () => import('@/components/help/HelpCenter'),
+      'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
+      'multirole': () => import('@/components/shared/UniversalMultiRoleSwitch')
     };
 
-    return coreModules[moduleName] || null;
+    return realModules[moduleName] || null;
   }
 
   // INSTANT CACHE RETRIEVAL - No delays
