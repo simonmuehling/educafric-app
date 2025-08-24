@@ -2,12 +2,15 @@ import express, { type Request, Response, NextFunction } from "express";
 import { exec } from "child_process";
 import path from "node:path";
 import fs from "node:fs";
+import session from "express-session";
+import passport from "passport";
 import { registerRoutes } from "./routes";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { systemReportService } from "./services/systemReportService";
 import { validateEnvironment } from "./middleware/validation";
 import { errorHandler } from "./middleware/errorHandler";
 import { setupVite, serveStatic, log } from "./vite";
+import { productionSessionConfig } from "./middleware/security";
 import { setupAutoFixMiddleware } from "./autofix-system";
 import {
   compressionMiddleware,
@@ -41,6 +44,10 @@ if (process.env.NODE_ENV === 'development') {
 // Stripe keys will be automatically loaded from Replit Secrets
 
 const app = express();
+
+// CRITICAL: Add JSON parser BEFORE routes
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // Performance optimizations
 app.use(compressionMiddleware);
@@ -209,6 +216,11 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// CRITICAL: Session and Passport setup BEFORE routes
+app.use(session(productionSessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
 
 (async () => {
   // Validate environment variables first
