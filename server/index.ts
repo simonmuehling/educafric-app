@@ -87,10 +87,10 @@ app.get('/favicon.ico', (req, res) => {
   res.sendFile('favicon.ico', { root: 'public' });
 });
 
-// Asset optimizations
+// 🚫 CRITICAL: JS middleware MUST be first to set correct MIME types before Vite
+app.use(jsOptimizationMiddleware);
 app.use(assetOptimizationMiddleware);
 app.use(cssOptimizationMiddleware);
-app.use(jsOptimizationMiddleware);
 app.use(imageOptimizationMiddleware);
 app.use(bundleOptimizationMiddleware);
 

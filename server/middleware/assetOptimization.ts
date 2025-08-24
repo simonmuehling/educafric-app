@@ -47,12 +47,15 @@ export const cssOptimizationMiddleware = (req: Request, res: Response, next: Nex
   next();
 };
 
-// JavaScript optimization for development
+// JavaScript optimization for development with CRITICAL MIME type fix
 export const jsOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (!req.url.match(/\.(js|jsx|ts|tsx)$/)) {
     return next();
   }
 
+  // 🚫 CRITICAL FIX: Set correct MIME type for ES modules to prevent HTML responses
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  
   // Add JS optimization headers
   res.setHeader('X-JS-Optimized', 'true');
   
