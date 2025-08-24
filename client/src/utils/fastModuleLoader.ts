@@ -279,7 +279,7 @@ class FastModuleLoader {
     
     // Now load other modules in background
     const otherModules = [
-      'timetable', 'settings', 'overview', 'notifications', 'help',
+      'timetable', 'director-timetable', 'settings', 'overview', 'notifications', 'help',
       'teachers', 'students', 'classes',
       'subscription', 'children', 'geolocation', 'payments', 'family',
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
