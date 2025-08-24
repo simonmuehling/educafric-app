@@ -78,6 +78,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     schoolSettings: language === 'fr' ? 'Paramètres École' : 'School Settings'
   };
 
+  // 🎯 TOUS LES MODULES DIRECTEUR - 9 modules optimisés
   const modules = [
     {
       id: 'teachers',
@@ -120,6 +121,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-violet-500',
       component: createInstantModule('FunctionalDirectorReports')
+    },
+    {
+      id: 'communication',
+      label: t.communication,
+      icon: <MessageSquare className="w-6 h-6" />,
+      color: 'bg-cyan-500',
+      component: createInstantModule('CommunicationsCenter')
     },
     {
       id: 'help',
