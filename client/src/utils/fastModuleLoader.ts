@@ -34,6 +34,8 @@ class FastModuleLoader {
       'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
       'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'timetable-configuration': () => import('@/components/director/modules/TimetableConfiguration'),
+      'timetable': () => import('@/components/director/modules/TimetableConfiguration'),
       'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
