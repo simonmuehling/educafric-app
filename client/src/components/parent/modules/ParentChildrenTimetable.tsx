@@ -112,7 +112,7 @@ const ParentChildrenTimetable: React.FC = () => {
 
   if (mockChildren.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
         <div className="max-w-4xl mx-auto">
           <Card className="text-center py-12">
             <CardContent>
@@ -131,7 +131,7 @@ const ParentChildrenTimetable: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <Card>
