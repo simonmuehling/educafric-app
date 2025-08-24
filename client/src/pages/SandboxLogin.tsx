@@ -169,7 +169,7 @@ const SandboxLogin = () => {
 
       if (response.ok) {
         const userData = await response.json();
-        console.log('✅ Sandbox login successful, navigating to dashboard:', userData);
+        console.log('✅ Sandbox login successful - INSTANT navigation to dashboard:', userData);
         
         // Navigate to role-specific dashboard immediately
         const roleRoutes = {
@@ -183,12 +183,10 @@ const SandboxLogin = () => {
         };
         
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        console.log('🎯 Navigating to:', targetRoute);
+        console.log('🚀 INSTANT Demo Access:', targetRoute);
         
-        // Navigate using wouter
-        setTimeout(() => {
-          setLocation(targetRoute);
-        }, 100);
+        // INSTANT navigation - no delay for client presentations
+        setLocation(targetRoute);
       } else {
         const error = await response.json();
         console.error('Sandbox login failed:', error);
@@ -302,12 +300,12 @@ const SandboxLogin = () => {
                 <Button
                   onClick={() => handleSandboxLogin(profile)}
                   disabled={isLogging === profile.id}
-                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium`}
+                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium transition-all duration-200 hover:scale-105`}
                 >
                   {isLogging === profile.id ? (
                     <>
                       <TestTube className="w-4 h-4 mr-2 animate-spin" />
-                      {language === 'fr' ? 'Connexion...' : 'Connecting...'}
+                      {language === 'fr' ? 'Connexion Automatique...' : 'Auto-Login...'}
                     </>
                   ) : profile.id === 'notifications' ? (
                     <>
@@ -317,7 +315,7 @@ const SandboxLogin = () => {
                   ) : (
                     <>
                       <Play className="w-4 h-4 mr-2" />
-                      {language === 'fr' ? 'Accéder au Dashboard' : 'Access Dashboard'}
+                      {language === 'fr' ? '🚀 Démo Instantanée' : '🚀 Instant Demo'}
                     </>
                   )}
                 </Button>
