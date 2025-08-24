@@ -35,6 +35,11 @@ const FunctionalStudentAttendance: React.FC = () => {
   // Fetch attendance data from PostgreSQL API
   const { data: attendanceRecords = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ['/api/student/attendance'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/attendance', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch attendance data');
+      return response.json();
+    },
     enabled: !!user
   });
 
