@@ -594,6 +594,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[ROUTES] Notification routes failed to register:', error);
   }
 
+  // API 404 handler - must be after all API routes
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ 
+      success: false, 
+      message: 'API endpoint not found',
+      path: req.path
+    });
+  });
+
   console.log('All routes configured ✅');
 
   // Create HTTP server
