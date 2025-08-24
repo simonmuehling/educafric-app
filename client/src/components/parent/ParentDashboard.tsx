@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
-import { useFastModules } from '@/utils/fastModuleLoader';
+import { useFastModules } from '@/utils/consolidatedModuleLoader';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,

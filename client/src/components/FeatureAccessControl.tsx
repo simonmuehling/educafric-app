@@ -22,32 +22,26 @@ export default function FeatureAccessControl({
   const { user } = useAuth();
   const { isPremiumUnlocked } = useSandboxPremium();
 
-  // ✅ SANDBOX USERS - ACCÈS ULTRA-RAPIDE (présentations clients critiques)
+  // 🚀 SANDBOX BYPASS TOTAL - AUCUN BLOCAGE PREMIUM EN SANDBOX
   const isSandboxUser = Boolean(
     user?.email?.includes('sandbox') ||
     user?.email?.includes('.demo@') ||
     user?.email?.includes('test.educafric.com') ||
+    user?.email?.endsWith('@test.educafric.com') ||
+    user?.email?.includes('demo') ||
     (user as any)?.sandboxMode ||
     (user as any)?.premiumFeatures ||
     (user?.id && user.id >= 9000) || // Tous les IDs sandbox (9001-9006)
-    isPremiumUnlocked
-  );
-  
-  // Extended demo detection
-  const isAnyDemo = Boolean(
-    user?.email?.includes('demo') || 
-    user?.email?.includes('test') ||
-    isSandboxUser ||
-    window?.location?.hostname.includes('sandbox') ||
-    window?.location?.hostname.includes('test')
+    isPremiumUnlocked ||
+    window?.location?.hostname?.includes('sandbox') ||
+    window?.location?.href?.includes('/sandbox')
   );
 
   // Check if user is school admin (Director, Admin)
   const isSchoolAdmin = user?.role === 'Admin' || user?.role === 'Director';
   
-  // 🚀 SANDBOX ACCESS - ACCÈS INSTANTANÉ POUR PRÉSENTATIONS CLIENTS
-  if (isSandboxUser || isAnyDemo) {
-    console.log('🚀 INSTANT SANDBOX ACCESS: All premium features unlocked for client presentation');
+  // 🚀 SANDBOX ACCESS COMPLET - BYPASS TOTAL
+  if (isSandboxUser) {
     return <>{children}</>;
   }
 

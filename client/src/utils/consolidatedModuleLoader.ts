@@ -202,6 +202,9 @@ export const useConsolidatedModules = () => {
   return { getModule, preloadModule, preloadForRole, isReady };
 };
 
+// ALIAS for dashboard compatibility
+export const useFastModules = useConsolidatedModules;
+
 // AUTO-CLEANUP every 15 minutes
 setInterval(() => {
   consolidatedLoader.cleanup();

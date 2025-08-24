@@ -32,19 +32,22 @@ const PremiumFeatureGate: React.FC<PremiumFeatureGateProps> = ({
   const hasAccess = () => {
     if (!user) return false;
     
-    // ✅ SANDBOX USERS - ACCÈS AUTOMATIQUE COMPLET (pour présentations clients)
+    // 🚀 SANDBOX BYPASS COMPLET - AUCUN BLOCAGE AUTORISÉ
     const isSandboxUser = Boolean(
       user.email?.includes('sandbox') ||
       user.email?.includes('.demo@') ||
       user.email?.includes('test.educafric.com') ||
+      user.email?.endsWith('@test.educafric.com') ||
+      user.email?.includes('demo') ||
       (user as any)?.sandboxMode ||
       (user as any)?.premiumFeatures ||
-      user.id >= 9000 // Tous les IDs sandbox (9001-9006)
+      user.id >= 9000 || // Tous les IDs sandbox (9001-9006)
+      window?.location?.hostname?.includes('sandbox') ||
+      window?.location?.href?.includes('/sandbox')
     );
     
     if (isSandboxUser) {
-      console.log('[PREMIUM_GATE] 🏖️ SANDBOX ACCESS: Auto-granting premium access for client demo');
-      return true;
+      return true; // ACCÈS TOTAL SANS LOGS
     }
     
     // Rôles avec accès gratuit (Teachers et Students n'ont pas besoin d'abonnement)

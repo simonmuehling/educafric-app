@@ -1,5 +1,4 @@
-// DEPRECATED: Use consolidatedModuleLoader.ts instead for ultra-fast loading
-// This file is kept for compatibility only
+// FIXED: Active module loader with correct mappings
 import React from 'react';
 
 interface ModuleCache {

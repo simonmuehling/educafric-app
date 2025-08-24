@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFastModules } from '@/utils/fastModuleLoader';
+import { useFastModules } from '@/utils/consolidatedModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

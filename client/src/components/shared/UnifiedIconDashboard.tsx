@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
-import { useFastModules } from '@/utils/fastModuleLoader';
+import { useFastModules } from '@/utils/consolidatedModuleLoader';
 import { useSmartPreloader } from '@/utils/smartPreloader';
 import OptimizedModuleWrapper from '@/components/ui/OptimizedModuleWrapper';
 
