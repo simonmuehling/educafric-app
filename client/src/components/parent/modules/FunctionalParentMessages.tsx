@@ -50,22 +50,27 @@ const FunctionalParentMessages: React.FC = () => {
     priority: 'medium'
   });
 
-  // Fetch parent messages data from PostgreSQL API
+  // Fetch parent messages data from unified messaging API
   const { data: messages = [], isLoading } = useQuery<ParentMessage[]>({
-    queryKey: ['/api/parent/messages'],
+    queryKey: ['/api/unified-messaging/messages/student-parent'],
     enabled: !!user
   });
 
-  // Create message mutation
+  // Create message mutation - unified system
   const createMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await fetch('/api/parent/messages', {
+      const response = await fetch('/api/unified-messaging/messages/student-parent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(messageData),
+        body: JSON.stringify({
+          connectionId: messageData.connectionId || 1,
+          message: messageData.content,
+          messageType: 'text',
+          priority: messageData.priority || 'normal'
+        }),
       });
       
       if (!response.ok) {

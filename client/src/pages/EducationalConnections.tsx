@@ -65,9 +65,9 @@ export default function EducationalConnections() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Déterminer l'endpoint basé sur l'onglet actif
+  // Déterminer l'endpoint basé sur l'onglet actif - SYSTÈME UNIFIÉ
   const getConnectionsEndpoint = () => {
-    return activeTab === 'teacher-student' ? '/api/teacher-student/connections' : '/api/student-parent/connections';
+    return `/api/unified-messaging/connections/${activeTab}`;
   };
 
   // Récupérer les connexions
@@ -85,14 +85,12 @@ export default function EducationalConnections() {
 
   const connections = connectionsResponse?.data || [];
 
-  // Récupérer les messages d'une connexion
+  // Récupérer les messages d'une connexion - SYSTÈME UNIFIÉ
   const { data: messagesResponse, isLoading: messagesLoading } = useQuery({
-    queryKey: ['messages', activeTab, selectedConnection?.id],
+    queryKey: ['unified-messages', activeTab, selectedConnection?.id],
     queryFn: () => {
       if (!selectedConnection) return { data: [] };
-      const endpoint = activeTab === 'teacher-student' 
-        ? `/api/teacher-student/messages/${selectedConnection.id}`
-        : `/api/student-parent/messages/${selectedConnection.id}`;
+      const endpoint = `/api/unified-messaging/messages/${activeTab}/${selectedConnection.id}`;
       return fetch(endpoint).then(res => res.json());
     },
     enabled: !!selectedConnection
@@ -100,12 +98,10 @@ export default function EducationalConnections() {
 
   const messages = messagesResponse?.data || [];
 
-  // Rechercher des utilisateurs
+  // Rechercher des utilisateurs - SYSTÈME UNIFIÉ
   const searchUsersMutation = useMutation({
     mutationFn: async (data: { searchValue: string; searchType: string }) => {
-      const endpoint = activeTab === 'teacher-student' 
-        ? '/api/teacher-student/search-students'
-        : '/api/student-parent/search-parents';
+      const endpoint = `/api/unified-messaging/connections/${activeTab}/search`;
       
       const response = await fetch(endpoint, {
         method: 'POST',

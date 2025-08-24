@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Send, Users, School, User, Clock, CheckCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 const Communications = () => {
   const { language } = useLanguage();
@@ -72,7 +73,32 @@ const Communications = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch classes for message targeting
+  // Fetch classes for message targeting - SYSTÈME UNIFIÉ
+  const { data: classesResponse } = useQuery({
+    queryKey: ['/api/director/classes'],
+    queryFn: () => apiRequest('/api/director/classes')
+  });
+
+  const classes = classesResponse?.data || [];
+
+  // Send unified message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      return apiRequest('/api/unified-messaging/messages/school-announcement', {
+        method: 'POST',
+        data: {
+          connectionType: 'school-announcement',
+          message: messageData.message,
+          messageType: 'text',
+          priority: messageData.priority || 'normal',
+          recipients: messageData.recipients
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unified-messages'] });
+    }
+  });
   const { data: classes = [] } = useQuery({
     queryKey: ['/api/classes'],
     queryFn: async () => {

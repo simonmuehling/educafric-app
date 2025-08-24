@@ -43,20 +43,25 @@ const FunctionalTeacherCommunications: React.FC = () => {
     message: ''
   });
 
-  // Fetch teacher communications data from PostgreSQL API
+  // Fetch teacher communications data from UNIFIED messaging system
   const { data: communications = [], isLoading } = useQuery<Communication[]>({
-    queryKey: ['/api/teacher/communications'],
+    queryKey: ['/api/unified-messaging/messages/teacher-student'],
     enabled: !!user
   });
 
-  // Mutation pour envoyer des messages
+  // Mutation pour envoyer des messages - SYSTÈME UNIFIÉ
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      return await apiRequest('/api/communications/send', 'POST', messageData);
+      return await apiRequest('/api/unified-messaging/messages/teacher-student', 'POST', {
+        connectionId: messageData.connectionId || 1,
+        message: messageData.message,
+        messageType: 'text',
+        priority: messageData.priority || 'normal'
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/teacher/communications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/communications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/unified-messaging/messages/teacher-student'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-messages'] });
       toast({
         title: language === 'fr' ? 'Message envoyé' : 'Message sent',
         description: language === 'fr' ? 'Votre message a été envoyé avec succès et notifications envoyées' : 'Your message has been sent successfully and notifications sent'
