@@ -269,57 +269,55 @@ const FunctionalFreelancerStudents: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActions
-            actions={[
-              {
-                icon: <UserPlus className="w-5 h-5" />,
-                label: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
-                onClick: async () => {
-                  console.log('[FREELANCER_STUDENTS] 👥 Adding student...');
-                  try {
-                    // Mock student data for demo
-                    const studentData = {
-                      firstName: 'Jean',
-                      lastName: 'Dupont',
-                      email: 'jean.dupont@email.com',
-                      phone: '+237 6 90 000 001',
-                      grade: '6ème',
-                      subject: 'Mathématiques',
-                      parentContact: '+237 6 90 000 000'
-                    };
-                    
-                    const response = await fetch('/api/freelancer/students', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ studentData })
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                      toast({
-                        title: language === 'fr' ? 'Élève ajouté' : 'Student Added',
-                        description: language === 'fr' ? `${studentData.firstName} ${studentData.lastName} ajouté avec succès` : `${studentData.firstName} ${studentData.lastName} added successfully`
-                      });
-                    } else {
-                      throw new Error(result.message);
-                    }
-                  } catch (error) {
-                    console.error('[FREELANCER_STUDENTS] Error adding student:', error);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <button
+              onClick={async () => {
+                console.log('[FREELANCER_STUDENTS] 👥 Adding student...');
+                try {
+                  // Mock student data for demo
+                  const studentData = {
+                    firstName: 'Jean',
+                    lastName: 'Dupont',
+                    email: 'jean.dupont@email.com',
+                    phone: '+237 6 90 000 001',
+                    grade: '6ème',
+                    subject: 'Mathématiques',
+                    parentContact: '+237 6 90 000 000'
+                  };
+                  
+                  const response = await fetch('/api/freelancer/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ studentData })
+                  });
+                  
+                  const result = await response.json();
+                  
+                  if (response.ok) {
                     toast({
-                      title: language === 'fr' ? 'Erreur' : 'Error',
-                      description: language === 'fr' ? 'Impossible d\'ajouter l\'élève' : 'Unable to add student',
-                      variant: 'destructive'
+                      title: language === 'fr' ? 'Élève ajouté' : 'Student Added',
+                      description: language === 'fr' ? `${studentData.firstName} ${studentData.lastName} ajouté avec succès` : `${studentData.firstName} ${studentData.lastName} added successfully`
                     });
+                  } else {
+                    throw new Error(result.message);
                   }
-                },
-                variant: 'primary'
-              },
-              {
-                icon: <Clock className="w-5 h-5" />,
-                label: language === 'fr' ? 'Programmer Cours' : 'Schedule Session',
-                onClick: async () => {
+                } catch (error) {
+                  console.error('[FREELANCER_STUDENTS] Error adding student:', error);
+                  toast({
+                    title: language === 'fr' ? 'Erreur' : 'Error',
+                    description: language === 'fr' ? 'Impossible d\'ajouter l\'élève' : 'Unable to add student',
+                    variant: 'destructive'
+                  });
+                }
+              }}
+              className="flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Ajouter Élève' : 'Add Student'}
+            </button>
+            <button
+              onClick={async () => {
                   console.log('[FREELANCER_STUDENTS] 📅 Scheduling session...');
                   try {
                     // Mock session data for demo
@@ -356,38 +354,38 @@ const FunctionalFreelancerStudents: React.FC = () => {
                       variant: 'destructive'
                     });
                   }
-                },
-                color: 'bg-green-600 hover:bg-green-700'
-              },
-              {
-                id: 'send-progress-report',
-                label: language === 'fr' ? 'Rapport Progrès' : 'Progress Report',
-                icon: <FileText className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Rapport de Progrès' : 'Progress Report',
-                    description: language === 'fr' ? 'Génération rapport en cours' : 'Generating progress report',
-                  });
-                },
-                color: 'bg-purple-600 hover:bg-purple-700'
-              },
-              {
-                id: 'contact-parents',
-                label: language === 'fr' ? 'Contacter Parents' : 'Contact Parents',
-                icon: <Mail className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Communications' : 'Communications',
-                    description: language === 'fr' ? 'Module de communication parents ouvert' : 'Parent communication module opened',
-                  });
-                },
-                color: 'bg-orange-600 hover:bg-orange-700'
-              },
-              {
-                id: 'export-students',
-                label: language === 'fr' ? 'Exporter Liste' : 'Export List',
-                icon: <Download className="w-5 h-5" />,
-                onClick: () => {
+              }}
+              className="flex items-center justify-center p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+            >
+              <Clock className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Programmer Cours' : 'Schedule Session'}
+            </button>
+            <button
+              onClick={() => {
+                toast({
+                  title: language === 'fr' ? 'Rapport de Progrès' : 'Progress Report',
+                  description: language === 'fr' ? 'Génération rapport en cours' : 'Generating progress report',
+                });
+              }}
+              className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Rapport Progrès' : 'Progress Report'}
+            </button>
+            <button
+              onClick={() => {
+                toast({
+                  title: language === 'fr' ? 'Communications' : 'Communications',
+                  description: language === 'fr' ? 'Module de communication parents ouvert' : 'Parent communication module opened',
+                });
+              }}
+              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+            >
+              <Mail className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Contacter Parents' : 'Contact Parents'}
+            </button>
+            <button
+              onClick={() => {
                   const csvContent = [
                     ['Nom,Email,Niveau,Moyenne,Statut,Prochaine_Session'],
                     ...(Array.isArray(students) ? students : []).map(student => [
@@ -418,11 +416,13 @@ const FunctionalFreelancerStudents: React.FC = () => {
                     title: language === 'fr' ? 'Export terminé' : 'Export completed',
                     description: language === 'fr' ? 'Liste des élèves exportée' : 'Student list exported',
                   });
-                },
-                color: 'bg-teal-600 hover:bg-teal-700'
-              }
-            ]}
-          />
+              }}
+              className="flex items-center justify-center p-4 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Exporter Liste' : 'Export List'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 

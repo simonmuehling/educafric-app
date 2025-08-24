@@ -306,35 +306,33 @@ const FunctionalStudentGrades: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-              {
-                id: 'contact-teacher',
-                label: language === 'fr' ? 'Contacter Professeur' : 'Contact Teacher',
-                icon: <Mail className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Communication' : 'Communication',
-                    description: language === 'fr' ? 'Module de communication ouvert' : 'Communication module opened',
-                  });
-                },
-                color: 'bg-green-600 hover:bg-green-700'
-              },
-              {
-                id: 'view-report',
-                label: language === 'fr' ? 'Bulletin de Notes' : 'Report Card',
-                icon: <FileText className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Bulletin' : 'Report Card',
-                    description: language === 'fr' ? 'Accès au bulletin de notes' : 'Accessing report card',
-                  });
-                },
-                color: 'bg-purple-600 hover:bg-purple-700'
-              },
-              {
-                id: 'download-grades',
-                label: language === 'fr' ? 'Télécharger Notes' : 'Download Grades',
-                icon: <Download className="w-5 h-5" />,
-                onClick: () => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <button
+              onClick={() => {
+                toast({
+                  title: language === 'fr' ? 'Communication' : 'Communication',
+                  description: language === 'fr' ? 'Module de communication ouvert' : 'Communication module opened',
+                });
+              }}
+              className="flex items-center justify-center p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+            >
+              <Mail className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Contacter Professeur' : 'Contact Teacher'}
+            </button>
+            <button
+              onClick={() => {
+                toast({
+                  title: language === 'fr' ? 'Bulletin' : 'Report Card',
+                  description: language === 'fr' ? 'Accès au bulletin de notes' : 'Accessing report card',
+                });
+              }}
+              className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            >
+              <FileText className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Bulletin de Notes' : 'Report Card'}
+            </button>
+            <button
+              onClick={() => {
                   const csvContent = [
                     ['Matiere,Note,Note_Max,Coefficient,Type,Date,Professeur'],
                     ...(Array.isArray(grades) ? grades : []).map(grade => [
@@ -366,11 +364,13 @@ const FunctionalStudentGrades: React.FC = () => {
                     title: language === 'fr' ? 'Export terminé' : 'Export completed',
                     description: language === 'fr' ? 'Notes exportées en CSV' : 'Grades exported as CSV',
                   });
-                },
-                color: 'bg-orange-600 hover:bg-orange-700'
-              }
-            ]}
-          />
+              }}
+              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              {language === 'fr' ? 'Télécharger Notes' : 'Download Grades'}
+            </button>
+          </div>
         </CardContent>
       </Card>
 
