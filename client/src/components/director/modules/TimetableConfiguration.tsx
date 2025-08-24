@@ -66,20 +66,24 @@ const TimetableConfiguration: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         // Convert sandbox format to table format
-        const tableData = [];
-        Object.entries(data.schedule || {}).forEach(([day, slots]: [string, any]) => {
-          slots.forEach((slot: any, index: number) => {
-            tableData.push({
-              id: `${day}-${index}`,
-              className: data.class,
-              day: day,
-              timeSlot: slot.time,
-              subject: slot.subject,
-              teacher: slot.teacher,
-              room: slot.room
-            });
+        const tableData: any[] = [];
+        if (data.schedule) {
+          Object.entries(data.schedule).forEach(([day, slots]: [string, any]) => {
+            if (slots && Array.isArray(slots)) {
+              slots.forEach((slot: any, index: number) => {
+                tableData.push({
+                  id: `${day}-${index}`,
+                  className: data.class,
+                  day: day,
+                  timeSlot: slot.time,
+                  subject: slot.subject,
+                  teacher: slot.teacher,
+                  room: slot.room
+                });
+              });
+            }
           });
-        });
+        }
         setTimetables(tableData);
       }
     } catch (error) {
