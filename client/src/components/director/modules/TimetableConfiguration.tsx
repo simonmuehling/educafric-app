@@ -260,58 +260,148 @@ const TimetableConfiguration: React.FC = () => {
           />
         )}
 
-        {/* Timetable List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{language === 'fr' ? 'Emplois du Temps Existants' : 'Existing Timetables'}</CardTitle>
+        {/* Vue Grille de l'Emploi du Temps - Style École Moderne */}
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <CardTitle className="flex items-center text-xl">
+              <Calendar className="w-6 h-6 mr-2" />
+              {language === 'fr' ? 'Emploi du Temps École - Vue Hebdomadaire' : 'School Timetable - Weekly View'}
+            </CardTitle>
+            <p className="text-blue-100">
+              {language === 'fr' ? 'Gestion complète avec professeurs africains et matières modernes' : 'Complete management with African teachers and modern subjects'}
+            </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {loading ? (
-              <p>{language === 'fr' ? 'Chargement...' : 'Loading...'}</p>
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">{language === 'fr' ? 'Chargement des données africaines...' : 'Loading African data...'}</p>
+              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left p-2">{language === 'fr' ? 'Classe' : 'Class'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Jour' : 'Day'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Horaire' : 'Time'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Matière' : 'Subject'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Professeur' : 'Teacher'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Salle' : 'Room'}</th>
-                      <th className="text-left p-2">{language === 'fr' ? 'Actions' : 'Actions'}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(Array.isArray(timetables) ? timetables : []).map((entry) => (
-                      <tr key={entry.id} className="border-b hover:bg-gray-50">
-                        <td className="p-2">{entry.className}</td>
-                        <td className="p-2">{entry.day}</td>
-                        <td className="p-2">{entry.timeSlot}</td>
-                        <td className="p-2">{entry.subject}</td>
-                        <td className="p-2">{entry.teacher}</td>
-                        <td className="p-2">{entry.room}</td>
-                        <td className="p-2">
-                          <div className="flex gap-1">
-                            <Button size="sm" variant="outline" onClick={() => handleEdit(entry)}>
-                              <Edit3 className="w-3 h-3" />
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => handleDelete(entry.id)}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {(Array.isArray(timetables) ? timetables.length : 0) === 0 && (
-                  <p className="text-center py-8 text-gray-500">
-                    {language === 'fr' ? 'Aucun emploi du temps créé' : 'No timetables created yet'}
-                  </p>
-                )}
+              <div className="grid grid-cols-7 divide-x divide-gray-200">
+                {/* Header avec jours */}
+                <div className="bg-gray-50 p-3 font-semibold text-center text-gray-700">
+                  {language === 'fr' ? 'Horaires' : 'Time'}
+                </div>
+                {['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map((day, index) => (
+                  <div key={day} className="bg-gradient-to-br from-blue-50 to-purple-50 p-3 font-semibold text-center text-blue-800">
+                    {language === 'fr' ? day : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][index]}
+                  </div>
+                ))}
+                
+                {/* Créneaux horaires avec cours */}
+                {timeSlots.map((timeSlot, timeIndex) => (
+                  <React.Fragment key={timeSlot}>
+                    {/* Colonne horaire */}
+                    <div className="bg-gray-50 p-2 text-sm font-medium text-center border-r text-gray-600">
+                      {timeSlot}
+                    </div>
+                    
+                    {/* Colonnes des jours */}
+                    {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].map((dayKey, dayIndex) => {
+                      // Trouver les cours pour ce jour et cette heure
+                      const coursesForSlot = (Array.isArray(timetables) ? timetables : []).filter((entry: any) => 
+                        entry.day === dayKey && entry.timeSlot === timeSlot
+                      );
+                      
+                      return (
+                        <div key={`${dayKey}-${timeSlot}`} className="min-h-[80px] p-1 border-b">
+                          {coursesForSlot.length > 0 ? (
+                            <div className="space-y-1">
+                              {coursesForSlot.map((course: any) => (
+                                <div 
+                                  key={course.id}
+                                  className={`p-2 rounded-lg text-xs shadow-sm border-l-4 cursor-pointer hover:shadow-md transition-shadow ${
+                                    course.subject === 'Mathématiques' ? 'bg-blue-100 border-blue-500 text-blue-800' :
+                                    course.subject === 'Français' ? 'bg-green-100 border-green-500 text-green-800' :
+                                    course.subject === 'IA & Numérique' ? 'bg-purple-100 border-purple-500 text-purple-800' :
+                                    course.subject === 'Robotique' ? 'bg-orange-100 border-orange-500 text-orange-800' :
+                                    course.subject === 'Sciences' ? 'bg-teal-100 border-teal-500 text-teal-800' :
+                                    'bg-gray-100 border-gray-500 text-gray-800'
+                                  }`}
+                                  onClick={() => handleEdit(course)}
+                                >
+                                  <div className="font-semibold truncate">{course.subject}</div>
+                                  <div className="text-xs opacity-75">{course.className}</div>
+                                  <div className="text-xs opacity-75 truncate">{course.teacher}</div>
+                                  <div className="text-xs opacity-60">{course.room}</div>
+                                  <div className="flex gap-1 mt-1">
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-4 w-4 p-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEdit(course);
+                                      }}
+                                    >
+                                      <Edit3 className="w-3 h-3" />
+                                    </Button>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-4 w-4 p-0 text-red-500"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(course.id);
+                                      }}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div 
+                              className="h-full min-h-[70px] border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  day: dayKey,
+                                  timeSlot: timeSlot
+                                });
+                                setShowCreateForm(true);
+                              }}
+                            >
+                              <Plus className="w-4 h-4 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
               </div>
             )}
+            
+            {/* Statistiques de l'école */}
+            <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-t">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{Array.isArray(timetables) ? timetables.length : 0}</div>
+                  <div className="text-sm text-gray-600">{language === 'fr' ? 'Créneaux Total' : 'Total Slots'}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {Array.isArray(timetables) ? new Set(timetables.map((t: any) => t.teacher)).size : 0}
+                  </div>
+                  <div className="text-sm text-gray-600">{language === 'fr' ? 'Professeurs' : 'Teachers'}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {Array.isArray(timetables) ? new Set(timetables.map((t: any) => t.subject)).size : 0}
+                  </div>
+                  <div className="text-sm text-gray-600">{language === 'fr' ? 'Matières' : 'Subjects'}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {Array.isArray(timetables) ? new Set(timetables.map((t: any) => t.className)).size : 0}
+                  </div>
+                  <div className="text-sm text-gray-600">{language === 'fr' ? 'Classes' : 'Classes'}</div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
