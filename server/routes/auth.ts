@@ -130,14 +130,18 @@ passport.deserializeUser(async (id: string | number, done) => {
 // Authentication routes
 router.get('/me', async (req, res) => {
   try {
+    // Debug session info
+    console.log('[AUTH_DEBUG] /me request - Session ID:', req.sessionID);
+    console.log('[AUTH_DEBUG] /me request - Authenticated:', req.isAuthenticated());
+    console.log('[AUTH_DEBUG] /me request - User:', req.user?.id, req.user?.email);
+    console.log('[AUTH_DEBUG] /me request - Session data:', JSON.stringify(req.session, null, 2));
+    
     if (!req.isAuthenticated()) {
-      // Only log minimal non-sensitive information for security auditing
-      console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+      console.log(`[AUTH_DEBUG] Authentication failed for session: ${req.sessionID}`);
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    // Only log successful authentication without sensitive user data
-    console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+    console.log(`[AUTH_SUCCESS] User authenticated: ${req.user?.email}`);
     res.json({ user: req.user });
   } catch (error) {
     console.error('[AUTH_ERROR] Error processing authentication:', error);
