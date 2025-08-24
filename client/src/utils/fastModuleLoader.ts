@@ -55,7 +55,7 @@ class FastModuleLoader {
       'StudentManagement': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
       'BulletinValidation': () => import('@/components/director/modules/BulletinApprovalNew'),
-      'AttendanceManagement': () => import('@/components/director/modules/AttendanceManagement'),
+      'AttendanceManagement': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'Communications': () => import('@/components/director/modules/Communications'),
       'SchoolSettings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagementFunctional'),

@@ -123,6 +123,7 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
   // Always fetch email preferences (moved out of conditional rendering)
   const { data: emailPrefs, isLoading: emailPrefsLoading } = useQuery({
     queryKey: ['/api/email-preferences'],
+    queryFn: () => apiRequest('/api/email-preferences', 'GET'),
     retry: false,
   });
 
@@ -150,8 +151,8 @@ const UnifiedProfileManager: React.FC<UnifiedProfileManagerProps> = ({
 
   // Load email preferences when data is available (always executed)
   useEffect(() => {
-    if (emailPrefs) {
-      setEmailPreferences(emailPrefs);
+    if (emailPrefs && typeof emailPrefs === 'object') {
+      setEmailPreferences(emailPrefs as any);
     } else if (user && !emailPrefsLoading) {
       // Initialize with defaults if no preferences exist
       const defaults = initializeEmailPreferences(userType);

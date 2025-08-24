@@ -111,7 +111,7 @@ class ModulePreloader {
           break;
         case 'AttendanceManagement':
         case 'attendance':
-          componentImport = await import('@/components/director/modules/AttendanceManagement');
+          componentImport = await import('@/components/director/modules/SchoolAttendanceManagement');
           break;
         case 'Communications':
         case 'settings':
