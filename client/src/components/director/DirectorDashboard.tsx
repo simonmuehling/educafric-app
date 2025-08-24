@@ -40,6 +40,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
         '/api/director/classes',
         '/api/director/analytics',
         '/api/director/settings',
+        '/api/director/profile',
         '/api/timetables'
       ];
       
