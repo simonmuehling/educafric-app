@@ -45,20 +45,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(userData);
       
-      // Minimal logging for performance
+      // Minimal logging for performance - only in dev
       if (import.meta.env.DEV) {
         console.log(`Login successful: ${userData.firstName} ${userData.lastName} (${userData.role})`);
       }
       
-      // Lightweight confetti for fast login
-      confetti({
-        particleCount: 50,
-        spread: 50,
-        origin: { y: 0.7 }
-      });
+      // Skip confetti for sandbox logins for speed
+      if (!userData.email?.includes('sandbox')) {
+        confetti({
+          particleCount: 30,
+          spread: 40,
+          origin: { y: 0.7 }
+        });
+      }
       
-      // Force check auth status after successful login
-      await checkAuthStatus();
+      // Skip auth check for sandbox users (already verified)
+      if (!userData.email?.includes('sandbox')) {
+        await checkAuthStatus();
+      }
       
       // Immediate navigation to dashboard (no delay)
       setLocation('/dashboard');
@@ -100,11 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(newUser.message || 'Registration failed');
       }
       
-      // Registration notification only in dev mode for performance
+      // Minimal registration logging in dev only
       if (import.meta.env.DEV) {
-        const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
-        const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
-        console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email || ''}`);
+        console.log(`Registration successful: ${userData.role}`);
       }
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -129,8 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.message || 'Failed to send password reset email');
       }
       
+      // Minimal logging for password reset
       if (import.meta.env.DEV) {
-        console.log(`📧 Password reset requested for: ${email}`);
+        console.log('Password reset requested');
       }
     } catch (error: any) {
       console.error('Password reset request error:', error);
@@ -157,8 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.message || 'Failed to reset password');
       }
       
+      // Minimal logging for password reset success
       if (import.meta.env.DEV) {
-        console.log('🔐 Password reset successful');
+        console.log('Password reset successful');
       }
     } catch (error: any) {
       console.error('Password reset error:', error);

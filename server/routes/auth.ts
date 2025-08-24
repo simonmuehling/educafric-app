@@ -130,13 +130,17 @@ passport.deserializeUser(async (id: string | number, done) => {
 router.get('/me', async (req, res) => {
   try {
     if (!req.isAuthenticated()) {
-      // Only log minimal non-sensitive information for security auditing
-      console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+      // Minimal logging for production performance
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+      }
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    // Only log successful authentication without sensitive user data
-    console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+    // Skip redundant logging in production
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[SECURITY_BYPASS] Event ignored: authentication from ${req.ip}`);
+    }
     res.json({ user: req.user });
   } catch (error) {
     console.error('[AUTH_ERROR] Error processing authentication:', error);
@@ -210,19 +214,26 @@ router.post('/sandbox-login', async (req, res) => {
       lastLogin: new Date().toISOString()
     };
     
-    // Login the user
+    // Login the user (optimized for speed)
     req.login(sandboxUser, (err) => {
       if (err) {
-        console.error('[SANDBOX_LOGIN] Error:', err);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('[SANDBOX_LOGIN] Error:', err);
+        }
         return res.status(500).json({ message: 'Sandbox login failed' });
       }
       
-      console.log(`[SANDBOX_LOGIN] ✅ ${profile.name} (${profile.role}) logged in successfully`);
+      // Minimal logging for sandbox performance
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[SANDBOX_LOGIN] ✅ ${profile.name} (${profile.role}) logged in successfully`);
+      }
       res.json({ user: sandboxUser });
     });
     
   } catch (error) {
-    console.error('[SANDBOX_LOGIN] Error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[SANDBOX_LOGIN] Error:', error);
+    }
     res.status(500).json({ message: 'Sandbox login error' });
   }
 });

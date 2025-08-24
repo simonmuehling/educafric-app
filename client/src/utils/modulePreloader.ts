@@ -13,54 +13,38 @@ class ModulePreloader {
   private cache: ModuleCache = {};
   private preloadQueue: string[] = [];
   private isPreloading = false;
-  private maxCacheSize = 10; // Limit cache to prevent memory issues
+  private maxCacheSize = 15; // Increased cache size for better performance
+  private preloadBatch = 3; // Load only 3 modules at a time
 
-  // Preload critical modules immediately
+  // Preload only essential modules immediately
   async preloadCriticalModules() {
+    // Only preload the most essential modules on startup
     const criticalModules = [
-      // Commercial modules
-      'DocumentsContracts',
-      'CommercialStatistics', 
-      'ContactsManagement',
-      'MySchools',
-      'WhatsAppManager',
-      'CommercialCRM',
-      'CallsAppointments',
-      
-      // Director/School modules
-      'AdministratorManagement',
-      'AttendanceManagement', 
-      'ClassManagement',
-      'BulletinValidation',
-      'Communications',
-      'StudentManagement',
-      'TeacherManagement',
-      
-      // Parent modules
       'MyChildren',
-      'FunctionalParentMessages',
-      'ParentAttendance',
-      'BulletinVerification',
-      'FamilyConnections',
-      'ParentGeolocation',
-      'FunctionalParentPayments',
-      'ParentSubscription',
-      'DeviceConfigurationGuide',
-      'FunctionalParentGrades'
+      'StudentManagement',
+      'CommercialStatistics'
     ];
 
+    // Load critical modules one by one to avoid overwhelming
     for (const moduleName of criticalModules) {
-      this.preloadModule(moduleName);
+      await this.preloadModule(moduleName);
     }
   }
 
-  // Preload module asynchronously
+  // Preload module asynchronously with throttling
   async preloadModule(moduleName: string) {
     if (this.cache[moduleName]?.isLoaded) {
       this.cache[moduleName].lastAccess = Date.now();
       return this.cache[moduleName].component;
     }
 
+    // Prevent too many concurrent loads
+    if (this.isPreloading) {
+      this.preloadQueue.push(moduleName);
+      return null;
+    }
+
+    this.isPreloading = true;
     try {
       let componentImport;
       
@@ -176,8 +160,20 @@ class ModulePreloader {
       this.cleanupCache();
       return component;
     } catch (error) {
-      console.error(`Failed to preload module ${moduleName}:`, error);
+      if (import.meta.env.DEV) {
+        console.warn(`Failed to preload module ${moduleName}:`, error);
+      }
       return null;
+    } finally {
+      this.isPreloading = false;
+      
+      // Process next item in queue
+      if (this.preloadQueue.length > 0) {
+        const nextModule = this.preloadQueue.shift();
+        if (nextModule) {
+          setTimeout(() => this.preloadModule(nextModule), 100);
+        }
+      }
     }
   }
 
@@ -208,22 +204,24 @@ class ModulePreloader {
     });
   }
 
-  // Preload based on usage patterns
+  // Preload based on usage patterns (optimized)
   predictivePreload(currentModule: string) {
     const patterns = {
-      'DocumentsContracts': ['CommercialStatistics', 'ContactsManagement'],
-      'CommercialStatistics': ['DocumentsContracts', 'MySchools'],
-      'ContactsManagement': ['WhatsAppManager', 'CommercialCRM'],
-      'MySchools': ['ContactsManagement', 'CommercialStatistics'],
-      'WhatsAppManager': ['ContactsManagement', 'CallsAppointments']
+      'MyChildren': ['FunctionalParentGrades', 'ParentAttendance'],
+      'StudentManagement': ['TeacherManagement', 'ClassManagement'],
+      'CommercialStatistics': ['DocumentsContracts', 'ContactsManagement'],
+      'FunctionalParentGrades': ['BulletinVerification', 'ParentAttendance'],
+      'TeacherManagement': ['StudentManagement', 'ClassManagement']
     };
 
     const nextModules = patterns[currentModule as keyof typeof patterns] || [];
-    nextModules.forEach(module => {
-      if (!this.cache[module]?.isLoaded) {
-        this.preloadModule(module);
+    // Only preload 1 module at a time to avoid overload
+    if (nextModules.length > 0 && !this.isPreloading) {
+      const nextModule = nextModules[0];
+      if (!this.cache[nextModule]?.isLoaded) {
+        setTimeout(() => this.preloadModule(nextModule), 200);
       }
-    });
+    }
   }
 
   // Get cache status for debugging

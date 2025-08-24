@@ -24,30 +24,31 @@ const InstantModuleContainer = memo(function InstantModuleContainer({
   moduleName,
   onModuleLoad
 }: InstantModuleContainerProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const { predictivePreload, getCacheStatus } = useModulePreloader();
+  const [isVisible, setIsVisible] = useState(true); // Start visible for instant loading
+  const { predictivePreload } = useModulePreloader();
 
   useEffect(() => {
-    // Intersection Observer for performance
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          if (moduleName) {
+    // Delayed intersection observer for better performance
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && moduleName) {
             predictivePreload(moduleName);
             onModuleLoad?.(moduleName);
           }
-        }
-      },
-      { threshold: 0.1 }
-    );
+        },
+        { threshold: 0.2, rootMargin: '50px' }
+      );
 
-    const element = document.getElementById(`module-${title.replace(/\s+/g, '-').toLowerCase()}`);
-    if (element) {
-      observer.observe(element);
-    }
+      const element = document.getElementById(`module-${title.replace(/\s+/g, '-').toLowerCase()}`);
+      if (element) {
+        observer.observe(element);
+      }
 
-    return () => observer.disconnect();
+      return () => observer.disconnect();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [title, moduleName, predictivePreload, onModuleLoad]);
 
   return (
@@ -70,11 +71,9 @@ const InstantModuleContainer = memo(function InstantModuleContainer({
       
       {/* Instant Module Content */}
       <div className="space-y-6">
-        {isVisible ? (
-          children
-        ) : (
-          <div className="h-32 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-gray-400">Chargement du module...</div>
+        {children || (
+          <div className="h-24 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="w-5 h-5 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </div>

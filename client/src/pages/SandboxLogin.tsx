@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationTester from '@/components/sandbox/NotificationTester';
+import { FastLoader } from '@/utils/fastLoader';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
   Settings, Shield, Play, TestTube, Zap, Crown, Bell,
@@ -153,10 +154,10 @@ const SandboxLogin = () => {
       return;
     }
 
-    // ⚡ SANDBOX RAPIDE ET SIMPLE - Optimisé pour présentations
-    console.log('🚀 Sandbox Access:', profile.name, profile.role);
+    // Optimized instant sandbox connection
+    setIsLogging(profile.id);
     
-    // Authentication d'abord (rapide et fiable)
+    // Fast authentication with minimal overhead
     try {
       const response = await fetch('/api/auth/sandbox-login', {
         method: 'POST',
@@ -170,9 +171,10 @@ const SandboxLogin = () => {
       });
 
       if (response.ok) {
-        console.log('✅ Sandbox authentication successful:', profile.name);
+        // Preload role-specific modules for instant performance
+        FastLoader.preloadSandboxModules(profile.role);
         
-        // Navigation immédiate après connexion réussie
+        // Immediate navigation - no waiting
         const roleRoutes = {
           Parent: '/parent',
           Student: '/student', 
@@ -184,14 +186,18 @@ const SandboxLogin = () => {
         };
         
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        console.log('🎯 Navigating to:', targetRoute);
-        
         setLocation(targetRoute);
       } else {
-        console.error('Sandbox login failed');
+        if (import.meta.env.DEV) {
+          console.error('Sandbox login failed');
+        }
       }
     } catch (error) {
-      console.error('Sandbox login error:', error);
+      if (import.meta.env.DEV) {
+        console.error('Sandbox login error:', error);
+      }
+    } finally {
+      setIsLogging(null);
     }
   };
 
