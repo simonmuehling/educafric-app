@@ -18,7 +18,7 @@ import Login from "@/pages/Login";
 import PasswordReset from "@/pages/PasswordReset";
 import NotFound from "@/pages/not-found";
 
-// UNIFIED MODULE LOADING - Eliminates Fast/Lazy confusion for 3500+ users
+// CONSOLIDATED MODULE LOADING - Ultra-fast unified system for 3500+ users
 import { 
   LazyStudents, 
   LazyTeachers, 
@@ -46,8 +46,8 @@ import {
 // Initialize network optimizer for connection quality improvements
 import "@/utils/networkOptimizer";
 
-// Initialize global module preloader for instant loading
-import { fastModuleLoader } from "@/utils/fastModuleLoader";
+// CONSOLIDATED MODULE LOADING - Eliminates 5+ second slow loads
+import { consolidatedLoader, useConsolidatedModules } from "@/utils/consolidatedModuleLoader";
 
 // Convert heavy imports to lazy loading for faster startup
 const LazySubscribe = lazy(() => import("@/pages/Subscribe"));
@@ -70,8 +70,10 @@ const LazyEducationalConnections = lazy(() => import("@/pages/EducationalConnect
 const LazySubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
 const LazySignatureTest = lazy(() => import("@/pages/SignatureTest"));
 
-// Optimized module preloader with memory management
-const useGlobalModulePreloader = () => {
+// CONSOLIDATED MODULE PRELOADER - Ultra-fast loading
+const useConsolidatedPreloader = () => {
+  const { preloadForRole } = useConsolidatedModules();
+  
   useEffect(() => {
     const startGlobalPreload = async () => {
       if (import.meta.env.DEV) {
@@ -79,7 +81,7 @@ const useGlobalModulePreloader = () => {
       }
       
       try {
-        await fastModuleLoader.preloadCriticalModules();
+        await consolidatedLoader.batchPreload(['overview', 'teachers', 'children', 'notifications']);
         
         if (import.meta.env.DEV) {
           console.log('[GLOBAL_PRELOADER] Essential modules ready');
@@ -93,7 +95,7 @@ const useGlobalModulePreloader = () => {
     
     // Cleanup on unmount
     const cleanup = () => {
-      fastModuleLoader.cleanupUnusedModules();
+      consolidatedLoader.cleanup();
     };
     
     startGlobalPreload();
@@ -538,8 +540,8 @@ function FirebaseRedirectHandler() {
 }
 
 function App() {
-  // Global module preloader for instant UI response
-  useGlobalModulePreloader();
+  // Consolidated module preloader for instant UI response
+  useConsolidatedPreloader();
   
   useEffect(() => {
     // Configuration du filtre de console pour réduire le spam

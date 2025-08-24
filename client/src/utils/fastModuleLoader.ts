@@ -1,5 +1,5 @@
-// Optimized module loader for EDUCAFRIC dashboards - Bundle size optimized
-// Pure dynamic imports only - no static imports to avoid bundle conflicts
+// DEPRECATED: Use consolidatedModuleLoader.ts instead for ultra-fast loading
+// This file is kept for compatibility only
 import React from 'react';
 
 interface ModuleCache {
