@@ -155,21 +155,14 @@ const SandboxLogin = () => {
     setIsLogging(profile.id);
     
     try {
-      // Direct login with sandbox credentials
-      const response = await fetch('/api/auth/sandbox-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: profile.email,
-          password: 'sandbox123'
-        }),
+      // Use the login function from AuthContext for proper session management
+      const result = await login({
+        email: profile.email,
+        password: 'sandbox123'
       });
 
-      if (response.ok) {
-        const userData = await response.json();
-        console.log('✅ Sandbox login successful, navigating to dashboard:', userData);
+      if (result) {
+        console.log('✅ Sandbox login successful, navigating to dashboard:', result);
         
         // Navigate to role-specific dashboard immediately
         const roleRoutes = {
@@ -183,17 +176,14 @@ const SandboxLogin = () => {
         };
         
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        console.log('🎯 Redirecting to:', targetRoute);
+        console.log('🎯 Navigating to:', targetRoute);
         
-        // Small delay to ensure session is established, then redirect
+        // Navigate using wouter
         setTimeout(() => {
-          if (window && window.location) {
-            window.location.href = targetRoute;
-          }
-        }, 500);
+          setLocation(targetRoute);
+        }, 100);
       } else {
-        const error = await response.json();
-        console.error('Sandbox login failed:', error);
+        console.error('Sandbox login failed');
       }
     } catch (error) {
       console.error('Sandbox login error:', error);
