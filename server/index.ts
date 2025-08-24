@@ -1,5 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { exec } from "child_process";
+import path from "node:path";
+import fs from "node:fs";
 import { registerRoutes } from "./routes";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { systemReportService } from "./services/systemReportService";
@@ -47,11 +49,22 @@ app.use(memoryCleanupMiddleware);
 
 // PWA CRITICAL ROUTES - MUST BE FIRST TO AVOID MIDDLEWARE INTERFERENCE
 
-// Fix Service Worker MIME type
+// 🚫 CRITICAL: Fix Service Worker 500 error with proper path resolution
 app.get('/sw.js', (req, res) => {
-  res.setHeader('Content-Type', 'application/javascript');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.sendFile('sw.js', { root: 'public' });
+  const swPath = app.get("env") === "development" 
+    ? path.resolve('public/sw.js')
+    : path.resolve('dist/public/sw.js');
+    
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Service-Worker-Allowed', '/');
+  
+  if (fs.existsSync(swPath)) {
+    res.sendFile(swPath);
+  } else {
+    console.warn('[SW] Service Worker file not found:', swPath);
+    res.status(404).send('Service Worker not found');
+  }
 });
 
 // Fix manifest MIME type

@@ -43,7 +43,14 @@ const UnifiedConnectionManager: React.FC = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  if (!user) return null;
+  // 🚫 CRITICAL: Fix React error #300 - Show loading instead of null return
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const canAccessParentConnection = ['Parent', 'Admin', 'Director', 'SiteAdmin'].includes(user.role);
   const canAccessStudentConnection = ['Student', 'Admin', 'Director', 'SiteAdmin'].includes(user.role);
