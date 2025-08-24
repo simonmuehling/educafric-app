@@ -1060,6 +1060,375 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================
+  // DIRECTOR MANAGEMENT API ROUTES
+  // =============================================
+
+  // Director Teachers Management
+  app.get("/api/director/teachers", requireAuth, async (req, res) => {
+    try {
+      const teachers = [
+        {
+          id: 1,
+          name: 'Marie Dubois',
+          email: 'marie.dubois@saintjoseph.edu',
+          phone: '+237657001234',
+          subjects: ['Mathématiques', 'Physique'],
+          classes: ['6ème A', '5ème B'],
+          experience: 8,
+          qualification: 'Licence en Mathématiques',
+          status: 'active',
+          schedule: 'Temps plein',
+          salary: 180000
+        },
+        {
+          id: 2,
+          name: 'Jean Martin',
+          email: 'jean.martin@saintjoseph.edu',
+          phone: '+237657005678',
+          subjects: ['Français', 'Histoire'],
+          classes: ['4ème A', '3ème C'],
+          experience: 12,
+          qualification: 'Master en Lettres',
+          status: 'active',
+          schedule: 'Temps plein',
+          salary: 210000
+        },
+        {
+          id: 3,
+          name: 'Sophie Lambert',
+          email: 'sophie.lambert@saintjoseph.edu',
+          phone: '+237657009012',
+          subjects: ['Anglais'],
+          classes: ['2nde A', '1ère S'],
+          experience: 5,
+          qualification: 'Licence en Anglais',
+          status: 'active',
+          schedule: 'Mi-temps',
+          salary: 120000
+        }
+      ];
+      res.json(teachers);
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHERS] Error:', error);
+      res.status(500).json({ message: 'Failed to fetch teachers' });
+    }
+  });
+
+  app.post("/api/director/teacher", requireAuth, async (req, res) => {
+    try {
+      const { name, email, phone, subjects, classes, experience, qualification, schedule, salary } = req.body;
+      const newTeacher = {
+        id: Date.now(),
+        name,
+        email,
+        phone,
+        subjects: subjects.split(',').map((s: string) => s.trim()),
+        classes: classes.split(',').map((c: string) => c.trim()),
+        experience: parseInt(experience),
+        qualification,
+        status: 'active',
+        schedule,
+        salary: parseInt(salary)
+      };
+      
+      console.log('[DIRECTOR_TEACHER_CREATE] New teacher:', newTeacher);
+      res.json({ success: true, teacher: newTeacher, message: 'Teacher created successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHER_CREATE] Error:', error);
+      res.status(500).json({ message: 'Failed to create teacher' });
+    }
+  });
+
+  app.put("/api/director/teacher/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const teacherData = req.body;
+      
+      console.log(`[DIRECTOR_TEACHER_UPDATE] Updating teacher ${id}:`, teacherData);
+      res.json({ success: true, message: 'Teacher updated successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHER_UPDATE] Error:', error);
+      res.status(500).json({ message: 'Failed to update teacher' });
+    }
+  });
+
+  app.delete("/api/director/teacher/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`[DIRECTOR_TEACHER_DELETE] Deleting teacher ${id}`);
+      res.json({ success: true, message: 'Teacher deleted successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHER_DELETE] Error:', error);
+      res.status(500).json({ message: 'Failed to delete teacher' });
+    }
+  });
+
+  // Director Students Management
+  app.get("/api/director/students", requireAuth, async (req, res) => {
+    try {
+      const students = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          email: 'marie.kouame@saintjoseph.edu',
+          className: '6ème A',
+          level: '6ème',
+          age: 12,
+          parentName: 'Papa Kouame',
+          parentEmail: 'papa.kouame@gmail.com',
+          parentPhone: '+237657001234',
+          status: 'active',
+          average: 15.2,
+          attendance: 95
+        },
+        {
+          id: 2,
+          firstName: 'Paul',
+          lastName: 'Kouame',
+          email: 'paul.kouame@saintjoseph.edu',
+          className: '3ème B',
+          level: '3ème',
+          age: 15,
+          parentName: 'Papa Kouame',
+          parentEmail: 'papa.kouame@gmail.com',
+          parentPhone: '+237657001234',
+          status: 'active',
+          average: 13.8,
+          attendance: 88
+        },
+        {
+          id: 3,
+          firstName: 'Fatou',
+          lastName: 'Ngozi',
+          email: 'fatou.ngozi@saintjoseph.edu',
+          className: '2nde A',
+          level: '2nde',
+          age: 16,
+          parentName: 'Maman Ngozi',
+          parentEmail: 'maman.ngozi@yahoo.fr',
+          parentPhone: '+237657005678',
+          status: 'active',
+          average: 16.5,
+          attendance: 98
+        }
+      ];
+      res.json(students);
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENTS] Error:', error);
+      res.status(500).json({ message: 'Failed to fetch students' });
+    }
+  });
+
+  app.post("/api/director/student", requireAuth, async (req, res) => {
+    try {
+      const { firstName, lastName, email, className, level, age, parentName, parentEmail, parentPhone } = req.body;
+      const newStudent = {
+        id: Date.now(),
+        firstName,
+        lastName,
+        email,
+        className,
+        level,
+        age: parseInt(age),
+        parentName,
+        parentEmail,
+        parentPhone,
+        status: 'active',
+        average: 0,
+        attendance: 100
+      };
+      
+      console.log('[DIRECTOR_STUDENT_CREATE] New student:', newStudent);
+      res.json({ success: true, student: newStudent, message: 'Student created successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENT_CREATE] Error:', error);
+      res.status(500).json({ message: 'Failed to create student' });
+    }
+  });
+
+  app.put("/api/director/student/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const studentData = req.body;
+      
+      console.log(`[DIRECTOR_STUDENT_UPDATE] Updating student ${id}:`, studentData);
+      res.json({ success: true, message: 'Student updated successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENT_UPDATE] Error:', error);
+      res.status(500).json({ message: 'Failed to update student' });
+    }
+  });
+
+  app.delete("/api/director/student/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`[DIRECTOR_STUDENT_DELETE] Deleting student ${id}`);
+      res.json({ success: true, message: 'Student deleted successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENT_DELETE] Error:', error);
+      res.status(500).json({ message: 'Failed to delete student' });
+    }
+  });
+
+  // Director Classes Management
+  app.get("/api/director/classes", requireAuth, async (req, res) => {
+    try {
+      const classes = [
+        {
+          id: 1,
+          name: '6ème A',
+          level: '6ème',
+          section: 'A',
+          capacity: 35,
+          currentStudents: 32,
+          teacherName: 'Marie Dubois',
+          room: 'Salle 101',
+          status: 'active'
+        },
+        {
+          id: 2,
+          name: '5ème B',
+          level: '5ème',
+          section: 'B',
+          capacity: 40,
+          currentStudents: 38,
+          teacherName: 'Jean Martin',
+          room: 'Salle 102',
+          status: 'active'
+        },
+        {
+          id: 3,
+          name: '3ème C',
+          level: '3ème',
+          section: 'C',
+          capacity: 35,
+          currentStudents: 35,
+          teacherName: 'Sophie Lambert',
+          room: 'Salle 201',
+          status: 'full'
+        },
+        {
+          id: 4,
+          name: '2nde A',
+          level: '2nde',
+          section: 'A',
+          capacity: 30,
+          currentStudents: 28,
+          teacherName: 'Pierre Mvondo',
+          room: 'Salle 203',
+          status: 'active'
+        }
+      ];
+      res.json(classes);
+    } catch (error) {
+      console.error('[DIRECTOR_CLASSES] Error:', error);
+      res.status(500).json({ message: 'Failed to fetch classes' });
+    }
+  });
+
+  app.post("/api/director/class", requireAuth, async (req, res) => {
+    try {
+      const { name, level, section, capacity, teacherId, teacherName, room } = req.body;
+      const newClass = {
+        id: Date.now(),
+        name,
+        level,
+        section,
+        capacity: parseInt(capacity),
+        currentStudents: 0,
+        teacherName,
+        room,
+        status: 'active'
+      };
+      
+      console.log('[DIRECTOR_CLASS_CREATE] New class:', newClass);
+      res.json({ success: true, class: newClass, message: 'Class created successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_CLASS_CREATE] Error:', error);
+      res.status(500).json({ message: 'Failed to create class' });
+    }
+  });
+
+  app.put("/api/director/class/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const classData = req.body;
+      
+      console.log(`[DIRECTOR_CLASS_UPDATE] Updating class ${id}:`, classData);
+      res.json({ success: true, message: 'Class updated successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_CLASS_UPDATE] Error:', error);
+      res.status(500).json({ message: 'Failed to update class' });
+    }
+  });
+
+  app.delete("/api/director/class/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log(`[DIRECTOR_CLASS_DELETE] Deleting class ${id}`);
+      res.json({ success: true, message: 'Class deleted successfully' });
+    } catch (error) {
+      console.error('[DIRECTOR_CLASS_DELETE] Error:', error);
+      res.status(500).json({ message: 'Failed to delete class' });
+    }
+  });
+
+  // Director Analytics and Overview
+  app.get("/api/director/analytics", requireAuth, async (req, res) => {
+    try {
+      const analytics = {
+        totalStudents: 156,
+        totalTeachers: 18,
+        totalClasses: 12,
+        averageAttendance: 92.5,
+        averageGrade: 14.8,
+        newEnrollments: 23,
+        graduatedStudents: 28,
+        activeProjects: 8,
+        pendingPayments: 12,
+        satisfaction: 4.6
+      };
+      res.json({ success: true, analytics });
+    } catch (error) {
+      console.error('[DIRECTOR_ANALYTICS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Director Settings  
+  app.get("/api/director/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        school: {
+          name: 'École Saint-Joseph',
+          address: 'Douala, Cameroun',
+          phone: '+237657004011',
+          email: 'direction@saintjoseph.edu',
+          academicYear: '2024-2025',
+          currentTerm: 'Premier Trimestre'
+        },
+        director: {
+          name: 'M. Directeur Principal',
+          email: 'directeur@saintjoseph.edu',
+          phone: '+237657001111',
+          experience: 15
+        },
+        preferences: {
+          language: 'fr',
+          notifications: true,
+          reportFrequency: 'weekly',
+          theme: 'modern'
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[DIRECTOR_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch settings' });
+    }
+  });
+
   // Routes pour les relations parent-enfant au niveau école
   app.get("/api/school/parent-child-connections", requireAuth, async (req, res) => {
     try {

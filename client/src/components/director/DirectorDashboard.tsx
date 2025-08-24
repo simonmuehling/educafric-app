@@ -118,9 +118,9 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       try {
         if (typeof ModuleComponent === 'function') {
           return React.createElement(ModuleComponent);
-        } else if (ModuleComponent && typeof ModuleComponent === 'object' && ModuleComponent.default) {
+        } else if (ModuleComponent && typeof ModuleComponent === 'object' && 'default' in ModuleComponent) {
           // Handle default export
-          return React.createElement(ModuleComponent.default);
+          return React.createElement((ModuleComponent as any).default);
         } else {
           console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Invalid component for ${moduleName}:`, typeof ModuleComponent);
           return fallbackComponent;
