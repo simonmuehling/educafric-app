@@ -377,7 +377,7 @@ function Router() {
       </Route>
       <Route path="/sandbox-demo">
         <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySandboxDemo />
+          <LazySandboxLogin />
         </Suspense>
       </Route>
       
