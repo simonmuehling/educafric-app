@@ -71,11 +71,6 @@ async function defaultQueryFn({ queryKey }: { queryKey: readonly unknown[] }) {
     }
   });
 
-  // Handle 401 gracefully
-  if (res.status === 401) {
-    return null;
-  }
-
   // Handle 401 gracefully - don't try to parse HTML as JSON
   if (res.status === 401) {
     return null;
