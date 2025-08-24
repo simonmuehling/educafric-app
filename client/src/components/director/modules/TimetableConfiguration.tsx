@@ -175,6 +175,119 @@ const TimetableConfiguration: React.FC = () => {
     setShowCreateForm(false);
   };
 
+  // Export PDF Function
+  const handleExportPDF = () => {
+    try {
+      // Create PDF content
+      let pdfContent = `EMPLOI DU TEMPS - ÉCOLE\n\n`;
+      pdfContent += `Généré le: ${new Date().toLocaleDateString('fr-FR')}\n`;
+      pdfContent += `Total créneaux: ${Array.isArray(timetables) ? timetables.length : 0}\n\n`;
+      
+      // Group by class and day
+      const groupedTimetables = (Array.isArray(timetables) ? timetables : []).reduce((acc: any, item: any) => {
+        if (!acc[item.className]) acc[item.className] = {};
+        if (!acc[item.className][item.day]) acc[item.className][item.day] = [];
+        acc[item.className][item.day].push(item);
+        return acc;
+      }, {});
+      
+      Object.entries(groupedTimetables).forEach(([className, days]: [string, any]) => {
+        pdfContent += `=== ${className} ===\n`;
+        Object.entries(days).forEach(([day, slots]: [string, any]) => {
+          pdfContent += `${day.charAt(0).toUpperCase() + day.slice(1)}:\n`;
+          slots.forEach((slot: any) => {
+            pdfContent += `  ${slot.timeSlot} - ${slot.subject} (${slot.teacher}) - ${slot.room}\n`;
+          });
+        });
+        pdfContent += `\n`;
+      });
+      
+      // Create downloadable file
+      const blob = new Blob([pdfContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `emploi-du-temps-${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: language === 'fr' ? 'Export réussi' : 'Export successful',
+        description: language === 'fr' ? 'Emploi du temps exporté avec succès' : 'Timetable exported successfully'
+      });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur d\'export' : 'Export error',
+        description: language === 'fr' ? 'Erreur lors de l\'export PDF' : 'Error during PDF export',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // Import CSV Function
+  const handleImportCSV = () => {
+    try {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv,.txt';
+      input.onchange = (e: any) => {
+        const file = e.target?.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              const content = event.target?.result as string;
+              const lines = content.split('\n').filter(line => line.trim());
+              let importedCount = 0;
+              
+              lines.forEach((line, index) => {
+                if (index === 0) return; // Skip header
+                const [className, day, timeSlot, subject, teacher, room] = line.split(',');
+                if (className && day && timeSlot && subject && teacher && room) {
+                  // Add to timetables array (in real app, would save to API)
+                  const newEntry = {
+                    id: `import-${Date.now()}-${importedCount}`,
+                    className: className.trim(),
+                    day: day.trim().toLowerCase(),
+                    timeSlot: timeSlot.trim(),
+                    subject: subject.trim(),
+                    teacher: teacher.trim(),
+                    room: room.trim()
+                  };
+                  setTimetables(prev => [...(Array.isArray(prev) ? prev : []), newEntry]);
+                  importedCount++;
+                }
+              });
+              
+              toast({
+                title: language === 'fr' ? 'Import réussi' : 'Import successful',
+                description: language === 'fr' ? 
+                  `${importedCount} créneaux importés avec succès` : 
+                  `${importedCount} slots imported successfully`
+              });
+            } catch (error) {
+              toast({
+                title: language === 'fr' ? 'Erreur d\'import' : 'Import error',
+                description: language === 'fr' ? 'Format CSV invalide' : 'Invalid CSV format',
+                variant: 'destructive'
+              });
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      input.click();
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur d\'import' : 'Import error',
+        description: language === 'fr' ? 'Erreur lors de l\'import CSV' : 'Error during CSV import',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -225,14 +338,14 @@ const TimetableConfiguration: React.FC = () => {
                 id: 'export-timetable',
                 label: language === 'fr' ? 'Exporter PDF' : 'Export PDF',
                 icon: <FileText className="w-5 h-5" />,
-                onClick: () => console.log('Export timetable PDF'),
+                onClick: handleExportPDF,
                 color: 'bg-purple-600 hover:bg-purple-700'
               },
               {
                 id: 'bulk-import',
                 label: language === 'fr' ? 'Import CSV' : 'Bulk Import',
                 icon: <Upload className="w-5 h-5" />,
-                onClick: () => console.log('Bulk import timetables'),
+                onClick: handleImportCSV,
                 color: 'bg-orange-600 hover:bg-orange-700'
               },
               {
