@@ -6,6 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Users, UserPlus, Search, Download, Filter, MoreHorizontal, BookOpen, TrendingUp, Calendar, GraduationCap, Upload, X, Eye, Edit, Trash2, Mail } from 'lucide-react';
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+import DashboardNavbar from '@/components/shared/DashboardNavbar';
+import { useToast } from '@/hooks/use-toast';
+import EnhancedStudentForm from '@/components/forms/EnhancedStudentForm';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+
+const StudentManagement: React.FC = () => {
+  const { language } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClass, setSelectedClass] = useState('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -386,18 +402,22 @@ import { Users, UserPlus, Search, Download, Filter, MoreHorizontal, BookOpen, Tr
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
+            <MobileActionsOverlay
+              title={language === 'fr' ? 'Actions Étudiants' : 'Student Actions'}
+              maxVisibleButtons={3}
+              actions={[
                 {
                   id: 'add-student',
-                  label: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
+                  label: language === 'fr' ? 'Ajouter Étudiant' : 'Add Student',
                   icon: <UserPlus className="w-5 h-5" />,
                   onClick: () => {
-                    setNewStudent({
+                    setFormData({
+                      firstName: '',
+                      lastName: '',
                       name: '',
+                      email: '',
                       class: '',
                       age: '',
-                      email: '',
                       parentEmail: '',
                       parentPhone: '',
                       parent2Email: '',
@@ -471,18 +491,8 @@ import { Users, UserPlus, Search, Download, Filter, MoreHorizontal, BookOpen, Tr
                   },
                   color: 'bg-teal-600 hover:bg-teal-700'
                 }
-              ].map((action) => (
-                <Button
-                  key={action.id}
-                  onClick={action.onClick}
-                  className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
-                  data-testid={`button-${action.id}`}
-                >
-                  {action.icon}
-                  {action.label}
-                </Button>
-              ))}
-            </div>
+              ]}
+            />
           </CardContent>
         </Card>
 

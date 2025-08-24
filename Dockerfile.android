@@ -1,0 +1,36 @@
+FROM cimg/android:2023.12-node
+
+# Set environment variables
+ENV ANDROID_HOME=/home/circleci/android-sdk
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install Node.js dependencies
+RUN npm ci
+
+# Copy project files
+COPY . .
+
+# Build web application
+RUN npm run build
+
+# Sync Capacitor
+RUN npx cap sync android
+
+# Make gradlew executable
+RUN chmod +x android/gradlew
+
+# Build Android APK
+RUN cd android && ./gradlew assembleDebug assembleRelease
+
+# Copy APKs to output directory
+RUN mkdir -p /output
+RUN cp android/app/build/outputs/apk/debug/app-debug.apk /output/educafric-v4-debug.apk
+RUN cp android/app/build/outputs/apk/release/app-release-unsigned.apk /output/educafric-v4-release.apk
+
+CMD ["echo", "EDUCAFRIC v4 APKs built successfully"]

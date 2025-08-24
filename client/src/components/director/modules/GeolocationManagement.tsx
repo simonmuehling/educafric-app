@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Plus, Settings, Smartphone, CheckCircle, Shield, AlertTriangle, Edit, TrendingUp, FileText } from 'lucide-react';
 import { CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 
 const GeolocationManagement: React.FC = () => {
   const { language } = useLanguage();
@@ -229,6 +229,22 @@ const GeolocationManagement: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <MobileActionsOverlay
+              title={language === 'fr' ? 'Actions Géolocalisation' : 'Geolocation Actions'}
+              maxVisibleButtons={3}
+              actions={[
+                {
+                  id: 'add-device',
+                  label: language === 'fr' ? 'Ajouter Appareil' : 'Add Device',
+                  icon: <Plus className="w-5 h-5" />,
+                  onClick: () => setShowAddDeviceModal(true),
+                  color: 'bg-blue-600 hover:bg-blue-700'
+                },
+                {
+                  id: 'configure-zones',
+                  label: language === 'fr' ? 'Config. Zones' : 'Configure Zones',
+                  icon: <Shield className="w-5 h-5" />,
+                  onClick: handleConfigureZones,
                   color: 'bg-green-600 hover:bg-green-700'
                 },
                 {

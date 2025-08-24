@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check } from 'lucide-react';
-// Mobile overlay removed - using responsive design
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -223,48 +223,53 @@ const TeacherManagement: React.FC = () => {
             <TrendingUp className="w-5 h-5 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <button
-              onClick={() => {
-                setCurrentTeacher({
-                  id: '',
-                  firstName: '',
-                  lastName: '',
-                  email: '',
-                  phone: '',
-                  role: 'teacher',
-                  schoolId: '',
-                  qualification: ''
-                });
-                setShowAddModal(true);
-              }}
-              className="flex items-center justify-center p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Nouveau Enseignant' : 'New Teacher'}
-            </button>
-            <button
-              onClick={() => {
-                const event = new CustomEvent('switchToClasses');
-                window.dispatchEvent(event);
-              }}
-              className="flex items-center justify-center p-4 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            >
-              <BookOpen className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Assigner Classes' : 'Assign Classes'}
-            </button>
-            <button
-              onClick={() => {
-                const event = new CustomEvent('switchToTimetable');
-                window.dispatchEvent(event);
-              }}
-              className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              <Calendar className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Planifier Horaires' : 'Schedule Teachers'}
-            </button>
-            <button
-              onClick={async () => {
+          <MobileActionsOverlay
+            title={language === 'fr' ? 'Actions Enseignants' : 'Teacher Actions'}
+            maxVisibleButtons={3}
+            actions={[
+              {
+                id: 'add-teacher',
+                label: language === 'fr' ? 'Ajouter Enseignant' : 'Add Teacher',
+                icon: <UserPlus className="w-5 h-5" />,
+                onClick: () => {
+                  setFormData({
+                    name: '',
+                    email: '',
+                    phone: '',
+                    subjects: [],
+                    classes: '',
+                    experience: '',
+                    qualification: ''
+                  });
+                  setShowAddModal(true);
+                },
+                color: 'bg-blue-600 hover:bg-blue-700'
+              },
+              {
+                id: 'assign-classes',
+                label: language === 'fr' ? 'Assigner Classes' : 'Assign Classes',
+                icon: <BookOpen className="w-5 h-5" />,
+                onClick: () => {
+                  const event = new CustomEvent('switchToClasses');
+                  window.dispatchEvent(event);
+                },
+                color: 'bg-green-600 hover:bg-green-700'
+              },
+              {
+                id: 'schedule-teachers',
+                label: language === 'fr' ? 'Planifier Horaires' : 'Schedule Teachers',
+                icon: <Calendar className="w-5 h-5" />,
+                onClick: () => {
+                  const event = new CustomEvent('switchToTimetable');
+                  window.dispatchEvent(event);
+                },
+                color: 'bg-purple-600 hover:bg-purple-700'
+              },
+              {
+                id: 'export-teachers',
+                label: language === 'fr' ? 'Exporter Liste' : 'Export List',
+                icon: <Download className="w-5 h-5" />,
+                onClick: async () => {
                   try {
                     console.log('[TEACHER_EXPORT] 📊 Starting teacher export...');
                     
@@ -305,23 +310,21 @@ const TeacherManagement: React.FC = () => {
                       variant: 'destructive'
                     });
                   }
-              }}
-              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-            >
-              <Download className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Exporter Liste' : 'Export List'}
-            </button>
-            <button
-              onClick={() => {
-                const event = new CustomEvent('switchToCommunications');
-                window.dispatchEvent(event);
-              }}
-              className="flex items-center justify-center p-4 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Communications' : 'Communications'}
-            </button>
-          </div>
+                },
+                color: 'bg-orange-600 hover:bg-orange-700'
+              },
+              {
+                id: 'communicate',
+                label: language === 'fr' ? 'Communications' : 'Communications',
+                icon: <Mail className="w-5 h-5" />,
+                onClick: () => {
+                  const event = new CustomEvent('switchToCommunications');
+                  window.dispatchEvent(event);
+                },
+                color: 'bg-teal-600 hover:bg-teal-700'
+              }
+            ]}
+          />
         </Card>
 
         {/* Teachers List */}

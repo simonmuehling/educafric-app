@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Clock, Calendar, Users, School, Plus, Upload, Edit3, Trash2, Save, TrendingUp, FileText, RefreshCw } from 'lucide-react';
-// Mobile overlay removed - using responsive design
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
 import { TimetableCreation } from '@/components/timetable/TimetableCreation';
 
@@ -179,29 +179,47 @@ const TimetableConfiguration: React.FC = () => {
             <TrendingUp className="w-5 h-5 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button
-              onClick={() => console.log('Export timetable PDF')}
-              className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              <FileText className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Exporter PDF' : 'Export PDF'}
-            </button>
-            <button
-              onClick={() => console.log('Bulk import timetables')}
-              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-            >
-              <Upload className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Import CSV' : 'Bulk Import'}
-            </button>
-            <button
-              onClick={() => fetchTimetables()}
-              className="flex items-center justify-center p-4 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Actualiser' : 'Refresh'}
-            </button>
-          </div>
+          <MobileActionsOverlay
+            title={language === 'fr' ? 'Actions Emploi du Temps' : 'Timetable Actions'}
+            maxVisibleButtons={3}
+            actions={[
+              {
+                id: 'add-timeslot',
+                label: language === 'fr' ? 'Ajouter Créneaux' : 'Add Time Slot',
+                icon: <Plus className="w-5 h-5" />,
+                onClick: () => setShowCreateForm(true),
+                color: 'bg-blue-600 hover:bg-blue-700'
+              },
+              {
+                id: 'view-all',
+                label: language === 'fr' ? 'Voir Tout' : 'View All',
+                icon: <Calendar className="w-5 h-5" />,
+                onClick: () => setShowCreateForm(false),
+                color: 'bg-green-600 hover:bg-green-700'
+              },
+              {
+                id: 'export-timetable',
+                label: language === 'fr' ? 'Exporter PDF' : 'Export PDF',
+                icon: <FileText className="w-5 h-5" />,
+                onClick: () => console.log('Export timetable PDF'),
+                color: 'bg-purple-600 hover:bg-purple-700'
+              },
+              {
+                id: 'bulk-import',
+                label: language === 'fr' ? 'Import CSV' : 'Bulk Import',
+                icon: <Upload className="w-5 h-5" />,
+                onClick: () => console.log('Bulk import timetables'),
+                color: 'bg-orange-600 hover:bg-orange-700'
+              },
+              {
+                id: 'refresh-data',
+                label: language === 'fr' ? 'Actualiser' : 'Refresh',
+                icon: <RefreshCw className="w-5 h-5" />,
+                onClick: () => fetchTimetables(),
+                color: 'bg-teal-600 hover:bg-teal-700'
+              }
+            ]}
+          />
         </Card>
 
         {/* Advanced Timetable Creation Form */}

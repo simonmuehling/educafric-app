@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-// Mobile overlay removed - using responsive design
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -390,29 +390,47 @@ const FunctionalParentChildren: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <button
-              onClick={handleSendMessage}
-              className="flex items-center justify-center p-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              <Mail className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Message École' : 'Message School'}
-            </button>
-            <button
-              onClick={handleTrackLocation}
-              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Géolocalisation' : 'Track Location'}
-            </button>
-            <button
-              onClick={handleExportChildren}
-              className="flex items-center justify-center p-4 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-            >
-              <Download className="w-5 h-5 mr-2" />
-              {language === 'fr' ? 'Exporter Données' : 'Export Data'}
-            </button>
-          </div>
+          <MobileActionsOverlay
+            title={language === 'fr' ? 'Actions Enfants' : 'Children Actions'}
+            maxVisibleButtons={3}
+            actions={[
+              {
+                id: 'view-all-grades',
+                label: language === 'fr' ? 'Toutes les Notes' : 'All Grades',
+                icon: <FileText className="w-5 h-5" />,
+                onClick: handleViewAllGrades,
+                color: 'bg-blue-600 hover:bg-blue-700'
+              },
+              {
+                id: 'check-attendance',
+                label: language === 'fr' ? 'Vérifier Présences' : 'Check Attendance',
+                icon: <UserCheck className="w-5 h-5" />,
+                onClick: handleCheckAttendance,
+                color: 'bg-green-600 hover:bg-green-700'
+              },
+              {
+                id: 'send-message',
+                label: language === 'fr' ? 'Message École' : 'Message School',
+                icon: <Mail className="w-5 h-5" />,
+                onClick: handleSendMessage,
+                color: 'bg-purple-600 hover:bg-purple-700'
+              },
+              {
+                id: 'track-location',
+                label: language === 'fr' ? 'Géolocalisation' : 'Track Location',
+                icon: <MapPin className="w-5 h-5" />,
+                onClick: handleTrackLocation,
+                color: 'bg-orange-600 hover:bg-orange-700'
+              },
+              {
+                id: 'export-children',
+                label: language === 'fr' ? 'Exporter Données' : 'Export Data',
+                icon: <Download className="w-5 h-5" />,
+                onClick: handleExportChildren,
+                color: 'bg-orange-600 hover:bg-orange-700'
+              }
+            ]}
+          />
         </CardContent>
       </Card>
 

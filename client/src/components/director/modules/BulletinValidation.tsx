@@ -26,15 +26,21 @@ import {
   TrendingUp,
   Mail
 } from 'lucide-react';
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 
 interface BulletinItem {
   id: number;
   studentId: number;
   studentName: string;
+  classId: number;
   className: string;
-  term: string;
-  status: 'pending' | 'approved' | 'rejected' | 'sent';
-  createdBy: number;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'sent';
+  generalAverage: number;
+  classRank: number;
+  totalStudentsInClass: number;
+  submittedBy: number;
+  submittedAt?: string;
+  submissionComment?: string;
   approvedBy?: number;
   approvedAt?: string;
   approvalComment?: string;
@@ -553,13 +559,22 @@ const BulletinValidation: React.FC = () => {
           <TrendingUp className="w-5 h-5 mr-2" />
           {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
+        <MobileActionsOverlay
+          title={language === 'fr' ? 'Actions Validation' : 'Validation Actions'}
+          maxVisibleButtons={3}
+          actions={[
             {
               id: 'view-pending',
               label: language === 'fr' ? 'En Attente' : 'Pending',
               icon: <Clock className="w-5 h-5" />,
               onClick: () => setActiveTab('pending'),
+              color: 'bg-yellow-600 hover:bg-yellow-700'
+            },
+            {
+              id: 'view-approved',
+              label: language === 'fr' ? 'Approuvés' : 'Approved',
+              icon: <Check className="w-5 h-5" />,
+              onClick: () => setActiveTab('approved'),
               color: 'bg-green-600 hover:bg-green-700'
             },
             {
@@ -583,18 +598,8 @@ const BulletinValidation: React.FC = () => {
               onClick: () => console.log('Export bulletin report'),
               color: 'bg-purple-600 hover:bg-purple-700'
             }
-          ].map((action) => (
-            <Button
-              key={action.id}
-              onClick={action.onClick}
-              className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
-              data-testid={`button-${action.id}`}
-            >
-              {action.icon}
-              {action.label}
-            </Button>
-          ))}
-        </div>
+          ]}
+        />
       </Card>
 
       {/* Tabs */}

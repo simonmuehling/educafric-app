@@ -12,7 +12,7 @@ import {
   MessageSquare, Send, Users, Bell, Phone, Mail, 
   AlertTriangle, Calendar, CheckCircle, Plus, Eye, Clock, History
 } from 'lucide-react';
-
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 
 const CommunicationsCenter: React.FC = () => {
   const { language } = useLanguage();
@@ -359,18 +359,20 @@ const CommunicationsCenter: React.FC = () => {
             </h2>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
+            <MobileActionsOverlay
+              title={language === 'fr' ? 'Actions Communications' : 'Communication Actions'}
+              maxVisibleButtons={3}
+              actions={[
                 {
-                  id: 'emergency-alert',
-                  label: language === 'fr' ? 'Alerte Urgente' : 'Emergency Alert',
+                  id: 'urgent-broadcast',
+                  label: language === 'fr' ? 'Diffusion Urgente' : 'Urgent Broadcast',
                   icon: <AlertTriangle className="w-5 h-5" />,
                   onClick: () => {
-                    setSelectedRecipient('all');
-                    setMessageType('emergency');
-                    setMessageText(language === 'fr' ?
-                      'ALERTE: Information urgente concernant...' :
-                      'ALERT: Urgent information regarding...'
+                    setMessageType('urgent');
+                    setSelectedRecipient('all-parents');
+                    setMessageText(language === 'fr' ? 
+                      'URGENT: Information importante de la direction...' :
+                      'URGENT: Important information from administration...'
                     );
                   },
                   color: 'bg-red-600 hover:bg-red-700'
@@ -470,18 +472,8 @@ const CommunicationsCenter: React.FC = () => {
                   },
                   color: 'bg-orange-600 hover:bg-orange-700'
                 }
-              ].map((action) => (
-                <Button
-                  key={action.id}
-                  onClick={action.onClick}
-                  className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
-                  data-testid={`button-${action.id}`}
-                >
-                  {action.icon}
-                  {action.label}
-                </Button>
-              ))}
-            </div>
+              ]}
+            />
           </CardContent>
         </Card>
 

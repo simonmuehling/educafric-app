@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -212,6 +212,22 @@ const FunctionalTeacherClasses: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <MobileActionsOverlay
+            title={language === 'fr' ? 'Actions Classes' : 'Class Actions'}
+            maxVisibleButtons={3}
+            actions={[
+              {
+                id: 'take-attendance',
+                label: language === 'fr' ? 'Prendre Présences' : 'Take Attendance',
+                icon: <CheckCircle className="w-5 h-5" />,
+                onClick: async () => {
+                  console.log('[TEACHER_CLASSES] 📋 Taking attendance...');
+                  try {
+                    // Mock attendance data for demo
+                    const attendanceData = {
+                      present: ['student1', 'student2', 'student3'],
+                      absent: ['student4'],
+                      late: ['student5']
                     };
                     
                     const response = await fetch('/api/teacher/attendance', {

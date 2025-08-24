@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- EDUCAFRIC Custom Theme - Version 4.2.1 -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/educafric_primary</item>
+        <item name="colorPrimaryDark">@color/educafric_primary_dark</item>
+        <item name="colorAccent">@color/educafric_accent</item>
+        <item name="android:windowBackground">@color/educafric_background</item>
+        <item name="android:textColorPrimary">@color/educafric_text_primary</item>
+        <item name="android:textColorSecondary">@color/educafric_text_secondary</item>
+        <item name="android:statusBarColor">@color/educafric_primary_dark</item>
+        <item name="android:navigationBarColor">@color/educafric_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- Launch Theme with Splash Screen -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/educafric_primary</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">2000</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+
+    <!-- Main App Theme -->
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowTranslucentStatus">false</item>
+    </style>
+
+    <!-- Full Screen Theme for Activities -->
+    <style name="AppTheme.FullScreen" parent="AppTheme.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>

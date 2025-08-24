@@ -10,11 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2 } from 'lucide-react';
+import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('all');
+  const [newClass, setNewClass] = useState({
+    name: '',
+    level: '',
+    capacity: '',
+    teacherId: '',
+    teacherName: '',
+    room: ''
+  });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
@@ -702,12 +713,21 @@ const ClassManagement: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
+            <MobileActionsOverlay
+              title={language === 'fr' ? 'Actions Classes' : 'Class Actions'}
+              maxVisibleButtons={3}
+              actions={[
                 {
-                  id: 'manage-teachers',
-                  label: language === 'fr' ? 'Gérer Enseignants' : 'Manage Teachers',
-                  icon: <Users className="w-5 h-5" />,
+                  id: 'create-class',
+                  label: language === 'fr' ? 'Créer Classe' : 'Create Class',
+                  icon: <Plus className="w-5 h-5" />,
+                  onClick: () => setShowCreateModal(true),
+                  color: 'bg-blue-600 hover:bg-blue-700'
+                },
+                {
+                  id: 'assign-teachers',
+                  label: language === 'fr' ? 'Assigner Enseignants' : 'Assign Teachers',
+                  icon: <UserPlus className="w-5 h-5" />,
                   onClick: () => {
                     console.log('[CLASS_MANAGEMENT] 👨‍🏫 Navigating to teacher management...');
                     const event = new CustomEvent('switchToTeacherManagement');
@@ -776,18 +796,8 @@ const ClassManagement: React.FC = () => {
                   },
                   color: 'bg-teal-600 hover:bg-teal-700'
                 }
-              ].map((action) => (
-                <Button
-                  key={action.id}
-                  onClick={action.onClick}
-                  className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
-                  data-testid={`button-${action.id}`}
-                >
-                  {action.icon}
-                  {action.label}
-                </Button>
-              ))}
-            </div>
+              ]}
+            />
           </CardContent>
         </Card>
 
