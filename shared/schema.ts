@@ -6,6 +6,7 @@
 export * from "./schemas/userSchema";
 export * from "./schemas/schoolSchema";
 export * from "./schemas/academicSchema";
+export * from "./schemas/messagingSchema";
 
 // Import existing schema modules
 export * from "./tutorialSchema";

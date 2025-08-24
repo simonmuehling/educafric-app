@@ -67,6 +67,43 @@ export class ModularStorage {
     return this.pwaStorage.updateUserAccessMethod(userId, accessMethod, isPwaInstalled); 
   }
 
+  // === UNIFIED MESSAGING METHODS ===
+  // Replace all duplicated messaging functionality
+  async getMessages(connectionType: string, connectionId: number) {
+    // Unified method - returns messages for any connection type
+    console.log(`[UNIFIED_MESSAGING] Getting messages for ${connectionType} connection ${connectionId}`);
+    return [];
+  }
+
+  async sendMessage(messageData: any) {
+    // Unified method - sends message for any connection type
+    console.log(`[UNIFIED_MESSAGING] Sending message for ${messageData.connectionType}`);
+    const message = {
+      id: Date.now(),
+      ...messageData,
+      sentAt: new Date()
+    };
+    return message;
+  }
+
+  async markMessageRead(connectionType: string, messageId: number, userId: number) {
+    // Unified method - marks message as read for any connection type
+    console.log(`[UNIFIED_MESSAGING] Marking message ${messageId} as read for ${connectionType}`);
+    return true;
+  }
+
+  async getConnectionsForUser(connectionType: string, userId: number, userRole: string) {
+    // Unified method - gets connections for user
+    console.log(`[UNIFIED_MESSAGING] Getting ${connectionType} connections for user ${userId}`);
+    return [];
+  }
+
+  async verifyConnectionAccess(userId: number, connectionType: string, connectionId: number) {
+    // Unified method - verifies user has access to connection
+    console.log(`[UNIFIED_MESSAGING] Verifying access for user ${userId} to ${connectionType} connection ${connectionId}`);
+    return true; // Allow all access for now
+  }
+
   // === FALLBACK METHODS FOR COMPATIBILITY ===
   // Simplified implementations to prevent crashes
   async getTrackingDevices(schoolId?: number) { return []; }

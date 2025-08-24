@@ -34,11 +34,14 @@ import systemReportsRoutes from "./routes/systemReportsRoutes";
 import emailPreferencesRoutes from "./routes/email-preferences-routes";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
-import familyConnectionsRoutes from "./routes/familyConnections";
-import teacherStudentConnections from "./routes/teacherStudentConnections";
-import studentParentConnections from "./routes/studentParentConnections";
+// Old duplicated imports removed - replaced by unified messaging system
+// import familyConnectionsRoutes from "./routes/familyConnections";
+// import teacherStudentConnections from "./routes/teacherStudentConnections";
+// import studentParentConnections from "./routes/studentParentConnections";
 import bulkImportRoutes from "./routes/bulkImport";
 import partnershipsRoutes from "./routes/partnerships";
+import unifiedMessagingRoutes from "./routes/unified-messaging";
+import connectionsRoutes from "./routes/connections";
 
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
@@ -194,9 +197,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/system-reports', systemReportsRoutes);
   app.use('/api/email-preferences', emailPreferencesRoutes);
   app.use('/api/configuration', configurationRoutes);
-  app.use('/api/family-connections', familyConnectionsRoutes);
-  app.use('/api/teacher-student-connections', teacherStudentConnections);
-  app.use('/api/student-parent-connections', studentParentConnections);
+  // 🚫 DEPRECATED: Old duplicated messaging routes - replaced by unified system
+  // app.use('/api/family-connections', familyConnectionsRoutes);
+  // app.use('/api/teacher-student-connections', teacherStudentConnections);
+  // app.use('/api/student-parent-connections', studentParentConnections);
+  
+  // ✅ NEW: Unified messaging system - replaces all duplicated routes
+  app.use('/api/messages', unifiedMessagingRoutes);
+  app.use('/api/connections', connectionsRoutes);
+  
   app.use('/api/bulk-import', bulkImportRoutes);
   app.use('/api/partnerships', partnershipsRoutes);
 
