@@ -191,8 +191,25 @@ router.post('/login', (req, res, next) => {
         return res.status(500).json({ message: 'Failed to create session' });
       }
       
-      // Successfully authenticated and session created
-      res.json({ user: user });
+      // Debug session creation
+      console.log('[AUTH_DEBUG] User logged in, session ID:', req.sessionID);
+      console.log('[AUTH_DEBUG] Session after login:', {
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        userRole: req.user?.role
+      });
+      
+      // Force session save
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('[AUTH_ERROR] Session save error:', saveErr);
+          return res.status(500).json({ message: 'Failed to save session' });
+        }
+        
+        // Successfully authenticated and session created
+        console.log('[AUTH_SUCCESS] Session saved successfully');
+        res.json({ user: user });
+      });
     });
   })(req, res, next);
 });

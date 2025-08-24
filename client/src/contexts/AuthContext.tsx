@@ -43,11 +43,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(userData.message || 'Login failed');
       }
       
-      setUser(userData);
+      // Extract user from response - server returns { user: userData }
+      const actualUserData = userData.user || userData;
+      setUser(actualUserData);
       
       // Minimal logging for performance
       if (import.meta.env.DEV) {
-        console.log(`Login successful: ${userData.firstName} ${userData.lastName} (${userData.role})`);
+        console.log(`Login successful: ${actualUserData.firstName} ${actualUserData.lastName} (${actualUserData.role})`);
       }
       
       // Lightweight confetti for fast login
