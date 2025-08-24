@@ -173,8 +173,28 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
-  res.json({ user: req.user });
+router.post('/login', (req, res, next) => {
+  passport.authenticate('local', (err: any, user: any, info: any) => {
+    if (err) {
+      console.error('[AUTH_ERROR] Login authentication error:', err);
+      return res.status(500).json({ message: 'Authentication error' });
+    }
+    
+    if (!user) {
+      return res.status(401).json({ message: info?.message || 'Invalid credentials' });
+    }
+    
+    // Manually log in the user to establish session
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[AUTH_ERROR] Session creation error:', loginErr);
+        return res.status(500).json({ message: 'Failed to create session' });
+      }
+      
+      // Successfully authenticated and session created
+      res.json({ user: user });
+    });
+  })(req, res, next);
 });
 
 router.post('/logout', (req, res) => {
