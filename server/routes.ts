@@ -210,7 +210,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[ROUTES] Notification routes failed to register:', error);
   }
 
-  // Health check endpoint
+  // Health check endpoint - MUST be public (no authentication required)
   app.get('/api/health', (req, res) => {
     res.json({ 
       status: 'healthy', 

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/errorHandler';
+import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
 
 const router = Router();
