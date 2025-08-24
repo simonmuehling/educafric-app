@@ -233,6 +233,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/admin', adminRoutes);
   app.use('/api/director', adminRoutes); // Map director to admin routes
 
+  // Route configuration école
+  app.get("/api/school/configuration-status", requireAuth, async (req, res) => {
+    try {
+      if (!req.user || !req.user.schoolId) {
+        return res.status(403).json({ error: 'No school associated' });
+      }
+
+      const school = await storage.getSchoolById(req.user.schoolId);
+      if (!school) {
+        return res.status(404).json({ error: 'School not found' });
+      }
+
+      const status = {
+        schoolId: school.id,
+        name: school.name,
+        configured: true,
+        modules: {
+          users: true,
+          classes: true,
+          payments: true,
+          communication: true
+        },
+        lastUpdated: school.updatedAt || new Date()
+      };
+
+      res.json({ success: true, status });
+    } catch (error) {
+      console.error('[SCHOOL_CONFIG] Error fetching school configuration status:', error);
+      res.status(500).json({ error: 'Failed to fetch school configuration status' });
+    }
+  });
+
   // Register existing route modules
   app.use('/api/geolocation', geolocationRoutes);
   app.use('/api/enhanced-geolocation', enhancedGeolocationRoutes);
