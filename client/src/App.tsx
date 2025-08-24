@@ -164,11 +164,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
-  // PWA analytics cleaned up after refactoring
 
-  // PWA analytics removed after refactoring - handled elsewhere
-
-  // Expose tutorial function globally
+  // Expose tutorial function globally - ALL HOOKS MUST BE CALLED BEFORE CONDITIONS
   React.useEffect(() => {
     (window as any).showTutorial = () => {
       if (import.meta.env.DEV) {
@@ -182,6 +179,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // RENDER CONDITIONS AFTER ALL HOOKS
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -504,6 +502,7 @@ function FirebaseRedirectHandler() {
   const [initialized, setInitialized] = useState(false);
   
   useEffect(() => {
+    // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
     // Only initialize once to prevent repeated logs
     if (initialized) return;
     
