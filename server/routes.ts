@@ -292,6 +292,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/teacher/students", requireAuth, async (req, res) => {
+    try {
+      const students = [
+        { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', grade: 15.5, parentContact: '+237657001234' },
+        { id: 2, firstName: 'Paul', lastName: 'Ngono', class: '6ème A', grade: 14.2, parentContact: '+237657005678' },
+        { id: 3, firstName: 'Sophie', lastName: 'Mballa', class: '5ème B', grade: 16.8, parentContact: '+237657009876' }
+      ];
+      res.json({ success: true, students });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher students' });
+    }
+  });
+
   // Routes Student
   app.get("/api/student/grades", requireAuth, async (req, res) => {
     try {
@@ -605,6 +618,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: `Request ${action}d successfully`, requestId });
     } catch (error) {
       res.status(500).json({ success: false, message: 'Failed to process parent request' });
+    }
+  });
+
+  // === ROUTES GÉNÉRALES MANQUANTES ===
+  
+  // Route générale pour tous les étudiants (utilisée par sandbox API tester)
+  app.get("/api/students", requireAuth, async (req, res) => {
+    try {
+      const students = [
+        { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', school: 'École Saint-Joseph' },
+        { id: 2, firstName: 'Paul', lastName: 'Ngono', class: '5ème B', school: 'École Saint-Joseph' },
+        { id: 3, firstName: 'Sophie', lastName: 'Mballa', class: '3ème C', school: 'Collège Central' },
+        { id: 4, firstName: 'Jean', lastName: 'Talla', class: '4ème A', school: 'Collège Central' }
+      ];
+      res.json({ success: true, students });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch all students' });
+    }
+  });
+
+  // Route générale pour tous les enseignants (utilisée par sandbox API tester)
+  app.get("/api/teachers", requireAuth, async (req, res) => {
+    try {
+      const teachers = [
+        { id: 1, firstName: 'Jean', lastName: 'Martin', subject: 'Mathématiques', school: 'École Saint-Joseph' },
+        { id: 2, firstName: 'Marie', lastName: 'Dubois', subject: 'Français', school: 'École Saint-Joseph' },
+        { id: 3, firstName: 'Paul', lastName: 'Lambert', subject: 'Histoire', school: 'Collège Central' },
+        { id: 4, firstName: 'Sophie', lastName: 'Moreau', subject: 'Sciences', school: 'Collège Central' }
+      ];
+      res.json({ success: true, teachers });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch all teachers' });
+    }
+  });
+
+  // Routes spécialisées pour les relations école-enseignant-enfants
+  app.get("/api/school/teachers", requireAuth, async (req, res) => {
+    try {
+      const schoolId = req.query.schoolId || req.user?.schoolId;
+      const teachers = [
+        { id: 1, firstName: 'Jean', lastName: 'Martin', subject: 'Mathématiques', classes: ['6ème A', '5ème B'] },
+        { id: 2, firstName: 'Marie', lastName: 'Dubois', subject: 'Français', classes: ['6ème A', '4ème C'] }
+      ];
+      res.json({ success: true, teachers, schoolId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch school teachers' });
+    }
+  });
+
+  app.get("/api/school/students", requireAuth, async (req, res) => {
+    try {
+      const schoolId = req.query.schoolId || req.user?.schoolId;
+      const students = [
+        { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', parentId: 10 },
+        { id: 2, firstName: 'Paul', lastName: 'Ngono', class: '5ème B', parentId: 11 },
+        { id: 3, firstName: 'Sophie', lastName: 'Mballa', class: '3ème C', parentId: 12 }
+      ];
+      res.json({ success: true, students, schoolId });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch school students' });
+    }
+  });
+
+  // Routes pour les relations parent-enfant au niveau école
+  app.get("/api/school/parent-child-connections", requireAuth, async (req, res) => {
+    try {
+      const connections = [
+        { parentId: 10, parentName: 'Mme Kouame', childId: 1, childName: 'Marie Kouame', status: 'active' },
+        { parentId: 11, parentName: 'M. Ngono', childId: 2, childName: 'Paul Ngono', status: 'active' },
+        { parentId: 12, parentName: 'Mme Mballa', childId: 3, childName: 'Sophie Mballa', status: 'pending' }
+      ];
+      res.json({ success: true, connections });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Failed to fetch parent-child connections' });
     }
   });
 
