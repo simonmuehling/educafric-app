@@ -96,7 +96,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ULTRA-FAST module component creator
+  // ULTRA-FAST module component creator with proper type checking
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
@@ -113,7 +113,22 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       if (isCritical && apiDataPreloaded) {
         console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
-      return React.createElement(ModuleComponent);
+      
+      // Safe component creation with type checking
+      try {
+        if (typeof ModuleComponent === 'function') {
+          return React.createElement(ModuleComponent);
+        } else if (ModuleComponent && typeof ModuleComponent === 'object' && ModuleComponent.default) {
+          // Handle default export
+          return React.createElement(ModuleComponent.default);
+        } else {
+          console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Invalid component for ${moduleName}:`, typeof ModuleComponent);
+          return fallbackComponent;
+        }
+      } catch (error) {
+        console.error(`[DIRECTOR_DASHBOARD] ❌ Error creating component ${moduleName}:`, error);
+        return fallbackComponent;
+      }
     }
     
     return fallbackComponent || (
