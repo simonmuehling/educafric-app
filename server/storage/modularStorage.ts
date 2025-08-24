@@ -280,6 +280,46 @@ export class ModularStorage {
     };
   }
   
+  // === NOTIFICATION METHODS ===
+  async getUserNotifications(userId: number, userRole?: string) {
+    return [
+      {
+        id: 1,
+        userId,
+        title: 'Nouvelle note disponible',
+        content: 'Une nouvelle note est disponible pour votre enfant',
+        type: 'grade',
+        isRead: false,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        userId,
+        title: 'Absence signalée',
+        content: 'Votre enfant a été marqué absent aujourd\'hui',
+        type: 'attendance',
+        isRead: false,
+        createdAt: new Date()
+      }
+    ];
+  }
+  
+  async createNotification(data: any) {
+    return { id: Date.now(), ...data, createdAt: new Date() };
+  }
+  
+  async markNotificationAsRead(notificationId: number) {
+    return { success: true };
+  }
+  
+  async markAllNotificationsAsRead(userId: number) {
+    return { success: true };
+  }
+  
+  async deleteNotification(notificationId: number) {
+    return { success: true };
+  }
+  
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
   async getStudentsBySchool(schoolId: number) { 

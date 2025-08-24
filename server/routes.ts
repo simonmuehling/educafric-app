@@ -40,6 +40,8 @@ import systemReportsRoutes from "./routes/systemReportsRoutes";
 import emailPreferencesRoutes from "./routes/email-preferences-routes";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
+import pwaRoutes from "./routes/pwaRoutes";
+import whatsappRoutes from "./routes/whatsapp";
 // Old duplicated imports removed - replaced by unified messaging system
 // import familyConnectionsRoutes from "./routes/familyConnections";
 // import teacherStudentConnections from "./routes/teacherStudentConnections";
@@ -218,12 +220,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/schools', schoolsRouter);
   app.use('/api/parent', parentRouter);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/director', adminRoutes); // Map director to admin routes
 
   // Register existing route modules
   app.use('/api/geolocation', geolocationRoutes);
   app.use('/api/enhanced-geolocation', enhancedGeolocationRoutes);
   app.use('/api/documents', documentsRouter);
   app.use('/api/subscription', subscriptionRoutes);
+  app.use('/api/pwa', pwaRoutes);
+  app.use('/api/whatsapp', whatsappRoutes);
   
   // 🚫 WARNING: Keep administration routes LAST to prevent route interception
   // This route catches ALL /api/* requests, so it must come after specific routes
