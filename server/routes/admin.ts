@@ -157,6 +157,10 @@ router.post('/students', requireAuth, requireAdmin, async (req, res) => {
 router.put('/students/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const studentId = parseInt(req.params.id);
+    if (isNaN(studentId) || studentId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid student ID' });
+    }
+    
     const updates = req.body;
 
     const updatedStudent = await storage.updateStudent(studentId, updates);
@@ -179,6 +183,9 @@ router.put('/students/:id', requireAuth, requireAdmin, async (req, res) => {
 router.delete('/students/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const studentId = parseInt(req.params.id);
+    if (isNaN(studentId) || studentId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid student ID' });
+    }
 
     await storage.deleteStudent(studentId);
     
@@ -200,8 +207,11 @@ router.delete('/delegates/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
     const adminId = parseInt(req.params.id);
+    if (isNaN(adminId) || adminId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid admin ID' });
+    }
 
-    await storage.removeDelegateAdministrator(adminId, user.schoolId);
+    await storage.removeDelegateAdministrator(adminId);
     
     res.json({
       success: true,
@@ -221,6 +231,10 @@ router.put('/delegates/:id/permissions', requireAuth, requireAdmin, async (req, 
   try {
     const user = req.user as any;
     const adminId = parseInt(req.params.id);
+    if (isNaN(adminId) || adminId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid admin ID' });
+    }
+    
     const { permissions } = req.body;
 
     await storage.updateDelegateAdministratorPermissions(adminId, permissions, user.schoolId);
@@ -337,6 +351,10 @@ router.get('/parents', requireAuth, requireAdmin, async (req, res) => {
 router.post('/block-user/:userId', requireAuth, requireAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID' });
+    }
+    
     const { reason } = req.body;
 
     const result = await storage.blockUserAccess(userId, reason);
@@ -359,6 +377,9 @@ router.post('/block-user/:userId', requireAuth, requireAdmin, async (req, res) =
 router.post('/unblock-user/:userId', requireAuth, requireAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID' });
+    }
 
     const result = await storage.unblockUserAccess(userId);
     

@@ -9,7 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
-// import { handleRedirect } from "@/lib/firebase"; // Function not available
+import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
 
 // Core pages - Always loaded (light components)

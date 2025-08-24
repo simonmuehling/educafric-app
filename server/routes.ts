@@ -119,6 +119,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/documents/:filename', async (req, res) => {
     try {
       const filename = req.params.filename;
+      
+      // Security: Validate filename to prevent path traversal attacks
+      if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ message: 'Invalid filename' });
+      }
+      
+      // Whitelist allowed file extensions for security
+      const allowedExtensions = ['.html', '.pdf', '.md', '.txt'];
+      const fileExtension = path.extname(filename).toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        return res.status(400).json({ message: 'File type not allowed' });
+      }
+      
       const filePath = path.join(process.cwd(), 'public', 'documents', filename);
       
       if (!fs.existsSync(filePath)) {
@@ -126,7 +139,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stat = fs.statSync(filePath);
-      const fileExtension = path.extname(filename).toLowerCase();
 
       if (fileExtension === '.md') {
         const content = fs.readFileSync(filePath, 'utf8');
@@ -159,6 +171,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/documents/:filename/pdf', async (req, res) => {
     try {
       const filename = req.params.filename;
+      
+      // Security: Validate filename to prevent path traversal attacks
+      if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        return res.status(400).json({ message: 'Invalid filename' });
+      }
+      
+      // Ensure filename ends with .html for PDF conversion
+      if (!filename.endsWith('.html')) {
+        return res.status(400).json({ message: 'Invalid filename format' });
+      }
+      
       const pdfPath = path.join(process.cwd(), 'public', 'documents', filename.replace('.html', '.pdf'));
       
       if (!fs.existsSync(pdfPath)) {

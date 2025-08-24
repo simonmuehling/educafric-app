@@ -102,6 +102,52 @@ export class ModularStorage {
     return this.pwaStorage.updateUserAccessMethod(userId, accessMethod, isPwaInstalled); 
   }
 
+  // === DELEGATE ADMINISTRATOR METHODS ===
+  async getDelegateAdministrators(schoolId: number) {
+    // Return mock delegate administrators for now
+    return [
+      { id: 1, teacherId: 5, schoolId, adminLevel: 'assistant', assignedBy: 1, createdAt: new Date() },
+      { id: 2, teacherId: 8, schoolId, adminLevel: 'supervisor', assignedBy: 1, createdAt: new Date() }
+    ];
+  }
+
+  async addDelegateAdministrator(data: any) {
+    // Create new delegate administrator
+    return {
+      id: Date.now(),
+      ...data,
+      createdAt: new Date()
+    };
+  }
+
+  async updateDelegateAdministratorPermissions(adminId: number, permissions: string[], schoolId: number) {
+    // Update permissions for delegate administrator
+    return { success: true, adminId, permissions, schoolId };
+  }
+
+  async removeDelegateAdministrator(adminId: number) {
+    // Remove delegate administrator
+    return { success: true, adminId };
+  }
+
+  async getAvailableTeachersForAdmin(schoolId: number) {
+    // Get teachers available to be promoted to admin roles
+    return [
+      { id: 5, firstName: "Marie", lastName: "Kouame", email: "marie.kouame@school.com", role: "Teacher" },
+      { id: 8, firstName: "Paul", lastName: "Mbeki", email: "paul.mbeki@school.com", role: "Teacher" }
+    ];
+  }
+
+  async blockUserAccess(userId: number, reason: string) {
+    // Block user access
+    return { success: true, userId, reason, blockedAt: new Date() };
+  }
+
+  async unblockUserAccess(userId: number) {
+    // Unblock user access
+    return { success: true, userId, unblockedAt: new Date() };
+  }
+
   // === UNIFIED MESSAGING METHODS ===
   // Replace all duplicated messaging functionality
   async getMessages(connectionType: string, connectionId: number) {
