@@ -149,7 +149,7 @@ export class ComponentPreloader {
       'Director': [
         () => import('@/pages/DirectorPage'),
         () => import('@/components/director/modules/ClassManagement'),
-        () => import('@/components/director/modules/StudentManagement')
+        () => import('@/components/director/modules/FunctionalDirectorStudentManagement')
       ],
       'Teacher': [
         () => import('@/pages/Teachers'),

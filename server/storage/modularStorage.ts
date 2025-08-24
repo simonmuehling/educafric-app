@@ -57,6 +57,8 @@ export class ModularStorage {
   async getStudentAttendance(studentId: number) { return this.studentStorage.getStudentAttendance(studentId); }
   async getStudentClasses(studentId: number) { return this.studentStorage.getStudentClasses(studentId); }
   async getStudentAssignments(studentId: number) { return this.studentStorage.getStudentAssignments(studentId); }
+  async getStudentsBySchool(schoolId: number) { return this.studentStorage.getStudentsBySchool(schoolId); }
+  async getStudentsByClass(classId: number) { return this.studentStorage.getStudentsByClass(classId); }
 
   // === GRADE METHODS ===
   async getGradesBySchool(schoolId: number) { return this.gradeStorage.getGradesBySchool(schoolId); }

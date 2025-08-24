@@ -52,7 +52,7 @@ class FastModuleLoader {
       
       // Legacy module names for compatibility
       'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
-      'StudentManagement': () => import('@/components/director/modules/StudentManagement'),
+      'StudentManagement': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
       'BulletinValidation': () => import('@/components/director/modules/BulletinValidation'),
       'AttendanceManagement': () => import('@/components/director/modules/AttendanceManagement'),

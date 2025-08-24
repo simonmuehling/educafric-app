@@ -91,7 +91,7 @@ class ModulePreloader {
         // Director/School modules
         case 'StudentManagement':
         case 'students':
-          componentImport = await import('@/components/director/modules/StudentManagement');
+          componentImport = await import('@/components/director/modules/FunctionalDirectorStudentManagement');
           break;
         case 'TeacherManagement':
         case 'teachers':

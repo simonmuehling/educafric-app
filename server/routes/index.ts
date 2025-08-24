@@ -119,6 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/currency', currencyRoutes);
   app.use('/api/students', studentsRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/director', adminRoutes);
   app.use('/api/classes', classesRoutes);
   app.use('/api/grades', gradesRoutes);
   app.use('/api/schools', schoolRoutes);
