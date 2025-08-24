@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { createInstantModule } from '@/utils/fastModuleLoader';
+import { createInstantModule } from '@/utils/instantModuleHelper';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -164,14 +164,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: createInstantModule('subscription')
+      component: createInstantModule('FreelancerSubscription')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createInstantModule('settings')
+      component: createInstantModule('FreelancerSettings')
     },
     {
       id: 'students',
@@ -189,7 +189,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Communication directe avec parents"
           ]}
         >
-          {createInstantModule('students')}
+          {createInstantModule('MyStudents')}
         </PremiumFeatureGate>
       )
     },
@@ -209,7 +209,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Rapports détaillés par session"
           ]}
         >
-          {createInstantModule('sessions')}
+          {createInstantModule('FunctionalFreelancerSessions')}
         </PremiumFeatureGate>
       )
     },
@@ -229,7 +229,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Paiements Orange Money & MTN"
           ]}
         >
-          {createInstantModule('payments')}
+          {createInstantModule('FunctionalFreelancerPayments')}
         </PremiumFeatureGate>
       )
     },
@@ -249,7 +249,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Optimisation des trajets"
           ]}
         >
-          {createInstantModule('schedule')}
+          {createInstantModule('FunctionalFreelancerSchedule')}
         </PremiumFeatureGate>
       )
     },
@@ -269,7 +269,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Templates professionnels"
           ]}
         >
-          {createInstantModule('resources')}
+          {createInstantModule('FunctionalFreelancerResources')}
         </PremiumFeatureGate>
       )
     },
@@ -289,7 +289,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Support client prioritaire"
           ]}
         >
-          {createInstantModule('communications')}
+          {createInstantModule('FreelancerCommunications')}
         </PremiumFeatureGate>
       )
     },

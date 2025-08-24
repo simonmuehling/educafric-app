@@ -67,35 +67,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     preloadCommercialApiData();
   }, [user, queryClient]);
   
-  // ULTRA-FAST module component creator
-  const createInstantModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    
-    // ALWAYS call hooks in the same order - move useEffect before conditional return
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      }
-    }, [ModuleComponent, moduleName]);
-    
-    if (ModuleComponent) {
-      const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
-      if (isCritical && apiDataPreloaded) {
-        console.log(`[COMMERCIAL_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
-      }
-      return React.createElement(ModuleComponent);
-    }
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-2 text-orange-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
-          </p>
-        </div>
-      </div>
-    );
-  };
+  // Removed broken local createInstantModule function
 
   // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
   React.useEffect(() => {
@@ -174,70 +146,70 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.mySchools,
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createInstantModule('commercial-schools')
+      component: createInstantModule('MySchools')
     },
     {
       id: 'leads',
       label: t.leads,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createInstantModule('commercial-contacts')
+      component: createInstantModule('ContactsManagement')
     },
     {
       id: 'contacts',
       label: t.contacts,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createInstantModule('commercial-contacts')
+      component: createInstantModule('ContactsManagement')
     },
     {
       id: 'payments',
       label: t.payments,
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createInstantModule('commercial-documents')
+      component: createInstantModule('DocumentsContracts')
     },
     {
       id: 'documents',
       label: t.documents,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createInstantModule('commercial-documents')
+      component: createInstantModule('DocumentsContracts')
     },
     {
       id: 'statistics',
       label: t.statistics,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: createInstantModule('commercial-statistics')
+      component: createInstantModule('CommercialStatistics')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <TrendingUp className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: createInstantModule('commercial-statistics')
+      component: createInstantModule('CommercialStatistics')
     },
     {
       id: 'appointments',
       label: t.appointments,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createInstantModule('commercial-contacts')
+      component: createInstantModule('ContactsManagement')
     },
     {
       id: 'whatsapp',
       label: t.whatsapp,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
-      component: createInstantModule('commercial-whatsapp')
+      component: createInstantModule('WhatsAppManager')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-600',
-      component: createInstantModule('settings')
+      component: createInstantModule('CommercialStatistics')
     },
     {
       id: 'multirole',
@@ -261,7 +233,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: createInstantModule('help')
+      component: createInstantModule('DocumentsContracts')
     }
   ];
 

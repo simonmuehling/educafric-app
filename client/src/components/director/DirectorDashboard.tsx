@@ -106,21 +106,21 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.timetable,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createInstantModule('FunctionalDirectorTimetable')
+      component: createInstantModule('TimetableConfiguration')
     },
     {
       id: 'finances',
       label: t.finances,
       icon: <DollarSign className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: createInstantModule('FunctionalDirectorFinances')
+      component: createInstantModule('FinancialManagement')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-violet-500',
-      component: createInstantModule('FunctionalDirectorReports')
+      component: createInstantModule('ReportsAnalytics')
     },
     {
       id: 'communication',
@@ -134,7 +134,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-rose-500',
-      component: createInstantModule('FunctionalDirectorHelp')
+      component: createInstantModule('SchoolConfigurationGuide')
     },
     {
       id: 'config-guide',
@@ -148,7 +148,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.schoolSettings,
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-slate-600',
-      component: createInstantModule('FunctionalDirectorSettings')
+      component: createInstantModule('DirectorSettings')
     }
   ];
 
