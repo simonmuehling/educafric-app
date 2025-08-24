@@ -153,56 +153,46 @@ const SandboxLogin = () => {
       return;
     }
 
-    // ⚡ ONE-CLICK INSTANT ACCESS - ZERO LATENCY
-    console.log('⚡ ONE-CLICK INSTANT ACCESS:', profile.name, profile.role);
-    setIsLogging(profile.id);
+    // ⚡ SANDBOX RAPIDE ET SIMPLE - Optimisé pour présentations
+    console.log('🚀 Sandbox Access:', profile.name, profile.role);
     
-    // Add instant visual feedback
-    const buttonElement = document.activeElement as HTMLButtonElement;
-    if (buttonElement) {
-      buttonElement.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        buttonElement.style.transform = 'scale(1)';
-      }, 100);
-    }
-    
-    // Navigate immediately with zero delay
-    const roleRoutes = {
-      Parent: '/parent',
-      Student: '/student', 
-      Teacher: '/teacher',
-      Freelancer: '/freelancer',
-      Admin: '/admin',
-      Director: '/director',
-      SiteAdmin: '/admin'
-    };
-    
-    const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-    console.log('⚡ INSTANT DASHBOARD TRANSITION:', targetRoute);
-    
-    // ZERO-LATENCY NAVIGATION - immediate transition
-    requestAnimationFrame(() => {
-      setLocation(targetRoute);
-      setIsLogging(null);
-    });
-    
-    // Background authentication (non-blocking)
-    fetch('/api/auth/sandbox-login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: profile.email,
-        password: 'sandbox123'
-      }),
-    }).then(response => {
+    // Authentication d'abord (rapide et fiable)
+    try {
+      const response = await fetch('/api/auth/sandbox-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: profile.email,
+          password: 'sandbox123'
+        }),
+      });
+
       if (response.ok) {
-        console.log('✅ Background authentication completed for:', profile.name);
+        console.log('✅ Sandbox authentication successful:', profile.name);
+        
+        // Navigation immédiate après connexion réussie
+        const roleRoutes = {
+          Parent: '/parent',
+          Student: '/student', 
+          Teacher: '/teacher',
+          Freelancer: '/freelancer',
+          Admin: '/admin',
+          Director: '/director',
+          SiteAdmin: '/admin'
+        };
+        
+        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+        console.log('🎯 Navigating to:', targetRoute);
+        
+        setLocation(targetRoute);
+      } else {
+        console.error('Sandbox login failed');
       }
-    }).catch(error => {
-      console.warn('Background auth warning (non-critical):', error);
-    });
+    } catch (error) {
+      console.error('Sandbox login error:', error);
+    }
   };
 
   return (
