@@ -266,7 +266,7 @@ const SchoolConfigurationGuide: React.FC = () => {
     <div className="w-full space-y-6">
       {/* Header inspiré de la présentation Educafric */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-8 text-white">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="3" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="2" fill="rgba(255,255,255,0.1)"/></svg>')] opacity-20"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%222%22%20fill%3D%22rgba(255,255,255,0.1)%22/%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%2240%22%20r%3D%223%22%20fill%3D%22rgba(255,255,255,0.1)%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2280%22%20r%3D%222%22%20fill%3D%22rgba(255,255,255,0.1)%22/%3E%3C/svg%3E')] opacity-20"></div>
         
         <div className="relative z-10 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
