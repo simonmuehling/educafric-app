@@ -118,10 +118,10 @@ export const productionSessionConfig = {
   saveUninitialized: false, // Don't create session until something stored
   rolling: false, // Don't reset expiration on each request - important for inactivity timeout
   cookie: {
-    secure: false, // Must be false for HTTP
+    secure: false, // Must be false for HTTP in development
     httpOnly: false, // Allow JavaScript access for debugging  
     maxAge: 30 * 60 * 1000, // 30 minutes
-    sameSite: 'none' as const, // Required for cross-origin in iframes
+    sameSite: 'lax' as const, // Lax works better for Replit environment
     path: '/', // Ensure cookie is sent for all paths
     domain: undefined, // Let browser handle domain
   },
