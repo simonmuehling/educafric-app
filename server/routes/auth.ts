@@ -209,6 +209,73 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
+// Sandbox login endpoint for demo users
+router.post('/sandbox-login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Validate sandbox credentials
+    if (password !== 'sandbox123') {
+      return res.status(401).json({ message: 'Invalid sandbox credentials' });
+    }
+    
+    // Define sandbox users with same structure as regular users
+    const sandboxUsers = {
+      'sandbox.parent@educafric.demo': { 
+        id: 9001, name: 'Marie Kamga', role: 'Parent', email: 'sandbox.parent@educafric.demo', 
+        schoolId: 999, children: [9004], phone: '+237650123456', sandboxMode: true 
+      },
+      'sandbox.student@educafric.demo': { 
+        id: 9004, name: 'Junior Kamga', role: 'Student', email: 'sandbox.student@educafric.demo', 
+        schoolId: 999, parentId: 9001, classId: 301, phone: '+237653123456', sandboxMode: true 
+      },
+      'sandbox.teacher@educafric.demo': { 
+        id: 9002, name: 'Paul Mvondo', role: 'Teacher', email: 'sandbox.teacher@educafric.demo', 
+        schoolId: 999, subjects: ['Mathématiques', 'Physique'], phone: '+237651123456', sandboxMode: true 
+      },
+      'sandbox.freelancer@educafric.demo': { 
+        id: 9003, name: 'Sophie Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo', 
+        schoolId: 999, subjects: ['Français'], phone: '+237652123456', sandboxMode: true 
+      },
+      'sandbox.admin@educafric.demo': { 
+        id: 9005, name: 'Dr. Nguetsop Carine', role: 'Admin', email: 'sandbox.admin@educafric.demo', 
+        schoolId: 999, phone: '+237654123456', sandboxMode: true 
+      },
+      'sandbox.director@educafric.demo': { 
+        id: 9006, name: 'Dr. Christiane Fouda', role: 'Director', email: 'sandbox.director@educafric.demo', 
+        schoolId: 999, phone: '+237655123456', sandboxMode: true 
+      }
+    };
+    
+    const user = sandboxUsers[email as keyof typeof sandboxUsers];
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid sandbox user' });
+    }
+    
+    // Login the sandbox user
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[SANDBOX_ERROR] Session creation error:', loginErr);
+        return res.status(500).json({ message: 'Failed to create sandbox session' });
+      }
+      
+      // Force session save
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('[SANDBOX_ERROR] Session save error:', saveErr);
+          return res.status(500).json({ message: 'Failed to save sandbox session' });
+        }
+        
+        res.json({ user: user });
+      });
+    });
+    
+  } catch (error) {
+    console.error('[SANDBOX_ERROR] Sandbox login failed:', error);
+    res.status(500).json({ message: 'Sandbox login failed' });
+  }
+});
+
 router.post('/logout', (req, res) => {
   try {
     req.logout((err) => {

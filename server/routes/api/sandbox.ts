@@ -1,12 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { autoscaleRoutes } from '../../services/sandboxAutoscaleService';
-
-// Simple auth middleware for now
-function requireAuth(req: any, res: any, next: any) {
-  // For now, just pass through - will implement proper auth when needed
-  next();
-}
+import { requireAuth } from '../../middleware/auth';
 
 // Extended request interface for authenticated routes
 interface AuthenticatedRequest extends Request {
