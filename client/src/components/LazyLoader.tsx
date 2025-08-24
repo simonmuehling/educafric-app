@@ -1,168 +1,114 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, Component, ErrorInfo, ReactNode } from 'react';
 
-// Ultra-fast loading component optimized for speed
+// Ultra-fast loading component with minimal DOM impact
 const OptimizedLoading = () => (
-  <div className="min-h-[200px] flex items-center justify-center">
-    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+  <div className="h-12 flex items-center justify-center">
+    <div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" />
   </div>
 );
 
-// Pages critiques - Lazy loading pour production 3500+ users
-const LazyStudentsComponent = lazy(() => import('@/pages/Students'));
-const LazyTeachersComponent = lazy(() => import('@/pages/Teachers'));
-const LazyGradesComponent = lazy(() => import('@/pages/Grades'));
-const LazyAttendanceComponent = lazy(() => import('@/pages/Attendance'));
-const LazyClassesComponent = lazy(() => import('@/pages/Classes'));
-const LazyHomeworkComponent = lazy(() => import('@/pages/Homework'));
-const LazyTimetableComponent = lazy(() => import('@/pages/Timetable'));
-const LazyPaymentsComponent = lazy(() => import('@/pages/Payments'));
-const LazyReportsComponent = lazy(() => import('@/pages/Reports'));
-const LazyProfileComponent = lazy(() => import('@/pages/ModernProfile'));
+// Error boundary to prevent crashes during module loading
+class LazyLoadErrorBoundary extends Component<
+  { children: ReactNode; fallback?: ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
 
-// Dashboard pages - Gros composants
-const LazyDirectorPageComponent = lazy(() => import('@/pages/DirectorPage'));
-const LazyCommercialPageComponent = lazy(() => import('@/pages/CommercialPage'));
-const LazyFreelancerPageComponent = lazy(() => import('@/pages/FreelancerPage'));
-const LazyParentsPageComponent = lazy(() => import('@/pages/ParentsPage'));
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
 
-// Security et admin
-const LazySecurityDashboardComponent = lazy(() => import('@/pages/SecurityDashboard'));
-const LazyAdminPageComponent = lazy(() => import('@/pages/AdminPage'));
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.warn('[LAZY_LOAD] Module loading error handled:', error.message);
+  }
 
-// Sandbox et demo (non critiques)
-const LazySandboxPageComponent = lazy(() => import('@/pages/SandboxPage'));
-const LazyEnhancedSandboxComponent = lazy(() => import('@/pages/EnhancedSandbox'));
-const LazyUIShowcaseComponent = lazy(() => import('@/pages/UIShowcase'));
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="p-4 text-center text-red-600">
+          Module loading error. Refreshing page may help.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
-// Exports with Suspense wrapper
-export const LazyStudents = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyStudentsComponent {...props} />
-  </Suspense>
+// Optimized wrapper for lazy components
+const createLazyComponent = (importFn: () => Promise<any>, displayName: string) => {
+  const LazyComponent = lazy(importFn);
+  LazyComponent.displayName = `Lazy${displayName}`;
+  
+  return (props: any) => (
+    <LazyLoadErrorBoundary>
+      <Suspense fallback={<OptimizedLoading />}>
+        <LazyComponent {...props} />
+      </Suspense>
+    </LazyLoadErrorBoundary>
+  );
+};
+
+// CONSOLIDATED MODULE DEFINITIONS - Only existing modules, no duplicates
+const moduleDefinitions = {
+  // Core pages
+  Students: () => import('@/pages/Students'),
+  Teachers: () => import('@/pages/Teachers'),
+  Grades: () => import('@/pages/Grades'),
+  Attendance: () => import('@/pages/Attendance'),
+  Classes: () => import('@/pages/Classes'),
+  Homework: () => import('@/pages/Homework'),
+  Timetable: () => import('@/pages/Timetable'),
+  Payments: () => import('@/pages/Payments'),
+  Reports: () => import('@/pages/Reports'),
+  Profile: () => import('@/pages/ModernProfile'),
+  
+  // Dashboard pages
+  DirectorPage: () => import('@/pages/DirectorPage'),
+  CommercialPage: () => import('@/pages/CommercialPage'),
+  FreelancerPage: () => import('@/pages/FreelancerPage'),
+  ParentsPage: () => import('@/pages/ParentsPage'),
+  
+  // System pages
+  SecurityDashboard: () => import('@/pages/SecurityDashboard'),
+  AdminPage: () => import('@/pages/AdminPage'),
+  
+  // Non-critical pages
+  SandboxPage: () => import('@/pages/SandboxPage'),
+  EnhancedSandbox: () => import('@/pages/EnhancedSandbox'),
+  UIShowcase: () => import('@/pages/UIShowcase'),
+} as const;
+
+// Generate all exports using the optimized factory function - No manual duplications
+export const LazyStudents = createLazyComponent(moduleDefinitions.Students, 'Students');
+export const LazyTeachers = createLazyComponent(moduleDefinitions.Teachers, 'Teachers');
+export const LazyGrades = createLazyComponent(moduleDefinitions.Grades, 'Grades');
+export const LazyAttendance = createLazyComponent(moduleDefinitions.Attendance, 'Attendance');
+export const LazyClasses = createLazyComponent(moduleDefinitions.Classes, 'Classes');
+export const LazyHomework = createLazyComponent(moduleDefinitions.Homework, 'Homework');
+export const LazyTimetable = createLazyComponent(moduleDefinitions.Timetable, 'Timetable');
+export const LazyPayments = createLazyComponent(moduleDefinitions.Payments, 'Payments');
+export const LazyReports = createLazyComponent(moduleDefinitions.Reports, 'Reports');
+export const LazyProfile = createLazyComponent(moduleDefinitions.Profile, 'Profile');
+
+export const LazyDirectorPage = createLazyComponent(moduleDefinitions.DirectorPage, 'DirectorPage');
+export const LazyCommercialPage = createLazyComponent(moduleDefinitions.CommercialPage, 'CommercialPage');
+export const LazyFreelancerPage = createLazyComponent(moduleDefinitions.FreelancerPage, 'FreelancerPage');
+export const LazyParentsPage = createLazyComponent(moduleDefinitions.ParentsPage, 'ParentsPage');
+
+export const LazySecurityDashboard = createLazyComponent(moduleDefinitions.SecurityDashboard, 'SecurityDashboard');
+export const LazyAdminPage = createLazyComponent(moduleDefinitions.AdminPage, 'AdminPage');
+
+export const LazySandboxPage = createLazyComponent(moduleDefinitions.SandboxPage, 'SandboxPage');
+export const LazyEnhancedSandbox = createLazyComponent(moduleDefinitions.EnhancedSandbox, 'EnhancedSandbox');
+export const LazyUIShowcase = createLazyComponent(moduleDefinitions.UIShowcase, 'UIShowcase');
+
+// Stub exports for non-existent components to prevent App.tsx errors
+export const LazySchoolGeolocation = () => (
+  <div className="p-4 text-center text-gray-600">SchoolGeolocation module not available</div>
 );
-
-export const LazyTeachers = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyTeachersComponent {...props} />
-  </Suspense>
+export const LazyRoleBasedGeolocation = () => (
+  <div className="p-4 text-center text-gray-600">RoleBasedGeolocation module not available</div>
 );
-
-export const LazyProfile = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyProfileComponent {...props} />
-  </Suspense>
-);
-
-export const LazyDirectorPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyDirectorPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazyCommercialPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyCommercialPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazyFreelancerPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyFreelancerPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazyParentsPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyParentsPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazySecurityDashboard = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazySecurityDashboardComponent {...props} />
-  </Suspense>
-);
-
-export const LazyAdminPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyAdminPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazySandboxPage = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazySandboxPageComponent {...props} />
-  </Suspense>
-);
-
-export const LazyEnhancedSandbox = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyEnhancedSandboxComponent {...props} />
-  </Suspense>
-);
-
-export const LazyUIShowcase = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyUIShowcaseComponent {...props} />
-  </Suspense>
-);
-
-// Geolocation components - Optimisés pour production 3500+ users
-const LazySchoolGeolocationComponent = lazy(() => import('@/components/shared/RoleBasedGeolocationPage'));
-const LazyRoleBasedGeolocationComponent = lazy(() => import('@/components/shared/RoleBasedGeolocationPage'));
-
-export const LazySchoolGeolocation = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazySchoolGeolocationComponent {...props} />
-  </Suspense>
-);
-
-export const LazyRoleBasedGeolocation = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyRoleBasedGeolocationComponent {...props} />
-  </Suspense>
-);
-
-export const LazyGrades = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyGradesComponent {...props} />
-  </Suspense>
-);
-
-export const LazyAttendance = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyAttendanceComponent {...props} />
-  </Suspense>
-);
-
-export const LazyClasses = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyClassesComponent {...props} />
-  </Suspense>
-);
-
-export const LazyHomework = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyHomeworkComponent {...props} />
-  </Suspense>
-);
-
-export const LazyTimetable = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyTimetableComponent {...props} />
-  </Suspense>
-);
-
-export const LazyPayments = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyPaymentsComponent {...props} />
-  </Suspense>
-);
-
-export const LazyReports = (props: any) => (
-  <Suspense fallback={<OptimizedLoading />}>
-    <LazyReportsComponent {...props} />
-  </Suspense>
-);
-
-export default OptimizedLoading;

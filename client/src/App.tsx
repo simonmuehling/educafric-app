@@ -71,21 +71,38 @@ import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
 
-// Global module preloader for instant UI response
+// Optimized module preloader with memory management
 const useGlobalModulePreloader = () => {
   useEffect(() => {
     const startGlobalPreload = async () => {
       if (import.meta.env.DEV) {
-        console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
+        console.log('[GLOBAL_PRELOADER] Starting optimized module preloading...');
       }
-      await fastModuleLoader.preloadCriticalModules();
-      if (import.meta.env.DEV) {
-        console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+      
+      try {
+        await fastModuleLoader.preloadCriticalModules();
+        
+        if (import.meta.env.DEV) {
+          console.log('[GLOBAL_PRELOADER] Essential modules ready');
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[GLOBAL_PRELOADER] Preload completed with some failures');
+        }
       }
     };
     
-    // Start preloading immediately when app loads
+    // Cleanup on unmount
+    const cleanup = () => {
+      fastModuleLoader.cleanupUnusedModules();
+    };
+    
     startGlobalPreload();
+    window.addEventListener('beforeunload', cleanup);
+    
+    return () => {
+      window.removeEventListener('beforeunload', cleanup);
+    };
   }, []);
 };
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));

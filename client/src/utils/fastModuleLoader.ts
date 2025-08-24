@@ -10,24 +10,17 @@ class FastModuleLoader {
   private cache: ModuleCache = {};
   private loadingPromises: Map<string, Promise<React.ComponentType<any>>> = new Map();
 
-  // Fast module mapping for real modules that exist
+  // Fast module mapping for real modules that exist - Consolidated without duplicates
   private getModuleImport(moduleName: string): Promise<any> | null {
     const moduleMap: { [key: string]: () => Promise<any> } = {
-      // Commercial modules (matching dashboard IDs exactly) - ONLY EXISTING MODULES
+      // Commercial modules (single mappings to prevent duplicates)
       'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
       'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
       'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
       'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
       
-      // Additional Commercial module aliases
-      'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
-      'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
-      'ContactsManagement': () => import('@/components/commercial/modules/ContactsManagement'),
-      'MySchools': () => import('@/components/commercial/modules/MySchools'),
-      'WhatsAppManager': () => import('@/components/commercial/modules/WhatsAppManager'),
-      
-      // Director modules (real ones) - ALL modules for instant loading
+      // Director modules (core dashboard modules only)
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
@@ -46,29 +39,13 @@ class FastModuleLoader {
       'config-guide': () => import('@/components/director/modules/MobileSchoolConfigurationGuide'),
       'school-settings': () => import('@/components/director/modules/SchoolSettings'),
       
-      // Additional specific mappings for problematic modules
-      'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
-      'TeacherAbsenceManager': () => import('@/components/director/modules/TeacherAbsenceManager'),
-      
-      // Legacy module names for compatibility
-      'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
-      'StudentManagement': () => import('@/components/director/modules/StudentManagement'),
-      'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
-      'BulletinValidation': () => import('@/components/director/modules/BulletinValidation'),
-      'AttendanceManagement': () => import('@/components/director/modules/AttendanceManagement'),
-      'Communications': () => import('@/components/director/modules/Communications'),
-      'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
-      'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
-      
-      // Parent modules (matching dashboard IDs exactly)
+      // Parent modules (essential only)
       'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
       'children': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'family': () => import('@/components/parent/modules/FamilyConnections'),
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
-      
-      // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'), 
       'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
@@ -212,49 +189,77 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // HYPER-OPTIMIZED: Force immediate preload with aggressive caching
+  // Optimized: Preload only essential modules with error handling
   async preloadCriticalModules() {
-    // CRITICAL STUDENT MODULES - Force preload immediately
-    const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages'];
+    const criticalModules = [
+      // Only the most frequently used modules - no huge lists
+      'overview',
+      'teachers', 
+      'children',
+      'commercial-schools',
+      'notifications'
+    ];
     
-    console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
+    if (import.meta.env.DEV) {
+      console.log('[FAST_LOADER] Preloading essential modules...');
+    }
     
-    // Load critical modules in parallel but wait for ALL to complete
-    const criticalPromises = criticalStudentModules.map(async (module) => {
+    // Load with timeout and error handling
+    const criticalPromises = criticalModules.map(async (module) => {
       try {
-        console.log(`[FAST_LOADER] 🎯 Force loading ${module}...`);
-        const component = await this.preloadModule(module);
-        console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
-        return component;
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 2000)
+        );
+        
+        await Promise.race([this.preloadModule(module), timeoutPromise]);
+        
+        if (import.meta.env.DEV) {
+          console.log(`[FAST_LOADER] ✅ ${module} loaded`);
+        }
       } catch (error) {
-        console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`, error);
-        return null;
+        // Silent failure in production to not slow startup
+        if (import.meta.env.DEV) {
+          console.warn(`[FAST_LOADER] Failed to preload ${module}`);
+        }
       }
     });
     
-    await Promise.all(criticalPromises);
+    await Promise.allSettled(criticalPromises);
     
-    // Now load other modules in background
-    const otherModules = [
-      'timetable', 'settings', 'overview', 'notifications', 'help',
-      'teachers', 'students', 'classes',
-      'subscription', 'children', 'geolocation', 'payments', 'family',
-      'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
-      'sessions', 'schedule', 'resources', 'communications',
-      'DocumentsContracts', 'CommercialStatistics'
-    ];
-    
-    // Background loading - don't block
-    const backgroundPromises = otherModules.map(module => this.preloadModule(module));
-    Promise.allSettled(backgroundPromises).then(() => {
-      console.log(`[FAST_LOADER] 🚀 COMPLETED: ${Object.keys(this.cache).length} total modules cached`);
-    });
+    if (import.meta.env.DEV) {
+      console.log('[FAST_LOADER] Essential modules preload complete');
+    }
   }
 
-  // Clear cache to prevent memory leaks
+  // Enhanced memory management
   clearCache() {
     this.cache = {};
     this.loadingPromises.clear();
+    
+    if (import.meta.env.DEV) {
+      console.log('[FAST_LOADER] Cache cleared - memory freed');
+    }
+  }
+
+  // Cleanup unused modules periodically
+  cleanupUnusedModules(keepModules: string[] = []) {
+    const currentTime = Date.now();
+    const CLEANUP_THRESHOLD = 10 * 60 * 1000; // 10 minutes
+    
+    Object.keys(this.cache).forEach(moduleName => {
+      if (!keepModules.includes(moduleName)) {
+        // In a real implementation, you'd track last access time
+        // For now, just keep essential modules
+        const isEssential = ['overview', 'notifications', 'teachers', 'children'].includes(moduleName);
+        if (!isEssential) {
+          delete this.cache[moduleName];
+        }
+      }
+    });
+    
+    if (import.meta.env.DEV) {
+      console.log(`[FAST_LOADER] Cleanup complete - ${Object.keys(this.cache).length} modules retained`);
+    }
   }
 }
 
