@@ -42,24 +42,50 @@ const FunctionalParentChildren: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // ✅ OPTIMIZED: Define all stable callback handlers using preloaded cache data
+  // Define all stable callback handlers at the top level (Rules of Hooks compliance)
   const handleViewAllGrades = useStableCallback(() => {
-    console.log('[PARENT_QUICK_ACTION] ⚡ Using PRELOADED grades data...');
-    // Use cache data instead of fetch - data already preloaded by ParentDashboard
-    window.dispatchEvent(new CustomEvent('switchToGrades'));
-    toast({
-      title: language === 'fr' ? 'Notes chargées' : 'Grades loaded',
-      description: language === 'fr' ? 'Navigation vers les notes' : 'Navigating to grades',
+    console.log('[PARENT_QUICK_ACTION] Fetching all grades...');
+    fetch('/api/parent/grades', {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      const gradesData = await response.json();
+      console.log('[PARENT_QUICK_ACTION] Grades data received:', (Array.isArray(gradesData) ? gradesData.length : 0), 'items');
+      window.dispatchEvent(new CustomEvent('switchToGrades'));
+      toast({
+        title: language === 'fr' ? 'Notes chargées' : 'Grades loaded',
+        description: language === 'fr' ? `${(Array.isArray(gradesData) ? gradesData.length : 0)} notes trouvées` : `${(Array.isArray(gradesData) ? gradesData.length : 0)} grades found`,
+      });
+    }).catch(error => {
+      console.error('[PARENT_QUICK_ACTION] Grades fetch error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de charger les notes' : 'Unable to load grades',
+        variant: 'destructive'
+      });
     });
   });
 
   const handleCheckAttendance = useStableCallback(() => {
-    console.log('[PARENT_QUICK_ACTION] ⚡ Using PRELOADED attendance data...');
-    // Use cache data instead of fetch - data already preloaded by ParentDashboard
-    window.dispatchEvent(new CustomEvent('switchToAttendance'));
-    toast({
-      title: language === 'fr' ? 'Présences chargées' : 'Attendance loaded',
-      description: language === 'fr' ? 'Navigation vers les présences' : 'Navigating to attendance',
+    console.log('[PARENT_QUICK_ACTION] Fetching attendance data...');
+    fetch('/api/parent/attendance', {
+      method: 'GET',
+      credentials: 'include'
+    }).then(async response => {
+      const attendanceData = await response.json();
+      console.log('[PARENT_QUICK_ACTION] Attendance data received:', (Array.isArray(attendanceData) ? attendanceData.length : 0), 'records');
+      window.dispatchEvent(new CustomEvent('switchToAttendance'));
+      toast({
+        title: language === 'fr' ? 'Présences chargées' : 'Attendance loaded',
+        description: language === 'fr' ? `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} enregistrements trouvés` : `${(Array.isArray(attendanceData) ? attendanceData.length : 0)} records found`,
+      });
+    }).catch(error => {
+      console.error('[PARENT_QUICK_ACTION] Attendance fetch error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de charger les présences' : 'Unable to load attendance',
+        variant: 'destructive'
+      });
     });
   });
 

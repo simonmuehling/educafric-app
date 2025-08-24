@@ -22,26 +22,33 @@ export default function FeatureAccessControl({
   const { user } = useAuth();
   const { isPremiumUnlocked } = useSandboxPremium();
 
-  // 🚀 SANDBOX BYPASS TOTAL - AUCUN BLOCAGE PREMIUM EN SANDBOX
-  const isSandboxUser = Boolean(
+  // Check if user is sandbox user (all sandbox users have premium access)
+  
+  // Extended sandbox detection
+  const isAnyDemo = Boolean(
+    user?.email?.includes('demo') || 
+    user?.email?.includes('test') ||
     user?.email?.includes('sandbox') ||
-    user?.email?.includes('.demo@') ||
-    user?.email?.includes('test.educafric.com') ||
-    user?.email?.endsWith('@test.educafric.com') ||
-    user?.email?.includes('demo') ||
     (user as any)?.sandboxMode ||
-    (user as any)?.premiumFeatures ||
-    (user?.id && user.id >= 9000) || // Tous les IDs sandbox (9001-9006)
-    isPremiumUnlocked ||
-    window?.location?.hostname?.includes('sandbox') ||
-    window?.location?.href?.includes('/sandbox')
+    window?.location?.hostname.includes('sandbox') ||
+    window?.location?.hostname.includes('test')
+  );
+
+  const isSandboxUser = Boolean(
+    user?.email?.includes('demo@test?.educafric?.com') || 
+    user?.email?.includes('sandbox.') || 
+    user?.email?.includes('.demo@') ||
+    user?.email?.includes('test?.educafric?.com') ||
+    (user as any)?.sandboxMode ||
+    isPremiumUnlocked
   );
 
   // Check if user is school admin (Director, Admin)
   const isSchoolAdmin = user?.role === 'Admin' || user?.role === 'Director';
   
-  // 🚀 SANDBOX ACCESS COMPLET - BYPASS TOTAL
-  if (isSandboxUser) {
+  // For sandbox users, always grant access (no premium blocks)
+  if (isSandboxUser || isAnyDemo) {
+    console.log('🏖️ Sandbox Access Granted: Feature unlocked');
     return <>{children}</>;
   }
 

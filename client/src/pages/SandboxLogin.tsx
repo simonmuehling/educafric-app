@@ -7,11 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationTester from '@/components/sandbox/NotificationTester';
-import { FastLoader } from '@/utils/fastLoader';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown, Bell,
-  ArrowRight, Sparkles, Target
+  Settings, Shield, Play, TestTube, Zap, Crown, Bell
 } from 'lucide-react';
 
 const SandboxLogin = () => {
@@ -154,11 +152,10 @@ const SandboxLogin = () => {
       return;
     }
 
-    // Optimized instant sandbox connection
     setIsLogging(profile.id);
     
-    // Fast authentication with minimal overhead
     try {
+      // Direct login with sandbox credentials
       const response = await fetch('/api/auth/sandbox-login', {
         method: 'POST',
         headers: {
@@ -171,13 +168,13 @@ const SandboxLogin = () => {
       });
 
       if (response.ok) {
-        // Preload role-specific modules for instant performance
-        FastLoader.preloadSandboxModules(profile.role);
+        const userData = await response.json();
+        console.log('✅ Sandbox login successful, navigating to dashboard:', userData);
         
-        // Immediate navigation - no waiting
+        // Navigate to role-specific dashboard immediately
         const roleRoutes = {
           Parent: '/parent',
-          Student: '/student', 
+          Student: '/student',
           Teacher: '/teacher',
           Freelancer: '/freelancer',
           Admin: '/admin',
@@ -186,16 +183,20 @@ const SandboxLogin = () => {
         };
         
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        setLocation(targetRoute);
+        console.log('🎯 Redirecting to:', targetRoute);
+        
+        // Small delay to ensure session is established, then redirect
+        setTimeout(() => {
+          if (window && window.location) {
+            window.location.href = targetRoute;
+          }
+        }, 500);
       } else {
-        if (import.meta.env.DEV) {
-          console.error('Sandbox login failed');
-        }
+        const error = await response.json();
+        console.error('Sandbox login failed:', error);
       }
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Sandbox login error:', error);
-      }
+      console.error('Sandbox login error:', error);
     } finally {
       setIsLogging(null);
     }
@@ -303,21 +304,12 @@ const SandboxLogin = () => {
                 <Button
                   onClick={() => handleSandboxLogin(profile)}
                   disabled={isLogging === profile.id}
-                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium transition-all duration-150 hover:scale-105 hover:shadow-lg active:scale-95 relative overflow-hidden group`}
-                  onMouseEnter={() => {
-                    // Pre-load dashboard modules on hover for ultra-fast access
-                    if (profile.role === 'Parent') {
-                      console.log('🚀 Pre-loading Parent modules on hover...');
-                    }
-                  }}
+                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium`}
                 >
-                  {/* Shimmer effect for instant feedback */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 group-hover:animate-pulse transition-opacity duration-200"></div>
-                  
                   {isLogging === profile.id ? (
                     <>
                       <TestTube className="w-4 h-4 mr-2 animate-spin" />
-                      {language === 'fr' ? 'Accès Immédiat...' : 'Instant Access...'}
+                      {language === 'fr' ? 'Connexion...' : 'Connecting...'}
                     </>
                   ) : profile.id === 'notifications' ? (
                     <>
@@ -326,8 +318,8 @@ const SandboxLogin = () => {
                     </>
                   ) : (
                     <>
-                      <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                      {language === 'fr' ? '⚡ Accès Instantané' : '⚡ Instant Access'}
+                      <Play className="w-4 h-4 mr-2" />
+                      {language === 'fr' ? 'Accéder au Dashboard' : 'Access Dashboard'}
                     </>
                   )}
                 </Button>

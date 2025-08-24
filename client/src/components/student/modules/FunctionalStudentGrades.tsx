@@ -47,12 +47,10 @@ const FunctionalStudentGrades: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
-  // ✅ OPTIMIZED: Fetch grades data with fast cache configuration
+  // Fetch grades data from PostgreSQL API
   const { data: grades = [], isLoading, refetch } = useQuery<GradeData[]>({
     queryKey: ['/api/student/grades'],
-    enabled: !!user,
-    staleTime: 1000 * 60 * 3, // 3 minutes cache - grades change frequently
-    gcTime: 1000 * 60 * 10 // 10 minutes in memory cache (TanStack Query v5 uses gcTime)
+    enabled: !!user
   });
 
   // Calculate summary from real data

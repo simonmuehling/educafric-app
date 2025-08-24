@@ -4,11 +4,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { usePWANotifications } from "@/hooks/usePWANotifications";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
-// Firebase redirect functionality removed after refactoring
+// import { handleRedirect } from "@/lib/firebase"; // Function not available
 import React, { useEffect, lazy, Suspense, useState } from "react";
 
 // Core pages - Always loaded (light components)
@@ -17,7 +18,7 @@ import Login from "@/pages/Login";
 import PasswordReset from "@/pages/PasswordReset";
 import NotFound from "@/pages/not-found";
 
-// CONSOLIDATED MODULE LOADING - Ultra-fast unified system for 3500+ users
+// UNIFIED MODULE LOADING - Eliminates Fast/Lazy confusion for 3500+ users
 import { 
   LazyStudents, 
   LazyTeachers, 
@@ -42,65 +43,71 @@ import {
   LazyUIShowcase
 } from "@/components/LazyLoader";
 
-// Individual Dashboard Components
-import { LazyStudentDashboard, LazyTeacherDashboard, LazyFreelancerDashboard } from "@/components/LazyComponentLoader";
+// Initialize network optimizer for connection quality improvements
+import "@/utils/networkOptimizer";
 
-// Simplified imports for faster startup
+// Initialize global module preloader for instant loading
+import { fastModuleLoader } from "@/utils/fastModuleLoader";
 
-// Convert heavy imports to lazy loading for faster startup
-const LazySubscribe = lazy(() => import("@/pages/Subscribe"));
-const LazyDemo = lazy(() => import("@/pages/Demo"));
-const LazyGeolocationPricing = lazy(() => import("@/pages/GeolocationPricing"));
-const LazySubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
-const LazySandboxLogin = lazy(() => import("@/pages/SandboxLogin"));
-const LazySandboxDemo = lazy(() => import("@/pages/SandboxDemo"));
-const LazyCurrencyDemo = lazy(() => import("@/pages/CurrencyDemo"));
-// Schools now imported synchronously above
-const LazyTermsOfService = lazy(() => import("@/pages/TermsOfService"));
-const LazyPrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
-const LazyBulkManagement = lazy(() => import("@/pages/BulkManagement"));
-const LazyProfileFeatures = lazy(() => import("@/pages/ProfileFeatures"));
-const LazyModernFormDemo = lazy(() => import("@/pages/ModernFormDemo"));
-const LazyUnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
-const LazyDebugInspector = lazy(() => import("@/pages/DebugInspector"));
-const LazyPWAAnalyticsDemo = lazy(() => import("@/pages/PWAAnalyticsDemo"));
-const LazyEducationalConnections = lazy(() => import("@/pages/EducationalConnections"));
-const LazySubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
-const LazySignatureTest = lazy(() => import("@/pages/SignatureTest"));
-
-// Simplified preloader for faster sandbox loading
-// Test components - Lazy loaded
-const LazyBulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
-const LazyBulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
-const LazyBulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
-const LazyPWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
-
-// System components - Essential only, keep critical ones synchronous
-import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
-import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
-import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
-import InactivityMonitor from "@/components/auth/InactivityMonitor";
-import EducafricFooter from "@/components/EducafricFooter";
-import RoleBasedDashboard from "@/components/RoleBasedDashboard";
-
-// Demo and route components - Import synchronously since they're directly used in routes
-import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
-import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
-import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
+// Light components - Regular imports OK
+import Subscribe from "@/pages/Subscribe";
+import Demo from "@/pages/Demo";
+import GeolocationPricing from "@/pages/GeolocationPricing";
+import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
+import SandboxLogin from "@/pages/SandboxLogin";
+import SandboxDemo from "@/pages/SandboxDemo";
 import CurrencyDemo from "@/pages/CurrencyDemo";
+import Schools from "@/pages/Schools";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import BulkManagement from "@/pages/BulkManagement";
+import ProfileFeatures from "@/pages/ProfileFeatures";
+import ModernFormDemo from "@/pages/ModernFormDemo";
+import UnauthorizedPage from "@/pages/UnauthorizedPage";
+// PWA Install Prompt déjà importé dans les composants PWA
+import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
-import ModernFormDemo from "@/pages/ModernFormDemo";
-import PWANotificationTest from "@/pages/PWANotificationTest";
-import BulletinValidationTest from "@/pages/BulletinValidationTest";
-import Schools from "@/pages/Schools";
-import UnauthorizedPage from "@/pages/UnauthorizedPage";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import TermsOfService from "@/pages/TermsOfService";
 import SignatureTest from "@/pages/SignatureTest";
-import BulletinCreationTest from "@/pages/BulletinCreationTest";
-import BulletinTestSuite from "@/pages/BulletinTestSuite";
+
+// Global module preloader for instant UI response
+const useGlobalModulePreloader = () => {
+  useEffect(() => {
+    const startGlobalPreload = async () => {
+      if (import.meta.env.DEV) {
+        console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
+      }
+      await fastModuleLoader.preloadCriticalModules();
+      if (import.meta.env.DEV) {
+        console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+      }
+    };
+    
+    // Start preloading immediately when app loads
+    startGlobalPreload();
+  }, []);
+};
+const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
+const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
+const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
+const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
+
+// System components - Optimisés pour 3500+ utilisateurs
+import InactivityMonitor from "@/components/auth/InactivityMonitor";
+import EducafricFooter from "@/components/EducafricFooter";
+import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
+import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
+import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
+// WebInspector disabled to prevent fetch override interference with PWA analytics
+// import WebInspector from "@/components/developer/WebInspector";
+import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
+import RoleBasedDashboard from "@/components/RoleBasedDashboard";
+
+// Demo components - Non critiques, lazy si nécessaire
+import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
+import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
+import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -126,8 +133,22 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
+  const { autoTrackPWAUsage } = usePWAAnalytics();
 
-  // Expose tutorial function globally - ALL HOOKS MUST BE CALLED BEFORE CONDITIONS
+  // Initialize PWA analytics tracking - Fixed to prevent render loops
+  React.useEffect(() => {
+    // Only track once per session to prevent crashes
+    const sessionKey = 'app_pwa_tracking_initialized';
+    if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey)) {
+      if (import.meta.env.DEV) {
+        console.log('[APP] Initializing PWA analytics (one-time)');
+      }
+      autoTrackPWAUsage(user?.id);
+      window.sessionStorage?.setItem(sessionKey, 'true');
+    }
+  }, []); // Remove dependencies to prevent loops
+
+  // Expose tutorial function globally
   React.useEffect(() => {
     (window as any).showTutorial = () => {
       if (import.meta.env.DEV) {
@@ -141,7 +162,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // RENDER CONDITIONS AFTER ALL HOOKS
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -201,7 +221,7 @@ function Router() {
       
       <Route path="/student">
         <ProtectedRoute>
-          <LazyStudentDashboard />
+          <LazyStudents />
         </ProtectedRoute>
       </Route>
       
@@ -213,7 +233,7 @@ function Router() {
       
       <Route path="/teacher">
         <ProtectedRoute>
-          <LazyTeacherDashboard />
+          <LazyTeachers />
         </ProtectedRoute>
       </Route>
 
@@ -273,7 +293,7 @@ function Router() {
       
       <Route path="/freelancer">
         <ProtectedRoute>
-          <LazyFreelancerDashboard />
+          <LazyFreelancerPage />
         </ProtectedRoute>
       </Route>
       
@@ -297,9 +317,7 @@ function Router() {
       
       <Route path="/bulk-management">
         <ProtectedRoute>
-          <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-            <LazyBulkManagement />
-          </Suspense>
+          <BulkManagement />
         </ProtectedRoute>
       </Route>
       
@@ -327,21 +345,9 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/subscribe">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySubscribe />
-        </Suspense>
-      </Route>
-      <Route path="/sandbox-login">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySandboxLogin />
-        </Suspense>
-      </Route>
-      <Route path="/sandbox-demo">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySandboxDemo />
-        </Suspense>
-      </Route>
+      <Route path="/subscribe" component={Subscribe} />
+      <Route path="/sandbox-login" component={SandboxLogin} />
+      <Route path="/sandbox-demo" component={SandboxDemo} />
       
       <Route path="/profile">
         <ProtectedRoute>
@@ -351,27 +357,13 @@ function Router() {
       
       <Route path="/profile-features">
         <ProtectedRoute>
-          <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-            <LazyProfileFeatures />
-          </Suspense>
+          <ProfileFeatures />
         </ProtectedRoute>
       </Route>
       
-      <Route path="/demo">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazyDemo />
-        </Suspense>
-      </Route>
-      <Route path="/subscription-success">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazySubscriptionSuccess />
-        </Suspense>
-      </Route>
-      <Route path="/geolocation-pricing">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazyGeolocationPricing />
-        </Suspense>
-      </Route>
+      <Route path="/demo" component={Demo} />
+      <Route path="/subscription-success" component={SubscriptionSuccess} />
+      <Route path="/geolocation-pricing" component={GeolocationPricing} />
       
       <Route path="/geolocation">
         <ProtectedRoute>
@@ -389,11 +381,7 @@ function Router() {
       <Route path="/reset-password/:token" component={PasswordReset} />
       
       {/* Developer Tools */}
-      <Route path="/debug-inspector">
-        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
-          <LazyDebugInspector />
-        </Suspense>
-      </Route>
+      <Route path="/debug-inspector" component={DebugInspector} />
       <Route path="/sandbox" component={LazySandboxPage} />
       <Route path="/enhanced-sandbox" component={LazyEnhancedSandbox} />
       <Route path="/sandbox/pwa-connection">
@@ -414,9 +402,14 @@ function Router() {
             <div className="bg-white p-6 rounded-lg shadow">
               <div className="space-y-4">
                 <div className="text-sm text-gray-500">
-                  <p className="font-medium mb-2">Sandbox Environment</p>
-                  <p className="text-xs">Use the login form to access your test account.</p>
-                  <p className="text-xs mt-2">Contact your administrator for test credentials.</p>
+                  <p className="font-medium mb-2">Working Test Accounts:</p>
+                  <ul className="space-y-1 text-xs">
+                    <li>• simon.admin@www.educafric.com (Site Admin) ✓</li>
+                    <li>• parent.kamdem@gmail.com (Parent)</li>
+                    <li>• teacher.demo@test.www.educafric.com (Teacher)</li>
+                    <li>• student.demo@test.www.educafric.com (Student)</li>
+                  </ul>
+                  <p className="mt-3 text-xs">All passwords: "password"</p>
                 </div>
                 <button 
                   onClick={() => window.location.href = '/login'}
@@ -459,7 +452,6 @@ function FirebaseRedirectHandler() {
   const [initialized, setInitialized] = useState(false);
   
   useEffect(() => {
-    // ALL HOOKS MUST BE CALLED BEFORE ANY EARLY RETURNS
     // Only initialize once to prevent repeated logs
     if (initialized) return;
     
@@ -483,7 +475,8 @@ function FirebaseRedirectHandler() {
 }
 
 function App() {
-  // Simplified startup - removed heavy preloader for better performance
+  // Global module preloader for instant UI response
+  useGlobalModulePreloader();
   
   useEffect(() => {
     // Configuration du filtre de console pour réduire le spam

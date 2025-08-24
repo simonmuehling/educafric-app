@@ -73,13 +73,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   
   // FORCE IMMEDIATE preload of critical slow modules - Freelancer specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'students', 'sessions', 'schedule', 'resources', 'communications', 'settings',
-      'FunctionalFreelancerStudents', 'FunctionalFreelancerSessions', 'FunctionalFreelancerPayments',
-      'FunctionalFreelancerSchedule', 'FunctionalFreelancerResources', 'FreelancerCommunications',
-      'help', 'geolocation'
-    ];
+    const criticalModules = ['students', 'sessions', 'schedule', 'resources', 'communications', 'settings'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[FREELANCER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -107,16 +101,16 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
-    // ✅ NO useEffect here - preloading handled elsewhere
+    // ALWAYS call hooks in the same order - move useEffect before conditional return
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [ModuleComponent, moduleName]);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'students', 'sessions', 'schedule', 'resources', 'communications', 'settings',
-        'FunctionalFreelancerStudents', 'FunctionalFreelancerSessions', 'FunctionalFreelancerPayments',
-        'FunctionalFreelancerSchedule', 'FunctionalFreelancerResources', 'FreelancerCommunications',
-        'help', 'geolocation', 'payments'
-      ].includes(moduleName);
+      const isCritical = ['students', 'sessions', 'schedule', 'payments'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[FREELANCER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }

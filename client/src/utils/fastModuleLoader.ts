@@ -1,4 +1,5 @@
-// FIXED: Active module loader with correct mappings
+// Optimized module loader for EDUCAFRIC dashboards - Bundle size optimized
+// Pure dynamic imports only - no static imports to avoid bundle conflicts
 import React from 'react';
 
 interface ModuleCache {
@@ -9,27 +10,34 @@ class FastModuleLoader {
   private cache: ModuleCache = {};
   private loadingPromises: Map<string, Promise<React.ComponentType<any>>> = new Map();
 
-  // Fast module mapping for real modules that exist - Consolidated without duplicates
+  // Fast module mapping for real modules that exist
   private getModuleImport(moduleName: string): Promise<any> | null {
     const moduleMap: { [key: string]: () => Promise<any> } = {
-      // Commercial modules (single mappings to prevent duplicates)
+      // Commercial modules (matching dashboard IDs exactly) - ONLY EXISTING MODULES
       'commercial-schools': () => import('@/components/commercial/modules/MySchools'),
       'commercial-contacts': () => import('@/components/commercial/modules/ContactsManagement'),
       'commercial-documents': () => import('@/components/commercial/modules/DocumentsContracts'),
       'commercial-statistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-whatsapp': () => import('@/components/commercial/modules/WhatsAppManager'),
       
-      // Director modules (core dashboard modules only) - FIXED: Exact matching IDs
+      // Additional Commercial module aliases
+      'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
+      'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
+      'ContactsManagement': () => import('@/components/commercial/modules/ContactsManagement'),
+      'MySchools': () => import('@/components/commercial/modules/MySchools'),
+      'WhatsAppManager': () => import('@/components/commercial/modules/WhatsAppManager'),
+      
+      // Director modules (real ones) - ALL modules for instant loading
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
-      'settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
-      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
+      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
-      'timetable': () => import('@/components/director/modules/TimetableConfiguration'),
-      'attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
-      'communications': () => import('@/components/director/modules/CommunicationsCenter'),
+      'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
+      'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
-      'parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
+      'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/DelegateAdministrators'),
@@ -38,13 +46,29 @@ class FastModuleLoader {
       'config-guide': () => import('@/components/director/modules/MobileSchoolConfigurationGuide'),
       'school-settings': () => import('@/components/director/modules/SchoolSettings'),
       
-      // Parent modules (essential only)
+      // Additional specific mappings for problematic modules
+      'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'TeacherAbsenceManager': () => import('@/components/director/modules/TeacherAbsenceManager'),
+      
+      // Legacy module names for compatibility
+      'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
+      'StudentManagement': () => import('@/components/director/modules/StudentManagement'),
+      'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
+      'BulletinValidation': () => import('@/components/director/modules/BulletinValidation'),
+      'AttendanceManagement': () => import('@/components/director/modules/AttendanceManagement'),
+      'Communications': () => import('@/components/director/modules/Communications'),
+      'SchoolSettings': () => import('@/components/director/modules/SchoolSettings'),
+      'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagement'),
+      
+      // Parent modules (matching dashboard IDs exactly)
       'subscription': () => import('@/components/shared/SubscriptionStatusCard'),
       'children': () => import('@/components/parent/modules/FunctionalParentChildren'),
       'geolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'family': () => import('@/components/parent/modules/FamilyConnections'),
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      
+      // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'), 
       'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
@@ -62,11 +86,11 @@ class FastModuleLoader {
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
       
       // Student modules (matching dashboard IDs exactly) - ULTRA-OPTIMIZED FOR SPEED
-      'student-timetable': () => import('@/components/student/modules/StudentTimetable'),
+      'timetable': () => import('@/components/student/modules/StudentTimetable'),
       'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
       'assignments': () => import('@/components/student/modules/StudentHomework'),
       'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
-      'student-attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
+      'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'messages': () => import('@/components/student/modules/StudentCommunications'),
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
@@ -118,11 +142,12 @@ class FastModuleLoader {
       'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
+      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
       'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
-      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
       
       // Additional Freelancer module aliases
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
@@ -187,77 +212,49 @@ class FastModuleLoader {
     return this.cache[moduleName] || null;
   }
 
-  // Optimized: Preload only essential modules with error handling
+  // HYPER-OPTIMIZED: Force immediate preload with aggressive caching
   async preloadCriticalModules() {
-    const criticalModules = [
-      // Only the most frequently used modules - no huge lists
-      'overview',
-      'teachers', 
-      'children',
-      'commercial-schools',
-      'notifications'
-    ];
+    // CRITICAL STUDENT MODULES - Force preload immediately
+    const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages'];
     
-    if (import.meta.env.DEV) {
-      console.log('[FAST_LOADER] Preloading essential modules...');
-    }
+    console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
     
-    // Load with timeout and error handling
-    const criticalPromises = criticalModules.map(async (module) => {
+    // Load critical modules in parallel but wait for ALL to complete
+    const criticalPromises = criticalStudentModules.map(async (module) => {
       try {
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 2000)
-        );
-        
-        await Promise.race([this.preloadModule(module), timeoutPromise]);
-        
-        if (import.meta.env.DEV) {
-          console.log(`[FAST_LOADER] ✅ ${module} loaded`);
-        }
+        console.log(`[FAST_LOADER] 🎯 Force loading ${module}...`);
+        const component = await this.preloadModule(module);
+        console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
+        return component;
       } catch (error) {
-        // Silent failure in production to not slow startup
-        if (import.meta.env.DEV) {
-          console.warn(`[FAST_LOADER] Failed to preload ${module}`);
-        }
+        console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`, error);
+        return null;
       }
     });
     
-    await Promise.allSettled(criticalPromises);
+    await Promise.all(criticalPromises);
     
-    if (import.meta.env.DEV) {
-      console.log('[FAST_LOADER] Essential modules preload complete');
-    }
+    // Now load other modules in background
+    const otherModules = [
+      'timetable', 'settings', 'overview', 'notifications', 'help',
+      'teachers', 'students', 'classes',
+      'subscription', 'children', 'geolocation', 'payments', 'family',
+      'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
+      'sessions', 'schedule', 'resources', 'communications',
+      'DocumentsContracts', 'CommercialStatistics'
+    ];
+    
+    // Background loading - don't block
+    const backgroundPromises = otherModules.map(module => this.preloadModule(module));
+    Promise.allSettled(backgroundPromises).then(() => {
+      console.log(`[FAST_LOADER] 🚀 COMPLETED: ${Object.keys(this.cache).length} total modules cached`);
+    });
   }
 
-  // Enhanced memory management
+  // Clear cache to prevent memory leaks
   clearCache() {
     this.cache = {};
     this.loadingPromises.clear();
-    
-    if (import.meta.env.DEV) {
-      console.log('[FAST_LOADER] Cache cleared - memory freed');
-    }
-  }
-
-  // Cleanup unused modules periodically
-  cleanupUnusedModules(keepModules: string[] = []) {
-    const currentTime = Date.now();
-    const CLEANUP_THRESHOLD = 10 * 60 * 1000; // 10 minutes
-    
-    Object.keys(this.cache).forEach(moduleName => {
-      if (!keepModules.includes(moduleName)) {
-        // In a real implementation, you'd track last access time
-        // For now, just keep essential modules
-        const isEssential = ['overview', 'notifications', 'teachers', 'children'].includes(moduleName);
-        if (!isEssential) {
-          delete this.cache[moduleName];
-        }
-      }
-    });
-    
-    if (import.meta.env.DEV) {
-      console.log(`[FAST_LOADER] Cleanup complete - ${Object.keys(this.cache).length} modules retained`);
-    }
   }
 }
 

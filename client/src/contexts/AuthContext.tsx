@@ -32,16 +32,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiRequest('POST', '/api/auth/login', { email, password });
       
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = await response.json();
-        } catch (jsonError) {
-          throw new Error('Login failed - Invalid response from server');
-        }
-        throw new Error(errorData.message || 'Login failed');
-      }
-      
       let userData;
       try {
         userData = await response.json();
@@ -49,26 +39,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Invalid response from server during login');
       }
       
+      if (!response.ok) {
+        throw new Error(userData.message || 'Login failed');
+      }
+      
       setUser(userData);
       
-      // Minimal logging for performance - only in dev
+      // Minimal logging for performance
       if (import.meta.env.DEV) {
         console.log(`Login successful: ${userData.firstName} ${userData.lastName} (${userData.role})`);
       }
       
-      // Skip confetti for sandbox logins for speed
-      if (!userData.email?.includes('sandbox')) {
-        confetti({
-          particleCount: 30,
-          spread: 40,
-          origin: { y: 0.7 }
-        });
-      }
+      // Lightweight confetti for fast login
+      confetti({
+        particleCount: 50,
+        spread: 50,
+        origin: { y: 0.7 }
+      });
       
-      // Skip auth check for sandbox users (already verified)
-      if (!userData.email?.includes('sandbox')) {
-        await checkAuthStatus();
-      }
+      // Force check auth status after successful login
+      await checkAuthStatus();
       
       // Immediate navigation to dashboard (no delay)
       setLocation('/dashboard');
@@ -110,9 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(newUser.message || 'Registration failed');
       }
       
-      // Minimal registration logging in dev only
+      // Registration notification only in dev mode for performance
       if (import.meta.env.DEV) {
-        console.log(`Registration successful: ${userData.role}`);
+        const userDisplayName = `${userData.firstName || ''} ${userData.lastName || ''}`;
+        const roleDisplay = userData.role === 'SiteAdmin' ? 'Site Administrator' : userData.role;
+        console.log(`🎊 Registration successful: ${userDisplayName} (${roleDisplay}) - ${userData.email || ''}`);
       }
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -137,9 +129,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.message || 'Failed to send password reset email');
       }
       
-      // Minimal logging for password reset
       if (import.meta.env.DEV) {
-        console.log('Password reset requested');
+        console.log(`📧 Password reset requested for: ${email}`);
       }
     } catch (error: any) {
       console.error('Password reset request error:', error);
@@ -166,9 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.message || 'Failed to reset password');
       }
       
-      // Minimal logging for password reset success
       if (import.meta.env.DEV) {
-        console.log('Password reset successful');
+        console.log('🔐 Password reset successful');
       }
     } catch (error: any) {
       console.error('Password reset error:', error);

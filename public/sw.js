@@ -1,5 +1,5 @@
 // Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.6-robust-sw';
+const CACHE_NAME = 'educafric-v2.4-auth-fix';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -47,87 +47,110 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Robust fetch event that NEVER returns 5xx status codes
+// Fetch event with improved caching strategy to fix authentication issues
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // Ignore non-HTTP protocols (chrome-extension, etc.)
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+  
+  const url = new URL(event.request.url);
+  
+  // 🚫 CRITICAL: Filter non-web protocols to prevent cache errors
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     console.log('[SW] Ignoring non-web protocol:', url.protocol);
     return;
   }
-
-  // Skip non-GET requests
-  if (request.method !== 'GET') return;
-
-  // Robust response handler that never generates 503
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE_NAME);
-
-    // API endpoints: network-first, no custom error responses
-    if (url.pathname.startsWith('/api/')) {
-      try {
-        const netRes = await fetch(request);
-        // Only cache successful responses
-        if (netRes.ok) {
-          await cache.put(request, netRes.clone());
+  
+  // 🚫 NEVER cache authentication and API endpoints
+  const isAuthEndpoint = url.pathname.includes('/api/auth') || 
+                         url.pathname.includes('/auth') ||
+                         url.pathname.includes('/api/') ||
+                         url.pathname.includes('/login') ||
+                         url.pathname.includes('/logout');
+  
+  if (isAuthEndpoint) {
+    // For auth/API endpoints: ALWAYS use network, never cache
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // Special handling for PWA icons to avoid cache issues
+  const isImageRequest = event.request.url.match(/\.(png|jpg|jpeg|ico|svg)$/i);
+  const isPWAIcon = event.request.url.includes('android-chrome') || 
+                   event.request.url.includes('educafric-logo') ||
+                   event.request.url.includes('favicon');
+  
+  if (isImageRequest && isPWAIcon) {
+    // For PWA icons, try network first, then cache
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            // Cache the fresh response
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+            return response;
+          }
+          throw new Error('Network response not ok');
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // For static assets (CSS, JS, images): cache first strategy
+  const isStaticAsset = event.request.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i) ||
+                       url.pathname.includes('/assets/') ||
+                       url.pathname.includes('/static/');
+  
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          if (response) {
+            return response;
+          }
+          return fetch(event.request).then((fetchResponse) => {
+            if (fetchResponse.ok) {
+              const responseClone = fetchResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return fetchResponse;
+          });
+        })
+    );
+    return;
+  }
+  
+  // For navigation and dynamic content: network first, cache fallback
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Only cache successful responses for non-auth content
+        if (response.ok && !isAuthEndpoint) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
         }
-        return netRes; // Return whatever the server says (even if !ok)
-      } catch (err) {
-        // Network error - try cache, otherwise let browser handle
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        // Don't generate custom 503 - let the browser show network error
-        throw err;
-      }
-    }
-
-    // Static assets: cache-first with robust fallback
-    const isStaticAsset = url.pathname.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i) ||
-                         url.pathname.includes('/assets/') ||
-                         url.pathname.includes('/static/');
-
-    if (isStaticAsset) {
-      const cached = await cache.match(request);
-      if (cached) return cached;
-      
-      try {
-        const netRes = await fetch(request);
-        if (netRes.ok) {
-          await cache.put(request, netRes.clone());
+        return response;
+      })
+      .catch(() => {
+        // Fallback to cache only for navigation requests
+        if (event.request.mode === 'navigate') {
+          return caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || caches.match('/offline.html');
+          });
         }
-        return netRes;
-      } catch (err) {
-        // No cached version and network failed - let browser handle
-        throw err;
-      }
-    }
-
-    // Navigation/document requests: network-first with offline fallback
-    try {
-      const netRes = await fetch(request);
-      if (netRes.ok) {
-        await cache.put(request, netRes.clone());
-      }
-      return netRes;
-    } catch (err) {
-      // Network failed - try cache or offline page for navigation
-      if (request.mode === 'navigate') {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-        
-        const offlinePage = await cache.match('/offline.html');
-        if (offlinePage) return offlinePage;
-      } else {
-        const cached = await cache.match(request);
-        if (cached) return cached;
-      }
-      
-      // No fallback available - let browser handle the error
-      throw err;
-    }
-  })());
+        return caches.match(event.request);
+      })
+  );
 });
 
 // Push notification event

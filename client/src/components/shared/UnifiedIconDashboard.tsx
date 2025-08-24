@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 import { useFastModules } from '@/utils/fastModuleLoader';
-import { useSmartPreloader } from '@/utils/smartPreloader';
 import OptimizedModuleWrapper from '@/components/ui/OptimizedModuleWrapper';
 
 interface IconModule {
@@ -41,10 +40,8 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
   const t = text[language as keyof typeof text];
 
   const { preloadModule, getModule, isReady } = useFastModules();
-  const { setupHoverPreloading, predictivePreload, backgroundPreload } = useSmartPreloader();
-  const moduleRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  // ⚡ ULTRA-FAST preload ALL modules instantly when dashboard opens  
+  // Ultra-fast preload ALL modules instantly when dashboard opens  
   useEffect(() => {
     const preloadAllModules = async () => {
       const moduleIds = modules.map(m => m.id);
@@ -56,14 +53,6 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
       
       const successful = results.filter(r => r.status === 'fulfilled').length;
       console.log(`[UNIFIED_DASHBOARD] 🚀 ${successful}/${moduleIds.length} modules instantly ready`);
-
-      // ✅ Setup intelligent hover preloading for remaining modules
-      moduleIds.forEach(moduleId => {
-        const element = moduleRefs.current.get(moduleId);
-        if (element) {
-          setupHoverPreloading(element, moduleId);
-        }
-      });
     };
 
     // Start preloading immediately without any delays
@@ -87,27 +76,10 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
     preloadModule(moduleId); // Load in background
   };
 
-  // ✅ ENHANCED hover handling with predictive preloading
   const handleModuleHover = (moduleId: string) => {
     if (!isReady(moduleId)) {
-      console.log(`[UNIFIED_DASHBOARD] 🎯 Smart hover preloading: ${moduleId}`);
       preloadModule(moduleId);
-      
-      // Predictive preloading based on user patterns
-      const userRole = detectUserRole();
-      predictivePreload(moduleId, userRole);
     }
-  };
-
-  // ✅ Detect user role for predictive preloading
-  const detectUserRole = (): string => {
-    if (title.toLowerCase().includes('parent')) return 'parent';
-    if (title.toLowerCase().includes('teacher') || title.toLowerCase().includes('enseignant')) return 'teacher';
-    if (title.toLowerCase().includes('student') || title.toLowerCase().includes('étudiant')) return 'student';
-    if (title.toLowerCase().includes('director') || title.toLowerCase().includes('directeur')) return 'director';
-    if (title.toLowerCase().includes('commercial')) return 'commercial';
-    if (title.toLowerCase().includes('freelancer') || title.toLowerCase().includes('répétiteur')) return 'freelancer';
-    return 'unknown';
   };
 
   const handleBackClick = () => {
@@ -155,9 +127,6 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
           {(Array.isArray(modules) ? modules : []).map((module, index) => (
             <div
               key={module.id}
-              ref={(el) => {
-                if (el) moduleRefs.current.set(module.id, el);
-              }}
               onClick={() => handleModuleClick(module.id)}
               onMouseEnter={() => handleModuleHover(module.id)}
               className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"

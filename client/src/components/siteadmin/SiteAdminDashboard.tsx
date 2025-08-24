@@ -90,11 +90,7 @@ const SiteAdminDashboard: React.FC = () => {
   
   // FORCE IMMEDIATE preload of critical slow modules - SiteAdmin specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'siteadmin-overview', 'siteadmin-settings', 'platform-stats', 'users', 'schools', 
-      'analytics', 'system-health', 'help', 'notifications'
-    ];
+    const criticalModules = ['siteadmin-overview', 'siteadmin-settings'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[SITEADMIN_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -123,18 +119,18 @@ const SiteAdminDashboard: React.FC = () => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'siteadmin-overview', 'siteadmin-settings', 'platform-stats', 'users', 'schools', 
-        'analytics', 'system-health', 'help', 'notifications'
-      ].includes(moduleName);
+      const isCritical = ['platform-stats', 'users', 'schools', 'analytics', 'system-health'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[SITEADMIN_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
       return React.createElement(ModuleComponent);
     }
     
-    // ✅ NO useEffect here - preloading handled elsewhere
+    // Préchargement à la demande seulement pour modules non-critiques
+    React.useEffect(() => {
+      console.log(`[SITEADMIN_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+      preloadModule(moduleName);
+    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">

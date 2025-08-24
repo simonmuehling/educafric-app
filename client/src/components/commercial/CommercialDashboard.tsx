@@ -72,15 +72,15 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     // ALWAYS call hooks in the same order - move useEffect before conditional return
-    // ✅ NO useEffect here - preloading handled elsewhere
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [ModuleComponent, moduleName]);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 
-        'commercial-whatsapp', 'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
-        'MySchools', 'WhatsAppManager', 'CommercialCRM', 'help'
-      ].includes(moduleName);
+      const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[COMMERCIAL_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
@@ -101,12 +101,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
 
   // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 
-      'commercial-whatsapp', 'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
-      'MySchools', 'WhatsAppManager', 'CommercialCRM', 'help'
-    ];
+    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');

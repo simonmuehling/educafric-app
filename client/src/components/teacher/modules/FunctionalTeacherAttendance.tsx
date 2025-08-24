@@ -39,20 +39,16 @@ const FunctionalTeacherAttendance: React.FC = () => {
     notes: ''
   });
 
-  // ✅ OPTIMIZED: Fetch teacher's assigned classes with fast cache configuration
+  // Fetch teacher's assigned classes for selection
   const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
     queryKey: ['/api/teacher/classes'],
-    enabled: !!user,
-    staleTime: 1000 * 60 * 10, // 10 minutes cache - classes change rarely
-    gcTime: 1000 * 60 * 30  // 30 minutes in memory cache (TanStack Query v5 uses gcTime)
+    enabled: !!user
   });
 
-  // ✅ OPTIMIZED: Fetch teacher attendance data with fast cache configuration
+  // Fetch teacher attendance data from PostgreSQL API
   const { data: attendance = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ['/api/teacher/attendance'],
-    enabled: !!user,
-    staleTime: 1000 * 60 * 2, // 2 minutes cache - attendance changes frequently
-    gcTime: 1000 * 60 * 8  // 8 minutes in memory cache (TanStack Query v5 uses gcTime)
+    enabled: !!user
   });
 
   // Mark attendance mutation

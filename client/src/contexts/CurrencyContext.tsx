@@ -53,13 +53,6 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ children }) 
       });
       
       if (response.ok) {
-        // Vérifier le content-type avant de parser JSON
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-          console.warn('[CURRENCY_CONTEXT] Non-JSON response, using default currency');
-          return;
-        }
-        
         const data = await response.json();
         console.log('[CURRENCY_CONTEXT] ✅ Currency detected:', data);
         

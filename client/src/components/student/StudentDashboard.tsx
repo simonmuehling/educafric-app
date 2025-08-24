@@ -75,12 +75,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'grades', 'assignments', 'attendance', 'messages', 'timetable', 'bulletins',
-      'progress', 'achievements', 'student-profile', 'help', 'student-geolocation', 
-      'parentConnection', 'notifications', 'multirole'
-    ];
+    const criticalModules = ['grades', 'assignments', 'attendance', 'messages'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[STUDENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -110,12 +105,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'grades', 'assignments', 'attendance', 'messages', 'timetable', 'bulletins',
-        'progress', 'achievements', 'student-profile', 'help', 'student-geolocation', 
-        'parentConnection', 'notifications', 'multirole'
-      ].includes(moduleName);
+      const isCritical = ['grades', 'assignments', 'attendance', 'messages'].includes(moduleName);
       
       if (isCritical && apiDataPreloaded) {
         console.log(`[STUDENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);

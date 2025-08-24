@@ -13,30 +13,54 @@ class ModulePreloader {
   private cache: ModuleCache = {};
   private preloadQueue: string[] = [];
   private isPreloading = false;
-  private maxCacheSize = 15; // Increased cache size for better performance
-  private preloadBatch = 3; // Load only 3 modules at a time
+  private maxCacheSize = 10; // Limit cache to prevent memory issues
 
-  // Preload only when needed to avoid startup delays
+  // Preload critical modules immediately
   async preloadCriticalModules() {
-    // Skip preloading on startup to improve performance
-    // Modules will load on-demand instead
-    return;
+    const criticalModules = [
+      // Commercial modules
+      'DocumentsContracts',
+      'CommercialStatistics', 
+      'ContactsManagement',
+      'MySchools',
+      'WhatsAppManager',
+      'CommercialCRM',
+      'CallsAppointments',
+      
+      // Director/School modules
+      'AdministratorManagement',
+      'AttendanceManagement', 
+      'ClassManagement',
+      'BulletinValidation',
+      'Communications',
+      'StudentManagement',
+      'TeacherManagement',
+      
+      // Parent modules
+      'MyChildren',
+      'FunctionalParentMessages',
+      'ParentAttendance',
+      'BulletinVerification',
+      'FamilyConnections',
+      'ParentGeolocation',
+      'FunctionalParentPayments',
+      'ParentSubscription',
+      'DeviceConfigurationGuide',
+      'FunctionalParentGrades'
+    ];
+
+    for (const moduleName of criticalModules) {
+      this.preloadModule(moduleName);
+    }
   }
 
-  // Preload module asynchronously with throttling
+  // Preload module asynchronously
   async preloadModule(moduleName: string) {
     if (this.cache[moduleName]?.isLoaded) {
       this.cache[moduleName].lastAccess = Date.now();
       return this.cache[moduleName].component;
     }
 
-    // Prevent too many concurrent loads
-    if (this.isPreloading) {
-      this.preloadQueue.push(moduleName);
-      return null;
-    }
-
-    this.isPreloading = true;
     try {
       let componentImport;
       
@@ -152,20 +176,8 @@ class ModulePreloader {
       this.cleanupCache();
       return component;
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn(`Failed to preload module ${moduleName}:`, error);
-      }
+      console.error(`Failed to preload module ${moduleName}:`, error);
       return null;
-    } finally {
-      this.isPreloading = false;
-      
-      // Process next item in queue
-      if (this.preloadQueue.length > 0) {
-        const nextModule = this.preloadQueue.shift();
-        if (nextModule) {
-          setTimeout(() => this.preloadModule(nextModule), 100);
-        }
-      }
     }
   }
 
@@ -196,24 +208,22 @@ class ModulePreloader {
     });
   }
 
-  // Preload based on usage patterns (optimized)
+  // Preload based on usage patterns
   predictivePreload(currentModule: string) {
     const patterns = {
-      'MyChildren': ['FunctionalParentGrades', 'ParentAttendance'],
-      'StudentManagement': ['TeacherManagement', 'ClassManagement'],
-      'CommercialStatistics': ['DocumentsContracts', 'ContactsManagement'],
-      'FunctionalParentGrades': ['BulletinVerification', 'ParentAttendance'],
-      'TeacherManagement': ['StudentManagement', 'ClassManagement']
+      'DocumentsContracts': ['CommercialStatistics', 'ContactsManagement'],
+      'CommercialStatistics': ['DocumentsContracts', 'MySchools'],
+      'ContactsManagement': ['WhatsAppManager', 'CommercialCRM'],
+      'MySchools': ['ContactsManagement', 'CommercialStatistics'],
+      'WhatsAppManager': ['ContactsManagement', 'CallsAppointments']
     };
 
     const nextModules = patterns[currentModule as keyof typeof patterns] || [];
-    // Only preload 1 module at a time to avoid overload
-    if (nextModules.length > 0 && !this.isPreloading) {
-      const nextModule = nextModules[0];
-      if (!this.cache[nextModule]?.isLoaded) {
-        setTimeout(() => this.preloadModule(nextModule), 200);
+    nextModules.forEach(module => {
+      if (!this.cache[module]?.isLoaded) {
+        this.preloadModule(module);
       }
-    }
+    });
   }
 
   // Get cache status for debugging
@@ -229,26 +239,42 @@ class ModulePreloader {
 // Singleton instance
 export const modulePreloader = new ModulePreloader();
 
-// React hook for module preloading (simplified)
+// React hook for module preloading
 export const useModulePreloader = () => {
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (!initialized.current) {
+      // Start preloading critical modules immediately
+      modulePreloader.preloadCriticalModules();
+      initialized.current = true;
+    }
+  }, []);
+
   return {
-    getModule: () => null, // Let React lazy loading handle it
-    preloadModule: () => Promise.resolve(null),
-    predictivePreload: () => {}, // No-op for now
-    getCacheStatus: () => []
+    getModule: modulePreloader.getModule.bind(modulePreloader),
+    preloadModule: modulePreloader.preloadModule.bind(modulePreloader),
+    predictivePreload: modulePreloader.predictivePreload.bind(modulePreloader),
+    getCacheStatus: modulePreloader.getCacheStatus.bind(modulePreloader)
   };
 };
 
-// Fast module loader component (simplified)
+// Fast module loader component
 export const FastModuleLoader: React.FC<{ 
   moduleName: string; 
   fallback?: React.ReactNode; 
-}> = ({ fallback = null }) => {
-  // Return the fallback immediately - let the parent component handle loading
+}> = ({ moduleName, fallback = null }) => {
+  const { getModule } = useModulePreloader();
+  const PreloadedComponent = getModule(moduleName);
+  
+  if (PreloadedComponent) {
+    return React.createElement(PreloadedComponent);
+  }
+  
   return fallback || React.createElement('div', 
-    { className: "flex items-center justify-center p-6" },
+    { className: "flex items-center justify-center p-8" },
     React.createElement('div', {
-      className: "w-5 h-5 border border-blue-500 border-t-transparent rounded-full animate-spin"
+      className: "w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
     })
   );
 };

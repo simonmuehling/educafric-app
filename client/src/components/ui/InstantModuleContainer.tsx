@@ -24,12 +24,31 @@ const InstantModuleContainer = memo(function InstantModuleContainer({
   moduleName,
   onModuleLoad
 }: InstantModuleContainerProps) {
-  // Always show content immediately for better UX
+  const [isVisible, setIsVisible] = useState(false);
+  const { predictivePreload, getCacheStatus } = useModulePreloader();
+
   useEffect(() => {
-    if (moduleName && onModuleLoad) {
-      onModuleLoad(moduleName);
+    // Intersection Observer for performance
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (moduleName) {
+            predictivePreload(moduleName);
+            onModuleLoad?.(moduleName);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const element = document.getElementById(`module-${title.replace(/\s+/g, '-').toLowerCase()}`);
+    if (element) {
+      observer.observe(element);
     }
-  }, [moduleName, onModuleLoad]);
+
+    return () => observer.disconnect();
+  }, [title, moduleName, predictivePreload, onModuleLoad]);
 
   return (
     <div 
@@ -51,9 +70,11 @@ const InstantModuleContainer = memo(function InstantModuleContainer({
       
       {/* Instant Module Content */}
       <div className="space-y-6">
-        {children || (
-          <div className="h-24 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="w-5 h-5 border border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        {isVisible ? (
+          children
+        ) : (
+          <div className="h-32 flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="text-gray-400">Chargement du module...</div>
           </div>
         )}
       </div>

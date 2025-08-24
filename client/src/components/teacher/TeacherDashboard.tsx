@@ -73,12 +73,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Teacher specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 
-      'teacher-communications', 'teacher-timetable', 'teacher-content', 'teacher-reports',
-      'teacher-profile', 'help', 'geolocation'
-    ];
+    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-communications', 'teacher-timetable'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[TEACHER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -107,19 +102,18 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 
-        'teacher-communications', 'teacher-timetable', 'teacher-content', 'teacher-reports',
-        'teacher-profile', 'help', 'geolocation'
-      ].includes(moduleName);
+      const isCritical = ['grades', 'classes', 'assignments', 'attendance', 'communications'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[TEACHER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
       return React.createElement(ModuleComponent);
     }
     
-    // ✅ NO useEffect here - preloading handled elsewhere
+    // Préchargement à la demande seulement pour modules non-critiques
+    React.useEffect(() => {
+      console.log(`[TEACHER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+      preloadModule(moduleName);
+    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">

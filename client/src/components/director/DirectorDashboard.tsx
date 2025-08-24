@@ -39,9 +39,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
         '/api/director/students',
         '/api/director/classes',
         '/api/director/analytics',
-        '/api/director/settings',
-        '/api/director/profile',
-        '/api/timetables'
+        '/api/director/settings'
       ];
       
       const promises = apiEndpoints.map(async (endpoint) => {
@@ -74,12 +72,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   
   // FORCE IMMEDIATE preload of critical slow modules - Director specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'overview', 'teachers', 'students', 'classes', 'attendance', 
-      'communications', 'timetable', 'settings', 'help',
-      'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
-    ];
+    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-attendance', 'director-communications'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -107,15 +100,16 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
-    // ✅ NO useEffect here - preloading handled elsewhere
+    // Always preload modules on demand (moved outside conditional to fix React hooks rule)
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [moduleName, ModuleComponent]);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'overview', 'teachers', 'students', 'classes', 'attendance', 
-        'communications', 'timetable', 'settings', 'help',
-        'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
-      ].includes(moduleName);
+      const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }

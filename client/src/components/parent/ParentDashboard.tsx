@@ -25,23 +25,7 @@ interface ParentDashboardProps {
   activeModule?: string;
 }
 
-// Gate component - minimal hooks, conditions only
-const ParentDashboardGate = ({ activeModule }: ParentDashboardProps) => {
-  const { user } = useAuth();
-  
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-  
-  return <ParentDashboardContent activeModule={activeModule} />;
-};
-
-// Content component - all hooks here
-const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
+const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -94,11 +78,7 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Parent specific
   React.useEffect(() => {
-    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
-    const criticalModules = [
-      'children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 
-      'geolocation', 'parent-profile', 'help', 'requests', 'family', 'subscription'
-    ];
+    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -122,65 +102,35 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ✅ ENHANCED module component creator - PRELOADS MODULES EVEN INSIDE PremiumFeatureGate
+  // ULTRA-FAST module component creator
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    // ⚡ FORCE preload module immediately when called - even inside PremiumFeatureGate
-    React.useEffect(() => {
-      if (!getModule(moduleName)) {
-        console.log(`[PARENT_DASHBOARD] 🔥 Force preloading ${moduleName} from PremiumFeatureGate...`);
-        preloadModule(moduleName).then(() => {
-          console.log(`[PARENT_DASHBOARD] ✅ ${moduleName} preloaded from PremiumFeatureGate!`);
-        }).catch((error) => {
-          console.warn(`[PARENT_DASHBOARD] ⚠️ Failed to preload ${moduleName} from PremiumFeatureGate:`, error);
-        });
-      }
-    }, [moduleName]);
-
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      // ✅ EXTENDED critical list - matches preloaded modules exactly
-      const isCritical = [
-        'children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 
-        'geolocation', 'parent-profile', 'help', 'requests', 'family', 'subscription'
-      ].includes(moduleName);
+      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments'].includes(moduleName);
       if (isCritical) {
         console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
       }
       return React.createElement(ModuleComponent);
     }
     
-    // ✅ Smart loading state with preload indication
+    // Préchargement à la demande seulement pour modules non-critiques
+    React.useEffect(() => {
+      console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+      preloadModule(moduleName);
+    }, []);
+    
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-2 text-green-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? '⚡ Chargement intelligent...' : '⚡ Smart loading...')}
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
         </div>
       </div>
     );
   };
-
-  // ✅ Preload missing modules - SEPARATE useEffect with all hooks called
-  const missingModules = ['requests', 'parent-profile', 'help'];
-  React.useEffect(() => {
-    const preloadMissingModules = async () => {
-      for (const moduleName of missingModules) {
-        const ModuleComponent = getModule(moduleName);
-        if (!ModuleComponent) {
-          console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-          try {
-            await preloadModule(moduleName);
-          } catch (error) {
-            console.warn(`[PARENT_DASHBOARD] Failed to preload ${moduleName}:`, error);
-          }
-        }
-      }
-    };
-    preloadMissingModules();
-  }, [getModule, preloadModule]);
 
   // Stable event handlers that survive server restarts
   const handleSwitchToGrades = useStableCallback(() => {
@@ -429,4 +379,4 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
   );
 };
 
-export default ParentDashboardGate;
+export default ParentDashboard;

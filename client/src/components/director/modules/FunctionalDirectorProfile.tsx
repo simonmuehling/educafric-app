@@ -57,7 +57,7 @@ const FunctionalDirectorProfile: React.FC = () => {
     confirmPassword: ''
   });
 
-  // ✅ OPTIMIZED: Fetch director profile data with fast cache configuration
+  // Fetch director profile data
   const { data: profile, isLoading } = useQuery<DirectorProfile>({
     queryKey: ['/api/director/profile'],
     queryFn: async () => {
@@ -69,9 +69,7 @@ const FunctionalDirectorProfile: React.FC = () => {
       }
       return response.json();
     },
-    enabled: !!user,
-    staleTime: 1000 * 60 * 10, // 10 minutes cache - profile data changes rarely
-    gcTime: 1000 * 60 * 30  // 30 minutes in memory cache (TanStack Query v5 uses gcTime)
+    enabled: !!user
   });
 
   // Update profile mutation

@@ -45,55 +45,6 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-// Fixed default queryFn to handle proper URL formatting
-async function defaultQueryFn({ queryKey }: { queryKey: readonly unknown[] }) {
-  // Convention: queryKey = [url, params?]
-  const [url, params] = queryKey as [string, Record<string, any>?];
-  
-  // Build URL with params if provided
-  let finalUrl = url;
-  if (params) {
-    const urlObj = new URL(url, window.location.origin);
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        urlObj.searchParams.set(key, String(value));
-      }
-    });
-    finalUrl = urlObj.toString();
-  }
-
-  const res = await fetch(finalUrl, {
-    method: 'GET',
-    credentials: 'include',
-    headers: { 
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  });
-
-  // Handle 401 gracefully - don't try to parse HTML as JSON
-  if (res.status === 401) {
-    return null;
-  }
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`${res.status} ${res.statusText} :: ${text.slice(0, 120)}`);
-  }
-
-  // Check content type before trying to parse JSON
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    const sample = (await res.text().catch(() => '')).slice(0, 120);
-    throw new Error(`Expected JSON from ${res.url}, got "${contentType}". Sample: ${sample}`);
-  }
-
-  // Handle 204 No Content
-  if (res.status === 204) return null;
-
-  return res.json();
-}
-
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
@@ -117,7 +68,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: defaultQueryFn, // Use the improved default queryFn
+      queryFn: getQueryFn({ on401: "returnNull" }), // Return null instead of throwing on 401
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnMount: true,

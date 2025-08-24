@@ -1,16 +1,48 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { setupConsoleFilter } from "./utils/consoleFilter";
+import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
-// INITIALIZE CSS OPTIMIZATION for faster loading
-import { initializeCSSOptimization } from "./utils/cssOptimizer";
-initializeCSSOptimization();
+// Register Service Worker for PWA functionality - Only in production
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', async () => {
+    try {
+      // Check if service worker file exists and has correct MIME type
+      const response = await fetch('/sw.js', { 
+        method: 'HEAD',
+        headers: { 'Accept': 'application/javascript' }
+      });
+      
+      if (response.ok && response.headers.get('content-type')?.includes('javascript')) {
+        const registration = await navigator.serviceWorker.register('/sw.js', {
+          scope: '/'
+        });
+        console.log('[PWA] Service Worker registered:', registration);
+        localStorage.setItem('pwa-sw-registered', 'true');
+        
+        // Listen for updates
+        registration.addEventListener('updatefound', () => {
+          console.log('[PWA] Service Worker update found');
+        });
+      } else {
+        console.log('[PWA] Service Worker file not found or wrong MIME type, skipping registration');
+      }
+      
+    } catch (error: any) {
+      console.log('[PWA] Service Worker registration skipped:', error?.message || 'Unknown error');
+    }
+  });
+} else {
+  console.log('[PWA] Service Worker registration disabled for development');
+}
 
-// Setup console filtering asynchronously to not block startup
-import("./utils/consoleFilter").then(({ setupConsoleFilter }) => {
-  setupConsoleFilter();
-});
+// Setup console filtering to reduce spam in development
+setupConsoleFilter();
 
-// ULTRA-FAST startup with consolidated module loading
+// Initialize fast module loading for instant performance
+fastModuleLoader.preloadCriticalModules();
+
+// 🚫 CRITICAL: React hooks error fix - Render App properly  
 createRoot(document.getElementById("root")!).render(<App />);
