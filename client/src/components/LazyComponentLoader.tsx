@@ -1,6 +1,6 @@
 // Chargeur de composants lazy optimisé pour Educafric
 import React, { Suspense, lazy } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+// react-error-boundary not available, using try-catch instead
 
 // Composant de chargement ultra-rapide
 const LoadingSpinner = () => (
@@ -10,16 +10,10 @@ const LoadingSpinner = () => (
 );
 
 // Composant d'erreur optimisé
-const ErrorFallback = ({ error, resetErrorBoundary }: any) => (
+const ErrorFallback = ({ error }: { error: Error }) => (
   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
     <h3 className="text-red-800 font-medium">Erreur de chargement</h3>
     <p className="text-red-600 text-sm mt-1">{error.message}</p>
-    <button 
-      onClick={resetErrorBoundary}
-      className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-    >
-      Réessayer
-    </button>
   </div>
 );
 
@@ -38,16 +32,18 @@ export const createLazyComponent = (importFn: () => Promise<any>, componentName:
     })
   );
 
-  return (props: any) => (
-    <ErrorBoundary 
-      FallbackComponent={ErrorFallback}
-      onError={(error) => console.error(`[LAZY_ERROR] ${componentName}:`, error)}
-    >
-      <Suspense fallback={<LoadingSpinner />}>
-        <LazyComponent {...props} />
-      </Suspense>
-    </ErrorBoundary>
-  );
+  return (props: any) => {
+    try {
+      return (
+        <Suspense fallback={<LoadingSpinner />}>
+          <LazyComponent {...props} />
+        </Suspense>
+      );
+    } catch (error) {
+      console.error(`[LAZY_ERROR] ${componentName}:`, error);
+      return <ErrorFallback error={error as Error} />;
+    }
+  };
 };
 
 // Composants lazy optimisés pour les gros modules
@@ -62,12 +58,12 @@ export const LazyParentDashboard = createLazyComponent(
 );
 
 export const LazyTeacherDashboard = createLazyComponent(
-  () => import('@/pages/TeachersPage'),
+  () => import('@/pages/Teachers'),
   'TeacherDashboard'
 );
 
 export const LazyStudentDashboard = createLazyComponent(
-  () => import('@/pages/StudentsPage'),
+  () => import('@/pages/Students'),
   'StudentDashboard'
 );
 
@@ -152,7 +148,7 @@ export class ComponentPreloader {
         () => import('@/components/director/modules/StudentManagement')
       ],
       'Teacher': [
-        () => import('@/pages/TeachersPage'),
+        () => import('@/pages/Teachers'),
         () => import('@/components/teacher/TeacherDashboard')
       ],
       'Parent': [
@@ -160,7 +156,7 @@ export class ComponentPreloader {
         () => import('@/components/parent/ParentDashboard')
       ],
       'Student': [
-        () => import('@/pages/StudentsPage'),
+        () => import('@/pages/Students'),
         () => import('@/components/student/StudentDashboard')
       ]
     };

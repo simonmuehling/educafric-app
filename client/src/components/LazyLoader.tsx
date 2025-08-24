@@ -40,7 +40,8 @@ class LazyLoadErrorBoundary extends Component<
 // Optimized wrapper for lazy components
 const createLazyComponent = (importFn: () => Promise<any>, displayName: string) => {
   const LazyComponent = lazy(importFn);
-  LazyComponent.displayName = `Lazy${displayName}`;
+  // Set displayName safely without TypeScript error
+  (LazyComponent as any).displayName = `Lazy${displayName}`;
   
   return (props: any) => (
     <LazyLoadErrorBoundary>
