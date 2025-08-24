@@ -294,16 +294,6 @@ const SchoolConfigurationGuide: React.FC = () => {
         </div>
       </div>
 
-      {/* Simon Abanda Credit - Inspiré du PDF */}
-      <div className="text-center text-sm text-gray-600 -mt-4">
-        <p>
-          <span className="font-medium">Simon Abanda</span> - 
-          <span className="text-blue-600 ml-1">
-            {language === 'fr' ? 'Créateur & CEO' : 'Creator & CEO'}
-          </span> | 
-          <span className="text-blue-600 ml-1">www.educafric.com</span>
-        </p>
-      </div>
 
       <Card className="w-full">
         <CardHeader className="pb-4">

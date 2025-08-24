@@ -27,6 +27,7 @@ class UnifiedModuleLoader {
     { component: () => import('@/components/director/modules/FunctionalDirectorProfile'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'), strategy: 'instant', priority: 1 },
     { component: () => import('@/components/director/modules/AdministratorManagementFunctional'), strategy: 'instant', priority: 1 },
+    { component: () => import('@/components/director/modules/TimetableConfiguration'), strategy: 'instant', priority: 1 },
     
     // Parent Dashboard - High priority
     { component: () => import('@/components/parent/modules/MyChildren'), strategy: 'instant', priority: 2 },
@@ -65,7 +66,7 @@ class UnifiedModuleLoader {
     const moduleNames = [
       'overview', 'settings', 'teachers', 'students', 'classes', 'timetable',
       'attendance', 'communications', 'notifications', 'reports', 'help',
-      'school-administrators', 'AdministratorManagement',
+      'school-administrators', 'AdministratorManagement', 'director-timetable',
       'MyChildren', 'FunctionalParentMessages', 'ParentGeolocation',
       'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement'
     ];
