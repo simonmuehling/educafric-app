@@ -51,7 +51,7 @@ class FastModuleLoader {
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
-      'config-guide': () => import('@/components/director/modules/MobileSchoolConfigurationGuide'),
+      'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       
       // Additional specific mappings for problematic modules

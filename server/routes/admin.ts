@@ -347,6 +347,25 @@ router.get('/parents', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// Get available teachers for admin promotion
+router.get('/available-teachers', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const teachers = await storage.getAvailableTeachersForAdmin(user.schoolId);
+    
+    res.json({
+      success: true,
+      teachers: teachers || []
+    });
+  } catch (error) {
+    console.error('[ADMIN_API] Error fetching available teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch available teachers'
+    });
+  }
+});
+
 // Block user access
 router.post('/block-user/:userId', requireAuth, requireAdmin, async (req, res) => {
   try {

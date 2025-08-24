@@ -83,13 +83,13 @@ const AdministratorManagementFunctional: React.FC = () => {
     isLoading: loadingAdmins, 
     error: adminsError 
   } = useQuery({
-    queryKey: ['/api/school/1/administrators'],
+    queryKey: ['/api/admin/delegates'],
     queryFn: async () => {
       console.log('[ADMIN_MANAGEMENT] 📡 Fetching administrators...');
-      const response = await apiRequest('GET', '/api/school/1/administrators');
+      const response = await apiRequest('GET', '/api/admin/delegates');
       const data = await response.json();
       console.log('[ADMIN_MANAGEMENT] ✅ Administrators loaded:', data);
-      return data;
+      return data.delegates || [];
     }
   });
 
@@ -98,13 +98,13 @@ const AdministratorManagementFunctional: React.FC = () => {
     data: availableTeachers = [], 
     isLoading: loadingTeachers 
   } = useQuery({
-    queryKey: ['/api/school/1/available-teachers'],
+    queryKey: ['/api/admin/available-teachers'],
     queryFn: async () => {
       console.log('[ADMIN_MANAGEMENT] 👨‍🏫 Fetching available teachers...');
-      const response = await apiRequest('GET', '/api/school/1/available-teachers');
+      const response = await apiRequest('GET', '/api/admin/available-teachers');
       const data = await response.json();
       console.log('[ADMIN_MANAGEMENT] ✅ Teachers loaded:', data);
-      return data;
+      return data.teachers || [];
     }
   });
 
@@ -126,14 +126,14 @@ const AdministratorManagementFunctional: React.FC = () => {
   const addAdminMutation = useMutation({
     mutationFn: async (adminData: { teacherId: string; adminLevel: string }) => {
       console.log('[ADMIN_MANAGEMENT] ➕ Adding administrator:', adminData);
-      const response = await apiRequest('POST', '/api/school/1/administrators', adminData);
+      const response = await apiRequest('POST', '/api/admin/delegates', adminData);
       const result = await response.json();
       console.log('[ADMIN_MANAGEMENT] ✅ Administrator added:', result);
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/school/1/administrators'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school/1/available-teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/available-teachers'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Administrateur ajouté avec succès' : 'Administrator added successfully'
@@ -155,7 +155,7 @@ const AdministratorManagementFunctional: React.FC = () => {
   const updatePermissionsMutation = useMutation({
     mutationFn: async ({ adminId, permissions }: { adminId: number; permissions: string[] }) => {
       console.log('[ADMIN_MANAGEMENT] 🔄 Updating permissions:', { adminId, permissions });
-      const response = await apiRequest('PATCH', `/api/school/1/administrators/${adminId}`, { permissions });
+      const response = await apiRequest('PATCH', `/api/admin/delegates/${adminId}`, { permissions });
       const result = await response.json();
       console.log('[ADMIN_MANAGEMENT] ✅ Permissions updated:', result);
       return result;
@@ -183,14 +183,14 @@ const AdministratorManagementFunctional: React.FC = () => {
   const removeAdminMutation = useMutation({
     mutationFn: async (adminId: number) => {
       console.log('[ADMIN_MANAGEMENT] 🗑️ Removing administrator:', adminId);
-      const response = await apiRequest('DELETE', `/api/school/1/administrators/${adminId}`);
+      const response = await apiRequest('DELETE', `/api/admin/delegates/${adminId}`);
       const result = await response.json();
       console.log('[ADMIN_MANAGEMENT] ✅ Administrator removed:', result);
       return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/school/1/administrators'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/school/1/available-teachers'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/available-teachers'] });
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' ? 'Administrateur supprimé' : 'Administrator removed'
