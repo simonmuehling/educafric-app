@@ -62,12 +62,12 @@ export const LazyParentDashboard = createLazyComponent(
 );
 
 export const LazyTeacherDashboard = createLazyComponent(
-  () => import('@/pages/TeachersPage'),
+  () => import('@/pages/Teachers'),
   'TeacherDashboard'
 );
 
 export const LazyStudentDashboard = createLazyComponent(
-  () => import('@/pages/StudentsPage'),
+  () => import('@/pages/Students'),
   'StudentDashboard'
 );
 
@@ -152,7 +152,7 @@ export class ComponentPreloader {
         () => import('@/components/director/modules/StudentManagement')
       ],
       'Teacher': [
-        () => import('@/pages/TeachersPage'),
+        () => import('@/pages/Teachers'),
         () => import('@/components/teacher/TeacherDashboard')
       ],
       'Parent': [
@@ -160,7 +160,7 @@ export class ComponentPreloader {
         () => import('@/components/parent/ParentDashboard')
       ],
       'Student': [
-        () => import('@/pages/StudentsPage'),
+        () => import('@/pages/Students'),
         () => import('@/components/student/StudentDashboard')
       ]
     };
