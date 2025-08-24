@@ -245,120 +245,42 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Messages Enseignants"
-          userType="Parent"
-          features={[
-            "Communication directe avec les enseignants",
-            "Notifications push instantanées",
-            "Historique complet des conversations",
-            "Pièces jointes et photos"
-          ]}
-        >
-          {createDynamicModule('parent-messages')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('parent-messages')
     },
     {
       id: 'grades',
       label: t.results,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Bulletins & Notes Détaillés"
-          userType="Parent"
-          features={[
-            "Bulletins avec graphiques détaillés",
-            "Analyse de progression par matière",
-            "Comparaison avec la moyenne de classe",
-            "Téléchargement PDF professionnel"
-          ]}
-        >
-          {createDynamicModule('parent-grades')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('parent-grades')
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckCircle2 className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Suivi Présence Avancé"
-          userType="Parent"
-          features={[
-            "Alertes absence en temps réel",
-            "Historique de présence détaillé",
-            "Justification d'absence en ligne",
-            "Rapport mensuel automatique"
-          ]}
-        >
-          {createDynamicModule('parent-attendance')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('parent-attendance')
     },
     {
       id: 'payments',
       label: 'Paiements',
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Paiements"
-          userType="Parent"
-          features={[
-            "Paiements Orange Money & MTN",
-            "Historique complet des factures",
-            "Rappels automatiques d'échéance",
-            "Reçus PDF téléchargeables"
-          ]}
-        >
-          {createDynamicModule('payments')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('payments')
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Géolocalisation Premium"
-          userType="Parent"
-          features={[
-            "Suivi GPS temps réel de votre enfant",
-            "Zones de sécurité personnalisées",
-            "Alertes d'arrivée/départ école",
-            "Historique des déplacements"
-          ]}
-        >
-          {createDynamicModule('geolocation')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('geolocation')
     },
     {
       id: 'family',
       label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Communication Familiale Directe"
-          userType="Parent"
-          features={[
-            "Communication directe parent-enfant",
-            "Messages chiffrés end-to-end",
-            "Connexions sécurisées par QR code",
-            "Chat temps réel avec statut en ligne"
-          ]}
-        >
-          {createDynamicModule('family')}
-        </PremiumFeatureGate>
-      )
+      component: createDynamicModule('family')
     },
     {
       id: 'notifications',
