@@ -45,11 +45,7 @@ import {
 // Individual Dashboard Components
 import { LazyStudentDashboard, LazyTeacherDashboard, LazyFreelancerDashboard } from "@/components/LazyComponentLoader";
 
-// Initialize network optimizer for connection quality improvements
-import "@/utils/networkOptimizer";
-
-// CONSOLIDATED MODULE LOADING - Eliminates 5+ second slow loads
-import { consolidatedLoader, useConsolidatedModules } from "@/utils/consolidatedModuleLoader";
+// Simplified imports for faster startup
 
 // Convert heavy imports to lazy loading for faster startup
 const LazySubscribe = lazy(() => import("@/pages/Subscribe"));
@@ -72,42 +68,7 @@ const LazyEducationalConnections = lazy(() => import("@/pages/EducationalConnect
 const LazySubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
 const LazySignatureTest = lazy(() => import("@/pages/SignatureTest"));
 
-// CONSOLIDATED MODULE PRELOADER - Ultra-fast loading
-const useConsolidatedPreloader = () => {
-  const { preloadModule } = useConsolidatedModules();
-  
-  useEffect(() => {
-    const startGlobalPreload = async () => {
-      if (import.meta.env.DEV) {
-        console.log('[GLOBAL_PRELOADER] Starting optimized module preloading...');
-      }
-      
-      try {
-        await consolidatedLoader.batchPreload(['overview', 'teachers', 'children', 'notifications']);
-        
-        if (import.meta.env.DEV) {
-          console.log('[GLOBAL_PRELOADER] Essential modules ready');
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.warn('[GLOBAL_PRELOADER] Preload completed with some failures');
-        }
-      }
-    };
-    
-    // Cleanup on unmount
-    const cleanup = () => {
-      consolidatedLoader.cleanup();
-    };
-    
-    startGlobalPreload();
-    window.addEventListener('beforeunload', cleanup);
-    
-    return () => {
-      window.removeEventListener('beforeunload', cleanup);
-    };
-  }, []);
-};
+// Simplified preloader for faster sandbox loading
 // Test components - Lazy loaded
 const LazyBulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
 const LazyBulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
@@ -529,8 +490,7 @@ function FirebaseRedirectHandler() {
 }
 
 function App() {
-  // Consolidated module preloader for instant UI response
-  useConsolidatedPreloader();
+  // Simplified startup - removed heavy preloader for better performance
   
   useEffect(() => {
     // Configuration du filtre de console pour réduire le spam
