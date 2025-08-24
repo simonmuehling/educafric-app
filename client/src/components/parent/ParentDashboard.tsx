@@ -78,7 +78,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Parent specific
   React.useEffect(() => {
-    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation'];
+    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation', 'parent-timetable'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -281,6 +281,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           {createDynamicModule('payments')}
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'parent-timetable',
+      label: language === 'fr' ? 'Emploi du Temps Enfants' : 'Children Timetable',
+      icon: <Calendar className="w-6 h-6" />,
+      color: 'bg-purple-500',
+      component: createDynamicModule('parent-timetable')
     },
     {
       id: 'geolocation',

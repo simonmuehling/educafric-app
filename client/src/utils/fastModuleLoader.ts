@@ -67,6 +67,7 @@ class FastModuleLoader {
       'payments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'family': () => import('@/components/parent/modules/FamilyConnections'),
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
+      'parent-timetable': () => import('@/components/parent/modules/ParentChildrenTimetable'),
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
