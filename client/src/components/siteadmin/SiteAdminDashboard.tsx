@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { createInstantModule } from '@/utils/fastModuleLoader';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { Users, School, Activity, Settings, Shield, Database, BarChart3, Search, Bell, Plus, TrendingUp, MessageSquare, FileText, CreditCard, Building2, Network, Eye, Lock, UserCheck, Briefcase, Megaphone, Zap, LogOut } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +42,7 @@ const SiteAdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
   // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
@@ -97,6 +98,7 @@ const SiteAdminDashboard: React.FC = () => {
       const promises = criticalModules.map(async (moduleName) => {
         try {
           console.log(`[SITEADMIN_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
           console.log(`[SITEADMIN_DASHBOARD] ✅ ${moduleName} module ready!`);
           return true;
         } catch (error) {
@@ -110,9 +112,11 @@ const SiteAdminDashboard: React.FC = () => {
     };
     
     forceLoadCriticalModules();
+  }, [preloadModule]);
   
   // ULTRA-FAST module component creator
-  const createInstantModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
       const isCritical = ['platform-stats', 'users', 'schools', 'analytics', 'system-health'].includes(moduleName);
@@ -125,6 +129,7 @@ const SiteAdminDashboard: React.FC = () => {
     // Préchargement à la demande seulement pour modules non-critiques
     React.useEffect(() => {
       console.log(`[SITEADMIN_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+      preloadModule(moduleName);
     }, []);
     
     return fallbackComponent || (
@@ -621,75 +626,75 @@ const SiteAdminDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="users" className="mt-6">
-            {createInstantModule('users')}
+            {createDynamicModule('users')}
           </TabsContent>
 
           <TabsContent value="schools" className="mt-6">
-            {createInstantModule('schools')}
+            {createDynamicModule('schools')}
           </TabsContent>
 
           <TabsContent value="user-mgmt" className="mt-6">
-            {createInstantModule('user-mgmt')}
+            {createDynamicModule('user-mgmt')}
           </TabsContent>
 
           <TabsContent value="school-mgmt" className="mt-6">
-            {createInstantModule('school-mgmt')}
+            {createDynamicModule('school-mgmt')}
           </TabsContent>
 
           <TabsContent value="documents" className="mt-6">
-            {createInstantModule('documents')}
+            {createDynamicModule('documents')}
           </TabsContent>
 
           <TabsContent value="doc-permissions" className="mt-6">
-            {createInstantModule('doc-permissions')}
+            {createDynamicModule('doc-permissions')}
           </TabsContent>
 
           <TabsContent value="content" className="mt-6">
-            {createInstantModule('content')}
+            {createDynamicModule('content')}
           </TabsContent>
 
           <TabsContent value="communication" className="mt-6">
-            {createInstantModule('communication')}
+            {createDynamicModule('communication')}
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-6">
-            {createInstantModule('commercial')}
+            {createDynamicModule('commercial')}
           </TabsContent>
 
           <TabsContent value="payments" className="mt-6">
-            {createInstantModule('payments')}
+            {createDynamicModule('payments')}
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
-            {createInstantModule('analytics')}
+            {createDynamicModule('analytics')}
           </TabsContent>
 
           <TabsContent value="multi-role" className="mt-6">
-            {createInstantModule('multi-role')}
+            {createDynamicModule('multi-role')}
           </TabsContent>
 
           <TabsContent value="security" className="mt-6">
-            {createInstantModule('security')}
+            {createDynamicModule('security')}
           </TabsContent>
 
           <TabsContent value="firebase" className="mt-6">
-            {createInstantModule('firebase')}
+            {createDynamicModule('firebase')}
           </TabsContent>
 
           <TabsContent value="platform" className="mt-6">
-            {createInstantModule('platform')}
+            {createDynamicModule('platform')}
           </TabsContent>
 
           <TabsContent value="preview" className="mt-6">
-            {createInstantModule('preview')}
+            {createDynamicModule('preview')}
           </TabsContent>
 
           <TabsContent value="health" className="mt-6">
-            {createInstantModule('health')}
+            {createDynamicModule('health')}
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            {createInstantModule('settings')}
+            {createDynamicModule('settings')}
           </TabsContent>
         </Tabs>
       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
-import { createInstantModule } from '@/utils/instantModuleHelper';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -21,7 +21,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
-  // Now using instant module helper for ultra-fast loading
+  const { getModule, preloadModule } = useFastModules();
   const [criticalModulesReady, setCriticalModulesReady] = useState(false);
   const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
@@ -83,6 +83,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       const promises = criticalModules.map(async (moduleName) => {
         try {
           console.log(`[STUDENT_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
           console.log(`[STUDENT_DASHBOARD] ✅ ${moduleName} ready!`);
           return true;
         } catch (error) {
@@ -100,7 +101,8 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
   }, []);
   
   // ULTRA-FAST module component creator - MODULE + API DATA PRELOADED
-  const createInstantModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
       const isCritical = ['grades', 'assignments', 'attendance', 'messages'].includes(moduleName);
@@ -120,6 +122,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     if (isCritical && criticalModulesReady) {
       // Force immediate retry for critical modules
       console.log(`[STUDENT_DASHBOARD] 🔄 RETRY loading critical module: ${moduleName}`);
+      preloadModule(moduleName);
     }
     
     return fallbackComponent || (
@@ -211,98 +214,98 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.timetable,
       icon: <Clock className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createInstantModule('timetable')
+      component: createDynamicModule('timetable')
     },
     {
       id: 'grades',
       label: t.grades,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createInstantModule('grades')
+      component: createDynamicModule('grades')
     },
     {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createInstantModule('assignments')
+      component: createDynamicModule('assignments')
     },
     {
       id: 'bulletins',
       label: t.notes,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createInstantModule('bulletins')
+      component: createDynamicModule('bulletins')
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: createInstantModule('attendance')
+      component: createDynamicModule('attendance')
     },
     {
       id: 'progress',
       label: t.library,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: createInstantModule('progress')
+      component: createDynamicModule('progress')
     },
     {
       id: 'messages',
       label: t.messages,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createInstantModule('messages')
+      component: createDynamicModule('messages')
     },
     {
       id: 'parentConnection',
       label: t.parentConnection,
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-600',
-      component: createInstantModule('parentConnection')
+      component: createDynamicModule('parentConnection')
     },
     {
       id: 'achievements',
       label: t.achievements,
       icon: <Award className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: createInstantModule('achievements')
+      component: createDynamicModule('achievements')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Étudiant' : 'Student Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: createInstantModule('student-profile')
+      component: createDynamicModule('student-profile')
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-slate-500',
-      component: createInstantModule('help')
+      component: createDynamicModule('help')
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: createInstantModule('notifications')
+      component: createDynamicModule('notifications')
     },
     {
       id: 'geolocation',
       label: 'Géolocalisation',
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: createInstantModule('student-geolocation')
+      component: createDynamicModule('student-geolocation')
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: createInstantModule('multirole')
+      component: createDynamicModule('multirole')
     }
   ];
 

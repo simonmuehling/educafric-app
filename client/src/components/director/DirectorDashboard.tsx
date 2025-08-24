@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableEventHandler, useStableCallback } from '@/hooks/useStableCallback';
-import { createInstantModule } from '@/utils/instantModuleHelper';
+import { useFastModules } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -10,6 +10,10 @@ import {
   UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
+// Optimized: Removed static imports - using dynamic loading only for better bundle size
+
+
+// Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 
 interface DirectorDashboardProps {
@@ -20,6 +24,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
   // AGGRESSIVE API DATA PRELOADING - Director APIs
@@ -49,112 +54,371 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             },
             staleTime: 1000 * 60 * 5
           });
+          console.log(`[DIRECTOR_DASHBOARD] ✅ ${endpoint} data cached!`);
+          return true;
         } catch (error) {
-          console.warn(`[DIRECTOR_DASHBOARD] ⚠️ Failed to preload ${endpoint}:`, error);
+          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
+          return false;
         }
       });
       
-      await Promise.allSettled(promises);
-      console.log('[DIRECTOR_DASHBOARD] ✅ All API data PRELOADED - Modules will open INSTANTLY!');
+      await Promise.all(promises);
       setApiDataPreloaded(true);
+      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL DIRECTOR API DATA PRELOADED!');
     };
     
     preloadDirectorApiData();
   }, [user, queryClient]);
-
-  const t = {
-    title: language === 'fr' ? 'Tableau de Bord Directeur' : 'Director Dashboard',
-    subtitle: language === 'fr' ? 'Gestion complète de votre établissement' : 'Complete management of your institution',
-    teachers: language === 'fr' ? 'Enseignants' : 'Teachers',
-    students: language === 'fr' ? 'Étudiants' : 'Students',
-    classes: language === 'fr' ? 'Classes' : 'Classes',
-    timetable: language === 'fr' ? 'Emploi du Temps' : 'Timetable',
-    finances: language === 'fr' ? 'Finances' : 'Finances',
-    settings: language === 'fr' ? 'Paramètres' : 'Settings',
-    reports: language === 'fr' ? 'Rapports' : 'Reports',
-    communication: language === 'fr' ? 'Communication' : 'Communication',
-    help: language === 'fr' ? 'Aide' : 'Help',
-    configGuide: language === 'fr' ? 'Guide de Configuration' : 'Configuration Guide',
-    schoolSettings: language === 'fr' ? 'Paramètres École' : 'School Settings'
+  
+  // FORCE IMMEDIATE preload of critical slow modules - Director specific
+  React.useEffect(() => {
+    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-attendance', 'director-communications'];
+    
+    const forceLoadCriticalModules = async () => {
+      console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
+      
+      const promises = criticalModules.map(async (moduleName) => {
+        try {
+          console.log(`[DIRECTOR_DASHBOARD] ⚡ Force loading ${moduleName}...`);
+          await preloadModule(moduleName);
+          console.log(`[DIRECTOR_DASHBOARD] ✅ ${moduleName} module ready!`);
+          return true;
+        } catch (error) {
+          console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
+          return false;
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
+    };
+    
+    forceLoadCriticalModules();
+  }, [preloadModule]);
+  
+  // ULTRA-FAST module component creator
+  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    const ModuleComponent = getModule(moduleName);
+    
+    // Always preload modules on demand (moved outside conditional to fix React hooks rule)
+    React.useEffect(() => {
+      if (!ModuleComponent) {
+        console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    }, [moduleName, ModuleComponent]);
+    
+    if (ModuleComponent) {
+      const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
+      if (isCritical && apiDataPreloaded) {
+        console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
+      }
+      return React.createElement(ModuleComponent);
+    }
+    
+    return fallbackComponent || (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-indigo-600">
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+          </p>
+        </div>
+      </div>
+    );
   };
 
-  // 🎯 TOUS LES MODULES DIRECTEUR - 9 modules optimisés
+  // Stable callback for handling quick actions
+  const stableHandleQuickActions = useStableCallback((event: CustomEvent) => {
+    console.log(`[DIRECTOR_DASHBOARD] 🔥 Received event: ${event.type}`);
+    
+    const moduleMap: { [key: string]: string } = {
+      'switchToTimetable': 'timetable',
+      'switchToTeacherManagement': 'teachers', 
+      'switchToTeacher-management': 'teachers',
+      'switchToClassManagement': 'classes',
+      'switchToClass-management': 'classes',
+      'switchToCommunications': 'communications',
+      'switchToSettings': 'settings',
+      'switchToAdministrators': 'administrators',
+      'switchToStudent-management': 'students',
+      'switchToAttendance-management': 'attendance',
+      'switchToSubscription': 'subscription'
+    };
+    
+    const moduleId = moduleMap[event.type];
+    if (moduleId) {
+      console.log(`[DIRECTOR_DASHBOARD] ✅ Mapping ${event.type} → ${moduleId}`);
+      const moduleEvent = new CustomEvent('switchModule', { detail: { moduleId } });
+      window.dispatchEvent(moduleEvent);
+    } else {
+      console.log(`[DIRECTOR_DASHBOARD] ❌ No mapping found for event: ${event.type}`);
+    }
+  });
+
+  // Register stable event handlers for all quick actions
+  useEffect(() => {
+    const eventTypes = [
+      'switchToTimetable', 'switchToTeacherManagement', 'switchToClassManagement', 'switchToCommunications',
+      'switchToSettings', 'switchToAdministrators', 'switchToStudent-management', 'switchToAttendance-management',
+      'switchToGeolocation', 'switchToSubscription'
+    ];
+    
+    eventTypes.forEach(eventType => {
+      window.addEventListener(eventType, stableHandleQuickActions as EventListener);
+    });
+
+    return () => {
+      eventTypes.forEach(eventType => {
+        window.removeEventListener(eventType, stableHandleQuickActions as EventListener);
+      });
+    };
+  }, [stableHandleQuickActions]);
+
+  const text = {
+    fr: {
+      title: 'Tableau de Bord Directeur',
+      subtitle: 'Administration complète de votre établissement scolaire',
+      overview: 'Vue d\'ensemble',
+      settings: 'Profil Directeur',
+      teachers: 'Enseignants',
+      students: 'Élèves',
+      classes: 'Classes',
+      timetable: 'Emploi du temps',
+      attendance: 'Présence École',
+      communications: 'Communications',
+      teacherAbsence: 'Absences Profs',
+      parentRequests: 'Demandes Parents',
+      geolocation: 'Géolocalisation',
+      bulletinApproval: 'Validation Bulletins',
+      notifications: 'Notifications',
+      schoolAdministrators: 'Administrateurs Délégués',
+
+      finances: 'Finances',
+      reports: 'Rapports', 
+      help: 'Aide',
+      configGuide: 'Guide Configuration',
+      schoolSettings: 'Paramètres École'
+    },
+    en: {
+      title: 'Director Dashboard',
+      subtitle: 'Complete administration of your educational institution',
+      overview: 'Overview',
+      settings: 'Director Profile',
+      teachers: 'Teachers',
+      students: 'Students',
+      classes: 'Classes',
+      timetable: 'Schedule',
+      attendance: 'School Attendance',
+      communications: 'Communications',
+      teacherAbsence: 'Teacher Absences',
+      parentRequests: 'Parent Requests',
+
+      bulletinApproval: 'Bulletin Approval',
+      notifications: 'Notifications',
+      schoolAdministrators: 'Delegate Administrators',
+
+      finances: 'Finances',
+      reports: 'Reports',
+      help: 'Help',
+      configGuide: 'Configuration Guide',
+      schoolSettings: 'School Settings'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
   const modules = [
+    {
+      id: 'overview',
+      label: t.overview,
+      icon: <BarChart3 className="w-6 h-6" />,
+      color: 'bg-blue-500',
+      component: createDynamicModule('overview')
+    },
+    {
+      id: 'settings',
+      label: t.settings,
+      icon: <Settings className="w-6 h-6" />,
+      color: 'bg-gray-500',
+      component: createDynamicModule('settings')
+    },
     {
       id: 'teachers',
       label: t.teachers,
-      icon: <Users className="w-6 h-6" />,
-      color: 'bg-blue-500',
-      component: createInstantModule('FunctionalDirectorTeacherManagement')
+      icon: <UserCheck className="w-6 h-6" />,
+      color: 'bg-green-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Enseignants Avancée"
+          userType="School"
+          features={[
+            "Gestion illimitée d'enseignants",
+            "Rapports de performance détaillés", 
+            "Planification automatique des cours",
+            "Outils de communication intégrés"
+          ]}
+        >
+          {createDynamicModule('teachers')}
+        </PremiumFeatureGate>
+      )
     },
     {
-      id: 'students', 
+      id: 'students',
       label: t.students,
-      icon: <School className="w-6 h-6" />,
-      color: 'bg-green-500',
-      component: createInstantModule('FunctionalDirectorStudentManagement')
+      icon: <Users className="w-6 h-6" />,
+      color: 'bg-purple-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Élèves Premium"
+          userType="School"
+          features={[
+            "Base de données étudiants illimitée",
+            "Suivi personnalisé de progression",
+            "Communication automatisée avec parents",
+            "Rapports d'analyse comportementale"
+          ]}
+        >
+          {createDynamicModule('students')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'classes',
       label: t.classes,
       icon: <BookOpen className="w-6 h-6" />,
-      color: 'bg-purple-500',
-      component: createInstantModule('FunctionalDirectorClassManagement')
+      color: 'bg-orange-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Classes Multi-niveaux"
+          userType="School"
+          features={[
+            "Classes illimitées tous niveaux",
+            "Outils pédagogiques avancés",
+            "Affectation automatique enseignants",
+            "Analytics de performance par classe"
+          ]}
+        >
+          {createDynamicModule('classes')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'timetable',
       label: t.timetable,
-      icon: <Calendar className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: createInstantModule('TimetableConfiguration')
+      icon: <Clock className="w-6 h-6" />,
+      color: 'bg-pink-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Emploi du Temps Intelligent"
+          userType="School"
+          features={[
+            "Génération automatique d'emplois du temps",
+            "Optimisation des conflits d'horaires",
+            "Synchronisation multi-classes",
+            "Notifications automatiques de changements"
+          ]}
+        >
+          {createDynamicModule('timetable')}
+        </PremiumFeatureGate>
+      )
     },
     {
-      id: 'finances',
-      label: t.finances,
-      icon: <DollarSign className="w-6 h-6" />,
-      color: 'bg-emerald-500',
-      component: createInstantModule('FinancialManagement')
+      id: 'attendance',
+      label: t.attendance,
+      icon: <CheckCircle className="w-6 h-6" />,
+      color: 'bg-yellow-500',
+      component: createDynamicModule('attendance')
+    },
+    {
+      id: 'communications',
+      label: t.communications,
+      icon: <MessageSquare className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Centre Communications Pro"
+          userType="School"
+          features={[
+            "Messages groupés SMS/WhatsApp illimités",
+            "Templates de communication automatisés",
+            "Suivi de livraison des messages",
+            "Intégration avec systèmes de notation"
+          ]}
+        >
+          {createDynamicModule('communications')}
+        </PremiumFeatureGate>
+      )
+    },
+    {
+      id: 'teacher-absence',
+      label: t.teacherAbsence,
+      icon: <UserX className="w-6 h-6" />,
+      color: 'bg-red-500',
+      component: createDynamicModule('teacher-absence')
+    },
+    {
+      id: 'parent-requests',
+      label: t.parentRequests,
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-teal-500',
+      component: createDynamicModule('parent-requests')
+    },
+
+    {
+      id: 'bulletin-validation',
+      label: t.bulletinApproval,
+      icon: <ClipboardList className="w-6 h-6" />,
+      color: 'bg-cyan-500',
+      component: createDynamicModule('bulletin-validation')
+    },
+    {
+      id: 'notifications',
+      label: t.notifications,
+      icon: <Bell className="w-6 h-6" />,
+      color: 'bg-blue-600',
+      component: createDynamicModule('notifications')
+    },
+    {
+      id: 'school-administrators',
+      label: t.schoolAdministrators,
+      icon: <Shield className="w-6 h-6" />,
+      color: 'bg-amber-500',
+      component: createDynamicModule('school-administrators')
     },
     {
       id: 'reports',
       label: t.reports,
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-violet-500',
-      component: createInstantModule('ReportsAnalytics')
-    },
-    {
-      id: 'communication',
-      label: t.communication,
-      icon: <MessageSquare className="w-6 h-6" />,
-      color: 'bg-cyan-500',
-      component: createInstantModule('CommunicationsCenter')
+      component: createDynamicModule('reports')
     },
     {
       id: 'help',
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-rose-500',
-      component: createInstantModule('SchoolConfigurationGuide')
+      component: createDynamicModule('help')
     },
     {
       id: 'config-guide',
       label: t.configGuide,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createInstantModule('MobileSchoolConfigurationGuide')
+      component: createDynamicModule('config-guide')
     },
     {
       id: 'school-settings',
-      label: t.schoolSettings,
+      label: t.schoolSettings || (language === 'fr' ? 'Paramètres École' : 'School Settings'),
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-slate-600',
-      component: createInstantModule('DirectorSettings')
+      component: createDynamicModule('school-settings')
     }
   ];
 
   return (
     <UnifiedIconDashboard
-      title={t.title}
+      title={t.title || ''}
       subtitle={t.subtitle}
       modules={modules}
       activeModule={activeModule}
