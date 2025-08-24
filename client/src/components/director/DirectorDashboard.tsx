@@ -319,7 +319,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Notifications automatiques de changements"
           ]}
         >
-          {createDynamicModule('timetable')}
+          {createDynamicModule('director-timetable')}
         </PremiumFeatureGate>
       )
     },
