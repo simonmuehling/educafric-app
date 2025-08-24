@@ -240,7 +240,19 @@ class FastModuleLoader {
     console.log(`[FAST_LOADER] 🚀 Starting aggressive load for ${moduleName}`);
     const loadingPromise = importPromise
       .then(module => {
-        const Component = module.default || module;
+        // Ensure we get the React component correctly
+        let Component = module.default;
+        if (!Component && module) {
+          // Handle named exports or other export patterns
+          Component = module;
+        }
+        
+        // Validate it's a function (React component)
+        if (typeof Component !== 'function') {
+          console.error(`[FAST_LOADER] ❌ Invalid component for ${moduleName}:`, typeof Component, Component);
+          throw new Error(`Module ${moduleName} does not export a valid React component`);
+        }
+        
         this.cache[moduleName] = Component;
         this.loadingPromises.delete(moduleName);
         console.log(`[FAST_LOADER] ⚡ ${moduleName} loaded and cached successfully`);

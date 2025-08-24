@@ -187,9 +187,14 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
             <div className="w-full overflow-x-auto">
               <OptimizedModuleWrapper moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
                 {(() => {
-                  // Si le module a un component défini, l'utiliser
+                  // Si le module a un component défini, l'utiliser (mais seulement si c'est un élément React valide)
                   if (activeModuleData.component) {
-                    return activeModuleData.component;
+                    // Vérifier si c'est un élément React (JSX) 
+                    if (React.isValidElement(activeModuleData.component)) {
+                      return activeModuleData.component;
+                    }
+                    // Si c'est autre chose, traiter comme erreur
+                    console.warn(`[UNIFIED_DASHBOARD] ⚠️ Invalid component for ${activeModule}:`, typeof activeModuleData.component);
                   }
                   
                   // Sinon, charger dynamiquement via fastModuleLoader
