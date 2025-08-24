@@ -152,50 +152,43 @@ const SandboxLogin = () => {
       return;
     }
 
-    setIsLogging(profile.id);
+    // ⚡ CONNEXION ULTRA-RAPIDE - NAVIGATION IMMÉDIATE
+    console.log('🚀 INSTANT LOGIN START:', profile.name, profile.role);
     
-    try {
-      // Direct sandbox login using the specific sandbox endpoint
-      const response = await fetch('/api/auth/sandbox-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: profile.email,
-          password: 'sandbox123'
-        }),
-      });
-
+    // Navigate immediately while login happens in background
+    const roleRoutes = {
+      Parent: '/parent',
+      Student: '/student', 
+      Teacher: '/teacher',
+      Freelancer: '/freelancer',
+      Admin: '/admin',
+      Director: '/director',
+      SiteAdmin: '/admin'
+    };
+    
+    const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+    console.log('🚀 NAVIGATION IMMÉDIATE:', targetRoute);
+    
+    // NAVIGATION INSTANTANÉE - pas d'attente
+    setLocation(targetRoute);
+    
+    // Login en arrière-plan (ne bloque pas la navigation)
+    fetch('/api/auth/sandbox-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: profile.email,
+        password: 'sandbox123'
+      }),
+    }).then(response => {
       if (response.ok) {
-        const userData = await response.json();
-        console.log('✅ Sandbox login successful - INSTANT navigation to dashboard:', userData);
-        
-        // Navigate to role-specific dashboard immediately
-        const roleRoutes = {
-          Parent: '/parent',
-          Student: '/student',
-          Teacher: '/teacher',
-          Freelancer: '/freelancer',
-          Admin: '/admin',
-          Director: '/director',
-          SiteAdmin: '/admin'
-        };
-        
-        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        console.log('🚀 INSTANT Demo Access:', targetRoute);
-        
-        // INSTANT navigation - no delay for client presentations
-        setLocation(targetRoute);
-      } else {
-        const error = await response.json();
-        console.error('Sandbox login failed:', error);
+        console.log('✅ Background login completed for:', profile.name);
       }
-    } catch (error) {
-      console.error('Sandbox login error:', error);
-    } finally {
-      setIsLogging(null);
-    }
+    }).catch(error => {
+      console.warn('Background login error:', error);
+    });
   };
 
   return (

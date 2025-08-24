@@ -29,7 +29,7 @@ export default function FeatureAccessControl({
     user?.email?.includes('test.educafric.com') ||
     (user as any)?.sandboxMode ||
     (user as any)?.premiumFeatures ||
-    user?.id >= 9000 || // Tous les IDs sandbox (9001-9006)
+    (user?.id && user.id >= 9000) || // Tous les IDs sandbox (9001-9006)
     isPremiumUnlocked
   );
   
