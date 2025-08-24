@@ -81,9 +81,6 @@ export default function Login() {
       const data = await response.json();
       
       if (data.user) {
-        // Update auth context with the user (for sandbox, we don't need to call login again)
-        // The server already authenticated the user, just redirect
-        
         toast({
           title: language === 'fr' ? 'Connexion sandbox réussie' : 'Sandbox login successful',
           description: language === 'fr' 
@@ -91,8 +88,8 @@ export default function Login() {
             : `Logged in as ${profileName}`
         });
         
-        // Redirect to appropriate dashboard
-        setLocation(`/${data.user.role.toLowerCase()}`);
+        // Force page reload to ensure auth context is updated properly
+        window.location.href = `/${data.user.role.toLowerCase()}`;
       }
     } catch (error: any) {
       toast({
