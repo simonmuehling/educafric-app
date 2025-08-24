@@ -49,27 +49,26 @@ import "@/utils/networkOptimizer";
 // Initialize global module preloader for instant loading
 import { fastModuleLoader } from "@/utils/fastModuleLoader";
 
-// Light components - Regular imports OK
-import Subscribe from "@/pages/Subscribe";
-import Demo from "@/pages/Demo";
-import GeolocationPricing from "@/pages/GeolocationPricing";
-import SubscriptionSuccess from "@/pages/SubscriptionSuccess";
-import SandboxLogin from "@/pages/SandboxLogin";
-import SandboxDemo from "@/pages/SandboxDemo";
-import CurrencyDemo from "@/pages/CurrencyDemo";
-import Schools from "@/pages/Schools";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import BulkManagement from "@/pages/BulkManagement";
-import ProfileFeatures from "@/pages/ProfileFeatures";
-import ModernFormDemo from "@/pages/ModernFormDemo";
-import UnauthorizedPage from "@/pages/UnauthorizedPage";
-// PWA Install Prompt déjà importé dans les composants PWA
-import DebugInspector from "@/pages/DebugInspector";
-import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
-import EducationalConnections from "@/pages/EducationalConnections";
-import SubscriptionManagement from "@/pages/SubscriptionManagement";
-import SignatureTest from "@/pages/SignatureTest";
+// Convert heavy imports to lazy loading for faster startup
+const LazySubscribe = lazy(() => import("@/pages/Subscribe"));
+const LazyDemo = lazy(() => import("@/pages/Demo"));
+const LazyGeolocationPricing = lazy(() => import("@/pages/GeolocationPricing"));
+const LazySubscriptionSuccess = lazy(() => import("@/pages/SubscriptionSuccess"));
+const LazySandboxLogin = lazy(() => import("@/pages/SandboxLogin"));
+const LazySandboxDemo = lazy(() => import("@/pages/SandboxDemo"));
+const LazyCurrencyDemo = lazy(() => import("@/pages/CurrencyDemo"));
+// Schools now imported synchronously above
+const LazyTermsOfService = lazy(() => import("@/pages/TermsOfService"));
+const LazyPrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const LazyBulkManagement = lazy(() => import("@/pages/BulkManagement"));
+const LazyProfileFeatures = lazy(() => import("@/pages/ProfileFeatures"));
+const LazyModernFormDemo = lazy(() => import("@/pages/ModernFormDemo"));
+const LazyUnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
+const LazyDebugInspector = lazy(() => import("@/pages/DebugInspector"));
+const LazyPWAAnalyticsDemo = lazy(() => import("@/pages/PWAAnalyticsDemo"));
+const LazyEducationalConnections = lazy(() => import("@/pages/EducationalConnections"));
+const LazySubscriptionManagement = lazy(() => import("@/pages/SubscriptionManagement"));
+const LazySignatureTest = lazy(() => import("@/pages/SignatureTest"));
 
 // Optimized module preloader with memory management
 const useGlobalModulePreloader = () => {
@@ -105,26 +104,41 @@ const useGlobalModulePreloader = () => {
     };
   }, []);
 };
-const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
-const BulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
-const BulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
-const PWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
+// Test components - Lazy loaded
+const LazyBulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
+const LazyBulletinCreationTest = lazy(() => import("@/pages/BulletinCreationTest"));
+const LazyBulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
+const LazyPWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 
-// System components - Optimisés pour 3500+ utilisateurs
+// System components - Essential only, keep critical ones synchronous
+import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
+import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
+import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
+import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 import InactivityMonitor from "@/components/auth/InactivityMonitor";
 import EducafricFooter from "@/components/EducafricFooter";
-import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
-import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
-import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
-// WebInspector disabled to prevent fetch override interference with PWA analytics
-// import WebInspector from "@/components/developer/WebInspector";
-import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
 import RoleBasedDashboard from "@/components/RoleBasedDashboard";
 
-// Demo components - Non critiques, lazy si nécessaire
+// Demo and route components - Import synchronously since they're directly used in routes
 import MicroInteractionsDemo from "@/components/demo/MicroInteractionsDemo";
 import BilingualSandboxDashboard from "@/components/sandbox/BilingualSandboxDashboard";
 import UpdatedSandboxDashboard from "@/components/sandbox/UpdatedSandboxDashboard";
+import CurrencyDemo from "@/pages/CurrencyDemo";
+import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
+import EducationalConnections from "@/pages/EducationalConnections";
+import SubscriptionManagement from "@/pages/SubscriptionManagement";
+import ModernFormDemo from "@/pages/ModernFormDemo";
+import PWANotificationTest from "@/pages/PWANotificationTest";
+import BulletinValidationTest from "@/pages/BulletinValidationTest";
+import Schools from "@/pages/Schools";
+import UnauthorizedPage from "@/pages/UnauthorizedPage";
+// PasswordReset already imported above  
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
+import SignatureTest from "@/pages/SignatureTest";
+// NotFound already imported above
+import BulletinCreationTest from "@/pages/BulletinCreationTest";
+import BulletinTestSuite from "@/pages/BulletinTestSuite";
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -334,7 +348,9 @@ function Router() {
       
       <Route path="/bulk-management">
         <ProtectedRoute>
-          <BulkManagement />
+          <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+            <LazyBulkManagement />
+          </Suspense>
         </ProtectedRoute>
       </Route>
       
@@ -362,9 +378,21 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/subscribe" component={Subscribe} />
-      <Route path="/sandbox-login" component={SandboxLogin} />
-      <Route path="/sandbox-demo" component={SandboxDemo} />
+      <Route path="/subscribe">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazySubscribe />
+        </Suspense>
+      </Route>
+      <Route path="/sandbox-login">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazySandboxLogin />
+        </Suspense>
+      </Route>
+      <Route path="/sandbox-demo">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazySandboxDemo />
+        </Suspense>
+      </Route>
       
       <Route path="/profile">
         <ProtectedRoute>
@@ -374,13 +402,27 @@ function Router() {
       
       <Route path="/profile-features">
         <ProtectedRoute>
-          <ProfileFeatures />
+          <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+            <LazyProfileFeatures />
+          </Suspense>
         </ProtectedRoute>
       </Route>
       
-      <Route path="/demo" component={Demo} />
-      <Route path="/subscription-success" component={SubscriptionSuccess} />
-      <Route path="/geolocation-pricing" component={GeolocationPricing} />
+      <Route path="/demo">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazyDemo />
+        </Suspense>
+      </Route>
+      <Route path="/subscription-success">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazySubscriptionSuccess />
+        </Suspense>
+      </Route>
+      <Route path="/geolocation-pricing">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazyGeolocationPricing />
+        </Suspense>
+      </Route>
       
       <Route path="/geolocation">
         <ProtectedRoute>
@@ -398,7 +440,11 @@ function Router() {
       <Route path="/reset-password/:token" component={PasswordReset} />
       
       {/* Developer Tools */}
-      <Route path="/debug-inspector" component={DebugInspector} />
+      <Route path="/debug-inspector">
+        <Suspense fallback={<div className="h-8 flex justify-center"><div className="w-4 h-4 border border-blue-500 border-t-transparent rounded-full animate-spin" /></div>}>
+          <LazyDebugInspector />
+        </Suspense>
+      </Route>
       <Route path="/sandbox" component={LazySandboxPage} />
       <Route path="/enhanced-sandbox" component={LazyEnhancedSandbox} />
       <Route path="/sandbox/pwa-connection">
