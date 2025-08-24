@@ -100,13 +100,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
-    // Always preload modules on demand (moved outside conditional to fix React hooks rule)
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        console.log(`[DIRECTOR_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
-      }
-    }, [moduleName, ModuleComponent]);
+    // ✅ NO useEffect here - preloading handled elsewhere
     
     if (ModuleComponent) {
       const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);

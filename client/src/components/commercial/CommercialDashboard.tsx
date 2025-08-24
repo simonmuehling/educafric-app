@@ -72,12 +72,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     // ALWAYS call hooks in the same order - move useEffect before conditional return
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
-      }
-    }, [ModuleComponent, moduleName]);
+    // ✅ NO useEffect here - preloading handled elsewhere
     
     if (ModuleComponent) {
       const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);

@@ -101,13 +101,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
-    // ALWAYS call hooks in the same order - move useEffect before conditional return
-    React.useEffect(() => {
-      if (!ModuleComponent) {
-        console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
-      }
-    }, [ModuleComponent, moduleName]);
+    // ✅ NO useEffect here - preloading handled elsewhere
     
     if (ModuleComponent) {
       const isCritical = ['students', 'sessions', 'schedule', 'payments'].includes(moduleName);

@@ -126,11 +126,7 @@ const SiteAdminDashboard: React.FC = () => {
       return React.createElement(ModuleComponent);
     }
     
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[SITEADMIN_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
+    // ✅ NO useEffect here - preloading handled elsewhere
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
