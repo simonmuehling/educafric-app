@@ -159,7 +159,7 @@ class FastModuleLoader {
       'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
       'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
-      'students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
