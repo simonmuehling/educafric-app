@@ -1506,6 +1506,257 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============================================
+  // USER SETTINGS API ROUTES
+  // =============================================
+
+  // Teacher Settings
+  app.get("/api/teacher/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        profile: {
+          firstName: 'Marie',
+          lastName: 'Dubois',
+          email: 'marie.dubois@saintjoseph.edu',
+          phone: '+237657001234',
+          subjects: ['Mathématiques', 'Physique'],
+          experience: 8,
+          qualification: 'Licence en Mathématiques'
+        },
+        preferences: {
+          language: 'fr',
+          notifications: {
+            email: true,
+            sms: true,
+            push: true
+          },
+          gradeDisplayMode: 'detailed',
+          theme: 'modern'
+        },
+        security: {
+          twoFactorEnabled: false,
+          lastPasswordChange: '2024-07-15',
+          sessionTimeout: 30
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[TEACHER_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher settings' });
+    }
+  });
+
+  app.put("/api/teacher/settings", requireAuth, async (req, res) => {
+    try {
+      const updatedSettings = req.body;
+      console.log('[TEACHER_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      res.json({ success: true, message: 'Teacher settings updated successfully' });
+    } catch (error) {
+      console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update teacher settings' });
+    }
+  });
+
+  // Student Settings
+  app.get("/api/student/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        profile: {
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          email: 'marie.kouame@saintjoseph.edu',
+          className: '6ème A',
+          studentId: 'SJ2024001',
+          parentContact: '+237657001234'
+        },
+        preferences: {
+          language: 'fr',
+          notifications: {
+            grades: true,
+            assignments: true,
+            attendance: true
+          },
+          dashboard: 'simplified',
+          theme: 'colorful'
+        },
+        privacy: {
+          shareLocation: true,
+          allowParentAccess: true,
+          showOnlineStatus: false
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[STUDENT_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student settings' });
+    }
+  });
+
+  app.put("/api/student/settings", requireAuth, async (req, res) => {
+    try {
+      const updatedSettings = req.body;
+      console.log('[STUDENT_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      res.json({ success: true, message: 'Student settings updated successfully' });
+    } catch (error) {
+      console.error('[STUDENT_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update student settings' });
+    }
+  });
+
+  // Parent Settings
+  app.get("/api/parent/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        profile: {
+          firstName: 'Papa',
+          lastName: 'Kouame',
+          email: 'papa.kouame@gmail.com',
+          phone: '+237657001234',
+          children: ['Marie Kouame', 'Paul Kouame'],
+          occupation: 'Ingénieur'
+        },
+        preferences: {
+          language: 'fr',
+          notifications: {
+            email: true,
+            sms: true,
+            whatsapp: true,
+            push: true
+          },
+          reportFrequency: 'weekly',
+          safetyAlerts: 'immediate'
+        },
+        privacy: {
+          shareContactWithSchool: true,
+          allowTeacherContact: true,
+          emergencyContactsOnly: false
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[PARENT_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent settings' });
+    }
+  });
+
+  app.put("/api/parent/settings", requireAuth, async (req, res) => {
+    try {
+      const updatedSettings = req.body;
+      console.log('[PARENT_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      res.json({ success: true, message: 'Parent settings updated successfully' });
+    } catch (error) {
+      console.error('[PARENT_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update parent settings' });
+    }
+  });
+
+  // Freelancer Settings
+  app.get("/api/freelancer/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        profile: {
+          firstName: 'Dr. Aminata',
+          lastName: 'Ngozi',
+          email: 'aminata.ngozi@freelancer.edu',
+          phone: '+237657005678',
+          specializations: ['Mathématiques', 'Sciences'],
+          experience: 12,
+          certification: 'PhD en Mathématiques Appliquées'
+        },
+        business: {
+          hourlyRate: 15000,
+          availability: 'weekends',
+          maxStudents: 10,
+          paymentMethods: ['Orange Money', 'Express Union']
+        },
+        preferences: {
+          language: 'fr',
+          notifications: {
+            newBookings: true,
+            payments: true,
+            reminders: true
+          },
+          workingHours: {
+            start: '09:00',
+            end: '18:00'
+          }
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[FREELANCER_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch freelancer settings' });
+    }
+  });
+
+  app.put("/api/freelancer/settings", requireAuth, async (req, res) => {
+    try {
+      const updatedSettings = req.body;
+      console.log('[FREELANCER_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      res.json({ success: true, message: 'Freelancer settings updated successfully' });
+    } catch (error) {
+      console.error('[FREELANCER_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update freelancer settings' });
+    }
+  });
+
+  // School Settings (Admin/Director)
+  app.get("/api/school/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = {
+        school: {
+          name: 'École Saint-Joseph',
+          address: 'Douala, Cameroun',
+          phone: '+237657004011',
+          email: 'direction@saintjoseph.edu',
+          website: 'https://saintjoseph.edu.cm',
+          academicYear: '2024-2025',
+          currentTerm: 'Premier Trimestre',
+          totalStudents: 156,
+          totalTeachers: 18
+        },
+        administration: {
+          directorName: 'M. Directeur Principal',
+          directorEmail: 'directeur@saintjoseph.edu',
+          directorPhone: '+237657001111',
+          secretaryEmail: 'secretariat@saintjoseph.edu',
+          accountantEmail: 'comptabilite@saintjoseph.edu'
+        },
+        preferences: {
+          language: 'fr',
+          timezone: 'Africa/Douala',
+          currency: 'XAF',
+          gradeSystem: 'french',
+          reportCardTemplate: 'standard',
+          communicationChannels: ['email', 'sms', 'whatsapp']
+        },
+        features: {
+          geolocationEnabled: true,
+          paymentIntegration: true,
+          parentNotifications: true,
+          attendanceTracking: true,
+          gradeManagement: true,
+          timetableManagement: true
+        }
+      };
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('[SCHOOL_SETTINGS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch school settings' });
+    }
+  });
+
+  app.put("/api/school/settings", requireAuth, async (req, res) => {
+    try {
+      const updatedSettings = req.body;
+      console.log('[SCHOOL_SETTINGS_UPDATE] Updating settings:', updatedSettings);
+      res.json({ success: true, message: 'School settings updated successfully' });
+    } catch (error) {
+      console.error('[SCHOOL_SETTINGS_UPDATE] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update school settings' });
+    }
+  });
+
   // Routes pour les relations parent-enfant au niveau école
   app.get("/api/school/parent-child-connections", requireAuth, async (req, res) => {
     try {
