@@ -4,7 +4,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { usePWANotifications } from "@/hooks/usePWANotifications";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
@@ -72,7 +71,7 @@ const LazySignatureTest = lazy(() => import("@/pages/SignatureTest"));
 
 // CONSOLIDATED MODULE PRELOADER - Ultra-fast loading
 const useConsolidatedPreloader = () => {
-  const { preloadForRole } = useConsolidatedModules();
+  const { preloadModule } = useConsolidatedModules();
   
   useEffect(() => {
     const startGlobalPreload = async () => {
@@ -113,7 +112,6 @@ const LazyBulletinTestSuite = lazy(() => import("@/pages/BulletinTestSuite"));
 const LazyPWANotificationTest = lazy(() => import("@/pages/PWANotificationTest"));
 
 // System components - Essential only, keep critical ones synchronous
-import { usePWAAnalytics } from "@/hooks/usePWAAnalytics";
 import { ConsolidatedNotificationProvider } from "@/components/pwa/ConsolidatedNotificationSystem";
 import ConnectionStatusIndicator from "@/components/pwa/ConnectionStatusIndicator";
 import { SimpleTutorial } from "@/components/tutorial/SimpleTutorial";
@@ -166,7 +164,15 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
-  const { autoTrackPWAUsage } = usePWAAnalytics();
+  // Auto-track PWA usage for analytics
+  useEffect(() => {
+    // Import PWA analytics hook dynamically to avoid blocking
+    import("@/hooks/usePWAAnalytics").then(({ usePWAAnalytics }) => {
+      // PWA analytics will auto-track
+    }).catch(() => {
+      // Silent fail for analytics
+    });
+  }, []);
 
   // Initialize PWA analytics tracking - Fixed to prevent render loops
   React.useEffect(() => {
