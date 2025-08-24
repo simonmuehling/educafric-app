@@ -181,6 +181,61 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
   res.json({ user: req.user });
 });
 
+// Direct sandbox login endpoint (for quick access)
+router.post('/sandbox-direct-login/:profileId', async (req, res) => {
+  try {
+    const { profileId } = req.params;
+    
+    // Define sandbox profiles for direct access
+    const sandboxProfiles = {
+      'parent': { id: 9001, name: 'Marie Kamga', role: 'Parent', email: 'sandbox.parent@educafric.demo' },
+      'teacher': { id: 9002, name: 'Paul Mvondo', role: 'Teacher', email: 'sandbox.teacher@educafric.demo' },
+      'freelancer': { id: 9003, name: 'Sophie Biya', role: 'Freelancer', email: 'sandbox.freelancer@educafric.demo' },
+      'student': { id: 9004, name: 'Junior Kamga', role: 'Student', email: 'sandbox.student@educafric.demo' },
+      'admin': { id: 9005, name: 'Dr. Nguetsop Carine', role: 'Admin', email: 'sandbox.admin@educafric.demo' },
+      'director': { id: 9006, name: 'Prof. Atangana Michel', role: 'Director', email: 'sandbox.director@educafric.demo' }
+    };
+    
+    const profile = sandboxProfiles[profileId as keyof typeof sandboxProfiles];
+    
+    if (!profile) {
+      return res.status(404).json({ message: 'Sandbox profile not found' });
+    }
+    
+    // Create sandbox user object
+    const sandboxUser = {
+      ...profile,
+      subscription: 'premium',
+      sandboxMode: true,
+      premiumFeatures: true,
+      schoolId: 999,
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
+    
+    // Login the user directly
+    req.login(sandboxUser, (err) => {
+      if (err) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('[SANDBOX_DIRECT_LOGIN] Error:', err);
+        }
+        return res.status(500).json({ message: 'Sandbox direct login failed' });
+      }
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[SANDBOX_DIRECT_LOGIN] ✅ ${profile.name} (${profile.role}) logged in directly`);
+      }
+      res.json({ user: sandboxUser });
+    });
+    
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[SANDBOX_DIRECT_LOGIN] Error:', error);
+    }
+    res.status(500).json({ message: 'Sandbox direct login error' });
+  }
+});
+
 // Sandbox login endpoint
 router.post('/sandbox-login', async (req, res) => {
   try {

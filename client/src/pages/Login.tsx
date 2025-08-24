@@ -49,6 +49,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [showMultiRolePopup, setShowMultiRolePopup] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState<any>(null);
+  const [sandboxLoginLoading, setSandboxLoginLoading] = useState<string | null>(null);
 
   // Multi-role detection and selection
   const [detectedRoles, setDetectedRoles] = useState<any[]>([]);
@@ -70,6 +71,38 @@ export default function Login() {
       console.log('No multi-role detection needed:', error);
     }
     return false;
+  };
+
+  // Quick sandbox login function
+  const handleSandboxDirectLogin = async (profileId: string, profileName: string) => {
+    setSandboxLoginLoading(profileId);
+    try {
+      const response = await apiRequest('POST', `/api/auth/sandbox-direct-login/${profileId}`, {});
+      const data = await response.json();
+      
+      if (data.user) {
+        // Update auth context with the user (for sandbox, we don't need to call login again)
+        // The server already authenticated the user, just redirect
+        
+        toast({
+          title: language === 'fr' ? 'Connexion sandbox réussie' : 'Sandbox login successful',
+          description: language === 'fr' 
+            ? `Connecté en tant que ${profileName}`
+            : `Logged in as ${profileName}`
+        });
+        
+        // Redirect to appropriate dashboard
+        setLocation(`/${data.user.role.toLowerCase()}`);
+      }
+    } catch (error: any) {
+      toast({
+        title: language === 'fr' ? 'Erreur de connexion' : 'Login error',
+        description: error.message || (language === 'fr' ? 'Impossible de se connecter' : 'Unable to login'),
+        variant: 'destructive'
+      });
+    } finally {
+      setSandboxLoginLoading(null);
+    }
   };
 
   const handleRoleSelection = async (selectedRoles: string[]) => {
@@ -469,9 +502,91 @@ export default function Login() {
             )}
           </form>
 
-
-
-
+          {/* Quick Sandbox Login */}
+          <div className="border-t border-gray-100 pt-4 mt-6">
+            <div className="text-center mb-3">
+              <p className="text-xs text-gray-500 mb-2">
+                {language === 'fr' ? '🏖️ Accès Rapide Sandbox' : '🏖️ Quick Sandbox Access'}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSandboxDirectLogin('parent', 'Marie Kamga')}
+                disabled={sandboxLoginLoading === 'parent'}
+                className="text-xs px-2 py-1 h-8 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 transition-all"
+              >
+                {sandboxLoginLoading === 'parent' ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  language === 'fr' ? 'Parent' : 'Parent'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSandboxDirectLogin('student', 'Junior Kamga')}
+                disabled={sandboxLoginLoading === 'student'}
+                className="text-xs px-2 py-1 h-8 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 transition-all"
+              >
+                {sandboxLoginLoading === 'student' ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  language === 'fr' ? 'Élève' : 'Student'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSandboxDirectLogin('teacher', 'Paul Mvondo')}
+                disabled={sandboxLoginLoading === 'teacher'}
+                className="text-xs px-2 py-1 h-8 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 transition-all"
+              >
+                {sandboxLoginLoading === 'teacher' ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  language === 'fr' ? 'Prof' : 'Teacher'
+                )}
+              </Button>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSandboxDirectLogin('freelancer', 'Sophie Biya')}
+                disabled={sandboxLoginLoading === 'freelancer'}
+                className="text-xs px-2 py-1 h-8 bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100 transition-all"
+              >
+                {sandboxLoginLoading === 'freelancer' ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  language === 'fr' ? 'Répét.' : 'Tutor'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSandboxDirectLogin('director', 'Prof. Atangana')}
+                disabled={sandboxLoginLoading === 'director'}
+                className="text-xs px-2 py-1 h-8 bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 transition-all"
+              >
+                {sandboxLoginLoading === 'director' ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  language === 'fr' ? 'Direct.' : 'Director'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation('/sandbox-login')}
+                className="text-xs px-2 py-1 h-8 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-all"
+              >
+                {language === 'fr' ? 'Plus' : 'More'}
+              </Button>
+            </div>
+          </div>
 
           <div className="text-center space-y-3">
             <button
