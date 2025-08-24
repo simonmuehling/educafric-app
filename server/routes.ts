@@ -18,6 +18,7 @@ import { requireAuth } from "./middleware/auth";
 import notificationsRouter from "./routes/api/notifications";
 import teachersRouter from "./routes/api/teachers";
 import sandboxRouter from "./routes/api/sandbox";
+import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
 import parentRouter from "./routes/api/parent";
 
@@ -180,6 +181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/notifications', notificationsRouter);
   app.use('/api/teachers', teachersRouter);
   app.use('/api/sandbox', sandboxRouter);
+  app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
   app.use('/api/schools', schoolsRouter);
   app.use('/api/parent', parentRouter);
 
