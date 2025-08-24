@@ -32,19 +32,18 @@ passport.use(new LocalStrategy(
 
 passport.serializeUser((user: any, done) => {
   try {
-    console.log('[AUTH_DEBUG] Serializing user:', { id: user?.id, email: user?.email, role: user?.role });
-    
     // Validate user object exists and has required properties
     if (!user || typeof user !== 'object' || !user.id) {
-      console.error('[AUTH_ERROR] Invalid user object for serialization:', user);
       return done(new Error('Invalid user object for serialization'));
     }
     
-    const serializedId = user.sandboxMode ? `sandbox:${user.id}` : user.id;
-    console.log('[AUTH_DEBUG] Serialized user ID:', serializedId);
-    done(null, serializedId);
+    if (user.sandboxMode) {
+      done(null, `sandbox:${user.id}`);
+    } else {
+      done(null, user.id);
+    }
   } catch (error) {
-    console.error('[AUTH_ERROR] User serialization failed:', error);
+    console.error('[AUTH_ERROR] User serialization failed');
     done(error);
   }
 });
@@ -130,19 +129,10 @@ passport.deserializeUser(async (id: string | number, done) => {
 // Authentication routes
 router.get('/me', async (req, res) => {
   try {
-    // Debug cookie and session info
-    console.log('[COOKIE_DEBUG] Request cookies:', req.headers.cookie);
-    console.log('[SESSION_DEBUG] Session ID:', req.sessionID);
-    console.log('[SESSION_DEBUG] Session exists:', !!req.session);
-    console.log('[SESSION_DEBUG] Authenticated:', req.isAuthenticated());
-    console.log('[SESSION_DEBUG] Session passport:', req.session?.passport);
-    
     if (!req.isAuthenticated()) {
-      console.log(`[AUTH_FAIL] No authentication for session: ${req.sessionID}`);
       return res.status(401).json({ message: 'Authentication required' });
     }
     
-    console.log(`[AUTH_SUCCESS] User authenticated: ${req.user?.email}`);
     res.json({ user: req.user });
   } catch (error) {
     console.error('[AUTH_ERROR] Error processing authentication:', error);
