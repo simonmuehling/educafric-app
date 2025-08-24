@@ -40,6 +40,14 @@ export class ModularStorage {
   async getUserSchools(userId: number) { return this.schoolStorage.getUserSchools(userId); }
   async getSchoolClasses(schoolId: number) { return this.schoolStorage.getSchoolClasses(schoolId); }
   async getSchoolTeachers(schoolId: number) { return this.schoolStorage.getSchoolTeachers(schoolId); }
+  async getSchoolSubjects(schoolId: number) { return this.schoolStorage.getSchoolSubjects(schoolId); }
+  async getSchoolAdministrators(schoolId: number) { return this.schoolStorage.getSchoolAdministrators(schoolId); }
+  async getSchoolConfiguration(schoolId: number) { return this.schoolStorage.getSchoolConfiguration(schoolId); }
+  async updateSchoolConfiguration(schoolId: number, config: any) { return this.schoolStorage.updateSchoolConfiguration(schoolId, config); }
+  async getSchoolSecuritySettings(schoolId: number) { return this.schoolStorage.getSchoolSecuritySettings(schoolId); }
+  async updateSchoolSecuritySettings(schoolId: number, settings: any) { return this.schoolStorage.updateSchoolSecuritySettings(schoolId, settings); }
+  async getSchoolNotificationSettings(schoolId: number) { return this.schoolStorage.getSchoolNotificationSettings(schoolId); }
+  async updateSchoolNotificationSettings(schoolId: number, settings: any) { return this.schoolStorage.updateSchoolNotificationSettings(schoolId, settings); }
 
   // === STUDENT METHODS ===
   async createStudentRecord(student: any) { return this.studentStorage.createStudentRecord(student); }

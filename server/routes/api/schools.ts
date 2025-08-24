@@ -118,8 +118,7 @@ router.get('/configuration', requireAuth, async (req: AuthenticatedRequest, res:
       return res.status(400).json({ message: 'No school associated with user' });
     }
 
-    // For now, return empty config - will implement when storage method exists
-    const config = {};
+    const config = await storage.getSchoolConfiguration(user.schoolId);
     res.json(config || {});
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error fetching school configuration:', error);
@@ -136,9 +135,13 @@ router.put('/configuration', requireAuth, async (req: AuthenticatedRequest, res:
     }
 
     const configData = req.body;
-    // For now, just acknowledge - will implement when storage method exists
+    const success = await storage.updateSchoolConfiguration(user.schoolId, configData);
     
-    res.json({ message: 'School configuration updated successfully' });
+    if (success) {
+      res.json({ message: 'School configuration updated successfully' });
+    } else {
+      res.status(500).json({ message: 'Failed to update school configuration' });
+    }
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error updating school configuration:', error);
     res.status(500).json({ message: 'Failed to update school configuration' });
@@ -153,8 +156,7 @@ router.get('/security', requireAuth, async (req: AuthenticatedRequest, res: Resp
       return res.status(400).json({ message: 'No school associated with user' });
     }
 
-    // For now, return empty security - will implement when storage method exists
-    const security = {};
+    const security = await storage.getSchoolSecuritySettings(user.schoolId);
     res.json(security || {});
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error fetching school security:', error);
@@ -171,9 +173,13 @@ router.put('/security', requireAuth, async (req: AuthenticatedRequest, res: Resp
     }
 
     const securityData = req.body;
-    // For now, just acknowledge - will implement when storage method exists
+    const success = await storage.updateSchoolSecuritySettings(user.schoolId, securityData);
     
-    res.json({ message: 'School security settings updated successfully' });
+    if (success) {
+      res.json({ message: 'School security settings updated successfully' });
+    } else {
+      res.status(500).json({ message: 'Failed to update school security settings' });
+    }
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error updating school security:', error);
     res.status(500).json({ message: 'Failed to update school security settings' });
@@ -188,8 +194,7 @@ router.get('/notifications', requireAuth, async (req: AuthenticatedRequest, res:
       return res.status(400).json({ message: 'No school associated with user' });
     }
 
-    // For now, return empty notifications - will implement when storage method exists
-    const notifications = {};
+    const notifications = await storage.getSchoolNotificationSettings(user.schoolId);
     res.json(notifications || {});
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error fetching school notifications:', error);
@@ -206,9 +211,13 @@ router.put('/notifications', requireAuth, async (req: AuthenticatedRequest, res:
     }
 
     const notificationsData = req.body;
-    // For now, just acknowledge - will implement when storage method exists
+    const success = await storage.updateSchoolNotificationSettings(user.schoolId, notificationsData);
     
-    res.json({ message: 'School notifications settings updated successfully' });
+    if (success) {
+      res.json({ message: 'School notifications settings updated successfully' });
+    } else {
+      res.status(500).json({ message: 'Failed to update school notifications settings' });
+    }
   } catch (error: any) {
     console.error('[SCHOOLS_API] Error updating school notifications:', error);
     res.status(500).json({ message: 'Failed to update school notifications' });
