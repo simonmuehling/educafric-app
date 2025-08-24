@@ -42,6 +42,17 @@ import setupNotificationRoutes from "./routes/notificationRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
 import pwaRoutes from "./routes/pwaRoutes";
 import whatsappRoutes from "./routes/whatsapp";
+import classesRoutes from "./routes/classes";
+import gradesRoutes from "./routes/grades";
+import teachersStandalone from "./routes/teachers";
+import studentsStandalone from "./routes/students";
+import currencyRoutes from "./routes/currency";
+import stripeRoutes from "./routes/stripe";
+import uploadsRoutes from "./routes/uploads";
+import bulletinRoutes from "./routes/bulletinRoutes";
+import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
+import trackingRoutes from "./routes/tracking";
+import { tutorialRoutes } from "./routes/tutorialRoutes";
 // Old duplicated imports removed - replaced by unified messaging system
 // import familyConnectionsRoutes from "./routes/familyConnections";
 // import teacherStudentConnections from "./routes/teacherStudentConnections";
@@ -229,6 +240,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
+  
+  // Missing routes after refactor
+  app.use('/api/classes', classesRoutes);
+  app.use('/api/grades', gradesRoutes);  
+  app.use('/api/teachers-standalone', teachersStandalone);
+  app.use('/api/students-standalone', studentsStandalone);
+  app.use('/api/currency', currencyRoutes);
+  app.use('/api/stripe', stripeRoutes);
+  app.use('/api/uploads', uploadsRoutes);
+  app.use('/api/bulletins', bulletinRoutes);
+  app.use('/api/bulletin-validation', bulletinValidationRoutes);
+  trackingRoutes(app);
+  app.use('/api/tutorials', tutorialRoutes);
   
   // 🚫 WARNING: Keep administration routes LAST to prevent route interception
   // This route catches ALL /api/* requests, so it must come after specific routes

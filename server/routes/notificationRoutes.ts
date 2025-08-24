@@ -21,12 +21,11 @@ export function setupNotificationRoutes(app: Express) {
       const offset = parseInt(req.query.offset as string) || 0;
 
       let whereConditions = [
-        eq(notifications.recipientId, userId),
-        eq(notifications.recipientRole, userRole)
+        eq(notifications.userId, userId)
       ];
 
       if (category && category !== 'all') {
-        whereConditions.push(eq(notifications.category, category));
+        whereConditions.push(eq(notifications.type, category));
       }
 
       if (unreadOnly) {
@@ -61,14 +60,12 @@ export function setupNotificationRoutes(app: Express) {
       await db
         .update(notifications)
         .set({ 
-          isRead: true, 
-          readAt: new Date(),
-          updatedAt: new Date()
+          isRead: true
         })
         .where(
           and(
             eq(notifications.id, notificationId),
-            eq(notifications.recipientId, userId)
+            eq(notifications.userId, userId)
           )
         );
 
@@ -92,14 +89,11 @@ export function setupNotificationRoutes(app: Express) {
       await db
         .update(notifications)
         .set({ 
-          isRead: true, 
-          readAt: new Date(),
-          updatedAt: new Date()
+          isRead: true
         })
         .where(
           and(
-            eq(notifications.recipientId, userId),
-            eq(notifications.recipientRole, userRole),
+            eq(notifications.userId, userId),
             eq(notifications.isRead, false)
           )
         );
@@ -126,7 +120,7 @@ export function setupNotificationRoutes(app: Express) {
         .where(
           and(
             eq(notifications.id, notificationId),
-            eq(notifications.recipientId, userId)
+            eq(notifications.userId, userId)
           )
         );
 
@@ -152,8 +146,7 @@ export function setupNotificationRoutes(app: Express) {
         .from(notifications)
         .where(
           and(
-            eq(notifications.recipientId, userId),
-            eq(notifications.recipientRole, userRole),
+            eq(notifications.userId, userId),
             eq(notifications.isRead, false)
           )
         );
@@ -179,17 +172,18 @@ export function setupNotificationRoutes(app: Express) {
 
       const notificationData: InsertNotification = req.body;
       
-      // Set sender information
-      notificationData.senderId = req.user.id;
-      notificationData.senderRole = req.user.role;
-      
-      if (req.user.schoolId) {
-        notificationData.schoolId = req.user.schoolId;
-      }
+      // Basic notification data - remove unsupported fields
+      const basicNotificationData = {
+        userId: notificationData.userId,
+        title: notificationData.title,
+        content: notificationData.content,
+        type: notificationData.type || 'general',
+        isRead: false
+      };
 
       const newNotification = await db
         .insert(notifications)
-        .values(notificationData)
+        .values(basicNotificationData)
         .returning();
 
       res.json(newNotification[0]);
@@ -213,12 +207,13 @@ export function setupNotificationRoutes(app: Express) {
 
       const notificationsData: InsertNotification[] = req.body;
       
-      // Set sender information for all notifications
+      // Process notifications to basic format
       const processedNotifications = notificationsData.map(notification => ({
-        ...notification,
-        senderId: req.user!.id,
-        senderRole: req.user!.role,
-        schoolId: req.user!.schoolId || notification.schoolId
+        userId: notification.userId,
+        title: notification.title,
+        content: notification.content,
+        type: notification.type || 'general',
+        isRead: false
       }));
 
       await db.insert(notifications).values(processedNotifications);

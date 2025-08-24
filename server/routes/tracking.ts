@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { nanoid } from "nanoid";
 import { db } from "../db";
-import { trackedDevices, safeZones, locationAlerts, deviceLocationHistory, zoneStatus } from "@shared/schema";
+import { trackingDevices, geofenceViolations, emergencyAlerts } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 
-export function registerTrackingRoutes(app: Express) {
+function registerTrackingRoutes(app: Express) {
   // Register a new device
   app.post("/api/tracking/devices", async (req, res) => {
     try {
@@ -15,7 +15,7 @@ export function registerTrackingRoutes(app: Express) {
         updatedAt: new Date()
       };
 
-      const [device] = await db.insert(trackedDevices).values(deviceData).returning();
+      const [device] = await db.insert(trackingDevices).values(deviceData).returning();
       res.json(device);
     } catch (error) {
       console.error("Failed to register device:", error);
@@ -27,18 +27,18 @@ export function registerTrackingRoutes(app: Express) {
   app.get("/api/tracking/devices/:deviceId", async (req, res) => {
     try {
       const { deviceId } = req.params;
-      const [device] = await db.select().from(trackedDevices).where(eq(trackedDevices.id, deviceId));
+      const [device] = await db.select().from(trackingDevices).where(eq(trackingDevices.id, deviceId));
       
       if (!device) {
         return res.status(404).json({ message: "Device not found" });
       }
 
       // Get safe zones for this device
-      const zones = await db.select().from(safeZones).where(eq(safeZones.deviceId, deviceId));
+      const zones = await db.select().from(geofenceViolations).where(eq(geofenceViolations.deviceId, deviceId));
       
       res.json({
         ...device,
-        safeZones: zones,
+        geofenceViolations: zones,
         currentLocation: device.currentLatitude && device.currentLongitude ? {
           latitude: parseFloat(device.currentLatitude),
           longitude: parseFloat(device.currentLongitude),
@@ -57,18 +57,18 @@ export function registerTrackingRoutes(app: Express) {
   app.get("/api/tracking/students/:studentId/devices", async (req, res) => {
     try {
       const { studentId } = req.params;
-      const devices = await db.select().from(trackedDevices)
-        .where(eq(trackedDevices.studentId, parseInt(studentId)));
+      const devices = await db.select().from(trackingDevices)
+        .where(eq(trackingDevices.studentId, parseInt(studentId)));
 
       // Get safe zones for all devices
       const deviceIds = devices.map(d => d.id);
       const zones = deviceIds.length > 0 
-        ? await db.select().from(safeZones).where(sql`${safeZones.deviceId} = ANY(${deviceIds})`)
+        ? await db.select().from(geofenceViolations).where(sql`${geofenceViolations.deviceId} = ANY(${deviceIds})`)
         : [];
 
       const devicesWithZones = devices.map(device => ({
         ...device,
-        safeZones: zones.filter(z => z.deviceId === device.id),
+        geofenceViolations: zones.filter(z => z.deviceId === device.id),
         currentLocation: device.currentLatitude && device.currentLongitude ? {
           latitude: parseFloat(device.currentLatitude),
           longitude: parseFloat(device.currentLongitude),
@@ -94,23 +94,23 @@ export function registerTrackingRoutes(app: Express) {
       // This would need to be implemented based on your parent-student relationship model
       // For now, we'll return devices for students linked to this parent
       const devices = await db.select({
-        device: trackedDevices,
+        device: trackingDevices,
       })
-      .from(trackedDevices)
+      .from(trackingDevices)
       .innerJoin(
         sql`(SELECT student_id FROM parent_student_relations WHERE parent_id = ${parentId})`,
-        sql`${trackedDevices.studentId} = student_id`
+        sql`${trackingDevices.studentId} = student_id`
       );
 
       // Get safe zones for all devices
       const deviceIds = devices.map(d => d.device.id);
       const zones = deviceIds.length > 0 
-        ? await db.select().from(safeZones).where(sql`${safeZones.deviceId} = ANY(${deviceIds})`)
+        ? await db.select().from(geofenceViolations).where(sql`${geofenceViolations.deviceId} = ANY(${deviceIds})`)
         : [];
 
       const devicesWithZones = devices.map(({ device }) => ({
         ...device,
-        safeZones: zones.filter(z => z.deviceId === device.id),
+        geofenceViolations: zones.filter(z => z.deviceId === device.id),
         currentLocation: device.currentLatitude && device.currentLongitude ? {
           latitude: parseFloat(device.currentLatitude),
           longitude: parseFloat(device.currentLongitude),
@@ -134,7 +134,7 @@ export function registerTrackingRoutes(app: Express) {
       const { latitude, longitude, accuracy, address, batteryLevel, speed } = req.body;
 
       // Update device current location
-      await db.update(trackedDevices)
+      await db.update(trackingDevices)
         .set({
           currentLatitude: latitude.toString(),
           currentLongitude: longitude.toString(),
@@ -144,7 +144,7 @@ export function registerTrackingRoutes(app: Express) {
           lastSeen: new Date(),
           updatedAt: new Date()
         })
-        .where(eq(trackedDevices.id, deviceId));
+        .where(eq(trackingDevices.id, deviceId));
 
       // Add to location history
       await db.insert(deviceLocationHistory).values({
@@ -171,12 +171,12 @@ export function registerTrackingRoutes(app: Express) {
       const { deviceId } = req.params;
       const settings = req.body;
 
-      await db.update(trackedDevices)
+      await db.update(trackingDevices)
         .set({
           trackingSettings: settings,
           updatedAt: new Date()
         })
-        .where(eq(trackedDevices.id, deviceId));
+        .where(eq(trackingDevices.id, deviceId));
 
       res.json({ success: true });
     } catch (error) {
@@ -196,7 +196,7 @@ export function registerTrackingRoutes(app: Express) {
         createdAt: new Date()
       };
 
-      const [zone] = await db.insert(safeZones).values(zoneData).returning();
+      const [zone] = await db.insert(geofenceViolations).values(zoneData).returning();
       res.json(zone);
     } catch (error) {
       console.error("Failed to add safe zone:", error);
@@ -212,7 +212,7 @@ export function registerTrackingRoutes(app: Express) {
         ...req.body
       };
 
-      const [alert] = await db.insert(locationAlerts).values(alertData).returning();
+      const [alert] = await db.insert(emergencyAlerts).values(alertData).returning();
       res.json(alert);
     } catch (error) {
       console.error("Failed to create alert:", error);
@@ -226,9 +226,9 @@ export function registerTrackingRoutes(app: Express) {
       const { deviceId } = req.params;
       const limit = parseInt(req.query.limit as string) || 50;
 
-      const alerts = await db.select().from(locationAlerts)
-        .where(eq(locationAlerts.deviceId, deviceId))
-        .orderBy(desc(locationAlerts.timestamp))
+      const alerts = await db.select().from(emergencyAlerts)
+        .where(eq(emergencyAlerts.deviceId, deviceId))
+        .orderBy(desc(emergencyAlerts.timestamp))
         .limit(limit);
 
       res.json(alerts);
@@ -328,7 +328,7 @@ export function registerTrackingRoutes(app: Express) {
       // to send SMS/WhatsApp/Email alerts to emergency contacts
       
       // Create emergency alert record
-      await db.insert(locationAlerts).values({
+      await db.insert(emergencyAlerts).values({
         id: nanoid(),
         deviceId,
         type: 'emergency',
@@ -346,4 +346,8 @@ export function registerTrackingRoutes(app: Express) {
       res.status(500).json({ message: "Failed to send emergency alert" });
     }
   });
+  
+  console.log('[TRACKING] ✅ Tracking routes registered successfully');
 }
+
+export default registerTrackingRoutes;
