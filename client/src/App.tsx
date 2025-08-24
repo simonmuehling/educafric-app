@@ -8,7 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
-// import { handleRedirect } from "@/lib/firebase"; // Function not available
+// Firebase redirect functionality removed after refactoring
 import React, { useEffect, lazy, Suspense, useState } from "react";
 
 // Core pages - Always loaded (light components)
@@ -164,28 +164,9 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tutorialVisible, setTutorialVisible] = useState(false);
-  // Auto-track PWA usage for analytics
-  useEffect(() => {
-    // Import PWA analytics hook dynamically to avoid blocking
-    import("@/hooks/usePWAAnalytics").then(({ usePWAAnalytics }) => {
-      // PWA analytics will auto-track
-    }).catch(() => {
-      // Silent fail for analytics
-    });
-  }, []);
+  // PWA analytics cleaned up after refactoring
 
-  // Initialize PWA analytics tracking - Fixed to prevent render loops
-  React.useEffect(() => {
-    // Only track once per session to prevent crashes
-    const sessionKey = 'app_pwa_tracking_initialized';
-    if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey)) {
-      if (import.meta.env.DEV) {
-        console.log('[APP] Initializing PWA analytics (one-time)');
-      }
-      autoTrackPWAUsage(user?.id);
-      window.sessionStorage?.setItem(sessionKey, 'true');
-    }
-  }, []); // Remove dependencies to prevent loops
+  // PWA analytics removed after refactoring - handled elsewhere
 
   // Expose tutorial function globally
   React.useEffect(() => {
