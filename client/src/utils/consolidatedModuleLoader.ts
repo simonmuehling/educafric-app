@@ -24,6 +24,7 @@ class ConsolidatedModuleLoader {
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
       'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
+      'communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinValidation'),
@@ -65,6 +66,13 @@ class ConsolidatedModuleLoader {
       'student-profile': () => import('@/components/student/modules/FunctionalStudentProfile'),
       'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
+      
+      // FREELANCER - Modules réels
+      'freelancer-students': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
+      'sessions': () => import('@/components/freelancer/modules/FunctionalFreelancerSessions'),
+      'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
+      'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
+      'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
       
       // COMMERCIAL - Si ça existe
       'commercial-schools': () => import('@/components/commercial/modules/MySchools').catch(() => null),
