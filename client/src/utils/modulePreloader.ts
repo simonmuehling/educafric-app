@@ -16,19 +16,11 @@ class ModulePreloader {
   private maxCacheSize = 15; // Increased cache size for better performance
   private preloadBatch = 3; // Load only 3 modules at a time
 
-  // Preload only essential modules immediately
+  // Preload only when needed to avoid startup delays
   async preloadCriticalModules() {
-    // Only preload the most essential modules on startup
-    const criticalModules = [
-      'MyChildren',
-      'StudentManagement',
-      'CommercialStatistics'
-    ];
-
-    // Load critical modules one by one to avoid overwhelming
-    for (const moduleName of criticalModules) {
-      await this.preloadModule(moduleName);
-    }
+    // Skip preloading on startup to improve performance
+    // Modules will load on-demand instead
+    return;
   }
 
   // Preload module asynchronously with throttling
@@ -237,42 +229,26 @@ class ModulePreloader {
 // Singleton instance
 export const modulePreloader = new ModulePreloader();
 
-// React hook for module preloading
+// React hook for module preloading (simplified)
 export const useModulePreloader = () => {
-  const initialized = useRef(false);
-
-  useEffect(() => {
-    if (!initialized.current) {
-      // Start preloading critical modules immediately
-      modulePreloader.preloadCriticalModules();
-      initialized.current = true;
-    }
-  }, []);
-
   return {
-    getModule: modulePreloader.getModule.bind(modulePreloader),
-    preloadModule: modulePreloader.preloadModule.bind(modulePreloader),
-    predictivePreload: modulePreloader.predictivePreload.bind(modulePreloader),
-    getCacheStatus: modulePreloader.getCacheStatus.bind(modulePreloader)
+    getModule: () => null, // Let React lazy loading handle it
+    preloadModule: () => Promise.resolve(null),
+    predictivePreload: () => {}, // No-op for now
+    getCacheStatus: () => []
   };
 };
 
-// Fast module loader component
+// Fast module loader component (simplified)
 export const FastModuleLoader: React.FC<{ 
   moduleName: string; 
   fallback?: React.ReactNode; 
-}> = ({ moduleName, fallback = null }) => {
-  const { getModule } = useModulePreloader();
-  const PreloadedComponent = getModule(moduleName);
-  
-  if (PreloadedComponent) {
-    return React.createElement(PreloadedComponent);
-  }
-  
+}> = ({ fallback = null }) => {
+  // Return the fallback immediately - let the parent component handle loading
   return fallback || React.createElement('div', 
-    { className: "flex items-center justify-center p-8" },
+    { className: "flex items-center justify-center p-6" },
     React.createElement('div', {
-      className: "w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
+      className: "w-5 h-5 border border-blue-500 border-t-transparent rounded-full animate-spin"
     })
   );
 };

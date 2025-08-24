@@ -24,32 +24,12 @@ const InstantModuleContainer = memo(function InstantModuleContainer({
   moduleName,
   onModuleLoad
 }: InstantModuleContainerProps) {
-  const [isVisible, setIsVisible] = useState(true); // Start visible for instant loading
-  const { predictivePreload } = useModulePreloader();
-
+  // Always show content immediately for better UX
   useEffect(() => {
-    // Delayed intersection observer for better performance
-    const timer = setTimeout(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting && moduleName) {
-            predictivePreload(moduleName);
-            onModuleLoad?.(moduleName);
-          }
-        },
-        { threshold: 0.2, rootMargin: '50px' }
-      );
-
-      const element = document.getElementById(`module-${title.replace(/\s+/g, '-').toLowerCase()}`);
-      if (element) {
-        observer.observe(element);
-      }
-
-      return () => observer.disconnect();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [title, moduleName, predictivePreload, onModuleLoad]);
+    if (moduleName && onModuleLoad) {
+      onModuleLoad(moduleName);
+    }
+  }, [moduleName, onModuleLoad]);
 
   return (
     <div 
