@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Progress } from '../../ui/progress';
-import { CheckCircle, Clock, AlertCircle, ChevronRight, Settings, Users, BookOpen, Calendar, MessageSquare, UserCheck, MapPin, CreditCard, Sparkles, Star, Trophy, Target } from 'lucide-react';
+import { CheckCircle, Clock, AlertCircle, ChevronRight, Settings, Users, BookOpen, Calendar, MessageSquare, UserCheck, MapPin, CreditCard, Sparkles, Star, Trophy, Target, FileText, Eye, Download } from 'lucide-react';
 
 interface ConfigStep {
   id: string;
@@ -191,6 +191,12 @@ const SchoolConfigurationGuide: React.FC = () => {
       : 'Redirecting to subscription management');
   };
 
+  // Function to open PDF presentation
+  const openPresentationPDF = () => {
+    console.log('[CONFIG_GUIDE] Opening EDUCAFRIC presentation PDF');
+    window.open('/educafric-school-presentation.pdf', '_blank');
+  };
+
   // Mapper les fonctions de configuration
   const configurationFunctions = {
     'school-info': configureSchoolInfo,
@@ -306,6 +312,37 @@ const SchoolConfigurationGuide: React.FC = () => {
             {language === 'fr' ? 'Guide Configuration École' : 'School Configuration Guide'}
           </CardTitle>
           
+          {/* Bouton Présentation PDF EDUCAFRIC */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg mt-4 border border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-blue-800 text-lg">
+                    {language === 'fr' ? '📋 Présentation EDUCAFRIC' : '📋 EDUCAFRIC Presentation'}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {language === 'fr' 
+                      ? 'Découvrez la présentation officielle de votre plateforme éducative'
+                      : 'Discover the official presentation of your educational platform'
+                    }
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={openPresentationPDF}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 font-semibold flex items-center gap-2 hover:shadow-lg transition-all duration-300"
+                data-testid="button-view-presentation"
+              >
+                <Eye className="w-4 h-4" />
+                {language === 'fr' ? 'Voir PDF' : 'View PDF'}
+                <Download className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
           {/* Message motivational inspiré de la présentation */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mt-4">
             <div className="flex items-center gap-2 mb-2">
