@@ -19,13 +19,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/android-icon-192x192.png",
-      "sizes": "192x192", 
+      "src": "/educafric-logo-128.png",
+      "sizes": "128x128", 
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/android-chrome-512x512.png",
+      "src": "/educafric-logo-512.png",
       "sizes": "512x512",
       "type": "image/png", 
       "purpose": "any maskable"

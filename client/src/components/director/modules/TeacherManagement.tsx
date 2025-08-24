@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Users, Search, Plus, Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, X, TrendingUp, UserPlus, Download, Filter, Check } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+// Mobile overlay removed - using responsive design
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -223,22 +223,6 @@ const TeacherManagement: React.FC = () => {
             <TrendingUp className="w-5 h-5 mr-2" />
             {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
           </h3>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Enseignants' : 'Teacher Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'add-teacher',
-                label: language === 'fr' ? 'Ajouter Enseignant' : 'Add Teacher',
-                icon: <UserPlus className="w-5 h-5" />,
-                onClick: () => {
-                  setFormData({
-                    name: '',
-                    email: '',
-                    phone: '',
-                    subjects: [],
-                    classes: '',
-                    experience: '',
                     qualification: ''
                   });
                   setShowAddModal(true);

@@ -12,7 +12,7 @@ import {
   MessageSquare, Send, Users, Bell, Phone, Mail, 
   AlertTriangle, Calendar, CheckCircle, Plus, Eye, Clock, History
 } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+
 
 const CommunicationsCenter: React.FC = () => {
   const { language } = useLanguage();
@@ -359,22 +359,6 @@ const CommunicationsCenter: React.FC = () => {
             </h2>
           </CardHeader>
           <CardContent>
-            <MobileActionsOverlay
-              title={language === 'fr' ? 'Actions Communications' : 'Communication Actions'}
-              maxVisibleButtons={3}
-              actions={[
-                {
-                  id: 'urgent-broadcast',
-                  label: language === 'fr' ? 'Diffusion Urgente' : 'Urgent Broadcast',
-                  icon: <AlertTriangle className="w-5 h-5" />,
-                  onClick: () => {
-                    setMessageType('urgent');
-                    setSelectedRecipient('all-parents');
-                    setMessageText(language === 'fr' ? 
-                      'URGENT: Information importante de la direction...' :
-                      'URGENT: Important information from administration...'
-                    );
-                  },
                   color: 'bg-red-600 hover:bg-red-700'
                 },
                 {

@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+// Mobile overlay removed - using responsive design
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -269,22 +269,6 @@ const FunctionalFreelancerStudents: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Élèves' : 'Student Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'add-student',
-                label: language === 'fr' ? 'Ajouter Élève' : 'Add Student',
-                icon: <UserCheck className="w-5 h-5" />,
-                onClick: async () => {
-                  console.log('[FREELANCER_STUDENTS] 👤 Adding new student...');
-                  try {
-                    // Mock student data for demo
-                    const studentData = {
-                      firstName: 'Nouveau',
-                      lastName: 'Élève',
-                      level: 'Seconde',
                       subject: 'Mathématiques',
                       parentContact: '+237 6 90 000 000'
                     };

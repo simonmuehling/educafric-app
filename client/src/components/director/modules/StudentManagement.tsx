@@ -6,22 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Users, UserPlus, Search, Download, Filter, MoreHorizontal, BookOpen, TrendingUp, Calendar, GraduationCap, Upload, X, Eye, Edit, Trash2, Mail } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
-import DashboardNavbar from '@/components/shared/DashboardNavbar';
-import { useToast } from '@/hooks/use-toast';
-import EnhancedStudentForm from '@/components/forms/EnhancedStudentForm';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
-
-const StudentManagement: React.FC = () => {
-  const { language } = useLanguage();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedClass, setSelectedClass] = useState('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -402,22 +386,6 @@ const StudentManagement: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <MobileActionsOverlay
-              title={language === 'fr' ? 'Actions Étudiants' : 'Student Actions'}
-              maxVisibleButtons={3}
-              actions={[
-                {
-                  id: 'add-student',
-                  label: language === 'fr' ? 'Ajouter Étudiant' : 'Add Student',
-                  icon: <UserPlus className="w-5 h-5" />,
-                  onClick: () => {
-                    setFormData({
-                      firstName: '',
-                      lastName: '',
-                      name: '',
-                      email: '',
-                      class: '',
-                      age: '',
                       parentEmail: '',
                       parentPhone: '',
                       parent2Email: '',

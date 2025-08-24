@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+// Mobile overlay removed - using responsive design
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -306,22 +306,6 @@ const FunctionalStudentGrades: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Notes' : 'Grade Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'view-progress',
-                label: language === 'fr' ? 'Voir Progrès' : 'View Progress',
-                icon: <Eye className="w-5 h-5" />,
-                onClick: () => {
-                  toast({
-                    title: language === 'fr' ? 'Progrès Scolaire' : 'Academic Progress',
-                    description: language === 'fr' ? 'Affichage des progrès détaillés' : 'Showing detailed progress',
-                  });
-                },
-                color: 'bg-blue-600 hover:bg-blue-700'
-              },
               {
                 id: 'contact-teacher',
                 label: language === 'fr' ? 'Contacter Professeur' : 'Contact Teacher',

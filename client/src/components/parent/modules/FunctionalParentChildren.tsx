@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+// Mobile overlay removed - using responsive design
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -390,22 +390,6 @@ const FunctionalParentChildren: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Enfants' : 'Children Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'view-all-grades',
-                label: language === 'fr' ? 'Toutes les Notes' : 'All Grades',
-                icon: <FileText className="w-5 h-5" />,
-                onClick: handleViewAllGrades,
-                color: 'bg-blue-600 hover:bg-blue-700'
-              },
-              {
-                id: 'check-attendance',
-                label: language === 'fr' ? 'Vérifier Présences' : 'Check Attendance',
-                icon: <UserCheck className="w-5 h-5" />,
-                onClick: handleCheckAttendance,
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {

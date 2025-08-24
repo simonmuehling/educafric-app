@@ -7,22 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, UserCheck, Users, Download, FileText, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
-
-const AttendanceManagement: React.FC = () => {
-  const { language } = useLanguage();
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-  // Fetch attendance stats from API
-  const { data: attendanceStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['/api/attendance/stats', selectedDate],
-    queryFn: async () => {
       console.log('[ATTENDANCE_MANAGEMENT] 🔍 Fetching attendance stats...');
       const response = await fetch(`/api/attendance/stats?date=${selectedDate}`, {
         credentials: 'include'
@@ -185,22 +169,6 @@ const AttendanceManagement: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions de Présence' : 'Attendance Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'mark-attendance',
-                label: language === 'fr' ? 'Marquer Présence' : 'Mark Attendance',
-                icon: <UserCheck className="w-5 h-5" />,
-                onClick: handleMarkAttendance,
-                color: 'bg-blue-600 hover:bg-blue-700'
-              },
-              {
-                id: 'export-report',
-                label: language === 'fr' ? 'Exporter Rapport' : 'Export Report',
-                icon: <Download className="w-5 h-5" />,
-                onClick: handleExportReport,
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {

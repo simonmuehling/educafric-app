@@ -7,22 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, UserX, Users, Clock, AlertTriangle, CheckCircle, Phone, Mail, FileText, TrendingUp } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
-
-const TeacherAbsenceManagement: React.FC = () => {
-  const { language } = useLanguage();
-  const { toast } = useToast();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-
-  // Mock data for demonstration
-  const absenceStats = {
-    totalAbsent: 3,
-    substitute: 2,
-    unresolved: 1,
-    totalTeachers: 24
-  };
-
   const todayAbsences = [
     {
       id: 1,
@@ -252,22 +236,6 @@ const TeacherAbsenceManagement: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Absence Enseignants' : 'Teacher Absence Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'notify-parents',
-                label: language === 'fr' ? 'Notifier Parents' : 'Notify Parents',
-                icon: <Mail className="w-5 h-5" />,
-                onClick: () => handleNotifyParents('Enseignant', ['Toutes classes']),
-                color: 'bg-blue-600 hover:bg-blue-700'
-              },
-              {
-                id: 'find-substitute',
-                label: language === 'fr' ? 'Trouver Remplaçant' : 'Find Substitute',
-                icon: <Users className="w-5 h-5" />,
-                onClick: () => handleFindSubstitute('Enseignant'),
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
@@ -320,22 +288,6 @@ const TeacherAbsenceManagement: React.FC = () => {
             
             {/* Mobile Actions for Today's Absences */}
             <div className="md:hidden">
-              <MobileActionsOverlay
-                title={language === 'fr' ? 'Actions Absences Aujourd\'hui' : 'Today\'s Absence Actions'}
-                maxVisibleButtons={2}
-                actions={[
-                  {
-                    id: 'bulk-notify',
-                    label: language === 'fr' ? 'Notifier Tous Parents' : 'Notify All Parents',
-                    icon: <Mail className="w-5 h-5" />,
-                    onClick: () => {
-                      console.log('[BULK_NOTIFY] 📧 Notifying all parents of today\'s absences');
-                      toast({
-                        title: language === 'fr' ? 'Notification en cours' : 'Notification in progress',
-                        description: language === 'fr' ? 'Parents notifiés des absences du jour' : 'Parents notified of today\'s absences'
-                      });
-                    },
-                    color: 'bg-blue-600 hover:bg-blue-700'
                   },
                   {
                     id: 'view-timetable',

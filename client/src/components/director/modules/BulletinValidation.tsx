@@ -26,22 +26,6 @@ import {
   TrendingUp,
   Mail
 } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
-
-interface BulletinItem {
-  id: number;
-  studentId: number;
-  studentName: string;
-  classId: number;
-  className: string;
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'sent';
-  generalAverage: number;
-  classRank: number;
-  totalStudentsInClass: number;
-  submittedBy: number;
-  submittedAt?: string;
-  submissionComment?: string;
-  approvedBy?: number;
   approvedAt?: string;
   approvalComment?: string;
   rejectedBy?: number;
@@ -559,22 +543,6 @@ const BulletinValidation: React.FC = () => {
           <TrendingUp className="w-5 h-5 mr-2" />
           {language === 'fr' ? 'Actions Rapides' : 'Quick Actions'}
         </h3>
-        <MobileActionsOverlay
-          title={language === 'fr' ? 'Actions Validation' : 'Validation Actions'}
-          maxVisibleButtons={3}
-          actions={[
-            {
-              id: 'view-pending',
-              label: language === 'fr' ? 'En Attente' : 'Pending',
-              icon: <Clock className="w-5 h-5" />,
-              onClick: () => setActiveTab('pending'),
-              color: 'bg-yellow-600 hover:bg-yellow-700'
-            },
-            {
-              id: 'view-approved',
-              label: language === 'fr' ? 'Approuvés' : 'Approved',
-              icon: <Check className="w-5 h-5" />,
-              onClick: () => setActiveTab('approved'),
               color: 'bg-green-600 hover:bg-green-700'
             },
             {

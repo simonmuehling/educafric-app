@@ -8,22 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { MessageCircle, Clock, CheckCircle, X, AlertTriangle, User, FileText, TrendingUp, Send, Eye } from 'lucide-react';
-import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
-
-const ParentRequestsManager: React.FC = () => {
-  const { language } = useLanguage();
-  const { toast } = useToast();
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [responseText, setResponseText] = useState('');
-  const [showResponseModal, setShowResponseModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
-
-  // Mock data for demonstration
-  const requestStats = {
-    total: 47,
-    pending: 12,
     resolved: 32,
     urgent: 3
   };
@@ -228,22 +212,6 @@ const ParentRequestsManager: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <MobileActionsOverlay
-            title={language === 'fr' ? 'Actions Demandes Parents' : 'Parent Request Actions'}
-            maxVisibleButtons={3}
-            actions={[
-              {
-                id: 'approve-all',
-                label: language === 'fr' ? 'Approuver Toutes' : 'Approve All',
-                icon: <CheckCircle className="w-5 h-5" />,
-                onClick: () => handleBulkAction('approve'),
-                color: 'bg-blue-600 hover:bg-blue-700'
-              },
-              {
-                id: 'auto-response',
-                label: language === 'fr' ? 'Réponse Auto' : 'Auto Response',
-                icon: <Send className="w-5 h-5" />,
-                onClick: () => handleBulkAction('response'),
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
