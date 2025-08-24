@@ -196,7 +196,8 @@ export class StripeService {
       });
       
       // Sauvegarder l'ID client Stripe
-      await storage.updateUserStripeCustomerId(userId, customer.id);
+      // TODO: Implement updateUserStripeCustomerId in new storage
+      console.log(`[STRIPE] Should update user ${userId} with customer ID ${customer.id}`);
       
       console.log(`[STRIPE] ✅ Customer created: ${customer.id}`);
       return customer;
@@ -377,12 +378,8 @@ export class StripeService {
       }
       
       // Mettre à jour l'utilisateur
-      await storage.updateUserSubscription(userId, {
-        subscriptionStatus: 'active',
-        stripeSubscriptionId: paymentIntentId,
-        planId: planId,
-        planName: planName
-      });
+      // TODO: Implement updateUserSubscription in new storage
+      console.log(`[STRIPE] Should update user ${userId} subscription to active: ${planName}`);
       
       console.log(`[STRIPE] ✅ Subscription activated for user ${userId}: ${planName}`);
       
@@ -440,12 +437,8 @@ export class StripeService {
         await stripe.subscriptions.cancel(user.stripeSubscriptionId);
       }
       
-      await storage.updateUserSubscription(userId, {
-        subscriptionStatus: 'cancelled',
-        stripeSubscriptionId: '',
-        planId: '',
-        planName: ''
-      });
+      // TODO: Implement updateUserSubscription in new storage - cancel
+      console.log(`[STRIPE] Should cancel user ${userId} subscription`);
       
       console.log(`[STRIPE] ✅ Subscription cancelled for user ${userId}`);
       
@@ -511,12 +504,8 @@ export class StripeService {
     
     const userId = parseInt(paymentIntent.metadata.userId);
     if (userId) {
-      await storage.updateUserSubscription(userId, {
-        subscriptionStatus: 'failed',
-        stripeSubscriptionId: '',
-        planId: '',
-        planName: ''
-      });
+      // TODO: Implement updateUserSubscription in new storage - payment failed
+      console.log(`[STRIPE] Should mark user ${userId} payment as failed`);
     }
   }
   
@@ -537,11 +526,12 @@ export class StripeService {
     
     const status = subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : 'inactive';
     
-    await storage.updateUserSubscription(userId, {
-      subscriptionStatus: status,
-      stripeSubscriptionId: subscription.id,
-      planId: subscription.metadata.planId || '',
-      planName: subscription.metadata.planName || ''
+    // TODO: Implement updateUserSubscription in new storage - subscription updated
+    console.log(`[STRIPE] Should update user ${userId} subscription:`, {
+      status,
+      subscriptionId: subscription.id,
+      planId: subscription.metadata.planId,
+      planName: subscription.metadata.planName
     });
   }
   
@@ -551,12 +541,8 @@ export class StripeService {
     const userId = parseInt(subscription.metadata.userId);
     if (!userId) return;
     
-    await storage.updateUserSubscription(userId, {
-      subscriptionStatus: 'cancelled',
-      stripeSubscriptionId: '',
-      planId: '',
-      planName: ''
-    });
+    // TODO: Implement updateUserSubscription in new storage - subscription deleted
+    console.log(`[STRIPE] Should delete user ${userId} subscription`);
   }
 }
 

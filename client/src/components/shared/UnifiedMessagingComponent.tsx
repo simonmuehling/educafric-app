@@ -154,7 +154,12 @@ const UnifiedMessagingComponent: React.FC<UnifiedMessagingComponentProps> = ({
   // Récupérer les connexions pour le type sélectionné
   const { data: connectionsResponse, isLoading: connectionsLoading } = useQuery({
     queryKey: ['unified-connections', activeConnectionType],
-    queryFn: () => apiRequest(`/api/unified-messaging/connections/${activeConnectionType}`),
+    queryFn: async () => {
+      const response = await fetch(`/api/unified-messaging/connections/${activeConnectionType}`, {
+        credentials: 'include'
+      });
+      return response.json();
+    },
     enabled: !!user
   });
 
@@ -163,9 +168,12 @@ const UnifiedMessagingComponent: React.FC<UnifiedMessagingComponentProps> = ({
   // Récupérer les messages pour la connexion sélectionnée
   const { data: messagesResponse, isLoading: messagesLoading } = useQuery({
     queryKey: ['unified-messages', activeConnectionType, selectedConnection?.id],
-    queryFn: () => {
+    queryFn: async () => {
       if (!selectedConnection) return { data: [] };
-      return apiRequest(`/api/unified-messaging/messages/${activeConnectionType}/${selectedConnection.id}`);
+      const response = await fetch(`/api/unified-messaging/messages/${activeConnectionType}/${selectedConnection.id}`, {
+        credentials: 'include'
+      });
+      return response.json();
     },
     enabled: !!selectedConnection
   });
@@ -180,10 +188,13 @@ const UnifiedMessagingComponent: React.FC<UnifiedMessagingComponentProps> = ({
       messageType: 'text' | 'file' | 'image';
       priority: 'normal' | 'high' | 'urgent';
     }) => {
-      return apiRequest(`/api/unified-messaging/messages/${activeConnectionType}`, {
+      const response = await fetch(`/api/unified-messaging/messages/${activeConnectionType}`, {
         method: 'POST',
-        data: messageData
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(messageData)
       });
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -217,9 +228,11 @@ const UnifiedMessagingComponent: React.FC<UnifiedMessagingComponentProps> = ({
   // Marquer message comme lu
   const markAsReadMutation = useMutation({
     mutationFn: async (messageId: number) => {
-      return apiRequest(`/api/unified-messaging/messages/${activeConnectionType}/${messageId}/read`, {
-        method: 'PUT'
+      const response = await fetch(`/api/unified-messaging/messages/${activeConnectionType}/${messageId}/read`, {
+        method: 'PUT',
+        credentials: 'include'
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unified-messages'] });

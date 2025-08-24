@@ -5,6 +5,8 @@ import { storage } from '../storage';
 interface AuthenticatedRequest extends Request {
   user?: any;
   isAuthenticated?: () => boolean;
+  subscription?: any;
+  limits?: any;
 }
 
 /**

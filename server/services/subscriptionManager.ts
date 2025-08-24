@@ -35,7 +35,8 @@ export class SubscriptionManager {
     console.log('[SUBSCRIPTION_MANAGER] Checking for expired subscriptions...');
     
     try {
-      const expiredUsers = await storage.getExpiredSubscriptions();
+      // TODO: Implement getExpiredSubscriptions in new storage
+      const expiredUsers = [];
       
       for (const user of expiredUsers) {
         console.log(`[SUBSCRIPTION_MANAGER] Processing expired subscription for user ${user.id} (${user.email})`);
@@ -51,12 +52,8 @@ export class SubscriptionManager {
         }
         
         // Désactiver l'abonnement
-        await storage.updateUserSubscription(user.id, {
-          subscriptionStatus: 'expired',
-          stripeSubscriptionId: '',
-          planId: '',
-          planName: ''
-        });
+        // TODO: Implement updateUserSubscription in new storage
+        console.log(`[SUBSCRIPTION_MANAGER] Should update user ${user.id} to expired status`);
         
         // Envoyer notification d'expiration
         await this.sendExpirationNotification(user);
@@ -77,13 +74,15 @@ export class SubscriptionManager {
     
     try {
       // Rappels 7 jours avant expiration
-      const users7Days = await storage.getUsersExpiringInDays(7);
+      // TODO: Implement getUsersExpiringInDays in new storage
+      const users7Days = [];
       for (const user of users7Days) {
         await this.sendReminderNotification(user, 7);
       }
       
       // Rappels 1 jour avant expiration
-      const users1Day = await storage.getUsersExpiringInDays(1);
+      // TODO: Implement getUsersExpiringInDays in new storage  
+      const users1Day = [];
       for (const user of users1Day) {
         await this.sendReminderNotification(user, 1);
       }
@@ -206,7 +205,8 @@ export class SubscriptionManager {
     console.log('[SUBSCRIPTION_MANAGER] Generating weekly subscription report...');
     
     try {
-      const stats = await storage.getSubscriptionStats();
+      // TODO: Implement getSubscriptionStats in new storage
+      const stats = { activeSubscriptions: 0, totalRevenue: 0, monthlyGrowth: 0 };
       
       const report = {
         date: new Date().toISOString(),

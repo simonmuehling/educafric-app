@@ -74,37 +74,32 @@ const Communications = () => {
   const t = text[language as keyof typeof text];
 
   // Fetch classes for message targeting - SYSTÈME UNIFIÉ
-  const { data: classesResponse } = useQuery({
+  const { data: classesData } = useQuery({
     queryKey: ['/api/director/classes'],
-    queryFn: () => apiRequest('/api/director/classes')
+    queryFn: () => fetch('/api/director/classes').then(res => res.json())
   });
 
-  const classes = classesResponse?.data || [];
+  const classes = classesData || [];
 
   // Send unified message mutation
-  const sendMessageMutation = useMutation({
+  const unifiedSendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      return apiRequest('/api/unified-messaging/messages/school-announcement', {
+      const response = await fetch('/api/unified-messaging/messages/school-announcement', {
         method: 'POST',
-        data: {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
           connectionType: 'school-announcement',
           message: messageData.message,
           messageType: 'text',
           priority: messageData.priority || 'normal',
           recipients: messageData.recipients
-        }
+        })
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unified-messages'] });
-    }
-  });
-  const { data: classes = [] } = useQuery({
-    queryKey: ['/api/classes'],
-    queryFn: async () => {
-      const response = await fetch('/api/classes');
-      if (!response.ok) throw new Error('Failed to fetch classes');
-      return response.json();
     }
   });
 
