@@ -27,6 +27,7 @@ import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
 import documentsRouter from "./routes/documents";
 import authRoutes from "./routes/auth";
 import subscriptionRoutes from "./routes/subscription";
+import administrationRoutes from "./routes/administration";
 import autofixRoutes from "./routes/autofix";
 import multiRoleRoutes from "./routes/multiRoleRoutes";
 import systemReportsRoutes from "./routes/systemReportsRoutes";
@@ -172,6 +173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/documents', documentsRouter);
   app.use('/api/auth', authRoutes);
   app.use('/api/subscription', subscriptionRoutes);
+  app.use('/api', administrationRoutes);
   app.use('/api/autofix', autofixRoutes);
   app.use('/api/multi-role', multiRoleRoutes);
   app.use('/api/system-reports', systemReportsRoutes);
