@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Lock, FileText, Download, Send, Users, Calendar, BarChart3 } from 'lucide-react';
 
-export const ReportCards = () => {
+const ReportCards = () => {
   const { language } = useLanguage();
 
   const text = {
@@ -105,7 +105,7 @@ export const ReportCards = () => {
       </div>
 
       {/* Premium Lock Overlay */}
-      <ModernCard gradient="default" className="relative">
+      <ModernCard className="relative">
         <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10">
           <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-8 h-8 text-white" />
@@ -236,3 +236,5 @@ export const ReportCards = () => {
     </div>
   );
 };
+
+export default ReportCards;

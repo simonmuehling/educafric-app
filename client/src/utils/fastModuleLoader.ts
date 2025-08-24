@@ -249,7 +249,8 @@ class FastModuleLoader {
         
         // Validate it's a function (React component)
         if (typeof Component !== 'function') {
-          console.error(`[FAST_LOADER] ❌ Invalid component for ${moduleName}:`, typeof Component, Component);
+          console.error(`[FAST_LOADER] ❌ Invalid component for ${moduleName}: expected function, got ${typeof Component}`);
+          console.error('Component object:', Component);
           throw new Error(`Module ${moduleName} does not export a valid React component`);
         }
         
@@ -259,7 +260,8 @@ class FastModuleLoader {
         return Component;
       })
       .catch(error => {
-        console.error(`[FAST_LOADER] ❌ CRITICAL: Failed to preload ${moduleName}:`, error);
+        console.error(`[FAST_LOADER] ❌ CRITICAL: Failed to preload ${moduleName}:`);
+        console.error(error);
         this.loadingPromises.delete(moduleName);
         return null;
       });
@@ -288,7 +290,8 @@ class FastModuleLoader {
         console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
         return component;
       } catch (error) {
-        console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`, error);
+        console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`);
+        console.error(error);
         return null;
       }
     });
