@@ -31,6 +31,18 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Services restaurés** : PWA, notifications, géolocalisation, paiements Stripe, upload fichiers
 - ✅ Serveur stable avec logs: `[TRACKING] ✅`, `[NOTIFICATIONS] ✅`, `All routes configured ✅`
 
+**ROUTES API INTERFACES UTILISATEURS COMPLÈTES (Ajoutées 2025-08-24)** :
+- ✅ **Routes Teacher** : `/api/teacher/schools`, `/api/teacher/classes`, `/api/teacher/students`
+- ✅ **Routes Student** : `/api/student/grades`, `/api/student/timetable`, `/api/student/request-account-deletion`
+- ✅ **Routes Parent** : `/api/parent/children`, `/api/parent/safe-zones`, `/api/parent/children/:childId/location`, `/api/parent/children/:childId/alerts`, `/api/parent/approve-account-deletion`
+- ✅ **Routes Freelancer** : `/api/freelancer/students`, `/api/freelancer/sessions`, `/api/freelancer/schedule`, `/api/freelancer/profile`, `/api/freelancer/payments`, `/api/freelancer/resources`
+- ✅ **Routes Connexions Éducatives** : `/api/teacher-student/connections`, `/api/teacher-student/messages`, `/api/student-parent/connections`, `/api/student-parent/messages`
+- ✅ **Routes École-Hiérarchie** : `/api/school/teachers`, `/api/school/students`, `/api/school/parent-child-connections`
+- ✅ **Routes Générales** : `/api/students`, `/api/teachers`, `/api/parent-requests-test`
+- ✅ **Toutes routes retournent JSON** au lieu d'erreurs HTML 404
+- ✅ **Hiérarchie complète fonctionnelle** : École → Directeur → Enseignant → Élèves → Parents → Freelancers
+- ⚠️ **CRITIQUE** : NE PAS supprimer ces routes lors de futurs refactors - elles sont essentielles pour tous les dashboards
+
 **Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
 **Console Error Prevention (Completed 2025-08-18)**: 
