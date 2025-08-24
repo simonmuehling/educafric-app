@@ -245,6 +245,41 @@ export class ModularStorage {
     return { id: teacherId, firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@school.com', role: 'Teacher' };
   }
   
+  async updateTeacher(teacherId: number, data: any) {
+    return { id: teacherId, ...data };
+  }
+  
+  async deleteTeacher(teacherId: number) {
+    return { success: true };
+  }
+  
+  // === CLASS METHODS ===
+  async getSchoolClasses(schoolId: number) {
+    return [
+      { id: 1, name: '6ème A', level: '6ème', studentCount: 25, teacherId: 1, schoolId },
+      { id: 2, name: '5ème B', level: '5ème', studentCount: 30, teacherId: 2, schoolId }
+    ];
+  }
+  
+  async updateClass(classId: number, data: any) {
+    return { id: classId, ...data };
+  }
+  
+  async deleteClass(classId: number) {
+    return { success: true };
+  }
+  
+  // === SCHOOL METHODS ===
+  async getSchoolSettings(schoolId: number) {
+    return {
+      id: schoolId,
+      name: 'École Test',
+      address: 'Yaoundé, Cameroun',
+      phone: '+237123456789',
+      email: 'admin@school.com'
+    };
+  }
+  
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
   async getStudentsBySchool(schoolId: number) { 

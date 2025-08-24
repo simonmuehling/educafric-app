@@ -179,6 +179,245 @@ router.put('/students/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+// === DIRECTOR TEACHER MANAGEMENT ROUTES ===
+
+// Get teachers for director dashboard
+router.get('/teachers', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    if (!user.schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with a school'
+      });
+    }
+
+    const teachers = await storage.getTeachersBySchool(user.schoolId);
+    
+    res.json({
+      success: true,
+      teachers: teachers || []
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_TEACHERS] Error fetching teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teachers'
+    });
+  }
+});
+
+// Add new teacher (director)
+router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const teacherData = {
+      ...req.body,
+      schoolId: user.schoolId,
+      role: 'Teacher',
+      createdBy: user.id
+    };
+
+    const teacher = await storage.createTeacher(teacherData);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Teacher created successfully',
+      teacher
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_CREATE_TEACHER] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create teacher'
+    });
+  }
+});
+
+// Update teacher (director)
+router.put('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const teacherId = parseInt(req.params.id);
+    if (isNaN(teacherId) || teacherId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+    }
+    
+    const updates = req.body;
+
+    const updatedTeacher = await storage.updateTeacher(teacherId, updates);
+    
+    res.json({
+      success: true,
+      message: 'Teacher updated successfully',
+      teacher: updatedTeacher
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_UPDATE_TEACHER] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update teacher'
+    });
+  }
+});
+
+// Delete teacher (director)
+router.delete('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const teacherId = parseInt(req.params.id);
+    if (isNaN(teacherId) || teacherId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
+    }
+
+    await storage.deleteTeacher(teacherId);
+    
+    res.json({
+      success: true,
+      message: 'Teacher deleted successfully'
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_DELETE_TEACHER] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete teacher'
+    });
+  }
+});
+
+// === DIRECTOR CLASS MANAGEMENT ROUTES ===
+
+// Get classes for director dashboard
+router.get('/classes', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    if (!user.schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User is not associated with a school'
+      });
+    }
+
+    const classes = await storage.getSchoolClasses(user.schoolId);
+    
+    res.json({
+      success: true,
+      classes: classes || []
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_CLASSES] Error fetching classes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch classes'
+    });
+  }
+});
+
+// Add new class (director)
+router.post('/classes', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const classData = {
+      ...req.body,
+      schoolId: user.schoolId,
+      createdBy: user.id
+    };
+
+    const newClass = await storage.createClass(classData);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Class created successfully',
+      class: newClass
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_CREATE_CLASS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create class'
+    });
+  }
+});
+
+// Update class (director)
+router.put('/classes/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const classId = parseInt(req.params.id);
+    if (isNaN(classId) || classId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid class ID' });
+    }
+    
+    const updates = req.body;
+
+    const updatedClass = await storage.updateClass(classId, updates);
+    
+    res.json({
+      success: true,
+      message: 'Class updated successfully',
+      class: updatedClass
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_UPDATE_CLASS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update class'
+    });
+  }
+});
+
+// Delete class (director)
+router.delete('/classes/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const classId = parseInt(req.params.id);
+    if (isNaN(classId) || classId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid class ID' });
+    }
+
+    await storage.deleteClass(classId);
+    
+    res.json({
+      success: true,
+      message: 'Class deleted successfully'
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_DELETE_CLASS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete class'
+    });
+  }
+});
+
+// Get director analytics
+router.get('/analytics', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    const [students, teachers, classes] = await Promise.all([
+      storage.getStudentsBySchool(user.schoolId),
+      storage.getTeachersBySchool(user.schoolId),
+      storage.getSchoolClasses(user.schoolId)
+    ]);
+    
+    const analytics = {
+      totalStudents: students.length,
+      totalTeachers: teachers.length,
+      totalClasses: classes.length,
+      studentsPerClass: classes.length > 0 ? Math.round(students.length / classes.length) : 0,
+      teachersPerClass: classes.length > 0 ? Math.round(teachers.length / classes.length) : 0
+    };
+    
+    res.json({
+      success: true,
+      analytics
+    });
+  } catch (error) {
+    console.error('[DIRECTOR_ANALYTICS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get analytics'
+    });
+  }
+});
+
 // Delete student (director)
 router.delete('/students/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
@@ -290,40 +529,21 @@ router.get('/stats', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Get administration teachers
-router.get('/teachers', requireAuth, requireAdmin, async (req, res) => {
+// Get administration settings
+router.get('/settings', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
-    const teachers = await storage.getAdministrationTeachers(user.schoolId);
+    const settings = await storage.getSchoolSettings(user.schoolId);
     
     res.json({
       success: true,
-      teachers: teachers || []
+      settings: settings || {}
     });
   } catch (error) {
-    console.error('[ADMIN_API] Error fetching administration teachers:', error);
+    console.error('[ADMIN_API] Error fetching administration settings:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch teachers'
-    });
-  }
-});
-
-// Get administration students
-router.get('/students', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const user = req.user as any;
-    const students = await storage.getAdministrationStudents(user.schoolId);
-    
-    res.json({
-      success: true,
-      students: students || []
-    });
-  } catch (error) {
-    console.error('[ADMIN_API] Error fetching administration students:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch students'
+      message: 'Failed to fetch settings'
     });
   }
 });
