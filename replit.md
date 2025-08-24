@@ -6,14 +6,14 @@ Educafric is a comprehensive African educational technology platform providing a
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-**EXEMPTION PREMIUM PERMANENTE (Implémentée 2025-08-24)** :
+**EXEMPTION PREMIUM PERMANENTE** :
 - ✅ Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium
 - ✅ Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
 - ✅ Exemptions appliquées dans middleware subscriptionMiddleware.ts et service subscriptionService.ts
 - ✅ Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement
 - ✅ Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking
 
-**PROTECTION ANTI-CONFLIT MODULES (Implémentée 2025-08-24)** :
+**PROTECTION ANTI-CONFLIT MODULES** :
 - ✅ Système de mapping des modules réorganisé avec séparation stricte par dashboard
 - ✅ Validation automatique des mappings pour détecter les conflits et doublons
 - ✅ Protection spéciale pour le module 'students' : DOIT pointer vers FunctionalDirectorStudentManagement
@@ -21,7 +21,7 @@ Preferred communication style: Simple, everyday language.
 - ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
 - ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
 
-**RESTAURATION ROUTES POST-REFACTOR (Complétée 2025-08-24)** :
+**RESTAURATION ROUTES POST-REFACTOR** :
 - ✅ **11 routes critiques restaurées** après problèmes causés par le refactor majeur
 - ✅ Routes API manquantes : `/api/classes`, `/api/grades`, `/api/currency`, `/api/stripe`, `/api/uploads`, `/api/bulletins`, `/api/tracking`, `/api/tutorials`
 - ✅ **Corrections schéma DB** : Mapping `trackedDevices` → `trackingDevices`, suppression colonnes inexistantes
@@ -31,7 +31,16 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Services restaurés** : PWA, notifications, géolocalisation, paiements Stripe, upload fichiers
 - ✅ Serveur stable avec logs: `[TRACKING] ✅`, `[NOTIFICATIONS] ✅`, `All routes configured ✅`
 
-**ROUTES API INTERFACES UTILISATEURS COMPLÈTES (Ajoutées 2025-08-24)** :
+**RÉSOLUTION CONFLITS ROUTES PARAMÈTRES** :
+- ✅ **Problème résolu** : Conflits entre routes settings définies dans routes.ts principal ET routers externes
+- ✅ **Solution implémentée** : Réorganisation ordre d'enregistrement - routes settings définies AVANT routers externes
+- ✅ **Routes Settings fonctionnelles** : `/api/director/settings`, `/api/teacher/settings`, `/api/student/settings`, `/api/parent/settings`, `/api/freelancer/settings`, `/api/school/settings`
+- ✅ **Serveur stabilisé** : Plus d'erreurs de syntaxe, démarrage réussi avec "All routes configured ✅"
+- ✅ **Modules Settings opérationnels** : teacher-settings, student-settings, parent-settings, freelancer-settings accessibles via FastModuleLoader
+- ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
+- ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
+
+**ROUTES API INTERFACES UTILISATEURS COMPLÈTES** :
 - ✅ **Routes Teacher** : `/api/teacher/schools`, `/api/teacher/classes`, `/api/teacher/students`
 - ✅ **Routes Student** : `/api/student/grades`, `/api/student/timetable`, `/api/student/request-account-deletion`
 - ✅ **Routes Parent** : `/api/parent/children`, `/api/parent/safe-zones`, `/api/parent/children/:childId/location`, `/api/parent/children/:childId/alerts`, `/api/parent/approve-account-deletion`
@@ -43,16 +52,16 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Hiérarchie complète fonctionnelle** : École → Directeur → Enseignant → Élèves → Parents → Freelancers
 - ⚠️ **CRITIQUE** : NE PAS supprimer ces routes lors de futurs refactors - elles sont essentielles pour tous les dashboards
 
-**Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
+Website URL Standard: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
-**Console Error Prevention (Completed 2025-08-18)**: 
+Console Error Prevention: 
 - ✅ RÉSOLU: Toutes erreurs PWA/MIME type JavaScript complètement éliminées
 - Console filtering activé en production et développement pour éliminer spam
 - Interception globale des erreurs MIME avec preventDefault() 
 - Validation PWA automatique avec `./scripts/validate-pwa.sh`
 - Fichier .htaccess créé pour production avec MIME types corrects
 
-**Fast Module Optimization System (Completed 2025-08-18)**:
+Fast Module Optimization System:
 - ✅ FastModuleLoader: Système de préchargement instantané pour tous dashboards
 - ✅ 14 modules critiques préchargés automatiquement au démarrage (Director, Parent, Commercial)
 - ✅ Cache intelligent avec gestion mémoire optimisée
@@ -75,24 +84,17 @@ Preferred communication style: Simple, everyday language.
   4. Update alphabetical index in `00-index-documents-alphabetique.html`
   5. Test via API routes `/api/commercial/documents/{id}/download` and direct HTML access
 
-**Recent Documents Added (2025-08-18):**
-- ✅ **Guide Schools Configuration (FR)** : `guide-schools-configuration-fr.html/.pdf` - Guide complet établissements
-- ✅ **Guide Parents Configuration (FR)** : `guide-parents-configuration-fr.html/.pdf` - Guide paramétrage parents  
-- ✅ **Guide Teachers Configuration (FR)** : `guide-teachers-configuration-fr.html/.pdf` - Guide configuration enseignants
-- Documents renommés pour correspondre au pattern existant (`guide-teachers-configuration-en.html`)
-- Tous documents automatiquement détectés par `scanDocuments()` et accessibles via module Documents commerciaux
-
 ## System Architecture
 
 ### Frontend Architecture
-- **React** with TypeScript for type-safe component development.
+- **React** with TypeScript.
 - **Tailwind CSS** for responsive, mobile-first styling with a custom African-themed color palette, emphasizing a modern, vibrant, and 3D-inspired visual redesign.
 - **Wouter** for lightweight client-side routing.
 - **TanStack Query** for server state management and caching.
 - **Radix UI + Shadcn/UI** for accessible, production-ready component primitives.
-- **Progressive Web App (PWA)** capabilities for mobile optimization.
+- **Progressive Web App (PWA)** capabilities.
 - **Unified UI/UX**: All dashboards utilize a consistent modern design system with colorful gradients, rounded cards, animated interactions, and the Nunito font.
-- **Component Standardization**: Standardized reusable components like `ModuleContainer`, `StatCard`, `ModernCard`, `ModernDashboardLayout`, and `ModernTabNavigation` are used across the platform.
+- **Component Standardization**: Standardized reusable components like `ModuleContainer`, `StatCard`, `ModernCard`, `ModernDashboardLayout`, and `ModernTabNavigation`.
 - **Mobile Optimization**: Features like `MobileActionsOverlay`, compact mobile navigation, and intelligent superposition elements are designed for an optimal smartphone experience.
 - **React Native**: Separate mobile application (`educafric-mobile/`) for Android with shared backend infrastructure.
 
@@ -113,7 +115,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Features and System Design Choices
 - **Authentication & Authorization**: Secure local and Firebase Google OAuth authentication with comprehensive session management and granular permissions for 8 user roles, including intelligent multi-role detection.
-- **Educational Management System**: Features include robust grade management with African-style report cards, real-time attendance tracking, homework assignment and submission, and flexible timetable management with African cultural adaptations.
+- **Educational Management System**: Robust grade management with African-style report cards, real-time attendance tracking, homework assignment and submission, and flexible timetable management with African cultural adaptations.
 - **Communication System**: Integrated multi-channel notification system (SMS via Vonage, WhatsApp Business API, Email via Hostinger SMTP, and PWA push notifications) with bilingual, contextual templates.
 - **Payment & Subscription Management**: Stripe integration for international payments, alongside local African payment methods (Orange Money, Express Union, Afriland First Bank). Supports multiple subscription tiers and role-based access to premium modules.
 - **Geolocation Services**: Comprehensive GPS tracking for tablets, smartwatches, and phones, featuring geofencing, safe zone management, real-time device monitoring, and emergency alerts with route optimization and attendance automation.
@@ -127,14 +129,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Pricing Structure
 - **Schools**: Annual plans only, no student limitations.
-  - École Publique: 50,000 XAF/year
-  - École Privée: 75,000 XAF/year
-  - École Entreprise: 150,000 XAF/year (training centers with bilingual dashboard)
-  - École GPS: 50,000 XAF/year
-  - École Publique Complet (Basique + GPS): 90,000 XAF/year
-  - École Privée Complet (Basique + GPS): 115,000 XAF/year
-- **Freelancers**: Professional plan (12,500 XAF/semester or 25,000 XAF/year)
-- **Parent Quarterly Subscriptions**: Public schools 3,000 CFA/quarter, Private schools 4,500 CFA/quarter.
+- **Freelancers**: Professional plan.
+- **Parent Quarterly Subscriptions**.
 
 ## External Dependencies
 
