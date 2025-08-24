@@ -72,7 +72,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   
   // FORCE IMMEDIATE preload of critical slow modules - Director specific
   React.useEffect(() => {
-    const criticalModules = ['overview', 'teachers', 'director-students', 'classes', 'director-attendance', 'director-communications'];
+    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
+    const criticalModules = [
+      'overview', 'teachers', 'director-students', 'classes', 'director-attendance', 
+      'director-communications', 'director-timetable', 'director-settings', 'help',
+      'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
+    ];
     
     const forceLoadCriticalModules = async () => {
       console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -103,7 +108,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     // ✅ NO useEffect here - preloading handled elsewhere
     
     if (ModuleComponent) {
-      const isCritical = ['teachers', 'students', 'classes', 'analytics', 'settings'].includes(moduleName);
+      // ✅ EXTENDED critical list - matches preloaded modules exactly
+      const isCritical = [
+        'overview', 'teachers', 'director-students', 'classes', 'director-attendance', 
+        'director-communications', 'director-timetable', 'director-settings', 'help',
+        'reports', 'school-settings', 'school-administrators', 'bulletin-validation'
+      ].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[DIRECTOR_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }

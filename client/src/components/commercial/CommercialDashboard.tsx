@@ -75,7 +75,12 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     // ✅ NO useEffect here - preloading handled elsewhere
     
     if (ModuleComponent) {
-      const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
+      // ✅ EXTENDED critical list - matches preloaded modules exactly
+      const isCritical = [
+        'commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 
+        'commercial-whatsapp', 'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
+        'MySchools', 'WhatsAppManager', 'CommercialCRM', 'help'
+      ].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[COMMERCIAL_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
@@ -96,7 +101,12 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
 
   // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
   React.useEffect(() => {
-    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp'];
+    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
+    const criticalModules = [
+      'commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 
+      'commercial-whatsapp', 'DocumentsContracts', 'CommercialStatistics', 'ContactsManagement', 
+      'MySchools', 'WhatsAppManager', 'CommercialCRM', 'help'
+    ];
     
     const forceLoadCriticalModules = async () => {
       console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');

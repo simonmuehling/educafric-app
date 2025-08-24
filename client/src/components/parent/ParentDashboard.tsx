@@ -94,7 +94,11 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Parent specific
   React.useEffect(() => {
-    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation'];
+    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
+    const criticalModules = [
+      'children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 
+      'geolocation', 'parent-profile', 'help', 'requests', 'family', 'subscription'
+    ];
     
     const forceLoadCriticalModules = async () => {
       console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -123,7 +127,11 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments'].includes(moduleName);
+      // ✅ EXTENDED critical list - matches preloaded modules exactly
+      const isCritical = [
+        'children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 
+        'geolocation', 'parent-profile', 'help', 'requests', 'family', 'subscription'
+      ].includes(moduleName);
       if (isCritical) {
         console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
       }

@@ -73,7 +73,12 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Teacher specific
   React.useEffect(() => {
-    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-communications', 'teacher-timetable'];
+    // ✅ ULTRA-EXTENDED critical modules list - ALL important modules preloaded
+    const criticalModules = [
+      'teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 
+      'teacher-communications', 'teacher-timetable', 'teacher-content', 'teacher-reports',
+      'teacher-profile', 'help', 'geolocation'
+    ];
     
     const forceLoadCriticalModules = async () => {
       console.log('[TEACHER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -102,7 +107,12 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      const isCritical = ['grades', 'classes', 'assignments', 'attendance', 'communications'].includes(moduleName);
+      // ✅ EXTENDED critical list - matches preloaded modules exactly
+      const isCritical = [
+        'teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 
+        'teacher-communications', 'teacher-timetable', 'teacher-content', 'teacher-reports',
+        'teacher-profile', 'help', 'geolocation'
+      ].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[TEACHER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
