@@ -11,7 +11,7 @@ interface DirectorOverviewData {
   description: string;
 }
 
-export function FunctionalDirectorOverview() {
+const FunctionalDirectorOverview: React.FC = () => {
   const { data: overviewData = [], isLoading, error } = useQuery<DirectorOverviewData[]>({
     queryKey: ['/api/director/overview'],
     queryFn: async () => {
@@ -122,4 +122,6 @@ export function FunctionalDirectorOverview() {
       </div>
     </div>
   );
-}
+};
+
+export default FunctionalDirectorOverview;
