@@ -5,7 +5,7 @@ export const sandboxTranslations = {
     title: "Bac à Sable EDUCAFRIC",
     subtitle: "Environnement de développement et de test complet",
     overview: "Vue d'ensemble",
-    testing: "Tests",
+    testingSuite: "Tests",
     playground: "Playground",
     monitoring: "Surveillance", 
     devices: "Appareils",
@@ -120,6 +120,39 @@ export const sandboxTranslations = {
       debugConsole: "Console de Débogage",
       systemHealth: "Santé du Système",
       backupRestore: "Sauvegarde & Restauration"
+    },
+
+    // Mises à jour temps réel (Ajouté Août 2025)
+    realTime: {
+      liveData: "Données en direct",
+      autoRefresh: "Actualisation automatique",
+      connectionStatus: "Statut de connexion",
+      syncStatus: "Statut de synchronisation",
+      latency: "Latence",
+      dataQuality: "Qualité des données"
+    },
+
+    // Tests améliorés (Ajouté Août 2025)
+    enhancedTesting: {
+      unitTests: "Tests unitaires",
+      integrationTests: "Tests d'intégration", 
+      performanceTests: "Tests de performance",
+      loadTests: "Tests de charge",
+      securityTests: "Tests de sécurité",
+      automatedTests: "Tests automatisés",
+      testCoverage: "Couverture de tests",
+      testResults: "Résultats des tests"
+    },
+
+    // Outils développeur (Ajouté Août 2025)
+    devTools: {
+      apiEndpoints: "Points de terminaison API",
+      payloadInspector: "Inspecteur de charge utile",
+      responseInspector: "Inspecteur de réponse",
+      networkMonitor: "Moniteur réseau",
+      performanceProfiler: "Profileur de performance",
+      errorTracking: "Suivi des erreurs",
+      logViewer: "Visualiseur de journaux"
     }
   },
   
@@ -128,7 +161,7 @@ export const sandboxTranslations = {
     title: "EDUCAFRIC Sandbox",
     subtitle: "Complete development and testing environment",
     overview: "Overview",
-    testing: "Testing",
+    testingSuite: "Testing",
     playground: "Playground", 
     monitoring: "Monitoring",
     devices: "Devices",
@@ -243,11 +276,44 @@ export const sandboxTranslations = {
       debugConsole: "Debug Console",
       systemHealth: "System Health",
       backupRestore: "Backup & Restore"
+    },
+
+    // Real-time updates (Added Aug 2025)
+    realTime: {
+      liveData: "Live Data",
+      autoRefresh: "Auto Refresh",
+      connectionStatus: "Connection Status",
+      syncStatus: "Sync Status", 
+      latency: "Latency",
+      dataQuality: "Data Quality"
+    },
+
+    // Enhanced testing (Added Aug 2025)
+    enhancedTesting: {
+      unitTests: "Unit Tests",
+      integrationTests: "Integration Tests",
+      performanceTests: "Performance Tests",
+      loadTests: "Load Tests",
+      securityTests: "Security Tests",
+      automatedTests: "Automated Tests",
+      testCoverage: "Test Coverage",
+      testResults: "Test Results"
+    },
+
+    // Developer tools (Added Aug 2025) 
+    devTools: {
+      apiEndpoints: "API Endpoints",
+      payloadInspector: "Payload Inspector",
+      responseInspector: "Response Inspector",
+      networkMonitor: "Network Monitor",
+      performanceProfiler: "Performance Profiler",
+      errorTracking: "Error Tracking",
+      logViewer: "Log Viewer"
     }
   }
 };
 
-// Hook utilitaire pour les traductions sandbox
+// Hook utilitaire pour les traductions sandbox avec cache amélioré
 export const useSandboxTranslation = (language: 'fr' | 'en') => {
   const t = (key: string) => {
     const keys = key.split('.');
