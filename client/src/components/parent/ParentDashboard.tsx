@@ -122,8 +122,20 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ✅ HOOK-SAFE module component creator - NO HOOKS INSIDE
+  // ✅ ENHANCED module component creator - PRELOADS MODULES EVEN INSIDE PremiumFeatureGate
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+    // ⚡ FORCE preload module immediately when called - even inside PremiumFeatureGate
+    React.useEffect(() => {
+      if (!getModule(moduleName)) {
+        console.log(`[PARENT_DASHBOARD] 🔥 Force preloading ${moduleName} from PremiumFeatureGate...`);
+        preloadModule(moduleName).then(() => {
+          console.log(`[PARENT_DASHBOARD] ✅ ${moduleName} preloaded from PremiumFeatureGate!`);
+        }).catch((error) => {
+          console.warn(`[PARENT_DASHBOARD] ⚠️ Failed to preload ${moduleName} from PremiumFeatureGate:`, error);
+        });
+      }
+    }, [moduleName]);
+
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
@@ -138,13 +150,13 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
       return React.createElement(ModuleComponent);
     }
     
-    // ✅ NO useEffect here - preloading handled elsewhere
+    // ✅ Smart loading state with preload indication
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-2 text-green-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
+            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? '⚡ Chargement intelligent...' : '⚡ Smart loading...')}
           </p>
         </div>
       </div>
@@ -245,42 +257,120 @@ const ParentDashboardContent = ({ activeModule }: ParentDashboardProps) => {
       label: t.communications,
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createDynamicModule('parent-messages')
+      component: (
+        <PremiumFeatureGate
+          featureName="Messages Enseignants"
+          userType="Parent"
+          features={[
+            "Communication directe avec les enseignants",
+            "Notifications push instantanées",
+            "Historique complet des conversations",
+            "Pièces jointes et photos"
+          ]}
+        >
+          {createDynamicModule('parent-messages')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'grades',
       label: t.results,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createDynamicModule('parent-grades')
+      component: (
+        <PremiumFeatureGate
+          featureName="Bulletins & Notes Détaillés"
+          userType="Parent"
+          features={[
+            "Bulletins avec graphiques détaillés",
+            "Analyse de progression par matière",
+            "Comparaison avec la moyenne de classe",
+            "Téléchargement PDF professionnel"
+          ]}
+        >
+          {createDynamicModule('parent-grades')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'attendance',
       label: t.attendance,
       icon: <CheckCircle2 className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createDynamicModule('parent-attendance')
+      component: (
+        <PremiumFeatureGate
+          featureName="Suivi Présence Avancé"
+          userType="Parent"
+          features={[
+            "Alertes absence en temps réel",
+            "Historique de présence détaillé",
+            "Justification d'absence en ligne",
+            "Rapport mensuel automatique"
+          ]}
+        >
+          {createDynamicModule('parent-attendance')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'payments',
       label: 'Paiements',
       icon: <CreditCard className="w-6 h-6" />,
       color: 'bg-red-500',
-      component: createDynamicModule('payments')
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Paiements"
+          userType="Parent"
+          features={[
+            "Paiements Orange Money & MTN",
+            "Historique complet des factures",
+            "Rappels automatiques d'échéance",
+            "Reçus PDF téléchargeables"
+          ]}
+        >
+          {createDynamicModule('payments')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'geolocation',
       label: t.geolocation,
       icon: <MapPin className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: createDynamicModule('geolocation')
+      component: (
+        <PremiumFeatureGate
+          featureName="Géolocalisation Premium"
+          userType="Parent"
+          features={[
+            "Suivi GPS temps réel de votre enfant",
+            "Zones de sécurité personnalisées",
+            "Alertes d'arrivée/départ école",
+            "Historique des déplacements"
+          ]}
+        >
+          {createDynamicModule('geolocation')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'family',
       label: language === 'fr' ? 'Connexions Familiales' : 'Family Connections',
       icon: <Heart className="w-6 h-6" />,
       color: 'bg-pink-500',
-      component: createDynamicModule('family')
+      component: (
+        <PremiumFeatureGate
+          featureName="Communication Familiale Directe"
+          userType="Parent"
+          features={[
+            "Communication directe parent-enfant",
+            "Messages chiffrés end-to-end",
+            "Connexions sécurisées par QR code",
+            "Chat temps réel avec statut en ligne"
+          ]}
+        >
+          {createDynamicModule('family')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'notifications',
