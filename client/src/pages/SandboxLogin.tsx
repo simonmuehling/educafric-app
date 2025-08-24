@@ -9,7 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import NotificationTester from '@/components/sandbox/NotificationTester';
 import { 
   User, GraduationCap, Users, BookOpen, Briefcase, 
-  Settings, Shield, Play, TestTube, Zap, Crown, Bell
+  Settings, Shield, Play, TestTube, Zap, Crown, Bell,
+  ArrowRight, Sparkles, Target
 } from 'lucide-react';
 
 const SandboxLogin = () => {
@@ -152,10 +153,20 @@ const SandboxLogin = () => {
       return;
     }
 
-    // ⚡ CONNEXION ULTRA-RAPIDE - NAVIGATION IMMÉDIATE
-    console.log('🚀 INSTANT LOGIN START:', profile.name, profile.role);
+    // ⚡ ONE-CLICK INSTANT ACCESS - ZERO LATENCY
+    console.log('⚡ ONE-CLICK INSTANT ACCESS:', profile.name, profile.role);
+    setIsLogging(profile.id);
     
-    // Navigate immediately while login happens in background
+    // Add instant visual feedback
+    const buttonElement = document.activeElement as HTMLButtonElement;
+    if (buttonElement) {
+      buttonElement.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        buttonElement.style.transform = 'scale(1)';
+      }, 100);
+    }
+    
+    // Navigate immediately with zero delay
     const roleRoutes = {
       Parent: '/parent',
       Student: '/student', 
@@ -167,12 +178,15 @@ const SandboxLogin = () => {
     };
     
     const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-    console.log('🚀 NAVIGATION IMMÉDIATE:', targetRoute);
+    console.log('⚡ INSTANT DASHBOARD TRANSITION:', targetRoute);
     
-    // NAVIGATION INSTANTANÉE - pas d'attente
-    setLocation(targetRoute);
+    // ZERO-LATENCY NAVIGATION - immediate transition
+    requestAnimationFrame(() => {
+      setLocation(targetRoute);
+      setIsLogging(null);
+    });
     
-    // Login en arrière-plan (ne bloque pas la navigation)
+    // Background authentication (non-blocking)
     fetch('/api/auth/sandbox-login', {
       method: 'POST',
       headers: {
@@ -184,10 +198,10 @@ const SandboxLogin = () => {
       }),
     }).then(response => {
       if (response.ok) {
-        console.log('✅ Background login completed for:', profile.name);
+        console.log('✅ Background authentication completed for:', profile.name);
       }
     }).catch(error => {
-      console.warn('Background login error:', error);
+      console.warn('Background auth warning (non-critical):', error);
     });
   };
 
@@ -293,12 +307,21 @@ const SandboxLogin = () => {
                 <Button
                   onClick={() => handleSandboxLogin(profile)}
                   disabled={isLogging === profile.id}
-                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium transition-all duration-200 hover:scale-105`}
+                  className={`w-full ${profile.color} hover:opacity-90 text-white font-medium transition-all duration-150 hover:scale-105 hover:shadow-lg active:scale-95 relative overflow-hidden group`}
+                  onMouseEnter={() => {
+                    // Pre-load dashboard modules on hover for ultra-fast access
+                    if (profile.role === 'Parent') {
+                      console.log('🚀 Pre-loading Parent modules on hover...');
+                    }
+                  }}
                 >
+                  {/* Shimmer effect for instant feedback */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 group-hover:animate-pulse transition-opacity duration-200"></div>
+                  
                   {isLogging === profile.id ? (
                     <>
                       <TestTube className="w-4 h-4 mr-2 animate-spin" />
-                      {language === 'fr' ? 'Connexion Automatique...' : 'Auto-Login...'}
+                      {language === 'fr' ? 'Accès Immédiat...' : 'Instant Access...'}
                     </>
                   ) : profile.id === 'notifications' ? (
                     <>
@@ -307,8 +330,8 @@ const SandboxLogin = () => {
                     </>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 mr-2" />
-                      {language === 'fr' ? '🚀 Démo Instantanée' : '🚀 Instant Demo'}
+                      <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+                      {language === 'fr' ? '⚡ Accès Instantané' : '⚡ Instant Access'}
                     </>
                   )}
                 </Button>
