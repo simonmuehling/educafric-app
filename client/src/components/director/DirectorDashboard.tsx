@@ -85,21 +85,21 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.teachers,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createInstantModule('FunctionalDirectorTeachers')
+      component: createInstantModule('FunctionalDirectorTeacherManagement')
     },
     {
       id: 'students', 
       label: t.students,
       icon: <School className="w-6 h-6" />,
       color: 'bg-green-500',
-      component: createInstantModule('FunctionalDirectorStudents')
+      component: createInstantModule('FunctionalDirectorStudentManagement')
     },
     {
       id: 'classes',
       label: t.classes,
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createInstantModule('FunctionalDirectorClasses')
+      component: createInstantModule('FunctionalDirectorClassManagement')
     },
     {
       id: 'timetable',
