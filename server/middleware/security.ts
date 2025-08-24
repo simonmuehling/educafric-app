@@ -114,17 +114,17 @@ export function securityLogger(req: any, res: any, next: any) {
 // Production session configuration - Fixed for Replit cross-origin with inactivity timeout
 export const productionSessionConfig = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
-  resave: true, // Force save sessions to ensure persistence
-  saveUninitialized: true, // Save all sessions
+  resave: false, // Don't save session if unmodified
+  saveUninitialized: false, // Don't create session until something stored
   rolling: false, // Don't reset expiration on each request - important for inactivity timeout
   cookie: {
-    secure: false, // Must be false for development HTTP
-    httpOnly: false, // Allow JavaScript access for debugging
-    maxAge: 30 * 60 * 1000, // 30 minutes - matches frontend timeout
-    sameSite: 'lax' as const, // More permissive for cross-origin
+    secure: false, // Must be false for HTTP
+    httpOnly: false, // Allow JavaScript access for debugging  
+    maxAge: 30 * 60 * 1000, // 30 minutes
+    sameSite: 'none' as const, // Required for cross-origin in iframes
     path: '/', // Ensure cookie is sent for all paths
     domain: undefined, // Let browser handle domain
   },
-  name: 'educafric.sid',
+  name: 'connect.sid', // Use standard session name
   proxy: true,
 };

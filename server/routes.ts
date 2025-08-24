@@ -88,13 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       conString: process.env.DATABASE_URL,
       tableName: 'session',
       createTableIfMissing: true,
-    }),
-    // Add debug logging
-    genid: (req) => {
-      const newId = crypto.randomBytes(32).toString('hex');
-      console.log('[SESSION_DEBUG] Generated new session ID:', newId);
-      return newId;
-    }
+    })
   }));
   
   // Initialize passport middleware - MUST be after session middleware

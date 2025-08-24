@@ -130,14 +130,15 @@ passport.deserializeUser(async (id: string | number, done) => {
 // Authentication routes
 router.get('/me', async (req, res) => {
   try {
-    // Debug session info
-    console.log('[AUTH_DEBUG] /me request - Session ID:', req.sessionID);
-    console.log('[AUTH_DEBUG] /me request - Authenticated:', req.isAuthenticated());
-    console.log('[AUTH_DEBUG] /me request - User:', req.user?.id, req.user?.email);
-    console.log('[AUTH_DEBUG] /me request - Session data:', JSON.stringify(req.session, null, 2));
+    // Debug cookie and session info
+    console.log('[COOKIE_DEBUG] Request cookies:', req.headers.cookie);
+    console.log('[SESSION_DEBUG] Session ID:', req.sessionID);
+    console.log('[SESSION_DEBUG] Session exists:', !!req.session);
+    console.log('[SESSION_DEBUG] Authenticated:', req.isAuthenticated());
+    console.log('[SESSION_DEBUG] Session passport:', req.session?.passport);
     
     if (!req.isAuthenticated()) {
-      console.log(`[AUTH_DEBUG] Authentication failed for session: ${req.sessionID}`);
+      console.log(`[AUTH_FAIL] No authentication for session: ${req.sessionID}`);
       return res.status(401).json({ message: 'Authentication required' });
     }
     
