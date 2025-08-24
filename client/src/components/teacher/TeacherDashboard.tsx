@@ -309,7 +309,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: language === 'fr' ? 'Paramètres Enseignant' : 'Teacher Settings',
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-600',
-      component: createDynamicModule('teacher-profile')
+      component: createDynamicModule('teacher-settings')
     }
   ];
 

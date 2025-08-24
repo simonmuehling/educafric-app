@@ -35,7 +35,7 @@ class FastModuleLoader {
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
-      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      'director-school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
@@ -148,7 +148,7 @@ class FastModuleLoader {
       'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'ReportCards': () => import('@/components/teacher/modules/ReportCards'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
-      'TeacherProfileSettings': () => import('@/components/teacher/modules/TeacherProfileSettings'),
+      'TeacherSettings': () => import('@/components/teacher/modules/TeacherSettings'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
       
       // =============================================
@@ -170,12 +170,18 @@ class FastModuleLoader {
       'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
       
       // =============================================
-      // 🔧 SHARED SETTINGS MODULES
+      // 🔧 SETTINGS MODULES - ROLE SPECIFIC
       // =============================================
-      'student-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'teacher-settings': () => import('@/components/shared/UnifiedProfileManager'),
-      'parent-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      'student-settings': () => import('@/components/student/modules/StudentSettings'),
+      'teacher-settings': () => import('@/components/teacher/modules/TeacherSettings'),
+      'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
+      'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
+      'school-settings': () => import('@/components/shared/UnifiedProfileManager'), // For school/admin settings
       'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
+      
+      // Settings module aliases for different naming conventions
+      'StudentSettings': () => import('@/components/student/modules/StudentSettings'),
+      'FreelancerSettings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),

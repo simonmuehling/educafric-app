@@ -176,7 +176,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createDynamicModule('settings')
+      component: createDynamicModule('freelancer-settings')
     },
     {
       id: 'students',
