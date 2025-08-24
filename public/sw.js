@@ -1,5 +1,5 @@
 // Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.4-auth-fix';
+const CACHE_NAME = 'educafric-v2.5-cache-fix';
 const urlsToCache = [
   '/',
   '/manifest.json',
