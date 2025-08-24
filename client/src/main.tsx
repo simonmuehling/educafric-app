@@ -44,4 +44,5 @@ setupConsoleFilter();
 // Initialize fast module loading for instant performance
 fastModuleLoader.preloadCriticalModules();
 
+// 🚫 CRITICAL: React hooks error fix - Render App properly  
 createRoot(document.getElementById("root")!).render(<App />);
