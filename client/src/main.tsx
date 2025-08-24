@@ -5,37 +5,17 @@ import { setupConsoleFilter } from "./utils/consoleFilter";
 import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
-// Register Service Worker for PWA functionality - Only in production
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', async () => {
-    try {
-      // Check if service worker file exists and has correct MIME type
-      const response = await fetch('/sw.js', { 
-        method: 'HEAD',
-        headers: { 'Accept': 'application/javascript' }
+// TEMPORARILY DISABLE ALL SERVICE WORKERS FOR DEBUGGING
+if ('serviceWorker' in navigator) {
+  // Unregister any existing service workers
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      registration.unregister().then(() => {
+        console.log('[DEBUG] Unregistered service worker:', registration.scope);
       });
-      
-      if (response.ok && response.headers.get('content-type')?.includes('javascript')) {
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-          scope: '/'
-        });
-        console.log('[PWA] Service Worker registered:', registration);
-        localStorage.setItem('pwa-sw-registered', 'true');
-        
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          console.log('[PWA] Service Worker update found');
-        });
-      } else {
-        console.log('[PWA] Service Worker file not found or wrong MIME type, skipping registration');
-      }
-      
-    } catch (error: any) {
-      console.log('[PWA] Service Worker registration skipped:', error?.message || 'Unknown error');
     }
   });
-} else {
-  console.log('[PWA] Service Worker registration disabled for development');
+  console.log('[DEBUG] Service Workers completely disabled for debugging');
 }
 
 // Setup console filtering to reduce spam in development
