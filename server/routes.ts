@@ -935,21 +935,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const connections = [
         {
           id: 1,
-          type: 'parent-child',
-          parentName: 'Papa Kouame',
+          parentId: 7,
+          childId: 1,
           childName: 'Marie Kouame',
-          status: 'connected',
-          connectedAt: '2025-08-20',
-          deviceId: 'DEVICE_001'
+          childPhoto: '',
+          connectionStatus: 'active',
+          lastContact: new Date(Date.now() - 1800000).toISOString(), // 30 mins ago
+          unreadMessages: 2,
+          isOnline: true
         },
         {
           id: 2,
-          type: 'parent-child',
-          parentName: 'Papa Kouame',
+          parentId: 7,
+          childId: 2,
           childName: 'Paul Kouame',
-          status: 'connected',
-          connectedAt: '2025-08-18',
-          deviceId: 'DEVICE_002'
+          childPhoto: '',
+          connectionStatus: 'active',
+          lastContact: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+          unreadMessages: 0,
+          isOnline: false
         }
       ];
       res.json({ success: true, connections });

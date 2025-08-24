@@ -55,7 +55,7 @@ const FamilyConnections: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Fetch family connections
-  const { data: connections = [], isLoading: connectionsLoading } = useQuery<FamilyConnection[]>({
+  const { data: connectionsResponse, isLoading: connectionsLoading } = useQuery({
     queryKey: ['/api/family/connections'],
     queryFn: async () => {
       const response = await fetch('/api/family/connections', {
@@ -66,6 +66,8 @@ const FamilyConnections: React.FC = () => {
     },
     enabled: !!user
   });
+
+  const connections = connectionsResponse?.connections || [];
 
   // Fetch messages for selected connection
   const { data: messages = [], isLoading: messagesLoading } = useQuery<FamilyMessage[]>({
@@ -438,7 +440,7 @@ const FamilyConnections: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {connections.map((connection) => (
+                  {connections.map((connection: FamilyConnection) => (
                     <div
                       key={connection.id}
                       onClick={() => setSelectedConnection(connection.id)}
@@ -492,7 +494,7 @@ const FamilyConnections: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5" />
                 {selectedConnection 
-                  ? connections.find(c => c.id === selectedConnection)?.childName
+                  ? connections.find((c: FamilyConnection) => c.id === selectedConnection)?.childName
                   : t.selectChild
                 }
               </CardTitle>
