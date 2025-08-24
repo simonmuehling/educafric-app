@@ -241,7 +241,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: createDynamicModule('settings')
+      component: createDynamicModule('director-settings')
     },
     {
       id: 'teachers',
@@ -328,7 +328,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.attendance,
       icon: <CheckCircle className="w-6 h-6" />,
       color: 'bg-yellow-500',
-      component: createDynamicModule('attendance')
+      component: createDynamicModule('director-attendance')
     },
     {
       id: 'communications',
@@ -346,7 +346,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             "Intégration avec systèmes de notation"
           ]}
         >
-          {createDynamicModule('communications')}
+          {createDynamicModule('director-communications')}
         </PremiumFeatureGate>
       )
     },
@@ -362,7 +362,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.parentRequests,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: createDynamicModule('parent-requests')
+      component: createDynamicModule('director-parent-requests')
     },
 
     {

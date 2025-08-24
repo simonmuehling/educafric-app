@@ -29,13 +29,19 @@ class FastModuleLoader {
       
       // Director modules (real ones) - ALL modules for instant loading
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
+      
+      // MODULES ÉCOLE MANQUANTS - IDs exacts du DirectorDashboard
+      'director-settings-profile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'director-attendance-school': () => import('@/components/director/modules/SchoolAttendanceManagement'),
+      'director-communications-center': () => import('@/components/director/modules/CommunicationsCenter'),
+      'director-parent-requests-main': () => import('@/components/director/modules/ParentRequestsNew'),
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
       'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
       'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
       'timetable-configuration': () => import('@/components/director/modules/TimetableConfiguration'),
-      'timetable': () => import('@/components/director/modules/TimetableConfiguration'),
+      'director-timetable-full': () => import('@/components/director/modules/TimetableConfiguration'),
       'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
