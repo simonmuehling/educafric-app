@@ -174,8 +174,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 🚫 CRITICAL: Hook moved to hooks/useAuth.ts to avoid duplication conflicts
-// export function useAuth() removed to prevent React hook conflicts
+// 🚫 CRITICAL: Re-export useAuth to fix HMR import errors
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
 
-// Alternative export for compatibility - use hooks/useAuth.ts instead
-// export const useAuthContext = useAuth;
+// Alternative export for compatibility 
+export const useAuthContext = useAuth;

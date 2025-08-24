@@ -54,6 +54,12 @@ self.addEventListener('fetch', (event) => {
   
   const url = new URL(event.request.url);
   
+  // 🚫 CRITICAL: Filter non-web protocols to prevent cache errors
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    console.log('[SW] Ignoring non-web protocol:', url.protocol);
+    return;
+  }
+  
   // 🚫 NEVER cache authentication and API endpoints
   const isAuthEndpoint = url.pathname.includes('/api/auth') || 
                          url.pathname.includes('/auth') ||
