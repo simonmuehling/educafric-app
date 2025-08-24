@@ -65,10 +65,10 @@ const TeacherAbsenceManagement: React.FC = () => {
   // Enhanced Actions Rapides functionalities with API calls
   const handleNotifyParents = async (teacherName: string, classes: string[]) => {
     try {
-      const response = await fetch('/api/teacher-absences/notify-parents', {
+      const response = await fetch('/api/schools/teacher-absences/1/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teacherName, classes, date: selectedDate })
+        body: JSON.stringify({ actionType: 'notify_parents', actionData: { teacherName, classes, date: selectedDate } })
       });
       
       if (response.ok) {
@@ -92,10 +92,10 @@ const TeacherAbsenceManagement: React.FC = () => {
 
   const handleFindSubstitute = async (teacherName: string) => {
     try {
-      const response = await fetch('/api/teacher-absences/find-substitute', {
+      const response = await fetch('/api/schools/teacher-absences/1/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teacherName, date: selectedDate })
+        body: JSON.stringify({ actionType: 'assign_substitute', actionData: { teacherName, date: selectedDate } })
       });
       
       if (response.ok) {
