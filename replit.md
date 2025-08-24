@@ -21,6 +21,16 @@ Preferred communication style: Simple, everyday language.
 - ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
 - ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
 
+**RESTAURATION ROUTES POST-REFACTOR (Complétée 2025-08-24)** :
+- ✅ **11 routes critiques restaurées** après problèmes causés par le refactor majeur
+- ✅ Routes API manquantes : `/api/classes`, `/api/grades`, `/api/currency`, `/api/stripe`, `/api/uploads`, `/api/bulletins`, `/api/tracking`, `/api/tutorials`
+- ✅ **Corrections schéma DB** : Mapping `trackedDevices` → `trackingDevices`, suppression colonnes inexistantes
+- ✅ **Erreurs TypeScript résolues** : `notificationRoutes.ts` aligné avec schéma réel (suppression `readAt`, `recipientId`, `recipientRole`)
+- ✅ **Imports manquants ajoutés** dans `server/routes.ts` avec 13 nouvelles importations
+- ✅ **Interface Directeur fonctionnelle** : Création enseignants/élèves/classes maintenant opérationnelle
+- ✅ **Services restaurés** : PWA, notifications, géolocalisation, paiements Stripe, upload fichiers
+- ✅ Serveur stable avec logs: `[TRACKING] ✅`, `[NOTIFICATIONS] ✅`, `All routes configured ✅`
+
 **Website URL Standard (Updated 2025-08-17)**: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
 **Console Error Prevention (Completed 2025-08-18)**: 
