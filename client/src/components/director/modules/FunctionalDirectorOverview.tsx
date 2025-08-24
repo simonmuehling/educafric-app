@@ -12,17 +12,23 @@ interface DirectorOverviewData {
 }
 
 const FunctionalDirectorOverview: React.FC = () => {
-  const { data: overviewData = [], isLoading, error } = useQuery<DirectorOverviewData[]>({
-    queryKey: ['/api/director/overview'],
+  // Use existing director analytics data instead of separate overview endpoint
+  const { data: analyticsData, isLoading, error } = useQuery({
+    queryKey: ['/api/director/analytics'],
     queryFn: async () => {
-      const response = await fetch('/api/director/overview', {
+      const response = await fetch('/api/director/analytics', {
         credentials: 'include'
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch director overview');
+        console.error('[DIRECTOR_OVERVIEW] Analytics API Error:', response.status, response.statusText);
+        throw new Error('Failed to fetch director analytics');
       }
-      return response.json();
-    }
+      const data = await response.json();
+      console.log('[DIRECTOR_OVERVIEW] Analytics Response:', data);
+      return data;
+    },
+    retry: false,
+    refetchOnWindowFocus: false
   });
 
   if (isLoading) {
@@ -55,34 +61,34 @@ const FunctionalDirectorOverview: React.FC = () => {
     );
   }
 
-  // Default overview cards if no data from API
-  const defaultStats = [
+  // Create overview stats from analytics data
+  const overviewStats = [
     {
       icon: <Users className="w-6 h-6" />,
       title: "Élèves Total",
-      value: "0",
-      description: "Aucun élève enregistré",
+      value: analyticsData?.totalStudents?.toString() || "0",
+      description: analyticsData?.totalStudents > 0 ? `${analyticsData.totalStudents} élèves inscrits` : "Aucun élève enregistré",
       color: "from-blue-500 to-blue-600"
     },
     {
       icon: <GraduationCap className="w-6 h-6" />,
       title: "Enseignants",
-      value: "0", 
-      description: "Aucun enseignant enregistré",
+      value: analyticsData?.totalTeachers?.toString() || "0",
+      description: analyticsData?.totalTeachers > 0 ? `${analyticsData.totalTeachers} enseignants actifs` : "Aucun enseignant enregistré",
       color: "from-green-500 to-green-600"
     },
     {
       icon: <Book className="w-6 h-6" />,
       title: "Classes Actives",
-      value: "0",
-      description: "Aucune classe créée",
+      value: analyticsData?.totalClasses?.toString() || "0",
+      description: analyticsData?.totalClasses > 0 ? `${analyticsData.totalClasses} classes ouvertes` : "Aucune classe créée",
       color: "from-purple-500 to-purple-600"
     },
     {
       icon: <BarChart className="w-6 h-6" />,
-      title: "Moyenne Générale",
-      value: "0.0",
-      description: "Aucune note disponible",
+      title: "Performance",
+      value: analyticsData?.averagePerformance ? `${Math.round(analyticsData.averagePerformance)}%` : "N/A",
+      description: analyticsData?.averagePerformance ? `Performance moyenne de l'école` : "Aucune donnée de performance",
       color: "from-orange-500 to-orange-600"
     }
   ];
@@ -95,7 +101,7 @@ const FunctionalDirectorOverview: React.FC = () => {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {(Array.isArray(defaultStats) ? defaultStats : []).map((stat, index) => (
+          {(Array.isArray(overviewStats) ? overviewStats : []).map((stat: any, index: number) => (
             <ModernCard key={index} className="relative overflow-hidden">
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5`}></div>
               <div className="relative p-6">
