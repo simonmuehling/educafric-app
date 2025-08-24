@@ -359,6 +359,20 @@ const CommunicationsCenter: React.FC = () => {
             </h2>
           </CardHeader>
           <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                {
+                  id: 'emergency-alert',
+                  label: language === 'fr' ? 'Alerte Urgente' : 'Emergency Alert',
+                  icon: <AlertTriangle className="w-5 h-5" />,
+                  onClick: () => {
+                    setSelectedRecipient('all');
+                    setMessageType('emergency');
+                    setMessageText(language === 'fr' ?
+                      'ALERTE: Information urgente concernant...' :
+                      'ALERT: Urgent information regarding...'
+                    );
+                  },
                   color: 'bg-red-600 hover:bg-red-700'
                 },
                 {
@@ -456,8 +470,18 @@ const CommunicationsCenter: React.FC = () => {
                   },
                   color: 'bg-orange-600 hover:bg-orange-700'
                 }
-              ]}
-            />
+              ].map((action) => (
+                <Button
+                  key={action.id}
+                  onClick={action.onClick}
+                  className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
+                  data-testid={`button-${action.id}`}
+                >
+                  {action.icon}
+                  {action.label}
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
 

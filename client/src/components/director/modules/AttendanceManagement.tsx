@@ -6,7 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Calendar, UserCheck, Users, Download, FileText, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
+
+const AttendanceManagement: React.FC = () => {
+  const { language } = useLanguage();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedClass, setSelectedClass] = useState('all');
+  const [user] = useState({ id: 1 }); // Placeholder user
+  
+  // Fetch attendance stats from API
+  const { data: attendanceStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/attendance/stats', selectedDate],
+    queryFn: async () => {
       console.log('[ATTENDANCE_MANAGEMENT] 🔍 Fetching attendance stats...');
       const response = await fetch(`/api/attendance/stats?date=${selectedDate}`, {
         credentials: 'include'
@@ -169,6 +183,13 @@ import { Calendar, UserCheck, Users, Download, FileText, Clock, TrendingUp, Aler
           </CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                id: 'export-attendance',
+                label: language === 'fr' ? 'Exporter' : 'Export',
+                icon: <Download className="w-5 h-5" />,
+                onClick: handleExportReport,
                 color: 'bg-green-600 hover:bg-green-700'
               },
               {
@@ -185,8 +206,18 @@ import { Calendar, UserCheck, Users, Download, FileText, Clock, TrendingUp, Aler
                 onClick: handleGenerateReport,
                 color: 'bg-purple-600 hover:bg-purple-700'
               }
-            ]}
-          />
+            ].map((action) => (
+              <Button
+                key={action.id}
+                onClick={action.onClick}
+                className={`flex items-center gap-2 ${action.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
+                data-testid={`button-${action.id}`}
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
