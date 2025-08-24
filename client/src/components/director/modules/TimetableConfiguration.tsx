@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Clock, Calendar, Users, School, Plus, Upload, Edit3, Trash2, Save, TrendingUp, FileText, RefreshCw } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import { TimetableCreation } from '@/components/timetable/TimetableCreation';
 
 interface TimetableEntry {
@@ -23,8 +25,8 @@ interface TimetableEntry {
 const TimetableConfiguration: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [timetables, setTimetables] = useState<TimetableEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimetableEntry | null>(null);
   const [formData, setFormData] = useState({
@@ -50,24 +52,49 @@ const TimetableConfiguration: React.FC = () => {
     '11:10 - 12:00', '12:00 - 12:50', '14:00 - 14:50', '14:50 - 15:40', '15:40 - 16:30'
   ];
 
-  // Load timetables
-  useEffect(() => {
-    fetchTimetables();
-  }, []);
+  // ✅ OPTIMIZED: Use TanStack Query with preloaded cache for instant loading
+  const { data: timetables = [], isLoading: loading } = useQuery<TimetableEntry[]>({
+    queryKey: ['/api/timetables'],
+    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch('/api/timetables', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch timetables');
+      return response.json();
+    },
+    staleTime: 1000 * 60 * 5 // 5 minutes cache
+  });
 
-  const fetchTimetables = async () => {
-    try {
-      const response = await fetch('/api/timetables');
-      if (response.ok) {
-        const data = await response.json();
-        setTimetables(data);
-      }
-    } catch (error) {
-      console.error('Error fetching timetables:', error);
-    } finally {
-      setLoading(false);
+  // ✅ OPTIMIZED: Create timetable mutation with cache invalidation
+  const createTimetableMutation = useMutation({
+    mutationFn: async (timetableData: any) => {
+      const response = await fetch('/api/timetables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(timetableData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to create timetable entry');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/timetables'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Entrée d\'emploi du temps créée avec succès' : 'Timetable entry created successfully'
+      });
+      setShowCreateForm(false);
+      setFormData({ className: '', day: '', timeSlot: '', subject: '', teacher: '', room: '' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la création' : 'Failed to create entry'),
+        variant: 'destructive'
+      });
     }
-  };
+  });
 
   const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,36 +108,8 @@ const TimetableConfiguration: React.FC = () => {
       return;
     }
 
-    try {
-      const method = editingEntry ? 'PATCH' : 'POST';
-      const url = editingEntry ? `/api/timetables/${editingEntry.id}` : '/api/timetables';
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        toast({
-          title: language === 'fr' ? 'Succès' : 'Success',
-          description: editingEntry 
-            ? (language === 'fr' ? 'Créneaux modifié avec succès' : 'Slot updated successfully')
-            : (language === 'fr' ? 'Créneaux créé avec succès' : 'Slot created successfully')
-        });
-        
-        fetchTimetables();
-        resetForm();
-      } else {
-        throw new Error('Failed to save timetable entry');
-      }
-    } catch (error) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Erreur lors de la sauvegarde' : 'Error saving timetable entry',
-        variant: 'destructive'
-      });
-    }
+    // ✅ OPTIMIZED: Use TanStack Query mutations for instant cache updates
+    createTimetableMutation.mutate(formData);
   });
 
   const handleEdit = (entry: TimetableEntry) => {
@@ -126,23 +125,34 @@ const TimetableConfiguration: React.FC = () => {
     setShowCreateForm(true);
   };
 
-  const handleDelete = async (id: number) => {
-    try {
-      const response = await fetch(`/api/timetables/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        toast({
-          title: language === 'fr' ? 'Succès' : 'Success',
-          description: language === 'fr' ? 'Créneaux supprimé' : 'Slot deleted successfully'
-        });
-        fetchTimetables();
-      }
-    } catch (error) {
+  // ✅ OPTIMIZED: Delete timetable mutation with cache invalidation
+  const deleteTimetableMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/timetables/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to delete timetable entry');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/timetables'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' ? 'Créneaux supprimé' : 'Slot deleted successfully'
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting slot',
+        description: error.message || (language === 'fr' ? 'Erreur lors de la suppression' : 'Error deleting slot'),
         variant: 'destructive'
       });
     }
+  });
+
+  const handleDelete = (id: number) => {
+    deleteTimetableMutation.mutate(id);
   };
 
   const resetForm = () => {
@@ -215,7 +225,7 @@ const TimetableConfiguration: React.FC = () => {
                 id: 'refresh-data',
                 label: language === 'fr' ? 'Actualiser' : 'Refresh',
                 icon: <RefreshCw className="w-5 h-5" />,
-                onClick: () => fetchTimetables(),
+                onClick: () => queryClient.invalidateQueries({ queryKey: ['/api/timetables'] }),
                 color: 'bg-teal-600 hover:bg-teal-700'
               }
             ]}
@@ -227,7 +237,7 @@ const TimetableConfiguration: React.FC = () => {
           <TimetableCreation 
             onSlotCreated={(slot) => {
               console.log('[TIMETABLE_CONFIG] Nouveau créneau créé:', slot);
-              fetchTimetables(); // Refresh the list
+              // Cache will automatically update via invalidation
               setShowCreateForm(false); // Close the form
             }}
             onBulkOperation={(operation, slots) => {

@@ -39,7 +39,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
         '/api/director/students',
         '/api/director/classes',
         '/api/director/analytics',
-        '/api/director/settings'
+        '/api/director/settings',
+        '/api/timetables'
       ];
       
       const promises = apiEndpoints.map(async (endpoint) => {
