@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useFastModules } from '@/utils/fastModuleLoader';
+import { createInstantModule } from '@/utils/fastModuleLoader';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
@@ -26,7 +26,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
   const { language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
   // AGGRESSIVE API DATA PRELOADING - Freelancer APIs
@@ -81,7 +80,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       const promises = criticalModules.map(async (moduleName) => {
         try {
           console.log(`[FREELANCER_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
           console.log(`[FREELANCER_DASHBOARD] ✅ ${moduleName} module ready!`);
           return true;
         } catch (error) {
@@ -95,17 +93,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
     };
     
     forceLoadCriticalModules();
-  }, [preloadModule]);
   
   // ULTRA-FAST module component creator
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    const ModuleComponent = getModule(moduleName);
+  const createInstantModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     
     // ALWAYS call hooks in the same order - move useEffect before conditional return
     React.useEffect(() => {
       if (!ModuleComponent) {
         console.log(`[FREELANCER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-        preloadModule(moduleName);
       }
     }, [ModuleComponent, moduleName]);
     
@@ -169,14 +164,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: createDynamicModule('subscription')
+      component: createInstantModule('subscription')
     },
     {
       id: 'settings',
       label: t.settings,
       icon: <Settings className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createDynamicModule('settings')
+      component: createInstantModule('settings')
     },
     {
       id: 'students',
@@ -194,7 +189,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Communication directe avec parents"
           ]}
         >
-          {createDynamicModule('students')}
+          {createInstantModule('students')}
         </PremiumFeatureGate>
       )
     },
@@ -214,7 +209,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Rapports détaillés par session"
           ]}
         >
-          {createDynamicModule('sessions')}
+          {createInstantModule('sessions')}
         </PremiumFeatureGate>
       )
     },
@@ -234,7 +229,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Paiements Orange Money & MTN"
           ]}
         >
-          {createDynamicModule('payments')}
+          {createInstantModule('payments')}
         </PremiumFeatureGate>
       )
     },
@@ -254,7 +249,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Optimisation des trajets"
           ]}
         >
-          {createDynamicModule('schedule')}
+          {createInstantModule('schedule')}
         </PremiumFeatureGate>
       )
     },
@@ -274,7 +269,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Templates professionnels"
           ]}
         >
-          {createDynamicModule('resources')}
+          {createInstantModule('resources')}
         </PremiumFeatureGate>
       )
     },
@@ -294,7 +289,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Support client prioritaire"
           ]}
         >
-          {createDynamicModule('communications')}
+          {createInstantModule('communications')}
         </PremiumFeatureGate>
       )
     },
@@ -314,7 +309,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             "Calcul des frais de déplacement"
           ]}
         >
-          {createDynamicModule('geolocation')}
+          {createInstantModule('geolocation')}
         </PremiumFeatureGate>
       )
     },
@@ -347,7 +342,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-cyan-500',
-      component: createDynamicModule('help')
+      component: createInstantModule('help')
     }
   ];
 

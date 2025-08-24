@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
-import { useFastModules } from '@/utils/fastModuleLoader';
-import OptimizedModuleWrapper from '@/components/ui/OptimizedModuleWrapper';
+import { OptimizedModuleWrapper } from '@/utils/consolidatedFastLoader';
 
-interface IconModule {
+export interface IconModule {
   id: string;
   label: string;
   icon: React.ReactNode;
   color: string;
-  component: React.ReactNode;
+  component?: React.ReactNode;
+  premium?: boolean;
 }
 
 interface UnifiedIconDashboardProps {
@@ -39,137 +39,83 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
 
   const t = text[language as keyof typeof text];
 
-  const { preloadModule, getModule, isReady } = useFastModules();
-
-  // Ultra-fast preload ALL modules instantly when dashboard opens  
-  useEffect(() => {
-    const preloadAllModules = async () => {
-      const moduleIds = modules.map(m => m.id);
-      console.log(`[UNIFIED_DASHBOARD] ⚡ Instant preloading ${moduleIds.length} modules`);
-      
-      // Preload ALL modules immediately in parallel - no delays
-      const preloadPromises = moduleIds.map(id => preloadModule(id));
-      const results = await Promise.allSettled(preloadPromises);
-      
-      const successful = results.filter(r => r.status === 'fulfilled').length;
-      console.log(`[UNIFIED_DASHBOARD] 🚀 ${successful}/${moduleIds.length} modules instantly ready`);
-    };
-
-    // Start preloading immediately without any delays
-    preloadAllModules();
-  }, [modules, preloadModule]);
-
-  const handleModuleClick = async (moduleId: string) => {
+  const handleModuleClick = (moduleId: string) => {
     console.log(`[UNIFIED_DASHBOARD] ⚡ Switching to module: ${moduleId}`);
-    
-    // Check if module is already preloaded (should be instant)
-    const preloadedComponent = getModule(moduleId);
-    if (preloadedComponent) {
-      console.log(`[UNIFIED_DASHBOARD] 🚀 Instant load: ${moduleId}`);
-      setActiveModule(moduleId);
-      return;
-    }
-
-    // Fallback: load module if not preloaded (should rarely happen)
-    console.log(`[UNIFIED_DASHBOARD] 🔄 Fallback loading: ${moduleId}`);
-    setActiveModule(moduleId); // Set immediately for instant UI response
-    preloadModule(moduleId); // Load in background
-  };
-
-  const handleModuleHover = (moduleId: string) => {
-    if (!isReady(moduleId)) {
-      preloadModule(moduleId);
-    }
+    setActiveModule(moduleId);
   };
 
   const handleBackClick = () => {
     setActiveModule(null);
   };
 
-  // Écouter les événements de changement de module
-  useEffect(() => {
-    const handleSwitchModule = (event: CustomEvent) => {
-      const { moduleId } = event.detail;
-      console.log(`[UNIFIED_DASHBOARD] 📡 Received switchModule event for: ${moduleId}`);
-      
-      // Vérifier si le module existe
-      const module = modules.find(m => m.id === moduleId);
-      if (module) {
-        console.log(`[UNIFIED_DASHBOARD] ✅ Switching to module: ${moduleId}`);
-        setActiveModule(moduleId);
-      } else {
-        console.warn(`[UNIFIED_DASHBOARD] ❌ Module not found: ${moduleId}`);
-        console.log(`[UNIFIED_DASHBOARD] Available modules:`, modules.map(m => m.id));
-      }
-    };
+  const renderIconGrid = () => {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <DashboardNavbar 
+          title={title} 
+          onTutorialClick={() => {
+            if ((window as any).showTutorial) (window as any).showTutorial();
+          }}
+        />
+        
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
+              {title}
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto">
+              {subtitle}
+            </p>
+          </div>
 
-    window.addEventListener('switchModule', handleSwitchModule as EventListener);
-
-    return () => {
-      window.removeEventListener('switchModule', handleSwitchModule as EventListener);
-    };
-  }, [modules]);
-
-  const renderIconGrid = () => (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <DashboardNavbar 
-        title={title} 
-        subtitle={subtitle} 
-        onTutorialClick={() => {
-          // Signal to parent components to show tutorial
-          if ((window as any).showTutorial) (window as any).showTutorial();
-        }}
-      />
-      
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-        {/* Mobile-first compact grid - Max 3 items per row on mobile */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-5xl mx-auto" data-testid="main-navigation">
-          {(Array.isArray(modules) ? modules : []).map((module, index) => (
-            <div
-              key={module.id}
-              onClick={() => handleModuleClick(module.id)}
-              onMouseEnter={() => handleModuleHover(module.id)}
-              className="relative bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100/50 hover:border-blue-200 group min-h-[80px] sm:min-h-[100px] touch-action-manipulation"
-              style={{ animationDelay: `${index * 30}ms` }}
-              data-testid={module.id === 'grades' ? 'student-grades' : module.id === 'assignments' ? 'student-homework' : `module-${module.id}`}
-            >
-              {/* Compact mobile layout */}
-              <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2 h-full justify-center">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${module.color} rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-sm transition-all duration-300 group-hover:scale-110`}>
-                  <div className="scale-75 sm:scale-85 md:scale-100">
-                    {module.icon}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+            {modules.map((module) => (
+              <div
+                key={module.id}
+                onClick={() => handleModuleClick(module.id)}
+                className="group relative bg-white rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 border border-gray-100 hover:border-gray-200 p-4 sm:p-6"
+              >
+                <div className="flex flex-col items-center text-center space-y-3 sm:space-y-4">
+                  <div className={`${module.color} rounded-xl sm:rounded-2xl p-3 sm:p-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    <div className="text-white">
+                      {module.icon}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-xs sm:text-sm lg:text-base group-hover:text-blue-600 transition-colors duration-300">
+                      {module.label}
+                    </h3>
                   </div>
                 </div>
-                <span className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 leading-tight line-clamp-2 max-w-full break-words">
-                  {module.label}
-                </span>
+
+                {module.premium && (
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                    PRO
+                  </div>
+                )}
               </div>
-              
-              {/* Subtle gradient overlay for depth */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-lg sm:rounded-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderModuleView = () => {
     const activeModuleData = modules.find(m => m.id === activeModule);
-    if (!activeModuleData) return null;
+    if (!activeModuleData) return renderIconGrid();
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <DashboardNavbar 
           title={activeModuleData.label} 
           onTutorialClick={() => {
-            // Signal to parent components to show tutorial
             if ((window as any).showTutorial) (window as any).showTutorial();
           }}
         />
         
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-8">
-          {/* Mobile-optimized back button */}
           <div className="mb-4 sm:mb-6">
             <button
               onClick={handleBackClick}
@@ -182,30 +128,15 @@ const UnifiedIconDashboard: React.FC<UnifiedIconDashboardProps> = ({
             </button>
           </div>
 
-          {/* Mobile-optimized module content container */}
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 md:p-6 overflow-hidden">
             <div className="w-full overflow-x-auto">
               <OptimizedModuleWrapper moduleName={activeModule || undefined} className="animate-in fade-in-0 duration-300">
-                {(() => {
-                  // Si le module a un component défini, l'utiliser
-                  if (activeModuleData.component) {
-                    return activeModuleData.component;
-                  }
-                  
-                  // Sinon, charger dynamiquement via fastModuleLoader
-                  const DynamicComponent = getModule(activeModule || '');
-                  if (DynamicComponent) {
-                    return <DynamicComponent />;
-                  }
-                  
-                  // Afficher un loading si le module n'est pas encore chargé
-                  return (
-                    <div className="flex items-center justify-center h-64">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <span className="ml-2 text-gray-600">Chargement du module...</span>
-                    </div>
-                  );
-                })()}
+                {activeModuleData.component || (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-2 text-gray-600">Loading module...</span>
+                  </div>
+                )}
               </OptimizedModuleWrapper>
             </div>
           </div>

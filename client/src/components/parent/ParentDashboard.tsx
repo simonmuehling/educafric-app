@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
-import { useFastModules } from '@/utils/fastModuleLoader';
+import { createInstantModule } from '@/utils/instantModuleHelper';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Settings, BookOpen, MessageSquare,
@@ -30,7 +30,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [currentActiveModule, setCurrentActiveModule] = useState(activeModule);
-  const { getModule, preloadModule } = useFastModules();
+  // Now using instant module helper for ultra-fast loading
   const [apiDataPreloaded, setApiDataPreloaded] = useState(false);
   
   // AGGRESSIVE API DATA PRELOADING - Parent APIs
@@ -76,61 +76,9 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     preloadParentApiData();
   }, [user, queryClient]);
   
-  // FORCE IMMEDIATE preload of critical slow modules - Parent specific
-  React.useEffect(() => {
-    const criticalModules = ['children', 'parent-messages', 'parent-grades', 'parent-attendance', 'payments', 'geolocation'];
-    
-    const forceLoadCriticalModules = async () => {
-      console.log('[PARENT_DASHBOARD] 🚀 FORCE LOADING critical modules...');
-      
-      const promises = criticalModules.map(async (moduleName) => {
-        try {
-          console.log(`[PARENT_DASHBOARD] ⚡ Force loading ${moduleName}...`);
-          await preloadModule(moduleName);
-          console.log(`[PARENT_DASHBOARD] ✅ ${moduleName} module ready!`);
-          return true;
-        } catch (error) {
-          console.error(`[PARENT_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
-          return false;
-        }
-      });
-      
-      await Promise.all(promises);
-      console.log('[PARENT_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
-    };
-    
-    forceLoadCriticalModules();
-  }, [preloadModule]);
+  // Modules now load instantly from consolidated fast loader
   
-  // ULTRA-FAST module component creator
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
-    const ModuleComponent = getModule(moduleName);
-    
-    if (ModuleComponent) {
-      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments'].includes(moduleName);
-      if (isCritical) {
-        console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
-      }
-      return React.createElement(ModuleComponent);
-    }
-    
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
-    
-    return fallbackComponent || (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-2 text-green-600">
-            {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
-          </p>
-        </div>
-      </div>
-    );
-  };
+  // All modules now load instantly with consolidated fast loader
 
   // Stable event handlers that survive server restarts
   const handleSwitchToGrades = useStableCallback(() => {
@@ -193,14 +141,14 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      component: createDynamicModule('subscription')
+      component: createInstantModule('SubscriptionStatusCard')
     },
     {
       id: 'children',
       label: t.myChildren,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-blue-500',
-      component: createDynamicModule('children')
+      component: createInstantModule('FunctionalParentChildren')
     },
     {
       id: 'messages',
@@ -218,7 +166,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Pièces jointes et photos"
           ]}
         >
-          {createDynamicModule('parent-messages')}
+          {createInstantModule('FunctionalParentMessages')}
         </PremiumFeatureGate>
       )
     },
@@ -238,7 +186,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Téléchargement PDF professionnel"
           ]}
         >
-          {createDynamicModule('parent-grades')}
+          {createInstantModule('FunctionalParentGrades')}
         </PremiumFeatureGate>
       )
     },
@@ -258,7 +206,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Rapport mensuel automatique"
           ]}
         >
-          {createDynamicModule('parent-attendance')}
+          {createInstantModule('FunctionalParentAttendance')}
         </PremiumFeatureGate>
       )
     },
@@ -278,7 +226,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Reçus PDF téléchargeables"
           ]}
         >
-          {createDynamicModule('payments')}
+          {createInstantModule('payments')}
         </PremiumFeatureGate>
       )
     },
@@ -298,7 +246,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Historique des déplacements"
           ]}
         >
-          {createDynamicModule('geolocation')}
+          {createInstantModule('geolocation')}
         </PremiumFeatureGate>
       )
     },
@@ -318,7 +266,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             "Chat temps réel avec statut en ligne"
           ]}
         >
-          {createDynamicModule('family')}
+          {createInstantModule('family')}
         </PremiumFeatureGate>
       )
     },
@@ -334,14 +282,14 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.requests,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
-      component: createDynamicModule('requests')
+      component: createInstantModule('requests')
     },
     {
       id: 'profile',
       label: language === 'fr' ? 'Paramètres Parent' : 'Parent Settings',
       icon: <User className="w-6 h-6" />,
       color: 'bg-gray-500',
-      component: createDynamicModule('parent-profile')
+      component: createInstantModule('parent-profile')
     },
     {
       id: 'multirole',
@@ -365,7 +313,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.help,
       icon: <HelpCircle className="w-6 h-6" />,
       color: 'bg-cyan-500',
-      component: createDynamicModule('help')
+      component: createInstantModule('help')
     }
   ];
 
