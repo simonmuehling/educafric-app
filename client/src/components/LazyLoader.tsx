@@ -10,6 +10,13 @@ const OptimizedLoading = () => (
 // Pages critiques - Lazy loading pour production 3500+ users
 const LazyStudentsComponent = lazy(() => import('@/pages/Students'));
 const LazyTeachersComponent = lazy(() => import('@/pages/Teachers'));
+const LazyGradesComponent = lazy(() => import('@/pages/Grades'));
+const LazyAttendanceComponent = lazy(() => import('@/pages/Attendance'));
+const LazyClassesComponent = lazy(() => import('@/pages/Classes'));
+const LazyHomeworkComponent = lazy(() => import('@/pages/Homework'));
+const LazyTimetableComponent = lazy(() => import('@/pages/Timetable'));
+const LazyPaymentsComponent = lazy(() => import('@/pages/Payments'));
+const LazyReportsComponent = lazy(() => import('@/pages/Reports'));
 const LazyProfileComponent = lazy(() => import('@/pages/ModernProfile'));
 
 // Dashboard pages - Gros composants
@@ -116,8 +123,46 @@ export const LazyRoleBasedGeolocation = (props: any) => (
   </Suspense>
 );
 
-// Placeholders pour pages non critiques
-export const LazyGrades = LazyStudents;
-export const LazyAttendance = LazyStudents;
+export const LazyGrades = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyGradesComponent {...props} />
+  </Suspense>
+);
+
+export const LazyAttendance = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyAttendanceComponent {...props} />
+  </Suspense>
+);
+
+export const LazyClasses = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyClassesComponent {...props} />
+  </Suspense>
+);
+
+export const LazyHomework = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyHomeworkComponent {...props} />
+  </Suspense>
+);
+
+export const LazyTimetable = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyTimetableComponent {...props} />
+  </Suspense>
+);
+
+export const LazyPayments = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyPaymentsComponent {...props} />
+  </Suspense>
+);
+
+export const LazyReports = (props: any) => (
+  <Suspense fallback={<OptimizedLoading />}>
+    <LazyReportsComponent {...props} />
+  </Suspense>
+);
 
 export default OptimizedLoading;

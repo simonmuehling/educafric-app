@@ -562,7 +562,7 @@ export class DatabaseStorage implements IStorage {
       return result;
     } catch (error) {
       console.error('[STORAGE] Error creating teacher:', error);
-      throw error;
+      throw new Error('Failed to create teacher. Please try again.');
     }
   }
   async updateTeacher(id: number, data: any): Promise<any> { return data; }
@@ -1502,7 +1502,7 @@ export class DatabaseStorage implements IStorage {
       return newConnection;
     } catch (error) {
       console.error('[STORAGE] createFamilyConnection error:', error);
-      throw error;
+      throw new Error('Failed to create family connection. Please try again.');
     }
   }
 
@@ -1517,7 +1517,7 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error('[STORAGE] updateConnectionStatus error:', error);
-      throw error;
+      throw new Error('Failed to update connection status. Please try again.');
     }
   }
 
@@ -1604,7 +1604,7 @@ export class DatabaseStorage implements IStorage {
       return newMessage;
     } catch (error) {
       console.error('[STORAGE] sendFamilyMessage error:', error);
-      throw error;
+      throw new Error('Failed to send family message. Please try again.');
     }
   }
 
@@ -1652,7 +1652,7 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error('[STORAGE] approveFamilyConnection error:', error);
-      throw error;
+      throw new Error('Failed to approve family connection. Please try again.');
     }
   }
 

@@ -24,6 +24,11 @@ import {
   LazyTeachers, 
   LazyGrades, 
   LazyAttendance, 
+  LazyClasses,
+  LazyHomework,
+  LazyTimetable,
+  LazyPayments,
+  LazyReports,
   LazyProfile,
   LazyDirectorPage,
   LazyCommercialPage,
@@ -238,12 +243,7 @@ function Router() {
       
       <Route path="/classes">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Classes</h2>
-              <p className="text-gray-600 mt-2">Class management coming soon</p>
-            </div>
-          </div>
+          <LazyClasses />
         </ProtectedRoute>
       </Route>
       
@@ -261,23 +261,13 @@ function Router() {
       
       <Route path="/homework">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Homework</h2>
-              <p className="text-gray-600 mt-2">Homework management coming soon</p>
-            </div>
-          </div>
+          <LazyHomework />
         </ProtectedRoute>
       </Route>
       
       <Route path="/timetable">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Timetable</h2>
-              <p className="text-gray-600 mt-2">Timetable management coming soon</p>
-            </div>
-          </div>
+          <LazyTimetable />
         </ProtectedRoute>
       </Route>
       
@@ -325,23 +315,13 @@ function Router() {
       
       <Route path="/payments">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Payments</h2>
-              <p className="text-gray-600 mt-2">Payment management coming soon</p>
-            </div>
-          </div>
+          <LazyPayments />
         </ProtectedRoute>
       </Route>
       
       <Route path="/reports">
         <ProtectedRoute>
-          <div className="flex flex-col flex-1">
-            <div className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-gray-900">Reports</h2>
-              <p className="text-gray-600 mt-2">Reporting system coming soon</p>
-            </div>
-          </div>
+          <LazyReports />
         </ProtectedRoute>
       </Route>
       
