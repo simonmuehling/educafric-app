@@ -58,7 +58,7 @@ export const LazyParentDashboard = createLazyComponent(
 );
 
 export const LazyTeacherDashboard = createLazyComponent(
-  () => import('@/pages/Teachers'),
+  () => import('@/components/teacher/TeacherDashboard'),
   'TeacherDashboard'
 );
 
