@@ -29,6 +29,10 @@ import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizz
 export const attendanceAutomation = pgTable("attendance_automation", {
   id: serial("id").primaryKey(),
   schoolId: integer("school_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  classId: integer("class_id").notNull(),
+  automaticallyMarked: boolean("automatically_marked").default(false),
+  notes: text("notes"),
   isEnabled: boolean("is_enabled").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
@@ -102,6 +106,14 @@ export const partnershipCommunications = pgTable("partnership_communications", {
 export const routeOptimization = pgTable("route_optimization", {
   id: serial("id").primaryKey(),
   deviceId: integer("device_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  startLat: text("start_lat"),
+  startLng: text("start_lng"),
+  endLat: text("end_lat"),
+  endLng: text("end_lng"),
+  distance: text("distance"),
+  estimatedTime: integer("estimated_time"),
+  safetyScore: integer("safety_score"),
   optimizedRoute: jsonb("optimized_route"),
   createdAt: timestamp("created_at").defaultNow()
 });

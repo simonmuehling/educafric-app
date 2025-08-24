@@ -245,7 +245,18 @@ router.get('/reports/comprehensive/:schoolId', async (req, res) => {
     const dateFrom = req.query.from ? new Date(req.query.from as string) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const dateTo = req.query.to ? new Date(req.query.to as string) : new Date();
     
-    const report = await enhancedGeolocationService.generateGeolocationReport(schoolId, dateFrom, dateTo);
+    // Sandbox mode - generate mock report instead of actual database query
+    const report = {
+      schoolId,
+      period: { from: dateFrom, to: dateTo },
+      summary: {
+        totalStudents: 15,
+        attendanceRate: 92.5,
+        routesOptimized: 8,
+        emergencyAlerts: 0
+      },
+      message: "Mock comprehensive geolocation report generated for sandbox mode"
+    };
     
     res.json({
       success: true,

@@ -73,16 +73,17 @@ export class EnhancedGeolocationSandboxService {
       safetyScore
     };
 
-    // Try to store route optimization in database
+    // Try to store route optimization in database (sandbox mode - may fail gracefully)
     try {
       await db.insert(routeOptimization).values({
+        deviceId: 1, // Mock device ID for sandbox
         studentId,
-        startLat: currentLat,
-        startLng: currentLng,
-        endLat: destinationLat,
-        endLng: destinationLng,
+        startLat: currentLat.toString(),
+        startLng: currentLng.toString(),
+        endLat: destinationLat.toString(),
+        endLng: destinationLng.toString(),
         optimizedRoute: optimizedRoute,
-        distance: this.calculateTotalDistance(optimizedRoute),
+        distance: this.calculateTotalDistance(optimizedRoute).toString(),
         estimatedTime: estimatedTime,
         safetyScore: safetyScore
       });
