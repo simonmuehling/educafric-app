@@ -28,50 +28,64 @@ const AdministratorManagementFunctional: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Gestion Administrateurs École',
-      subtitle: 'Administration des comptes et permissions (Maximum 2)',
-      addAdmin: 'Ajouter Administrateur',
+      title: 'Administrateurs Délégués',
+      subtitle: 'Déléguer des responsabilités administratives à des enseignants (Maximum 2)',
+      description: 'Répartissez les tâches administratives pour vous concentrer sur la stratégie tout en maintenant un contrôle approprié.',
+      addAdmin: 'Déléguer à un Enseignant',
       selectTeacher: 'Sélectionner Enseignant',
-      selectLevel: 'Niveau d\'Accès',
-      assistant: 'Assistant (8 permissions)',
-      limited: 'Limité (3 permissions)',
-      adminName: 'Nom',
+      selectLevel: 'Niveau de Délégation',
+      assistant: 'Assistant - Gestion étendue (8 permissions)',
+      limited: 'Limité - Gestion restreinte (3 permissions)',
+      adminName: 'Enseignant Délégué',
       email: 'Email',
-      level: 'Niveau',
-      permissions: 'Permissions',
+      level: 'Niveau de Délégation',
+      permissions: 'Permissions Déléguées',
       actions: 'Actions',
-      editPerms: 'Modifier',
-      remove: 'Supprimer',
+      editPerms: 'Modifier Permissions',
+      remove: 'Révoquer Délégation',
       active: 'Actif',
-      save: 'Enregistrer',
+      save: 'Déléguer',
       cancel: 'Annuler',
       loading: 'Chargement...',
-      noAdmins: 'Aucun administrateur configuré',
-      maxReached: 'Maximum 2 administrateurs autorisés',
-      confirm: 'Êtes-vous sûr de vouloir supprimer cet administrateur ?'
+      noAdmins: 'Aucune délégation administrative configurée',
+      maxReached: 'Maximum 2 délégations administratives autorisées',
+      confirm: 'Êtes-vous sûr de vouloir révoquer cette délégation administrative ?',
+      benefits: {
+        director: 'Pour vous : Concentrez-vous sur la stratégie plutôt que les tâches opérationnelles',
+        school: 'Pour l\'école : Continuité administrative même en votre absence',
+        teachers: 'Pour les enseignants : Développement de compétences managériales',
+        security: 'Sécurité : Permissions granulaires et traçabilité complète'
+      }
     },
     en: {
-      title: 'School Administrator Management',
-      subtitle: 'Account and permissions administration (Maximum 2)',
-      addAdmin: 'Add Administrator',
+      title: 'Delegate Administrators',
+      subtitle: 'Delegate administrative responsibilities to teachers (Maximum 2)',
+      description: 'Distribute administrative tasks to focus on strategy while maintaining appropriate control.',
+      addAdmin: 'Delegate to Teacher',
       selectTeacher: 'Select Teacher',
-      selectLevel: 'Access Level',
-      assistant: 'Assistant (8 permissions)',
-      limited: 'Limited (3 permissions)',
-      adminName: 'Name',
+      selectLevel: 'Delegation Level',
+      assistant: 'Assistant - Extended management (8 permissions)',
+      limited: 'Limited - Restricted management (3 permissions)',
+      adminName: 'Delegated Teacher',
       email: 'Email',
-      level: 'Level',
-      permissions: 'Permissions',
+      level: 'Delegation Level',
+      permissions: 'Delegated Permissions',
       actions: 'Actions',
-      editPerms: 'Edit',
-      remove: 'Remove',
+      editPerms: 'Edit Permissions',
+      remove: 'Revoke Delegation',
       active: 'Active',
-      save: 'Save',
+      save: 'Delegate',
       cancel: 'Cancel',
       loading: 'Loading...',
-      noAdmins: 'No administrators configured',
-      maxReached: 'Maximum 2 administrators allowed',
-      confirm: 'Are you sure you want to remove this administrator?'
+      noAdmins: 'No administrative delegation configured',
+      maxReached: 'Maximum 2 administrative delegations allowed',
+      confirm: 'Are you sure you want to revoke this administrative delegation?',
+      benefits: {
+        director: 'For you: Focus on strategy rather than operational tasks',
+        school: 'For the school: Administrative continuity even in your absence',
+        teachers: 'For teachers: Development of managerial skills',
+        security: 'Security: Granular permissions and complete traceability'
+      }
     }
   };
 
@@ -295,7 +309,7 @@ const AdministratorManagementFunctional: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
+        {/* Header avec explication de la délégation */}
         <Card className="bg-white/80 backdrop-blur-md shadow-xl border border-white/30">
           <CardHeader>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -308,6 +322,7 @@ const AdministratorManagementFunctional: React.FC = () => {
                     {t.title || ''}
                   </CardTitle>
                   <p className="text-gray-600 mt-1">{t.subtitle}</p>
+                  <p className="text-sm text-gray-500 mt-1">{t.description}</p>
                 </div>
               </div>
               

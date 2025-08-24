@@ -21,6 +21,7 @@ import sandboxRouter from "./routes/api/sandbox";
 import sandboxUnifiedDataRoutes from "./routes/sandbox-unified-data";
 import schoolsRouter from "./routes/api/schools";
 import parentRouter from "./routes/api/parent";
+import adminRoutes from "./routes/admin";
 
 // Import existing route modules
 import geolocationRoutes from "./routes/geolocation";
@@ -208,6 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
   app.use('/api/schools', schoolsRouter);
   app.use('/api/parent', parentRouter);
+  app.use('/api/admin', adminRoutes);
 
   // Register existing route modules
   app.use('/api/geolocation', geolocationRoutes);
