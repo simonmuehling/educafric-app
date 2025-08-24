@@ -115,7 +115,21 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Configure correct MIME types for static assets
+// 🚫 CRITICAL: Optimized static asset serving for production performance
+app.use('/assets', express.static('dist/public/assets', {
+  maxAge: '1y', // 1 year cache for hashed assets
+  immutable: true,
+  setHeaders: (res, path) => {
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    } else if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+    }
+    res.setHeader('X-Asset-Optimized', 'true');
+  }
+}));
+
+// Configure correct MIME types for public assets
 app.use('/public', express.static('public', {
   setHeaders: (res, path) => {
     if (path.endsWith('.png')) {
