@@ -7,6 +7,7 @@ import fs from "fs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import passport from "passport";
+import crypto from "crypto";
 import { marked } from "marked";
 
 // Import middleware
@@ -77,13 +78,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Configure session middleware - MUST be before passport initialization
   const PgSession = connectPgSimple(session);
+  
+  // Debug session configuration
+  console.log('[SESSION_DEBUG] Configuring session with DATABASE_URL:', !!process.env.DATABASE_URL);
+  
   app.use(session({
     ...productionSessionConfig,
     store: new PgSession({
       conString: process.env.DATABASE_URL,
       tableName: 'session',
       createTableIfMissing: true,
-    })
+    }),
+    // Add debug logging
+    genid: (req) => {
+      const newId = crypto.randomBytes(32).toString('hex');
+      console.log('[SESSION_DEBUG] Generated new session ID:', newId);
+      return newId;
+    }
   }));
   
   // Initialize passport middleware - MUST be after session middleware

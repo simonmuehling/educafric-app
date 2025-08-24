@@ -32,18 +32,19 @@ passport.use(new LocalStrategy(
 
 passport.serializeUser((user: any, done) => {
   try {
+    console.log('[AUTH_DEBUG] Serializing user:', { id: user?.id, email: user?.email, role: user?.role });
+    
     // Validate user object exists and has required properties
     if (!user || typeof user !== 'object' || !user.id) {
+      console.error('[AUTH_ERROR] Invalid user object for serialization:', user);
       return done(new Error('Invalid user object for serialization'));
     }
     
-    if (user.sandboxMode) {
-      done(null, `sandbox:${user.id}`);
-    } else {
-      done(null, user.id);
-    }
+    const serializedId = user.sandboxMode ? `sandbox:${user.id}` : user.id;
+    console.log('[AUTH_DEBUG] Serialized user ID:', serializedId);
+    done(null, serializedId);
   } catch (error) {
-    console.error('[AUTH_ERROR] User serialization failed');
+    console.error('[AUTH_ERROR] User serialization failed:', error);
     done(error);
   }
 });
