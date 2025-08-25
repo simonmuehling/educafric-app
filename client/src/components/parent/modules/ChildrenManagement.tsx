@@ -170,22 +170,22 @@ const ChildrenManagement = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
+  // ✅ NO EARLY RETURNS - All hooks above, conditional rendering below
+  return (
+    <div className="space-y-6">
+      
+      {/* ✅ CONDITIONAL RENDERING - Loading State */}
+      {isLoading && (
         <div className="text-center py-8">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">
             {language === 'fr' ? 'Chargement des enfants...' : 'Loading children...'}
           </p>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
+      )}
+      
+      {/* ✅ CONDITIONAL RENDERING - Error State */}
+      {error && (
         <div className="text-center py-8">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600">
@@ -196,12 +196,11 @@ const ChildrenManagement = () => {
             {language === 'fr' ? 'Réessayer' : 'Retry'}
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-6">
+      )}
+      
+      {/* ✅ CONDITIONAL RENDERING - Main Content */}
+      {!isLoading && !error && (
+        <>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
@@ -475,6 +474,8 @@ const ChildrenManagement = () => {
           </div>
         )}
       </ModernCard>
+      </>
+      )}
     </div>
   );
 };

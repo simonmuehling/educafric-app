@@ -131,19 +131,23 @@ const FunctionalMyChildren: React.FC = () => {
     return 'text-red-600';
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-8">
-        <div className="text-center">
-          <Clock className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">{t.loading}</p>
-        </div>
-      </div>
-    );
-  }
-
+  // ✅ NO EARLY RETURNS - All hooks above, conditional rendering below
   return (
     <div className="p-6 space-y-6">
+      
+      {/* ✅ CONDITIONAL RENDERING - Loading State */}
+      {isLoading && (
+        <div className="p-8">
+          <div className="text-center">
+            <Clock className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <p className="text-gray-600">{t.loading}</p>
+          </div>
+        </div>
+      )}
+      
+      {/* ✅ CONDITIONAL RENDERING - Main Content */}
+      {!isLoading && (
+        <>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -323,6 +327,8 @@ const FunctionalMyChildren: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+      </>
       )}
     </div>
   );
