@@ -52,6 +52,7 @@ export class SimpleGeolocationService {
         coordinates: { lat: 4.0511, lng: 9.7679 },
         radius: 100,
         children: [1, 2],
+        childrenIds: [1, 2],
         active: true
       },
       {
@@ -61,6 +62,7 @@ export class SimpleGeolocationService {
         coordinates: { lat: 4.0525, lng: 9.7695 },
         radius: 50,
         children: [2],
+        childrenIds: [2],
         active: true
       }
     ];
@@ -97,12 +99,16 @@ export class SimpleGeolocationService {
       type: zone.type,
       coordinates: { lat: zone.latitude, lng: zone.longitude },
       radius: zone.radius,
-      children: [],
-      active: zone.active
+      children: zone.childrenIds || [],
+      childrenIds: zone.childrenIds || [],
+      active: zone.active,
+      // Informations sur les enfants suivis
+      trackedChildren: zone.childrenIds?.length || 0
     }));
     
     const allZones = [...mockZones, ...createdZones];
     console.log(`[GEOLOCATION_SERVICE] 📋 Returning ${allZones.length} zones (${mockZones.length} mock + ${createdZones.length} created)`);
+    console.log(`[GEOLOCATION_SERVICE] 👶 Created zones tracking ${createdZones.reduce((total, zone) => total + zone.trackedChildren, 0)} children total`);
     return allZones;
   }
 
@@ -113,16 +119,26 @@ export class SimpleGeolocationService {
 
   async createSafeZone(zoneData: any) {
     console.log(`[GEOLOCATION_SERVICE] ➕ Creating safe zone:`, zoneData);
+    
+    const childrenIds = zoneData.childrenIds || [];
     const newZone = {
       id: Date.now(),
       ...zoneData,
+      childrenIds: childrenIds,
       active: true,
       createdAt: new Date().toISOString()
     };
     
-    // ✅ FIXED: Actually SAVE the new zone!
+    // ✅ FIXED: Actually SAVE the new zone with children tracking!
     SimpleGeolocationService.createdSafeZones.push(newZone);
     console.log(`[GEOLOCATION_SERVICE] ✅ Zone saved! Total zones: ${SimpleGeolocationService.createdSafeZones.length}`);
+    
+    if (childrenIds.length > 0) {
+      console.log(`[GEOLOCATION_SERVICE] 👶 Zone "${newZone.name}" will track ${childrenIds.length} children: [${childrenIds.join(', ')}]`);
+      console.log(`[GEOLOCATION_SERVICE] 📱 Device tracking automatically enabled for selected children`);
+    } else {
+      console.log(`[GEOLOCATION_SERVICE] ⚠️ Zone "${newZone.name}" created without child tracking`);
+    }
     
     return newZone;
   }

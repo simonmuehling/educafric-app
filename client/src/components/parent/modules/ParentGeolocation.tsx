@@ -633,9 +633,37 @@ export const ParentGeolocation = () => {
                       <span>{zone.radius}m</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Enfants:</span>
-                      <span>{Array.isArray(zone.children) ? zone.children.length : 0}</span>
+                      <span className="text-gray-600">Enfants suivis:</span>
+                      <span className="flex items-center gap-1">
+                        {Array.isArray(zone.children) ? zone.children.length : Array.isArray(zone.childrenIds) ? zone.childrenIds.length : 0}
+                        {(Array.isArray(zone.children) ? zone.children.length : Array.isArray(zone.childrenIds) ? zone.childrenIds.length : 0) > 0 && (
+                          <span className="w-2 h-2 bg-green-400 rounded-full" title="Suivi actif" />
+                        )}
+                      </span>
                     </div>
+                    {/* Afficher les noms des enfants suivis */}
+                    {((Array.isArray(zone.children) && zone.children.length > 0) || (Array.isArray(zone.childrenIds) && zone.childrenIds.length > 0)) && (
+                      <div className="bg-green-50 p-2 rounded text-xs">
+                        <span className="text-green-700 font-medium">👶 Enfants:</span>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {(() => {
+                            const trackedIds = zone.childrenIds || zone.children || [];
+                            return trackedIds.map((childId: any) => {
+                              const child = children.find(c => c.id === childId);
+                              return child ? (
+                                <span key={childId} className="bg-green-200 text-green-800 px-1 py-0.5 rounded text-xs">
+                                  {child.name}
+                                </span>
+                              ) : (
+                                <span key={childId} className="bg-gray-200 text-gray-600 px-1 py-0.5 rounded text-xs">
+                                  ID:{childId}
+                                </span>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex gap-2 mt-3">
@@ -801,6 +829,9 @@ export const ParentGeolocation = () => {
               // Récupérer les jours actifs sélectionnés
               const activeDays = Array.from(formData.getAll('activeDays')).map(day => parseInt(day as string));
               
+              // Récupérer les enfants sélectionnés
+              const selectedChildrenIds = Array.from(formData.getAll('childrenIds')).map(id => parseInt(id as string));
+              
               const zoneData = {
                 name: formData.get('name') as string,
                 type: formData.get('type') as string,
@@ -808,6 +839,8 @@ export const ParentGeolocation = () => {
                 longitude: parseFloat(formData.get('longitude') as string),
                 radius: parseInt(formData.get('radius') as string),
                 active: true,
+                // Enfants à suivre dans cette zone
+                childrenIds: selectedChildrenIds,
                 // Configuration horaire
                 schedule: {
                   startTime: formData.get('startTime') as string,
@@ -908,6 +941,40 @@ export const ParentGeolocation = () => {
                   <option value="relative">👨‍👩‍👧‍👦 Famille</option>
                   <option value="activity">⚽ Activité</option>
                 </select>
+              </div>
+
+              {/* Sélection des enfants à suivre */}
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <h4 className="font-medium text-yellow-800 mb-3">👶 Enfants à suivre dans cette zone</h4>
+                <div className="space-y-2">
+                  {children.map((child) => (
+                    <label key={child.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-yellow-100 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="childrenIds"
+                        value={child.id}
+                        className="rounded"
+                      />
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">
+                          {child.name?.charAt(0) || '?'}
+                        </div>
+                        <div>
+                          <span className="font-medium">{child.name}</span>
+                          <p className="text-xs text-gray-600">{child.class || 'Classe non définie'}</p>
+                        </div>
+                      </div>
+                      <div className="flex-1" />
+                      <div className={`w-2 h-2 rounded-full ${child.deviceType === 'smartphone' ? 'bg-green-400' : child.deviceType === 'smartwatch' ? 'bg-blue-400' : 'bg-gray-400'}`} />
+                    </label>
+                  ))}
+                  {children.length === 0 && (
+                    <p className="text-gray-500 text-sm text-center py-2">Aucun enfant trouvé</p>
+                  )}
+                </div>
+                <p className="text-xs text-yellow-700 mt-2">
+                  ✨ Les appareils des enfants sélectionnés seront automatiquement suivis dans cette zone
+                </p>
               </div>
               
               {/* Aide interactive pour la géolocalisation */}
