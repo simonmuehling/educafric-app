@@ -72,6 +72,30 @@ const PWANotificationTester: React.FC = () => {
             </Button>
             
             <Button 
+              onClick={() => hybridNotificationService.testGeolocationNotification()}
+              variant="destructive"
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              📍 Test géolocalisation
+            </Button>
+            
+            <Button 
+              onClick={() => hybridNotificationService.testLocationAlert()}
+              variant="destructive"
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              🗺️ Test zone de sécurité
+            </Button>
+            
+            <Button 
+              onClick={() => hybridNotificationService.testEmergencyAlert()}
+              variant="destructive"
+              className="w-full bg-red-800 hover:bg-red-900"
+            >
+              🆘 Test urgence
+            </Button>
+            
+            <Button 
               onClick={() => hybridNotificationService.testGradeNotification()}
               variant="default"
               className="w-full bg-green-600 hover:bg-green-700"

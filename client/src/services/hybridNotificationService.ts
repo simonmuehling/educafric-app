@@ -251,6 +251,48 @@ class HybridNotificationService {
     });
   }
 
+  public testGeolocationNotification() {
+    this.showNotification({
+      title: '📍 Position mise à jour',
+      body: 'Emma est maintenant au Lycée Bilingue de Douala - Position confirmée à 13:45',
+      tag: 'test-geolocation',
+      actions: [
+        { action: 'view_map', title: 'Voir carte' },
+        { action: 'history', title: 'Historique' }
+      ]
+    });
+  }
+
+  public testLocationAlert() {
+    this.showNotification({
+      title: '🗺️ Zone de sécurité',
+      body: 'Kevin a quitté la zone scolaire autorisée. Dernière position : Avenue Kennedy, Douala',
+      tag: 'test-location-alert',
+      requireInteraction: true,
+      vibrate: [300, 200, 300],
+      actions: [
+        { action: 'track_now', title: 'Localiser' },
+        { action: 'call_child', title: 'Appeler' },
+        { action: 'dismiss', title: 'OK' }
+      ]
+    });
+  }
+
+  public testEmergencyAlert() {
+    this.showNotification({
+      title: '🆘 ALERTE URGENCE',
+      body: 'Sarah a activé l\'alerte d\'urgence ! Position : Marché Central Yaoundé - Contactez immédiatement',
+      tag: 'test-emergency',
+      requireInteraction: true,
+      vibrate: [500, 250, 500, 250, 500, 250, 500],
+      actions: [
+        { action: 'call_emergency', title: 'Appeler 113' },
+        { action: 'locate_child', title: 'Localiser' },
+        { action: 'alert_family', title: 'Prévenir famille' }
+      ]
+    });
+  }
+
   public getStatus() {
     return {
       hasServiceWorker: this.hasServiceWorker,
