@@ -90,6 +90,41 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
   const handleRequestPermission = async () => {
     const result = await requestPermission();
     console.log('Permission result:', result);
+    
+    // Track PWA subscription when permission is granted
+    if (result && userId) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            const deviceInfo = {
+              userAgent: navigator.userAgent,
+              platform: navigator.platform,
+              language: navigator.language,
+              isStandalone: window.matchMedia('(display-mode: standalone)').matches
+            };
+            
+            await fetch('/api/analytics/pwa/subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                subscription: subscription.toJSON(),
+                deviceInfo,
+                notificationSettings: {
+                  enabled: true,
+                  types: ['system', 'grade', 'attendance', 'geolocation']
+                }
+              })
+            });
+            
+            console.log('[PWA_MANAGER] ✅ Subscription tracked for settings display');
+          }
+        }
+      } catch (error) {
+        console.error('[PWA_MANAGER] ❌ Failed to track subscription:', error);
+      }
+    }
   };
 
   const handleTestNotification = async () => {

@@ -1,19 +1,67 @@
-import React, { useState } from 'react';
-import { User, Shield, Bell, Lock, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Shield, Bell, Lock, Phone, Smartphone, CheckCircle, XCircle, Wifi, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
+import { useQuery } from '@tanstack/react-query';
+import PWANotificationManager from '@/components/shared/PWANotificationManager';
 
 const ParentSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { user } = useAuth();
+  const [pwaConnectionStatus, setPwaConnectionStatus] = useState<any>(null);
+  
+  // Fetch PWA subscription info
+  const { data: pwaSubscription, refetch: refetchPwaSubscription } = useQuery({
+    queryKey: ['pwa-subscription', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const response = await fetch('/api/analytics/pwa/user-subscription');
+      if (!response.ok) return null;
+      const result = await response.json();
+      return result.subscription;
+    },
+    enabled: !!user?.id
+  });
+  
+  // Track PWA connection status
+  useEffect(() => {
+    const checkPWAStatus = () => {
+      const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+      const isStandalone = (navigator as any)?.standalone === true;
+      const isInstalled = isPWA || isStandalone;
+      
+      setPwaConnectionStatus({
+        isInstalled,
+        isPWA,
+        isStandalone,
+        supportsPush: 'Notification' in window,
+        permission: 'Notification' in window ? Notification.permission : 'not-supported',
+        connectionType: isInstalled ? 'PWA' : 'Web Browser'
+      });
+    };
+    
+    checkPWAStatus();
+    
+    // Listen for PWA installation events
+    window.addEventListener('beforeinstallprompt', checkPWAStatus);
+    window.addEventListener('appinstalled', checkPWAStatus);
+    
+    return () => {
+      window.removeEventListener('beforeinstallprompt', checkPWAStatus);
+      window.removeEventListener('appinstalled', checkPWAStatus);
+    };
+  }, []);
 
   const text = {
     fr: {
@@ -23,6 +71,18 @@ const ParentSettings = () => {
       security: 'Sécurité',
       notifications: 'Notifications',
       privacy: 'Confidentialité',
+      pwaTitle: 'Connexion PWA',
+      pwaSubtitle: 'État de votre connexion Progressive Web App',
+      connectionType: 'Type de connexion',
+      pwaStatus: 'Statut PWA',
+      installed: 'Installée',
+      notInstalled: 'Non installée',
+      webBrowser: 'Navigateur Web',
+      pushNotifications: 'Notifications Push',
+      subscriptionInfo: 'Informations d\'abonnement',
+      subscribedSince: 'Abonné depuis',
+      deviceInfo: 'Informations appareil',
+      refreshStatus: 'Actualiser le statut',
       firstName: 'Prénom',
       lastName: 'Nom',
       email: 'Email',
@@ -43,6 +103,18 @@ const ParentSettings = () => {
       security: 'Security',
       notifications: 'Notifications',
       privacy: 'Privacy',
+      pwaTitle: 'PWA Connection',
+      pwaSubtitle: 'Your Progressive Web App connection status',
+      connectionType: 'Connection Type',
+      pwaStatus: 'PWA Status',
+      installed: 'Installed',
+      notInstalled: 'Not Installed',
+      webBrowser: 'Web Browser',
+      pushNotifications: 'Push Notifications',
+      subscriptionInfo: 'Subscription Info',
+      subscribedSince: 'Subscribed since',
+      deviceInfo: 'Device Information',
+      refreshStatus: 'Refresh Status',
       firstName: 'First Name',
       lastName: 'Last Name',
       email: 'Email',
@@ -173,7 +245,119 @@ const ParentSettings = () => {
         </TabsContent>
 
         {/* Notifications Tab */}
-        <TabsContent value="notifications">
+        <TabsContent value="notifications" className="space-y-6">
+          {/* PWA Connection & Subscription Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-blue-600" />
+                {t.pwaTitle}
+              </CardTitle>
+              <p className="text-sm text-gray-600">{t.pwaSubtitle}</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {pwaConnectionStatus && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium">{t.connectionType}:</span>
+                      <Badge variant={pwaConnectionStatus.isInstalled ? "default" : "secondary"}>
+                        <Wifi className="w-3 h-3 mr-1" />
+                        {pwaConnectionStatus.connectionType}
+                      </Badge>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium">{t.pwaStatus}:</span>
+                      {pwaConnectionStatus.isInstalled ? (
+                        <Badge className="bg-green-100 text-green-800">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {t.installed}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          {t.notInstalled}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="font-medium">{t.pushNotifications}:</span>
+                      <Badge variant={pwaConnectionStatus.permission === 'granted' ? "default" : "secondary"}>
+                        {pwaConnectionStatus.permission === 'granted' ? (
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                        ) : (
+                          <XCircle className="w-3 h-3 mr-1" />
+                        )}
+                        {pwaConnectionStatus.permission === 'granted' ? 'Activées' : 
+                         pwaConnectionStatus.permission === 'denied' ? 'Bloquées' : 'En attente'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {pwaSubscription && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-800">{t.subscriptionInfo}</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{t.subscribedSince}:</span>
+                          <span className="font-medium">
+                            {new Date(pwaSubscription.subscribedAt).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Endpoint:</span>
+                          <span className="font-medium text-green-600">
+                            {pwaSubscription.subscriptionEndpoint}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Status:</span>
+                          <Badge className="bg-green-100 text-green-800">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Actif
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="border-t pt-4">
+                <PWANotificationManager 
+                  userId={user?.id} 
+                  userRole={user?.role}
+                  onNotificationPermissionChange={() => {
+                    refetchPwaSubscription();
+                    // Refresh PWA status
+                    setPwaConnectionStatus((prev: any) => ({ 
+                      ...prev, 
+                      permission: 'Notification' in window ? Notification.permission : 'not-supported'
+                    }));
+                  }}
+                />
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  refetchPwaSubscription();
+                  toast({
+                    title: "Statut actualisé",
+                    description: "Les informations de connexion PWA ont été mises à jour."
+                  });
+                }}
+                className="w-full"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                {t.refreshStatus}
+              </Button>
+            </CardContent>
+          </Card>
+          
+          {/* Traditional Notification Settings */}
           <Card>
             <CardHeader>
               <CardTitle>{t.notifications}</CardTitle>

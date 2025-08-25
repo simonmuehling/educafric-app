@@ -86,6 +86,13 @@ router.post('/pwa/install', async (req: AuthenticatedRequest, res: Response) => 
       ip: req.ip || req.connection.remoteAddress
     };
 
+    // Store installation data (would be saved to database in production)
+    await storage.createUserAnalytics({
+      userId: installData.userId,
+      type: 'pwa_install',
+      data: installData
+    });
+
     // Log installation data
     console.log('[PWA_ANALYTICS] Installation tracked:', {
       deviceType: installData.deviceType,
@@ -102,6 +109,68 @@ router.post('/pwa/install', async (req: AuthenticatedRequest, res: Response) => 
     res.status(500).json({
       success: false,
       message: 'Failed to track installation'
+    });
+  }
+});
+
+// Track PWA notification subscription
+router.post('/pwa/subscription', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const {
+      subscription,
+      deviceInfo,
+      notificationSettings
+    } = req.body;
+
+    const subscriptionData = {
+      userId: req.user ? req.user.id : null,
+      subscription: subscription,
+      deviceInfo: deviceInfo || {},
+      notificationSettings: notificationSettings || {},
+      subscribedAt: new Date().toISOString(),
+      isActive: true
+    };
+
+    // Store subscription data for user settings display
+    await storage.createPWASubscription(subscriptionData);
+
+    console.log('[PWA_ANALYTICS] Subscription tracked for user:', subscriptionData.userId);
+
+    res.json({
+      success: true,
+      message: 'PWA subscription tracked successfully',
+      subscriptionId: `pwa_sub_${Date.now()}`
+    });
+
+  } catch (error: any) {
+    console.error('[PWA_ANALYTICS] Error tracking subscription:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to track subscription'
+    });
+  }
+});
+
+// Get user's PWA subscription info for settings display
+router.get('/pwa/user-subscription', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const subscriptionInfo = await storage.getUserPWASubscription(userId);
+    
+    res.json({
+      success: true,
+      subscription: subscriptionInfo || null
+    });
+
+  } catch (error: any) {
+    console.error('[PWA_ANALYTICS] Error getting user subscription:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get subscription info'
     });
   }
 });

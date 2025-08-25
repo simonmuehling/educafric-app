@@ -351,6 +351,58 @@ export class ModularStorage {
   async deleteNotification(notificationId: number) {
     return { success: true };
   }
+
+  // === PWA ANALYTICS & SUBSCRIPTION METHODS ===
+  private userAnalytics: any[] = [];
+  private pwaSubscriptions: any[] = [];
+  
+  async createUserAnalytics(data: any) {
+    const analytics = {
+      id: Date.now(),
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    
+    this.userAnalytics.push(analytics);
+    console.log(`[STORAGE] 📊 Analytics event stored: ${data.type} for user ${data.userId}`);
+    
+    return analytics;
+  }
+  
+  async createPWASubscription(data: any) {
+    const subscription = {
+      id: Date.now(),
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    
+    // Remove any existing subscription for this user first
+    this.pwaSubscriptions = this.pwaSubscriptions.filter(sub => sub.userId !== data.userId);
+    
+    // Add new subscription
+    this.pwaSubscriptions.push(subscription);
+    console.log(`[STORAGE] 📱 PWA subscription stored for user ${data.userId}`);
+    
+    return subscription;
+  }
+  
+  async getUserPWASubscription(userId: number) {
+    const subscription = this.pwaSubscriptions.find(sub => sub.userId === userId && sub.isActive);
+    
+    if (subscription) {
+      console.log(`[STORAGE] ✅ Found PWA subscription for user ${userId}`);
+      return {
+        subscribedAt: subscription.subscribedAt,
+        deviceInfo: subscription.deviceInfo,
+        notificationSettings: subscription.notificationSettings,
+        isActive: subscription.isActive,
+        subscriptionEndpoint: subscription.subscription?.endpoint ? 'Configured' : 'Not configured'
+      };
+    }
+    
+    console.log(`[STORAGE] ❌ No PWA subscription found for user ${userId}`);
+    return null;
+  }
   
   async getTeacherClasses(teacherId: number) { return []; }
   async getTeacherStudents(teacherId: number) { return []; }
