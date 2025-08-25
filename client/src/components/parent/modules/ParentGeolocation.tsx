@@ -155,19 +155,27 @@ export const ParentGeolocation = () => {
       if (!response.ok) throw new Error('Failed to create safe zone');
       return response.json();
     },
-    onSuccess: (newZone) => {
-      // ✅ IMMEDIATE VISUAL FEEDBACK - Parent sees their new safe zone
-      queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
-      queryClient.refetchQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+    onSuccess: async (newZone) => {
+      console.log('[PARENT_GEOLOCATION] ✅ Zone créée avec succès:', newZone);
       
-      // Also update children data if zone is linked to a child
+      // Force immediate data refresh with multiple strategies
+      await queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      
+      // Force complete geolocation cache refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/geolocation'] });
       queryClient.invalidateQueries({ queryKey: ['/api/parent/children'] });
+      
+      // Add small delay to ensure server has processed the data
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      }, 500);
       
       setShowAddZone(false);
       
       toast({
         title: '✅ Zone de sécurité créée avec succès',
-        description: 'La nouvelle zone de sécurité apparaît maintenant dans votre tableau de bord et les alertes automatiques sont activées.'
+        description: `Zone "${newZone.name || 'Nouvelle zone'}" ajoutée et visible immédiatement dans votre liste.`
       });
       
       // Scroll to show the new zone
