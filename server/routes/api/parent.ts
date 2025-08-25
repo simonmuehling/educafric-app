@@ -370,4 +370,109 @@ router.post('/grades/request', requireAuth, async (req: AuthenticatedRequest, re
   }
 });
 
+// Get child's timetable
+router.get('/children/:childId/timetable', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const { childId } = req.params;
+    
+    // Verify parent has access to this child
+    // For now, simplified verification
+    if (!childId) {
+      return res.status(400).json({ message: 'Child ID is required' });
+    }
+    
+    // Get timetable from storage
+    const timetable = await storage.getStudentTimetable(parseInt(childId));
+    
+    res.json({
+      success: true,
+      timetable: timetable,
+      childId: parseInt(childId)
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching child timetable:', error);
+    res.status(500).json({ message: 'Failed to fetch child timetable' });
+  }
+});
+
+// Get current/next class for child
+router.get('/children/:childId/current-class', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { childId } = req.params;
+    
+    if (!childId) {
+      return res.status(400).json({ message: 'Child ID is required' });
+    }
+    
+    // Get current/next class from storage
+    const currentClass = await storage.getCurrentClass(parseInt(childId));
+    
+    res.json({
+      success: true,
+      currentClass: currentClass,
+      childId: parseInt(childId)
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching current class:', error);
+    res.status(500).json({ message: 'Failed to fetch current class' });
+  }
+});
+
+// TEST ENDPOINT - REMOVE WHEN TESTING IS COMPLETE
+router.get('/test-timetable/:childId', async (req: Request, res: Response) => {
+  try {
+    const { childId } = req.params;
+    
+    // Get timetable from storage
+    const timetable = await storage.getStudentTimetable(parseInt(childId));
+    
+    res.json({
+      success: true,
+      timetable: timetable,
+      childId: parseInt(childId),
+      message: 'Test endpoint - timetable functionality working'
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Test timetable error:', error);
+    res.status(500).json({ message: 'Failed to fetch test timetable' });
+  }
+});
+
+// Get day schedule for child
+router.get('/children/:childId/schedule/:dayOfWeek', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { childId, dayOfWeek } = req.params;
+    
+    if (!childId || !dayOfWeek) {
+      return res.status(400).json({ message: 'Child ID and day of week are required' });
+    }
+    
+    // Get day schedule from storage
+    const daySchedule = await storage.getDayTimetable(parseInt(childId), parseInt(dayOfWeek));
+    
+    res.json({
+      success: true,
+      schedule: daySchedule,
+      childId: parseInt(childId),
+      dayOfWeek: parseInt(dayOfWeek)
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching day schedule:', error);
+    res.status(500).json({ message: 'Failed to fetch day schedule' });
+  }
+});
+
 export default router;

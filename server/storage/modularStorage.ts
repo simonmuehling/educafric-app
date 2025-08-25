@@ -6,6 +6,7 @@ import { SchoolStorage } from "./schoolStorage";
 import { GradeStorage } from "./gradeStorage";
 import { StudentStorage } from "./studentStorage";
 import { PWAStorage } from "./pwaStorage";
+import { TimetableStorage } from "./timetableStorage";
 
 // Main storage class combining all modules
 export class ModularStorage {
@@ -14,6 +15,7 @@ export class ModularStorage {
   private gradeStorage: GradeStorage;
   private studentStorage: StudentStorage;
   private pwaStorage: PWAStorage;
+  private timetableStorage: TimetableStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -21,6 +23,7 @@ export class ModularStorage {
     this.gradeStorage = new GradeStorage();
     this.studentStorage = new StudentStorage();
     this.pwaStorage = new PWAStorage();
+    this.timetableStorage = new TimetableStorage();
   }
 
   // === USER METHODS ===
@@ -75,6 +78,15 @@ export class ModularStorage {
   async getPwaUserStatistics() { return this.pwaStorage.getPwaUserStatistics(); }
 
   // === TIMETABLE METHODS ===
+  async getStudentTimetable(studentId: number) { return this.timetableStorage.getStudentTimetable(studentId); }
+  async getClassTimetable(classId: number) { return this.timetableStorage.getClassTimetable(classId); }
+  async getDayTimetable(studentId: number, dayOfWeek: number) { return this.timetableStorage.getDayTimetable(studentId, dayOfWeek); }
+  async getCurrentClass(studentId: number) { return this.timetableStorage.getCurrentClass(studentId); }
+  async createTimetableSlot(slotData: any) { return this.timetableStorage.createTimetableSlot(slotData); }
+  async updateTimetableSlot(slotId: number, updates: any) { return this.timetableStorage.updateTimetableSlot(slotId, updates); }
+  async deleteTimetableSlot(slotId: number) { return this.timetableStorage.deleteTimetableSlot(slotId); }
+
+  // === LEGACY TIMETABLE METHODS (for backward compatibility) ===
   async getTimetableForSchool(schoolId: number) {
     // Return mock data for now - functional timetable
     return [
@@ -85,18 +97,13 @@ export class ModularStorage {
   }
 
   async getTimetableForClass(classId: number) {
-    // Return mock data for now - functional student timetable
-    return [
-      { id: 1, dayOfWeek: "Lundi", startTime: "08:00", endTime: "09:00", subjectName: "Mathématiques", teacherName: "Prof Martin", room: "Salle 101" },
-      { id: 2, dayOfWeek: "Lundi", startTime: "09:00", endTime: "10:00", subjectName: "Français", teacherName: "Prof Dubois", room: "Salle 102" },
-      { id: 3, dayOfWeek: "Mardi", startTime: "08:00", endTime: "09:00", subjectName: "Histoire", teacherName: "Prof Lambert", room: "Salle 103" },
-      { id: 4, dayOfWeek: "Mercredi", startTime: "08:00", endTime: "09:00", subjectName: "Sciences", teacherName: "Prof Kouame", room: "Labo 1" }
-    ];
+    // Delegate to new timetable storage
+    return this.timetableStorage.getClassTimetable(classId);
   }
 
   async createTimetableEntry(data: any) {
-    // Simple creation - return success
-    return { success: true, id: Date.now() };
+    // Delegate to new timetable storage
+    return this.timetableStorage.createTimetableSlot(data);
   }
   async updateUserAccessMethod(userId: number, accessMethod: string, isPwaInstalled: boolean) { 
     return this.pwaStorage.updateUserAccessMethod(userId, accessMethod, isPwaInstalled); 
