@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, User, Bell, Shield } from 'lucide-react';
+import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 
 const StudentSettings = () => {
   const { language } = useLanguage();
@@ -52,6 +53,12 @@ const StudentSettings = () => {
   };
 
   const t = text[language as keyof typeof text];
+
+  const tabConfig = [
+    { value: 'profile', label: t.profile, icon: User },
+    { value: 'notifications', label: t.notifications, icon: Bell },
+    { value: 'privacy', label: t.privacy, icon: Shield }
+  ];
 
   // Fetch student settings
   const { data: settings, isLoading } = useQuery({
@@ -108,20 +115,12 @@ const StudentSettings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            {t.profile}
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            {t.notifications}
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            {t.privacy}
-          </TabsTrigger>
-        </TabsList>
+        {/* Unified Icon Navigation for All Devices */}
+        <MobileIconTabNavigation
+          tabs={tabConfig}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
         <TabsContent value="profile">
           <Card>
