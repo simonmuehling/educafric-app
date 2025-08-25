@@ -95,27 +95,23 @@ const ParentChildrenTimetable: React.FC = () => {
   const today = new Date();
   const isToday = selectedDay === today.getDay();
 
-  // Handle loading state
-  if (childrenLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
-        <div className="max-w-4xl mx-auto">
+  // ✅ NO EARLY RETURNS - Render everything conditionally within single return
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* ✅ CONDITIONAL RENDERING - Loading State */}
+        {childrenLoading && (
           <Card className="text-center py-12">
             <CardContent>
               <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
               <p className="text-gray-600">Chargement des données des enfants...</p>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle no children state
-  if (children.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
-        <div className="max-w-4xl mx-auto">
+        )}
+        
+        {/* ✅ CONDITIONAL RENDERING - No Children State */}
+        {!childrenLoading && children.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -127,14 +123,13 @@ const ParentChildrenTimetable: React.FC = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+        )}
+        
+        {/* ✅ CONDITIONAL RENDERING - Main Content */}
+        {!childrenLoading && children.length > 0 && (
+          <>
+        
+        {/* ✅ CONTENT CONTINUES BELOW */}
         {/* Header */}
         <Card>
           <CardHeader className="text-center">
@@ -292,6 +287,9 @@ const ParentChildrenTimetable: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        </>
+        )}
+        
       </div>
     </div>
   );
