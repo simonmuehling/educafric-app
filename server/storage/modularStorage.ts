@@ -290,7 +290,19 @@ export class ModularStorage {
   }
   
   // === NOTIFICATION METHODS ===
+  private notifications: any[] = [];
+  
   async getUserNotifications(userId: number, userRole?: string) {
+    // Return stored notifications for this user, or mock data if none exist
+    const userNotifications = this.notifications.filter(n => n.userId === userId);
+    
+    if (userNotifications.length > 0) {
+      console.log(`[STORAGE] ✅ Found ${userNotifications.length} real notifications for user ${userId}`);
+      return userNotifications;
+    }
+    
+    // Fallback to mock data
+    console.log(`[STORAGE] 📝 No real notifications found, returning mock data for user ${userId}`);
     return [
       {
         id: 1,
@@ -314,7 +326,18 @@ export class ModularStorage {
   }
   
   async createNotification(data: any) {
-    return { id: Date.now(), ...data, createdAt: new Date() };
+    const newNotification = { 
+      id: Date.now(), 
+      ...data, 
+      createdAt: new Date().toISOString(),
+      isRead: false 
+    };
+    
+    this.notifications.push(newNotification);
+    console.log(`[STORAGE] ✅ Created notification for user ${data.userId}: "${data.title}"`);
+    console.log(`[STORAGE] 📊 Total notifications stored: ${this.notifications.length}`);
+    
+    return newNotification;
   }
   
   async markNotificationAsRead(notificationId: number) {
