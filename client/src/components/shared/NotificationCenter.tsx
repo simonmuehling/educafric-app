@@ -166,7 +166,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   // Fetch notifications - Fixed API query format
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', userId],
-    queryFn: () => fetch(`/api/notifications?userId=${userId}`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch('/api/notifications', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      return response.json();
+    },
     enabled: !!userId
   });
 
@@ -201,8 +207,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId: number) => 
-      apiRequest('POST', `/api/notifications/${notificationId}/mark-read`),
+    mutationFn: async (notificationId: number) => {
+      const response = await fetch(`/api/notifications/${notificationId}/mark-read`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to mark notification as read');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     }
@@ -210,8 +222,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
-    mutationFn: () => 
-      apiRequest('POST', '/api/notifications/mark-all-read'),
+    mutationFn: async () => {
+      const response = await fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to mark all notifications as read');
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     }

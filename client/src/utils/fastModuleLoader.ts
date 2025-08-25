@@ -84,6 +84,9 @@ class FastModuleLoader {
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
       'parent-timetable': () => import('@/components/parent/modules/ParentChildrenTimetable'),
       
+      // CRITICAL MISSING MAPPINGS CAUSING SLOW LOADING - FIXED!
+      'parent-communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // For "communication" module
+      
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
       'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'), 
@@ -108,8 +111,8 @@ class FastModuleLoader {
       'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
-      'messages': () => import('@/components/student/modules/StudentCommunications'),
-      'communications': () => import('@/components/student/modules/StudentCommunications'), // Fixed missing mapping
+      'student-messages': () => import('@/components/student/modules/StudentCommunications'),
+      'student-communications': () => import('@/components/student/modules/StudentCommunications'), // Fixed missing mapping
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Missing Student modules that were causing slow loading
@@ -117,7 +120,6 @@ class FastModuleLoader {
       'student-profile': () => import('@/components/student/modules/StudentProfile'),
       'teacher-profile': () => import('@/components/teacher/modules/FunctionalTeacherProfile'),
       'parent-profile': () => import('@/components/parent/modules/FunctionalParentProfile'),
-      'profile': () => import('@/components/student/modules/StudentProfile'), // Legacy compatibility
       'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
       'multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'),
       
