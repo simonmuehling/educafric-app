@@ -119,21 +119,36 @@ export const geofenceViolations = pgTable("geofence_violations", {
 export const emergencyAlerts = pgTable("emergency_alerts", {
   id: serial("id").primaryKey(),
   deviceId: integer("device_id").notNull(),
+  type: text("type"),
   alertType: text("alert_type"),
+  message: text("message"),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
   location: jsonb("location"),
+  severity: text("severity"),
+  isRead: boolean("is_read").default(false),
   isResolved: boolean("is_resolved").default(false),
+  timestamp: timestamp("timestamp").defaultNow(),
   createdAt: timestamp("created_at").defaultNow()
 });
 
 export const trackingDevices = pgTable("tracking_devices", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  studentId: integer("student_id"),
   deviceName: text("device_name"),
   deviceType: text("device_type"),
   isActive: boolean("is_active").default(true),
+  currentLatitude: text("current_latitude"),
+  currentLongitude: text("current_longitude"),
+  locationAccuracy: text("location_accuracy"),
+  currentAddress: text("current_address"),
   lastLocation: jsonb("last_location"),
   batteryLevel: integer("battery_level"),
+  lastSeen: timestamp("last_seen"),
+  trackingSettings: jsonb("tracking_settings"),
   lastUpdate: timestamp("last_update"),
+  updatedAt: timestamp("updated_at"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -193,6 +208,30 @@ export const notifications = pgTable("notifications", {
   type: text("type").default("info"),
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow()
+});
+
+// Device Location History Table
+export const deviceLocationHistory = pgTable("device_location_history", {
+  id: serial("id").primaryKey(),
+  deviceId: text("device_id").notNull(),
+  latitude: text("latitude"),
+  longitude: text("longitude"),
+  accuracy: text("accuracy"),
+  address: text("address"),
+  batteryLevel: integer("battery_level"),
+  speed: text("speed"),
+  timestamp: timestamp("timestamp").defaultNow()
+});
+
+// Zone Status Table
+export const zoneStatus = pgTable("zone_status", {
+  id: serial("id").primaryKey(),
+  deviceId: text("device_id").notNull(),
+  zoneId: text("zone_id").notNull(),
+  isInZone: boolean("is_in_zone").default(false),
+  enteredAt: timestamp("entered_at"),
+  exitedAt: timestamp("exited_at"),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
 // Missing geolocation table

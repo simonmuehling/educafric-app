@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import SchoolGeolocation from '@/components/geolocation/SchoolGeolocation';
 
-export function SchoolGeolocationPage() {
+function SchoolGeolocationPage() {
   const { data: user } = useQuery({ 
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
@@ -36,3 +36,5 @@ export function SchoolGeolocationPage() {
     />
   );
 }
+
+export default SchoolGeolocationPage;

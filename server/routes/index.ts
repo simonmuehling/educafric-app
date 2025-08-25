@@ -104,7 +104,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerCriticalAlertingRoutes(app);
   setupNotificationRoutes(app);
   registerSiteAdminRoutes(app, requireAuth);
-  registerTrackingRoutes(app);
+  // Temporarily disabled until schema is synced
+  // registerTrackingRoutes(app);
   setupDataRightsRoutes(app);
 
   // Register other routes

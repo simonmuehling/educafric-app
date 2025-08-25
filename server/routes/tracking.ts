@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { nanoid } from "nanoid";
 import { db } from "../db";
-import { trackingDevices, geofenceViolations, emergencyAlerts } from "@shared/schema";
+import { trackingDevices, geofenceViolations, emergencyAlerts, deviceLocationHistory, zoneStatus } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 
 function registerTrackingRoutes(app: Express) {
@@ -44,7 +44,7 @@ function registerTrackingRoutes(app: Express) {
           longitude: parseFloat(device.currentLongitude),
           accuracy: parseFloat(device.locationAccuracy || "0"),
           address: device.currentAddress,
-          timestamp: device.lastSeen.getTime()
+          timestamp: device.lastSeen?.getTime() || Date.now()
         } : null
       });
     } catch (error) {
@@ -329,9 +329,9 @@ function registerTrackingRoutes(app: Express) {
       
       // Create emergency alert record
       await db.insert(emergencyAlerts).values({
-        id: nanoid(),
         deviceId,
         type: 'emergency',
+        alertType: 'emergency',
         message,
         latitude: location?.latitude?.toString(),
         longitude: location?.longitude?.toString(),
