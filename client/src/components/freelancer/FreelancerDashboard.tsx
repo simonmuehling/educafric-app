@@ -49,7 +49,12 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
-              const response = await fetch(endpoint);
+              const response = await fetch(endpoint, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
               if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
               return response.json();
             },
@@ -323,7 +328,7 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Freelancer" userId={1} />
+      component: <NotificationCenter userRole="Freelancer" userId={user?.id || 0} />
     },
     {
       id: 'multirole',

@@ -54,7 +54,12 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
-              const response = await fetch(endpoint);
+              const response = await fetch(endpoint, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
               if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
               return response.json();
             },

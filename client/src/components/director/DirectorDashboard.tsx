@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
-
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -48,7 +48,12 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
-              const response = await fetch(endpoint);
+              const response = await fetch(endpoint, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
               if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
               return response.json();
             },
@@ -390,7 +395,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      component: <NotificationCenter userRole="Director" userId={user?.id || 0} />
     },
     {
       id: 'school-administrators',

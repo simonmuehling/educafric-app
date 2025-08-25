@@ -282,7 +282,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Teacher" userId={1} />
+      component: <NotificationCenter userRole="Teacher" userId={user?.id || 0} />
     },
     {
       id: 'multirole',

@@ -11,6 +11,7 @@ import {
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: All modules loaded dynamically for ultra-fast loading
 import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 interface StudentDashboardProps {
   activeModule?: string;
@@ -50,7 +51,12 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
-              const response = await fetch(endpoint);
+              const response = await fetch(endpoint, {
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              });
               if (!response.ok) throw new Error(`Failed to fetch ${endpoint}`);
               return response.json();
             },
@@ -291,7 +297,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: createDynamicModule('notifications')
+      component: <NotificationCenter userRole="Student" userId={user?.id || 0} />
     },
     {
       id: 'geolocation',
