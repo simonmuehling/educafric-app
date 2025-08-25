@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useStableCallback } from '@/hooks/useStableCallback';
+import { useToast } from '@/hooks/use-toast';
 import { 
   MapPin, Shield, Smartphone, Battery, AlertTriangle, 
   Clock, Navigation, Home, School, CheckCircle, 
@@ -55,6 +56,7 @@ interface GeolocationAlert {
 export const ParentGeolocation = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedChild, setSelectedChild] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
