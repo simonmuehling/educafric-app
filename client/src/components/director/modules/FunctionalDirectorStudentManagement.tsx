@@ -72,14 +72,25 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to create student');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newStudent) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees what they created
       queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      
+      // Force immediate refresh to show the new student
+      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      
       setIsAddStudentOpen(false);
       setStudentForm({ firstName: '', lastName: '', email: '', className: '', level: '', age: '', parentName: '', parentEmail: '', parentPhone: '' });
+      
       toast({
-        title: 'Élève ajouté',
-        description: 'L\'élève a été ajouté avec succès.'
+        title: '✅ Élève ajouté avec succès',
+        description: `${studentForm.firstName} ${studentForm.lastName} (${studentForm.className}) a été ajouté à votre école et apparaît maintenant dans la liste.`
       });
+      
+      // Scroll to top to show the new student (usually added at beginning of list)
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -103,12 +114,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated student
       queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      
       setIsEditStudentOpen(false);
+      const editedStudentName = selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : 'L\'élève';
       setSelectedStudent(null);
+      
       toast({
-        title: 'Élève modifié',
-        description: 'L\'élève a été modifié avec succès.'
+        title: '✅ Modification réussie',
+        description: `${editedStudentName} a été modifié avec succès. Les changements sont visibles immédiatement.`
       });
     },
     onError: () => {
@@ -131,10 +147,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Student disappears from list
       queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
+      
       toast({
-        title: 'Élève supprimé',
-        description: 'L\'élève a été supprimé avec succès.'
+        title: '✅ Élève supprimé',
+        description: 'L\'élève a été supprimé définitivement de votre école et disparaît de la liste.'
       });
     },
     onError: () => {

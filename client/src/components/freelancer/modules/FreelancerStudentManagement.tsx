@@ -51,12 +51,20 @@ const FreelancerStudentManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to add student');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newStudent) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Freelancer sees their new student
       queryClient.invalidateQueries({ queryKey: ['/api/freelancer/students'] });
+      queryClient.refetchQueries({ queryKey: ['/api/freelancer/students'] });
+      
+      const studentName = `${newStudentData.firstName} ${newStudentData.lastName}`;
+      
       toast({
-        title: language === 'fr' ? 'Étudiant ajouté' : 'Student Added',
-        description: language === 'fr' ? 'L\'étudiant a été ajouté avec succès.' : 'Student has been added successfully.'
+        title: language === 'fr' ? '✅ Étudiant ajouté avec succès' : '✅ Student Added Successfully',
+        description: language === 'fr' 
+          ? `${studentName} a été ajouté à votre liste d'étudiants et apparaît maintenant dans votre tableau de bord.`
+          : `${studentName} has been added to your student list and now appears in your dashboard.`
       });
+      
       setIsAddingStudent(false);
       setNewStudentData({
         firstName: '',
@@ -68,6 +76,11 @@ const FreelancerStudentManagement: React.FC = () => {
         parentEmail: '',
         notes: ''
       });
+      
+      // Scroll to show the new student
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({

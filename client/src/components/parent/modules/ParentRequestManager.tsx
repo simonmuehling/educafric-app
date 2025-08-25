@@ -99,7 +99,15 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
       return response;
     },
     onSuccess: (response, variables) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Parent sees their new request
       queryClient.invalidateQueries({ queryKey: ['/api/parent-requests'] });
+      queryClient.refetchQueries({ queryKey: ['/api/parent-requests'] });
+      
+      // Also update children data if connecting to school
+      if (variables.type === 'school_enrollment') {
+        queryClient.invalidateQueries({ queryKey: ['/api/parent/children'] });
+      }
+      
       setIsNewRequestOpen(false);
       
       // Reset form and search states
@@ -109,25 +117,30 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
       setShowSchoolSearch(false);
       
       // Customized success messages based on request type
-      let title = 'Demande envoyée';
-      let description = 'Votre demande a été envoyée avec succès à l\'administration.';
+      let title = '✅ Demande envoyée avec succès';
+      let description = 'Votre demande apparaît maintenant dans votre historique et a été transmise à l\'administration.';
       
       if (variables.type === 'absence_request') {
-        title = 'Demande d\'absence envoyée';
-        description = `L'absence de votre enfant pour le ${variables.requestedDate ? new Date(variables.requestedDate).toLocaleDateString('fr-FR') : 'jour demandé'} a été signalée. L'administration et les enseignants seront notifiés automatiquement.`;
+        title = '✅ Absence signalée avec succès';
+        description = `L'absence de votre enfant pour le ${variables.requestedDate ? new Date(variables.requestedDate).toLocaleDateString('fr-FR') : 'jour demandé'} a été enregistrée et apparaît dans votre historique. L'école et les enseignants ont été notifiés automatiquement.`;
       } else if (variables.type === 'school_enrollment') {
         const schoolName = selectedSchool?.name || 'l\'école sélectionnée';
-        title = 'Demande d\'adhésion envoyée';
-        description = `Votre demande d'inscription à ${schoolName} a été envoyée. L'équipe administrative vous contactera prochainement.`;
+        title = '✅ Demande d\'inscription envoyée';
+        description = `Votre demande d'inscription à ${schoolName} a été enregistrée et apparaît dans votre historique. L'équipe administrative vous contactera prochainement.`;
       } else if (variables.type === 'meeting') {
-        title = 'Demande de rendez-vous envoyée';
-        description = 'Votre demande de rendez-vous a été transmise à l\'équipe pédagogique. Vous recevrez une réponse sous 48h.';
+        title = '✅ Rendez-vous demandé';
+        description = 'Votre demande de rendez-vous a été enregistrée et apparaît dans votre historique. L\'équipe pédagogique vous répondra sous 48h.';
       }
       
       toast({
         title,
         description,
       });
+      
+      // Scroll to show the new request
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: (error: any) => {
       toast({

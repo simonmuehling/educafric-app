@@ -133,17 +133,32 @@ const AssignmentCreation: React.FC = () => {
       if (!response.ok) throw new Error('Failed to create assignment');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newAssignment) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Teacher sees the new assignment
       queryClient.invalidateQueries({ queryKey: ['/api/teacher/assignments'] });
+      queryClient.refetchQueries({ queryKey: ['/api/teacher/assignments'] });
+      
+      // Also invalidate classes data to update assignment counts
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/classes'] });
+      
+      const assignmentTitle = assignmentForm.title || (language === 'fr' ? 'Le nouveau devoir' : 'The new assignment');
       setIsCreateOpen(false);
       setAssignmentForm({ 
         title: '', description: '', classId: '', subjectId: '', 
         dueDate: '', priority: 'medium', instructions: '', attachments: '' 
       });
+      
       toast({
-        title: language === 'fr' ? 'Devoir créé' : 'Assignment Created',
-        description: language === 'fr' ? 'Le devoir a été créé avec succès.' : 'Assignment has been created successfully.'
+        title: language === 'fr' ? '✅ Devoir créé avec succès' : '✅ Assignment Created Successfully',
+        description: language === 'fr' 
+          ? `"${assignmentTitle}" a été créé et est maintenant visible par vos élèves. Les notifications ont été envoyées automatiquement.`
+          : `"${assignmentTitle}" has been created and is now visible to your students. Notifications have been sent automatically.`
       });
+      
+      // Scroll to show the new assignment
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({

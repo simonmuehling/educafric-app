@@ -77,14 +77,24 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to create teacher');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newTeacher) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees the new teacher
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
+      
       setIsAddTeacherOpen(false);
+      const teacherName = teacherForm.name || 'Le nouvel enseignant';
       setTeacherForm({ name: '', email: '', phone: '', subjects: '', classes: '', experience: '', qualification: '', schedule: '', salary: '' });
+      
       toast({
-        title: 'Enseignant ajouté',
-        description: 'L\'enseignant a été ajouté avec succès.'
+        title: '✅ Enseignant ajouté avec succès',
+        description: `${teacherName} a été ajouté à votre équipe pédagogique et apparaît maintenant dans la liste.`
       });
+      
+      // Scroll to show the new teacher
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -108,9 +118,14 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - User sees updated teacher
       queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/teachers'] });
+      
       setIsEditTeacherOpen(false);
+      const editedTeacherName = selectedTeacher ? selectedTeacher.name : 'L\'enseignant';
       setSelectedTeacher(null);
+      
       toast({
         title: 'Enseignant modifié',
         description: 'L\'enseignant a été modifié avec succès.'

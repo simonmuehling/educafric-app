@@ -75,14 +75,24 @@ const FunctionalDirectorClassManagement: React.FC = () => {
       if (!response.ok) throw new Error('Failed to create class');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newClass) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Director sees the new class
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
+      const className = classForm.name || 'La nouvelle classe';
       setIsCreateClassOpen(false);
       setClassForm({ name: '', level: '', section: '', capacity: '', teacherId: '', teacherName: '', room: '' });
+      
       toast({
-        title: 'Classe créée',
-        description: 'La classe a été créée avec succès.'
+        title: '✅ Classe créée avec succès',
+        description: `${className} a été créée et apparaît maintenant dans votre liste de classes.`
       });
+      
+      // Scroll to show the new class
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({
@@ -106,12 +116,17 @@ const FunctionalDirectorClassManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Director sees updated class
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
       setIsEditClassOpen(false);
+      const editedClassName = selectedClass ? selectedClass.name : 'La classe';
       setSelectedClass(null);
+      
       toast({
-        title: 'Classe modifiée',
-        description: 'La classe a été modifiée avec succès.'
+        title: '✅ Modification réussie',
+        description: `${editedClassName} a été modifiée avec succès. Les changements sont visibles immédiatement.`
       });
     },
     onError: () => {
@@ -134,10 +149,13 @@ const FunctionalDirectorClassManagement: React.FC = () => {
       return response.json();
     },
     onSuccess: () => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Class disappears from list
       queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
+      queryClient.refetchQueries({ queryKey: ['/api/director/classes'] });
+      
       toast({
-        title: 'Classe supprimée',
-        description: 'La classe a été supprimée avec succès.'
+        title: '✅ Classe supprimée',
+        description: 'La classe a été supprimée définitivement et disparaît de la liste.'
       });
     },
     onError: () => {
