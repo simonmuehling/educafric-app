@@ -79,6 +79,8 @@ export class ModularStorage {
 
   // === TIMETABLE METHODS ===
   async getStudentTimetable(studentId: number) { return this.timetableStorage.getStudentTimetable(studentId); }
+  async getStudentTimetableForParent(parentId: number, studentId: number) { return this.timetableStorage.getStudentTimetableForParent(parentId, studentId); }
+  async verifyParentChildRelation(parentId: number, studentId: number) { return this.timetableStorage.verifyParentChildRelation(parentId, studentId); }
   async getClassTimetable(classId: number) { return this.timetableStorage.getClassTimetable(classId); }
   async getDayTimetable(studentId: number, dayOfWeek: number) { return this.timetableStorage.getDayTimetable(studentId, dayOfWeek); }
   async getCurrentClass(studentId: number) { return this.timetableStorage.getCurrentClass(studentId); }

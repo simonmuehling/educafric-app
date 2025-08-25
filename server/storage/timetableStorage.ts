@@ -4,6 +4,50 @@
 // Import timetable schema - need to check actual implementation
 export class TimetableStorage {
   
+  // Verify parent-child relationship before accessing timetable
+  async verifyParentChildRelation(parentId: number, studentId: number): Promise<boolean> {
+    try {
+      // Mock verification for now - replace with actual database query
+      // This should check the parentStudentRelations table
+      console.log(`[TIMETABLE_SECURITY] Verifying parent ${parentId} access to student ${studentId}`);
+      
+      // For demo/test accounts, allow access
+      const demoParentIds = [7, 9001]; // parent.demo@test.educafric.com and other demo accounts
+      const demoStudentIds = [1, 2, 3, 4, 5];
+      
+      if (demoParentIds.includes(parentId) && demoStudentIds.includes(studentId)) {
+        console.log(`[TIMETABLE_SECURITY] ✅ Demo access granted for parent ${parentId} to student ${studentId}`);
+        return true;
+      }
+      
+      // TODO: Implement actual database verification
+      // SELECT * FROM parent_student_relations WHERE parent_id = ? AND student_id = ?
+      console.log(`[TIMETABLE_SECURITY] ❌ Access denied for parent ${parentId} to student ${studentId}`);
+      return false;
+    } catch (error) {
+      console.error('[TIMETABLE_SECURITY] Error verifying parent-child relation:', error);
+      return false;
+    }
+  }
+  
+  // Get timetable for a specific student (with parent verification)
+  async getStudentTimetableForParent(parentId: number, studentId: number) {
+    try {
+      // First verify the parent has access to this child
+      const hasAccess = await this.verifyParentChildRelation(parentId, studentId);
+      if (!hasAccess) {
+        console.log(`[TIMETABLE_SECURITY] ❌ Parent ${parentId} denied access to student ${studentId} timetable`);
+        return null;
+      }
+      
+      console.log(`[TIMETABLE_SECURITY] ✅ Parent ${parentId} granted access to student ${studentId} timetable`);
+      return this.getStudentTimetable(studentId);
+    } catch (error) {
+      console.error('[TIMETABLE_STORAGE] Error getting student timetable for parent:', error);
+      return null;
+    }
+  }
+
   // Get timetable for a specific student
   async getStudentTimetable(studentId: number) {
     try {

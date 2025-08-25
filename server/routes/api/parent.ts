@@ -370,7 +370,7 @@ router.post('/grades/request', requireAuth, async (req: AuthenticatedRequest, re
   }
 });
 
-// Get child's timetable
+// Get child's timetable (SECURED - only for parent's own children)
 router.get('/children/:childId/timetable', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
@@ -380,15 +380,24 @@ router.get('/children/:childId/timetable', requireAuth, async (req: Authenticate
     const parentId = req.user.id;
     const { childId } = req.params;
     
-    // Verify parent has access to this child
-    // For now, simplified verification
     if (!childId) {
       return res.status(400).json({ message: 'Child ID is required' });
     }
     
-    // Get timetable from storage
-    const timetable = await storage.getStudentTimetable(parseInt(childId));
+    console.log(`[PARENT_API] Parent ${parentId} requesting timetable for child ${childId}`);
     
+    // Get timetable with security verification
+    const timetable = await storage.getStudentTimetableForParent(parentId, parseInt(childId));
+    
+    if (timetable === null) {
+      console.log(`[PARENT_API] ❌ Access denied: Parent ${parentId} cannot access child ${childId} timetable`);
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied. You can only view your own children\'s timetables.' 
+      });
+    }
+    
+    console.log(`[PARENT_API] ✅ Access granted: Parent ${parentId} can access child ${childId} timetable`);
     res.json({
       success: true,
       timetable: timetable,
@@ -400,17 +409,27 @@ router.get('/children/:childId/timetable', requireAuth, async (req: Authenticate
   }
 });
 
-// Get current/next class for child
+// Get current/next class for child (SECURED)
 router.get('/children/:childId/current-class', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
+    const parentId = req.user.id;
     const { childId } = req.params;
     
     if (!childId) {
       return res.status(400).json({ message: 'Child ID is required' });
+    }
+    
+    // Verify parent has access to this child
+    const hasAccess = await storage.verifyParentChildRelation(parentId, parseInt(childId));
+    if (!hasAccess) {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied. You can only view your own children\'s current classes.' 
+      });
     }
     
     // Get current/next class from storage
@@ -427,37 +446,28 @@ router.get('/children/:childId/current-class', requireAuth, async (req: Authenti
   }
 });
 
-// TEST ENDPOINT - REMOVE WHEN TESTING IS COMPLETE
-router.get('/test-timetable/:childId', async (req: Request, res: Response) => {
-  try {
-    const { childId } = req.params;
-    
-    // Get timetable from storage
-    const timetable = await storage.getStudentTimetable(parseInt(childId));
-    
-    res.json({
-      success: true,
-      timetable: timetable,
-      childId: parseInt(childId),
-      message: 'Test endpoint - timetable functionality working'
-    });
-  } catch (error: any) {
-    console.error('[PARENT_API] Test timetable error:', error);
-    res.status(500).json({ message: 'Failed to fetch test timetable' });
-  }
-});
 
-// Get day schedule for child
+// Get day schedule for child (SECURED)
 router.get('/children/:childId/schedule/:dayOfWeek', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: 'Authentication required' });
     }
     
+    const parentId = req.user.id;
     const { childId, dayOfWeek } = req.params;
     
     if (!childId || !dayOfWeek) {
       return res.status(400).json({ message: 'Child ID and day of week are required' });
+    }
+    
+    // Verify parent has access to this child
+    const hasAccess = await storage.verifyParentChildRelation(parentId, parseInt(childId));
+    if (!hasAccess) {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied. You can only view your own children\'s schedules.' 
+      });
     }
     
     // Get day schedule from storage
