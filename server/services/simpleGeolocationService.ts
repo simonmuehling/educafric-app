@@ -3,6 +3,9 @@
 
 export class SimpleGeolocationService {
   
+  // ==================== IN-MEMORY STORAGE FOR REAL PERSISTENCE ====================
+  private static createdSafeZones: any[] = [];
+  
   // ==================== MOCK DATA FOR DEMONSTRATION ====================
   
   private static generateMockChildren() {
@@ -86,7 +89,21 @@ export class SimpleGeolocationService {
 
   async getSafeZonesForParent(parentId: number) {
     console.log(`[GEOLOCATION_SERVICE] 🛡️ Getting safe zones for parent ${parentId}`);
-    return this.generateMockSafeZones();
+    // ✅ FIXED: Return both mock AND created zones
+    const mockZones = this.generateMockSafeZones();
+    const createdZones = SimpleGeolocationService.createdSafeZones.map(zone => ({
+      id: zone.id,
+      name: zone.name,
+      type: zone.type,
+      coordinates: { lat: zone.latitude, lng: zone.longitude },
+      radius: zone.radius,
+      children: [],
+      active: zone.active
+    }));
+    
+    const allZones = [...mockZones, ...createdZones];
+    console.log(`[GEOLOCATION_SERVICE] 📋 Returning ${allZones.length} zones (${mockZones.length} mock + ${createdZones.length} created)`);
+    return allZones;
   }
 
   async getAlertsForParent(parentId: number) {
@@ -102,6 +119,11 @@ export class SimpleGeolocationService {
       active: true,
       createdAt: new Date().toISOString()
     };
+    
+    // ✅ FIXED: Actually SAVE the new zone!
+    SimpleGeolocationService.createdSafeZones.push(newZone);
+    console.log(`[GEOLOCATION_SERVICE] ✅ Zone saved! Total zones: ${SimpleGeolocationService.createdSafeZones.length}`);
+    
     return newZone;
   }
 
