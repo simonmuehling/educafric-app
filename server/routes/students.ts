@@ -438,4 +438,142 @@ router.post('/messages/parent', requireAuth, async (req, res) => {
   }
 });
 
+// Get teachers for student (for Messages École module)
+router.get('/teachers', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // For demo accounts, return mock teachers
+    if (user.email.includes('@test.educafric.com')) {
+      const mockTeachers = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Nguyen',
+          subject: 'Mathématiques',
+          email: 'marie.nguyen@test.educafric.com',
+          phone: '+237657001001'
+        },
+        {
+          id: 2,
+          firstName: 'Jean',
+          lastName: 'Kamga',
+          subject: 'Français',
+          email: 'jean.kamga@test.educafric.com',
+          phone: '+237657001002'
+        },
+        {
+          id: 3,
+          firstName: 'Fatima',
+          lastName: 'Bello',
+          subject: 'Anglais',
+          email: 'fatima.bello@test.educafric.com',
+          phone: '+237657001003'
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        teachers: mockTeachers
+      });
+    }
+    
+    // For real accounts, return standard teachers (demo implementation)
+    const standardTeachers = [
+      {
+        id: 1,
+        firstName: 'Professor',
+        lastName: 'Mathématiques',
+        subject: 'Mathématiques',
+        email: 'math.teacher@educafric.com',
+        phone: '+237657001001'
+      },
+      {
+        id: 2,
+        firstName: 'Professor',
+        lastName: 'Français',
+        subject: 'Français',
+        email: 'french.teacher@educafric.com',
+        phone: '+237657001002'
+      }
+    ];
+    
+    res.json({
+      success: true,
+      teachers: standardTeachers
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error fetching student teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teachers'
+    });
+  }
+});
+
+// Get parents for student (for Messages École module)
+router.get('/parents', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // For demo accounts, return mock parents
+    if (user.email.includes('@test.educafric.com')) {
+      const mockParents = [
+        {
+          id: 1,
+          firstName: 'Paul',
+          lastName: 'Demo',
+          relationship: 'Papa',
+          email: 'parent.demo@test.educafric.com',
+          phone: '+237657002001'
+        },
+        {
+          id: 2,
+          firstName: 'Marie',
+          lastName: 'Demo',
+          relationship: 'Maman',
+          email: 'marie.parent@test.educafric.com',
+          phone: '+237657002002'
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        parents: mockParents
+      });
+    }
+    
+    // For real accounts, return standard parents (demo implementation)  
+    const standardParents = [
+      {
+        id: 1,
+        firstName: 'Votre',
+        lastName: 'Papa',
+        relationship: 'Papa',
+        email: 'papa@famille.com',
+        phone: '+237657002001'
+      },
+      {
+        id: 2,
+        firstName: 'Votre',
+        lastName: 'Maman',
+        relationship: 'Maman',
+        email: 'maman@famille.com',
+        phone: '+237657002002'
+      }
+    ];
+    
+    res.json({
+      success: true,
+      parents: standardParents
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error fetching student parents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch parents'
+    });
+  }
+});
+
 export default router;
