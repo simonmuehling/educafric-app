@@ -53,10 +53,13 @@ class FastModuleLoader {
       'leads': () => import('@/components/commercial/modules/FunctionalCommercialLeads'),
       'contacts': () => import('@/components/commercial/modules/ContactsManagement'),
       
-      // DIRECTOR LEGACY/ALTERNATIVE ALIASES (for backward compatibility)
-      'director-students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
-      'timetable-configuration': () => import('@/components/director/modules/TimetableConfiguration'),
-      'director-timetable-full': () => import('@/components/director/modules/TimetableConfiguration'),
+      // MISSING COMMERCIAL MODULES - FIXING WARNINGS  
+      'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
+      'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
+      'commercial-communications': () => import('@/components/shared/CommunicationsCenter'), // Using existing communications module
+      
+      // ⚠️ REMOVED DUPLICATE ALIASES TO PREVENT CONFLICTS
+      // 'director-students' removed - use 'students' for Director context
       
       // Additional specific mappings for problematic modules
       'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
@@ -106,6 +109,7 @@ class FastModuleLoader {
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'messages': () => import('@/components/student/modules/StudentCommunications'),
+      'communications': () => import('@/components/student/modules/StudentCommunications'), // Fixed missing mapping
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Missing Student modules that were causing slow loading
