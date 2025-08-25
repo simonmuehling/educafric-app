@@ -88,20 +88,24 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
 
   // Récupérer les demandes du parent
   const { data: requests, isLoading } = useQuery({
-    queryKey: ['/api/parent-requests'],
+    queryKey: ['/api/parent/requests'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/parent/requests');
+      return response;
+    }
   });
 
   // Mutation pour créer une nouvelle demande
   const createRequestMutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
       console.log('[PARENT_REQUEST_MANAGER] Creating request:', data);
-      const response = await apiRequest('POST', '/api/parent-requests', data);
+      const response = await apiRequest('POST', '/api/parent/requests', data);
       return response;
     },
     onSuccess: (response, variables) => {
       // ✅ IMMEDIATE VISUAL FEEDBACK - Parent sees their new request
-      queryClient.invalidateQueries({ queryKey: ['/api/parent-requests'] });
-      queryClient.refetchQueries({ queryKey: ['/api/parent-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/requests'] });
+      queryClient.refetchQueries({ queryKey: ['/api/parent/requests'] });
       
       // Also update children data if connecting to school
       if (variables.type === 'school_enrollment') {
@@ -506,9 +510,9 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                         </div>
                         
                         {/* School Search Results */}
-                        {showSchoolSearch && schoolsData?.schools?.length > 0 && (
+                        {showSchoolSearch && schoolsData && Array.isArray(schoolsData) && schoolsData.length > 0 && (
                           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                            {schoolsData.schools.map((school: any) => (
+                            {schoolsData.map((school: any) => (
                               <div
                                 key={school.id}
                                 className="flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
@@ -543,7 +547,7 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
                           </div>
                         )}
                         
-                        {showSchoolSearch && schoolSearchQuery.length >= 2 && (!schoolsData?.schools || schoolsData.schools.length === 0) && (
+                        {showSchoolSearch && schoolSearchQuery.length >= 2 && (!schoolsData || !Array.isArray(schoolsData) || schoolsData.length === 0) && (
                           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 text-center">
                             <p className="text-sm text-gray-500">Aucune école trouvée pour "{schoolSearchQuery}"</p>
                             <p className="text-xs text-gray-400 mt-1">Essayez avec un autre nom ou ville</p>
