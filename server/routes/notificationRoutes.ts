@@ -9,11 +9,13 @@ export function setupNotificationRoutes(app: Express) {
   // Get notifications for a user based on their role
   app.get('/api/notifications', async (req, res) => {
     try {
-      if (!req.user) {
+      // Check multiple authentication sources for compatibility
+      const user = req.user || (req.session as any)?.userId;
+      if (!user) {
         return res.status(401).json({ error: 'Not authenticated' });
       }
 
-      const userId = req.user.id;
+      const userId = req.user?.id || (req.session as any)?.userId;
       const userRole = req.user.role;
       const category = req.query.category as string;
       const unreadOnly = req.query.unreadOnly === 'true';

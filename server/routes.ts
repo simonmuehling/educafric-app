@@ -748,22 +748,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Register API route modules AFTER settings routes
-  app.use('/api/notifications', notificationsRouter);
-  app.use('/api/teachers', teachersRouter);
-  app.use('/api/teacher', teacherRouter);
-  app.use('/api/students', studentsRouter);
-  app.use('/api/student', studentRoutesApi);
-  app.use('/api/freelancer', freelancerRouter);
-  app.use('/api/sandbox', sandboxRouter);
-  app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
-  app.use('/api/schools', schoolsRouter);
-  app.use('/api/parent', parentRouter);
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/director', adminRoutes); // Map director to admin routes
+  // Parent requests API - FIXED MISSING ROUTE
+  app.get("/api/parent/requests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      console.log('[PARENT_REQUESTS] Getting requests for parent:', userId);
+      
+      // Mock parent requests data - comprehensive list
+      const requests = [
+        {
+          id: 1,
+          type: 'absence_request',
+          category: 'health',
+          subject: 'Demande d\'absence médicale',
+          description: 'Mon enfant Emma doit s\'absenter pour un rendez-vous médical.',
+          status: 'pending',
+          priority: 'medium',
+          submittedAt: '2024-08-20T10:30:00Z',
+          studentName: 'Emma Tall',
+          responseExpected: '2024-08-25T17:00:00Z'
+        },
+        {
+          id: 2,
+          type: 'meeting',
+          category: 'academic',
+          subject: 'Rendez-vous avec l\'enseignant',
+          description: 'Je souhaiterais discuter des progrès d\'Emma en mathématiques.',
+          status: 'approved',
+          priority: 'low',
+          submittedAt: '2024-08-18T14:15:00Z',
+          studentName: 'Emma Tall',
+          responseExpected: '2024-08-22T16:00:00Z'
+        },
+        {
+          id: 3,
+          type: 'complaint',
+          category: 'disciplinary',
+          subject: 'Problème de comportement en classe',
+          description: 'J\'aimerais discuter d\'un incident qui s\'est produit en classe.',
+          status: 'in_review',
+          priority: 'high',
+          submittedAt: '2024-08-22T09:20:00Z',
+          studentName: 'Emma Tall',
+          responseExpected: '2024-08-24T12:00:00Z'
+        }
+      ];
 
+      res.json({ success: true, requests, total: requests.length });
+    } catch (error) {
+      console.error('[PARENT_REQUESTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parent requests' });
+    }
+  });
 
-  // Register API route modules AFTER settings routes
+  app.post("/api/parent/requests", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.session as any)?.userId;
+      const requestData = req.body;
+      console.log('[PARENT_REQUESTS] Creating new request for parent:', userId, requestData);
+      
+      // Mock response for request submission
+      const newRequest = {
+        id: Date.now(),
+        ...requestData,
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+        userId
+      };
+
+      res.json({ success: true, request: newRequest, message: 'Demande soumise avec succès' });
+    } catch (error) {
+      console.error('[PARENT_REQUESTS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to submit parent request' });
+    }
+  });
+
+  // Register API route modules AFTER settings routes (FIXED DUPLICATION)
   app.use('/api/notifications', notificationsRouter);
   app.use('/api/teachers', teachersRouter);
   app.use('/api/teacher', teacherRouter);

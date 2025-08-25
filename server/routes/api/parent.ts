@@ -365,47 +365,6 @@ router.post('/attendance/excuse', requireAuth, async (req: AuthenticatedRequest,
   }
 });
 
-// Get messages for parent
-router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    
-    const parentId = req.user.id;
-    
-    // Return messages for parent
-    const messages = [
-      {
-        id: 1,
-        from: 'Paul Mvondo',
-        fromRole: 'Teacher',
-        subject: 'Résultats de Junior en Mathématiques',
-        message: 'Bonjour, Junior a obtenu d\'excellents résultats ce trimestre en mathématiques. Il a une moyenne de 16.5/20. Félicitations !',
-        date: '2025-08-24',
-        read: false,
-        type: 'teacher',
-        priority: 'normal'
-      },
-      {
-        id: 2,
-        from: 'Administration École',
-        fromRole: 'Admin',
-        subject: 'Réunion Parents d\'Élèves',
-        message: 'Vous êtes invité(e) à la réunion parents-enseignants du 30 août 2025 à 15h00. Présence obligatoire.',
-        date: '2025-08-23',
-        read: false,
-        type: 'admin',
-        priority: 'high'
-      }
-    ];
-    
-    res.json({ success: true, messages });
-  } catch (error: any) {
-    console.error('[PARENT_API] Error fetching messages:', error);
-    res.status(500).json({ message: 'Failed to fetch messages' });
-  }
-});
 
 // Send message
 router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
