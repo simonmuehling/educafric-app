@@ -233,6 +233,94 @@ router.post('/children/connect', requireAuth, async (req: AuthenticatedRequest, 
   }
 });
 
+// Get messages for parent
+router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Return messages for parent
+    const messages = [
+      {
+        id: 1,
+        from: 'Paul Mvondo',
+        fromRole: 'Teacher',
+        subject: 'Résultats de Junior en Mathématiques',
+        message: 'Bonjour, Junior a obtenu d\'excellents résultats ce trimestre en mathématiques. Il a une moyenne de 16.5/20. Félicitations !',
+        date: '2025-08-24',
+        read: false,
+        type: 'teacher',
+        priority: 'normal'
+      },
+      {
+        id: 2,
+        from: 'Administration École',
+        fromRole: 'Admin',
+        subject: 'Réunion Parents d\'Élèves',
+        message: 'Vous êtes invité(e) à la réunion parents-enseignants du 30 août 2025 à 15h00. Présence obligatoire.',
+        date: '2025-08-23',
+        read: false,
+        type: 'admin',
+        priority: 'high'
+      },
+      {
+        id: 3,
+        from: 'Sophie Biya',
+        fromRole: 'Teacher',
+        subject: 'Devoirs de Français',
+        message: 'Junior doit rendre sa dissertation sur l\'importance de l\'éducation en Afrique avant vendredi.',
+        date: '2025-08-22',
+        read: true,
+        type: 'teacher',
+        priority: 'normal'
+      }
+    ];
+    
+    res.json({ success: true, messages });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching messages:', error);
+    res.status(500).json({ message: 'Failed to fetch messages' });
+  }
+});
+
+// Send message from parent
+router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { to, toRole, subject, message, priority = 'normal' } = req.body;
+    
+    if (!to || !subject || !message) {
+      return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+    }
+    
+    const newMessage = {
+      id: Date.now(),
+      from: req.user.name || 'Parent',
+      fromRole: 'Parent',
+      to,
+      toRole,
+      subject,
+      message,
+      priority,
+      date: new Date().toISOString(),
+      status: 'sent'
+    };
+    
+    console.log('[PARENT_API] Message sent:', newMessage);
+    
+    res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error sending message:', error);
+    res.status(500).json({ message: 'Failed to send message' });
+  }
+});
+
 // Get attendance data for parent's children
 router.get('/attendance', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -286,10 +374,33 @@ router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Resp
     
     const parentId = req.user.id;
     
-    // Return placeholder messages data for now
-    const messages: any[] = [];
+    // Return messages for parent
+    const messages = [
+      {
+        id: 1,
+        from: 'Paul Mvondo',
+        fromRole: 'Teacher',
+        subject: 'Résultats de Junior en Mathématiques',
+        message: 'Bonjour, Junior a obtenu d\'excellents résultats ce trimestre en mathématiques. Il a une moyenne de 16.5/20. Félicitations !',
+        date: '2025-08-24',
+        read: false,
+        type: 'teacher',
+        priority: 'normal'
+      },
+      {
+        id: 2,
+        from: 'Administration École',
+        fromRole: 'Admin',
+        subject: 'Réunion Parents d\'Élèves',
+        message: 'Vous êtes invité(e) à la réunion parents-enseignants du 30 août 2025 à 15h00. Présence obligatoire.',
+        date: '2025-08-23',
+        read: false,
+        type: 'admin',
+        priority: 'high'
+      }
+    ];
     
-    res.json(messages);
+    res.json({ success: true, messages });
   } catch (error: any) {
     console.error('[PARENT_API] Error fetching messages:', error);
     res.status(500).json({ message: 'Failed to fetch messages' });

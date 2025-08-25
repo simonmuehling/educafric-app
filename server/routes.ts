@@ -256,6 +256,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Teacher Messages
+  app.get("/api/teacher/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        {
+          id: 1,
+          from: 'Marie Kamga',
+          fromRole: 'Parent',
+          subject: 'Question sur les devoirs de Junior',
+          message: 'Bonjour M. Mvondo, pourriez-vous m\'expliquer l\'exercice 12 de mathématiques ? Junior a des difficultés.',
+          date: '2025-08-24',
+          read: false,
+          type: 'parent',
+          priority: 'normal'
+        },
+        {
+          id: 2,
+          from: 'Direction',
+          fromRole: 'Admin',
+          subject: 'Réunion pédagogique',
+          message: 'Réunion obligatoire mardi 27 août à 14h30 en salle des professeurs.',
+          date: '2025-08-23',
+          read: true,
+          type: 'admin',
+          priority: 'high'
+        },
+        {
+          id: 3,
+          from: 'Dr. Nguetsop',
+          fromRole: 'Director',
+          subject: 'Nouveau programme scolaire',
+          message: 'Les nouveaux programmes de sciences physiques sont disponibles au secrétariat.',
+          date: '2025-08-22',
+          read: true,
+          type: 'admin',
+          priority: 'normal'
+        }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      console.error('[TEACHER_MESSAGES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher messages' });
+    }
+  });
+
+  app.post("/api/teacher/messages", requireAuth, async (req, res) => {
+    try {
+      const { to, toRole, subject, message, priority = 'normal' } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+      }
+      
+      const newMessage = {
+        id: Date.now(),
+        from: req.user?.name || 'Teacher',
+        fromRole: 'Teacher',
+        to,
+        toRole,
+        subject,
+        message,
+        priority,
+        date: new Date().toISOString(),
+        status: 'sent'
+      };
+      
+      console.log('[TEACHER_MESSAGES] Message sent:', newMessage);
+      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+    } catch (error) {
+      console.error('[TEACHER_MESSAGES] Error sending message:', error);
+      res.status(500).json({ success: false, message: 'Failed to send message' });
+    }
+  });
+
   // Teacher Settings
   app.get("/api/teacher/settings", requireAuth, async (req, res) => {
     try {
@@ -300,6 +374,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to update teacher settings' });
+    }
+  });
+
+  // Student Messages
+  app.get("/api/student/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        {
+          id: 1,
+          from: 'Paul Mvondo',
+          fromRole: 'Teacher',
+          subject: 'Résultats de contrôle',
+          message: 'Félicitations ! Tu as obtenu 17/20 au dernier contrôle de mathématiques. Continue comme ça !',
+          date: '2025-08-24',
+          read: false,
+          type: 'teacher',
+          priority: 'normal'
+        },
+        {
+          id: 2,
+          from: 'Direction',
+          fromRole: 'Admin',
+          subject: 'Activité sportive',
+          message: 'Les inscriptions pour le tournoi de football inter-classes sont ouvertes jusqu\'au 30 août.',
+          date: '2025-08-23',
+          read: true,
+          type: 'admin',
+          priority: 'normal'
+        }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      console.error('[STUDENT_MESSAGES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student messages' });
+    }
+  });
+
+  app.post("/api/student/messages", requireAuth, async (req, res) => {
+    try {
+      const { to, toRole, subject, message, priority = 'normal' } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+      }
+      
+      const newMessage = {
+        id: Date.now(),
+        from: req.user?.name || 'Student',
+        fromRole: 'Student',
+        to,
+        toRole,
+        subject,
+        message,
+        priority,
+        date: new Date().toISOString(),
+        status: 'sent'
+      };
+      
+      console.log('[STUDENT_MESSAGES] Message sent:', newMessage);
+      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+    } catch (error) {
+      console.error('[STUDENT_MESSAGES] Error sending message:', error);
+      res.status(500).json({ success: false, message: 'Failed to send message' });
+    }
+  });
+
+  // Freelancer Messages
+  app.get("/api/freelancer/messages", requireAuth, async (req, res) => {
+    try {
+      const messages = [
+        {
+          id: 1,
+          from: 'Marie Kamga',
+          fromRole: 'Parent',
+          subject: 'Demande de cours particuliers',
+          message: 'Bonjour Sophie, pourriez-vous donner des cours de français à Junior ? Il a besoin d\'aide avec ses dissertations.',
+          date: '2025-08-24',
+          read: false,
+          type: 'parent',
+          priority: 'normal'
+        },
+        {
+          id: 2,
+          from: 'Administration',
+          fromRole: 'Admin',
+          subject: 'Nouveau contrat disponible',
+          message: 'Un nouveau contrat de cours particuliers est disponible pour le niveau 2nde en mathématiques.',
+          date: '2025-08-23',
+          read: true,
+          type: 'admin',
+          priority: 'normal'
+        }
+      ];
+      res.json({ success: true, messages });
+    } catch (error) {
+      console.error('[FREELANCER_MESSAGES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch freelancer messages' });
+    }
+  });
+
+  app.post("/api/freelancer/messages", requireAuth, async (req, res) => {
+    try {
+      const { to, toRole, subject, message, priority = 'normal' } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+      }
+      
+      const newMessage = {
+        id: Date.now(),
+        from: req.user?.name || 'Freelancer',
+        fromRole: 'Freelancer',
+        to,
+        toRole,
+        subject,
+        message,
+        priority,
+        date: new Date().toISOString(),
+        status: 'sent'
+      };
+      
+      console.log('[FREELANCER_MESSAGES] Message sent:', newMessage);
+      res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+    } catch (error) {
+      console.error('[FREELANCER_MESSAGES] Error sending message:', error);
+      res.status(500).json({ success: false, message: 'Failed to send message' });
     }
   });
 
