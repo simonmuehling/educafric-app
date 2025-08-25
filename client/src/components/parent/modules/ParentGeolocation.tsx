@@ -81,16 +81,37 @@ export const ParentGeolocation = () => {
   // Real API calls using TanStack Query - Complete Storage-Route-API-Frontend Chain
   const { data: childrenData, isLoading: childrenLoading } = useQuery<Child[]>({
     queryKey: ['/api/geolocation/parent/children'],
+    queryFn: async () => {
+      const response = await fetch('/api/geolocation/parent/children', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch children');
+      return response.json();
+    },
     enabled: !!user
   });
 
   const { data: safeZonesData, isLoading: zonesLoading } = useQuery<SafeZone[]>({
     queryKey: ['/api/geolocation/parent/safe-zones'],
+    queryFn: async () => {
+      const response = await fetch('/api/geolocation/parent/safe-zones', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch safe zones');
+      return response.json();
+    },
     enabled: !!user
   });
 
   const { data: alertsData, isLoading: alertsLoading } = useQuery<GeolocationAlert[]>({
     queryKey: ['/api/geolocation/parent/alerts'],
+    queryFn: async () => {
+      const response = await fetch('/api/geolocation/parent/alerts', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch alerts');
+      return response.json();
+    },
     enabled: !!user
   });
 
