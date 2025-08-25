@@ -95,6 +95,7 @@ const ParentChildrenTimetable: React.FC = () => {
   const today = new Date();
   const isToday = selectedDay === today.getDay();
 
+  // Handle loading state
   if (childrenLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
@@ -110,6 +111,7 @@ const ParentChildrenTimetable: React.FC = () => {
     );
   }
 
+  // Handle no children state
   if (children.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
