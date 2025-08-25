@@ -147,32 +147,12 @@ const ParentSettings = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        {/* Mobile Icon Navigation */}
+        {/* Unified Icon Navigation for All Devices */}
         <MobileIconTabNavigation
           tabs={tabConfig}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
-        
-        {/* Desktop Tab List */}
-        <TabsList className="hidden md:grid grid-cols-4 w-full">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            {t.profile}
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            {t.security}
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            {t.notifications}
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            {t.privacy}
-          </TabsTrigger>
-        </TabsList>
 
         {/* Profile Tab */}
         <TabsContent value="profile">
@@ -384,13 +364,116 @@ const ParentSettings = () => {
         </TabsContent>
 
         {/* Privacy Tab */}
-        <TabsContent value="privacy">
+        <TabsContent value="privacy" className="space-y-6">
+          {/* Data Privacy Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>{t.privacy}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="w-5 h-5 text-blue-600" />
+                Confidentialité des Données
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Paramètres de confidentialité disponibles prochainement.</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Partage des données avec l'école</Label>
+                  <p className="text-sm text-gray-600">Autoriser le partage des informations avec l'administration scolaire</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Géolocalisation de l'enfant</Label>
+                  <p className="text-sm text-gray-600">Partager la position GPS avec les enseignants pour la sécurité</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Historique des connexions</Label>
+                  <p className="text-sm text-gray-600">Conserver l'historique des connexions PWA et navigateur</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Communication Privacy */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5 text-green-600" />
+                Confidentialité des Communications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Messages avec les enseignants</Label>
+                  <p className="text-sm text-gray-600">Autoriser les enseignants à vous contacter directement</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Notifications push</Label>
+                  <p className="text-sm text-gray-600">Recevoir des notifications push sur vos appareils</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="font-medium">Partage numéro WhatsApp</Label>
+                  <p className="text-sm text-gray-600">Permettre à l'école d'utiliser WhatsApp pour les urgences</p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Account Privacy */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-purple-600" />
+                Confidentialité du Compte
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Visibilité du profil</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="visibility-full" name="visibility" value="full" defaultChecked />
+                    <label htmlFor="visibility-full" className="text-sm">Visible par tous les membres de l'école</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="visibility-teachers" name="visibility" value="teachers" />
+                    <label htmlFor="visibility-teachers" className="text-sm">Visible uniquement par les enseignants</label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input type="radio" id="visibility-admin" name="visibility" value="admin" />
+                    <label htmlFor="visibility-admin" className="text-sm">Visible uniquement par l'administration</label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="font-medium text-red-600">Suppression du compte</Label>
+                    <p className="text-sm text-gray-600">Demander la suppression permanente de toutes vos données</p>
+                  </div>
+                  <Button variant="destructive" size="sm">
+                    Demander la suppression
+                  </Button>
+                </div>
+              </div>
+
+              <Button className="bg-blue-600 hover:bg-blue-700 w-full">
+                <Lock className="w-4 h-4 mr-2" />
+                Sauvegarder les paramètres de confidentialité
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
