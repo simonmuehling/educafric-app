@@ -51,6 +51,13 @@ const FunctionalDirectorClassManagement: React.FC = () => {
   // Fetch classes data from PostgreSQL API
   const { data: classes = [], isLoading } = useQuery<Class[]>({
     queryKey: ['/api/director/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch classes data');
+      return response.json();
+    },
     enabled: !!user
   });
 

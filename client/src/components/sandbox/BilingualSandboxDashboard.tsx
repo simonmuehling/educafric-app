@@ -54,6 +54,13 @@ const BilingualSandboxDashboard = () => {
   // Fetch real sandbox metrics with better error handling
   const { data: sandboxMetrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ['/api/sandbox/metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/sandbox/metrics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch sandbox metrics');
+      return response.json();
+    },
     enabled: !!user,
     refetchInterval: 10000, // Reduced frequency to prevent spam
     retry: 2 // Limit retries

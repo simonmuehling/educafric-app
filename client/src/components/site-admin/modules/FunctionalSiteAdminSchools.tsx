@@ -27,6 +27,13 @@ const FunctionalSiteAdminSchools: React.FC = () => {
   // Fetch schools
   const { data: schools, isLoading } = useQuery({
     queryKey: ['/api/site-admin/schools', { search: searchTerm, plan: planFilter, status: statusFilter }],
+    queryFn: async () => {
+      const response = await fetch(`/api/site-admin/schools?search=${searchTerm}&plan=${planFilter}&status=${statusFilter}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch schools');
+      return response.json();
+    },
     enabled: !!user
   });
 

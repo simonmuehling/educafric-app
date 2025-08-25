@@ -10,7 +10,7 @@ import {
   Settings, Shield, Database, Server, Globe,
   Bell, Mail, Phone, Users, DollarSign,
   Save, Edit, AlertTriangle, CheckCircle,
-  Key, Lock, Eye, EyeOff, Refresh
+  Key, Lock, Eye, EyeOff, RefreshCw
 } from 'lucide-react';
 
 const FunctionalSiteAdminSettings: React.FC = () => {
@@ -63,6 +63,13 @@ const FunctionalSiteAdminSettings: React.FC = () => {
   // Fetch system settings
   const { data: systemSettings, isLoading } = useQuery({
     queryKey: ['/api/site-admin/settings'],
+    queryFn: async () => {
+      const response = await fetch('/api/site-admin/settings', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch settings');
+      return response.json();
+    },
     enabled: !!user
   });
 

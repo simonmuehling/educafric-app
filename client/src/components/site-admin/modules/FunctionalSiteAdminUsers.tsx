@@ -27,6 +27,13 @@ const FunctionalSiteAdminUsers: React.FC = () => {
   // Fetch users
   const { data: users, isLoading } = useQuery({
     queryKey: ['/api/site-admin/users', { search: searchTerm, role: roleFilter, status: statusFilter }],
+    queryFn: async () => {
+      const response = await fetch(`/api/site-admin/users?search=${searchTerm}&role=${roleFilter}&status=${statusFilter}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    },
     enabled: !!user
   });
 

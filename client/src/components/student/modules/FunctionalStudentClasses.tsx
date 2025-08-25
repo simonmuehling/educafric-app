@@ -36,6 +36,13 @@ const FunctionalStudentClasses: React.FC = () => {
   // Fetch student classes data
   const { data: classes = [], isLoading } = useQuery<StudentClass[]>({
     queryKey: ['/api/student/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch student classes');
+      return response.json();
+    },
     enabled: !!user
   });
 

@@ -53,6 +53,13 @@ const UpdatedSandboxDashboard = () => {
   // Récupération des métriques en temps réel with improved error handling
   const { data: realTimeMetrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ['/api/sandbox/real-time-metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/sandbox/real-time-metrics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch sandbox metrics');
+      return response.json();
+    },
     enabled: !!user,
     refetchInterval: 5000, // Less aggressive refresh
     staleTime: 2000,

@@ -34,6 +34,13 @@ const FunctionalFreelancerPayments: React.FC = () => {
   // Fetch freelancer payments data from PostgreSQL API
   const { data: payments = [], isLoading } = useQuery<FreelancerPayment[]>({
     queryKey: ['/api/freelancer/payments'],
+    queryFn: async () => {
+      const response = await fetch('/api/freelancer/payments', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch freelancer payments');
+      return response.json();
+    },
     enabled: !!user
   });
 

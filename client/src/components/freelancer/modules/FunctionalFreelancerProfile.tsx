@@ -53,6 +53,13 @@ const FunctionalFreelancerProfile: React.FC = () => {
   // Fetch freelancer profile data
   const { data: profile, isLoading } = useQuery<FreelancerProfile>({
     queryKey: ['/api/freelancer/profile'],
+    queryFn: async () => {
+      const response = await fetch('/api/freelancer/profile', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch freelancer profile');
+      return response.json();
+    },
     enabled: !!user
   });
 

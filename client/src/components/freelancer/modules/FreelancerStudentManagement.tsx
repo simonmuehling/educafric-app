@@ -36,6 +36,13 @@ const FreelancerStudentManagement: React.FC = () => {
   // Fetch students data from API
   const { data: students = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/freelancer/students'],
+    queryFn: async () => {
+      const response = await fetch('/api/freelancer/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch freelancer students');
+      return response.json();
+    },
     enabled: !!user
   });
 

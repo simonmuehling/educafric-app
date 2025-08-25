@@ -69,6 +69,13 @@ const ConsolidatedSandboxDashboard = () => {
   // Query pour les métriques sandbox en temps réel avec vraies données backend
   const { data: sandboxMetrics, isLoading } = useQuery({
     queryKey: ['/api/sandbox/metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/sandbox/metrics', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch sandbox metrics');
+      return response.json();
+    },
     enabled: !!user,
     refetchInterval: 3000,
     staleTime: 1000

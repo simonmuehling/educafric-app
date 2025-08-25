@@ -57,6 +57,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Fetch students data from PostgreSQL API
   const { data: students = [], isLoading } = useQuery<Student[]>({
     queryKey: ['/api/director/students'],
+    queryFn: async () => {
+      const response = await fetch('/api/director/students', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch students data');
+      return response.json();
+    },
     enabled: !!user
   });
 

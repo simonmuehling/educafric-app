@@ -37,6 +37,13 @@ const StudentHomework: React.FC = () => {
   // Fetch homework data from API
   const { data: homework = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/student/homework'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/homework', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch homework data');
+      return response.json();
+    },
     enabled: !!user
   });
 

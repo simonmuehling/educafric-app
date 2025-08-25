@@ -18,6 +18,13 @@ const FunctionalSiteAdminDashboard: React.FC = () => {
 
   const { data: dashboardStats, isLoading } = useQuery({
     queryKey: ['/api/site-admin/dashboard', selectedPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/site-admin/dashboard?period=${selectedPeriod}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch dashboard stats');
+      return response.json();
+    },
     enabled: !!user
   });
 

@@ -37,6 +37,13 @@ const FunctionalFreelancerSchedule: React.FC = () => {
   // Fetch freelancer schedule data from PostgreSQL API
   const { data: schedule = [], isLoading } = useQuery<FreelancerScheduleSlot[]>({
     queryKey: ['/api/freelancer/schedule'],
+    queryFn: async () => {
+      const response = await fetch('/api/freelancer/schedule', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch freelancer schedule');
+      return response.json();
+    },
     enabled: !!user
   });
 

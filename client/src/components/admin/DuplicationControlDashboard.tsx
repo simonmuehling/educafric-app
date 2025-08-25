@@ -57,6 +57,13 @@ export default function DuplicationControlDashboard() {
   // Requête pour l'analyse des duplications
   const { data: analysisData, isLoading: loadingAnalysis, refetch: refetchAnalysis } = useQuery({
     queryKey: ['/api/admin/duplication-analysis'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/duplication-analysis', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch duplication analysis');
+      return response.json();
+    },
     enabled: false, // Démarrage manuel
   });
 
