@@ -88,7 +88,7 @@ class FastModuleLoader {
       'parent-communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // For "communication" module
       'communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communications
       'communication': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communication
-      'messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour messages
+      // 'messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // REMOVED - causing conflicts with student messages
       'profile': () => import('@/components/parent/modules/FunctionalParentProfile'), // Alias pour profile
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
@@ -116,6 +116,7 @@ class FastModuleLoader {
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
+      'messages': () => import('@/components/student/modules/StudentCommunications'), // FOR STUDENTS: Messages École module
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Missing Student modules that were causing slow loading
