@@ -70,10 +70,7 @@ const ParentChildrenTimetable: React.FC = () => {
     }
   });
 
-  const children = childrenResponse?.children || [
-    { id: 1, firstName: 'Marie', lastName: 'Kouame', class: '6ème A', school: 'École Saint-Joseph' },
-    { id: 2, firstName: 'Paul', lastName: 'Kouame', class: '3ème B', school: 'École Saint-Joseph' }
-  ];
+  const children = childrenResponse?.children || [];
 
   // Get timetable for selected child
   const { data: timetableData, isLoading } = useQuery({

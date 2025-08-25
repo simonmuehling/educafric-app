@@ -149,8 +149,48 @@ router.get('/children', requireAuth, async (req: AuthenticatedRequest, res: Resp
     }
     
     const parentId = req.user.id;
-    const children: any[] = []; // Simplified for stability
-    res.json(children);
+    
+    // Return demo children based on parent ID
+    let children: any[] = [];
+    
+    if (parentId === 7) {
+      // Demo parent (parent.demo@test.educafric.com)
+      children = [
+        {
+          id: 1,
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          class: '6ème A',
+          school: 'École Saint-Joseph Yaoundé',
+          age: 12,
+          parentId: 7
+        },
+        {
+          id: 2,
+          firstName: 'Paul',
+          lastName: 'Kouame', 
+          class: '3ème B',
+          school: 'École Saint-Joseph Yaoundé',
+          age: 15,
+          parentId: 7
+        }
+      ];
+    } else if (parentId === 9001) {
+      // Sandbox parent
+      children = [
+        {
+          id: 9004,
+          firstName: 'Junior',
+          lastName: 'Kamga',
+          class: '3ème A',
+          school: 'École Internationale de Yaoundé - Campus Sandbox',
+          age: 14,
+          parentId: 9001
+        }
+      ];
+    }
+    
+    res.json({ success: true, children });
   } catch (error: any) {
     console.error('[PARENT_API] Error fetching children:', error);
     res.status(500).json({ message: 'Failed to fetch children' });
