@@ -396,7 +396,14 @@ export class ModularStorage {
         deviceInfo: subscription.deviceInfo,
         notificationSettings: subscription.notificationSettings,
         isActive: subscription.isActive,
-        subscriptionEndpoint: subscription.subscription?.endpoint ? 'Configured' : 'Not configured'
+        subscriptionEndpoint: subscription.subscription?.endpoint ? 'Configured' : 'Not configured',
+        connectionInfo: {
+          country: subscription.deviceInfo?.country || 'Unknown',
+          platform: subscription.deviceInfo?.platform || 'Unknown',
+          language: subscription.deviceInfo?.language || 'Unknown',
+          timezone: subscription.deviceInfo?.timezone || 'Unknown',
+          isPWA: subscription.deviceInfo?.isStandalone || false
+        }
       };
     }
     
