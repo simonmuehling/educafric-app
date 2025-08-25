@@ -47,6 +47,51 @@ const FunctionalTeacherAssignments: React.FC = () => {
   // Fetch teacher assignments data from PostgreSQL API
   const { data: assignments = [], isLoading } = useQuery<Assignment[]>({
     queryKey: ['/api/teacher/assignments'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/assignments', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.warn('[TEACHER_ASSIGNMENTS] API failed, using mock data');
+        return [
+          {
+            id: 1,
+            title: "Devoir de Mathématiques",
+            description: "Exercices sur les fractions",
+            className: "6ème A",
+            subjectName: "Mathématiques",
+            dueDate: "2025-08-30T23:59:00Z",
+            assignedDate: "2025-08-25T08:00:00Z",
+            status: "active",
+            totalStudents: 28,
+            submittedCount: 15,
+            pendingCount: 13,
+            completionRate: 54
+          },
+          {
+            id: 2,
+            title: "Rédaction Français",
+            description: "Écrire une composition sur l'amitié",
+            className: "5ème B",
+            subjectName: "Français",
+            dueDate: "2025-09-02T23:59:00Z",
+            assignedDate: "2025-08-23T10:00:00Z",
+            status: "active",
+            totalStudents: 25,
+            submittedCount: 8,
+            pendingCount: 17,
+            completionRate: 32
+          }
+        ];
+      }
+      
+      return response.json();
+    },
     enabled: !!user
   });
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+// Removed apiRequest import - using fetch with credentials instead
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -102,12 +102,25 @@ const FunctionalTeacherCommunications: React.FC = () => {
   // Mutation pour envoyer des messages - SYSTÈME UNIFIÉ
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      return await apiRequest('/api/unified-messaging/messages/teacher-student', 'POST', {
-        connectionId: messageData.connectionId || 1,
-        message: messageData.message,
-        messageType: 'text',
-        priority: messageData.priority || 'normal'
+      const response = await fetch('/api/unified-messaging/messages/teacher-student', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          connectionId: messageData.connectionId || 1,
+          message: messageData.message,
+          messageType: 'text',
+          priority: messageData.priority || 'normal'
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/unified-messaging/messages/teacher-student'] });
