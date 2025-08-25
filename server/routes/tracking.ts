@@ -5,6 +5,9 @@ import { trackingDevices, geofenceViolations, emergencyAlerts, deviceLocationHis
 import { eq, and, desc, sql } from "drizzle-orm";
 
 function registerTrackingRoutes(app: Express) {
+  // TRACKING SYSTEM DISABLED - Database schema not synced
+  console.log('[TRACKING] ⚠️ Tracking system temporarily disabled (schema sync needed)');
+  return;
   // Register a new device
   app.post("/api/tracking/devices", async (req, res) => {
     try {
