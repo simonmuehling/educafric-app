@@ -21,18 +21,23 @@ const StudentCommunications: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
-  const [isSupportOpen, setIsSupportOpen] = useState(false);
-  const [supportForm, setSupportForm] = useState({
+  const [isTeacherMessageOpen, setIsTeacherMessageOpen] = useState(false);
+  const [isParentMessageOpen, setIsParentMessageOpen] = useState(false);
+  const [teacherForm, setTeacherForm] = useState({
+    teacherId: '',
     subject: '',
-    category: 'academic',
-    description: '',
-    priority: 'medium'
+    message: ''
+  });
+  const [parentForm, setParentForm] = useState({
+    parentId: '',
+    subject: '',
+    message: ''
   });
 
   const text = {
     fr: {
-      title: 'Mes Messages',
-      subtitle: 'Communications de l\'école et des enseignants',
+      title: 'Messages École',
+      subtitle: 'Communiquer avec mes enseignants et mes parents',
       loading: 'Chargement des messages...',
       error: 'Erreur lors du chargement des messages',
       noMessages: 'Aucun message',
@@ -43,6 +48,19 @@ const StudentCommunications: React.FC = () => {
       from: 'De',
       subject: 'Objet',
       date: 'Date',
+      writeToTeacher: 'Écrire à mes enseignants',
+      writeToParents: 'Écrire à mes parents',
+      selectTeacher: 'Choisir un enseignant',
+      selectParent: 'Choisir un parent',
+      messageSubject: 'Sujet du message',
+      messageContent: 'Votre message',
+      send: 'Envoyer',
+      sending: 'Envoi en cours...',
+      subjectPlaceholder: 'Ex: Question sur le cours de mathématiques',
+      contentPlaceholder: 'Tapez votre message ici...',
+      selectRecipient: 'Veuillez sélectionner un destinataire',
+      messageSent: 'Message envoyé',
+      messageSentDesc: 'Votre message a été envoyé avec succès',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -55,8 +73,8 @@ const StudentCommunications: React.FC = () => {
       }
     },
     en: {
-      title: 'My Messages',
-      subtitle: 'Communications from school and teachers',
+      title: 'School Messages',
+      subtitle: 'Communicate with my teachers and parents',
       loading: 'Loading messages...',
       error: 'Error loading messages',
       noMessages: 'No messages',
@@ -67,6 +85,19 @@ const StudentCommunications: React.FC = () => {
       from: 'From',
       subject: 'Subject',
       date: 'Date',
+      writeToTeacher: 'Write to my teachers',
+      writeToParents: 'Write to my parents',
+      selectTeacher: 'Choose a teacher',
+      selectParent: 'Choose a parent',
+      messageSubject: 'Message subject',
+      messageContent: 'Your message',
+      send: 'Send',
+      sending: 'Sending...',
+      subjectPlaceholder: 'Ex: Question about math lesson',
+      contentPlaceholder: 'Type your message here...',
+      selectRecipient: 'Please select a recipient',
+      messageSent: 'Message sent',
+      messageSentDesc: 'Your message has been sent successfully',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -82,45 +113,119 @@ const StudentCommunications: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Submit support request mutation
-  const submitSupportMutation = useMutation({
-    mutationFn: async (supportData: any) => {
-      const response = await fetch('/api/student/support', {
+  // Send message to teacher mutation
+  const sendTeacherMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      const response = await fetch('/api/student/messages/teacher', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(supportData),
+        body: JSON.stringify(messageData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to submit support request');
+      if (!response.ok) throw new Error('Failed to send message to teacher');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/student/messages'] });
-      setIsSupportOpen(false);
-      setSupportForm({ subject: '', category: 'academic', description: '', priority: 'medium' });
+      setIsTeacherMessageOpen(false);
+      setTeacherForm({ teacherId: '', subject: '', message: '' });
       toast({
-        title: 'Demande envoyée',
-        description: 'Votre demande d\'aide a été soumise avec succès.'
+        title: t.messageSent,
+        description: t.messageSentDesc
       });
     },
     onError: () => {
       toast({
         title: 'Erreur',
-        description: 'Impossible d\'envoyer la demande.',
+        description: 'Impossible d\'envoyer le message.',
         variant: 'destructive'
       });
     }
   });
 
-  const handleSubmitSupport = () => {
-    if (supportForm.subject && supportForm.description) {
-      submitSupportMutation.mutate(supportForm);
+  // Send message to parent mutation
+  const sendParentMessageMutation = useMutation({
+    mutationFn: async (messageData: any) => {
+      const response = await fetch('/api/student/messages/parent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messageData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to send message to parent');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/student/messages'] });
+      setIsParentMessageOpen(false);
+      setParentForm({ parentId: '', subject: '', message: '' });
+      toast({
+        title: t.messageSent,
+        description: t.messageSentDesc
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'envoyer le message.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleSendToTeacher = () => {
+    if (teacherForm.teacherId && teacherForm.subject && teacherForm.message) {
+      sendTeacherMessageMutation.mutate(teacherForm);
+    } else {
+      toast({
+        title: 'Information manquante',
+        description: t.selectRecipient,
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSendToParent = () => {
+    if (parentForm.parentId && parentForm.subject && parentForm.message) {
+      sendParentMessageMutation.mutate(parentForm);
+    } else {
+      toast({
+        title: 'Information manquante',
+        description: t.selectRecipient,
+        variant: 'destructive'
+      });
     }
   };
 
   // Fetch messages from PostgreSQL API
   const { data: messages = [], isLoading, error, refetch } = useQuery<any[]>({
     queryKey: ['/api/student/messages'],
+    enabled: !!user
+  });
+
+  // Fetch teachers list
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['/api/student/teachers'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/teachers', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch teachers');
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Fetch parents list
+  const { data: parents = [] } = useQuery({
+    queryKey: ['/api/student/parents'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/parents', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch parents');
+      return response.json();
+    },
     enabled: !!user
   });
 
@@ -210,91 +315,150 @@ const StudentCommunications: React.FC = () => {
         </Button>
       </div>
 
-      {/* Demande d'Aide Section */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      {/* Communication Sections */}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        {/* Write to Teachers */}
+        <Card>
+          <CardHeader>
             <h3 className="text-lg font-semibold">
-              <AlertCircle className="w-5 h-5 mr-2 inline" />
-              Demander de l'Aide
+              <User className="w-5 h-5 mr-2 inline" />
+              {t.writeToTeacher}
             </h3>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-orange-600 hover:bg-orange-700 w-full" data-testid="button-request-support">
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Demander de l'Aide
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Demande d'Aide</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Sujet</label>
-                  <Input
-                    value={supportForm.subject}
-                    onChange={(e) => setSupportForm(prev => ({ ...prev, subject: e.target.value }))}
-                    placeholder="Objet de votre demande"
-                  />
+          </CardHeader>
+          <CardContent>
+            <Dialog open={isTeacherMessageOpen} onOpenChange={setIsTeacherMessageOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700 w-full" data-testid="button-write-teacher">
+                  <User className="w-4 h-4 mr-2" />
+                  {t.writeToTeacher}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>{t.writeToTeacher}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">{t.selectTeacher}</label>
+                    <Select value={teacherForm.teacherId} onValueChange={(value) => setTeacherForm(prev => ({ ...prev, teacherId: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.selectTeacher} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachers.map((teacher: any) => (
+                          <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                            {teacher.firstName} {teacher.lastName} - {teacher.subject}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.messageSubject}</label>
+                    <Input
+                      value={teacherForm.subject}
+                      onChange={(e) => setTeacherForm(prev => ({ ...prev, subject: e.target.value }))}
+                      placeholder={t.subjectPlaceholder}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.messageContent}</label>
+                    <Textarea
+                      value={teacherForm.message}
+                      onChange={(e) => setTeacherForm(prev => ({ ...prev, message: e.target.value }))}
+                      placeholder={t.contentPlaceholder}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      onClick={handleSendToTeacher}
+                      disabled={sendTeacherMessageMutation.isPending || !teacherForm.teacherId || !teacherForm.subject || !teacherForm.message}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      {sendTeacherMessageMutation.isPending ? t.sending : t.send}
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsTeacherMessageOpen(false)}>
+                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Catégorie</label>
-                  <Select value={supportForm.category} onValueChange={(value) => setSupportForm(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="academic">Aide académique</SelectItem>
-                      <SelectItem value="technical">Problème technique</SelectItem>
-                      <SelectItem value="personal">Aide personnelle</SelectItem>
-                      <SelectItem value="administrative">Question administrative</SelectItem>
-                    </SelectContent>
-                  </Select>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        {/* Write to Parents */}
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">
+              <User className="w-5 h-5 mr-2 inline" />
+              {t.writeToParents}
+            </h3>
+          </CardHeader>
+          <CardContent>
+            <Dialog open={isParentMessageOpen} onOpenChange={setIsParentMessageOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-green-600 hover:bg-green-700 w-full" data-testid="button-write-parent">
+                  <User className="w-4 h-4 mr-2" />
+                  {t.writeToParents}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>{t.writeToParents}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">{t.selectParent}</label>
+                    <Select value={parentForm.parentId} onValueChange={(value) => setParentForm(prev => ({ ...prev, parentId: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.selectParent} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {parents.map((parent: any) => (
+                          <SelectItem key={parent.id} value={parent.id.toString()}>
+                            {parent.firstName} {parent.lastName} - {parent.relationship}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.messageSubject}</label>
+                    <Input
+                      value={parentForm.subject}
+                      onChange={(e) => setParentForm(prev => ({ ...prev, subject: e.target.value }))}
+                      placeholder={t.subjectPlaceholder}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">{t.messageContent}</label>
+                    <Textarea
+                      value={parentForm.message}
+                      onChange={(e) => setParentForm(prev => ({ ...prev, message: e.target.value }))}
+                      placeholder={t.contentPlaceholder}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      onClick={handleSendToParent}
+                      disabled={sendParentMessageMutation.isPending || !parentForm.parentId || !parentForm.subject || !parentForm.message}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      {sendParentMessageMutation.isPending ? t.sending : t.send}
+                    </Button>
+                    <Button variant="outline" onClick={() => setIsParentMessageOpen(false)}>
+                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                    </Button>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Priorité</label>
-                  <Select value={supportForm.priority} onValueChange={(value) => setSupportForm(prev => ({ ...prev, priority: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Basse</SelectItem>
-                      <SelectItem value="medium">Normale</SelectItem>
-                      <SelectItem value="high">Importante</SelectItem>
-                      <SelectItem value="urgent">Urgente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea
-                    value={supportForm.description || ''}
-                    onChange={(e) => setSupportForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Décrivez votre problème ou votre question..."
-                    rows={4}
-                  />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    onClick={handleSubmitSupport}
-                    disabled={submitSupportMutation.isPending || !supportForm.subject || !supportForm.description}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700"
-                  >
-                    {submitSupportMutation.isPending ? 'Envoi...' : 'Envoyer la Demande'}
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsSupportOpen(false)}>
-                    Annuler
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Messages List */}
       {(Array.isArray(messages) ? messages.length : 0) === 0 ? (

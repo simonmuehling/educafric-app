@@ -160,7 +160,7 @@ const StudentHomework: React.FC = () => {
     }
   };
 
-  const filteredHomework = (homework || []).filter((hw: any) => {
+  const filteredHomework = (homework || []).filter((hw: { status: string }) => {
     if (filterStatus === 'all') return true;
     return hw.status === filterStatus;
   });
@@ -331,7 +331,7 @@ const StudentHomework: React.FC = () => {
 
         {/* Homework Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {(Array.isArray(filteredHomework) ? filteredHomework : []).map((hw: any) => (
+          {(Array.isArray(filteredHomework) ? filteredHomework : []).map((hw: { id: string; title: string; subject: string; priority: string; status: string; dueDate: string; description: string; teacher?: string }) => (
             <Card key={hw.id} className="bg-white hover:shadow-lg transition-shadow border-gray-200">
               <CardHeader className="pb-3 bg-white">
                 <div className="flex items-start justify-between">
