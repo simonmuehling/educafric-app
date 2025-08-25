@@ -312,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newMessage = {
         id: Date.now(),
-        from: req.user?.name || 'Teacher',
+        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Enseignant',
         fromRole: 'Teacher',
         to,
         toRole,
@@ -422,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newMessage = {
         id: Date.now(),
-        from: req.user?.name || 'Student',
+        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Élève',
         fromRole: 'Student',
         to,
         toRole,
@@ -485,7 +485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const newMessage = {
         id: Date.now(),
-        from: req.user?.name || 'Freelancer',
+        from: req.user?.firstName ? `${req.user.firstName} ${req.user.lastName || ''}` : 'Freelancer',
         fromRole: 'Freelancer',
         to,
         toRole,

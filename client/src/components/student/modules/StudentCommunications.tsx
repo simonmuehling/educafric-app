@@ -61,6 +61,7 @@ const StudentCommunications: React.FC = () => {
       selectRecipient: 'Veuillez sélectionner un destinataire',
       messageSent: 'Message envoyé',
       messageSentDesc: 'Votre message a été envoyé avec succès',
+      cancel: 'Annuler',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -98,6 +99,7 @@ const StudentCommunications: React.FC = () => {
       selectRecipient: 'Please select a recipient',
       messageSent: 'Message sent',
       messageSentDesc: 'Your message has been sent successfully',
+      cancel: 'Cancel',
       priority: {
         urgent: 'Urgent',
         high: 'Important',
@@ -379,7 +381,7 @@ const StudentCommunications: React.FC = () => {
                       {sendTeacherMessageMutation.isPending ? t.sending : t.send}
                     </Button>
                     <Button variant="outline" onClick={() => setIsTeacherMessageOpen(false)}>
-                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                      {t.cancel}
                     </Button>
                   </div>
                 </div>
@@ -450,7 +452,7 @@ const StudentCommunications: React.FC = () => {
                       {sendParentMessageMutation.isPending ? t.sending : t.send}
                     </Button>
                     <Button variant="outline" onClick={() => setIsParentMessageOpen(false)}>
-                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                      {t.cancel}
                     </Button>
                   </div>
                 </div>
