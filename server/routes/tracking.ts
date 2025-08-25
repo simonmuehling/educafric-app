@@ -5,14 +5,10 @@ import { trackingDevices, geofenceViolations, emergencyAlerts, deviceLocationHis
 import { eq, and, desc, sql } from "drizzle-orm";
 
 function registerTrackingRoutes(app: Express) {
-  // TRACKING SYSTEM DISABLED - Database schema not synced
-  console.log('[TRACKING] ⚠️ Tracking system temporarily disabled (schema sync needed)');
-  return;
   // Register a new device
   app.post("/api/tracking/devices", async (req, res) => {
     try {
       const deviceData = {
-        id: nanoid(),
         ...req.body,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -30,14 +26,14 @@ function registerTrackingRoutes(app: Express) {
   app.get("/api/tracking/devices/:deviceId", async (req, res) => {
     try {
       const { deviceId } = req.params;
-      const [device] = await db.select().from(trackingDevices).where(eq(trackingDevices.id, deviceId));
+      const [device] = await db.select().from(trackingDevices).where(eq(trackingDevices.id, parseInt(deviceId)));
       
       if (!device) {
         return res.status(404).json({ message: "Device not found" });
       }
 
       // Get safe zones for this device
-      const zones = await db.select().from(geofenceViolations).where(eq(geofenceViolations.deviceId, deviceId));
+      const zones = await db.select().from(geofenceViolations).where(eq(geofenceViolations.deviceId, parseInt(deviceId)));
       
       res.json({
         ...device,
@@ -230,7 +226,7 @@ function registerTrackingRoutes(app: Express) {
       const limit = parseInt(req.query.limit as string) || 50;
 
       const alerts = await db.select().from(emergencyAlerts)
-        .where(eq(emergencyAlerts.deviceId, deviceId))
+        .where(eq(emergencyAlerts.deviceId, parseInt(deviceId)))
         .orderBy(desc(emergencyAlerts.timestamp))
         .limit(limit);
 
@@ -336,8 +332,8 @@ function registerTrackingRoutes(app: Express) {
         type: 'emergency',
         alertType: 'emergency',
         message,
-        latitude: location?.latitude?.toString(),
-        longitude: location?.longitude?.toString(),
+        latitude: location?.latitude?.toString() || null,
+        longitude: location?.longitude?.toString() || null,
         severity: 'critical',
         isRead: false,
         timestamp: new Date()
