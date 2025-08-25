@@ -90,8 +90,20 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const { data: requests, isLoading } = useQuery({
     queryKey: ['/api/parent/requests'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/parent/requests');
-      return response;
+      const response = await fetch('/api/parent/requests', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch requests');
+      }
+      
+      const data = await response.json();
+      return data.requests || [];
     }
   });
 
@@ -99,8 +111,20 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
   const createRequestMutation = useMutation({
     mutationFn: async (data: RequestFormData) => {
       console.log('[PARENT_REQUEST_MANAGER] Creating request:', data);
-      const response = await apiRequest('POST', '/api/parent/requests', data);
-      return response;
+      const response = await fetch('/api/parent/requests', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create request');
+      }
+      
+      return await response.json();
     },
     onSuccess: (response, variables) => {
       // ✅ IMMEDIATE VISUAL FEEDBACK - Parent sees their new request
