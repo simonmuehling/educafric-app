@@ -296,7 +296,20 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: language === 'fr' ? 'Emploi du Temps Enfants' : 'Children Timetable',
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-purple-500',
-      component: createDynamicModule('parent-timetable')
+      component: (
+        <PremiumFeatureGate
+          featureName="Emploi du Temps des Enfants"
+          userType="Parent"
+          features={[
+            "Emploi du temps détaillé par enfant",
+            "Vue hebdomadaire interactive",
+            "Informations professeur et salle",
+            "Navigation jour par jour"
+          ]}
+        >
+          {createDynamicModule('parent-timetable')}
+        </PremiumFeatureGate>
+      )
     },
     {
       id: 'geolocation',
