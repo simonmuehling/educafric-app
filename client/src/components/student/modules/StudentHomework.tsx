@@ -35,7 +35,7 @@ const StudentHomework: React.FC = () => {
   });
 
   // Fetch homework data from API
-  const { data: homework = [], isLoading } = useQuery<any[]>({
+  const { data: homeworkData, isLoading } = useQuery({
     queryKey: ['/api/student/homework'],
     queryFn: async () => {
       const response = await fetch('/api/student/homework', {
@@ -46,6 +46,8 @@ const StudentHomework: React.FC = () => {
     },
     enabled: !!user
   });
+  
+  const homework = homeworkData?.homework || [];
 
   // Submit homework mutation
   const submitHomeworkMutation = useMutation({
