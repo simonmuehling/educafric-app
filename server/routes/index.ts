@@ -37,7 +37,7 @@ import systemReportsRoutes from "./systemReportsRoutes";
 import setupNotificationRoutes from "./notificationRoutes";
 import { registerSiteAdminRoutes } from "./siteAdminRoutes";
 import { registerCriticalAlertingRoutes } from "./criticalAlertingRoutes";
-import { registerTrackingRoutes } from "./tracking";
+import registerTrackingRoutes from "./tracking";
 
 // Import services
 import { alertingService, setupScheduledAlerts } from "../services/alertingService";
