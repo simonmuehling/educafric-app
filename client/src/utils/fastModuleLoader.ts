@@ -86,6 +86,10 @@ class FastModuleLoader {
       
       // CRITICAL MISSING MAPPINGS CAUSING SLOW LOADING - FIXED!
       'parent-communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // For "communication" module
+      'communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communications
+      'communication': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communication
+      'messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour messages
+      'profile': () => import('@/components/parent/modules/FunctionalParentProfile'), // Alias pour profile
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
