@@ -112,7 +112,6 @@ class FastModuleLoader {
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
-      'student-communications': () => import('@/components/student/modules/StudentCommunications'), // Fixed missing mapping
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Missing Student modules that were causing slow loading

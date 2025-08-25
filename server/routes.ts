@@ -846,11 +846,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
   
-  // Missing routes after refactor
+  // Additional routes after main registrations  
   app.use('/api/classes', classesRoutes);
-  app.use('/api/grades', gradesRoutes);  
-  app.use('/api/teachers-standalone', teachersStandalone);
-  app.use('/api/students-standalone', studentsStandalone);
+  app.use('/api/grades', gradesRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/uploads', uploadsRoutes);
@@ -887,17 +885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[ROUTES] Site admin routes failed to register:', error);
   }
   
-  try {
-    registerSubscriptionRoutes(app);
-  } catch (error) {
-    console.warn('[ROUTES] Subscription routes failed to register:', error);
-  }
   
-  try {
-    setupNotificationRoutes(app);
-  } catch (error) {
-    console.warn('[ROUTES] Notification routes failed to register:', error);
-  }
 
   // API 404 handler - must be after all API routes
   app.use('/api/*', (req, res) => {
