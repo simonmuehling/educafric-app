@@ -4,6 +4,7 @@ import { ModernCard, ModernStatsCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Lock, BarChart3, TrendingUp, Calendar, Download } from 'lucide-react';
+import UnifiedPremiumGate from '@/components/shared/UnifiedPremiumGate';
 
 export const DetailedGrades = () => {
   const { language } = useLanguage();
@@ -72,53 +73,12 @@ export const DetailedGrades = () => {
         </div>
       </div>
 
-      {/* Premium Lock Overlay */}
-      <ModernCard gradient="default" className="relative">
-        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10">
-          <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">{t.premiumFeature}</h3>
-          <p className="text-gray-600 text-center max-w-md mb-6">{t.upgradeText}</p>
-          
-          {/* Premium Features List */}
-          <div className="bg-white rounded-lg p-6 mb-6 shadow-sm border max-w-lg">
-            <h4 className="font-semibold text-gray-800 mb-4">{t.features}:</h4>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature1}
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature2}
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature3}
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature4}
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature5}
-              </li>
-              <li className="flex items-center">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                {t.feature6}
-              </li>
-            </ul>
-          </div>
-          
-          <Button className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-2">
-            {t.upgradeNow}
-          </Button>
-        </div>
-
-        {/* Background Content (blurred) */}
-        <div className="filter blur-sm pointer-events-none">
+      {/* Premium Lock Overlay - Design blanc unifié */}
+      <UnifiedPremiumGate
+        title={t.premiumFeature}
+        description={t.upgradeText}
+        features={[t.feature1, t.feature2, t.feature3, t.feature4, t.feature5, t.feature6]}
+      >
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
             <ModernStatsCard
@@ -208,8 +168,7 @@ export const DetailedGrades = () => {
               </div>
             ))}
           </div>
-        </div>
-      </ModernCard>
+      </UnifiedPremiumGate>
     </div>
   );
 };

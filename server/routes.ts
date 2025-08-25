@@ -62,6 +62,7 @@ import bulkImportRoutes from "./routes/bulkImport";
 import partnershipsRoutes from "./routes/partnerships";
 import unifiedMessagingRoutes from "./routes/unified-messaging";
 import connectionsRoutes from "./routes/connections";
+import educationalContentRoutes from "./routes/api/educational-content";
 
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
@@ -871,6 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/bulk-import', bulkImportRoutes);
   app.use('/api/partnerships', partnershipsRoutes);
+  app.use('/api/educational-content', educationalContentRoutes);
 
   // Register service routes
   try {

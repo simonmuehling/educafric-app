@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
 import { useLocation } from 'wouter';
+import UnifiedPremiumGate from '@/components/shared/UnifiedPremiumGate';
 
 interface PremiumModuleWrapperProps {
   children: React.ReactNode;
@@ -64,31 +65,12 @@ export const PremiumModuleWrapper: React.FC<PremiumModuleWrapperProps> = ({
 
   // Premium block overlay for regular users only (non-sandbox)
   return (
-    <div className="relative">
-      <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10">
-        <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mb-4">
-          <Lock className="w-8 h-8 text-white" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{t.premiumFeature}</h3>
-        <p className="text-gray-600 text-center max-w-md mb-6">
-          {moduleDescription || t.upgradeText}
-        </p>
-        <Button 
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-2"
-          onClick={() => {
-            console.log(`[${moduleName.toUpperCase()}] Redirecting to subscription page for school plans`);
-            navigate('/subscribe');
-          }}
-        >
-          {t.upgradeNow}
-        </Button>
-      </div>
-      
-      {/* Background Content (blurred) */}
-      <div className="filter blur-sm pointer-events-none">
-        {children}
-      </div>
-    </div>
+    <UnifiedPremiumGate
+      title={t.premiumFeature}
+      description={moduleDescription || t.upgradeText}
+    >
+      {children}
+    </UnifiedPremiumGate>
   );
 };
 

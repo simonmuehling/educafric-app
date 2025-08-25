@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+// Removed apiRequest import - using fetch with credentials instead
 
 const CreateEducationalContent = () => {
   const { language } = useLanguage();
@@ -243,7 +243,15 @@ const CreateEducationalContent = () => {
         formData.append(`file_${index}`, file);
       });
 
-      await apiRequest('POST', '/api/educational-content', formData);
+      const response = await fetch('/api/educational-content', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save content');
+      }
       
       toast({
         title: language === 'fr' ? 'Contenu créé' : 'Content created',

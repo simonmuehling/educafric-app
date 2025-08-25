@@ -49,6 +49,7 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
       if (isSandboxOrTestUser(user)) {
         console.log(`[PREMIUM_EXEMPT] User ${user.email} is exempt from premium restrictions`);
         req.subscription = { isPremium: true, planName: 'Sandbox Unlimited', isExempt: true };
+        req.limits = { canAccess: true, isExempt: true };
         return next();
       }
 
