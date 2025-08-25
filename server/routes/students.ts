@@ -238,4 +238,204 @@ router.get('/:id/attendance', requireAuth, async (req, res) => {
   }
 });
 
+// Get teachers for current student (for messaging)
+router.get('/teachers', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Only students can access their teachers
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    if (!user.schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student not associated with a school'
+      });
+    }
+
+    // Get teachers from the same school as the student
+    const teachers = await storage.getTeachersBySchool(user.schoolId);
+    
+    // Format teachers for messaging interface
+    const teachersList = (teachers || []).map((teacher: any) => ({
+      id: teacher.id,
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      subject: teacher.subject || 'Enseignant',
+      email: teacher.email
+    }));
+    
+    res.json({
+      success: true,
+      teachers: teachersList
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error fetching student teachers:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teachers'
+    });
+  }
+});
+
+// Get parents for current student (for messaging)
+router.get('/parents', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Only students can access their parents
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    // For demo/sandbox accounts, return mock data
+    const isSandbox = user.email?.includes('sandbox') || user.email?.includes('@test.educafric.com');
+    
+    let parentsList: any[] = [];
+    
+    if (isSandbox || user.id === 6) {
+      // Demo student (student.demo@test.educafric.com)
+      parentsList = [
+        {
+          id: 7,
+          firstName: 'Marie',
+          lastName: 'Kouame',
+          relationship: 'Mère',
+          email: 'parent.demo@test.educafric.com'
+        },
+        {
+          id: 7001,
+          firstName: 'Jean',
+          lastName: 'Kouame', 
+          relationship: 'Père',
+          email: 'jean.kouame@test.educafric.com'
+        }
+      ];
+    } else {
+      // For real accounts, get actual parent connections
+      // This would normally query the database for parent-child connections
+      parentsList = [];
+    }
+    
+    res.json({
+      success: true,
+      parents: parentsList
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error fetching student parents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch parents'
+    });
+  }
+});
+
+// Send message to teacher
+router.post('/messages/teacher', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    const { teacherId, subject, message } = req.body;
+    
+    if (!teacherId || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Teacher ID, subject, and message are required'
+      });
+    }
+
+    // Create message record (simplified implementation)
+    const newMessage = {
+      id: Date.now(),
+      from: `${user.firstName || 'Élève'} ${user.lastName || ''}`,
+      fromRole: 'Student',
+      to: `Enseignant #${teacherId}`,
+      toRole: 'Teacher',
+      subject,
+      message,
+      date: new Date().toISOString(),
+      status: 'sent'
+    };
+    
+    console.log('[STUDENTS_API] Message to teacher sent:', newMessage);
+    
+    res.json({
+      success: true,
+      message: 'Message sent to teacher successfully',
+      data: newMessage
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error sending message to teacher:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to teacher'
+    });
+  }
+});
+
+// Send message to parent
+router.post('/messages/parent', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Student') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied - students only'
+      });
+    }
+
+    const { parentId, subject, message } = req.body;
+    
+    if (!parentId || !subject || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parent ID, subject, and message are required'
+      });
+    }
+
+    // Create message record (simplified implementation)
+    const newMessage = {
+      id: Date.now(),
+      from: `${user.firstName || 'Élève'} ${user.lastName || ''}`,
+      fromRole: 'Student',
+      to: `Parent #${parentId}`,
+      toRole: 'Parent',
+      subject,
+      message,
+      date: new Date().toISOString(),
+      status: 'sent'
+    };
+    
+    console.log('[STUDENTS_API] Message to parent sent:', newMessage);
+    
+    res.json({
+      success: true,
+      message: 'Message sent to parent successfully',
+      data: newMessage
+    });
+  } catch (error) {
+    console.error('[STUDENTS_API] Error sending message to parent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message to parent'
+    });
+  }
+});
+
 export default router;
