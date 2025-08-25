@@ -193,4 +193,181 @@ router.post('/children/connect', requireAuth, async (req: AuthenticatedRequest, 
   }
 });
 
+// Get attendance data for parent's children
+router.get('/attendance', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Return placeholder attendance data for now
+    const attendanceData: any[] = [];
+    
+    res.json(attendanceData);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching attendance:', error);
+    res.status(500).json({ message: 'Failed to fetch attendance data' });
+  }
+});
+
+// Send excuse for absence
+router.post('/attendance/excuse', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { childId, date, reason } = req.body;
+    
+    if (!childId || !date || !reason) {
+      return res.status(400).json({ message: 'Child ID, date, and reason are required' });
+    }
+    
+    // Process excuse submission - placeholder implementation
+    res.json({
+      success: true,
+      message: 'Excuse submitted successfully',
+      excuseId: Date.now()
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error submitting excuse:', error);
+    res.status(500).json({ message: 'Failed to submit excuse' });
+  }
+});
+
+// Get messages for parent
+router.get('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Return placeholder messages data for now
+    const messages: any[] = [];
+    
+    res.json(messages);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching messages:', error);
+    res.status(500).json({ message: 'Failed to fetch messages' });
+  }
+});
+
+// Send message
+router.post('/messages', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { recipientId, subject, content } = req.body;
+    
+    if (!recipientId || !subject || !content) {
+      return res.status(400).json({ message: 'Recipient, subject, and content are required' });
+    }
+    
+    // Process message sending - placeholder implementation
+    res.json({
+      success: true,
+      message: 'Message sent successfully',
+      messageId: Date.now()
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error sending message:', error);
+    res.status(500).json({ message: 'Failed to send message' });
+  }
+});
+
+// Get payments data for parent
+router.get('/payments', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Return placeholder payments data for now
+    const payments: any[] = [];
+    
+    res.json(payments);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching payments:', error);
+    res.status(500).json({ message: 'Failed to fetch payments data' });
+  }
+});
+
+// Process payment
+router.post('/payments', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { amount, description, paymentMethod } = req.body;
+    
+    if (!amount || !description) {
+      return res.status(400).json({ message: 'Amount and description are required' });
+    }
+    
+    // Process payment - placeholder implementation
+    res.json({
+      success: true,
+      message: 'Payment processed successfully',
+      paymentId: Date.now(),
+      amount
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error processing payment:', error);
+    res.status(500).json({ message: 'Failed to process payment' });
+  }
+});
+
+// Get grades for parent's children
+router.get('/grades', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    
+    // Return placeholder grades data for now
+    const grades: any[] = [];
+    
+    res.json(grades);
+  } catch (error: any) {
+    console.error('[PARENT_API] Error fetching grades:', error);
+    res.status(500).json({ message: 'Failed to fetch grades data' });
+  }
+});
+
+// Request grades access
+router.post('/grades/request', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const { childId, semester } = req.body;
+    
+    if (!childId) {
+      return res.status(400).json({ message: 'Child ID is required' });
+    }
+    
+    // Process grades access request - placeholder implementation
+    res.json({
+      success: true,
+      message: 'Grades access request submitted successfully',
+      requestId: Date.now()
+    });
+  } catch (error: any) {
+    console.error('[PARENT_API] Error requesting grades access:', error);
+    res.status(500).json({ message: 'Failed to request grades access' });
+  }
+});
+
 export default router;

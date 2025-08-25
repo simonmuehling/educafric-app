@@ -41,6 +41,7 @@ import emailPreferencesRoutes from "./routes/email-preferences-routes";
 import setupNotificationRoutes from "./routes/notificationRoutes";
 import configurationRoutes from "./routes/configurationRoutes";
 import pwaRoutes from "./routes/pwaRoutes";
+import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
 import classesRoutes from "./routes/classes";
 import gradesRoutes from "./routes/grades";
@@ -539,6 +540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/documents', documentsRouter);
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
+  app.use('/api/analytics', analyticsRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
   
   // Missing routes after refactor
