@@ -184,7 +184,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       assignments: 'Devoirs',
       notes: 'Mes Notes',
       attendance: 'Présences',
-      library: 'Bibliothèque',
+      progress: 'Mon Progrès',
       messages: 'Messages',
       achievements: 'Réussites',
       profile: 'Profil',
@@ -201,7 +201,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       assignments: 'Assignments',
       notes: 'My Notes',
       attendance: 'Attendance',
-      library: 'Library',
+      progress: 'My Progress',
       messages: 'Messages',
       achievements: 'Achievements',
       profile: 'Profile',
@@ -252,7 +252,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     },
     {
       id: 'progress',
-      label: t.library,
+      label: t.progress,
       icon: <Target className="w-6 h-6" />,
       color: 'bg-yellow-500',
       component: createDynamicModule('progress')

@@ -94,13 +94,22 @@ const StudentProgress = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch student's library data from API
+  // Fetch student's progress data from API  
   const { data: progressData = [], isLoading, error } = useQuery({
-    queryKey: ['/api/student/library', user?.id, selectedPeriod],
+    queryKey: ['/api/student/progress', user?.id, selectedPeriod],
     queryFn: async () => {
-      const response = await fetch(`/api/student/library?studentId=${user?.id}&period=${selectedPeriod}`);
+      // Use real data except for sandbox accounts
+      const isSandbox = user?.email?.includes('sandbox') || user?.email?.includes('@test.educafric.com');
+      const endpoint = isSandbox ? '/api/student/library' : '/api/student/progress';
+      
+      const response = await fetch(`${endpoint}?studentId=${user?.id}&period=${selectedPeriod}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       if (!response.ok) {
-        throw new Error('Failed to fetch library data');
+        throw new Error('Failed to fetch progress data');
       }
       const result = await response.json();
       return result.data || [];
@@ -108,11 +117,16 @@ const StudentProgress = () => {
     enabled: !!user?.id
   });
 
-  // Fetch achievements
+  // Fetch achievements - use real data except for sandbox
   const { data: achievements = [] } = useQuery({
     queryKey: ['/api/student/achievements', user?.id],
     queryFn: async () => {
-      const response = await fetch(`/api/student/achievements?studentId=${user?.id}`);
+      const response = await fetch(`/api/student/achievements?studentId=${user?.id}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch achievements');
       const result = await response.json();
       return result.data || [];

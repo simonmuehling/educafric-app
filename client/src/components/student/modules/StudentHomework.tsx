@@ -241,7 +241,7 @@ const StudentHomework: React.FC = () => {
               <Button
                 onClick={() => {
                   if (homework && homework.length > 0) {
-                    const pendingHomework = homework.find(hw => hw.status === 'pending');
+                    const pendingHomework = homework.find((hw: any) => hw.status === 'pending');
                     if (pendingHomework) {
                       setHomeworkToSubmit(pendingHomework);
                       setIsEnhancedSubmitOpen(true);
@@ -288,7 +288,7 @@ const StudentHomework: React.FC = () => {
                         className="w-full border rounded-md px-3 py-2"
                       >
                         <option value="">Sélectionner un devoir</option>
-                        {(homework || []).filter(hw => hw.status === 'pending').map(hw => (
+                        {(homework || []).filter((hw: any) => hw.status === 'pending').map((hw: any) => (
                           <option key={hw.id} value={hw.id}>
                             {hw.subject} - {hw.title || ''}
                           </option>
