@@ -13,10 +13,16 @@ const PWANotificationTester: React.FC = () => {
   }, []);
 
   const requestPermission = async () => {
+    console.log('[PWA_TESTER] Requesting notification permission...');
     const granted = await hybridNotificationService.requestPermission();
     setStatus(hybridNotificationService.getStatus());
     
-    if (!granted) {
+    if (granted) {
+      console.log('[PWA_TESTER] ✅ Permission granted - testing basic notification');
+      // Immediately test a notification when permission is granted
+      hybridNotificationService.testBasicNotification();
+    } else {
+      console.log('[PWA_TESTER] ❌ Permission denied');
       alert('Permission de notification refusée. Activez-les dans les paramètres de votre navigateur.');
     }
   };

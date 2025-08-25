@@ -163,9 +163,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const [showPWAManager, setShowPWAManager] = useState(false);
   const [realTimeNotifications, setRealTimeNotifications] = useState<Notification[]>([]);
 
-  // Fetch notifications
+  // Fetch notifications - Fixed API query format
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications', userRole, userId, selectedCategory, showOnlyUnread],
+    queryKey: ['/api/notifications', userId],
+    queryFn: () => fetch(`/api/notifications?userId=${userId}`).then(res => res.json()),
     enabled: !!userId
   });
 
