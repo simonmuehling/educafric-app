@@ -72,11 +72,14 @@ const ParentChildrenTimetable: React.FC = () => {
 
   const children = childrenResponse?.children || [];
 
+  // ✅ REACT QUERY v5 FIX - Compute values before hooks
+  const childId = children?.[selectedChildIndex]?.id ?? null;
+  const isQueryEnabled = Boolean(children.length > 0 && childId);
+
   // Get timetable for selected child
   const { data: timetableData, isLoading } = useQuery({
-    queryKey: ['/api/parent/children', children[selectedChildIndex]?.id, 'timetable'],
+    queryKey: ['/api/parent/children', childId, 'timetable'],
     queryFn: async () => {
-      const childId = children[selectedChildIndex]?.id;
       if (!childId) return [];
       
       const response = await fetch(`/api/parent/children/${childId}/timetable`, {
@@ -87,7 +90,7 @@ const ParentChildrenTimetable: React.FC = () => {
       
       return data.timetable || [];
     },
-    enabled: children.length > 0 && children[selectedChildIndex]?.id
+    enabled: isQueryEnabled
   });
 
   // Get current day schedule
