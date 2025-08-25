@@ -178,9 +178,49 @@ const ParentSettings = () => {
               <div>
                 <Label htmlFor="phone">{t.phone}</Label>
                 <div className="flex">
-                  <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
-                    +237
-                  </span>
+                  <select className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="+237">🇨🇲 +237</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+32">🇧🇪 +32</option>
+                    <option value="+41">🇨🇭 +41</option>
+                    <option value="+39">🇮🇹 +39</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+213">🇩🇿 +213</option>
+                    <option value="+212">🇲🇦 +212</option>
+                    <option value="+221">🇸🇳 +221</option>
+                    <option value="+225">🇨🇮 +225</option>
+                    <option value="+229">🇧🇯 +229</option>
+                    <option value="+233">🇬🇭 +233</option>
+                    <option value="+234">🇳🇬 +234</option>
+                    <option value="+235">🇹🇩 +235</option>
+                    <option value="+236">🇨🇫 +236</option>
+                    <option value="+238">🇨🇻 +238</option>
+                    <option value="+240">🇬🇶 +240</option>
+                    <option value="+241">🇬🇦 +241</option>
+                    <option value="+242">🇨🇬 +242</option>
+                    <option value="+243">🇨🇩 +243</option>
+                    <option value="+244">🇦🇴 +244</option>
+                    <option value="+248">🇸🇨 +248</option>
+                    <option value="+250">🇷🇼 +250</option>
+                    <option value="+254">🇰🇪 +254</option>
+                    <option value="+255">🇹🇿 +255</option>
+                    <option value="+256">🇺🇬 +256</option>
+                    <option value="+257">🇧🇮 +257</option>
+                    <option value="+260">🇿🇲 +260</option>
+                    <option value="+261">🇲🇬 +261</option>
+                    <option value="+262">🇷🇪 +262</option>
+                    <option value="+263">🇿🇼 +263</option>
+                    <option value="+264">🇳🇦 +264</option>
+                    <option value="+265">🇲🇼 +265</option>
+                    <option value="+266">🇱🇸 +266</option>
+                    <option value="+267">🇧🇼 +267</option>
+                    <option value="+268">🇸🇿 +268</option>
+                    <option value="+269">🇰🇲 +269</option>
+                    <option value="+27">🇿🇦 +27</option>
+                  </select>
                   <Input 
                     id="phone" 
                     type="tel" 
