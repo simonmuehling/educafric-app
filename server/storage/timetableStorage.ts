@@ -11,12 +11,15 @@ export class TimetableStorage {
       // This should check the parentStudentRelations table
       console.log(`[TIMETABLE_SECURITY] Verifying parent ${parentId} access to student ${studentId}`);
       
-      // For demo/test accounts, allow access
-      const demoParentIds = [7, 9001]; // parent.demo@test.educafric.com and other demo accounts
-      const demoStudentIds = [1, 2, 3, 4, 5];
+      // Correct parent-child relationships for sandbox/demo accounts
+      const parentChildRelations = {
+        7: [1, 2],        // parent.demo@test.educafric.com children
+        9001: [9004]      // sandbox.parent@educafric.demo child (Marie Kamga -> Junior Kamga)
+      };
       
-      if (demoParentIds.includes(parentId) && demoStudentIds.includes(studentId)) {
-        console.log(`[TIMETABLE_SECURITY] ✅ Demo access granted for parent ${parentId} to student ${studentId}`);
+      const allowedChildren = parentChildRelations[parentId as keyof typeof parentChildRelations];
+      if (allowedChildren && allowedChildren.includes(studentId)) {
+        console.log(`[TIMETABLE_SECURITY] ✅ Access granted for parent ${parentId} to their child ${studentId}`);
         return true;
       }
       
