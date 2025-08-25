@@ -263,9 +263,9 @@ const ParentRequestManager: React.FC<ParentRequestManagerProps> = () => {
     }
   };
 
-  const filteredRequests = (requests as any[])?.filter((request: any) => 
+  const filteredRequests = Array.isArray(requests) ? requests.filter((request: any) => 
     selectedStatus === 'all' || request.status === selectedStatus
-  ) || [];
+  ) : [];
 
   if (isLoading) {
     return (
