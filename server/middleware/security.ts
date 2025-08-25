@@ -111,20 +111,20 @@ export function securityLogger(req: any, res: any, next: any) {
   next();
 }
 
-// Production session configuration - Fixed for Replit cross-origin with inactivity timeout
+// Production session configuration - PWA-optimized for persistent login experience
 export const productionSessionConfig = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
   resave: false, // Don't save session if unmodified
   saveUninitialized: false, // Don't create session until something stored
-  rolling: false, // Don't reset expiration on each request - important for inactivity timeout
+  rolling: true, // Reset expiration on each request - keeps active users logged in
   cookie: {
     secure: false, // Must be false for HTTP in development
-    httpOnly: false, // Allow JavaScript access for debugging  
-    maxAge: 30 * 60 * 1000, // 30 minutes
+    httpOnly: false, // Allow JavaScript access for PWA functionality  
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days - PWA-friendly persistence
     sameSite: 'lax' as const, // Lax works better for Replit environment
     path: '/', // Ensure cookie is sent for all paths
     domain: undefined, // Let browser handle domain
   },
-  name: 'connect.sid', // Use standard session name
+  name: 'educafric.sid', // Custom name for better identification
   proxy: true,
 };
