@@ -3,7 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import SchoolGeolocation from '@/components/geolocation/SchoolGeolocation';
 
 export function SchoolGeolocationPage() {
-  const { data: user } = useQuery({ queryKey: ['/api/auth/me'] });
+  const { data: user } = useQuery({ 
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch user');
+      return response.json();
+    }
+  });
 
   if (!user) {
     return (

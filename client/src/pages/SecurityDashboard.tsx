@@ -33,12 +33,26 @@ export default function SecurityDashboard() {
   // Security stats query
   const { data: securityData, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/security/dashboard', refreshKey],
+    queryFn: async () => {
+      const response = await fetch('/api/security/dashboard', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch security data');
+      return response.json();
+    },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Recent security events query
   const { data: eventsData, isLoading: eventsLoading } = useQuery({
     queryKey: ['/api/security/events', refreshKey],
+    queryFn: async () => {
+      const response = await fetch('/api/security/events', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch security events');
+      return response.json();
+    },
     refetchInterval: 15000, // Refresh every 15 seconds
   });
 

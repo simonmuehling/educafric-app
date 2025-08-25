@@ -256,18 +256,39 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
     totalZones: number;
   }>({
     queryKey: [`/api/geolocation/stats/school/${schoolId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/geolocation/stats/school/${schoolId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch school stats');
+      return response.json();
+    },
     retry: false
   });
 
   // Fetch safe zones
   const { data: safeZones } = useQuery<any[]>({
     queryKey: [`/api/geolocation/safe-zones/school/${schoolId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/geolocation/safe-zones/school/${schoolId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch safe zones');
+      return response.json();
+    },
     retry: false
   });
 
   // Fetch alerts
   const { data: alerts } = useQuery<any[]>({
     queryKey: ['/api/geolocation/alerts', { schoolId }],
+    queryFn: async () => {
+      const response = await fetch(`/api/geolocation/alerts?schoolId=${schoolId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch alerts');
+      return response.json();
+    },
     retry: false
   });
 
@@ -279,6 +300,14 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
   // Fetch devices for selected student
   const { data: studentDevices } = useQuery({
     queryKey: [`/api/geolocation/devices/student/${selectedStudent}`],
+    queryFn: async () => {
+      if (!selectedStudent) return [];
+      const response = await fetch(`/api/geolocation/devices/student/${selectedStudent}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch student devices');
+      return response.json();
+    },
     enabled: !!selectedStudent,
     retry: false
   });

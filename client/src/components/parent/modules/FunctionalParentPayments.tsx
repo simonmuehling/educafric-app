@@ -60,6 +60,13 @@ const FunctionalParentPayments: React.FC = () => {
   // Fetch parent payments data from PostgreSQL API
   const { data: payments = [], isLoading } = useQuery<ParentPayment[]>({
     queryKey: ['/api/parent/payments'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/payments', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch payments data');
+      return response.json();
+    },
     enabled: !!user
   });
 

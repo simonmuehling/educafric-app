@@ -51,6 +51,13 @@ const FunctionalParentAttendance: React.FC = () => {
   // Fetch parent attendance data from PostgreSQL API
   const { data: attendance = [], isLoading } = useQuery<ParentAttendance[]>({
     queryKey: ['/api/parent/attendance'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/attendance', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch attendance data');
+      return response.json();
+    },
     enabled: !!user
   });
 

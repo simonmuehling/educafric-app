@@ -56,6 +56,13 @@ const FunctionalParentGrades: React.FC = () => {
   // Fetch parent grades data from PostgreSQL API
   const { data: grades = [], isLoading } = useQuery<ParentGrade[]>({
     queryKey: ['/api/parent/grades'],
+    queryFn: async () => {
+      const response = await fetch('/api/parent/grades', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch grades data');
+      return response.json();
+    },
     enabled: !!user
   });
 

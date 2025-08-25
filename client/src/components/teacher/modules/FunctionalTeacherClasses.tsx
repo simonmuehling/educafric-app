@@ -41,6 +41,13 @@ const FunctionalTeacherClasses: React.FC = () => {
   // Fetch teacher classes data from PostgreSQL API
   const { data: classes = [], isLoading } = useQuery<TeacherClass[]>({
     queryKey: ['/api/teacher/classes', selectedSchoolId],
+    queryFn: async () => {
+      const response = await fetch(`/api/teacher/classes?schoolId=${selectedSchoolId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch teacher classes');
+      return response.json();
+    },
     enabled: !!user
   });
 

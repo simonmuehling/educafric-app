@@ -42,12 +42,26 @@ const FunctionalTeacherAttendance: React.FC = () => {
   // Fetch teacher's assigned classes for selection
   const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<any[]>({
     queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch teacher classes');
+      return response.json();
+    },
     enabled: !!user
   });
 
   // Fetch teacher attendance data from PostgreSQL API
   const { data: attendance = [], isLoading } = useQuery<AttendanceRecord[]>({
     queryKey: ['/api/teacher/attendance'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/attendance', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch attendance data');
+      return response.json();
+    },
     enabled: !!user
   });
 
