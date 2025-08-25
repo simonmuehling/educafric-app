@@ -102,7 +102,21 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ULTRA-FAST module component creator
+  // ✅ SAFE on-demand module preloading - ALL HOOKS AT COMPONENT LEVEL
+  React.useEffect(() => {
+    // Préchargement des modules non-critiques à la demande
+    const nonCriticalModules = ['parent-settings', 'help', 'requests'];
+    
+    nonCriticalModules.forEach((moduleName) => {
+      const ModuleComponent = getModule(moduleName);
+      if (!ModuleComponent) {
+        console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+        preloadModule(moduleName);
+      }
+    });
+  }, [getModule, preloadModule]);
+  
+  // ✅ SAFE module component creator - NO CONDITIONAL HOOKS
   const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
@@ -114,12 +128,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       return React.createElement(ModuleComponent);
     }
     
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[PARENT_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
-    
+    // ✅ NO useEffect here - moved to component level
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
