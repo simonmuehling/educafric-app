@@ -338,7 +338,7 @@ const ChildrenManagement = () => {
       </div>
 
       {/* Children List */}
-      <ModernCard gradient="default">
+      <ModernCard>
         <h3 className="text-xl font-bold mb-6">
           {language === 'fr' ? 'Mes Enfants' : 'My Children'}
           <span className="text-sm font-normal text-gray-500 ml-2">
