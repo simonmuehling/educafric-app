@@ -379,9 +379,7 @@ export const ParentGeolocation = () => {
 
   const tabs = [
     { id: 'overview', label: t.overview, icon: <Activity className="w-4 h-4" /> },
-    { id: 'children', label: t.children, icon: <Users className="w-4 h-4" /> },
     { id: 'zones', label: t.safeZones, icon: <Shield className="w-4 h-4" /> },
-    { id: 'devices', label: 'Appareils', icon: <Smartphone className="w-4 h-4" /> },
     { id: 'alerts', label: t.alerts, icon: <AlertTriangle className="w-4 h-4" /> }
   ];
 
@@ -535,65 +533,6 @@ export const ParentGeolocation = () => {
         </div>
       )}
 
-      {/* Children Tab */}
-      {activeTab === 'children' && !(childrenLoading || zonesLoading || alertsLoading) && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {(Array.isArray(childrenData) ? childrenData : []).map(child => (
-              <Card key={child.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">{child.name || ''}</h3>
-                    <Badge className={getStatusColor(child.status)}>
-                      {t[child.status as keyof typeof t]}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Classe</p>
-                      <p className="font-medium">{child.class}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Appareil</p>
-                      <p className="font-medium">{getDeviceIcon(child.deviceType || '')} {child.deviceId}</p>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm text-gray-600">{t.lastSeen}</p>
-                    <p className="font-medium">{child.lastLocation?.address}</p>
-                    <p className="text-xs text-gray-500">{new Date(child.lastLocation?.timestamp || '').toLocaleString()}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Battery className="w-4 h-4 text-gray-500" />
-                    <div className="flex-1">
-                      <div className="w-full h-2 bg-gray-200 rounded-full">
-                        <div 
-                          className={`h-full rounded-full ${child.batteryLevel! > 50 ? 'bg-green-500' : child.batteryLevel! > 20 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                          style={{ width: `${child.batteryLevel}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <span className="text-sm font-medium">{child.batteryLevel}%</span>
-                  </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => handleConfigureChildTracking(child)}
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurer Suivi
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Safe Zones Tab */}
       {activeTab === 'zones' && !(childrenLoading || zonesLoading || alertsLoading) && (
@@ -635,32 +574,29 @@ export const ParentGeolocation = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Enfants suivis:</span>
                       <span className="flex items-center gap-1">
-                        {Array.isArray(zone.children) ? zone.children.length : Array.isArray(zone.childrenIds) ? zone.childrenIds.length : 0}
-                        {(Array.isArray(zone.children) ? zone.children.length : Array.isArray(zone.childrenIds) ? zone.childrenIds.length : 0) > 0 && (
+                        {Array.isArray(zone.children) ? zone.children.length : 0}
+                        {(Array.isArray(zone.children) ? zone.children.length : 0) > 0 && (
                           <span className="w-2 h-2 bg-green-400 rounded-full" title="Suivi actif" />
                         )}
                       </span>
                     </div>
                     {/* Afficher les noms des enfants suivis */}
-                    {((Array.isArray(zone.children) && zone.children.length > 0) || (Array.isArray(zone.childrenIds) && zone.childrenIds.length > 0)) && (
+                    {Array.isArray(zone.children) && zone.children.length > 0 && (
                       <div className="bg-green-50 p-2 rounded text-xs">
                         <span className="text-green-700 font-medium">👶 Enfants:</span>
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {(() => {
-                            const trackedIds = zone.childrenIds || zone.children || [];
-                            return trackedIds.map((childId: any) => {
-                              const child = children.find(c => c.id === childId);
-                              return child ? (
-                                <span key={childId} className="bg-green-200 text-green-800 px-1 py-0.5 rounded text-xs">
-                                  {child.name}
-                                </span>
-                              ) : (
-                                <span key={childId} className="bg-gray-200 text-gray-600 px-1 py-0.5 rounded text-xs">
-                                  ID:{childId}
-                                </span>
-                              );
-                            });
-                          })()}
+                          {zone.children.map((childId: any) => {
+                            const child = children.find(c => c.id === childId);
+                            return child ? (
+                              <span key={childId} className="bg-green-200 text-green-800 px-1 py-0.5 rounded text-xs">
+                                {child.name}
+                              </span>
+                            ) : (
+                              <span key={childId} className="bg-gray-200 text-gray-600 px-1 py-0.5 rounded text-xs">
+                                ID:{childId}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -943,38 +879,65 @@ export const ParentGeolocation = () => {
                 </select>
               </div>
 
-              {/* Sélection des enfants à suivre */}
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <h4 className="font-medium text-yellow-800 mb-3">👶 Enfants à suivre dans cette zone</h4>
-                <div className="space-y-2">
+              {/* Suivi de Localisation des Enfants */}
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  📍 Suivi de Localisation des Enfants
+                </h4>
+                <div className="space-y-3">
+                  <div className="text-sm text-blue-800 mb-3">
+                    Sélectionnez les enfants dont les appareils seront suivis automatiquement dans cette zone de sécurité.
+                  </div>
+                  
                   {children.map((child) => (
-                    <label key={child.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-yellow-100 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="childrenIds"
-                        value={child.id}
-                        className="rounded"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">
-                          {child.name?.charAt(0) || '?'}
+                    <div key={child.id} className="border border-blue-200 rounded-lg p-3 hover:bg-blue-50 transition-colors">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="childrenIds"
+                          value={child.id}
+                          className="rounded text-blue-600"
+                        />
+                        <div className="flex items-center space-x-3 flex-1">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {child.name?.charAt(0) || '?'}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">{child.name}</div>
+                            <div className="text-xs text-gray-500">{child.class || 'Classe non définie'}</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-500">Appareil:</span>
+                              <span className={`w-3 h-3 rounded-full ${child.deviceType === 'smartphone' ? 'bg-green-400' : child.deviceType === 'smartwatch' ? 'bg-blue-400' : 'bg-gray-400'}`} />
+                              <span className="text-xs font-medium">
+                                {child.deviceType === 'smartphone' ? '📱 Smartphone' : 
+                                 child.deviceType === 'smartwatch' ? '⌚ Montre' : 
+                                 child.deviceType === 'tablet' ? '📱 Tablette' : '📍 Autre'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-medium">{child.name}</span>
-                          <p className="text-xs text-gray-600">{child.class || 'Classe non définie'}</p>
-                        </div>
-                      </div>
-                      <div className="flex-1" />
-                      <div className={`w-2 h-2 rounded-full ${child.deviceType === 'smartphone' ? 'bg-green-400' : child.deviceType === 'smartwatch' ? 'bg-blue-400' : 'bg-gray-400'}`} />
-                    </label>
+                      </label>
+                    </div>
                   ))}
+                  
                   {children.length === 0 && (
-                    <p className="text-gray-500 text-sm text-center py-2">Aucun enfant trouvé</p>
+                    <div className="text-center py-4 text-gray-500">
+                      <Users className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">Aucun enfant trouvé</p>
+                    </div>
                   )}
                 </div>
-                <p className="text-xs text-yellow-700 mt-2">
-                  ✨ Les appareils des enfants sélectionnés seront automatiquement suivis dans cette zone
-                </p>
+                
+                <div className="bg-blue-100 p-3 rounded-lg mt-3">
+                  <div className="flex items-start gap-2">
+                    <Shield className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div className="text-xs text-blue-800">
+                      <strong>Suivi automatique:</strong> Les appareils des enfants sélectionnés seront automatiquement surveillés. Vous recevrez des alertes en temps réel en cas de sortie de zone.
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Aide interactive pour la géolocalisation */}
