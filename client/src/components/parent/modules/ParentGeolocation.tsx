@@ -132,9 +132,25 @@ export const ParentGeolocation = () => {
       if (!response.ok) throw new Error('Failed to create safe zone');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newZone) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Parent sees their new safe zone
       queryClient.invalidateQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      queryClient.refetchQueries({ queryKey: ['/api/geolocation/parent/safe-zones'] });
+      
+      // Also update children data if zone is linked to a child
+      queryClient.invalidateQueries({ queryKey: ['/api/parent/children'] });
+      
       setShowAddZone(false);
+      
+      toast({
+        title: '✅ Zone de sécurité créée avec succès',
+        description: 'La nouvelle zone de sécurité apparaît maintenant dans votre tableau de bord et les alertes automatiques sont activées.'
+      });
+      
+      // Scroll to show the new zone
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     }
   });
 

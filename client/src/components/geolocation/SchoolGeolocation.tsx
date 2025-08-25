@@ -355,14 +355,23 @@ export default function SchoolGeolocation({ userRole, userId, schoolId }: School
       if (!response.ok) throw new Error('Failed to create safe zone');
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Succès',
-        description: 'Zone de sécurité créée avec succès'
-      });
+    onSuccess: (newZone) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - School sees their new safe zone
+      queryClient.invalidateQueries({ queryKey: [`/api/geolocation/safe-zones/school/${schoolId}`] });
+      queryClient.refetchQueries({ queryKey: [`/api/geolocation/safe-zones/school/${schoolId}`] });
+      
       setShowSafeZoneDialog(false);
       safeZoneForm.reset();
-      queryClient.invalidateQueries({ queryKey: [`/api/geolocation/safe-zones/school/${schoolId}`] });
+      
+      toast({
+        title: '✅ Zone de sécurité créée avec succès',
+        description: 'La nouvelle zone de sécurité apparaît maintenant dans votre liste et le monitoring automatique est activé.'
+      });
+      
+      // Scroll to show the new zone
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({

@@ -209,15 +209,26 @@ const FreelancerGeolocation = () => {
       if (!response.ok) throw new Error('Failed to add zone');
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newZone) => {
+      // ✅ IMMEDIATE VISUAL FEEDBACK - Freelancer sees their new teaching zone
       queryClient.invalidateQueries({ queryKey: ['/api/freelancer/geolocation/zones'] });
+      queryClient.refetchQueries({ queryKey: ['/api/freelancer/geolocation/zones'] });
       queryClient.invalidateQueries({ queryKey: ['/api/freelancer/geolocation/stats'] });
+      
       setShowAddZoneModal(false);
       setSelectedCoordinates(null);
+      
       toast({
-        title: language === 'fr' ? 'Zone ajoutée' : 'Zone added',
-        description: language === 'fr' ? 'Zone d\'enseignement créée avec succès' : 'Teaching zone created successfully'
+        title: language === 'fr' ? '✅ Zone d\'enseignement créée avec succès' : '✅ Teaching Zone Created Successfully',
+        description: language === 'fr' 
+          ? 'Votre nouvelle zone d\'enseignement apparaît maintenant dans votre liste et est prête pour vos cours.'
+          : 'Your new teaching zone now appears in your list and is ready for your sessions.'
       });
+      
+      // Scroll to show the new zone
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
     },
     onError: () => {
       toast({
