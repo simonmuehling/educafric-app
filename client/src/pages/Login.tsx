@@ -37,6 +37,7 @@ export default function Login() {
     lastName: '',
     phoneNumber: '',
     role: 'Student',
+    countryCode: '+237', // Cameroun par défaut
   });
   const [error, setError] = useState('');
   const [showCelebration, setShowCelebration] = useState<{
@@ -357,19 +358,85 @@ export default function Login() {
                 <Label htmlFor="phoneNumber" className="text-gray-700 font-medium">
                   {language === 'fr' ? 'Numéro de téléphone *' : 'Phone Number *'}
                 </Label>
-                <Input
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  type="tel"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  placeholder={language === 'fr' ? '+237 6XX XXX XXX' : '+237 6XX XXX XXX'}
-                  required={isRegisterMode}
-                  className="bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all"
-                />
-                <p className="text-gray-500 text-xs">
-                  {language === 'fr' ? 'Identifiant unique pour la récupération de mot de passe' : 'Unique identifier for password recovery'}
-                </p>
+                <div className="flex space-x-2">
+                  {/* Sélecteur de pays */}
+                  <select
+                    value={formData.countryCode}
+                    onChange={(e) => {
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        countryCode: e.target.value,
+                        phoneNumber: '' // Reset phone number when country changes
+                      }));
+                    }}
+                    className="w-24 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 focus:bg-white focus:border-blue-500 transition-all text-sm"
+                  >
+                    <option value="+237">🇨🇲 +237</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+39">🇮🇹 +39</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+212">🇲🇦 +212</option>
+                    <option value="+213">🇩🇿 +213</option>
+                    <option value="+221">🇸🇳 +221</option>
+                    <option value="+225">🇨🇮 +225</option>
+                    <option value="+229">🇧🇯 +229</option>
+                    <option value="+226">🇧🇫 +226</option>
+                    <option value="+235">🇹🇩 +235</option>
+                    <option value="+240">🇬🇶 +240</option>
+                    <option value="+241">🇬🇦 +241</option>
+                    <option value="+242">🇨🇬 +242</option>
+                    <option value="+243">🇨🇩 +243</option>
+                    <option value="+236">🇨🇫 +236</option>
+                    <option value="+220">🇬🇲 +220</option>
+                    <option value="+224">🇬🇳 +224</option>
+                    <option value="+245">🇬🇼 +245</option>
+                    <option value="+231">🇱🇷 +231</option>
+                    <option value="+223">🇲🇱 +223</option>
+                    <option value="+222">🇲🇷 +222</option>
+                    <option value="+227">🇳🇪 +227</option>
+                    <option value="+234">🇳🇬 +234</option>
+                    <option value="+232">🇸🇱 +232</option>
+                    <option value="+228">🇹🇬 +228</option>
+                  </select>
+                  
+                  {/* Champ de numéro */}
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Combine country code with phone number for storage
+                      const fullNumber = formData.countryCode + value.replace(/^\+?[0-9]{1,4}/, '');
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        phoneNumber: fullNumber 
+                      }));
+                    }}
+                    placeholder={
+                      formData.countryCode === '+237' ? '6XX XXX XXX' :
+                      formData.countryCode === '+33' ? '6 XX XX XX XX' :
+                      formData.countryCode === '+1' ? '(XXX) XXX-XXXX' :
+                      'XXX XXX XXX'
+                    }
+                    required={isRegisterMode}
+                    className="flex-1 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-500 focus:bg-white focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <p className="text-gray-500">
+                    {language === 'fr' ? 'Identifiant unique pour la récupération de mot de passe' : 'Unique identifier for password recovery'}
+                  </p>
+                  {formData.phoneNumber && (
+                    <p className="text-blue-600 font-mono">
+                      {formData.phoneNumber}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
