@@ -21,7 +21,6 @@ import {
 import TeacherAbsenceDeclaration from './TeacherAbsenceDeclaration';
 import APITester from './APITester';
 import ComponentPlayground from './ComponentPlayground';
-// import FirebaseDeviceTest from './FirebaseDeviceTest'; // Removed
 import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
 // import CommunicationTester from './CommunicationTester'; // Removed
