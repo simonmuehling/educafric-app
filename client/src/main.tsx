@@ -6,7 +6,10 @@ import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
 // Register Service Worker for PWA functionality - Only in production
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Force development mode when running on localhost
+const isProduction = import.meta.env.PROD && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+
+if ('serviceWorker' in navigator && isProduction) {
   window.addEventListener('load', async () => {
     try {
       // Check if service worker file exists and has correct MIME type
@@ -35,7 +38,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     }
   });
 } else {
-  console.log('[PWA] Service Worker registration disabled for development');
+  console.log('[PWA] Service Worker registration disabled for development or localhost');
 }
 
 // Setup console filtering to reduce spam in development
