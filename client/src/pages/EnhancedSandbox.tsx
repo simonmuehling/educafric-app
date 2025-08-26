@@ -5,7 +5,6 @@ import ConsolidatedSandboxDashboard from '@/components/sandbox/ConsolidatedSandb
 import SandboxMonitor from '@/components/sandbox/SandboxMonitor';
 import APITester from '@/components/sandbox/APITester';
 import ComponentPlayground from '@/components/sandbox/ComponentPlayground';
-import FirebaseDeviceTest from '@/components/sandbox/FirebaseDeviceTest';
 import { Code, Monitor, TestTube, Layers, Globe } from 'lucide-react';
 
 const EnhancedSandbox = () => {
@@ -69,7 +68,15 @@ const EnhancedSandbox = () => {
 
         <TabsContent value="devices" className="mt-0 h-full">
           <div className="p-6">
-            <FirebaseDeviceTest />
+            <div className="text-center py-8">
+              <Globe className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {language === 'fr' ? 'Test d\'Appareils' : 'Device Testing'}
+              </h3>
+              <p className="text-gray-500">
+                {language === 'fr' ? 'Fonctionnalité en développement' : 'Feature under development'}
+              </p>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
