@@ -567,4 +567,118 @@ router.get('/attendance', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/student/settings - Get student settings
+router.get('/settings', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock student settings
+    const settings = {
+      profile: {
+        firstName: 'Jean',
+        lastName: 'Kouam',
+        email: 'jean.kouam@test.educafric.com',
+        className: 'Première A',
+        studentId: 'STU001'
+      },
+      notifications: {
+        gradeNotifications: true,
+        assignmentNotifications: true,
+        attendanceNotifications: false
+      },
+      privacy: {
+        showProfileToParents: true,
+        allowDirectMessages: false
+      }
+    };
+
+    console.log(`[STUDENT_API] ✅ Settings retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      settings: settings,
+      message: 'Settings retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching settings'
+    });
+  }
+});
+
+// PUT /api/student/settings - Update student settings
+router.put('/settings', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const { profile, notifications, privacy } = req.body;
+    
+    // Mock settings update
+    const updatedSettings = {
+      profile: profile || {},
+      notifications: notifications || {},
+      privacy: privacy || {}
+    };
+
+    console.log(`[STUDENT_API] ✅ Settings updated for student:`, { studentId, updatedSettings });
+
+    res.json({
+      success: true,
+      settings: updatedSettings,
+      message: 'Settings updated successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error updating settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating settings'
+    });
+  }
+});
+
+// POST /api/student/generate-qr - Generate QR code for student
+router.post('/generate-qr', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const { purpose } = req.body;
+    
+    if (!studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID is required'
+      });
+    }
+
+    // Generate QR code data
+    const qrData = {
+      studentId: studentId,
+      purpose: purpose || 'parent-connection',
+      timestamp: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+    };
+
+    // For demo purposes, create a simple QR code representation
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify(qrData))}`;
+
+    console.log(`[STUDENT_API] ✅ QR Code generated for student:`, { studentId, purpose: qrData.purpose });
+
+    res.json({
+      success: true,
+      qrCode: {
+        data: qrData,
+        url: qrCodeUrl,
+        expires: qrData.expiresAt
+      },
+      message: 'QR code generated successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error generating QR code:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating QR code'
+    });
+  }
+});
+
 export default router;
