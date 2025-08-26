@@ -29,7 +29,7 @@ class ModulePreloader {
       
       // Director/School modules
       'AdministratorManagement',
-      'AttendanceManagement', 
+      'SchoolAttendanceManagement', 
       'ClassManagement',
       'BulletinValidation',
       'Communications',

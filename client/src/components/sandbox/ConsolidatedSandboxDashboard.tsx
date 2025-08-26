@@ -21,10 +21,10 @@ import {
 import TeacherAbsenceDeclaration from './TeacherAbsenceDeclaration';
 import APITester from './APITester';
 import ComponentPlayground from './ComponentPlayground';
-import FirebaseDeviceTest from './FirebaseDeviceTest';
+// import FirebaseDeviceTest from './FirebaseDeviceTest'; // Removed
 import SMSTestSuite from './SMSTestSuite';
 import SandboxMonitor from './SandboxMonitor';
-import CommunicationTester from './CommunicationTester';
+// import CommunicationTester from './CommunicationTester'; // Removed
 import NotificationTester from './NotificationTester';
 import EnhancedGeolocationDashboard from '../geolocation/EnhancedGeolocationDashboard';
 import { SandboxAutoscaleIndicator } from './SandboxAutoscaleIndicator';
@@ -710,11 +710,15 @@ const ConsolidatedSandboxDashboard = () => {
           </TabsContent>
 
           <TabsContent value="device-testing">
-            <FirebaseDeviceTest />
+            <div className="p-4 text-center text-gray-500">
+              Module de test d'appareils temporairement désactivé
+            </div>
           </TabsContent>
 
           <TabsContent value="communication">
-            <CommunicationTester />
+            <div className="p-4 text-center text-gray-500">
+              Module de test de communication temporairement désactivé
+            </div>
           </TabsContent>
 
           <TabsContent value="notifications">
