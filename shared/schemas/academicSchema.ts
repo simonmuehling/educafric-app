@@ -55,7 +55,9 @@ export const homeworkSubmissions = pgTable("homework_submissions", {
   homeworkId: integer("homework_id").notNull(),
   studentId: integer("student_id").notNull(),
   submissionText: text("submission_text"),
-  attachmentUrl: text("attachment_url"),
+  attachmentUrl: text("attachment_url"), // Legacy single file support
+  attachmentUrls: jsonb("attachment_urls"), // New multiple files support
+  submissionSource: text("submission_source").default("web"), // web, mobile, etc.
   submittedAt: timestamp("submitted_at").defaultNow(),
   score: decimal("score", { precision: 5, scale: 2 }),
   feedback: text("feedback"),

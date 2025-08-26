@@ -1,8 +1,50 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { requireAuth } from '../middleware/auth';
 import { storage } from '../storage';
 
 const router = Router();
+
+// Configure multer for homework file uploads
+const homeworkStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(process.cwd(), 'public/uploads/homework');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, `homework-${uniqueSuffix}-${sanitizedName}`);
+  }
+});
+
+const homeworkUpload = multer({
+  storage: homeworkStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit per file
+    files: 5 // Maximum 5 files per submission
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images, documents, videos, audio files
+    const allowedTypes = [
+      'image/', 'video/', 'audio/',
+      'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/', 'application/zip', 'application/x-rar-compressed'
+    ];
+    
+    const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type));
+    if (isAllowed) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Type de fichier non autorisé: ${file.mimetype}`));
+    }
+  }
+});
 
 // GET /api/student/library - Student library/progress data
 router.get('/library', requireAuth, async (req, res) => {
@@ -135,7 +177,8 @@ router.get('/homework', requireAuth, async (req, res) => {
         subject: 'Mathématiques',
         teacher: 'M. Dupont',
         dueDate: '2025-08-30',
-        status: 'assigned',
+        status: 'pending',
+        priority: 'high',
         description: 'Résoudre les équations du chapitre 3',
         attachments: ['math_exercises.pdf'],
         submittedAt: null,
@@ -148,7 +191,8 @@ router.get('/homework', requireAuth, async (req, res) => {
         subject: 'Français',
         teacher: 'Mme. Martin',
         dueDate: '2025-08-28',
-        status: 'submitted',
+        status: 'completed',
+        priority: 'medium',
         description: 'Rédiger un essai sur la littérature africaine',
         attachments: [],
         submittedAt: '2025-08-26T10:30:00Z',
@@ -162,9 +206,24 @@ router.get('/homework', requireAuth, async (req, res) => {
         subject: 'Sciences',
         teacher: 'Dr. Koné',
         dueDate: '2025-09-05',
-        status: 'in_progress',
+        status: 'pending',
+        priority: 'medium',
         description: 'Rapport sur l\'expérience de chimie',
         attachments: ['lab_instructions.pdf'],
+        submittedAt: null,
+        grade: null,
+        feedback: null
+      },
+      {
+        id: 4,
+        title: 'Projet Histoire',
+        subject: 'Histoire',
+        teacher: 'M. Tagne',
+        dueDate: '2025-09-10',
+        status: 'pending',
+        priority: 'low',
+        description: 'Recherche sur l\'indépendance du Cameroun',
+        attachments: [],
         submittedAt: null,
         grade: null,
         feedback: null
@@ -229,7 +288,82 @@ router.get('/homework/:id', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/student/homework/:id/submit - Submit homework assignment
+// POST /api/student/homework/submit - Submit homework assignment with files (NEW ENDPOINT)
+router.post('/homework/submit', homeworkUpload.array('files', 5), requireAuth, async (req, res) => {
+  try {
+    const { homeworkId, submissionText, submissionSource } = req.body;
+    const studentId = req.user?.id;
+    const files = req.files as Express.Multer.File[];
+    
+    if (!homeworkId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Homework ID is required'
+      });
+    }
+
+    if (!submissionText?.trim() && (!files || files.length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide either text or file submissions'
+      });
+    }
+
+    // Process uploaded files
+    const fileUrls = files ? files.map(file => ({
+      originalName: file.originalname,
+      filename: file.filename,
+      url: `/uploads/homework/${file.filename}`,
+      size: file.size,
+      mimetype: file.mimetype
+    })) : [];
+
+    // Create submission record
+    const submission = {
+      id: Date.now(),
+      homeworkId: parseInt(homeworkId),
+      studentId: studentId,
+      submissionText: submissionText || '',
+      attachmentUrls: fileUrls,
+      submittedAt: new Date().toISOString(),
+      submissionSource: submissionSource || 'web',
+      status: 'submitted'
+    };
+
+    console.log(`[STUDENT_API] ✅ Homework submission with files:`, {
+      ...submission,
+      fileCount: fileUrls.length,
+      totalFileSize: files?.reduce((sum, f) => sum + f.size, 0) || 0
+    });
+
+    res.json({
+      success: true,
+      submission: submission,
+      message: `Devoir soumis avec succès${fileUrls.length > 0 ? ` avec ${fileUrls.length} fichier(s)` : ''}`,
+      files: fileUrls
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error submitting homework with files:', error);
+    
+    // Clean up uploaded files on error
+    if (req.files) {
+      (req.files as Express.Multer.File[]).forEach(file => {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (cleanupError) {
+          console.error('Error cleaning up file:', cleanupError);
+        }
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Error submitting homework'
+    });
+  }
+});
+
+// POST /api/student/homework/:id/submit - Submit homework assignment (LEGACY ENDPOINT)
 router.post('/homework/:id/submit', requireAuth, async (req, res) => {
   try {
     const homeworkId = parseInt(req.params.id);
