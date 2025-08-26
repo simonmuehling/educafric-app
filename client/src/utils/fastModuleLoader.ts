@@ -156,7 +156,7 @@ class FastModuleLoader {
       'FunctionalTeacherGrades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
       'FunctionalTeacherAssignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
-      'ReportCards': () => import('@/components/teacher/modules/ReportCards'),
+      'ReportCards': () => import('@/components/teacher/modules/ReportCardManagement'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'TeacherSettings': () => import('@/components/teacher/modules/TeacherSettings'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
