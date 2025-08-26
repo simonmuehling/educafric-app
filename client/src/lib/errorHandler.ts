@@ -99,7 +99,7 @@ export const validatePassword = (password: string, language: 'en' | 'fr' = 'en')
   if (!password) {
     return getLocalizedErrorMessage('fillAllFields', language);
   }
-  if ((Array.isArray(password) ? password.length : 0) < 8) {
+  if (password.length < 8) {
     return getLocalizedErrorMessage('passwordTooShort', language);
   }
   return null;
