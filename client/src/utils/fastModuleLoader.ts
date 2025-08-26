@@ -179,8 +179,10 @@ class FastModuleLoader {
       'FreelancerGeolocation': () => import('@/components/freelancer/modules/FreelancerGeolocation'),
       
       // =============================================
-      // 🔧 SETTINGS MODULES - ROLE SPECIFIC
+      // 🔧 SETTINGS MODULES - ROLE SPECIFIC  
       // =============================================
+      // Legacy compatibility - some dashboards use these IDs
+      'settings': () => import('@/components/teacher/modules/TeacherSettings'),
       'student-settings': () => import('@/components/student/modules/StudentSettings'),
       'teacher-settings': () => import('@/components/teacher/modules/TeacherSettings'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
