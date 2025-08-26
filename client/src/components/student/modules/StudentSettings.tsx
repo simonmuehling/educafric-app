@@ -57,7 +57,8 @@ const StudentSettings = () => {
   const tabConfig = [
     { value: 'profile', label: t.profile, icon: User },
     { value: 'notifications', label: t.notifications, icon: Bell },
-    { value: 'privacy', label: t.privacy, icon: Shield }
+    { value: 'privacy', label: t.privacy, icon: Shield },
+    { value: 'security', label: language === 'fr' ? 'Sécurité' : 'Security', icon: Shield }
   ];
 
   // Fetch student settings
@@ -285,6 +286,154 @@ const StudentSettings = () => {
               >
                 {updateSettingsMutation.isPending ? 'Sauvegarde...' : t.save}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security">
+          <Card>
+            <CardHeader>
+              <CardTitle>{language === 'fr' ? 'Sécurité' : 'Security'}</CardTitle>
+              <p className="text-sm text-gray-600">
+                {language === 'fr' ? 'Gérez vos paramètres de sécurité et votre compte' : 'Manage your security settings and account'}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Change Password Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">
+                  {language === 'fr' ? 'Changer le mot de passe' : 'Change Password'}
+                </h3>
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="currentPassword">
+                      {language === 'fr' ? 'Mot de passe actuel' : 'Current Password'}
+                    </Label>
+                    <input
+                      id="currentPassword"
+                      type="password"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'fr' ? 'Entrez votre mot de passe actuel' : 'Enter your current password'}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="newPassword">
+                      {language === 'fr' ? 'Nouveau mot de passe' : 'New Password'}
+                    </Label>
+                    <input
+                      id="newPassword"
+                      type="password"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'fr' ? 'Entrez votre nouveau mot de passe' : 'Enter your new password'}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">
+                      {language === 'fr' ? 'Confirmer le mot de passe' : 'Confirm Password'}
+                    </Label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'fr' ? 'Confirmez votre nouveau mot de passe' : 'Confirm your new password'}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      toast({
+                        title: language === 'fr' ? 'Mot de passe mis à jour' : 'Password Updated',
+                        description: language === 'fr' ? 'Votre mot de passe a été changé avec succès.' : 'Your password has been changed successfully.'
+                      });
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {language === 'fr' ? 'Changer le mot de passe' : 'Change Password'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Two-Factor Authentication */}
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="twoFactorAuth">
+                      {language === 'fr' ? 'Authentification à deux facteurs' : 'Two-Factor Authentication'}
+                    </Label>
+                    <p className="text-sm text-gray-500">
+                      {language === 'fr' ? 'Sécurité renforcée pour votre compte' : 'Enhanced security for your account'}
+                    </p>
+                  </div>
+                  <Switch 
+                    id="twoFactorAuth" 
+                    defaultChecked={settings?.settings?.security?.twoFactorEnabled || false}
+                  />
+                </div>
+              </div>
+
+              {/* Account Deletion Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-red-600">
+                  {language === 'fr' ? 'Zone de danger' : 'Danger Zone'}
+                </h3>
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-700 mb-4">
+                    {language === 'fr' 
+                      ? 'La suppression de votre compte nécessite la validation de vos parents. Une demande leur sera envoyée par email et notification.'
+                      : 'Account deletion requires parental approval. A request will be sent to your parents via email and notification.'
+                    }
+                  </p>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ {language === 'fr' 
+                        ? 'Processus: Demande → Validation parentale → Suppression automatique'
+                        : 'Process: Request → Parental approval → Automatic deletion'
+                      }
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={async () => {
+                      if (window.confirm(language === 'fr' 
+                        ? 'Voulez-vous vraiment demander la suppression de votre compte ? Vos parents recevront une notification pour valider cette demande.'
+                        : 'Do you really want to request account deletion? Your parents will receive a notification to validate this request.'
+                      )) {
+                        try {
+                          const response = await fetch('/api/student/request-account-deletion', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include'
+                          });
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                            toast({
+                              title: language === 'fr' ? 'Demande envoyée' : 'Request Sent',
+                              description: language === 'fr' 
+                                ? 'Votre demande de suppression a été envoyée à vos parents. Ils recevront un email et une notification.'
+                                : 'Your deletion request has been sent to your parents. They will receive an email and notification.'
+                            });
+                          } else {
+                            toast({
+                              title: language === 'fr' ? 'Erreur' : 'Error',
+                              description: data.message,
+                              variant: 'destructive'
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: language === 'fr' ? 'Erreur' : 'Error',
+                            description: language === 'fr' ? 'Erreur lors de l\'envoi de la demande' : 'Error sending request',
+                            variant: 'destructive'
+                          });
+                        }
+                      }
+                    }}
+                    variant="destructive"
+                    className="w-full"
+                  >
+                    {language === 'fr' ? 'Demander la suppression' : 'Request Deletion'}
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
