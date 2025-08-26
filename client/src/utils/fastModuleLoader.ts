@@ -182,7 +182,7 @@ class FastModuleLoader {
       // =============================================
       // Legacy compatibility - some dashboards use these IDs
       'student-settings': () => import('@/components/student/modules/StudentSettings'),
-      'teacher-settings': () => import('@/components/teacher/modules/TeacherSettings'),
+      'teacher-settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
       'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       'school-settings': () => import('@/components/shared/UnifiedProfileManager'), // For school/admin settings
