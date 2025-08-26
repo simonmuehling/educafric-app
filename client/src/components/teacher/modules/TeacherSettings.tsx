@@ -226,9 +226,61 @@ const TeacherSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>{t.security}</CardTitle>
+              <p className="text-sm text-gray-600">Gérez vos paramètres de sécurité et d'accès</p>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Paramètres de sécurité disponibles bientôt.</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="twoFactorAuth">Authentification à deux facteurs</Label>
+                  <p className="text-sm text-gray-500">Sécurité renforcée pour votre compte</p>
+                </div>
+                <Switch 
+                  id="twoFactorAuth" 
+                  defaultChecked={settings?.settings?.security?.twoFactorEnabled || false}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="sessionTimeout">Déconnexion automatique</Label>
+                  <p className="text-sm text-gray-500">Se déconnecter après inactivité</p>
+                </div>
+                <select 
+                  id="sessionTimeout" 
+                  className="px-3 py-2 border rounded-md"
+                  defaultValue={settings?.settings?.security?.sessionTimeout || '30'}
+                >
+                  <option value="15">15 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 heure</option>
+                  <option value="0">Jamais</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="passwordExpiry">Expiration du mot de passe</Label>
+                  <p className="text-sm text-gray-500">Renouveler le mot de passe régulièrement</p>
+                </div>
+                <select 
+                  id="passwordExpiry" 
+                  className="px-3 py-2 border rounded-md"
+                  defaultValue={settings?.settings?.security?.passwordExpiry || '90'}
+                >
+                  <option value="30">30 jours</option>
+                  <option value="90">90 jours</option>
+                  <option value="180">6 mois</option>
+                  <option value="0">Jamais</option>
+                </select>
+              </div>
+              
+              <Button 
+                onClick={() => updateSettingsMutation.mutate({})}
+                disabled={updateSettingsMutation.isPending}
+                className="w-full"
+              >
+                {updateSettingsMutation.isPending ? 'Sauvegarde...' : t.save}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
