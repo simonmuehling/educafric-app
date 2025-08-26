@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, User, Bell, Shield } from 'lucide-react';
+import { Settings, User, Bell, Shield, UserCheck, AlertTriangle } from 'lucide-react';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 
 const TeacherSettings = () => {
@@ -16,6 +16,9 @@ const TeacherSettings = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('profile');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const text = {
     fr: {
@@ -24,6 +27,7 @@ const TeacherSettings = () => {
       profile: 'Profil',
       notifications: 'Notifications',
       security: 'Sécurité',
+      account: 'Compte',
       firstName: 'Prénom',
       lastName: 'Nom',
       email: 'Email',
@@ -34,7 +38,19 @@ const TeacherSettings = () => {
       save: 'Sauvegarder',
       emailNotifications: 'Notifications Email',
       smsNotifications: 'Notifications SMS',
-      pushNotifications: 'Notifications Push'
+      pushNotifications: 'Notifications Push',
+      changePassword: 'Changer le mot de passe',
+      currentPassword: 'Mot de passe actuel',
+      newPassword: 'Nouveau mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      updatePassword: 'Mettre à jour',
+      accountManagement: 'Gestion du compte',
+      deactivateAccount: 'Désactiver le compte',
+      deleteAccount: 'Supprimer le compte',
+      deactivateWarning: 'Votre compte sera temporairement désactivé',
+      deleteWarning: 'Cette action est irréversible',
+      deactivate: 'Désactiver',
+      requestDeletion: 'Demander suppression'
     },
     en: {
       title: 'Teacher Settings',
@@ -42,6 +58,7 @@ const TeacherSettings = () => {
       profile: 'Profile',
       notifications: 'Notifications',
       security: 'Security',
+      account: 'Account',
       firstName: 'First Name',
       lastName: 'Last Name',
       email: 'Email',
@@ -52,7 +69,19 @@ const TeacherSettings = () => {
       save: 'Save',
       emailNotifications: 'Email Notifications',
       smsNotifications: 'SMS Notifications',
-      pushNotifications: 'Push Notifications'
+      pushNotifications: 'Push Notifications',
+      changePassword: 'Change Password',
+      currentPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm Password',
+      updatePassword: 'Update',
+      accountManagement: 'Account Management',
+      deactivateAccount: 'Deactivate Account',
+      deleteAccount: 'Delete Account',
+      deactivateWarning: 'Your account will be temporarily deactivated',
+      deleteWarning: 'This action is irreversible',
+      deactivate: 'Deactivate',
+      requestDeletion: 'Request Deletion'
     }
   };
 
@@ -61,7 +90,8 @@ const TeacherSettings = () => {
   const tabConfig = [
     { value: 'profile', label: t.profile, icon: User },
     { value: 'notifications', label: t.notifications, icon: Bell },
-    { value: 'security', label: t.security, icon: Shield }
+    { value: 'security', label: t.security, icon: Shield },
+    { value: 'account', label: t.account, icon: UserCheck }
   ];
 
   // Fetch teacher settings
@@ -103,6 +133,108 @@ const TeacherSettings = () => {
       });
     }
   });
+
+  // Change password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string, newPassword: string }) => {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to change password');
+      return response.json();
+    },
+    onSuccess: () => {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast({
+        title: 'Mot de passe modifié',
+        description: 'Votre mot de passe a été mis à jour avec succès.'
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de modifier le mot de passe. Vérifiez votre mot de passe actuel.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Account management mutations
+  const deactivateAccountMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/auth/deactivate-account', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to deactivate account');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Compte désactivé',
+        description: 'Votre compte a été désactivé temporairement.'
+      });
+      // Redirect to logout
+      window.location.href = '/api/logout';
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de désactiver le compte.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const requestDeletionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/auth/request-account-deletion', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to request account deletion');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Demande envoyée',
+        description: 'Votre demande de suppression de compte a été envoyée à l\'administration.'
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'envoyer la demande de suppression.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Helper functions
+  const handlePasswordChange = () => {
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Erreur',
+        description: 'Les mots de passe ne correspondent pas.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast({
+        title: 'Erreur',
+        description: 'Le mot de passe doit contenir au moins 8 caractères.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
 
   if (isLoading) {
     return <div className="p-6 text-center">Chargement des paramètres...</div>;
@@ -283,6 +415,108 @@ const TeacherSettings = () => {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="account">
+          <div className="space-y-6">
+            {/* Change Password Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  {t.changePassword}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="currentPassword">{t.currentPassword}</Label>
+                  <Input 
+                    id="currentPassword" 
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••" 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newPassword">{t.newPassword}</Label>
+                  <Input 
+                    id="newPassword" 
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••" 
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
+                  <Input 
+                    id="confirmPassword" 
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••" 
+                  />
+                </div>
+                <Button 
+                  onClick={handlePasswordChange}
+                  disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword}
+                  className="w-full"
+                >
+                  {changePasswordMutation.isPending ? 'Mise à jour...' : t.updatePassword}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Account Management Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="w-5 h-5" />
+                  {t.accountManagement}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Deactivate Account */}
+                <div className="border rounded-lg p-4 bg-yellow-50 border-yellow-200">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{t.deactivateAccount}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{t.deactivateWarning}</p>
+                      <Button 
+                        variant="outline"
+                        className="mt-3 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                        onClick={() => deactivateAccountMutation.mutate()}
+                        disabled={deactivateAccountMutation.isPending}
+                      >
+                        {deactivateAccountMutation.isPending ? 'Désactivation...' : t.deactivate}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delete Account */}
+                <div className="border rounded-lg p-4 bg-red-50 border-red-200">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{t.deleteAccount}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{t.deleteWarning}</p>
+                      <Button 
+                        variant="destructive"
+                        className="mt-3"
+                        onClick={() => requestDeletionMutation.mutate()}
+                        disabled={requestDeletionMutation.isPending}
+                      >
+                        {requestDeletionMutation.isPending ? 'Envoi...' : t.requestDeletion}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
