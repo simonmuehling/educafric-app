@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Student Settings
-  app.get("/api/student/settings", requireAuth, async (req, res) => {
+  app.get("/api/student/settings", async (req, res) => {
     try {
       const settings = {
         profile: {
