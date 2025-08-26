@@ -57,35 +57,38 @@ const FunctionalDirectorProfile: React.FC = () => {
     confirmPassword: ''
   });
 
-  // Fetch director profile data
-  const { data: profile, isLoading } = useQuery<DirectorProfile>({
-    queryKey: ['/api/director/profile'],
+  // Fetch director profile data from settings endpoint
+  const { data: profileData, isLoading } = useQuery({
+    queryKey: ['/api/director/settings'],
     queryFn: async () => {
-      const response = await fetch('/api/director/profile', {
+      const response = await fetch('/api/director/settings', {
         credentials: 'include'
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch director profile');
+        throw new Error('Failed to fetch director settings');
       }
       return response.json();
     },
     enabled: !!user
   });
 
-  // Update profile mutation
+  // Extract profile from settings data
+  const profile = profileData?.settings?.profile || {};
+
+  // Update profile mutation using settings endpoint
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<DirectorProfile>) => {
-      const response = await fetch('/api/director/profile/update', {
-        method: 'POST',
+      const response = await fetch('/api/director/settings', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({ profile: updates }),
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to update profile');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/director/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/settings'] });
       setIsEditing(false);
       toast({
         title: language === 'fr' ? 'Profil mis à jour' : 'Profile updated',
@@ -562,7 +565,7 @@ const FunctionalDirectorProfile: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4">
-                  {(profile?.achievements || []).map((achievement, index) => (
+                  {(profile?.achievements || []).map((achievement: any, index: number) => (
                     <div key={achievement.id || index} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
                       <div className="bg-yellow-100 rounded-full p-2">
                         <Star className="w-5 h-5 text-yellow-600" />
