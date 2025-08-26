@@ -375,24 +375,43 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
             {method === 'smart_qr' && (
               <div className="text-center space-y-4">
                 <div className="bg-white p-6 rounded-xl border-2 border-purple-300 shadow-lg">
-                  <div className="relative mx-auto w-80 h-80">
-                    {/* Firebase-powered Smart QR */}
-                    <div className="w-full h-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl p-4 shadow-xl">
-                      <div className="w-full h-full bg-white rounded-2xl p-4 flex flex-col items-center justify-center">
-                        {/* QR Code Area */}
-                        <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
-                          <QrCode className="h-32 w-32 text-purple-600" />
-                        </div>
+                  <div className="relative mx-auto max-w-sm">
+                    {/* Firebase-powered Smart QR Container */}
+                    <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl p-4 shadow-xl">
+                      <div className="bg-white rounded-2xl p-4">
                         
-                        {/* EDUCAFRIC Branding */}
-                        <div className="text-center">
+                        {/* EDUCAFRIC Header */}
+                        <div className="text-center mb-3">
                           <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            EDUCAFRIC
+                            🔥 EDUCAFRIC
                           </div>
                           <div className="text-xs text-gray-600">Firebase Smart QR</div>
-                          <div className="text-sm font-mono text-purple-600 mt-1">
+                        </div>
+                        
+                        {/* QR Code réel */}
+                        <div className="flex justify-center mb-3">
+                          {connectionData.qrCode ? (
+                            <img 
+                              src={connectionData.qrCode} 
+                              alt="QR Code EDUCAFRIC" 
+                              className="w-56 h-56 rounded-lg border border-gray-200"
+                              style={{ imageRendering: 'pixelated' }}
+                            />
+                          ) : (
+                            <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <QrCode className="h-32 w-32 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Code et info */}
+                        <div className="text-center">
+                          <div className="text-sm font-mono text-purple-600 bg-purple-50 px-3 py-1 rounded-full inline-block">
                             {connectionData.shortCode}
                           </div>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {language === 'fr' ? 'Scannez avec votre appareil photo' : 'Scan with your camera'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -403,6 +422,19 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
                   </div>
                 </div>
                 
+                {/* QR Info */}
+                <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                  <p className="text-blue-800 font-medium">
+                    {language === 'fr' ? '📱 Instructions :' : '📱 Instructions:'}
+                  </p>
+                  <p className="text-blue-700">
+                    {language === 'fr' 
+                      ? '1. Ouvrez l\'appareil photo sur votre téléphone\n2. Pointez vers le QR code\n3. Touchez le lien qui apparaît'
+                      : '1. Open camera on your phone\n2. Point at QR code\n3. Tap the link that appears'
+                    }
+                  </p>
+                </div>
+                
                 <div className="flex space-x-2 justify-center">
                   <Button onClick={downloadSmartQR} variant="outline">
                     <Download className="h-4 w-4 mr-2" />
@@ -411,6 +443,10 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
                   <Button onClick={() => shareViaFirebase(connectionData)} className="bg-purple-600 hover:bg-purple-700">
                     <Share2 className="h-4 w-4 mr-2" />
                     {t.share}
+                  </Button>
+                  <Button onClick={() => copyToClipboard(connectionData.qrData || connectionData.shortCode)} variant="outline">
+                    <Copy className="h-4 w-4 mr-2" />
+                    {t.copy}
                   </Button>
                 </div>
               </div>

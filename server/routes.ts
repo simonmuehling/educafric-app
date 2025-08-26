@@ -654,35 +654,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
           
         case 'smart_qr':
-          connectionData = {
-            qrCode: `data:image/svg+xml;base64,${btoa(`
-              <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
-                  </linearGradient>
-                </defs>
-                <rect width="300" height="300" fill="url(#grad)" rx="20"/>
-                <rect x="20" y="20" width="260" height="260" fill="white" rx="15"/>
-                <text x="150" y="50" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#8B5CF6">EDUCAFRIC</text>
-                <text x="150" y="280" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">Scan pour connecter</text>
-                <!-- QR Pattern simulation -->
-                <g fill="#333">
-                  ${Array.from({length: 15}, (_, i) => 
-                    Array.from({length: 15}, (_, j) => 
-                      Math.random() > 0.5 ? `<rect x="${40 + j*12}" y="${70 + i*12}" width="10" height="10"/>` : ''
-                    ).join('')
-                  ).join('')}
-                </g>
-              </svg>
-            `)}`,
-            shortCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-            analytics: {
-              successRate: 98,
-              installs: 856
-            }
-          };
+          const QRCode = require('qrcode');
+          const qrToken = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const qrData = `https://www.educafric.com/parent-connect?student=${userId}&token=${qrToken}&ref=firebase_qr`;
+          
+          try {
+            // Générer un vrai QR code avec la bibliothèque qrcode
+            const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+              errorCorrectionLevel: 'M',
+              type: 'image/png',
+              quality: 0.92,
+              margin: 1,
+              color: {
+                dark: '#1F2937', // Gris foncé au lieu de noir pur
+                light: '#FFFFFF'
+              },
+              width: 300
+            });
+            
+            connectionData = {
+              qrCode: qrCodeDataURL,
+              qrData: qrData,
+              shortCode: qrToken,
+              analytics: {
+                successRate: 98,
+                installs: 856
+              }
+            };
+          } catch (qrError) {
+            console.error('[FIREBASE_QR] QR generation error:', qrError);
+            // Fallback vers un QR simple en cas d'erreur
+            connectionData = {
+              qrCode: `data:image/svg+xml;base64,${btoa(`
+                <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="300" height="300" fill="white"/>
+                  <text x="150" y="150" text-anchor="middle" font-family="Arial" font-size="14" fill="#666">QR Code: ${qrToken}</text>
+                </svg>
+              `)}`,
+              qrData: qrData,
+              shortCode: qrToken,
+              analytics: {
+                successRate: 98,
+                installs: 856
+              }
+            };
+          }
           break;
           
         case 'notification':
