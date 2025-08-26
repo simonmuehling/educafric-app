@@ -59,6 +59,8 @@ import { tutorialRoutes } from "./routes/tutorialRoutes";
 // import teacherStudentConnections from "./routes/teacherStudentConnections";
 // import studentParentConnections from "./routes/studentParentConnections";
 import bulkImportRoutes from "./routes/bulkImport";
+import sandboxDataRoutes from "./routes/sandbox-data";
+import { registerDiagnosticsRoutes } from "./routes/diagnostics";
 import partnershipsRoutes from "./routes/partnerships";
 import unifiedMessagingRoutes from "./routes/unified-messaging";
 import connectionsRoutes from "./routes/connections";
@@ -873,6 +875,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/bulk-import', bulkImportRoutes);
   app.use('/api/partnerships', partnershipsRoutes);
   app.use('/api/educational-content', educationalContentRoutes);
+  
+  // Register missing routes
+  app.use('/api/sandbox-data', sandboxDataRoutes);
 
   // Register service routes
   try {
@@ -887,6 +892,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.warn('[ROUTES] Site admin routes failed to register:', error);
   }
   
+  // Register diagnostics routes
+  try {
+    registerDiagnosticsRoutes(app);
+  } catch (error) {
+    console.warn('[ROUTES] Diagnostics routes failed to register:', error);
+  }
+  
+  // Register notification setup (imported but not used)
+  try {
+    setupNotificationRoutes(app);
+  } catch (error) {
+    console.warn('[ROUTES] Notification setup failed to register:', error);
+  }
   
 
   // API 404 handler - must be after all API routes
