@@ -20,7 +20,7 @@ class FastModuleLoader {
       // =============================================
       // CORE DIRECTOR MODULES (exact IDs from DirectorDashboard.tsx)
       'overview': () => import('@/components/director/modules/FunctionalDirectorOverview'),
-      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'), // Director profile, not settings
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
       'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'), // ⚠️ CRITICAL: Must point to Director module!
       'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
@@ -61,8 +61,7 @@ class FastModuleLoader {
       // ⚠️ REMOVED DUPLICATE ALIASES TO PREVENT CONFLICTS
       // 'director-students' removed - use 'students' for Director context
       
-      // Additional specific mappings for problematic modules
-      'FunctionalDirectorProfile': () => import('@/components/director/modules/FunctionalDirectorProfile'),
+      // Additional specific mappings for problematic modules  
       'TeacherAbsenceManager': () => import('@/components/director/modules/TeacherAbsenceManager'),
       
       // Legacy module names for compatibility
@@ -182,13 +181,12 @@ class FastModuleLoader {
       // 🔧 SETTINGS MODULES - ROLE SPECIFIC  
       // =============================================
       // Legacy compatibility - some dashboards use these IDs
-      'settings': () => import('@/components/teacher/modules/TeacherSettings'),
       'student-settings': () => import('@/components/student/modules/StudentSettings'),
       'teacher-settings': () => import('@/components/teacher/modules/TeacherSettings'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
       'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       'school-settings': () => import('@/components/shared/UnifiedProfileManager'), // For school/admin settings
-      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility
+      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility for generic settings
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),
