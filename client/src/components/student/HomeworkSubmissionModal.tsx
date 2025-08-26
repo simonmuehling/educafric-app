@@ -53,7 +53,8 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
 
   const submitHomeworkMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/student/homework/submit', {
+      const homeworkId = homework?.id;
+      const response = await fetch(`/api/student/homework/${homeworkId}/submit`, {
         method: 'POST',
         body: formData,
         credentials: 'include'

@@ -763,6 +763,47 @@ router.get('/parent-connections', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/student/settings - Get student settings
+router.get('/settings', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock student settings
+    const settings = {
+      profile: {
+        firstName: 'Jean',
+        lastName: 'Kouam',
+        email: 'student.demo@test.educafric.com',
+        className: '6ème A',
+        studentId: 'STU-2025-001'
+      },
+      notifications: {
+        gradeNotifications: true,
+        assignmentNotifications: true,
+        attendanceNotifications: false
+      },
+      privacy: {
+        profileVisibility: 'school_only',
+        allowParentTracking: true
+      }
+    };
+
+    console.log(`[STUDENT_API] ✅ Settings retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      settings: settings,
+      message: 'Settings retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching settings:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching settings'
+    });
+  }
+});
+
 // GET /api/student/geolocation/device-status - Get device tracking status
 router.get('/geolocation/device-status', requireAuth, async (req, res) => {
   try {
