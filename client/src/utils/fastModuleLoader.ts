@@ -35,7 +35,6 @@ class FastModuleLoader {
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
-      'director-school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
@@ -71,7 +70,6 @@ class FastModuleLoader {
       'BulletinValidation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'AttendanceManagement': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'Communications': () => import('@/components/director/modules/Communications'),
-      'SchoolSettings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       
       // Parent modules (matching dashboard IDs exactly)
@@ -185,8 +183,7 @@ class FastModuleLoader {
       'teacher-settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
       'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
-      'school-settings': () => import('@/components/shared/UnifiedProfileManager'), // For school/admin settings
-      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility for generic settings
+      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'), // For school/admin settings - FIXED DUPLICATION
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),
@@ -195,7 +192,10 @@ class FastModuleLoader {
       
       // SiteAdmin modules - Using shared components for now until specific modules are created
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
-      'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager')
+      'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager'),
+      
+      // Generic settings fallback (removed duplication)
+      'settings': () => import('@/components/shared/UnifiedProfileManager') // Legacy compatibility for generic settings only
     };
 
     // VALIDATION: Check for duplicate keys to prevent conflicts
