@@ -157,6 +157,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🚫 CRITICAL: Authentication endpoints must be public
   app.use('/api/auth', authRoutes);
 
+  // Service Worker route spécifique (AVANT les autres routes static)
+  app.get('/sw.js', (req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.sendFile(path.join(process.cwd(), 'public/sw.js'));
+  });
+
+  // Manifest PWA
+  app.get('/manifest.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.sendFile(path.join(process.cwd(), 'public/manifest.json'));
+  });
+
   // Serve static files
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 
