@@ -50,6 +50,7 @@ const HomeworkSubmissionModal: React.FC<HomeworkSubmissionModalProps> = ({
   const [submissionText, setSubmissionText] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileWithPreview[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [submissionMode, setSubmissionMode] = useState<'text' | 'files' | 'both'>('both');
 
   const submitHomeworkMutation = useMutation({
     mutationFn: async (formData: FormData) => {
