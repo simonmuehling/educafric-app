@@ -445,6 +445,7 @@ function Router() {
       <Route path="/pwa-notifications-test" component={PWANotificationTest} />
       
       {/* Fallback to 404 */}
+      <Route path="/parent-connect" component={lazy(() => import('./pages/ParentConnect'))} />
       <Route component={NotFound} />
     </Switch>
   );

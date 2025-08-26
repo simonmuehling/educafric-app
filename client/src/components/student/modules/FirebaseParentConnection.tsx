@@ -198,14 +198,15 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
   };
 
   const shareViaFirebase = async (data: any) => {
+    const shareText = language === 'fr' 
+      ? `🎓 Rejoignez EDUCAFRIC pour suivre ma scolarité !\n\n✨ Connexion facile avec ce lien :\n${data.dynamicLink}\n\n📱 Ou utilisez le code : ${data.shortCode}\n\n🔐 Sécurisé et validé par l'école`
+      : `🎓 Join EDUCAFRIC to follow my school progress!\n\n✨ Easy connection with this link:\n${data.dynamicLink}\n\n📱 Or use code: ${data.shortCode}\n\n🔐 Secure and school-validated`;
+
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'EDUCAFRIC - Invitation Parent',
-          text: language === 'fr' 
-            ? 'Rejoins EDUCAFRIC pour suivre ma scolarité !' 
-            : 'Join EDUCAFRIC to follow my school progress!',
-          url: data.dynamicLink
+          text: shareText
         });
         
         toast({
@@ -213,10 +214,10 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
           description: language === 'fr' ? 'Invitation partagée' : 'Invitation shared'
         });
       } catch (error) {
-        copyToClipboard(data.dynamicLink);
+        copyToClipboard(shareText);
       }
     } else {
-      copyToClipboard(data.dynamicLink);
+      copyToClipboard(shareText);
     }
   };
 

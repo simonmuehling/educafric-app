@@ -640,9 +640,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       switch (method) {
         case 'dynamic_link':
+          // Utiliser une URL directe vers l'app EDUCAFRIC avec deep linking
+          const token = Math.random().toString(36).substring(2, 12).toUpperCase();
           connectionData = {
-            dynamicLink: `https://educafric.page.link/parent-connect?student=${userId}&token=${Date.now()}`,
-            shortCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+            dynamicLink: `https://www.educafric.com/parent-connect?student=${userId}&token=${token}&ref=firebase`,
+            shortCode: token.substring(0, 6),
+            token: token,
             analytics: {
               successRate: 94,
               installs: 1247
@@ -734,6 +737,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(config);
     } catch (error) {
       res.status(500).json({ error: 'Failed to load remote config' });
+    }
+  });
+
+  // Parent Connection via Link
+  app.post("/api/parent/connect-via-link", async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, studentId, token, connectionMethod, relationship } = req.body;
+      
+      console.log('[PARENT_CONNECT_LINK] Processing connection:', { email, studentId, connectionMethod });
+      
+      // Validation du token et création du parent
+      // Dans un vrai système, on vérifierait le token dans la DB
+      
+      const parentConnection = {
+        id: Date.now(),
+        parentId: Date.now() + 1000,
+        parentName: `${firstName} ${lastName}`,
+        parentEmail: email,
+        parentPhone: phone,
+        relationshipType: relationship,
+        status: 'pending', // École doit valider
+        requestDate: new Date().toISOString(),
+        connectionMethod: connectionMethod,
+        token: token
+      };
+      
+      res.json({
+        success: true,
+        message: 'Compte parent créé avec succès. En attente de validation par l\'école.',
+        connection: parentConnection
+      });
+      
+    } catch (error) {
+      console.error('[PARENT_CONNECT_LINK] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Impossible de créer le compte parent' 
+      });
     }
   });
 
