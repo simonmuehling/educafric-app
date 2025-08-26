@@ -122,18 +122,42 @@ const StudentGeolocation: React.FC = () => {
   // Fetch student's active safe zones
   const { data: safeZones = [], isLoading: zonesLoading } = useQuery({
     queryKey: ['/api/student/geolocation/safe-zones'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/geolocation/safe-zones', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch safe zones');
+      const data = await response.json();
+      return data.safeZones || [];
+    },
     retry: false,
   });
 
   // Fetch student's device status
   const { data: deviceStatus, isLoading: deviceLoading } = useQuery({
     queryKey: ['/api/student/geolocation/device-status'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/geolocation/device-status', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch device status');
+      const data = await response.json();
+      return data.deviceStatus || {};
+    },
     retry: false,
   });
 
   // Fetch recent geolocation notifications for this student
   const { data: notifications = [] } = useQuery<any[]>({
-    queryKey: ['/api/notifications', 'Student', 15, 'security', false], // Student ID 15, security category
+    queryKey: ['/api/notifications', 'Student', 15, 'security', false],
+    queryFn: async () => {
+      const response = await fetch('/api/notifications?userRole=Student&userId=15&category=security&unreadOnly=false', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      const data = await response.json();
+      return data.notifications || [];
+    },
     retry: false,
   });
 

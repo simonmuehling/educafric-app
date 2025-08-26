@@ -650,25 +650,22 @@ router.post('/generate-qr', requireAuth, async (req, res) => {
       });
     }
 
-    // Generate QR code data
-    const qrData = {
-      studentId: studentId,
-      purpose: purpose || 'parent-connection',
-      timestamp: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-    };
+    // Generate a simple connection token for parents to scan
+    const connectionToken = `EDUCAFRIC_CONNECT_${studentId}_${Date.now()}`;
+    const connectUrl = `https://www.educafric.com/parent/connect?token=${connectionToken}&student=${studentId}`;
 
-    // For demo purposes, create a simple QR code representation
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify(qrData))}`;
+    // Create QR code with scannable URL
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(connectUrl)}`;
 
-    console.log(`[STUDENT_API] ✅ QR Code generated for student:`, { studentId, purpose: qrData.purpose });
+    console.log(`[STUDENT_API] ✅ QR Code generated for student:`, { studentId, purpose: purpose || 'parent-connection', token: connectionToken });
 
     res.json({
       success: true,
       qrCode: {
-        data: qrData,
+        data: connectUrl,
         url: qrCodeUrl,
-        expires: qrData.expiresAt
+        token: connectionToken,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       },
       message: 'QR code generated successfully'
     });
