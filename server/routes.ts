@@ -131,6 +131,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Add missing authentication API endpoints
+  app.get('/api/auth/session-status', (req, res) => {
+    res.json({ 
+      success: true, 
+      authenticated: req.isAuthenticated(),
+      userId: req.user?.id || null 
+    });
+  });
+
+  app.post('/api/auth/force-logout', (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: 'Logout failed' });
+      }
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: 'Session destroy failed' });
+        }
+        res.json({ success: true, message: 'Force logout successful' });
+      });
+    });
+  });
+
   // 🚫 CRITICAL: Authentication endpoints must be public
   app.use('/api/auth', authRoutes);
 
