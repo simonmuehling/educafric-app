@@ -604,7 +604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/student/change-password", requireAuth, async (req, res) => {
     try {
       const { currentPassword, newPassword } = req.body;
-      console.log('[STUDENT_PASSWORD_CHANGE] Password change request for user:', req.session?.authenticated);
+      console.log('[STUDENT_PASSWORD_CHANGE] Password change request for user:', (req.session as any)?.authenticated);
       
       // Here you would verify current password and update with new one
       // For demo purposes, we'll just return success
@@ -678,7 +678,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const qrCodeDataURL = await QRCode.default.toDataURL(qrData, {
               errorCorrectionLevel: 'M',
               type: 'image/png',
-              quality: 0.92,
               margin: 1,
               color: {
                 dark: '#1F2937', // Gris foncé au lieu de noir pur
