@@ -69,8 +69,34 @@ const TeacherSettingsSimple = () => {
             <CardHeader>
               <CardTitle>{t.profile}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p>Module des paramètres de profil fonctionnel !</p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">
+                    {language === 'fr' ? 'Prénom' : 'First Name'}
+                  </Label>
+                  <Input id="firstName" placeholder={language === 'fr' ? 'Votre prénom' : 'Your first name'} />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">
+                    {language === 'fr' ? 'Nom' : 'Last Name'}
+                  </Label>
+                  <Input id="lastName" placeholder={language === 'fr' ? 'Votre nom' : 'Your last name'} />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="teacher@educafric.com" />
+                </div>
+                <div>
+                  <Label htmlFor="phone">
+                    {language === 'fr' ? 'Téléphone' : 'Phone'}
+                  </Label>
+                  <Input id="phone" placeholder="+237 XXX XXX XXX" />
+                </div>
+              </div>
+              <Button className="mt-4">
+                {t.save}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -80,8 +106,32 @@ const TeacherSettingsSimple = () => {
             <CardHeader>
               <CardTitle>{t.notifications}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p>Module des notifications fonctionnel !</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    {language === 'fr' ? 'Notifications par email' : 'Email notifications'}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {language === 'fr' ? 'Recevoir des notifications par email' : 'Receive email notifications'}
+                  </p>
+                </div>
+                <Switch />
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">
+                    {language === 'fr' ? 'Notifications SMS' : 'SMS notifications'}
+                  </h4>
+                  <p className="text-sm text-gray-600">
+                    {language === 'fr' ? 'Recevoir des notifications par SMS' : 'Receive SMS notifications'}
+                  </p>
+                </div>
+                <Switch />
+              </div>
+              <Button className="mt-4">
+                {t.save}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -91,8 +141,28 @@ const TeacherSettingsSimple = () => {
             <CardHeader>
               <CardTitle>{t.security}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p>Module de sécurité fonctionnel !</p>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="currentPassword">
+                  {language === 'fr' ? 'Mot de passe actuel' : 'Current password'}
+                </Label>
+                <Input id="currentPassword" type="password" />
+              </div>
+              <div>
+                <Label htmlFor="newPassword">
+                  {language === 'fr' ? 'Nouveau mot de passe' : 'New password'}
+                </Label>
+                <Input id="newPassword" type="password" />
+              </div>
+              <div>
+                <Label htmlFor="confirmPassword">
+                  {language === 'fr' ? 'Confirmer le mot de passe' : 'Confirm password'}
+                </Label>
+                <Input id="confirmPassword" type="password" />
+              </div>
+              <Button className="mt-4">
+                {language === 'fr' ? 'Changer le mot de passe' : 'Change password'}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -102,8 +172,18 @@ const TeacherSettingsSimple = () => {
             <CardHeader>
               <CardTitle>{t.account}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p>Module de gestion de compte fonctionnel !</p>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <h4 className="font-medium text-orange-800">
+                  {language === 'fr' ? 'Zone de danger' : 'Danger zone'}
+                </h4>
+                <p className="text-sm text-orange-700 mt-1">
+                  {language === 'fr' ? 'Actions irréversibles sur votre compte' : 'Irreversible actions on your account'}
+                </p>
+              </div>
+              <Button variant="destructive" className="w-full">
+                {language === 'fr' ? 'Supprimer mon compte' : 'Delete my account'}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
