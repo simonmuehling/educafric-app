@@ -117,7 +117,7 @@ class FastModuleLoader {
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
       'messages': () => import('@/components/student/modules/StudentCommunications'), // FOR STUDENTS: Messages École module
-      'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
+      'parentConnection': () => import('@/components/student/modules/FirebaseParentConnection'),
       
       // Missing Student modules that were causing slow loading
       'achievements': () => import('@/components/student/modules/StudentAchievements'),
@@ -137,7 +137,7 @@ class FastModuleLoader {
       'FunctionalStudentAttendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'FunctionalStudentClasses': () => import('@/components/student/modules/FunctionalStudentClasses'),
       'StudentProgress': () => import('@/components/student/modules/StudentProgress'),
-      'FindParentsModule': () => import('@/components/student/modules/FindParentsModule'),
+      'FindParentsModule': () => import('@/components/student/modules/FirebaseParentConnection'),
       
       // Teacher modules (matching dashboard IDs exactly) - CRITICAL MISSING MAPPINGS!
       'teacher-classes': () => import('@/components/teacher/modules/FunctionalMyClasses'),

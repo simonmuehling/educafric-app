@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+
+// Importation dynamique du composant Firebase
+const FirebaseParentConnection = React.lazy(() => import('./FirebaseParentConnection'));
 import {
   Card,
   CardContent,
@@ -89,14 +92,14 @@ const FindParentsModule: React.FC = () => {
       subtitle: 'Connect with your parents on EDUCAFRIC',
       tabs: {
         connections: 'My Parents',
-        qrCode: 'QR Code',
+        qrCode: '🔥 Firebase',
         search: 'Search Parent'
       },
       noParents: 'No parents connected',
       noParentsDesc: 'Ask your parents to join you on EDUCAFRIC to follow your education',
-      generateQR: 'Generate QR Code',
-      shareQR: 'Share this code with your parents',
-      qrInstructions: 'Your parents can scan this code to connect quickly',
+      generateQR: '🔥 Firebase Connection',
+      shareQR: 'Share smart connection',
+      qrInstructions: 'New Firebase technology to connect your parents instantly',
       searchParent: 'Search for a parent',
       searchMethod: 'Search method',
       searchByEmail: 'By email',
@@ -143,14 +146,14 @@ const FindParentsModule: React.FC = () => {
       subtitle: 'Connectez-vous avec vos parents sur EDUCAFRIC',
       tabs: {
         connections: 'Mes Parents',
-        qrCode: 'Code QR',
+        qrCode: '🔥 Firebase',
         search: 'Rechercher Parent'
       },
       noParents: 'Aucun parent connecté',
       noParentsDesc: 'Demandez à vos parents de vous rejoindre sur EDUCAFRIC pour suivre votre scolarité',
-      generateQR: 'Générer Code QR',
-      shareQR: 'Partager ce code avec vos parents',
-      qrInstructions: 'Vos parents peuvent scanner ce code pour se connecter rapidement',
+      generateQR: '🔥 Connexion Firebase',
+      shareQR: 'Partager la connexion intelligente',
+      qrInstructions: 'Nouvelle technologie Firebase pour connecter vos parents instantanément',
       searchParent: 'Rechercher un parent',
       searchMethod: 'Méthode de recherche',
       searchByEmail: 'Par email',
@@ -518,66 +521,24 @@ const FindParentsModule: React.FC = () => {
           )}
         </TabsContent>
 
-        {/* QR Code Tab */}
+        {/* Firebase Smart Connection Tab */}
         <TabsContent value="qrCode" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <QrCode className="w-5 h-5" />
-                {t.generateQR}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 text-center">
-              {!qrCode ? (
-                <div className="space-y-4">
-                  <div className="w-32 h-32 bg-gray-100 rounded-lg mx-auto flex items-center justify-center">
-                    <QrCode className="w-16 h-16 text-gray-400" />
+          <Suspense fallback={
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="animate-pulse">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                   </div>
-                  <p className="text-gray-600">{t.qrInstructions}</p>
-                  <Button
-                    onClick={() => generateQRMutation.mutate()}
-                    disabled={generateQRMutation.isPending}
-                    className="bg-pink-600 hover:bg-pink-700"
-                    data-testid="button-generate-qr"
-                  >
-                    {generateQRMutation.isPending ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        {language === 'fr' ? 'Génération...' : 'Generating...'}
-                      </>
-                    ) : (
-                      <>
-                        <QrCode className="w-4 h-4 mr-2" />
-                        {t.generateQR}
-                      </>
-                    )}
-                  </Button>
+                  <p className="text-gray-600">
+                    {language === 'fr' ? 'Chargement Firebase...' : 'Loading Firebase...'}
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="w-64 h-64 bg-white border-2 border-gray-200 rounded-lg mx-auto flex items-center justify-center">
-                    <div className="text-center">
-                      <QrCode className="w-32 h-32 text-gray-700 mx-auto mb-4" />
-                      <p className="text-xs font-mono bg-gray-100 p-2 rounded">
-                        {qrCode}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-pink-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-pink-800 mb-2">{t.shareQR}</h4>
-                    <p className="text-sm text-pink-600">{t.qrInstructions}</p>
-                  </div>
-                  <Button
-                    onClick={() => generateQRMutation.mutate()}
-                    variant="outline"
-                    data-testid="button-regenerate-qr"
-                  >
-                    {language === 'fr' ? 'Nouveau code' : 'New code'}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          }>
+            <FirebaseParentConnection studentId={user?.id} />
+          </Suspense>
         </TabsContent>
 
         {/* Search Parent Tab */}
