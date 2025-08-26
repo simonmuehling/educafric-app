@@ -226,9 +226,65 @@ const StudentSettings = () => {
           <Card>
             <CardHeader>
               <CardTitle>{t.privacy}</CardTitle>
+              <p className="text-sm text-gray-600">Gérez vos paramètres de confidentialité et de visibilité</p>
             </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Paramètres de confidentialité disponibles bientôt.</p>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="profileVisibility">Visibilité du profil</Label>
+                  <p className="text-sm text-gray-500">Qui peut voir votre profil</p>
+                </div>
+                <select 
+                  id="profileVisibility" 
+                  className="px-3 py-2 border rounded-md"
+                  defaultValue={settings?.settings?.privacy?.profileVisibility || 'school_only'}
+                >
+                  <option value="public">Publique</option>
+                  <option value="school_only">École seulement</option>
+                  <option value="private">Privé</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="allowParentTracking">Autoriser le suivi parental</Label>
+                  <p className="text-sm text-gray-500">Permettre aux parents de voir votre localisation</p>
+                </div>
+                <Switch 
+                  id="allowParentTracking" 
+                  defaultChecked={settings?.settings?.privacy?.allowParentTracking !== false}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="showGradesToParents">Partager les notes</Label>
+                  <p className="text-sm text-gray-500">Permettre aux parents de voir vos notes</p>
+                </div>
+                <Switch 
+                  id="showGradesToParents" 
+                  defaultChecked={settings?.settings?.privacy?.showGradesToParents !== false}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="allowDirectMessages">Messages directs</Label>
+                  <p className="text-sm text-gray-500">Recevoir des messages privés d'autres utilisateurs</p>
+                </div>
+                <Switch 
+                  id="allowDirectMessages" 
+                  defaultChecked={settings?.settings?.privacy?.allowDirectMessages !== false}
+                />
+              </div>
+              
+              <Button 
+                onClick={() => updateSettingsMutation.mutate({})}
+                disabled={updateSettingsMutation.isPending}
+                className="w-full"
+              >
+                {updateSettingsMutation.isPending ? 'Sauvegarde...' : t.save}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>

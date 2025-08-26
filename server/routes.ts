@@ -556,6 +556,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentRank: 8,
           totalStudents: 45,
           lastUpdate: '2024-08-20'
+        },
+        privacy: {
+          profileVisibility: 'school_only',
+          allowParentTracking: true,
+          showGradesToParents: true,
+          allowDirectMessages: false
         }
       };
       res.json({ success: true, settings });
