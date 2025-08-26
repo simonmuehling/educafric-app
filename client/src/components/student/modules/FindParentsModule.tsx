@@ -199,6 +199,14 @@ const FindParentsModule: React.FC = () => {
   // Fetch parent connections
   const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery<ParentConnection[]>({
     queryKey: ['/api/student-parent/connections'],
+    queryFn: async () => {
+      const response = await fetch('/api/student/parent-connections', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch parent connections');
+      const data = await response.json();
+      return data.connections || [];
+    },
     retry: false,
   });
 
@@ -229,10 +237,19 @@ const FindParentsModule: React.FC = () => {
   // Generate QR code mutation
   const generateQRMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/student/generate-qr', 'POST', {});
+      const response = await fetch('/api/student/generate-qr', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ purpose: 'parent-connection' })
+      });
+      if (!response.ok) throw new Error('Failed to generate QR code');
+      return response.json();
     },
     onSuccess: (data: any) => {
-      setQrCode(data.qrToken);
+      setQrCode(data.qrCode?.url || data.qrToken);
       toast({
         title: t.qrGenerated,
         description: t.qrGeneratedDesc,

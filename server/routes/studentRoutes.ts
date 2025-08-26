@@ -681,4 +681,120 @@ router.post('/generate-qr', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/student/geolocation/safe-zones - Get student safe zones
+router.get('/geolocation/safe-zones', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock safe zones data
+    const safeZones = [
+      {
+        id: 1,
+        name: 'École Primaire',
+        address: 'Rue de l\'École, Yaoundé',
+        radius: 100,
+        isActive: true,
+        coordinates: { lat: 3.848, lng: 11.502 }
+      },
+      {
+        id: 2,
+        name: 'Domicile',
+        address: 'Quartier Résidentiel, Yaoundé',
+        radius: 50,
+        isActive: true,
+        coordinates: { lat: 3.866, lng: 11.518 }
+      }
+    ];
+
+    console.log(`[STUDENT_API] ✅ Safe zones retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      safeZones: safeZones,
+      message: 'Safe zones retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching safe zones:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching safe zones'
+    });
+  }
+});
+
+// GET /api/student-parent/connections - Get parent-child connections
+router.get('/parent-connections', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock parent connections
+    const connections = [
+      {
+        id: 1,
+        parentName: 'Marie Kouam',
+        parentEmail: 'marie.kouam@example.com',
+        relationship: 'Mère',
+        status: 'active',
+        connectedAt: '2025-01-15T10:00:00Z'
+      },
+      {
+        id: 2,
+        parentName: 'Paul Kouam',
+        parentEmail: 'paul.kouam@example.com',
+        relationship: 'Père',
+        status: 'pending',
+        connectedAt: null
+      }
+    ];
+
+    console.log(`[STUDENT_API] ✅ Parent connections retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      connections: connections,
+      message: 'Parent connections retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching parent connections:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching parent connections'
+    });
+  }
+});
+
+// GET /api/student/geolocation/device-status - Get device tracking status
+router.get('/geolocation/device-status', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock device status
+    const deviceStatus = {
+      isTracking: true,
+      lastUpdate: new Date().toISOString(),
+      batteryLevel: 85,
+      location: {
+        lat: 3.848,
+        lng: 11.502,
+        accuracy: 10
+      },
+      connectionStatus: 'online'
+    };
+
+    console.log(`[STUDENT_API] ✅ Device status retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      deviceStatus: deviceStatus,
+      message: 'Device status retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching device status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching device status'
+    });
+  }
+});
+
 export default router;
