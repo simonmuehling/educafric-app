@@ -654,13 +654,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
           
         case 'smart_qr':
-          const QRCode = require('qrcode');
           const qrToken = Math.random().toString(36).substring(2, 8).toUpperCase();
           const qrData = `https://www.educafric.com/parent-connect?student=${userId}&token=${qrToken}&ref=firebase_qr`;
           
           try {
+            // Import dynamique de qrcode pour ESM
+            const QRCode = await import('qrcode');
+            
             // Générer un vrai QR code avec la bibliothèque qrcode
-            const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+            const qrCodeDataURL = await QRCode.default.toDataURL(qrData, {
               errorCorrectionLevel: 'M',
               type: 'image/png',
               quality: 0.92,
@@ -672,6 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               width: 300
             });
             
+            console.log('[FIREBASE_QR] ✅ QR Code generated successfully');
             connectionData = {
               qrCode: qrCodeDataURL,
               qrData: qrData,
@@ -687,8 +690,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             connectionData = {
               qrCode: `data:image/svg+xml;base64,${btoa(`
                 <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="300" height="300" fill="white"/>
-                  <text x="150" y="150" text-anchor="middle" font-family="Arial" font-size="14" fill="#666">QR Code: ${qrToken}</text>
+                  <rect width="300" height="300" fill="white" stroke="#ddd" stroke-width="2"/>
+                  <text x="150" y="140" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#333">EDUCAFRIC</text>
+                  <text x="150" y="170" text-anchor="middle" font-family="Arial" font-size="14" fill="#666">Code: ${qrToken}</text>
+                  <text x="150" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="#888">Scanner pour connecter</text>
                 </svg>
               `)}`,
               qrData: qrData,
