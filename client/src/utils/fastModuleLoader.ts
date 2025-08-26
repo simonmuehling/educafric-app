@@ -190,6 +190,7 @@ class FastModuleLoader {
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),
+      'TeacherSettings': () => import('@/components/teacher/modules/TeacherSettingsSimple'), // Ensure no duplication
       'FreelancerSettings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       
       // SiteAdmin modules - Using shared components for now until specific modules are created
