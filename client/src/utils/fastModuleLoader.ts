@@ -146,7 +146,7 @@ class FastModuleLoader {
       'teacher-grades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
       'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
-      'teacher-reports': () => import('@/components/teacher/modules/ReportCards'),
+      'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       
       // Additional Teacher module aliases
