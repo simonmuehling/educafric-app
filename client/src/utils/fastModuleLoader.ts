@@ -158,7 +158,6 @@ class FastModuleLoader {
       'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'ReportCards': () => import('@/components/teacher/modules/ReportCardManagement'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
-      'TeacherSettings': () => import('@/components/teacher/modules/TeacherSettings'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
       
       // =============================================
