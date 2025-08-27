@@ -641,7 +641,7 @@ router.put('/settings', requireAuth, async (req, res) => {
 router.post('/generate-qr', requireAuth, async (req, res) => {
   try {
     const studentId = req.user?.id;
-    const { purpose } = req.body;
+    const { purpose, eventId, resourceId, additionalData } = req.body;
     
     if (!studentId) {
       return res.status(400).json({
@@ -650,9 +650,26 @@ router.post('/generate-qr', requireAuth, async (req, res) => {
       });
     }
 
-    // Generate a simple connection token for parents to scan
-    const connectionToken = `EDUCAFRIC_CONNECT_${studentId}_${Date.now()}`;
-    const connectUrl = `https://www.educafric.com/parent/connect?token=${connectionToken}&student=${studentId}`;
+    let connectUrl, connectionToken;
+
+    // Generate different QR codes based on purpose
+    switch (purpose) {
+      case 'event-registration':
+        connectionToken = `EVENT_REG_${studentId}_${eventId}_${Date.now()}`;
+        connectUrl = `https://www.educafric.com/events/register?token=${connectionToken}&student=${studentId}&event=${eventId}`;
+        break;
+      
+      case 'resource-sharing':
+        connectionToken = `RESOURCE_${studentId}_${resourceId}_${Date.now()}`;
+        connectUrl = `https://www.educafric.com/resources/access?token=${connectionToken}&student=${studentId}&resource=${resourceId}`;
+        break;
+      
+      case 'parent-connection':
+      default:
+        connectionToken = `EDUCAFRIC_CONNECT_${studentId}_${Date.now()}`;
+        connectUrl = `https://www.educafric.com/parent/connect?token=${connectionToken}&student=${studentId}`;
+        break;
+    }
 
     // Create QR code with scannable URL
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(connectUrl)}`;
@@ -665,6 +682,7 @@ router.post('/generate-qr', requireAuth, async (req, res) => {
         data: connectUrl,
         url: qrCodeUrl,
         token: connectionToken,
+        purpose: purpose || 'parent-connection',
         expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       },
       message: 'QR code generated successfully'
@@ -792,6 +810,243 @@ router.get('/geolocation/device-status', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching device status'
+    });
+  }
+});
+
+// GET /api/student/events - Get available events for registration
+router.get('/events', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    
+    // Mock events data for student registration
+    const events = [
+      {
+        id: 1,
+        title: 'Journée Sportive Inter-Classes',
+        description: 'Compétition sportive entre toutes les classes de l\'école',
+        date: '2025-09-15',
+        time: '08:00',
+        location: 'Terrain de sport de l\'école',
+        maxParticipants: 200,
+        currentParticipants: 67,
+        deadline: '2025-09-10',
+        category: 'Sports',
+        requiresParentConsent: true,
+        cost: 0,
+        status: 'open'
+      },
+      {
+        id: 2,
+        title: 'Excursion Éducative - Musée National',
+        description: 'Visite guidée du musée national avec activités pédagogiques',
+        date: '2025-09-22',
+        time: '09:00',
+        location: 'Musée National, Yaoundé',
+        maxParticipants: 50,
+        currentParticipants: 23,
+        deadline: '2025-09-18',
+        category: 'Éducatif',
+        requiresParentConsent: true,
+        cost: 5000,
+        status: 'open'
+      },
+      {
+        id: 3,
+        title: 'Concours de Mathématiques',
+        description: 'Concours inter-écoles de mathématiques niveau secondaire',
+        date: '2025-10-05',
+        time: '14:00',
+        location: 'Amphithéâtre principal',
+        maxParticipants: 30,
+        currentParticipants: 18,
+        deadline: '2025-10-01',
+        category: 'Académique',
+        requiresParentConsent: false,
+        cost: 2000,
+        status: 'open'
+      }
+    ];
+
+    console.log(`[STUDENT_API] ✅ Events retrieved for student:`, studentId);
+
+    res.json({
+      success: true,
+      events: events,
+      message: 'Events retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching events:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching events'
+    });
+  }
+});
+
+// POST /api/student/events/register - Register for an event
+router.post('/events/register', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const { eventId, parentConsent, emergencyContact } = req.body;
+    
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Event ID is required'
+      });
+    }
+
+    // Mock event registration
+    const registration = {
+      id: Date.now(),
+      studentId: studentId,
+      eventId: parseInt(eventId),
+      registeredAt: new Date().toISOString(),
+      status: 'registered',
+      parentConsent: parentConsent || false,
+      emergencyContact: emergencyContact || {},
+      confirmationCode: `REG_${eventId}_${studentId}_${Date.now().toString().slice(-6)}`
+    };
+
+    console.log(`[STUDENT_API] ✅ Event registration:`, registration);
+
+    res.json({
+      success: true,
+      registration: registration,
+      message: 'Inscription à l\'événement réussie'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error registering for event:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering for event'
+    });
+  }
+});
+
+// GET /api/student/resources - Get available learning resources
+router.get('/resources', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const { subject, level } = req.query;
+    
+    // Mock resources data
+    const resources = [
+      {
+        id: 1,
+        title: 'Cours de Mathématiques - Algèbre',
+        description: 'Leçons interactives sur l\'algèbre de base',
+        subject: 'Mathématiques',
+        level: 'Seconde',
+        type: 'video',
+        duration: '45 minutes',
+        downloadUrl: '/resources/math-algebra-course.mp4',
+        thumbnailUrl: '/resources/thumbnails/math-algebra.jpg',
+        author: 'Prof. Martin Kouam',
+        uploadedAt: '2025-08-20',
+        views: 234,
+        likes: 45,
+        category: 'Cours Principal'
+      },
+      {
+        id: 2,
+        title: 'Exercices de Français - Grammaire',
+        description: 'Collection d\'exercices interactifs de grammaire française',
+        subject: 'Français',
+        level: 'Première',
+        type: 'pdf',
+        pages: 25,
+        downloadUrl: '/resources/french-grammar-exercises.pdf',
+        thumbnailUrl: '/resources/thumbnails/french-grammar.jpg',
+        author: 'Prof. Marie Ngozi',
+        uploadedAt: '2025-08-18',
+        downloads: 167,
+        category: 'Exercices'
+      },
+      {
+        id: 3,
+        title: 'Sciences Physiques - Électricité',
+        description: 'Démonstrations virtuelles des lois de l\'électricité',
+        subject: 'Physique',
+        level: 'Terminale',
+        type: 'interactive',
+        duration: '30 minutes',
+        accessUrl: '/resources/physics-electricity-lab',
+        thumbnailUrl: '/resources/thumbnails/physics-electricity.jpg',
+        author: 'Prof. Jean Fokou',
+        uploadedAt: '2025-08-22',
+        completions: 89,
+        category: 'Laboratoire Virtuel'
+      }
+    ];
+
+    // Filter by subject and level if provided
+    let filteredResources = resources;
+    if (subject) {
+      filteredResources = filteredResources.filter(r => 
+        r.subject.toLowerCase().includes(subject.toString().toLowerCase())
+      );
+    }
+    if (level) {
+      filteredResources = filteredResources.filter(r => 
+        r.level.toLowerCase().includes(level.toString().toLowerCase())
+      );
+    }
+
+    console.log(`[STUDENT_API] ✅ Resources retrieved for student:`, { studentId, subject, level });
+
+    res.json({
+      success: true,
+      resources: filteredResources,
+      totalResources: filteredResources.length,
+      message: 'Resources retrieved successfully'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching resources:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching resources'
+    });
+  }
+});
+
+// POST /api/student/resources/access - Track resource access
+router.post('/resources/access', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const { resourceId, accessType } = req.body;
+    
+    if (!resourceId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Resource ID is required'
+      });
+    }
+
+    // Mock resource access tracking
+    const accessLog = {
+      id: Date.now(),
+      studentId: studentId,
+      resourceId: parseInt(resourceId),
+      accessType: accessType || 'view',
+      accessedAt: new Date().toISOString(),
+      ipAddress: '127.0.0.1',
+      userAgent: 'Educafric Mobile App'
+    };
+
+    console.log(`[STUDENT_API] ✅ Resource access logged:`, accessLog);
+
+    res.json({
+      success: true,
+      access: accessLog,
+      message: 'Accès à la ressource enregistré'
+    });
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error logging resource access:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error logging resource access'
     });
   }
 });
