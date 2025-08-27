@@ -87,7 +87,17 @@ const ConsolidatedSandboxDashboard = () => {
             fallback: true
           };
         }
-      return response.json();
+        return response.json();
+      } catch (error) {
+        // Return fallback data if fetch fails
+        return {
+          timestamp: new Date().toISOString(),
+          system: { version: '2.2.0', status: 'error' },
+          performance: { apiCalls: 0, responseTime: 0 },
+          users: { active: 0 },
+          fallback: true
+        };
+      }
     },
     enabled: !!user,
     refetchInterval: 3000,
