@@ -88,11 +88,10 @@ export const createClassSchema = createInsertSchema(classes).omit({
 });
 
 export const createSubjectSchema = createInsertSchema(subjects).omit({ id: true });
-export const createGradeSchema = createInsertSchema(grades).omit({ id: true, dateRecorded: true });
+export const createGradeSchema = createInsertSchema(grades).omit({ id: true });
 export const createAttendanceSchema = createInsertSchema(attendance).omit({ 
   id: true, 
-  createdAt: true,
-  notificationSentAt: true 
+  createdAt: true
 });
 
 // Pagination schema
