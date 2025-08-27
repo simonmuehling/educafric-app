@@ -11,6 +11,11 @@ import CurrencyDisplay from '@/components/currency/CurrencyDisplay';
 // Demo videos available in /demo directory
 const demoVideoFr = '/demo/demo-video-fr.mp4';
 const demoVideoEn = '/demo/demo-video-en.mp4';
+// Additional feature demo videos
+const geolocationVideoEn = '/demo/Educafric_Geolocation_EN_1756320903510.mp4';
+const reportcardVideoEn = '/demo/Educafric_Reportcard_EN_1756320912636.mp4';
+const geolocationVideoFr = '/demo/Educafric_Geolocalisation_FR_1756320918130.mp4';
+const bulletinVideoFr = '/demo/Educafric_Bulletin_FR_1756320921836.mp4';
 
 import { 
   Play, 
@@ -259,65 +264,125 @@ const Demo = () => {
                     </div>
                   </div>
                 ) : (
-                  // EDUCAFRIC Demo Videos - Both languages side by side
-                  <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:bg-card p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-                      {/* French Demo Video */}
+                  // EDUCAFRIC Demo Videos - All 6 videos grid
+                  <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:bg-card p-6 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {/* Main French Demo Video */}
                       <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
                         <div className="aspect-video relative">
-                          <video
-                            className="w-full h-full object-cover"
-                            controls
-                            preload="metadata"
-                          >
+                          <video className="w-full h-full object-cover" controls preload="metadata">
                             <source src={demoVideoFr} type="video/mp4" />
-                            <p className="text-center p-4">
-                              {language === 'fr' 
-                                ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
-                                : 'Your browser does not support HTML5 video playback.'
-                              }
-                            </p>
                           </video>
                           <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-                            <span className="text-white text-xs font-medium">🇫🇷</span>
+                            <span className="text-white text-xs font-medium">🇫🇷 Principal</span>
                           </div>
                         </div>
-                        <div className="p-4">
+                        <div className="p-3">
                           <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
-                            {language === 'fr' ? 'Version Française' : 'French Version'}
+                            {language === 'fr' ? 'Démo Complète' : 'Complete Demo'}
                           </h4>
                           <p className="text-xs text-black dark:text-muted-foreground">
-                            11.5 MB • {language === 'fr' ? 'Démonstration complète' : 'Full demo'}
+                            11.5 MB • {language === 'fr' ? 'Toutes fonctionnalités' : 'All features'}
                           </p>
                         </div>
                       </div>
 
-                      {/* English Demo Video */}
+                      {/* Main English Demo Video */}
                       <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
                         <div className="aspect-video relative">
-                          <video
-                            className="w-full h-full object-cover"
-                            controls
-                            preload="metadata"
-                          >
+                          <video className="w-full h-full object-cover" controls preload="metadata">
                             <source src={demoVideoEn} type="video/mp4" />
-                            <p className="text-center p-4">
-                              {language === 'fr' 
-                                ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
-                                : 'Your browser does not support HTML5 video playback.'
-                              }
-                            </p>
                           </video>
                           <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
-                            <span className="text-white text-xs font-medium">🇬🇧</span>
+                            <span className="text-white text-xs font-medium">🇬🇧 Main</span>
                           </div>
                         </div>
-                        <div className="p-4">
+                        <div className="p-3">
                           <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
-                            {language === 'fr' ? 'Version Anglaise' : 'English Version'}
+                            {language === 'fr' ? 'Démo Complète' : 'Complete Demo'}
                           </h4>
                           <p className="text-xs text-black dark:text-muted-foreground">
                             16.0 MB • {language === 'fr' ? 'Version étendue' : 'Extended version'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* French Geolocation Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video className="w-full h-full object-cover" controls preload="metadata">
+                            <source src={geolocationVideoFr} type="video/mp4" />
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇫🇷 📍</span>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Géolocalisation' : 'Geolocation'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            {language === 'fr' ? 'Suivi GPS et zones sécurisées' : 'GPS tracking and safe zones'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* English Geolocation Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video className="w-full h-full object-cover" controls preload="metadata">
+                            <source src={geolocationVideoEn} type="video/mp4" />
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇬🇧 📍</span>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Géolocalisation' : 'Geolocation'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            {language === 'fr' ? 'Suivi GPS et zones sécurisées' : 'GPS tracking and safe zones'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* French Bulletin Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video className="w-full h-full object-cover" controls preload="metadata">
+                            <source src={bulletinVideoFr} type="video/mp4" />
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇫🇷 📋</span>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Bulletins de Notes' : 'Report Cards'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            {language === 'fr' ? 'Génération et QR codes' : 'Generation and QR codes'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* English Reportcard Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video className="w-full h-full object-cover" controls preload="metadata">
+                            <source src={reportcardVideoEn} type="video/mp4" />
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇬🇧 📋</span>
+                          </div>
+                        </div>
+                        <div className="p-3">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Bulletins de Notes' : 'Report Cards'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            {language === 'fr' ? 'Génération et QR codes' : 'Generation and QR codes'}
                           </p>
                         </div>
                       </div>
