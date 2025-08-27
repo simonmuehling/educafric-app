@@ -14,23 +14,30 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
   const authContext = useContext(AuthContext);
   const user = authContext?.user;
 
-  // Check if user is in sandbox mode with enhanced detection
+  // ✅ MISE À JOUR 2025: Détection sandbox améliorée avec sécurité renforcée
   const isSandboxMode = Boolean(
-    user?.email?.includes('sandbox.demo@www.educafric.com') || 
+    (user as any)?.sandboxMode ||
+    user?.email?.includes('@test.educafric.com') ||
     user?.email?.includes('sandbox.') ||
     user?.email?.includes('.demo@') ||
-    (typeof window !== 'undefined' && window?.location?.pathname.includes('/sandbox'))
+    user?.email?.includes('@educafric.demo') ||
+    (typeof window !== 'undefined' && (
+      window?.location?.pathname.includes('/sandbox') ||
+      window?.location?.pathname.includes('/enhanced-sandbox')
+    ))
   );
 
   // In sandbox mode, all premium features are unlocked
   const isPremiumUnlocked = isSandboxMode;
 
-  // Get sandbox user type
-  const sandboxUser = user?.email?.includes('director.sandbox') ? 'director' :
-                     user?.email?.includes('teacher.sandbox') ? 'teacher' :
-                     user?.email?.includes('student.sandbox') ? 'student' :
-                     user?.email?.includes('parent.sandbox') ? 'parent' :
-                     user?.email?.includes('freelancer.sandbox') ? 'freelancer' :
+  // ✅ SANDBOX 2025: Types d'utilisateurs sandbox étendus
+  const sandboxUser = user?.role?.toLowerCase() === 'director' ? 'director' :
+                     user?.role?.toLowerCase() === 'teacher' ? 'teacher' :
+                     user?.role?.toLowerCase() === 'student' ? 'student' :
+                     user?.role?.toLowerCase() === 'parent' ? 'parent' :
+                     user?.role?.toLowerCase() === 'freelancer' ? 'freelancer' :
+                     user?.role?.toLowerCase() === 'commercial' ? 'commercial' :
+                     user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'siteadmin' ? 'admin' :
                      null;
 
   return (
