@@ -259,37 +259,62 @@ const Demo = () => {
                     </div>
                   </div>
                 ) : (
-                  // EDUCAFRIC Demo Videos
-                  <div className="w-full h-full bg-black relative">
+                  // Demo video player with fallback
+                  <div className="w-full h-full relative bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600">
                     <video
                       className="w-full h-full object-cover"
                       controls
                       autoPlay
                       preload="metadata"
                       onEnded={() => setIsPlaying(false)}
+                      onError={() => console.log('Video loading error - showing fallback')}
                     >
                       <source 
                         src={language === 'fr' ? demoVideoFr : demoVideoEn} 
                         type="video/mp4"
                       />
-                      <p className="text-white p-8 text-center">
-                        {language === 'fr' 
-                          ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
-                          : 'Your browser does not support HTML5 video playback.'
-                        }
-                      </p>
+                      {/* Fallback content */}
+                      <div className="w-full h-full flex items-center justify-center p-8">
+                        <div className="text-center max-w-2xl">
+                          <GraduationCap className="w-24 h-24 text-white/90 mx-auto mb-6" />
+                          <h3 className="text-3xl font-bold text-white mb-4">EDUCAFRIC Interactive Demo</h3>
+                          <p className="text-white/90 text-lg mb-8 leading-relaxed">
+                            {language === 'fr' 
+                              ? 'Explorez toutes les fonctionnalités de notre plateforme éducative dans un environnement de démonstration complet.'
+                              : 'Explore all features of our educational platform in a complete demonstration environment.'
+                            }
+                          </p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                              <Users className="w-8 h-8 text-white mx-auto mb-2" />
+                              <p className="text-white font-semibold">Multi-Role Access</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                              <MessageCircle className="w-8 h-8 text-white mx-auto mb-2" />
+                              <p className="text-white font-semibold">Real Communication</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                              <BarChart3 className="w-8 h-8 text-white mx-auto mb-2" />
+                              <p className="text-white font-semibold">Live Analytics</p>
+                            </div>
+                            <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4">
+                              <Smartphone className="w-8 h-8 text-white mx-auto mb-2" />
+                              <p className="text-white font-semibold">Mobile PWA</p>
+                            </div>
+                          </div>
+
+                          <Link href="/login" className="btn btn-secondary bg-white text-purple-600 hover:bg-white/90 text-lg px-8 py-4">
+                            {language === 'fr' ? 'Essayer Maintenant' : 'Try Now'}
+                          </Link>
+                        </div>
+                      </div>
                     </video>
                     
                     {/* Video overlay info */}
-                    <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
+                    <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full z-10">
                       <span className="text-white text-sm font-medium">
-                        EDUCAFRIC {language === 'fr' ? 'Français' : 'English'}
-                      </span>
-                    </div>
-                    
-                    <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-white text-sm font-medium">
-                        {language === 'fr' ? '11.5 MB' : '16.0 MB'}
+                        EDUCAFRIC {language === 'fr' ? 'FR' : 'EN'}
                       </span>
                     </div>
                   </div>
