@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QrCode, Download, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { QrCode, Download, Clock, AlertCircle, CheckCircle, Calendar, BookOpen, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -14,18 +15,30 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
   const [qrData, setQrData] = useState<{
     qrCode: string;
     token: string;
+    purpose?: string;
     expiresAt: string;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [qrPurpose, setQrPurpose] = useState<'parent-connection' | 'event-registration' | 'resource-sharing'>('parent-connection');
+  const [selectedEventId, setSelectedEventId] = useState<string>('1');
+  const [selectedResourceId, setSelectedResourceId] = useState<string>('1');
 
   const texts = {
     fr: {
-      title: 'Générateur Code QR - Connexion Parent',
-      subtitle: 'Générez un code QR pour permettre à vos parents de se connecter',
+      title: 'Générateur Code QR Éducatif',
+      subtitle: 'Générez des codes QR pour différents usages éducatifs',
       generate: 'Générer Code QR',
       download: 'Télécharger QR',
       token: 'Token de Sécurité',
       expires: 'Expire le',
+      purpose: 'Type de QR Code',
+      purposes: {
+        'parent-connection': '👪 Connexion Parent',
+        'event-registration': '🎉 Inscription Événement',
+        'resource-sharing': '📚 Partage Ressource'
+      },
+      selectEvent: 'Sélectionner un événement',
+      selectResource: 'Sélectionner une ressource',
       instructions: {
         title: 'Instructions d\'utilisation :',
         steps: [
@@ -50,12 +63,20 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
       processing: 'Génération en cours...'
     },
     en: {
-      title: 'QR Code Generator - Parent Connection',
-      subtitle: 'Generate a QR code to allow your parents to connect',
+      title: 'Educational QR Code Generator',
+      subtitle: 'Generate QR codes for different educational purposes',
       generate: 'Generate QR Code',
       download: 'Download QR',
       token: 'Security Token',
       expires: 'Expires on',
+      purpose: 'QR Code Type',
+      purposes: {
+        'parent-connection': '👪 Parent Connection',
+        'event-registration': '🎉 Event Registration',
+        'resource-sharing': '📚 Resource Sharing'
+      },
+      selectEvent: 'Select an event',
+      selectResource: 'Select a resource',
       instructions: {
         title: 'Usage Instructions:',
         steps: [
@@ -86,23 +107,35 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
   const generateQR = async () => {
     setLoading(true);
     try {
-      console.log('[QR_GENERATION] Student generating QR code');
+      console.log('[QR_GENERATION] Student generating QR code for:', qrPurpose);
       
-      const response = await apiRequest('POST', '/api/student/generate-qr', {});
+      const requestBody: any = {
+        purpose: qrPurpose
+      };
+
+      // Add specific IDs based on purpose
+      if (qrPurpose === 'event-registration') {
+        requestBody.eventId = selectedEventId;
+      } else if (qrPurpose === 'resource-sharing') {
+        requestBody.resourceId = selectedResourceId;
+      }
+      
+      const response = await apiRequest('POST', '/api/student/generate-qr', requestBody);
 
       if (response.ok) {
         const result = await response.json();
         console.log('[QR_GENERATION] ✅ QR code generated:', result);
         
         setQrData({
-          qrCode: result.qrCode,
-          token: result.token,
-          expiresAt: result.expiresAt
+          qrCode: result.qrCode.url,
+          token: result.qrCode.token,
+          purpose: result.qrCode.purpose,
+          expiresAt: result.qrCode.expires
         });
 
         toast({
           title: t.success,
-          description: result.message || t.success,
+          description: `${t.purposes[qrPurpose]} - ${result.message || t.success}`,
           variant: 'default'
         });
       } else {
@@ -157,6 +190,73 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
         </CardHeader>
       </Card>
 
+      {/* QR Purpose Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <QrCode className="h-5 w-5" />
+            <span>{t.purpose}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Purpose Selector */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(['parent-connection', 'event-registration', 'resource-sharing'] as const).map((purpose) => (
+              <Card 
+                key={purpose}
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  qrPurpose === purpose ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => setQrPurpose(purpose)}
+              >
+                <CardContent className="pt-4 text-center">
+                  <div className="text-lg mb-2">
+                    {purpose === 'parent-connection' && <Users className="h-8 w-8 mx-auto text-blue-600" />}
+                    {purpose === 'event-registration' && <Calendar className="h-8 w-8 mx-auto text-green-600" />}
+                    {purpose === 'resource-sharing' && <BookOpen className="h-8 w-8 mx-auto text-purple-600" />}
+                  </div>
+                  <p className="text-sm font-medium">{t.purposes[purpose]}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Event Selection */}
+          {qrPurpose === 'event-registration' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t.selectEvent}</label>
+              <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.selectEvent} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">🏃 Journée Sportive Inter-Classes</SelectItem>
+                  <SelectItem value="2">🏛️ Excursion Éducative - Musée National</SelectItem>
+                  <SelectItem value="3">🧮 Concours de Mathématiques</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Resource Selection */}
+          {qrPurpose === 'resource-sharing' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">{t.selectResource}</label>
+              <Select value={selectedResourceId} onValueChange={setSelectedResourceId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.selectResource} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">📐 Cours de Mathématiques - Algèbre</SelectItem>
+                  <SelectItem value="2">📝 Exercices de Français - Grammaire</SelectItem>
+                  <SelectItem value="3">⚡ Sciences Physiques - Électricité</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Generate QR */}
       <Card>
         <CardContent className="pt-6">
@@ -169,7 +269,7 @@ const StudentQRGenerator: React.FC<StudentQRGeneratorProps> = ({ language }) => 
                 className="w-full md:w-auto"
               >
                 <QrCode className="h-5 w-5 mr-2" />
-                {loading ? t.processing : t.generate}
+                {loading ? t.processing : `${t.generate} ${t.purposes[qrPurpose]}`}
               </Button>
             ) : (
               <div className="space-y-4">
