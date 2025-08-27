@@ -8,8 +8,9 @@ import TeacherFreelanceFreemiumPlans from '@/components/TeacherFreelanceFreemium
 import ModernSubscriptionPlans from '@/components/ModernSubscriptionPlans';
 import GeolocationPricingPlans from '@/components/GeolocationPricingPlans';
 import CurrencyDisplay from '@/components/currency/CurrencyDisplay';
-// Demo video removed for GitHub build compatibility
-// const demoVideo = '/demo-placeholder.mp4'; // Future: Add demo video to public folder
+// Demo videos available in /demo directory
+const demoVideoFr = '/demo/demo-video-fr.mp4';
+const demoVideoEn = '/demo/demo-video-en.mp4';
 
 import { 
   Play, 
@@ -258,17 +259,25 @@ const Demo = () => {
                     </div>
                   </div>
                 ) : (
-                  // Demo video placeholder - actual video can be added to public folder
-                  <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 flex items-center justify-center">
-                    <div className="text-center">
-                      <GraduationCap className="w-32 h-32 text-white/80 mx-auto mb-6" />
-                      <h3 className="text-2xl font-bold text-white mb-4">EDUCAFRIC Demo</h3>
-                      <p className="text-white/90 text-lg mb-6">Interactive platform demonstration</p>
-                      <Link href="/login" className="btn btn-secondary bg-white text-purple-600 hover:bg-white/90">
-                        Try Live Demo Instead
-                      </Link>
-                    </div>
-                  </div>
+                  // Actual demo video player
+                  <video
+                    className="w-full h-full object-cover"
+                    controls
+                    autoPlay
+                    preload="metadata"
+                    onEnded={() => setIsPlaying(false)}
+                  >
+                    <source 
+                      src={language === 'fr' ? demoVideoFr : demoVideoEn} 
+                      type="video/mp4"
+                    />
+                    <p className="text-white p-8 text-center">
+                      {language === 'fr' 
+                        ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
+                        : 'Your browser does not support HTML5 video playback.'
+                      }
+                    </p>
+                  </video>
                 )}
               </div>
               

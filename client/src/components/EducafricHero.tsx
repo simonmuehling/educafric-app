@@ -85,13 +85,19 @@ export default function EducafricHero() {
             {t.description || ''}
           </p>
           
-          {/* Action Button */}
-          <div className="flex justify-center items-center mb-16">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Link
               href="/demo"
               className="btn btn-secondary text-lg px-8 py-4 text-white border-white hover:bg-white/10"
             >
               {t.watchDemo}
+            </Link>
+            <Link
+              href="/login"
+              className="btn btn-primary text-lg px-8 py-4"
+            >
+              {t.getStarted}
             </Link>
           </div>
           
