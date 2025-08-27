@@ -21,6 +21,7 @@ class NetworkOptimizer {
   private connectionHistory: number[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private lastQuality?: string;
 
   private constructor() {
     this.config = {
@@ -74,16 +75,22 @@ class NetworkOptimizer {
       // Retry mechanism for unstable connections
       for (let attempt = 1; attempt <= this.config.retries; attempt++) {
         try {
-          console.log(`[NETWORK_OPTIMIZER] 📡 Request attempt ${attempt}/${this.config.retries}`);
+          // Only log on retries or in dev mode
+          if (attempt > 1 || import.meta.env.DEV) {
+            console.log(`[NETWORK_OPTIMIZER] 📡 Request attempt ${attempt}/${this.config.retries}`);
+          }
           const response = await originalFetch(input, optimizedInit);
           
-          // Log successful connection
+          // Log successful connection (silently record)
           this.recordConnectionSuccess();
           
           return response;
         } catch (error: any) {
           lastError = error;
-          console.warn(`[NETWORK_OPTIMIZER] ⚠️ Request failed (attempt ${attempt}):`, error.message);
+          // Only warn on final failure
+          if (attempt === this.config.retries) {
+            console.warn(`[NETWORK_OPTIMIZER] ⚠️ Request failed after ${attempt} attempts:`, error.message);
+          }
           
           if (attempt < this.config.retries) {
             await this.delay(this.config.retryDelay * attempt); // Exponential backoff
@@ -147,7 +154,11 @@ class NetworkOptimizer {
         recommendation = 'Emergency mode: offline-first, essential features only';
       }
       
-      console.log(`[NETWORK_OPTIMIZER] 📊 Connection quality: ${quality} (${avgPing.toFixed(0)}ms avg)`);
+      // Only log quality changes, not every check
+      if (import.meta.env.DEV || this.lastQuality !== quality) {
+        console.log(`[NETWORK_OPTIMIZER] 📊 Connection quality: ${quality} (${avgPing.toFixed(0)}ms avg)`);
+        this.lastQuality = quality;
+      }
       
       return { ping: avgPing, quality, recommendation };
     } catch (error) {
@@ -201,7 +212,9 @@ class NetworkOptimizer {
 
   private enableAggressiveCaching() {
     // Enable extended caching for static resources
-    console.log('[NETWORK_OPTIMIZER] 🗄️ Enabling aggressive caching for poor connection');
+    if (import.meta.env.DEV) {
+      console.log('[NETWORK_OPTIMIZER] 🗄️ Enabling aggressive caching for poor connection');
+    }
     
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({

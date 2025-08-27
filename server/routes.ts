@@ -969,7 +969,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Family Connections API - MISSING ROUTE FIXED
   app.get("/api/family/connections", requireAuth, async (req, res) => {
     try {
-      console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', (req.session as any)?.userId);
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      console.log('[FAMILY_CONNECTIONS] Getting family connections for user:', userId);
       
       // Mock family connections data - based on user role
       const connections = [
@@ -1012,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Parent requests API - FIXED MISSING ROUTE
   app.get("/api/parent/requests", requireAuth, async (req, res) => {
     try {
-      const userId = (req.session as any)?.userId;
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
       console.log('[PARENT_REQUESTS] Getting requests for parent:', userId);
       
       // Mock parent requests data - comprehensive list

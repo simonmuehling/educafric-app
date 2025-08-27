@@ -229,13 +229,18 @@ class FastModuleLoader {
   async preloadModule(moduleName: string): Promise<React.ComponentType<any> | null> {
     // Return cached immediately if available
     if (this.cache[moduleName]) {
-      console.log(`[FAST_LOADER] 🎯 ${moduleName} served from cache instantly`);
+      // Only log cache hits in dev mode
+      if (import.meta.env.DEV) {
+        console.log(`[FAST_LOADER] 🎯 ${moduleName} served from cache instantly`);
+      }
       return this.cache[moduleName];
     }
 
     // Return loading promise if already loading
     if (this.loadingPromises.has(moduleName)) {
-      console.log(`[FAST_LOADER] ⏳ ${moduleName} already loading...`);
+      if (import.meta.env.DEV) {
+        console.log(`[FAST_LOADER] ⏳ ${moduleName} already loading...`);
+      }
       return this.loadingPromises.get(moduleName)!;
     }
 
@@ -265,7 +270,10 @@ class FastModuleLoader {
         
         this.cache[moduleName] = Component;
         this.loadingPromises.delete(moduleName);
-        console.log(`[FAST_LOADER] ⚡ ${moduleName} loaded and cached successfully`);
+        // Only log successful loads in dev mode
+        if (import.meta.env.DEV) {
+          console.log(`[FAST_LOADER] ⚡ ${moduleName} loaded and cached successfully`);
+        }
         return Component;
       })
       .catch(error => {
@@ -289,14 +297,20 @@ class FastModuleLoader {
     // CRITICAL STUDENT MODULES - Force preload immediately
     const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages'];
     
-    console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
+    if (import.meta.env.DEV) {
+      console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
+    }
     
     // Load critical modules in parallel but wait for ALL to complete
     const criticalPromises = criticalStudentModules.map(async (module) => {
       try {
-        console.log(`[FAST_LOADER] 🎯 Force loading ${module}...`);
+        if (import.meta.env.DEV) {
+          console.log(`[FAST_LOADER] 🎯 Force loading ${module}...`);
+        }
         const component = await this.preloadModule(module);
-        console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
+        if (import.meta.env.DEV) {
+          console.log(`[FAST_LOADER] ✅ ${module} loaded and cached`);
+        }
         return component;
       } catch (error) {
         console.error(`[FAST_LOADER] ❌ Failed to force load ${module}:`);
@@ -332,7 +346,9 @@ class FastModuleLoader {
     // Background loading - don't block
     const backgroundPromises = otherModules.map(module => this.preloadModule(module));
     Promise.allSettled(backgroundPromises).then(() => {
-      console.log(`[FAST_LOADER] 🚀 COMPLETED: ${Object.keys(this.cache).length} total modules cached`);
+      if (import.meta.env.DEV) {
+        console.log(`[FAST_LOADER] 🚀 COMPLETED: ${Object.keys(this.cache).length} total modules cached`);
+      }
     });
   }
 

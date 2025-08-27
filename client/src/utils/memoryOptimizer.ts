@@ -20,16 +20,16 @@ class MemoryOptimizer {
     this.optimizeAnimations();
     this.optimizeNetworkRequests();
     
-    // More efficient cleanup intervals for better performance
+    // Much more efficient cleanup intervals for better performance
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
-    }, 60 * 1000); // 1 minute - less aggressive for performance
+    }, 300 * 1000); // 5 minutes - much less aggressive for performance
 
     // Much less aggressive monitoring to reduce CPU overhead
     this.performanceMonitor = setInterval(() => {
       this.checkMemoryUsage();
       this.triggerGarbageCollection();
-    }, 120 * 1000); // 2 minutes - reduced for better performance
+    }, 600 * 1000); // 10 minutes - much more conservative for better performance
 
     // Silent mode for performance
   }
