@@ -10,7 +10,7 @@ const router = Router();
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2025-06-30.basil",
+    apiVersion: "2025-07-30.basil",
   });
 }
 
@@ -59,7 +59,7 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: plan.prices[currency as keyof typeof plan.prices] * 100, // Convert to cents
+      amount: plan.price * 100, // Convert to cents
       currency: currency.toLowerCase(),
       metadata: {
         planId,

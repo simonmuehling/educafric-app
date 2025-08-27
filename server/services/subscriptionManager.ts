@@ -36,7 +36,7 @@ export class SubscriptionManager {
     
     try {
       // TODO: Implement getExpiredSubscriptions in new storage
-      const expiredUsers = [];
+      const expiredUsers: any[] = [];
       
       for (const user of expiredUsers) {
         console.log(`[SUBSCRIPTION_MANAGER] Processing expired subscription for user ${user.id} (${user.email})`);
@@ -75,14 +75,14 @@ export class SubscriptionManager {
     try {
       // Rappels 7 jours avant expiration
       // TODO: Implement getUsersExpiringInDays in new storage
-      const users7Days = [];
+      const users7Days: any[] = [];
       for (const user of users7Days) {
         await this.sendReminderNotification(user, 7);
       }
       
       // Rappels 1 jour avant expiration
       // TODO: Implement getUsersExpiringInDays in new storage  
-      const users1Day = [];
+      const users1Day: any[] = [];
       for (const user of users1Day) {
         await this.sendReminderNotification(user, 1);
       }
@@ -206,7 +206,16 @@ export class SubscriptionManager {
     
     try {
       // TODO: Implement getSubscriptionStats in new storage
-      const stats = { activeSubscriptions: 0, totalRevenue: 0, monthlyGrowth: 0 };
+      const stats = {
+        active: 0,
+        expired: 0,
+        cancelled: 0,
+        revenueThisWeek: 0,
+        revenueThisMonth: 0,
+        totalRevenue: 0,
+        newSubscriptionsThisWeek: 0,
+        expiringNextWeek: 0
+      };
       
       const report = {
         date: new Date().toISOString(),
@@ -231,6 +240,53 @@ export class SubscriptionManager {
     }
   }
   
+  // Activer un abonnement
+  async activateSubscription(userId: number, planId: string, paymentIntentId: string): Promise<void> {
+    console.log(`[SUBSCRIPTION_MANAGER] Activating subscription for user ${userId}, plan ${planId}`);
+    
+    try {
+      // Activer l'abonnement via Stripe
+      await stripeService.confirmPaymentAndActivateSubscription(paymentIntentId);
+      
+      // Envoyer email de confirmation
+      await this.sendSubscriptionConfirmation(userId, planId);
+      
+      console.log(`[SUBSCRIPTION_MANAGER] ✅ Subscription activated successfully for user ${userId}`);
+      
+    } catch (error: any) {
+      console.error(`[SUBSCRIPTION_MANAGER] ❌ Error activating subscription:`, error);
+      throw error;
+    }
+  }
+
+  // Obtenir le statut d'un abonnement
+  async getSubscriptionStatus(userId: number): Promise<{ isActive: boolean; planName?: string; expiresAt?: Date }> {
+    console.log(`[SUBSCRIPTION_MANAGER] Getting subscription status for user ${userId}`);
+    
+    try {
+      return await stripeService.checkSubscriptionStatus(userId);
+      
+    } catch (error: any) {
+      console.error(`[SUBSCRIPTION_MANAGER] ❌ Error getting subscription status:`, error);
+      return { isActive: false };
+    }
+  }
+
+  // Annuler un abonnement
+  async cancelSubscription(userId: number): Promise<void> {
+    console.log(`[SUBSCRIPTION_MANAGER] Canceling subscription for user ${userId}`);
+    
+    try {
+      await stripeService.cancelSubscription(userId);
+      
+      console.log(`[SUBSCRIPTION_MANAGER] ✅ Subscription cancelled successfully for user ${userId}`);
+      
+    } catch (error: any) {
+      console.error(`[SUBSCRIPTION_MANAGER] ❌ Error canceling subscription:`, error);
+      throw error;
+    }
+  }
+
   // Traiter un nouveau paiement
   async processSuccessfulPayment(userId: number, planId: string, paymentIntentId: string): Promise<void> {
     console.log(`[SUBSCRIPTION_MANAGER] Processing successful payment for user ${userId}, plan ${planId}`);

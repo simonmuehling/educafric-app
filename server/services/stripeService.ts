@@ -409,7 +409,7 @@ export class StripeService {
         return {
           isActive,
           planName: subscription.metadata.planName,
-          expiresAt: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : undefined
+          expiresAt: (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000) : undefined
         };
       }
       
@@ -512,8 +512,8 @@ export class StripeService {
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
     console.log(`[STRIPE] Invoice payment succeeded: ${invoice.id}`);
     
-    if (invoice.subscription) {
-      const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+    if ((invoice as any).subscription) {
+      const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
       await this.handleSubscriptionUpdated(subscription);
     }
   }
