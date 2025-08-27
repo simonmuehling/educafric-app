@@ -259,38 +259,68 @@ const Demo = () => {
                     </div>
                   </div>
                 ) : (
-                  // EDUCAFRIC Demo Videos
-                  <div className="w-full h-full bg-black relative">
-                    <video
-                      className="w-full h-full object-cover"
-                      controls
-                      autoPlay
-                      preload="metadata"
-                      onEnded={() => setIsPlaying(false)}
-                    >
-                      <source 
-                        src={language === 'fr' ? demoVideoFr : demoVideoEn} 
-                        type="video/mp4"
-                      />
-                      <p className="text-white p-8 text-center">
-                        {language === 'fr' 
-                          ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
-                          : 'Your browser does not support HTML5 video playback.'
-                        }
-                      </p>
-                    </video>
-                    
-                    {/* Video overlay info */}
-                    <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-white text-sm font-medium">
-                        EDUCAFRIC {language === 'fr' ? 'Français' : 'English'}
-                      </span>
-                    </div>
-                    
-                    <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-white text-sm font-medium">
-                        {language === 'fr' ? '11.5 MB' : '16.0 MB'}
-                      </span>
+                  // EDUCAFRIC Demo Videos - Both languages side by side
+                  <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:bg-card p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                      {/* French Demo Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video
+                            className="w-full h-full object-cover"
+                            controls
+                            preload="metadata"
+                          >
+                            <source src={demoVideoFr} type="video/mp4" />
+                            <p className="text-center p-4">
+                              {language === 'fr' 
+                                ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
+                                : 'Your browser does not support HTML5 video playback.'
+                              }
+                            </p>
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇫🇷</span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Version Française' : 'French Version'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            11.5 MB • {language === 'fr' ? 'Démonstration complète' : 'Full demo'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* English Demo Video */}
+                      <div className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden border border-border">
+                        <div className="aspect-video relative">
+                          <video
+                            className="w-full h-full object-cover"
+                            controls
+                            preload="metadata"
+                          >
+                            <source src={demoVideoEn} type="video/mp4" />
+                            <p className="text-center p-4">
+                              {language === 'fr' 
+                                ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
+                                : 'Your browser does not support HTML5 video playback.'
+                              }
+                            </p>
+                          </video>
+                          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">
+                            <span className="text-white text-xs font-medium">🇬🇧</span>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h4 className="font-semibold text-sm text-black dark:text-foreground mb-1">
+                            {language === 'fr' ? 'Version Anglaise' : 'English Version'}
+                          </h4>
+                          <p className="text-xs text-black dark:text-muted-foreground">
+                            16.0 MB • {language === 'fr' ? 'Version étendue' : 'Extended version'}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -313,6 +343,101 @@ const Demo = () => {
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Additional Demo Videos Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-purple-50 dark:bg-card">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="h2 text-black dark:text-foreground mb-4">
+              {language === 'fr' ? 'Vidéos de Démonstration' : 'Demo Videos'}
+            </h2>
+            <p className="text-lg text-black dark:text-muted-foreground max-w-3xl mx-auto">
+              {language === 'fr' 
+                ? 'Regardez nos vidéos de démonstration complètes pour découvrir toutes les fonctionnalités d\'EDUCAFRIC.'
+                : 'Watch our comprehensive demo videos to discover all EDUCAFRIC features.'
+              }
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* French Demo Video */}
+            <div className="bg-white dark:bg-card rounded-2xl shadow-xl overflow-hidden border border-border">
+              <div className="aspect-video relative">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  preload="metadata"
+                  poster=""
+                >
+                  <source src={demoVideoFr} type="video/mp4" />
+                  <p className="text-center p-4">
+                    {language === 'fr' 
+                      ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
+                      : 'Your browser does not support HTML5 video playback.'
+                    }
+                  </p>
+                </video>
+                <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-white text-sm font-medium">🇫🇷 Français</span>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-black dark:text-foreground mb-2">
+                  {language === 'fr' ? 'Démonstration Française' : 'French Demonstration'}
+                </h3>
+                <p className="text-black dark:text-muted-foreground mb-4">
+                  {language === 'fr' 
+                    ? 'Découvrez EDUCAFRIC en français avec cette démonstration complète de toutes les fonctionnalités.'
+                    : 'Discover EDUCAFRIC in French with this comprehensive demonstration of all features.'
+                  }
+                </p>
+                <div className="flex items-center justify-between text-sm text-black dark:text-muted-foreground">
+                  <span>📊 11.5 MB</span>
+                  <span>⏱️ {language === 'fr' ? 'Démonstration complète' : 'Full demo'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* English Demo Video */}
+            <div className="bg-white dark:bg-card rounded-2xl shadow-xl overflow-hidden border border-border">
+              <div className="aspect-video relative">
+                <video
+                  className="w-full h-full object-cover"
+                  controls
+                  preload="metadata"
+                  poster=""
+                >
+                  <source src={demoVideoEn} type="video/mp4" />
+                  <p className="text-center p-4">
+                    {language === 'fr' 
+                      ? 'Votre navigateur ne supporte pas la lecture vidéo HTML5.'
+                      : 'Your browser does not support HTML5 video playback.'
+                    }
+                  </p>
+                </video>
+                <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-white text-sm font-medium">🇬🇧 English</span>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-black dark:text-foreground mb-2">
+                  {language === 'fr' ? 'Démonstration Anglaise' : 'English Demonstration'}
+                </h3>
+                <p className="text-black dark:text-muted-foreground mb-4">
+                  {language === 'fr' 
+                    ? 'Explorez EDUCAFRIC en anglais avec cette présentation détaillée de la plateforme.'
+                    : 'Explore EDUCAFRIC in English with this detailed platform presentation.'
+                  }
+                </p>
+                <div className="flex items-center justify-between text-sm text-black dark:text-muted-foreground">
+                  <span>📊 16.0 MB</span>
+                  <span>⏱️ {language === 'fr' ? 'Version étendue' : 'Extended version'}</span>
                 </div>
               </div>
             </div>
