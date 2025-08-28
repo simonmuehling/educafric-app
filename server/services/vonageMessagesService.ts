@@ -27,6 +27,12 @@ class VonageMessagesService {
   private vonage?: Vonage;
   private config: VonageConfig;
   private defaultFrom: string = '14157386102'; // Default from number from your cURL example
+  
+  // Your registered WhatsApp Business accounts with Vonage
+  private whatsappAccounts = {
+    account1: '41783009720', // Findusthere
+    account2: '41783044077'  // Findusthere (with application linked)
+  };
 
   constructor() {
     this.config = {
@@ -137,13 +143,25 @@ class VonageMessagesService {
 
   // Send simple text message (like your cURL example)
   async sendSimpleMessage(to: string, text: string, from?: string): Promise<MessageResponse> {
+    // Use your registered WhatsApp account by default
+    const fromNumber = from || this.whatsappAccounts.account2 || this.defaultFrom;
+    
     return this.sendWhatsAppMessage({
-      from: from || this.defaultFrom,
+      from: fromNumber,
       to: to,
       text: text,
       messageType: 'text',
       channel: 'whatsapp'
     });
+  }
+  
+  // Get available WhatsApp accounts
+  getWhatsAppAccounts() {
+    return {
+      accounts: this.whatsappAccounts,
+      default: this.whatsappAccounts.account2,
+      recommended: 'account2 (has application linked)'
+    };
   }
 
   // Send educational notification via Vonage

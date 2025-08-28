@@ -63,7 +63,14 @@ import enhancedGeolocationRoutes from "./enhancedGeolocation";
 import whatsappRoutes from "./whatsapp";
 import whatsappSetupRoutes from "./whatsapp-setup-helper";
 import whatsappTestRoutes from "./test-whatsapp";
-import vonageMessagesRoutes from "./vonage-messages";
+// Import Vonage routes
+try {
+  var vonageMessagesRoutes = require("./vonage-messages").default;
+  console.log('[VONAGE_IMPORT] ✅ Vonage routes imported successfully');
+} catch (error) {
+  console.error('[VONAGE_IMPORT] ❌ Failed to import Vonage routes:', (error as Error).message);
+  var vonageMessagesRoutes = null;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure security middleware (helmet, cors, rate limiting)
@@ -140,7 +147,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/whatsapp', whatsappRoutes);
   app.use('/api/whatsapp-setup', whatsappSetupRoutes);
   app.use('/api/test', whatsappTestRoutes);
-  app.use('/api/vonage-messages', vonageMessagesRoutes);
+  
+  // Debug Vonage routes registration
+  if (vonageMessagesRoutes) {
+    console.log('[VONAGE_ROUTES] Registering Vonage Messages API routes...');
+    console.log('[VONAGE_ROUTES] Route handler type:', typeof vonageMessagesRoutes);
+    app.use('/api/vonage-messages', vonageMessagesRoutes);
+    console.log('[VONAGE_ROUTES] ✅ Vonage Messages routes registered successfully');
+  } else {
+    console.log('[VONAGE_ROUTES] ⚠️ Skipping Vonage routes - import failed');
+  }
 
   // System health check
   app.get('/api/health', systemHealthCheck);
