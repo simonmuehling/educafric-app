@@ -90,7 +90,9 @@ export function useFacebookAuth() {
             } else {
               reject(new Error('Facebook login cancelled or failed'));
             }
-          }, { scope: 'email,public_profile' });
+          }, { 
+            scope: 'email,public_profile,whatsapp_business_messaging,whatsapp_business_management,business_management,whatsapp_business_manage_events' 
+          });
         });
         authResponse = loginResponse.authResponse;
       }
