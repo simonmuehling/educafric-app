@@ -73,6 +73,7 @@ import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
+import VonageTest from "@/pages/VonageTest";
 
 // Global module preloader for instant UI response
 const useGlobalModulePreloader = () => {
@@ -431,6 +432,7 @@ function Router() {
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/modern-forms" component={ModernFormDemo} />
       <Route path="/signature-test" component={SignatureTest} />
+      <Route path="/vonage-test" component={VonageTest} />
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
       <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
       <Route path="/bulletin-tests" component={BulletinTestSuite} />

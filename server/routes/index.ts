@@ -59,6 +59,12 @@ import { welcomeEmailService } from "../services/welcomeEmailService";
 import geolocationRoutes from "./geolocation";
 import enhancedGeolocationRoutes from "./enhancedGeolocation";
 
+// Import messaging routes
+import whatsappRoutes from "./whatsapp";
+import whatsappSetupRoutes from "./whatsapp-setup-helper";
+import whatsappTestRoutes from "./test-whatsapp";
+import vonageMessagesRoutes from "./vonage-messages";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure security middleware (helmet, cors, rate limiting)
   configureSecurityMiddleware(app);
@@ -129,6 +135,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Geolocation routes - using modular approach
   app.use('/api/geolocation', geolocationRoutes);
   app.use('/api/location', enhancedGeolocationRoutes);
+
+  // Messaging routes - WhatsApp integrations
+  app.use('/api/whatsapp', whatsappRoutes);
+  app.use('/api/whatsapp-setup', whatsappSetupRoutes);
+  app.use('/api/test', whatsappTestRoutes);
+  app.use('/api/vonage-messages', vonageMessagesRoutes);
 
   // System health check
   app.get('/api/health', systemHealthCheck);
