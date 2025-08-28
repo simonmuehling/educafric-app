@@ -6,12 +6,16 @@ const router = Router();
 // Token de vérification Facebook - à configurer dans les variables d'environnement
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN || 'educafric_facebook_webhook_2024';
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const CONVERSION_API_TOKEN = process.env.CONVERSION_API_TOKEN || '';
 
 // Log the configuration on startup
 console.log('[FACEBOOK_WEBHOOK] Configuration loaded:', {
   hasVerifyToken: !!FACEBOOK_VERIFY_TOKEN,
   verifyToken: FACEBOOK_VERIFY_TOKEN,
-  hasAppSecret: !!FACEBOOK_APP_SECRET
+  hasAppSecret: !!FACEBOOK_APP_SECRET,
+  hasWhatsAppToken: !!WHATSAPP_ACCESS_TOKEN,
+  hasConversionToken: !!CONVERSION_API_TOKEN
 });
 
 // Endpoint de vérification du webhook Facebook
@@ -176,5 +180,70 @@ function handleStatusChange(change: any) {
     console.log('[FACEBOOK_WEBHOOK] Message status change detected');
   }
 }
+
+// Fonction pour envoyer des événements à l'API Conversions
+async function sendConversionEvent(eventName: string, eventData: any) {
+  if (!CONVERSION_API_TOKEN) {
+    console.warn('[CONVERSION_API] Token not configured, skipping event tracking');
+    return;
+  }
+
+  try {
+    const conversionData = {
+      data: [{
+        event_name: eventName,
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: 'website',
+        event_source_url: 'https://www.educafric.com',
+        user_data: {
+          client_ip_address: eventData.ip,
+          client_user_agent: eventData.userAgent,
+          em: eventData.email ? crypto.createHash('sha256').update(eventData.email).digest('hex') : undefined,
+          ph: eventData.phone ? crypto.createHash('sha256').update(eventData.phone).digest('hex') : undefined
+        },
+        custom_data: {
+          currency: 'XAF',
+          value: eventData.value || 0,
+          content_name: eventData.contentName || 'Educafric Platform',
+          content_category: eventData.category || 'Education'
+        }
+      }]
+    };
+
+    console.log(`[CONVERSION_API] 📊 Sending ${eventName} event:`, {
+      eventName,
+      value: eventData.value,
+      category: eventData.category
+    });
+
+    // Ici, vous pourrez ajouter l'appel HTTP vers l'API Conversions
+    // Pour l'instant, on log l'événement pour le développement
+    
+  } catch (error) {
+    console.error('[CONVERSION_API] Error sending conversion event:', error);
+  }
+}
+
+// Route pour envoyer manuellement des événements de conversion depuis l'application
+router.post('/conversion', async (req, res) => {
+  try {
+    const { eventName, eventData } = req.body;
+    
+    if (!eventName) {
+      return res.status(400).json({ error: 'Event name is required' });
+    }
+
+    await sendConversionEvent(eventName, eventData || {});
+    
+    res.json({ 
+      success: true, 
+      message: `Conversion event '${eventName}' sent successfully` 
+    });
+    
+  } catch (error) {
+    console.error('[CONVERSION_API] Error in conversion endpoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 export default router;
