@@ -3,8 +3,8 @@ const updateWhatsAppAccount = async () => {
   console.log('🔧 Updating WhatsApp Business Account with Meta Access Token');
   console.log('Account: 41783044077 (Findusthere)');
   
-  // Replace YOUR_META_ACCESS_TOKEN with the token from Meta Business Manager
-  const accessToken = 'YOUR_META_ACCESS_TOKEN';
+  // Replace YOUR_META_ACCESS_TOKEN with the token from your Conversions API System User
+  const accessToken = 'YOUR_META_ACCESS_TOKEN'; // Paste your token here
   
   const response = await fetch('https://api.nexmo.com/beta/chatapp-accounts/whatsapp/41783044077', {
     method: 'PUT',
@@ -29,12 +29,14 @@ const updateWhatsAppAccount = async () => {
 
 // Instructions
 console.log('📋 To enable WhatsApp messaging:');
-console.log('1. Get your Meta access token from business.facebook.com');
-console.log('2. Replace YOUR_META_ACCESS_TOKEN in this script');
-console.log('3. Run: node update-whatsapp-token.js');
+console.log('1. Go to System Users → Conversions API System User');
+console.log('2. Generate New Token with whatsapp_business_messaging permission');
+console.log('3. Replace YOUR_META_ACCESS_TOKEN in this script');
+console.log('4. Uncomment updateWhatsAppAccount() and run script');
 console.log('');
 console.log('🔗 Meta Business Manager: https://business.facebook.com');
 console.log('📱 Your WhatsApp number: 41783044077');
+console.log('👤 System User: Conversions API System User (has full control)');
 
 // Uncomment to run the update (after adding your token)
 // updateWhatsAppAccount();
