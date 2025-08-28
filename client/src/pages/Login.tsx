@@ -530,8 +530,8 @@ export default function Login() {
               )}
             </Button>
 
-            {/* Facebook Login Button */}
-            {!isRegisterMode && (
+{/* Facebook Login Button - Temporarily Hidden to prevent network errors */}
+            {false && !isRegisterMode && (
               <div className="space-y-3">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
