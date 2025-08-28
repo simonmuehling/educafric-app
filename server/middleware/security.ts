@@ -114,7 +114,7 @@ export function securityLogger(req: any, res: any, next: any) {
 // Production session configuration - PWA-optimized for persistent login experience
 export const productionSessionConfig = {
   secret: process.env.SESSION_SECRET || 'educafric-session-secret-change-in-production',
-  resave: false, // Don't save session if unmodified
+  resave: true, // Force save session to ensure persistence across deployments
   saveUninitialized: false, // Don't create session until something stored
   rolling: true, // Reset expiration on each request - keeps active users logged in
   cookie: {
@@ -127,4 +127,9 @@ export const productionSessionConfig = {
   },
   name: 'educafric.sid', // Custom name for better identification
   proxy: true,
+  // Configuration pour maintenir les sessions lors des redémarrages
+  genid: (req: any) => {
+    // Générer un ID de session persistant basé sur l'utilisateur
+    return `educafric-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  },
 };

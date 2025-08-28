@@ -3,6 +3,7 @@ import { apiRequest } from '@/lib/queryClient';
 import confetti from 'canvas-confetti';
 import { useLocation } from 'wouter';
 import { AuthenticatedUser } from '@shared/types';
+import { connectionManager } from '@/utils/connectionManager';
 
 // Use AuthenticatedUser from shared types to include subscription fields
 type User = AuthenticatedUser;
@@ -47,6 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const actualUserData = userData.user || userData;
       setUser(actualUserData);
       
+      // Mise en cache pour persistance lors des déploiements
+      localStorage.setItem('educafric_user', JSON.stringify(actualUserData));
+      
       // Minimal logging for performance
       if (import.meta.env.DEV) {
         console.log(`Login successful: ${actualUserData.firstName} ${actualUserData.lastName} (${actualUserData.role})`);
@@ -80,9 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await apiRequest('POST', '/api/auth/logout');
       setUser(null);
+      localStorage.removeItem('educafric_user');
     } catch (error) {
       console.error('Logout error:', error);
       setUser(null); // Clear user even if API call fails
+      localStorage.removeItem('educafric_user');
     }
   };
 
@@ -170,6 +176,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
+      // Tentative de récupération depuis le localStorage en premier
+      const cachedUser = localStorage.getItem('educafric_user');
+      if (cachedUser) {
+        try {
+          const userData = JSON.parse(cachedUser);
+          setUser(userData);
+          setIsLoading(false);
+        } catch (parseError) {
+          localStorage.removeItem('educafric_user');
+        }
+      }
+
       const response = await apiRequest('GET', '/api/auth/me');
       
       if (response.ok) {
@@ -178,22 +196,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Validate userData has expected structure
           if (userData && typeof userData === 'object' && userData.user) {
             setUser(userData.user);
+            // Mise en cache pour persistance
+            localStorage.setItem('educafric_user', JSON.stringify(userData.user));
           } else if (userData && userData.id) {
             setUser(userData);
+            // Mise en cache pour persistance
+            localStorage.setItem('educafric_user', JSON.stringify(userData));
           } else {
             console.warn('Invalid user data structure received');
             setUser(null);
+            localStorage.removeItem('educafric_user');
           }
         } catch (jsonError) {
           console.warn('Failed to parse auth response JSON');
           setUser(null);
+          localStorage.removeItem('educafric_user');
         }
       } else {
         setUser(null);
+        localStorage.removeItem('educafric_user');
       }
     } catch (error) {
-      // Silently handle auth check - reduces console spam
-      setUser(null);
+      // En cas d'erreur réseau, maintenir l'utilisateur en cache si disponible
+      const cachedUser = localStorage.getItem('educafric_user');
+      if (cachedUser && !user) {
+        try {
+          const userData = JSON.parse(cachedUser);
+          setUser(userData);
+        } catch (parseError) {
+          localStorage.removeItem('educafric_user');
+          setUser(null);
+        }
+      } else if (!cachedUser) {
+        setUser(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -201,6 +237,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     checkAuthStatus();
+    
+    // Écouter les événements de restauration de connexion
+    const handleConnectionRestored = () => {
+      checkAuthStatus();
+    };
+    
+    window.addEventListener('connection-restored', handleConnectionRestored);
+    
+    return () => {
+      window.removeEventListener('connection-restored', handleConnectionRestored);
+    };
   }, []);
 
   return (
