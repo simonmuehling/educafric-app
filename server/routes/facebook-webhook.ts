@@ -7,6 +7,13 @@ const router = Router();
 const FACEBOOK_VERIFY_TOKEN = process.env.FACEBOOK_VERIFY_TOKEN || 'educafric_facebook_webhook_2024';
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET || '';
 
+// Log the configuration on startup
+console.log('[FACEBOOK_WEBHOOK] Configuration loaded:', {
+  hasVerifyToken: !!FACEBOOK_VERIFY_TOKEN,
+  verifyToken: FACEBOOK_VERIFY_TOKEN,
+  hasAppSecret: !!FACEBOOK_APP_SECRET
+});
+
 // Endpoint de vérification du webhook Facebook
 router.get('/webhook', (req, res) => {
   const mode = req.query['hub.mode'];
@@ -15,8 +22,10 @@ router.get('/webhook', (req, res) => {
 
   console.log('[FACEBOOK_WEBHOOK] Verification request received:', {
     mode,
-    token: token ? 'provided' : 'missing',
-    challenge: challenge ? 'provided' : 'missing'
+    token,
+    challenge,
+    expectedToken: FACEBOOK_VERIFY_TOKEN,
+    fullQuery: req.query
   });
 
   // Vérifier le mode et le token
@@ -24,7 +33,12 @@ router.get('/webhook', (req, res) => {
     console.log('[FACEBOOK_WEBHOOK] ✅ Webhook verified successfully');
     res.status(200).send(challenge);
   } else {
-    console.error('[FACEBOOK_WEBHOOK] ❌ Webhook verification failed');
+    console.error('[FACEBOOK_WEBHOOK] ❌ Webhook verification failed:', {
+      mode,
+      tokenProvided: token,
+      tokenExpected: FACEBOOK_VERIFY_TOKEN,
+      tokenMatch: token === FACEBOOK_VERIFY_TOKEN
+    });
     res.status(403).send('Forbidden');
   }
 });
