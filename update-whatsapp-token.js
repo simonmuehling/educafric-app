@@ -1,10 +1,10 @@
-// Script to update your WhatsApp Business account with Meta access token
+// Script to configure your WhatsApp Business account with Meta certificate
 const updateWhatsAppAccount = async () => {
-  console.log('🔧 Updating WhatsApp Business Account with Meta Access Token');
+  console.log('🔧 Configuring WhatsApp Business Account with Meta Certificate');
   console.log('Account: 41783044077 (Findusthere)');
   
-  // Replace YOUR_META_ACCESS_TOKEN with the token from your Conversions API System User
-  const accessToken = 'YOUR_META_ACCESS_TOKEN'; // Paste your token here
+  // Meta base64 certificate from WhatsApp Manager
+  const metaCertificate = 'CmkKJQi4keWNu8ywAxIGZW50OndhIgxNUyBTb2x1dGlvbnNQ8tjAxQYaQHRyFPJUQqNUYTV2Zvskd3N3gT11sGBDn9YtZ2VHvspyPcqIZBtJhB2U51oKGzjTe6nLwKXdGG2hCpyX/j7bvQMSLm1UWeTijJiZ81q1tpmrZSqVXuDlW8LY754MRE6tPHX06KQe1w64lTU5ZL/fVWg=';
   
   const response = await fetch('https://api.nexmo.com/beta/chatapp-accounts/whatsapp/41783044077', {
     method: 'PUT',
@@ -13,17 +13,17 @@ const updateWhatsAppAccount = async () => {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      access_token: accessToken,
+      cert: metaCertificate,
       name: 'Findusthere'
     })
   });
 
   if (response.ok) {
     const result = await response.json();
-    console.log('✅ WhatsApp account updated successfully!');
+    console.log('✅ WhatsApp account configured successfully!');
     console.log('Account details:', result);
   } else {
-    console.error('❌ Failed to update account:', await response.text());
+    console.error('❌ Failed to configure account:', await response.text());
   }
 };
 
@@ -38,5 +38,5 @@ console.log('🔗 Meta Business Manager: https://business.facebook.com');
 console.log('📱 Your WhatsApp number: 41783044077');
 console.log('👤 System User: Conversions API System User (has full control)');
 
-// Uncomment to run the update (after adding your token)
-// updateWhatsAppAccount();
+// Run the configuration now
+updateWhatsAppAccount();
