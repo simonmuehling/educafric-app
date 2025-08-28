@@ -124,7 +124,7 @@ export class AuthService {
   }
 
   static async changePassword(userId: number, passwordData: ChangePassword) {
-    const user = await storage.getUser(userId);
+    const user = await storage.getUserById(userId);
     if (!user) {
       throw new NotFoundError('User');
     }
