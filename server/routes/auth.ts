@@ -5,6 +5,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import { storage } from '../storage';
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema } from '@shared/schemas';
 import { z } from 'zod';
+import { nanoid } from 'nanoid';
 
 const router = Router();
 
@@ -273,6 +274,93 @@ router.post('/sandbox-login', async (req, res) => {
   } catch (error) {
     console.error('[SANDBOX_ERROR] Sandbox login failed:', error);
     res.status(500).json({ message: 'Sandbox login failed' });
+  }
+});
+
+// Facebook Authentication Route
+router.post('/facebook-login', async (req, res) => {
+  try {
+    const { email, facebookId, name, firstName, lastName } = req.body;
+
+    if (!email || !facebookId) {
+      return res.status(400).json({ message: 'Email and Facebook ID are required' });
+    }
+
+    // Vérifier si l'utilisateur existe déjà
+    let user;
+    try {
+      user = await storage.getUserByEmail(email);
+    } catch (error) {
+      // L'utilisateur n'existe pas, on va le créer
+      user = null;
+    }
+
+    if (user) {
+      // Utilisateur existant - mettre à jour avec l'ID Facebook si nécessaire
+      if (!user.facebookId) {
+        // Mettre à jour l'utilisateur avec l'ID Facebook
+        await storage.updateUser(user.id, { facebookId });
+      }
+    } else {
+      // Créer un nouveau compte utilisateur avec Facebook
+      const hashedPassword = await bcrypt.hash(`facebook_${facebookId}`, 10);
+      
+      const newUserData = {
+        email,
+        password: hashedPassword,
+        firstName: firstName || name?.split(' ')[0] || 'Facebook',
+        lastName: lastName || name?.split(' ').slice(1).join(' ') || 'User',
+        role: 'Student', // Rôle par défaut
+        phoneNumber: `+237${Math.floor(600000000 + Math.random() * 99999999)}`, // Numéro temporaire
+        facebookId,
+        isEmailVerified: true, // Facebook emails are verified
+      };
+
+      try {
+        user = await storage.createUser(newUserData);
+      } catch (createError: any) {
+        console.error('[FACEBOOK_AUTH] User creation failed:', createError);
+        return res.status(500).json({ 
+          message: 'Failed to create user account',
+          error: createError.message 
+        });
+      }
+    }
+
+    // Connecter l'utilisateur
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('[FACEBOOK_AUTH] Session creation error:', loginErr);
+        return res.status(500).json({ message: 'Failed to create session' });
+      }
+      
+      // Force session save
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('[FACEBOOK_AUTH] Session save error:', saveErr);
+          return res.status(500).json({ message: 'Failed to save session' });
+        }
+        
+        console.log(`[FACEBOOK_AUTH] Login successful: ${user.firstName} ${user.lastName} (${user.email})`);
+        res.json({ user });
+      });
+    });
+    
+  } catch (error: any) {
+    console.error('[FACEBOOK_AUTH] Facebook login failed:', error);
+    res.status(500).json({ 
+      message: 'Facebook authentication failed',
+      error: error.message 
+    });
+  }
+});
+
+// Vérification du statut de session pour le connection manager
+router.get('/session-status', (req, res) => {
+  if (req.isAuthenticated() && req.user) {
+    res.json({ status: 'authenticated', user: req.user });
+  } else {
+    res.status(401).json({ status: 'unauthenticated' });
   }
 });
 

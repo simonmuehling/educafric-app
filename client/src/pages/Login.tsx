@@ -19,6 +19,7 @@ import { celebrateLogin, celebrateSignup } from '@/lib/confetti';
 import { CelebrationToast } from '@/components/ui/CelebrationToast';
 import { MultiRoleDetectionPopup } from '@/components/auth/MultiRoleDetectionPopup';
 import { apiRequest } from "@/lib/queryClient";
+import { useFacebookAuth } from '@/hooks/useFacebookAuth';
 
 // Authentication system - reCAPTCHA completely removed
 
@@ -28,6 +29,7 @@ export default function Login() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const { getErrorMessage } = useErrorMessages();
+  const { loginWithFacebook, isLoading: isFacebookLoading } = useFacebookAuth();
   // reCAPTCHA removed
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -134,6 +136,16 @@ export default function Login() {
       [e?.target?.name]: e?.target?.value
     }));
     setError('');
+  };
+
+  // Gestion de la connexion Facebook
+  const handleFacebookLogin = async () => {
+    try {
+      await loginWithFacebook();
+      // La redirection est gérée automatiquement par useFacebookAuth
+    } catch (error: any) {
+      setError(getErrorMessage(error.message || 'Facebook login failed'));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -517,6 +529,43 @@ export default function Login() {
                 isRegisterMode ? t('auth.register.button') : t('auth.login.button')
               )}
             </Button>
+
+            {/* Facebook Login Button */}
+            {!isRegisterMode && (
+              <div className="space-y-3">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-gray-500">
+                      {language === 'fr' ? 'Ou connectez-vous avec' : 'Or sign in with'}
+                    </span>
+                  </div>
+                </div>
+                
+                <Button 
+                  type="button"
+                  onClick={handleFacebookLogin}
+                  disabled={isFacebookLoading}
+                  className="w-full bg-[#1877f2] hover:bg-[#166fe5] text-white font-semibold py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300"
+                >
+                  {isFacebookLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {language === 'fr' ? 'Connexion...' : 'Connecting...'}
+                    </>
+                  ) : (
+                    <>
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                      {language === 'fr' ? 'Continuer avec Facebook' : 'Continue with Facebook'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {!isRegisterMode && (
               <div className="text-center mt-4">

@@ -48,6 +48,7 @@ export const users = pgTable("users", {
   deletionApprovedBy: integer("deletion_approved_by"), // Parent ID who approved deletion
   deletionApprovedAt: timestamp("deletion_approved_at"),
   firebaseUid: text("firebase_uid").unique(),
+  facebookId: text("facebook_id").unique(),
   photoURL: text("photo_url"),
   lastLoginAt: timestamp("last_login_at"),
   profilePictureUrl: text("profile_picture_url"),
