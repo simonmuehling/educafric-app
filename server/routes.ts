@@ -32,6 +32,7 @@ import geolocationRoutes from "./routes/geolocation";
 import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
 import documentsRouter from "./routes/documents";
 import authRoutes from "./routes/auth";
+import facebookWebhookRoutes from "./routes/facebook-webhook";
 import subscriptionRoutes from "./routes/subscription";
 import administrationRoutes from "./routes/administration";
 import autofixRoutes from "./routes/autofix";
@@ -157,6 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 🚫 CRITICAL: Authentication endpoints must be public
   app.use('/api/auth', authRoutes);
+  app.use('/api/facebook', facebookWebhookRoutes);
 
   // Service Worker route spécifique (AVANT les autres routes static)
   app.get('/sw.js', (req, res) => {
