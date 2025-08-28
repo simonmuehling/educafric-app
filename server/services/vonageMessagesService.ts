@@ -100,9 +100,13 @@ class VonageMessagesService {
     }
 
     try {
+      // Clean phone numbers - remove any + or spaces, ensure proper format
+      const cleanTo = request.to.replace(/[\s+\-()]/g, '');
+      const fromNumber = request.from || this.whatsappAccounts.account2 || this.defaultFrom;
+      
       const messageRequest = {
-        from: request.from || this.defaultFrom,
-        to: request.to,
+        from: fromNumber,
+        to: cleanTo,
         message_type: 'text',
         text: request.text,
         channel: 'whatsapp'
