@@ -61,6 +61,8 @@ class DatabasePool {
         this.stats.totalConnections++;
       } catch (error) {
         console.error(`[DB_POOL] ❌ Failed to create connection ${i}:`, error);
+        // Don't add broken connection to pool
+        continue;
       }
     }
     
@@ -89,13 +91,39 @@ class DatabasePool {
           conn.isHealthy = true;
         } catch (error) {
           conn.isHealthy = false;
-          console.warn(`[DB_POOL] ⚠️ Connection ${conn.id} health check failed`);
+          console.warn(`[DB_POOL] ⚠️ Connection ${conn.id} health check failed - attempting recovery`);
+          // Attempt to recreate failed connection
+          this.recreateConnection(conn.id);
         }
       }
     }
     
     if (healthyConnections < this.maxConnections * 0.5) {
       console.warn(`[DB_POOL] ⚠️ Only ${healthyConnections}/${this.maxConnections} connections healthy`);
+    }
+  }
+
+  private recreateConnection(connectionId: number) {
+    try {
+      const sql = neon(process.env.DATABASE_URL!);
+      const db = drizzle(sql, { schema });
+      
+      // Find and replace the failed connection
+      const connIndex = this.connections.findIndex(c => c.id === connectionId);
+      if (connIndex !== -1) {
+        this.connections[connIndex] = {
+          id: connectionId,
+          db,
+          inUse: false,
+          created: Date.now(),
+          lastUsed: Date.now(),
+          requestCount: 0,
+          isHealthy: true
+        };
+        console.log(`[DB_POOL] ✅ Connection ${connectionId} recreated successfully`);
+      }
+    } catch (error) {
+      console.error(`[DB_POOL] ❌ Failed to recreate connection ${connectionId}:`, error);
     }
   }
 

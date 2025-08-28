@@ -142,14 +142,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     // Only track once per session to prevent crashes
     const sessionKey = 'app_pwa_tracking_initialized';
-    if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey)) {
+    if (typeof window !== 'undefined' && !window.sessionStorage?.getItem(sessionKey) && user?.id) {
       if (import.meta.env.DEV) {
         console.log('[APP] Initializing PWA analytics (one-time)');
       }
-      autoTrackPWAUsage(user?.id);
+      autoTrackPWAUsage(user.id);
       window.sessionStorage?.setItem(sessionKey, 'true');
     }
-  }, []); // Remove dependencies to prevent loops
+  }, [user?.id, autoTrackPWAUsage]); // Add proper dependencies
 
   // Expose tutorial function globally
   React.useEffect(() => {
@@ -486,10 +486,14 @@ function App() {
       setupConsoleFilter();
     }).catch(() => {});
 
-    // Lightweight memory optimization for faster startup
+    // Consolidated performance optimization
     if (!import.meta.env.VITE_DISABLE_OPTIMIZER) {
       import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
-        memoryOptimizer.start();
+        // Only start if not already running to prevent conflicts
+        if (!(window as any).__memoryOptimizerStarted) {
+          memoryOptimizer.start();
+          (window as any).__memoryOptimizerStarted = true;
+        }
       }).catch(() => {
         // Silent fail for performance
       });

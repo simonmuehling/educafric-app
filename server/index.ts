@@ -53,19 +53,35 @@ app.use(memoryCleanupMiddleware);
 
 // 🚫 CRITICAL: Fix Service Worker 500 error with proper path resolution
 app.get('/sw.js', (req, res) => {
-  const swPath = app.get("env") === "development" 
-    ? path.resolve('public/sw.js')
-    : path.resolve('dist/public/sw.js');
+  try {
+    const isDev = app.get("env") === "development";
+    const swPaths = [
+      isDev ? path.resolve('public/sw.js') : path.resolve('dist/public/sw.js'),
+      path.resolve('public/sw.js'), // Fallback
+      path.resolve('dist/sw.js'), // Alternative location
+    ];
     
-  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-  res.setHeader('Service-Worker-Allowed', '/');
-  
-  if (fs.existsSync(swPath)) {
-    res.sendFile(swPath);
-  } else {
-    console.warn('[SW] Service Worker file not found:', swPath);
-    res.status(404).send('Service Worker not found');
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+    res.setHeader('Service-Worker-Allowed', '/');
+    
+    // Find the first existing service worker file
+    const validPath = swPaths.find(swPath => fs.existsSync(swPath));
+    
+    if (validPath) {
+      res.sendFile(validPath);
+    } else {
+      // Provide a minimal working service worker instead of 404
+      const minimalSW = `
+        // Minimal service worker for PWA compatibility
+        self.addEventListener('install', () => self.skipWaiting());
+        self.addEventListener('activate', () => self.clients.claim());
+      `;
+      res.send(minimalSW);
+    }
+  } catch (error) {
+    console.error('[SW] Service Worker error:', error);
+    res.status(500).send('Service Worker error');
   }
 });
 

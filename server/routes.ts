@@ -290,7 +290,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       res.json({ success: true, settings });
     } catch (error) {
-      console.error('[DIRECTOR_SETTINGS] Error:', error);
+      if (import.meta.env.DEV) {
+        console.error('[DIRECTOR_SETTINGS] Error:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to fetch settings' });
     }
   });
@@ -335,7 +337,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       res.json({ success: true, messages });
     } catch (error) {
-      console.error('[TEACHER_MESSAGES] Error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TEACHER_MESSAGES] Error:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to fetch teacher messages' });
     }
   });
@@ -364,7 +368,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[TEACHER_MESSAGES] Message sent:', newMessage);
       res.json({ success: true, message: 'Message sent successfully', data: newMessage });
     } catch (error) {
-      console.error('[TEACHER_MESSAGES] Error sending message:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TEACHER_MESSAGES] Error sending message:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to send message' });
     }
   });
@@ -400,7 +406,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       res.json({ success: true, settings });
     } catch (error) {
-      console.error('[TEACHER_SETTINGS] Error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TEACHER_SETTINGS] Error:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to fetch teacher settings' });
     }
   });
@@ -411,7 +419,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[TEACHER_SETTINGS_UPDATE] Updating settings:', updatedSettings);
       res.json({ success: true, message: 'Teacher settings updated successfully' });
     } catch (error) {
-      console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TEACHER_SETTINGS_UPDATE] Error:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to update teacher settings' });
     }
   });
@@ -445,7 +455,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       res.json({ success: true, messages });
     } catch (error) {
-      console.error('[STUDENT_MESSAGES] Error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[STUDENT_MESSAGES] Error:', error);
+      }
       res.status(500).json({ success: false, message: 'Failed to fetch student messages' });
     }
   });
