@@ -65,6 +65,7 @@ import partnershipsRoutes from "./routes/partnerships";
 import unifiedMessagingRoutes from "./routes/unified-messaging";
 import connectionsRoutes from "./routes/connections";
 import educationalContentRoutes from "./routes/api/educational-content";
+import vonageMessagesRouter from "./routes/vonage-messages";
 
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
@@ -1119,6 +1120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
+  app.use('/api/vonage-messages', vonageMessagesRouter);
   
   // Additional routes after main registrations  
   app.use('/api/classes', classesRoutes);
