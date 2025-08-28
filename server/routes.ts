@@ -44,6 +44,7 @@ import configurationRoutes from "./routes/configurationRoutes";
 import pwaRoutes from "./routes/pwaRoutes";
 import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
+import whatsappMsSolutionsSetup from "./routes/whatsapp-ms-solutions-setup";
 import classesRoutes from "./routes/classes";
 import gradesRoutes from "./routes/grades";
 import teachersStandalone from "./routes/teachers";
@@ -1122,6 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/analytics', analyticsRoutes);
   app.use('/api/whatsapp', whatsappRoutes);
+  app.use('/api/whatsapp-setup', whatsappMsSolutionsSetup);
   app.use('/api/vonage-messages', vonageMessagesRouter);
   
   // Additional routes after main registrations  
