@@ -15,7 +15,7 @@ const demoVideoEn = '/demo/demo-video-en.mp4';
 const geolocationVideoEn = '/demo/Educafric_Geolocation_EN_1756320903510.mp4';
 const reportcardVideoEn = '/demo/Educafric_Reportcard_EN_1756320912636.mp4';
 const geolocationVideoFr = '/demo/Educafric_Geolocalisation_FR_1756320918130.mp4';
-const bulletinVideoFr = '/demo/Educafric_Bulletin_FR_1756320921836.mp4';
+const bulletinVideoFr = '/demo/validation_bulletins_new.mov';
 
 import { 
   Play, 
