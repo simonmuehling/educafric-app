@@ -23,6 +23,52 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// Send SMS direct (not WhatsApp)
+router.post('/send-sms', async (req, res) => {
+  try {
+    const { to, text, from } = req.body;
+    
+    if (!to || !text) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number (to) and message text are required'
+      });
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(to)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid phone number format. Use international format (e.g., +41768017000)'
+      });
+    }
+
+    const result = await vonageMessagesService.sendDirectSMS(to, text, from);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'SMS sent successfully via Vonage',
+        messageId: result.messageId,
+        details: result.details
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error,
+        details: result.details
+      });
+    }
+  } catch (error) {
+    console.error('[VONAGE_SMS] Send SMS error:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send SMS'
+    });
+  }
+});
+
 // Send simple WhatsApp message (equivalent to your cURL example)
 router.post('/send', async (req, res) => {
   try {

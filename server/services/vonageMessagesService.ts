@@ -158,6 +158,69 @@ class VonageMessagesService {
       channel: 'whatsapp'
     });
   }
+
+  // Send SMS direct (not WhatsApp)
+  async sendDirectSMS(to: string, text: string, from?: string): Promise<MessageResponse> {
+    if (!this.vonage) {
+      throw new Error('Vonage service not initialized. Please check API credentials.');
+    }
+
+    try {
+      // Clean phone numbers - remove any + or spaces, ensure proper format
+      const cleanTo = to.replace(/[\s+\-()]/g, '');
+      const fromNumber = from || 'Educafric'; // Use text sender ID for SMS
+      
+      console.log('[VONAGE] Sending SMS message:', {
+        from: fromNumber,
+        to: cleanTo,
+        type: 'SMS'
+      });
+
+      const response = await this.vonage!.sms.send({
+        to: cleanTo,
+        from: fromNumber,
+        text: text
+      });
+      
+      if (response.messages[0].status === '0') {
+        return {
+          success: true,
+          messageId: response.messages[0]['message-id'],
+          details: {
+            from: fromNumber,
+            to: cleanTo,
+            channel: 'sms',
+            cost: response.messages[0]['message-price'],
+            timestamp: new Date().toISOString()
+          }
+        };
+      } else {
+        return {
+          success: false,
+          error: response.messages[0]['error-text'] || 'SMS sending failed',
+          details: {
+            from: fromNumber,
+            to: cleanTo,
+            channel: 'sms',
+            errorCode: response.messages[0].status,
+            timestamp: new Date().toISOString()
+          }
+        };
+      }
+    } catch (error) {
+      console.error('[VONAGE] SMS sending failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error sending SMS',
+        details: {
+          from: from || 'Educafric',
+          to: to,
+          channel: 'sms',
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+  }
   
   // Get available WhatsApp accounts
   getWhatsAppAccounts() {
