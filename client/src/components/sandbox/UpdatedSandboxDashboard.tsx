@@ -367,17 +367,41 @@ const UpdatedSandboxDashboard = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">
-            {language === 'fr' ? 'Vue d\'ensemble' : 'Overview'}
+          <TabsTrigger value="overview" className="flex-col sm:flex-row">
+            <BarChart3 className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {language === 'fr' ? 'Vue d\'ensemble' : 'Overview'}
+            </span>
+            <span className="text-xs sm:hidden">
+              {language === 'fr' ? 'Vue' : 'View'}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="bulletins">
-            {language === 'fr' ? 'Bulletins' : 'Bulletins'}
+          <TabsTrigger value="bulletins" className="flex-col sm:flex-row">
+            <FileText className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {language === 'fr' ? 'Bulletins' : 'Bulletins'}
+            </span>
+            <span className="text-xs sm:hidden">
+              {language === 'fr' ? 'Bull' : 'Bull'}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="testing">
-            {language === 'fr' ? 'Tests' : 'Testing'}
+          <TabsTrigger value="testing" className="flex-col sm:flex-row">
+            <TestTube className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {language === 'fr' ? 'Tests' : 'Testing'}
+            </span>
+            <span className="text-xs sm:hidden">
+              {language === 'fr' ? 'Test' : 'Test'}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="monitoring">
-            {language === 'fr' ? 'Monitoring' : 'Monitoring'}
+          <TabsTrigger value="monitoring" className="flex-col sm:flex-row">
+            <Monitor className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {language === 'fr' ? 'Monitoring' : 'Monitoring'}
+            </span>
+            <span className="text-xs sm:hidden">
+              {language === 'fr' ? 'Moni' : 'Mon'}
+            </span>
           </TabsTrigger>
         </TabsList>
 
