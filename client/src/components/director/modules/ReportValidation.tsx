@@ -200,16 +200,17 @@ export default function ReportValidation() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`flex items-center flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? 'bg-white text-blue-600 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
             {tab.icon}
-            <span>{tab.label}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="text-xs sm:hidden">{tab.label.split(' ')[0]}</span>
             {tab.count && (
-              <Badge className="ml-2 bg-blue-100 text-blue-800">
+              <Badge className="text-xs sm:ml-2 bg-blue-100 text-blue-800">
                 {tab.count}
               </Badge>
             )}

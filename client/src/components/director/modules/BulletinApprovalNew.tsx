@@ -486,17 +486,41 @@ const BulletinApprovalNew: React.FC = () => {
       {/* Tabs Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="pending" data-testid="tab-pending">
-            {t.pendingApproval} ({(Array.isArray(pendingBulletins) ? pendingBulletins.length : 0)})
+          <TabsTrigger value="pending" data-testid="tab-pending" className="flex-col sm:flex-row">
+            <Clock className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {t.pendingApproval} ({(Array.isArray(pendingBulletins) ? pendingBulletins.length : 0)})
+            </span>
+            <span className="text-xs sm:hidden">
+              {(Array.isArray(pendingBulletins) ? pendingBulletins.length : 0)}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="approved" data-testid="tab-approved">
-            {t.approved} ({(Array.isArray(approvedBulletins) ? approvedBulletins.length : 0)})
+          <TabsTrigger value="approved" data-testid="tab-approved" className="flex-col sm:flex-row">
+            <CheckCircle className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {t.approved} ({(Array.isArray(approvedBulletins) ? approvedBulletins.length : 0)})
+            </span>
+            <span className="text-xs sm:hidden">
+              {(Array.isArray(approvedBulletins) ? approvedBulletins.length : 0)}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="sent" data-testid="tab-sent">
-            {t.sent} ({(Array.isArray(sentBulletins) ? sentBulletins.length : 0)})
+          <TabsTrigger value="sent" data-testid="tab-sent" className="flex-col sm:flex-row">
+            <Send className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {t.sent} ({(Array.isArray(sentBulletins) ? sentBulletins.length : 0)})
+            </span>
+            <span className="text-xs sm:hidden">
+              {(Array.isArray(sentBulletins) ? sentBulletins.length : 0)}
+            </span>
           </TabsTrigger>
-          <TabsTrigger value="my-bulletins" data-testid="tab-my-bulletins">
-            {t.myBulletins}
+          <TabsTrigger value="my-bulletins" data-testid="tab-my-bulletins" className="flex-col sm:flex-row">
+            <User className="w-4 h-4 sm:mr-2 mb-1 sm:mb-0" />
+            <span className="hidden sm:inline">
+              {t.myBulletins}
+            </span>
+            <span className="text-xs sm:hidden">
+              Mes
+            </span>
           </TabsTrigger>
         </TabsList>
 
