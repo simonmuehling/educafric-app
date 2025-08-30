@@ -488,17 +488,10 @@ function App() {
       setupConsoleFilter();
     }).catch(() => {});
 
-    // Consolidated performance optimization
-    if (!import.meta.env.VITE_DISABLE_OPTIMIZER) {
-      import("@/utils/memoryOptimizer").then(({ memoryOptimizer }) => {
-        // Only start if not already running to prevent conflicts
-        if (!(window as any).__memoryOptimizerStarted) {
-          memoryOptimizer.start();
-          (window as any).__memoryOptimizerStarted = true;
-        }
-      }).catch(() => {
-        // Silent fail for performance
-      });
+    // DISABLED: Memory optimizer conflicts resolved - using server-side optimization only
+    // Multiple optimizers were causing performance degradation instead of improvement
+    if (import.meta.env.VITE_DEBUG_OPTIMIZER === 'true') {
+      console.log('[PERFORMANCE] Client-side memory optimizer disabled - using server-side optimization');
     }
     
     return () => {

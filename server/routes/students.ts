@@ -11,6 +11,35 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+// GET /api/students - Basic endpoint to list all students (with proper auth)
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Return students based on user role and school
+    if (user.schoolId) {
+      const students = await storage.getStudentsBySchool(user.schoolId);
+      res.json({
+        success: true,
+        students: students || [],
+        message: `Found ${students?.length || 0} students`
+      });
+    } else {
+      res.json({
+        success: true,
+        students: [],
+        message: 'No school associated with user'
+      });
+    }
+  } catch (error) {
+    console.error('[STUDENTS_API] Error fetching students:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch students'
+    });
+  }
+});
+
 // Get students for a school
 router.get('/school', requireAuth, async (req, res) => {
   try {

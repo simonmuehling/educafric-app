@@ -639,7 +639,34 @@ export class ModularStorage {
   }
   async getClassesBySchool(schoolId: number) { return this.getSchoolClasses(schoolId); }
   async getClass(classId: number) { return null; }
-  async createClass(classData: any) { return { success: true }; }
+  async createClass(classData: any) { 
+    // Mock implementation for class creation
+    return { 
+      id: Math.floor(Math.random() * 1000) + 100,
+      ...classData,
+      success: true,
+      createdAt: new Date()
+    }; 
+  }
+  
+  async updateClass(classId: number, updates: any) {
+    // Mock implementation for class updates
+    return {
+      id: classId,
+      ...updates,
+      success: true,
+      updatedAt: new Date()
+    };
+  }
+  
+  async deleteClass(classId: number) {
+    // Mock implementation for class deletion
+    return {
+      id: classId,
+      success: true,
+      deletedAt: new Date()
+    };
+  }
   // Duplicate methods removed - using implementations from fallback methods section
   async getSubjectsByClass(classId: number) { return []; }
   async getGradeStatsByClass(classId: number) { return {}; }

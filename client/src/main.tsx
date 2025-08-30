@@ -44,8 +44,9 @@ if ('serviceWorker' in navigator && isProduction) {
 // Setup console filtering to reduce spam in development
 setupConsoleFilter();
 
-// Initialize fast module loading for instant performance
-fastModuleLoader.preloadCriticalModules();
+// Initialize fast module loading for instant performance (startup optimization only)
+// Moved critical module preloading to App.tsx useGlobalModulePreloader hook
+// fastModuleLoader.preloadCriticalModules();
 
 // 🚫 CRITICAL: React hooks error fix - Render App properly  
 createRoot(document.getElementById("root")!).render(<App />);

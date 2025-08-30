@@ -11,6 +11,35 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+// GET /api/classes - Basic endpoint to list all classes (with proper auth)
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Return classes based on user role and school
+    if (user.schoolId) {
+      const classes = await storage.getClassesBySchool(user.schoolId);
+      res.json({
+        success: true,
+        classes: classes || [],
+        message: `Found ${classes?.length || 0} classes`
+      });
+    } else {
+      res.json({
+        success: true,
+        classes: [],
+        message: 'No school associated with user'
+      });
+    }
+  } catch (error) {
+    console.error('[CLASSES_API] Error fetching classes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch classes'
+    });
+  }
+});
+
 // Get classes for a school
 router.get('/school', requireAuth, async (req, res) => {
   try {

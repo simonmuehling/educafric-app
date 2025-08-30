@@ -379,4 +379,31 @@ router.post('/logout', (req, res) => {
   }
 });
 
+// GET /api/auth/status - Check authentication status
+router.get('/status', (req, res) => {
+  try {
+    const isAuthenticated = req.isAuthenticated();
+    const user = req.user as any;
+    
+    res.json({
+      success: true,
+      authenticated: isAuthenticated,
+      user: isAuthenticated ? {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        schoolId: user.schoolId
+      } : null,
+      message: isAuthenticated ? 'User is authenticated' : 'User not authenticated'
+    });
+  } catch (error) {
+    console.error('[AUTH_STATUS] Error checking status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check authentication status'
+    });
+  }
+});
+
 export default router;
