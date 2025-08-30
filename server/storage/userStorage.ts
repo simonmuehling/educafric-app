@@ -10,10 +10,9 @@ import type { IUserStorage } from "./interfaces";
 export class UserStorage implements IUserStorage {
   async createUser(user: any): Promise<any> {
     try {
-      const hashedPassword = await bcrypt.hash(user.password, 12);
+      // Password should already be hashed by calling code
       const [newUser] = await db.insert(users).values({
         ...user,
-        password: hashedPassword,
       }).returning();
       return newUser;
     } catch (error) {

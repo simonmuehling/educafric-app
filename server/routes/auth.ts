@@ -15,17 +15,19 @@ passport.use(new LocalStrategy(
   async (email, password, done) => {
     try {
       const user = await storage.getUserByEmail(email);
+      
       if (!user) {
         return done(null, false, { message: 'Invalid email or password' });
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await storage.verifyPassword(user, password);
       if (!isValidPassword) {
         return done(null, false, { message: 'Invalid email or password' });
       }
 
       return done(null, user);
     } catch (error) {
+      console.error(`[AUTH_STRATEGY] Error during authentication: ${error}`);
       return done(error);
     }
   }
@@ -150,7 +152,7 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ message: 'User already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
     const user = await storage.createUser({
       ...validatedData,
       password: hashedPassword,
