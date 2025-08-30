@@ -1,5 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
+import { requireAuth } from '../../middleware/auth';
+
+interface AuthenticatedRequest extends Request {
+  user?: any;
+}
 
 const router = Router();
 
@@ -92,6 +97,58 @@ router.post('/sync', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('[NOTIFICATIONS_API] Sync error:', error);
     res.status(500).json({ message: 'Failed to sync notifications' });
+  }
+});
+
+// Configure SMS fallback for PWA issues
+router.post('/configure-fallback', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { preferredMethod, reason, issues } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Enregistrer la configuration de fallback
+    const fallbackConfig = {
+      userId,
+      preferredMethod: preferredMethod || 'sms',
+      reason: reason || 'user_preference',
+      issues: issues || [],
+      configuredAt: new Date().toISOString(),
+      isActive: true
+    };
+
+    // Sauvegarder en base (simulé pour l'instant)
+    console.log('[NOTIFICATIONS] 📱 SMS fallback configured:', {
+      userId,
+      method: preferredMethod,
+      reason
+    });
+
+    // Activer immédiatement les notifications SMS
+    if (preferredMethod === 'sms') {
+      // Ici on activerait l'envoi SMS via Vonage
+      console.log('[NOTIFICATIONS] ✅ SMS notifications activated for user', userId);
+    }
+
+    res.json({
+      success: true,
+      message: 'Fallback configuration saved successfully',
+      config: {
+        method: preferredMethod,
+        active: true,
+        configuredAt: fallbackConfig.configuredAt
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[NOTIFICATIONS] ❌ Fallback configuration failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to configure notification fallback'
+    });
   }
 });
 

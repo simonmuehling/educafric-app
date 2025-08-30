@@ -92,7 +92,7 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
     console.log('Permission result:', result);
     
     // Track PWA subscription when permission is granted
-    if (result && userId) {
+    if (result === 'granted' && userId) {
       try {
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration) {
@@ -113,17 +113,29 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
                 deviceInfo,
                 notificationSettings: {
                   enabled: true,
-                  types: ['system', 'grade', 'attendance', 'geolocation']
+                  types: ['system', 'grade', 'attendance', 'geolocation'],
+                  autoConfigured: true,
+                  timestamp: new Date().toISOString()
                 }
               })
             });
             
-            console.log('[PWA_MANAGER] ✅ Subscription tracked for settings display');
+            console.log('[PWA_MANAGER] ✅ Auto-subscription configured successfully');
           }
         }
       } catch (error) {
-        console.error('[PWA_MANAGER] ❌ Failed to track subscription:', error);
+        console.error('[PWA_MANAGER] ❌ Failed to configure auto-subscription:', error);
+        
+        // Fallback vers guide intelligent si échec
+        window.dispatchEvent(new CustomEvent('pwa-setup-failed', {
+          detail: { error: error.message, userId }
+        }));
       }
+    } else if (result === 'denied') {
+      // Déclencher guide de récupération
+      window.dispatchEvent(new CustomEvent('pwa-permission-denied', {
+        detail: { userId, timestamp: Date.now() }
+      }));
     }
   };
 

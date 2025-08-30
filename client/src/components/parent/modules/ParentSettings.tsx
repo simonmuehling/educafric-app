@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
 import { useQuery } from '@tanstack/react-query';
 import PWANotificationManager from '@/components/shared/PWANotificationManager';
+import EnhancedPWAManager from '@/components/pwa/EnhancedPWAManager';
 
 const ParentSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -547,16 +548,25 @@ const ParentSettings = () => {
               )}
               
               <div className="border-t pt-4">
-                <PWANotificationManager 
+                <EnhancedPWAManager 
                   userId={user?.id} 
                   userRole={user?.role}
-                  onNotificationPermissionChange={() => {
+                  onConfigurationComplete={(success, method) => {
                     refetchPwaSubscription();
                     // Refresh PWA status
                     setPwaConnectionStatus((prev: any) => ({ 
                       ...prev, 
-                      permission: 'Notification' in window ? Notification.permission : 'not-supported'
+                      permission: 'Notification' in window ? Notification.permission : 'not-supported',
+                      method: method,
+                      configured: success
                     }));
+                    
+                    if (success) {
+                      toast({
+                        title: method === 'pwa' ? "Notifications PWA activées" : "Notifications SMS configurées",
+                        description: "Votre système de notifications est maintenant actif."
+                      });
+                    }
                   }}
                 />
               </div>
