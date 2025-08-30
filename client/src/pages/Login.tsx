@@ -419,11 +419,13 @@ export default function Login() {
                     id="phoneNumber"
                     name="phoneNumber"
                     type="tel"
-                    value={formData.phoneNumber}
+                    value={formData.phoneNumber.replace(formData.countryCode, '')}
                     onChange={(e) => {
                       const value = e.target.value;
+                      // Only keep numeric characters
+                      const numericValue = value.replace(/\D/g, '');
                       // Combine country code with phone number for storage
-                      const fullNumber = formData.countryCode + value.replace(/^\+?[0-9]{1,4}/, '');
+                      const fullNumber = formData.countryCode + numericValue;
                       setFormData(prev => ({ 
                         ...prev, 
                         phoneNumber: fullNumber 
