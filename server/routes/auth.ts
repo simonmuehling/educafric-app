@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { storage } from '../storage';
@@ -154,6 +154,7 @@ router.post('/register', async (req, res) => {
     const user = await storage.createUser({
       ...validatedData,
       password: hashedPassword,
+      phone: validatedData.phoneNumber || validatedData.phone, // Map phoneNumber to phone field
     });
 
     const { password, ...userWithoutPassword } = user;

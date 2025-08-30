@@ -29,6 +29,8 @@ export const createUserSchema = createInsertSchema(users, {
   stripeCustomerId: true,
   stripeSubscriptionId: true,
   firebaseUid: true,
+}).extend({
+  phoneNumber: phoneSchema, // Accept phoneNumber from frontend
 });
 
 export const updateUserSchema = createUserSchema.partial().omit({ password: true });
