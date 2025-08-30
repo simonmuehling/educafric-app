@@ -1,7 +1,10 @@
 /**
  * Service de gestion de connexion PWA pour EducAfric
  * Assure une connexion constante et la qualité des notifications
+ * Optimisé pour les smartphones africains de basse gamme
  */
+import { deviceDetector } from '../utils/deviceDetector';
+import { connectionFallback } from '../utils/connectionFallback';
 
 interface ConnectionState {
   isOnline: boolean;
@@ -9,6 +12,8 @@ interface ConnectionState {
   lastPingTime: number;
   retryCount: number;
   quality: 'excellent' | 'good' | 'poor' | 'offline';
+  deviceMode: 'basic' | 'standard' | 'advanced';
+  batteryLevel?: number;
 }
 
 interface NotificationQueue {
@@ -25,25 +30,71 @@ class PWAConnectionManager {
     isConnected: false,
     lastPingTime: 0,
     retryCount: 0,
-    quality: 'offline'
+    quality: 'offline',
+    deviceMode: 'standard'
   };
 
   private pingInterval: number | null = null;
   private reconnectTimeout: number | null = null;
+  private batteryCheckInterval: number | null = null;
   private notificationQueue: NotificationQueue[] = [];
   private maxRetries = 5;
-  private pingIntervalMs = 300000; // 5 minutes (reduced frequency to prevent memory issues)
+  private pingIntervalMs = 300000; // Sera ajusté selon l'appareil
   private reconnectDelayMs = 10000; // 10 secondes
+  private maxQueueSize = 50; // Sera ajusté selon l'appareil
 
   private listeners: Array<(state: ConnectionState) => void> = [];
 
   constructor() {
     // Only initialize if not already initialized to prevent memory leaks
     if (typeof window !== 'undefined' && !(window as any).__pwa_connection_initialized) {
+      this.adaptToDevice();
       this.initializeConnectionMonitoring();
       this.startPeriodicPing();
       this.setupServiceWorkerSync();
+      this.startBatteryMonitoring();
+      this.setupFallbackIntegration();
       (window as any).__pwa_connection_initialized = true;
+    }
+  }
+
+  /**
+   * Intègre les mécanismes de secours
+   */
+  private setupFallbackIntegration() {
+    // Écouter les événements de fallback
+    window.addEventListener('connection-fallback-offline', (event: any) => {
+      console.log('[PWA_CONNECTION] 🔄 Mode fallback hors ligne activé');
+      this.state.quality = 'offline';
+      this.state.isConnected = false;
+      this.notifyListeners();
+    });
+
+    window.addEventListener('connection-fallback-online', (event: any) => {
+      console.log('[PWA_CONNECTION] ✅ Mode fallback en ligne restauré');
+      this.state.isConnected = true;
+      this.performHealthCheck(); // Vérifier immédiatement
+    });
+  }
+
+  /**
+   * Adapte les paramètres selon le type d'appareil détecté
+   */
+  private adaptToDevice() {
+    const profile = deviceDetector.getOptimizationProfile();
+    const capabilities = deviceDetector.getCapabilities();
+    
+    if (profile && capabilities) {
+      this.pingIntervalMs = profile.pingInterval;
+      this.maxRetries = profile.maxRetries;
+      this.maxQueueSize = capabilities.isLowEnd ? 10 : 50;
+      this.state.deviceMode = capabilities.supportLevel;
+
+      console.log(`[PWA_CONNECTION] 📱 Mode adapté: ${capabilities.supportLevel}`, {
+        pingInterval: `${profile.pingInterval / 1000}s`,
+        maxRetries: profile.maxRetries,
+        isLowEnd: capabilities.isLowEnd
+      });
     }
   }
 
@@ -270,9 +321,78 @@ class PWAConnectionManager {
   }
 
   /**
-   * Ajoute une notification à la file d'attente
+   * Surveillance de la batterie pour adapter le comportement
+   */
+  private startBatteryMonitoring() {
+    // Vérifier la batterie toutes les 5 minutes (ou plus selon l'appareil)
+    const interval = deviceDetector.shouldUseLowEndMode() ? 600000 : 300000; // 10min vs 5min
+    
+    this.batteryCheckInterval = window.setInterval(async () => {
+      const batteryInfo = await deviceDetector.getBatteryInfo();
+      if (batteryInfo) {
+        this.state.batteryLevel = batteryInfo.level;
+        
+        // Adapter le comportement selon la batterie
+        if (deviceDetector.shouldReduceActivity(batteryInfo.level) && !batteryInfo.charging) {
+          console.log(`[PWA_CONNECTION] 🔋 Batterie faible (${batteryInfo.level}%) - Réduction activité`);
+          this.enablePowerSaveMode();
+        } else if (this.state.batteryLevel && this.state.batteryLevel > 30) {
+          this.disablePowerSaveMode();
+        }
+      }
+    }, interval);
+  }
+
+  /**
+   * Active le mode économie d'énergie
+   */
+  private enablePowerSaveMode() {
+    // Doubler l'intervalle de ping
+    this.pingIntervalMs = this.pingIntervalMs * 2;
+    
+    // Réduire la taille de la queue
+    this.maxQueueSize = Math.max(5, this.maxQueueSize / 2);
+    
+    // Nettoyer la queue existante si trop pleine
+    if (this.notificationQueue.length > this.maxQueueSize) {
+      this.notificationQueue = this.notificationQueue.slice(-this.maxQueueSize);
+    }
+    
+    console.log('[PWA_CONNECTION] 🔋 Mode économie d\'énergie activé');
+    this.restartPeriodicPing();
+  }
+
+  /**
+   * Désactive le mode économie d'énergie
+   */
+  private disablePowerSaveMode() {
+    // Restaurer les paramètres optimaux
+    this.adaptToDevice();
+    console.log('[PWA_CONNECTION] 🔋 Mode économie d\'énergie désactivé');
+    this.restartPeriodicPing();
+  }
+
+  /**
+   * Redémarre le ping périodique avec les nouveaux paramètres
+   */
+  private restartPeriodicPing() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+    this.startPeriodicPing();
+  }
+
+  /**
+   * Ajoute une notification à la file d'attente avec gestion intelligente
    */
   public queueNotification(notification: any) {
+    // Vérifier la limite de queue selon l'appareil
+    if (this.notificationQueue.length >= this.maxQueueSize) {
+      // Supprimer les plus anciennes si queue pleine
+      const removed = this.notificationQueue.shift();
+      console.log(`[PWA_CONNECTION] 📝 Queue pleine - Ancienne notification supprimée: ${removed?.id}`);
+    }
+
     const queueItem: NotificationQueue = {
       id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
@@ -282,7 +402,11 @@ class PWAConnectionManager {
     };
 
     this.notificationQueue.push(queueItem);
-    console.log(`[PWA_CONNECTION] 📝 Notification ajoutée à la file (${this.notificationQueue.length} en attente)`);
+    
+    // Log plus discret pour appareils bas de gamme
+    if (!deviceDetector.shouldUseLowEndMode()) {
+      console.log(`[PWA_CONNECTION] 📝 Notification ajoutée à la file (${this.notificationQueue.length} en attente)`);
+    }
 
     // Essayer de traiter immédiatement si connecté
     if (this.state.isConnected) {
@@ -408,6 +532,11 @@ class PWAConnectionManager {
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
+    }
+
+    if (this.batteryCheckInterval) {
+      clearInterval(this.batteryCheckInterval);
+      this.batteryCheckInterval = null;
     }
 
     this.listeners = [];

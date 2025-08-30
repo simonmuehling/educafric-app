@@ -1,6 +1,26 @@
-// Service Worker for Educafric PWA with Enhanced Notifications
-const CACHE_NAME = 'educafric-v2.4-auth-fix';
-const urlsToCache = [
+// Service Worker for Educafric PWA with Low-End Device Optimization
+const CACHE_NAME = 'educafric-v2.5-lowend-optimized';
+
+// Détection du type d'appareil pour cache adaptatif
+const isLowEndDevice = () => {
+  // Estimation basée sur les informations disponibles
+  const memory = navigator.deviceMemory || 0;
+  const connection = navigator.connection;
+  const hardwareConcurrency = navigator.hardwareConcurrency || 1;
+  
+  return memory <= 2 || 
+         hardwareConcurrency <= 4 || 
+         (connection && (connection.effectiveType === '2g' || connection.effectiveType === '3g'));
+};
+
+// Cache adaptatif selon l'appareil
+const urlsToCache = isLowEndDevice() ? [
+  // Cache minimal pour appareils bas de gamme
+  '/',
+  '/manifest.json',
+  '/educafric-logo-128.png'
+] : [
+  // Cache complet pour appareils standards
   '/',
   '/manifest.json',
   '/offline.html',
@@ -11,37 +31,74 @@ const urlsToCache = [
   '/favicon.ico'
 ];
 
-// Install event
+// Limite de taille du cache selon l'appareil
+const MAX_CACHE_SIZE = isLowEndDevice() ? 5 : 20; // 5MB vs 20MB
+
+// Fonction de nettoyage automatique du cache
+const cleanupCache = async () => {
+  const cache = await caches.open(CACHE_NAME);
+  const requests = await cache.keys();
+  
+  // Pour appareils bas de gamme, garder seulement les fichiers essentiels
+  if (isLowEndDevice() && requests.length > 10) {
+    const toDelete = requests.slice(10); // Garder les 10 premiers
+    await Promise.all(toDelete.map(request => cache.delete(request)));
+    console.log(`[SW] Cache nettoyé: ${toDelete.length} fichiers supprimés`);
+  }
+};
+
+// Install event avec gestion adaptative
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker');
+  const deviceType = isLowEndDevice() ? 'bas-gamme' : 'standard';
+  console.log(`[SW] Installation SW pour appareil ${deviceType}`);
+  
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Cache opened');
+      .then(async (cache) => {
+        console.log(`[SW] Cache ouvert - Mode: ${deviceType}`);
+        
+        // Nettoyage préventif pour appareils bas de gamme
+        if (isLowEndDevice()) {
+          await cleanupCache();
+        }
+        
         return cache.addAll(urlsToCache);
       })
       .then(() => {
-        console.log('[SW] Installation complete');
+        console.log('[SW] Installation terminée');
         self.skipWaiting();
+      })
+      .catch((error) => {
+        console.warn('[SW] Erreur installation:', error);
+        // Installation minimale en cas d'erreur
+        return caches.open(CACHE_NAME).then(cache => {
+          return cache.addAll(['/']);
+        });
       })
   );
 });
 
-// Activate event
+// Activate event avec nettoyage intelligent
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker');
+  console.log('[SW] Activation service worker');
+  
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      console.log('[SW] Activation complete');
+    Promise.all([
+      // Supprimer les anciens caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('[SW] Suppression ancien cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      }),
+      // Nettoyage adaptatif pour appareils bas de gamme
+      isLowEndDevice() ? cleanupCache() : Promise.resolve()
+    ]).then(() => {
+      console.log('[SW] Activation terminée');
       return self.clients.claim();
     })
   );
@@ -102,7 +159,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // For static assets (CSS, JS, images): cache first strategy
+  // Stratégie adaptative pour les ressources statiques
   const isStaticAsset = event.request.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i) ||
                        url.pathname.includes('/assets/') ||
                        url.pathname.includes('/static/');
@@ -110,19 +167,37 @@ self.addEventListener('fetch', (event) => {
   if (isStaticAsset) {
     event.respondWith(
       caches.match(event.request)
-        .then((response) => {
+        .then(async (response) => {
           if (response) {
             return response;
           }
-          return fetch(event.request).then((fetchResponse) => {
+          
+          try {
+            const fetchResponse = await fetch(event.request);
+            
             if (fetchResponse.ok) {
               const responseClone = fetchResponse.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseClone);
-              });
+              
+              // Cache intelligent selon l'appareil
+              const cache = await caches.open(CACHE_NAME);
+              
+              if (isLowEndDevice()) {
+                // Vérifier la taille avant mise en cache
+                const cachedRequests = await cache.keys();
+                if (cachedRequests.length >= 15) {
+                  // Supprimer les plus anciens pour faire de la place
+                  await cache.delete(cachedRequests[0]);
+                }
+              }
+              
+              await cache.put(event.request, responseClone);
             }
+            
             return fetchResponse;
-          });
+          } catch (error) {
+            // Fallback silencieux pour erreurs réseau
+            return new Response('Ressource non disponible', { status: 404 });
+          }
         })
     );
     return;
@@ -262,13 +337,21 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Background sync event (for offline actions)
+// Background sync optimisé pour appareils bas de gamme
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag);
   
+  // Désactiver background sync pour appareils très limités
+  if (isLowEndDevice()) {
+    const memory = navigator.deviceMemory || 0;
+    if (memory < 1) {
+      console.log('[SW] Background sync désactivé - Mémoire insuffisante');
+      return;
+    }
+  }
+  
   if (event.tag === 'background-notifications') {
     event.waitUntil(
-      // Handle background notification sync
       fetch('/api/notifications/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -277,4 +360,23 @@ self.addEventListener('sync', (event) => {
       })
     );
   }
+  
+  // Nettoyage périodique du cache
+  if (event.tag === 'cache-cleanup' && isLowEndDevice()) {
+    event.waitUntil(cleanupCache());
+  }
 });
+
+// Nettoyage périodique pour éviter l'accumulation
+if (isLowEndDevice()) {
+  // Nettoyer le cache toutes les heures
+  setInterval(() => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then(registration => {
+        if ('sync' in registration) {
+          return registration.sync.register('cache-cleanup');
+        }
+      });
+    }
+  }, 3600000); // 1 heure
+}
