@@ -9,6 +9,7 @@ import connectPgSimple from "connect-pg-simple";
 import passport from "passport";
 import crypto from "crypto";
 import { marked } from "marked";
+import cookieParser from "cookie-parser";
 
 // Import middleware
 import { configureSecurityMiddleware, productionSessionConfig } from "./middleware/security";
@@ -106,6 +107,9 @@ const logoUpload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configure security middleware
   configureSecurityMiddleware(app);
+  
+  // Add cookie parser - MUST be before session middleware
+  app.use(cookieParser());
   
   // Configure session middleware - MUST be before passport initialization
   const PgSession = connectPgSimple(session);
