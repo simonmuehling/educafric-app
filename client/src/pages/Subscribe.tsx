@@ -30,8 +30,8 @@ interface SubscriptionPlan {
   category: 'parent' | 'school' | 'freelancer';
 }
 
-// Composant de formulaire de paiement
-const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess: () => void }> = ({ 
+// Composant interne pour le formulaire (à l'intérieur d'Elements)
+const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess: () => void }> = ({ 
   planId, 
   plan,
   onSuccess 
@@ -40,7 +40,6 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
   const elements = useElements();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string>('');
 
   // Créer le PaymentIntent dès le chargement
   useEffect(() => {
@@ -257,6 +256,126 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
   );
 };
 
+// Composant wrapper qui gère Elements et clientSecret
+const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess: () => void }> = ({ 
+  planId, 
+  plan,
+  onSuccess 
+}) => {
+  const { toast } = useToast();
+  const [clientSecret, setClientSecret] = useState<string>('');
+
+  // Créer le PaymentIntent dès le chargement
+  useEffect(() => {
+    const createPaymentIntent = async () => {
+      try {
+        console.log('[SUBSCRIBE] Creating payment intent for plan:', planId);
+        
+        // Include sandbox flag if user is in sandbox mode
+        const requestBody: any = { planId };
+        const cachedUser = localStorage.getItem('educafric_user');
+        if (cachedUser) {
+          try {
+            const userData = JSON.parse(cachedUser);
+            if (userData.sandboxMode) {
+              console.log('[SUBSCRIBE] 🧪 Sandbox mode detected - creating USD payment intent');
+              await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for realism
+              requestBody.sandbox = true;
+              requestBody.userId = userData.id;
+              requestBody.currency = 'usd'; // Force USD for sandbox
+            }
+          } catch (parseError) {
+            console.log('[SUBSCRIBE] Failed to parse cached user data');
+          }
+        }
+        
+        const response = await apiRequest('POST', '/api/stripe/create-payment-intent', requestBody);
+        const data = await response.json();
+        
+        if (data.success) {
+          setClientSecret(data.clientSecret);
+          console.log('[SUBSCRIBE] ✅ Payment intent created successfully');
+        } else {
+          toast({
+            title: "Erreur de paiement",
+            description: data.message || "Impossible de créer l'intention de paiement",
+            variant: "destructive",
+          });
+        }
+      } catch (error: any) {
+        console.error('[SUBSCRIBE] ❌ Error creating payment intent:', error);
+        
+        // If authentication fails, check if sandbox user and handle differently
+        if (error.message?.includes('401')) {
+          const cachedUser = localStorage.getItem('educafric_user');
+          if (cachedUser) {
+            try {
+              const userData = JSON.parse(cachedUser);
+              if (userData.sandboxMode) {
+                // For sandbox users, continue with cached data instead of redirecting
+                console.log('[SUBSCRIBE] 🧪 Sandbox user detected, continuing with cached authentication');
+                toast({
+                  title: "Mode Sandbox",
+                  description: "Test en cours avec compte sandbox - paiement simulé",
+                  variant: "default",
+                });
+                return; // Don't redirect, continue with the flow
+              }
+            } catch (parseError) {
+              console.log('[SUBSCRIBE] Failed to parse cached user data');
+            }
+          }
+          
+          toast({
+            title: "Session expirée",
+            description: "Veuillez vous reconnecter pour continuer",
+            variant: "destructive",
+          });
+          setTimeout(() => {
+            window.location.href = '/sandbox-login';
+          }, 2000);
+        } else {
+          toast({
+            title: "Erreur de connexion",
+            description: "Impossible de se connecter au service de paiement",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    if (planId) {
+      createPaymentIntent();
+    }
+  }, [planId, toast]);
+
+  if (!clientSecret) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Préparation du paiement...</span>
+      </div>
+    );
+  }
+
+  return (
+    <Elements 
+      stripe={getStripe()} 
+      options={{ 
+        clientSecret: clientSecret,
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#3b82f6',
+          }
+        }
+      }}
+    >
+      <PaymentFormInner planId={planId} plan={plan} onSuccess={onSuccess} />
+    </Elements>
+  );
+};
+
 // Composant principal d'abonnement
 const Subscribe: React.FC = () => {
   const { toast } = useToast();
@@ -414,23 +533,11 @@ const Subscribe: React.FC = () => {
                   <span className="ml-2">Chargement du système de paiement...</span>
                 </div>
               ) : (
-                <Elements 
-                  stripe={stripeLoaded} 
-                  options={{ 
-                    appearance: {
-                      theme: 'stripe',
-                      variables: {
-                        colorPrimary: '#3b82f6',
-                      }
-                    }
-                  }}
-                >
-                  <PaymentForm 
-                    planId={selectedPlan.id}
-                    plan={selectedPlan}
-                    onSuccess={handlePaymentSuccess}
-                  />
-                </Elements>
+                <PaymentForm 
+                  planId={selectedPlan.id}
+                  plan={selectedPlan}
+                  onSuccess={handlePaymentSuccess}
+                />
               )}
             </CardContent>
           </Card>
