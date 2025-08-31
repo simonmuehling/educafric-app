@@ -185,12 +185,13 @@ const SandboxLogin = () => {
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
         console.log('🎯 Redirecting to:', targetRoute);
         
+        // Update auth context and navigate using wouter
+        await login(userData.user);
+        
         // Small delay to ensure session is established, then redirect
         setTimeout(() => {
-          if (window && window.location) {
-            window.location.href = targetRoute;
-          }
-        }, 500);
+          setLocation(targetRoute);
+        }, 100);
       } else {
         const error = await response.json();
         console.error('Sandbox login failed:', error);
