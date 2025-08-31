@@ -221,8 +221,13 @@ export class StripeService {
       const user = await storage.getUserById(userId);
       const customer = await this.getOrCreateCustomer(userId, user.email, `${user.firstName} ${user.lastName}`);
       
+      // XAF is already in smallest unit (no cents), USD needs *100 for cents
+      const stripeAmount = plan.currency.toLowerCase() === 'xaf' ? Math.round(plan.price / 600) : plan.price * 100;
+      
+      console.log(`[STRIPE_DEBUG] PaymentIntent: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} USD`);
+      
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: plan.price * 100, // Stripe utilise les centimes
+        amount: stripeAmount, // Fixed XAF conversion
         currency: 'usd', // Conversion XAF -> USD pour Stripe
         customer: customer.id,
         metadata: {
@@ -318,9 +323,14 @@ export class StripeService {
         }
       });
       
+      // XAF is already in smallest unit (no cents), USD needs *100 for cents  
+      const stripeAmount = plan.currency.toLowerCase() === 'xaf' ? Math.round(plan.price / 600) : plan.price * 100;
+      
+      console.log(`[STRIPE_DEBUG] Price creation: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} USD`);
+      
       const price = await stripe.prices.create({
         product: product.id,
-        unit_amount: plan.price * 100, // Stripe utilise les centimes
+        unit_amount: stripeAmount, // Fixed XAF conversion
         currency: 'usd', // Conversion XAF -> USD
         recurring: plan.interval === 'semester' ? {
           interval: 'month',
