@@ -108,18 +108,22 @@ passport.deserializeUser(async (id: string | number, done) => {
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
       if (isNaN(userId as number)) {
+        console.log('[AUTH_DEBUG] Invalid user ID format:', id);
         return done(null, false);
       }
       
+      console.log('[AUTH_DEBUG] Attempting to deserialize user ID:', userId);
       const user = await storage.getUserById(userId as number);
       if (user) {
+        console.log('[AUTH_DEBUG] User successfully deserialized:', user.email);
         return done(null, user);
       } else {
+        console.log('[AUTH_DEBUG] User not found in database for ID:', userId);
         return done(null, false);
       }
     } catch (dbError) {
       // Log error without sensitive details
-      console.error('[AUTH_ERROR] Database connection error during user deserialization');
+      console.error('[AUTH_ERROR] Database connection error during user deserialization:', dbError);
       return done(null, false); // Fail gracefully, don't crash
     }
   } catch (error) {
