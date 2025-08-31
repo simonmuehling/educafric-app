@@ -459,6 +459,23 @@ const Subscribe: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 p-4">
       <div className="container mx-auto max-w-6xl pt-8">
+        {/* Navigation de retour */}
+        <div className="mb-6 flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={() => window.location.href = isAuthenticated ? '/dashboard' : '/'}
+            className="flex items-center gap-2"
+            data-testid="button-back-home"
+          >
+            ← {isAuthenticated ? 'Retour au Dashboard' : 'Retour à l\'accueil'}
+          </Button>
+          {isAuthenticated && (
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Connecté en tant que : <span className="font-semibold">{user?.email}</span>
+            </div>
+          )}
+        </div>
+
         {/* En-tête */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
