@@ -125,7 +125,7 @@ export const productionSessionConfig = {
     path: '/', // Ensure cookie is sent for all paths
     domain: undefined, // Let browser handle domain
   },
-  name: 'educafric.sid', // Custom name for better identification
+  // name: 'educafric.sid', // Use default connect.sid for compatibility
   proxy: true,
   // Configuration pour maintenir les sessions lors des redémarrages
   genid: (req: any) => {
