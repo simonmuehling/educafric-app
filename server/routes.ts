@@ -128,18 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(passport.initialize());
   app.use(passport.session());
   
-  // DEBUG MIDDLEWARE - Check session and authentication state
-  app.use((req, res, next) => {
-    if (req.path.startsWith('/api') && !req.path.includes('/health')) {
-      console.log(`[SESSION_DEBUG] ${req.method} ${req.path}`);
-      console.log(`[SESSION_DEBUG] Session ID: ${req.sessionID}`);
-      console.log(`[SESSION_DEBUG] Session exists: ${!!req.session}`);
-      console.log(`[SESSION_DEBUG] Is authenticated: ${req.isAuthenticated()}`);
-      console.log(`[SESSION_DEBUG] User: ${req.user ? `ID ${req.user.id}` : 'None'}`);
-      console.log(`[SESSION_DEBUG] Cookies: ${Object.keys(req.cookies || {}).join(', ') || 'None'}`);
-    }
-    next();
-  });
+  // Removed debug middleware that was interfering with session
   
   // 🚫 CRITICAL: PUBLIC ENDPOINTS MUST BE FIRST (before any /api middleware)
   // Health check endpoint - MUST be public (no authentication required)

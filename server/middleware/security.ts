@@ -119,11 +119,10 @@ export const productionSessionConfig = {
   rolling: true, // Reset expiration on each request - keeps active users logged in
   cookie: {
     secure: false, // Must be false for HTTP in development
-    httpOnly: false, // Allow JavaScript access for PWA functionality  
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days - PWA-friendly persistence
-    sameSite: 'lax' as const, // Lax is better for development without HTTPS
-    path: '/', // Ensure cookie is sent for all paths
-    domain: undefined, // Let browser handle domain
+    httpOnly: true, // Standard session cookie security
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax' as const, // Standard for same-site requests
+    path: '/', // Available for all paths
   },
   name: 'connect.sid', // Explicitly set the default name
   proxy: true,
