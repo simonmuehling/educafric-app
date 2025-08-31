@@ -86,6 +86,8 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
       finalAmount = plan.price * 100;
     }
 
+    console.log(`[STRIPE_DEBUG] Creating payment intent: Plan=${planId}, Original Price=${plan.price} ${plan.currency}, Final Amount=${finalAmount} ${finalCurrency}`);
+    
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalAmount,
       currency: finalCurrency,
@@ -95,6 +97,8 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
         sandbox: sandbox ? 'true' : 'false'
       }
     });
+
+    console.log(`[STRIPE_DEBUG] Payment intent created successfully: Amount=${paymentIntent.amount} ${paymentIntent.currency}`);
 
     res.json({
       success: true,
