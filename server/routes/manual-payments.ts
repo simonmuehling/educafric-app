@@ -199,7 +199,11 @@ function getPaymentInstructions(paymentMethod: string, amount: number, planName:
       bankDetails: {
         beneficiary: 'AFRO METAVERSE MARKETING',
         bank: 'Afriland First Bank',
-        accountNumber: '40001 00368 31500012045 68',
+        bankCode: '10033',
+        branchCode: '00368', 
+        accountNumber: '31500012045',
+        ribKey: '68',
+        fullRIB: '10033 00368 31500012045 68',
         amount: `${amount.toLocaleString()} XAF`,
         reference: `Abonnement EDUCAFRIC - ${planName}`
       },

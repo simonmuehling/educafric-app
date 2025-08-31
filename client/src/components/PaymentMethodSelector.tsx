@@ -204,16 +204,84 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                   <span className="font-medium">Afriland First Bank</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">N° de compte:</span>
+                  <span className="text-gray-600">Code banque:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">40001 00368 31500012045 68</span>
+                    <span className="font-medium">10033</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard('4000100368315000120456', 'Numéro de compte')}
+                      onClick={() => copyToClipboard('10033', 'Code banque')}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copiedField === 'Code banque' ? 
+                        <Check className="h-3 w-3 text-green-600" /> : 
+                        <Copy className="h-3 w-3" />
+                      }
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Code guichet:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">00368</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard('00368', 'Code guichet')}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copiedField === 'Code guichet' ? 
+                        <Check className="h-3 w-3 text-green-600" /> : 
+                        <Copy className="h-3 w-3" />
+                      }
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">N° de compte:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">31500012045</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard('31500012045', 'Numéro de compte')}
                       className="h-6 w-6 p-0"
                     >
                       {copiedField === 'Numéro de compte' ? 
+                        <Check className="h-3 w-3 text-green-600" /> : 
+                        <Copy className="h-3 w-3" />
+                      }
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Clé RIB:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">68</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard('68', 'Clé RIB')}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copiedField === 'Clé RIB' ? 
+                        <Check className="h-3 w-3 text-green-600" /> : 
+                        <Copy className="h-3 w-3" />
+                      }
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">RIB complet:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">10033 00368 31500012045 68</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard('10033003683150001204568', 'RIB complet')}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copiedField === 'RIB complet' ? 
                         <Check className="h-3 w-3 text-green-600" /> : 
                         <Copy className="h-3 w-3" />
                       }
