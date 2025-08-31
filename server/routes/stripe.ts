@@ -10,7 +10,7 @@ const router = Router();
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: "2024-06-20",
+    apiVersion: "2025-08-27.basil",
   });
 }
 
@@ -161,9 +161,19 @@ router.get('/subscription-status', requireAuth, async (req, res) => {
     const userId = (req.user as any).id;
     const status = await subscriptionManager.getSubscriptionStatus(userId);
 
+    // Also get user details to check if subscription is properly reflected
+    const user = await storage.getUserById(userId);
+    
     res.json({
       success: true,
-      subscription: status
+      subscription: status,
+      userId: userId,
+      userSubscriptionPlan: user.subscriptionPlan,
+      userSubscriptionStatus: user.subscriptionStatus,
+      debug: {
+        timestamp: new Date().toISOString(),
+        requestSource: 'subscription-status-endpoint'
+      }
     });
   } catch (error) {
     console.error('[STRIPE_API] Error fetching subscription status:', error);
@@ -207,7 +217,30 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('[STRIPE_WEBHOOK] Payment succeeded:', paymentIntent.id);
-        // Handle successful payment
+        
+        // Extract user and plan info from metadata
+        const userId = paymentIntent.metadata?.userId;
+        const planId = paymentIntent.metadata?.planId;
+        
+        if (userId && planId) {
+          try {
+            console.log(`[STRIPE_WEBHOOK] Activating subscription for user ${userId}, plan ${planId}`);
+            
+            // Find the plan details
+            const plan = subscriptionPlans.find(p => p.id === planId);
+            if (plan) {
+              // Activate subscription via subscription manager
+              await subscriptionManager.activateSubscription(parseInt(userId), planId, plan.interval);
+              console.log(`[STRIPE_WEBHOOK] ✅ Subscription activated successfully for user ${userId}`);
+            } else {
+              console.error(`[STRIPE_WEBHOOK] ❌ Plan not found: ${planId}`);
+            }
+          } catch (error) {
+            console.error('[STRIPE_WEBHOOK] ❌ Error activating subscription:', error);
+          }
+        } else {
+          console.error('[STRIPE_WEBHOOK] ❌ Missing userId or planId in payment metadata');
+        }
         break;
 
       case 'payment_intent.payment_failed':

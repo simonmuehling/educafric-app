@@ -184,8 +184,20 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
           
           const confirmData = await confirmResponse.json();
           console.log('[SUBSCRIBE] ✅ Server confirmation:', confirmData.success);
+          
+          // Force refresh user data and subscription status
+          if (confirmData.success) {
+            // Refresh auth context and user subscription data
+            setTimeout(() => {
+              window.location.reload(); // Force full page reload to refresh all data
+            }, 1000);
+          }
         } catch (confirmError: any) {
           console.log('[SUBSCRIBE] ⚠️ Server confirmation pending:', confirmError.message);
+          // Even if confirmation fails, try to refresh after delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
         }
       }
     } catch (error: any) {
