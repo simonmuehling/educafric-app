@@ -195,6 +195,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      // DEV AUTO-LOGIN: Force authentication for simonpabanda@gmail.com in development
+      if (import.meta.env.DEV && window.location.hostname === 'localhost') {
+        try {
+          await apiRequest('POST', '/api/test/force-session', { userId: 41 });
+          console.log('[DEV_AUTH] Auto-login successful for development');
+        } catch (autoLoginError) {
+          console.warn('[DEV_AUTH] Auto-login failed:', autoLoginError);
+        }
+      }
+
       const response = await apiRequest('GET', '/api/auth/me');
       
       if (response.ok) {
