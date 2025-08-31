@@ -185,11 +185,13 @@ const SandboxLogin = () => {
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
         console.log('🎯 Redirecting to:', targetRoute);
         
-        // Store user in localStorage and reload to update auth context
+        // Store user in localStorage 
         localStorage.setItem('educafric_user', JSON.stringify(userData.user));
         
-        // Force a page reload to properly establish the session
-        window.location.href = targetRoute;
+        // Wait a moment for session to be established, then redirect
+        setTimeout(() => {
+          window.location.href = targetRoute;
+        }, 500);
       } else {
         const error = await response.json();
         console.error('Sandbox login failed:', error);

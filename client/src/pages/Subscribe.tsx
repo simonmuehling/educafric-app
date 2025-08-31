@@ -47,6 +47,16 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
     const createPaymentIntent = async () => {
       try {
         console.log('[SUBSCRIBE] Creating payment intent for plan:', planId);
+        
+        // For sandbox users, use a delay to ensure session is established
+        const cachedUser = localStorage.getItem('educafric_user');
+        if (cachedUser) {
+          const userData = JSON.parse(cachedUser);
+          if (userData.sandboxMode) {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second for sandbox session
+          }
+        }
+        
         const response = await apiRequest('POST', '/api/stripe/create-payment-intent', { planId });
         const data = await response.json();
         
@@ -62,11 +72,24 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
         }
       } catch (error: any) {
         console.error('[SUBSCRIBE] ❌ Error creating payment intent:', error);
-        toast({
-          title: "Erreur de connexion",
-          description: "Impossible de se connecter au service de paiement",
-          variant: "destructive",
-        });
+        
+        // If authentication fails, redirect to login
+        if (error.message?.includes('401')) {
+          toast({
+            title: "Session expirée",
+            description: "Veuillez vous reconnecter pour continuer",
+            variant: "destructive",
+          });
+          setTimeout(() => {
+            window.location.href = '/sandbox-login';
+          }, 2000);
+        } else {
+          toast({
+            title: "Erreur de connexion",
+            description: "Impossible de se connecter au service de paiement",
+            variant: "destructive",
+          });
+        }
       }
     };
 
