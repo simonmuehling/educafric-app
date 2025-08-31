@@ -176,13 +176,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      // Tentative de récupération depuis le localStorage en premier
+      // For sandbox users, always prioritize localStorage
       const cachedUser = localStorage.getItem('educafric_user');
       if (cachedUser) {
         try {
           const userData = JSON.parse(cachedUser);
+          if (userData.sandboxMode) {
+            // For sandbox users, trust localStorage and skip server verification
+            setUser(userData);
+            setIsLoading(false);
+            return;
+          }
           setUser(userData);
-          setIsLoading(false);
         } catch (parseError) {
           localStorage.removeItem('educafric_user');
         }
@@ -213,6 +218,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem('educafric_user');
         }
       } else {
+        // For sandbox users, keep using localStorage even if server check fails
+        const cachedUser = localStorage.getItem('educafric_user');
+        if (cachedUser) {
+          try {
+            const userData = JSON.parse(cachedUser);
+            if (userData.sandboxMode) {
+              setUser(userData);
+              setIsLoading(false);
+              return;
+            }
+          } catch (parseError) {
+            // Continue with normal flow
+          }
+        }
         setUser(null);
         localStorage.removeItem('educafric_user');
       }
