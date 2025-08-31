@@ -136,8 +136,13 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
 
     try {
       console.log('[SUBSCRIBE] Processing payment...');
-      
       console.log('[SUBSCRIBE] Using clientSecret:', clientSecret ? 'Present' : 'Missing');
+      
+      // Submit the elements first (required by newer Stripe versions)
+      const submitResult = await elements.submit();
+      if (submitResult.error) {
+        throw submitResult.error;
+      }
       
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
