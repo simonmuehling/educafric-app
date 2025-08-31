@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import path from 'path';
 
-// Asset optimization middleware
+// Asset optimization middleware with aggressive caching and preload hints
 export const assetOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   // Skip if not a static asset request
   if (!req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
@@ -12,20 +12,34 @@ export const assetOptimizationMiddleware = (req: Request, res: Response, next: N
   // Add performance headers for assets
   res.setHeader('X-Asset-Optimized', 'true');
   
-  // Enable browser caching for static assets
+  // AGGRESSIVE caching for maximum performance
   const isVersioned = req.url.includes('?v=') || req.url.includes('&v=');
   if (isVersioned) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year for versioned assets
   } else {
-    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour for unversioned assets
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800'); // 1 day with stale serving for 1 week
   }
 
-  // Add CORS headers for fonts
+  // Add preload hints for critical resources
+  if (req.url.match(/\.(css|js)$/)) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    
+    // Add resource hints for better loading performance
+    if (req.url.includes('main') || req.url.includes('vendor') || req.url.includes('index')) {
+      res.setHeader('Link', '</api/preload-hints>; rel=preload; as=script');
+    }
+  }
+
+  // Add CORS headers for fonts with preload optimization
   if (req.url.match(/\.(woff|woff2|ttf|eot)$/)) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Content-Type', req.url.endsWith('.woff2') ? 'font/woff2' : 'font/woff');
   }
 
+  // Add compression hints
+  res.setHeader('Vary', 'Accept-Encoding');
+  
   next();
 };
 
@@ -99,25 +113,36 @@ export const imageOptimizationMiddleware = (req: Request, res: Response, next: N
   next();
 };
 
-// Bundle size optimization
+// Bundle size optimization with preload injection
 export const bundleOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Log large responses for optimization tracking
-  const originalSend = res.send;
-  res.send = function(body: any) {
-    if (body && typeof body === 'string') {
+  // Inject preload hints for critical resources in HTML responses
+  if (req.url === '/' || req.url.endsWith('.html')) {
+    const originalSend = res.send;
+    res.send = function(body: any) {
+      if (body && typeof body === 'string' && body.includes('<head>')) {
+        // Inject critical resource preloads to speed up loading
+        const preloadHints = `
+          <link rel="preload" href="/assets/main.css" as="style">
+          <link rel="preload" href="/assets/vendor.js" as="script">
+          <link rel="preload" href="/assets/main.js" as="script">
+          <link rel="dns-prefetch" href="//fonts.googleapis.com">
+          <link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+        `;
+        body = body.replace('<head>', `<head>${preloadHints}`);
+      }
+      
       const size = Buffer.byteLength(body, 'utf8');
       
-      // Log large responses (>100KB)
-      if (size > 100 * 1024) {
+      // Log large responses (>50KB for tighter monitoring)
+      if (size > 50 * 1024) {
         console.warn(`[BUNDLE_SIZE] Large response: ${req.method} ${req.url} - ${(size / 1024).toFixed(1)}KB`);
       }
 
       // Add size header
       res.setHeader('X-Response-Size', `${(size / 1024).toFixed(1)}KB`);
-    }
-
-    return originalSend.call(this, body);
-  };
+      return originalSend.call(this, body);
+    };
+  }
 
   next();
 };

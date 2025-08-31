@@ -1,16 +1,21 @@
 import compression from 'compression';
 import type { Request, Response, NextFunction } from 'express';
 
-// Response compression middleware
+// Response compression middleware optimized for speed
 export const compressionMiddleware = compression({
   filter: (req: Request, res: Response) => {
     if (req.headers['x-no-compression']) {
       return false;
     }
+    // Prioritize text-based assets for compression
+    if (req.url.match(/\.(js|css|html|json|xml|txt|svg)$/)) {
+      return true;
+    }
     return compression.filter(req, res);
   },
-  level: 6, // Good balance between compression ratio and speed
-  threshold: 1024, // Only compress responses > 1KB
+  level: 4, // Faster compression with good ratio
+  threshold: 512, // Compress smaller files for better performance
+  chunkSize: 1024, // Smaller chunks for faster streaming
 });
 
 // Request timeout middleware

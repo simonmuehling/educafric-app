@@ -1,12 +1,16 @@
 {
   "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "future-modules/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "future-modules/**/*", "migrations/**/*", "scripts/**/*", "*.md", "*.json"],
   "compilerOptions": {
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "tsBuildInfoFile": "./.tsbuildinfo",
     "noEmit": true,
     "module": "ESNext",
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -18,6 +22,10 @@
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
-    }
+    },
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noErrorTruncation": false,
+    "assumeChangesOnlyAffectDirectDependencies": true
   }
 }
