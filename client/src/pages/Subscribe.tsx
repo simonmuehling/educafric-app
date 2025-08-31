@@ -55,10 +55,11 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
           try {
             const userData = JSON.parse(cachedUser);
             if (userData.sandboxMode) {
-              console.log('[SUBSCRIBE] 🧪 Sandbox mode detected - simulating real client experience');
+              console.log('[SUBSCRIBE] 🧪 Sandbox mode detected - creating USD payment intent');
               await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for realism
               requestBody.sandbox = true;
               requestBody.userId = userData.id;
+              requestBody.currency = 'usd'; // Force USD for sandbox
             }
           } catch (parseError) {
             console.log('[SUBSCRIBE] Failed to parse cached user data');
