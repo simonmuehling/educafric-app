@@ -308,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =============================================
 
   // DIRECTOR API ROUTES - Overview and Analytics
-  app.get("/api/director/overview", requireAuth, async (req, res) => {
+  app.get("/api/director/overview", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       console.log('[DIRECTOR_API] GET /api/director/overview for user:', user.id);
@@ -359,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/director/analytics", requireAuth, async (req, res) => {
+  app.get("/api/director/analytics", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
       console.log('[DIRECTOR_API] GET /api/director/analytics for user:', user.id);
@@ -395,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Director Settings  
-  app.get("/api/director/settings", requireAuth, async (req, res) => {
+  app.get("/api/director/settings", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const settings = {
         school: {
