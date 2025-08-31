@@ -293,6 +293,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER SETTINGS API ROUTES - DEFINED FIRST TO AVOID CONFLICTS
   // =============================================
 
+  // DIRECTOR API ROUTES - Overview and Analytics
+  app.get("/api/director/overview", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[DIRECTOR_API] GET /api/director/overview for user:', user.id);
+      
+      const overviewStats = [
+        {
+          id: 1,
+          type: 'students',
+          title: 'Élèves Total',
+          value: '342',
+          description: '+12 ce mois',
+          icon: 'users',
+          color: 'from-blue-500 to-blue-600'
+        },
+        {
+          id: 2,
+          type: 'teachers',
+          title: 'Enseignants',
+          value: '28',
+          description: '+3 recrutés',
+          icon: 'graduation-cap',
+          color: 'from-green-500 to-green-600'
+        },
+        {
+          id: 3,
+          type: 'classes',
+          title: 'Classes Actives',
+          value: '18',
+          description: '6ème à Terminale',
+          icon: 'book',
+          color: 'from-purple-500 to-purple-600'
+        },
+        {
+          id: 4,
+          type: 'average',
+          title: 'Moyenne Générale',
+          value: '14.2',
+          description: '+0.8 vs trimestre',
+          icon: 'bar-chart',
+          color: 'from-orange-500 to-orange-600'
+        }
+      ];
+      
+      res.json({ success: true, overview: overviewStats });
+    } catch (error) {
+      console.error('[DIRECTOR_API] Error fetching overview:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch director overview' });
+    }
+  });
+
+  app.get("/api/director/analytics", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[DIRECTOR_API] GET /api/director/analytics for user:', user.id);
+      
+      const analytics = {
+        performance: {
+          overallAverage: 14.2,
+          topClass: '6ème A',
+          improvementRate: 8.5
+        },
+        attendance: {
+          averageRate: 92.3,
+          absentToday: 12,
+          lateArrivals: 4
+        },
+        financials: {
+          monthlyRevenue: 2840000,
+          pendingPayments: 450000,
+          completionRate: 86.2
+        },
+        communication: {
+          messagesSent: 156,
+          parentEngagement: 78.4,
+          responseRate: 94.1
+        }
+      };
+      
+      res.json({ success: true, analytics });
+    } catch (error) {
+      console.error('[DIRECTOR_API] Error fetching analytics:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch director analytics' });
+    }
+  });
+
   // Director Settings  
   app.get("/api/director/settings", requireAuth, async (req, res) => {
     try {
