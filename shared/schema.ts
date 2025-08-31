@@ -374,33 +374,33 @@ export type ParentStudentRelation = typeof parentStudentRelations.$inferSelect;
 // Daily connection tracking for analytics and reporting
 export const dailyConnections = pgTable("daily_connections", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id").notNull(),
-  user_email: text("user_email").notNull(),
-  user_role: text("user_role").notNull(),
-  user_name: text("user_name").notNull(),
-  ip_address: text("ip_address").notNull(),
+  userId: integer("user_id").notNull(),
+  userEmail: text("user_email").notNull(),
+  userRole: text("user_role").notNull(),
+  userName: text("user_name").notNull(),
+  ipAddress: text("ip_address").notNull(),
   location: jsonb("location"), // {country, city, region}
-  user_agent: text("user_agent"),
-  connection_date: timestamp("connection_date").defaultNow(),
-  session_id: text("session_id"),
-  access_method: text("access_method").default("web"), // web, mobile, pwa
-  created_at: timestamp("created_at").defaultNow()
+  userAgent: text("user_agent"),
+  connectionDate: timestamp("connection_date").defaultNow(),
+  sessionId: text("session_id"),
+  accessMethod: text("access_method").default("web"), // web, mobile, pwa
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Page/module visit tracking for detailed analytics
 export const pageVisits = pgTable("page_visits", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id").notNull(),
-  user_email: text("user_email").notNull(),
-  user_role: text("user_role").notNull(),
-  page_path: text("page_path").notNull(), // /dashboard, /overview, etc.
-  module_name: text("module_name"), // Vue d'ensemble, Gestion Étudiants, etc.
-  dashboard_type: text("dashboard_type"), // Director, Teacher, Parent, etc.
-  time_spent: integer("time_spent"), // seconds
-  ip_address: text("ip_address").notNull(),
-  session_id: text("session_id"),
-  visit_date: timestamp("visit_date").defaultNow(),
-  created_at: timestamp("created_at").defaultNow()
+  userId: integer("user_id").notNull(),
+  userEmail: text("user_email").notNull(),
+  userRole: text("user_role").notNull(),
+  pagePath: text("page_path").notNull(), // /dashboard, /overview, etc.
+  moduleName: text("module_name"), // Vue d'ensemble, Gestion Étudiants, etc.
+  dashboardType: text("dashboard_type"), // Director, Teacher, Parent, etc.
+  timeSpent: integer("time_spent"), // seconds
+  ipAddress: text("ip_address").notNull(),
+  sessionId: text("session_id"),
+  visitDate: timestamp("visit_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const insertDailyConnectionSchema = createInsertSchema(dailyConnections);

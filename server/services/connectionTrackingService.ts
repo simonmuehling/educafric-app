@@ -18,15 +18,15 @@ export class ConnectionTrackingService {
   }) {
     try {
       const [connection] = await db.insert(dailyConnections).values({
-        user_id: connectionData.userId,
-        user_email: connectionData.userEmail,
-        user_role: connectionData.userRole,
-        user_name: connectionData.userName,
-        ip_address: connectionData.ipAddress,
+        userId: connectionData.userId,
+        userEmail: connectionData.userEmail,
+        userRole: connectionData.userRole,
+        userName: connectionData.userName,
+        ipAddress: connectionData.ipAddress,
         location: connectionData.location,
-        user_agent: connectionData.userAgent,
-        session_id: connectionData.sessionId,
-        access_method: connectionData.accessMethod || 'web'
+        userAgent: connectionData.userAgent,
+        sessionId: connectionData.sessionId,
+        accessMethod: connectionData.accessMethod || 'web'
       }).returning();
 
       console.log(`[CONNECTION_TRACKER] 📊 Connexion enregistrée: ${connectionData.userEmail} depuis ${connectionData.ipAddress}`);
@@ -51,15 +51,15 @@ export class ConnectionTrackingService {
   }) {
     try {
       const [visit] = await db.insert(pageVisits).values({
-        user_id: visitData.userId,
-        user_email: visitData.userEmail,
-        user_role: visitData.userRole,
-        page_path: visitData.pagePath,
-        module_name: visitData.moduleName,
-        dashboard_type: visitData.dashboardType,
-        time_spent: visitData.timeSpent,
-        ip_address: visitData.ipAddress,
-        session_id: visitData.sessionId
+        userId: visitData.userId,
+        userEmail: visitData.userEmail,
+        userRole: visitData.userRole,
+        pagePath: visitData.pagePath,
+        moduleName: visitData.moduleName,
+        dashboardType: visitData.dashboardType,
+        timeSpent: visitData.timeSpent,
+        ipAddress: visitData.ipAddress,
+        sessionId: visitData.sessionId
       }).returning();
 
       console.log(`[PAGE_TRACKER] 📄 Page visitée: ${visitData.pagePath} par ${visitData.userEmail}`);
@@ -79,38 +79,38 @@ export class ConnectionTrackingService {
       // Total connections today
       const totalConnections = await db.select({ count: sql<number>`count(*)` })
         .from(dailyConnections)
-        .where(gte(dailyConnections.connection_date, today));
+        .where(gte(dailyConnections.connectionDate, today));
 
       // Unique users today
       const uniqueUsers = await db.select({ count: sql<number>`count(DISTINCT user_id)` })
         .from(dailyConnections)
-        .where(gte(dailyConnections.connection_date, today));
+        .where(gte(dailyConnections.connectionDate, today));
 
       // Connections by role
       const connectionsByRole = await db.select({
-        role: dailyConnections.user_role,
+        role: dailyConnections.userRole,
         count: sql<number>`count(*)`
       })
       .from(dailyConnections)
-      .where(gte(dailyConnections.connection_date, today))
-      .groupBy(dailyConnections.user_role);
+      .where(gte(dailyConnections.connectionDate, today))
+      .groupBy(dailyConnections.userRole);
 
       // Most visited pages
       const topPages = await db.select({
-        pagePath: pageVisits.page_path,
-        moduleName: pageVisits.module_name,
+        pagePath: pageVisits.pagePath,
+        moduleName: pageVisits.moduleName,
         count: sql<number>`count(*)`
       })
       .from(pageVisits)
-      .where(gte(pageVisits.visit_date, today))
-      .groupBy(pageVisits.page_path, pageVisits.module_name)
+      .where(gte(pageVisits.visitDate, today))
+      .groupBy(pageVisits.pagePath, pageVisits.moduleName)
       .orderBy(sql`count(*) DESC`)
       .limit(10);
 
       // Recent connections with details
       const recentConnections = await db.select()
         .from(dailyConnections)
-        .where(gte(dailyConnections.connection_date, today))
+        .where(gte(dailyConnections.connectionDate, today))
         .orderBy(sql`connection_date DESC`)
         .limit(50);
 
