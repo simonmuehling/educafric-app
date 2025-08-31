@@ -70,20 +70,19 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
       });
     }
 
-    // For sandbox testing, use USD and convert price appropriately
-    const finalCurrency = sandbox ? 'usd' : currency.toLowerCase();
-    
-    // XAF is already in smallest unit (1 franc), USD/EUR need *100 for cents
+    // FORCE XAF payments to stay in XAF (no conversion to USD)
+    // XAF is already in smallest unit (1 franc = 1 franc, no cents)
     let finalAmount: number;
+    let finalCurrency: string;
+    
     if (sandbox) {
-      // Convert XAF to USD for sandbox testing (1 USD ≈ 600 XAF)
-      finalAmount = Math.round(plan.price / 600) * 100; // Convert to USD cents
-    } else if (finalCurrency === 'xaf') {
-      // XAF is already in smallest unit - no conversion needed
-      finalAmount = plan.price;
+      // Convert XAF to USD for sandbox testing only
+      finalAmount = Math.round(plan.price / 600) * 100; // USD cents
+      finalCurrency = 'usd';
     } else {
-      // Other currencies (USD, EUR) need *100 for cents
-      finalAmount = plan.price * 100;
+      // KEEP XAF AS XAF - no conversion needed!
+      finalAmount = plan.price; // 1000 XAF stays 1000 XAF
+      finalCurrency = 'xaf';
     }
 
     console.log(`[STRIPE_DEBUG] Creating payment intent: Plan=${planId}, Original Price=${plan.price} ${plan.currency}, Final Amount=${finalAmount} ${finalCurrency}`);
