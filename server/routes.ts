@@ -14,6 +14,7 @@ import cookieParser from "cookie-parser";
 // Import middleware
 import { configureSecurityMiddleware, productionSessionConfig } from "./middleware/security";
 import { requireAuth } from "./middleware/auth";
+import { checkSubscriptionFeature, checkFreemiumLimits } from "./middleware/subscriptionMiddleware";
 
 // Import route modules
 import notificationsRouter from "./routes/api/notifications";
@@ -1128,10 +1129,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Register API route modules AFTER settings routes (FIXED DUPLICATION)
   app.use('/api/notifications', notificationsRouter);
-  app.use('/api/teachers', teachersRouter);
+  
+  // 🔥 PREMIUM RESTRICTED: Advanced teacher management (unlimited teachers + analytics)
+  app.use('/api/teachers', checkSubscriptionFeature('advanced_teacher_management'), checkFreemiumLimits('teachers'), teachersRouter);
   app.use('/api/teacher', teacherRouter);
-  app.use('/api/students', studentsRouter);
+  
+  // 🔥 PREMIUM RESTRICTED: Advanced student management (unlimited students + tracking)
+  app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
   app.use('/api/student', studentRoutesApi);
+  
   app.use('/api/freelancer', freelancerRouter);
   app.use('/api/sandbox', sandboxRouter);
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
@@ -1141,18 +1147,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/director', adminRoutes); // Map director to admin routes
 
   // Register existing route modules
-  app.use('/api/geolocation', geolocationRoutes);
-  app.use('/api/enhanced-geolocation', enhancedGeolocationRoutes);
+  // 🔥 PREMIUM RESTRICTED: GPS tracking and geolocation (premium schools only)
+  app.use('/api/geolocation', checkSubscriptionFeature('geolocation_tracking'), geolocationRoutes);
+  app.use('/api/enhanced-geolocation', checkSubscriptionFeature('geolocation_tracking'), enhancedGeolocationRoutes);
   app.use('/api/documents', documentsRouter);
   app.use('/api/subscription', subscriptionRoutes);
   app.use('/api/pwa', pwaRoutes);
   app.use('/api/analytics', analyticsRoutes);
-  app.use('/api/whatsapp', whatsappRoutes);
-  app.use('/api/whatsapp-setup', whatsappMsSolutionsSetup);
-  app.use('/api/vonage-messages', vonageMessagesRouter);
+  // 🔥 PREMIUM RESTRICTED: Advanced communications (unlimited SMS/WhatsApp)
+  app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);
+  app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
+  app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
   
   // Additional routes after main registrations  
-  app.use('/api/classes', classesRoutes);
+  // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
+  app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
   app.use('/api/grades', gradesRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
