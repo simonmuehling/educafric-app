@@ -185,10 +185,7 @@ const SandboxLogin = () => {
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
         console.log('🎯 Redirecting to:', targetRoute);
         
-        // Update auth context and navigate using wouter
-        await login(userData.user);
-        
-        // Small delay to ensure session is established, then redirect
+        // Directly navigate since sandbox session is already established server-side
         setTimeout(() => {
           setLocation(targetRoute);
         }, 100);
