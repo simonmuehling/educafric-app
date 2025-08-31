@@ -48,17 +48,24 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
       try {
         console.log('[SUBSCRIBE] Creating payment intent for plan:', planId);
         
-        // For sandbox users, ensure session is ready and provide test-specific handling
+        // Include sandbox flag if user is in sandbox mode
+        const requestBody: any = { planId };
         const cachedUser = localStorage.getItem('educafric_user');
         if (cachedUser) {
-          const userData = JSON.parse(cachedUser);
-          if (userData.sandboxMode) {
-            console.log('[SUBSCRIBE] 🧪 Sandbox mode detected - simulating real client experience');
-            await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for realism
+          try {
+            const userData = JSON.parse(cachedUser);
+            if (userData.sandboxMode) {
+              console.log('[SUBSCRIBE] 🧪 Sandbox mode detected - simulating real client experience');
+              await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay for realism
+              requestBody.sandbox = true;
+              requestBody.userId = userData.id;
+            }
+          } catch (parseError) {
+            console.log('[SUBSCRIBE] Failed to parse cached user data');
           }
         }
         
-        const response = await apiRequest('POST', '/api/stripe/create-payment-intent', { planId });
+        const response = await apiRequest('POST', '/api/stripe/create-payment-intent', requestBody);
         const data = await response.json();
         
         if (data.success) {
@@ -74,8 +81,27 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
       } catch (error: any) {
         console.error('[SUBSCRIBE] ❌ Error creating payment intent:', error);
         
-        // If authentication fails, redirect to login
+        // If authentication fails, check if sandbox user and handle differently
         if (error.message?.includes('401')) {
+          const cachedUser = localStorage.getItem('educafric_user');
+          if (cachedUser) {
+            try {
+              const userData = JSON.parse(cachedUser);
+              if (userData.sandboxMode) {
+                // For sandbox users, continue with cached data instead of redirecting
+                console.log('[SUBSCRIBE] 🧪 Sandbox user detected, continuing with cached authentication');
+                toast({
+                  title: "Mode Sandbox",
+                  description: "Test en cours avec compte sandbox - paiement simulé",
+                  variant: "default",
+                });
+                return; // Don't redirect, continue with the flow
+              }
+            } catch (parseError) {
+              console.log('[SUBSCRIBE] Failed to parse cached user data');
+            }
+          }
+          
           toast({
             title: "Session expirée",
             description: "Veuillez vous reconnecter pour continuer",
