@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   Shield, Star, Users, MessageSquare, Bell, MapPin, 
   CreditCard, Calendar, Check, ArrowRight, Heart,
-  Smartphone, Eye, AlertTriangle, ScanEye
+  Smartphone, Eye, AlertTriangle, ScanEye, Loader2
 } from 'lucide-react';
 
 const ParentSubscription = () => {
   const { language } = useLanguage();
   const { user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  // 📡 Récupérer les vraies données d'abonnement parent
+  const { data: subscriptionData, isLoading } = useQuery({
+    queryKey: ['/api/parent/subscription', user?.id],
+    queryFn: () => apiRequest('GET', '/api/parent/subscription'),
+    enabled: !!user?.id
+  });
+
+  // 📡 Récupérer l'état des passerelles pour chaque enfant
+  const { data: gatewayStatus } = useQuery({
+    queryKey: ['/api/parent/gateway-status', user?.id],
+    queryFn: () => apiRequest('GET', '/api/parent/gateway-status'),
+    enabled: !!user?.id
+  });
 
   const text = {
     fr: {
@@ -203,44 +219,118 @@ const ParentSubscription = () => {
       {/* Current Subscription Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ModernCard title={t.currentPlan} className="p-6">
-          <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-lg font-semibold text-green-900">{t.freePlan}</h4>
-              <Badge className="bg-green-100 text-green-800 border-green-200">
-                {t.current}
-              </Badge>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <span className="ml-2">Chargement de votre abonnement...</span>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-              <div>
-                <span className="text-gray-600">{t.priceInCFA}:</span>
-                <span className="font-semibold ml-2">0 CFA{t.perMonth}</span>
+          ) : (
+            <div className={`p-4 bg-gradient-to-r rounded-lg border ${
+              subscriptionData?.isFreemium !== false 
+                ? 'from-green-50 to-blue-50 border-green-200' 
+                : 'from-purple-50 to-pink-50 border-purple-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className={`text-lg font-semibold ${
+                  subscriptionData?.isFreemium !== false ? 'text-green-900' : 'text-purple-900'
+                }`}>
+                  {subscriptionData?.planName || t.freePlan}
+                </h4>
+                <Badge className={`${
+                  subscriptionData?.isFreemium !== false 
+                    ? 'bg-green-100 text-green-800 border-green-200' 
+                    : 'bg-purple-100 text-purple-800 border-purple-200'
+                }`}>
+                  {t.current}
+                </Badge>
               </div>
-              <div>
-                <span className="text-gray-600">{t.features}:</span>
-                <span className="font-semibold ml-2">3 {language === 'fr' ? 'de base' : 'basic'}</span>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div>
+                  <span className="text-gray-600">{t.priceInCFA}:</span>
+                  <span className="font-semibold ml-2">
+                    {subscriptionData?.price || 0} CFA{subscriptionData?.isFreemium !== false ? '' : t.perMonth}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">{t.features}:</span>
+                  <span className="font-semibold ml-2">
+                    {subscriptionData?.features?.length || 3} {language === 'fr' ? 'disponibles' : 'available'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">{t.billingCycle}:</span>
+                  <span className="font-semibold ml-2">
+                    {subscriptionData?.billingCycle || (language === 'fr' ? 'Gratuit' : 'Free')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">{t.renewalDate}:</span>
+                  <span className="font-semibold ml-2">
+                    {subscriptionData?.nextRenewal ? new Date(subscriptionData.nextRenewal).toLocaleDateString() : '-'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-gray-600">{t.billingCycle}:</span>
-                <span className="font-semibold ml-2">{language === 'fr' ? 'Gratuit' : 'Free'}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">{t.renewalDate}:</span>
-                <span className="font-semibold ml-2">-</span>
-              </div>
-            </div>
 
-            <div className="pt-3 border-t border-green-200">
-              <Button 
-                size="sm"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                onClick={() => window.open('/subscribe', '_blank')}
-              >
-                <ArrowRight className="w-4 h-4 mr-2" />
-                {t.upgrade}
-              </Button>
+              {/* AFFICHAGE ÉTAT DES PASSERELLES PAR ENFANT */}
+              {gatewayStatus && Object.keys(gatewayStatus).length > 0 && (
+                <div className="mb-4 p-3 bg-white/60 rounded-lg border">
+                  <h5 className="font-semibold text-gray-800 mb-2">🔄 État des passerelles enfants:</h5>
+                  <div className="space-y-2 text-xs">
+                    {Object.entries(gatewayStatus).map(([childId, status]: [string, any]) => (
+                      <div key={childId} className="flex items-center justify-between">
+                        <span className="text-gray-700">{status.childName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">{status.schoolName}</span>
+                          <Badge className={`text-xs px-2 py-0.5 ${
+                            status.gatewayActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {status.gatewayActive ? '✅ Active' : '❌ Inactive'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className={`pt-3 border-t ${
+                subscriptionData?.isFreemium !== false ? 'border-green-200' : 'border-purple-200'
+              }`}>
+                {subscriptionData?.isFreemium !== false ? (
+                  <Button 
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                    onClick={() => window.open('/subscribe', '_blank')}
+                  >
+                    <ArrowRight className="w-4 h-4 mr-2" />
+                    {t.upgrade}
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => window.open('/subscribe', '_blank')}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {t.manageBilling}
+                    </Button>
+                    <Button 
+                      size="sm"
+                      className="bg-gradient-to-r from-green-600 to-blue-600 text-white"
+                      onClick={() => window.open('/subscribe?upgrade=true', '_blank')}
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      Ajouter enfant
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </ModernCard>
 
         <ModernCard title={t.familyDiscount} className="p-6">

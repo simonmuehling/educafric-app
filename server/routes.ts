@@ -900,6 +900,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 📊 ROUTES ABONNEMENT PARENT - Support module subscription
+  app.get('/api/parent/subscription', requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const { SubscriptionService } = await import('./services/subscriptionService');
+      const subscriptionDetails = await SubscriptionService.getParentSubscriptionDetails(user.id, user.email);
+      
+      res.json({
+        success: true,
+        ...subscriptionDetails,
+        // Ajouter infos complémentaires pour l'interface
+        price: subscriptionDetails.isFreemium ? 0 : 1500,
+        billingCycle: subscriptionDetails.isFreemium ? 'Gratuit' : 'Mensuel',
+        nextRenewal: subscriptionDetails.isFreemium ? null : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // +30 jours
+      });
+    } catch (error) {
+      console.error('[PARENT_SUBSCRIPTION] Error:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch subscription details' });
+    }
+  });
+
+  app.get('/api/parent/gateway-status', requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const { SubscriptionService } = await import('./services/subscriptionService');
+      const gatewayStatus = await SubscriptionService.getParentChildrenGatewayStatus(user.id, user.email);
+      
+      res.json({
+        success: true,
+        ...gatewayStatus
+      });
+    } catch (error) {
+      console.error('[PARENT_GATEWAY_STATUS] Error:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch gateway status' });
+    }
+  });
+
   // Freelancer Settings
   app.get("/api/freelancer/settings", requireAuth, async (req, res) => {
     try {
