@@ -1,4 +1,4 @@
-import { Mail, Phone, MessageCircle, Facebook, Shield, FileText } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Facebook, Shield, FileText, Youtube } from 'lucide-react';
 import { FaTiktok } from 'react-icons/fa';
 import { Link } from 'wouter';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,7 +46,8 @@ const EducafricFooter = () => {
     social: [
       { label: "WhatsApp", href: "https://wa.me/237656200472", icon: MessageCircle },
       { label: "Facebook", href: "https://facebook.com/educafriccom", icon: Facebook },
-      { label: "TikTok", href: "https://tiktok.com/@educafric", icon: FaTiktok }
+      { label: "TikTok", href: "https://tiktok.com/@educafric", icon: FaTiktok },
+      { label: "YouTube", href: "https://www.youtube.com/@educafric", icon: Youtube }
     ]
   };
 

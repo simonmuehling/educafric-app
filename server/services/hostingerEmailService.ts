@@ -11,7 +11,7 @@ const EDUCAFRIC_CONTACT = {
     twitter: 'https://twitter.com/educafric',
     instagram: 'https://instagram.com/educafric',
     linkedin: 'https://linkedin.com/company/educafric',
-    youtube: 'https://youtube.com/@educafric'
+    youtube: 'https://www.youtube.com/@educafric'
   }
 };
 
