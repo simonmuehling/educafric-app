@@ -53,32 +53,58 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
         return next();
       }
 
-      const schoolId = user.schoolId;
+      // Support pour différents types d'utilisateurs : école, parent, freelancer
+      let canAccess = false;
+      let subscriptionDetails: any;
+      let upgradeUrl = '/subscribe';
 
-      if (!schoolId) {
-        return res.status(400).json({ error: 'School ID required' });
+      if (user.role === 'Parent' || user.role === 'Student') {
+        // Parents et étudiants : vérification d'abonnement parent premium
+        canAccess = await SubscriptionService.canAccessParentFeature(user.id, requiredFeature, user.email);
+        if (!canAccess) {
+          subscriptionDetails = await SubscriptionService.getParentSubscriptionDetails(user.id, user.email);
+          upgradeUrl = `/subscribe?type=parent&user=${user.id}`;
+        }
+      } else if (user.role === 'Freelancer') {
+        // Freelancers : vérification d'abonnement freelancer premium
+        canAccess = await SubscriptionService.canAccessFreelancerFeature(user.id, requiredFeature, user.email);
+        if (!canAccess) {
+          subscriptionDetails = await SubscriptionService.getFreelancerSubscriptionDetails(user.id, user.email);
+          upgradeUrl = `/subscribe?type=freelancer&user=${user.id}`;
+        }
+      } else {
+        // École (Director, Teacher, Commercial, etc.) : vérification d'abonnement école
+        const schoolId = user.schoolId;
+        if (!schoolId) {
+          return res.status(400).json({ error: 'School ID required' });
+        }
+        canAccess = await SubscriptionService.canAccessFeature(schoolId, requiredFeature, user.email);
+        if (!canAccess) {
+          subscriptionDetails = await SubscriptionService.getAvailableFeatures(schoolId, user.email);
+          upgradeUrl = `/subscription/upgrade?school=${schoolId}`;
+        }
       }
 
-      // Vérifier si l'utilisateur peut accéder à cette fonctionnalité
-      const canAccess = await SubscriptionService.canAccessFeature(schoolId, requiredFeature, user.email);
-
       if (!canAccess) {
-        // Obtenir les détails de l'abonnement pour la réponse
-        const subscriptionDetails = await SubscriptionService.getAvailableFeatures(schoolId, user.email);
-        
         return res.status(403).json({
           error: 'Premium subscription required',
           message: `Cette fonctionnalité nécessite un abonnement premium`,
-          currentPlan: subscriptionDetails.planName,
-          isFreemium: subscriptionDetails.isFreemium,
-          upgradeUrl: `/subscription/upgrade?school=${schoolId}`,
-          availableFeatures: subscriptionDetails.features,
-          restrictions: subscriptionDetails.restrictions
+          currentPlan: subscriptionDetails?.planName || 'Freemium',
+          isFreemium: subscriptionDetails?.isFreemium ?? true,
+          upgradeUrl: upgradeUrl,
+          availableFeatures: subscriptionDetails?.features || [],
+          restrictions: subscriptionDetails?.restrictions || []
         });
       }
 
-      // Ajouter les informations d'abonnement à la requête
-      req.subscription = await SubscriptionService.getSchoolSubscription(schoolId);
+      // Ajouter les informations d'abonnement à la requête selon le type
+      if (user.role === 'Parent' || user.role === 'Student') {
+        req.subscription = { type: 'parent', isPremium: true, userId: user.id };
+      } else if (user.role === 'Freelancer') {
+        req.subscription = { type: 'freelancer', isPremium: true, userId: user.id };
+      } else {
+        req.subscription = await SubscriptionService.getSchoolSubscription(user.schoolId);
+      }
       next();
     } catch (error) {
       console.error('Subscription check error:', error);

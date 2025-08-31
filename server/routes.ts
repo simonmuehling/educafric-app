@@ -1138,11 +1138,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
   app.use('/api/student', studentRoutesApi);
   
-  app.use('/api/freelancer', freelancerRouter);
+  // 🔥 PREMIUM RESTRICTED: Advanced freelancer features (unlimited students + analytics)
+  app.use('/api/freelancer', checkSubscriptionFeature('freelancer_premium'), checkFreemiumLimits('freelancer_students'), freelancerRouter);
+  
   app.use('/api/sandbox', sandboxRouter);
   app.use('/api/sandbox-unified', sandboxUnifiedDataRoutes);
   app.use('/api/schools', schoolsRouter);
-  app.use('/api/parent', parentRouter);
+  
+  // 🔥 PREMIUM RESTRICTED: Advanced parent features (GPS tracking + notifications)
+  app.use('/api/parent', checkSubscriptionFeature('parent_premium'), parentRouter);
   app.use('/api/admin', adminRoutes);
   app.use('/api/director', adminRoutes); // Map director to admin routes
 

@@ -221,12 +221,44 @@ export class SubscriptionService {
    */
   static isFreemiumFeature(feature: string): boolean {
     const freemiumFeatures = [
+      // École freemium
       'basic_student_management',
       'basic_teacher_management',
       'basic_attendance',
       'basic_grades',
       'basic_communication',
-      'basic_homework'
+      'basic_homework',
+      // Parent freemium
+      'basic_child_profile',
+      'basic_grade_access',
+      'basic_attendance_view',
+      'basic_school_communication',
+      // Freelancer freemium
+      'basic_freelancer_schedule',
+      'basic_student_notes',
+      'basic_parent_messaging'
+    ];
+    
+    // Premium features that require subscription
+    const premiumFeatures = [
+      // École premium
+      'advanced_teacher_management',
+      'advanced_student_management', 
+      'advanced_class_management',
+      'geolocation_tracking',
+      'advanced_communications',
+      // Parent premium
+      'parent_premium',
+      'gps_child_tracking',
+      'advanced_notifications',
+      'multiple_children',
+      'emergency_alerts',
+      // Freelancer premium
+      'freelancer_premium',
+      'unlimited_students',
+      'advanced_scheduling',
+      'payment_tracking',
+      'freelancer_analytics'
     ];
     
     return freemiumFeatures.includes(feature);
@@ -365,6 +397,123 @@ export class SubscriptionService {
     return {
       sessionId: `cs_${Date.now()}`,
       url: `/upgrade-success?plan=${planId}&school=${schoolId}`
+    };
+  }
+
+  /**
+   * Vérifier si un parent peut accéder à une fonctionnalité premium
+   */
+  static async canAccessParentFeature(userId: number, feature: string, userEmail?: string): Promise<boolean> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[PARENT_SUBSCRIPTION] User ${userEmail} is exempt from parent feature restrictions`);
+      return true;
+    }
+    
+    // Vérifier l'abonnement parent (en production, vérifier dans la DB)
+    // Pour l'instant, simulation : parents test ont accès premium
+    if (userEmail && userEmail.includes('@test.educafric.com')) {
+      return true;
+    }
+    
+    // Par défaut, les parents sont en freemium
+    return this.isFreemiumFeature(feature);
+  }
+
+  /**
+   * Vérifier si un freelancer peut accéder à une fonctionnalité premium
+   */
+  static async canAccessFreelancerFeature(userId: number, feature: string, userEmail?: string): Promise<boolean> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      console.log(`[FREELANCER_SUBSCRIPTION] User ${userEmail} is exempt from freelancer feature restrictions`);
+      return true;
+    }
+    
+    // Vérifier l'abonnement freelancer (en production, vérifier dans la DB)
+    // Pour l'instant, simulation : freelancers test ont accès premium
+    if (userEmail && userEmail.includes('@test.educafric.com')) {
+      return true;
+    }
+    
+    // Par défaut, les freelancers sont en freemium
+    return this.isFreemiumFeature(feature);
+  }
+
+  /**
+   * Obtenir les détails d'abonnement pour un parent
+   */
+  static async getParentSubscriptionDetails(userId: number, userEmail?: string): Promise<{
+    features: string[];
+    restrictions: string[];
+    planName: string;
+    isFreemium: boolean;
+  }> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      return {
+        features: ['Toutes les fonctionnalités parent disponibles (Compte Test)'],
+        restrictions: [],
+        planName: 'Test Premium',
+        isFreemium: false
+      };
+    }
+    
+    // Freemium par défaut pour les parents
+    return {
+      features: [
+        'Profil enfant basique',
+        'Accès aux notes de base',
+        'Notifications email simples',
+        'Calendrier scolaire'
+      ],
+      restrictions: [
+        'Pas de géolocalisation GPS',
+        'Pas de notifications SMS/WhatsApp',
+        'Pas d\'analyses avancées',
+        'Limité à 1 enfant'
+      ],
+      planName: 'Parent Freemium',
+      isFreemium: true
+    };
+  }
+
+  /**
+   * Obtenir les détails d'abonnement pour un freelancer
+   */
+  static async getFreelancerSubscriptionDetails(userId: number, userEmail?: string): Promise<{
+    features: string[];
+    restrictions: string[];
+    planName: string;
+    isFreemium: boolean;
+  }> {
+    // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      return {
+        features: ['Toutes les fonctionnalités freelancer disponibles (Compte Test)'],
+        restrictions: [],
+        planName: 'Test Premium',
+        isFreemium: false
+      };
+    }
+    
+    // Freemium par défaut pour les freelancers
+    return {
+      features: [
+        'Gestion de 10 étudiants max',
+        'Planning simple',
+        'Notes basiques',
+        'Communication parent basique'
+      ],
+      restrictions: [
+        'Limité à 10 étudiants',
+        'Pas de géolocalisation GPS',
+        'Pas de gestion paiements',
+        'Pas d\'analyses avancées',
+        'Pas de notifications SMS/WhatsApp'
+      ],
+      planName: 'Freelancer Freemium',
+      isFreemium: true
     };
   }
 
