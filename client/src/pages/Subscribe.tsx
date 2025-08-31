@@ -3,6 +3,7 @@ import { useStripe, useElements, Elements, PaymentElement } from '@stripe/react-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -48,6 +49,21 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
       try {
         console.log('[SUBSCRIBE] Creating payment intent for plan:', planId);
         const response = await apiRequest('POST', '/api/stripe/create-payment-intent', { planId });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            toast({
+              title: "Connexion requise",
+              description: "Veuillez vous connecter pour continuer",
+              variant: "destructive",
+            });
+            // Rediriger vers la page de connexion
+            window.location.href = '/login?redirect=/subscribe';
+            return;
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -62,11 +78,20 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
         }
       } catch (error: any) {
         console.error('[SUBSCRIBE] ❌ Error creating payment intent:', error);
-        toast({
-          title: "Erreur de connexion",
-          description: "Impossible de se connecter au service de paiement",
-          variant: "destructive",
-        });
+        if (error.message.includes('401')) {
+          toast({
+            title: "Connexion requise",
+            description: "Veuillez vous connecter pour continuer",
+            variant: "destructive",
+          });
+          window.location.href = '/login?redirect=/subscribe';
+        } else {
+          toast({
+            title: "Erreur de connexion",
+            description: "Impossible de se connecter au service de paiement",
+            variant: "destructive",
+          });
+        }
       }
     };
 
@@ -205,6 +230,7 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
 const Subscribe: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isAuthenticated } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'parent' | 'school' | 'freelancer'>('parent');
   const [stripeLoaded, setStripeLoaded] = useState<any>(null);
@@ -331,6 +357,50 @@ const Subscribe: React.FC = () => {
   }
 
   if (selectedPlan) {
+    // Vérifier l'authentification avant d'afficher le formulaire de paiement
+    if (!isAuthenticated) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 p-4">
+          <div className="container mx-auto max-w-2xl pt-8">
+            <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-amber-200">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <CardTitle className="text-2xl text-amber-800 dark:text-amber-200">
+                  🔐 Connexion Requise
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  Vous devez être connecté pour souscrire à un abonnement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-gray-600 dark:text-gray-300">
+                  Plan sélectionné : <span className="font-semibold text-amber-600">{selectedPlan.name}</span>
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button 
+                    onClick={() => window.location.href = '/login?redirect=/subscribe'}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                    data-testid="button-login"
+                  >
+                    🔑 Se connecter
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setSelectedPlan(null)}
+                    data-testid="button-back-plans"
+                  >
+                    ← Retour aux plans
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4">
         <div className="container mx-auto max-w-2xl pt-8">
