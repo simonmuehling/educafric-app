@@ -605,9 +605,62 @@ const Subscribe: React.FC = () => {
                         Instructions envoyées !
                       </h3>
                       <p className="text-green-700 mb-4">
-                        Vous avez reçu toutes les informations nécessaires pour effectuer votre paiement 
-                        {selectedPaymentMethod === 'orange_money' ? ' via Orange Money' : ' par virement bancaire'}.
+                        Effectuez votre paiement {selectedPaymentMethod === 'orange_money' ? 'Orange Money' : 'par virement bancaire'} 
+                        avec les informations ci-dessous :
                       </p>
+                      
+                      {/* Afficher les informations détaillées selon la méthode */}
+                      {selectedPaymentMethod === 'orange_money' ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                          <h4 className="font-semibold text-orange-800 mb-3">📱 Transfert Orange Money</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Bénéficiaire:</span>
+                              <span className="font-medium">ABANDA AKAK</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Numéro:</span>
+                              <span className="font-medium text-orange-600">677 004 011</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Montant:</span>
+                              <span className="font-medium text-green-600">{selectedPlan.price.toLocaleString()} XAF</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 text-xs text-orange-700 bg-orange-100 p-2 rounded">
+                            💡 <strong>Code rapide:</strong> Composez #150# → 1 → 1 → 677004011 → {selectedPlan.price} XAF
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                          <h4 className="font-semibold text-blue-800 mb-3">🏦 Virement bancaire</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Bénéficiaire:</span>
+                              <span className="font-medium">AFRO METAVERSE MARKETING</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Banque:</span>
+                              <span className="font-medium">Afriland First Bank</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">RIB complet:</span>
+                              <span className="font-medium text-blue-600">10033 00368 31500012045 68</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Montant:</span>
+                              <span className="font-medium text-green-600">{selectedPlan.price.toLocaleString()} XAF</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Motif:</span>
+                              <span className="font-medium">Abonnement EDUCAFRIC - {selectedPlan.name}</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 text-xs text-blue-700 bg-blue-100 p-2 rounded">
+                            🏦 <strong>Détails:</strong> Code banque: 10033 | Code guichet: 00368 | N° compte: 31500012045 | Clé: 68
+                          </div>
+                        </div>
+                      )}
                       <div className="bg-white rounded-lg p-4 border border-green-200">
                         <h4 className="font-semibold text-gray-900 mb-2">📧 Prochaines étapes :</h4>
                         <ol className="text-left text-sm text-gray-700 space-y-2">
