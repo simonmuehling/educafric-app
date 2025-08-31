@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 
 // Import middleware
 import { configureSecurityMiddleware, productionSessionConfig } from "./middleware/security";
-import { requireAuth } from "./middleware/auth";
+import { requireAuth, requireAnyRole } from "./middleware/auth";
 import { checkSubscriptionFeature, checkFreemiumLimits } from "./middleware/subscriptionMiddleware";
 
 // Import route modules
