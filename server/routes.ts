@@ -52,6 +52,7 @@ import teachersStandalone from "./routes/teachers";
 import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
 import stripeRoutes from "./routes/stripe";
+import manualPaymentRoutes from "./routes/manual-payments";
 import uploadsRoutes from "./routes/uploads";
 import bulletinRoutes from "./routes/bulletinRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
@@ -1155,6 +1156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/grades', gradesRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
+  app.use('/api/manual-payments', manualPaymentRoutes);
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/bulletin-validation', bulletinValidationRoutes);

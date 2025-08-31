@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, AlertCircle, CreditCard, Shield, Users, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import PaymentMethodSelector, { PaymentMethod } from '@/components/PaymentMethodSelector';
 
 // 🚀 LAZY LOADING STRIPE - Ne charge que quand nécessaire pour éviter cookies warnings
 let stripePromise: Promise<any> | null = null;
@@ -396,10 +397,11 @@ const Subscribe: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'parent' | 'school' | 'freelancer'>('parent');
   const [stripeLoaded, setStripeLoaded] = useState<any>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
 
-  // 🚀 Charger Stripe uniquement quand on affiche le paiement
+  // 🚀 Charger Stripe uniquement quand on utilise la carte de crédit
   useEffect(() => {
-    if (selectedPlan && !stripeLoaded) {
+    if (selectedPlan && selectedPaymentMethod === 'card' && !stripeLoaded) {
       console.log('[STRIPE_OPTIMIZATION] 🔄 Loading Stripe on-demand...');
       getStripe().then((stripe) => {
         setStripeLoaded(stripe);
@@ -413,7 +415,7 @@ const Subscribe: React.FC = () => {
         });
       });
     }
-  }, [selectedPlan, stripeLoaded, toast]);
+  }, [selectedPlan, selectedPaymentMethod, stripeLoaded, toast]);
 
   // Récupérer les plans disponibles
   const { data: plansData, isLoading: plansLoading } = useQuery({
@@ -435,11 +437,16 @@ const Subscribe: React.FC = () => {
 
   const handlePaymentSuccess = () => {
     setSelectedPlan(null);
+    setSelectedPaymentMethod(null);
     queryClient.invalidateQueries({ queryKey: ['/api/stripe/subscription-status'] });
     toast({
       title: "🎉 Bienvenue dans EDUCAFRIC Premium !",
       description: "Votre abonnement est maintenant actif. Profitez de toutes nos fonctionnalités !",
     });
+  };
+
+  const handleBackToPaymentMethods = () => {
+    setSelectedPaymentMethod(null);
   };
 
   const getFeatureIcon = (feature: string) => {
@@ -521,12 +528,15 @@ const Subscribe: React.FC = () => {
   if (selectedPlan) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4">
-        <div className="container mx-auto max-w-2xl pt-8">
+        <div className="container mx-auto max-w-4xl pt-8">
           <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
             <CardHeader>
               <Button 
                 variant="ghost" 
-                onClick={() => setSelectedPlan(null)}
+                onClick={() => {
+                  setSelectedPlan(null);
+                  setSelectedPaymentMethod(null);
+                }}
                 className="w-fit mb-4"
                 data-testid="button-back-plans"
               >
@@ -540,17 +550,102 @@ const Subscribe: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!stripeLoaded ? (
-                <div className="flex justify-center items-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2">Chargement du système de paiement...</span>
+              {!selectedPaymentMethod ? (
+                // Étape 1: Sélection de la méthode de paiement
+                <PaymentMethodSelector
+                  selectedMethod={selectedPaymentMethod}
+                  onMethodSelect={setSelectedPaymentMethod}
+                  planName={selectedPlan.name}
+                  amount={selectedPlan.price}
+                  currency={selectedPlan.currency}
+                />
+              ) : selectedPaymentMethod === 'card' ? (
+                // Étape 2: Paiement par carte (Stripe)
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleBackToPaymentMethods}
+                      className="w-fit"
+                      data-testid="button-back-payment-methods"
+                    >
+                      ← Choisir une autre méthode
+                    </Button>
+                  </div>
+                  {!stripeLoaded ? (
+                    <div className="flex justify-center items-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span className="ml-2">Chargement du système de paiement...</span>
+                    </div>
+                  ) : (
+                    <PaymentForm 
+                      planId={selectedPlan.id}
+                      plan={selectedPlan}
+                      onSuccess={handlePaymentSuccess}
+                    />
+                  )}
                 </div>
               ) : (
-                <PaymentForm 
-                  planId={selectedPlan.id}
-                  plan={selectedPlan}
-                  onSuccess={handlePaymentSuccess}
-                />
+                // Étape 2: Instructions pour paiements locaux (Orange Money ou Virement)
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleBackToPaymentMethods}
+                      className="w-fit"
+                      data-testid="button-back-payment-methods"
+                    >
+                      ← Choisir une autre méthode
+                    </Button>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                    <div className="text-center">
+                      <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                      <h3 className="text-2xl font-bold text-green-800 mb-2">
+                        Instructions envoyées !
+                      </h3>
+                      <p className="text-green-700 mb-4">
+                        Vous avez reçu toutes les informations nécessaires pour effectuer votre paiement 
+                        {selectedPaymentMethod === 'orange_money' ? ' via Orange Money' : ' par virement bancaire'}.
+                      </p>
+                      <div className="bg-white rounded-lg p-4 border border-green-200">
+                        <h4 className="font-semibold text-gray-900 mb-2">📧 Prochaines étapes :</h4>
+                        <ol className="text-left text-sm text-gray-700 space-y-2">
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-green-600">1.</span>
+                            Effectuez le {selectedPaymentMethod === 'orange_money' ? 'transfert Orange Money' : 'virement bancaire'} selon les instructions ci-dessus
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-green-600">2.</span>
+                            Envoyez-nous {selectedPaymentMethod === 'orange_money' ? 'une capture d\'écran du SMS de confirmation' : 'le reçu bancaire'} à <strong>support@educafric.com</strong>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-green-600">3.</span>
+                            Notre équipe validera votre paiement et activera votre abonnement sous {selectedPaymentMethod === 'orange_money' ? '2-4 heures' : '1-2 jours ouvrables'}
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="font-semibold text-green-600">4.</span>
+                            Vous recevrez une notification de confirmation par email et SMS
+                          </li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-4">
+                      Besoin d'aide ? Contactez notre support
+                    </p>
+                    <div className="flex justify-center gap-4">
+                      <Button variant="outline" className="flex items-center gap-2">
+                        📧 support@educafric.com
+                      </Button>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        📱 +237 657 004 011
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

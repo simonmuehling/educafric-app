@@ -3,7 +3,7 @@
  * Créer des notifications dans le centre d'activité pour tous les événements de paiement
  */
 
-import { storage } from '../storage/modularStorage';
+import { storage } from '../storage';
 import { subscriptionPlans } from './stripeService';
 
 export class PaymentNotificationService {
@@ -181,6 +181,47 @@ export class PaymentNotificationService {
     } catch (error) {
       console.error('[PAYMENT_NOTIFICATION] ❌ Error fetching user notifications:', error);
       return [];
+    }
+  }
+
+  /**
+   * Créer une notification avec instructions de paiement manuel
+   */
+  static async createPaymentInstructionsNotification(
+    userId: number, 
+    planId: string, 
+    paymentMethod: string,
+    amount: number, 
+    currency: string, 
+    reference: string
+  ) {
+    try {
+      const plan = subscriptionPlans.find(p => p.id === planId);
+      const planName = plan?.name || planId;
+      const methodName = paymentMethod === 'orange_money' ? 'Orange Money' : 'Virement bancaire';
+      
+      await storage.createNotification(userId, {
+        title: `📋 Instructions ${methodName}`,
+        message: `Instructions de paiement reçues pour votre abonnement "${planName}" (${amount.toLocaleString()} ${currency.toUpperCase()}). Référence: ${reference}. Suivez les étapes indiquées et envoyez-nous la confirmation.`,
+        type: "payment_instructions",
+        category: "payment",
+        data: {
+          planId,
+          planName,
+          paymentMethod,
+          amount,
+          currency,
+          reference,
+          instructionsSentAt: new Date().toISOString()
+        },
+        actionRequired: true,
+        actionUrl: "mailto:support@educafric.com",
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 jours
+      });
+      
+      console.log(`[PAYMENT_NOTIFICATION] 📋 Payment instructions notification created for user ${userId}`);
+    } catch (error) {
+      console.error('[PAYMENT_NOTIFICATION] ❌ Error creating payment instructions notification:', error);
     }
   }
 }
