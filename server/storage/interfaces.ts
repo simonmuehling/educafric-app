@@ -10,6 +10,12 @@ export interface IUserStorage {
   updateUser(id: number, updates: any): Promise<any>;
   deleteUser(id: number): Promise<void>;
   verifyPassword(user: any, password: string): Promise<boolean>;
+  // Email preferences
+  getEmailPreferences(userId: number): Promise<any | null>;
+  createEmailPreferences(data: any): Promise<any>;
+  updateEmailPreferences(userId: number, updates: any): Promise<any>;
+  // Storage helper
+  getUser(userId: number): Promise<any | null>;
 }
 
 export interface ISchoolStorage {

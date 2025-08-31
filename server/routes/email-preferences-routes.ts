@@ -65,7 +65,7 @@ router.patch('/api/email-preferences', async (req: any, res) => {
     if ('emergencyNotifications' in updates) updates.emergencyNotifications = true;
     
     // If master toggle is disabled, disable non-essential emails
-    if (updates.allEmailsEnabled === false) {
+    if ((updates as any).allEmailsEnabled === false) {
       const nonEssentialFields = [
         'welcomeEmails', 'onboardingTips', 'weeklyProgressReports', 'assignmentNotifications',
         'gradeNotifications', 'attendanceAlerts', 'examSchedules', 'geolocationAlerts',

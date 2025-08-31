@@ -150,7 +150,7 @@ export const EMAIL_FREQUENCY_OPTIONS = [
   { value: "weekly_digest", label: { fr: "Résumé hebdomadaire", en: "Weekly digest" } }
 ] as const;
 
-// Zod schemas
+// Zod schemas  
 export const insertEmailPreferencesSchema = createInsertSchema(emailPreferences).omit({
   id: true,
   createdAt: true,
@@ -163,11 +163,11 @@ export type InsertEmailPreferences = z.infer<typeof insertEmailPreferencesSchema
 export type UpdateEmailPreferences = z.infer<typeof updateEmailPreferencesSchema>;
 export type EmailPreferences = typeof emailPreferences.$inferSelect;
 
-// Helper function to get default preferences based on user role
-export function getDefaultEmailPreferences(userRole: string): Partial<InsertEmailPreferences> {
-  const baseDefaults: Partial<InsertEmailPreferences> = {
+// Helper function to get default preferences based on user role  
+export function getDefaultEmailPreferences(userRole: string): any {
+  const baseDefaults: any = {
     allEmailsEnabled: true,
-    emailLanguage: "fr",
+    emailLanguage: "fr", 
     emailFrequency: "immediate",
     htmlEmails: true,
     

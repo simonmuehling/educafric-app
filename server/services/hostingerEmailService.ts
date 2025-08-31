@@ -403,7 +403,69 @@ export const assignmentNotificationTemplates: BilingualTemplate = {
   }
 };
 
-// 5. Subscription & Payment Templates
+// 5. Password Reset Templates
+export const passwordResetTemplates: BilingualTemplate = {
+  fr: {
+    subject: '🔐 Réinitialisation de votre mot de passe EDUCAFRIC',
+    html: (data: { userName: string; resetToken: string; resetUrl: string }) => getBaseTemplate(`
+      <div style="padding: 20px;">
+        <h2 style="color: #1f2937; margin-bottom: 20px;">🔐 Réinitialisation de Mot de Passe</h2>
+        
+        <p style="font-size: 16px; margin-bottom: 15px;">
+          Bonjour ${data.userName}, vous avez demandé la réinitialisation de votre mot de passe EDUCAFRIC.
+        </p>
+
+        <div style="background-color: #fef3c7; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <h3 style="color: #92400e; margin-top: 0;">🔑 Instructions de Réinitialisation</h3>
+          <p>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe. Ce lien est valide pendant 1 heure.</p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${data.resetUrl}" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+            🔐 Réinitialiser mon Mot de Passe
+          </a>
+        </div>
+
+        <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #dc2626;">
+            <strong>⚠️ Sécurité :</strong> Si vous n'avez pas demandé cette réinitialisation, ignorez cet email et contactez notre support.
+          </p>
+        </div>
+      </div>
+    `, 'fr')
+  },
+  en: {
+    subject: '🔐 Reset your EDUCAFRIC password',
+    html: (data: { userName: string; resetToken: string; resetUrl: string }) => getBaseTemplate(`
+      <div style="padding: 20px;">
+        <h2 style="color: #1f2937; margin-bottom: 20px;">🔐 Password Reset</h2>
+        
+        <p style="font-size: 16px; margin-bottom: 15px;">
+          Hello ${data.userName}, you have requested to reset your EDUCAFRIC password.
+        </p>
+
+        <div style="background-color: #fef3c7; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <h3 style="color: #92400e; margin-top: 0;">🔑 Reset Instructions</h3>
+          <p>Click the button below to create a new password. This link is valid for 1 hour.</p>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${data.resetUrl}" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+            🔐 Reset My Password
+          </a>
+        </div>
+
+        <div style="background-color: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #dc2626;">
+            <strong>⚠️ Security:</strong> If you didn't request this reset, please ignore this email and contact our support.
+          </p>
+        </div>
+      </div>
+    `, 'en')
+  }
+};
+
+// 6. Subscription & Payment Templates
 export const subscriptionEmailTemplates: BilingualTemplate = {
   fr: {
     subject: '💳 Confirmation de Paiement EDUCAFRIC',
@@ -591,6 +653,35 @@ export async function sendAssignmentNotification(data: {
     return true;
   } catch (error) {
     console.error('[HOSTINGER_EMAIL] ❌ Error sending assignment notification:', error);
+    return false;
+  }
+}
+
+export async function sendPasswordResetEmail(userData: { 
+  userEmail: string; 
+  userName: string; 
+  resetToken: string;
+  language: 'fr' | 'en';
+}): Promise<boolean> {
+  try {
+    const template = passwordResetTemplates[userData.language] || passwordResetTemplates.fr;
+    const resetUrl = `${EDUCAFRIC_CONTACT.website}/reset-password?token=${userData.resetToken}`;
+    
+    const mailOptions = {
+      from: `"EDUCAFRIC Security" <${process.env.HOSTINGER_EMAIL || 'simonpmuehling@gmail.com'}>`,
+      to: userData.userEmail,
+      subject: template.subject,
+      html: template.html({ ...userData, resetUrl })
+    };
+
+    console.log(`[HOSTINGER_EMAIL] Sending password reset email to ${userData.userEmail} (${userData.language})`);
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[HOSTINGER_EMAIL] ✅ Password reset email sent successfully: ${info.messageId}`);
+    
+    return true;
+  } catch (error) {
+    console.error('[HOSTINGER_EMAIL] ❌ Error sending password reset email:', error);
     return false;
   }
 }

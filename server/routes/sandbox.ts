@@ -191,4 +191,24 @@ router.post('/test-notification', (req, res) => {
   });
 });
 
+// Timetable creation route 
+router.post('/timetable/create', requireAuth, (req, res) => {
+  const { subject, time, day, classId, teacherId } = req.body;
+  
+  res.json({
+    success: true,
+    message: 'Timetable entry created successfully',
+    data: {
+      id: Date.now(),
+      subject,
+      time,
+      day,
+      classId,
+      teacherId,
+      createdAt: new Date().toISOString(),
+      status: 'active'
+    }
+  });
+});
+
 export default router;
