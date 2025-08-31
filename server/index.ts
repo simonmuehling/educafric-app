@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { registerRoutes } from "./routes";
 import { criticalAlertingService } from "./services/criticalAlertingService";
 import { systemReportService } from "./services/systemReportService";
+import { ConnectionTrackingService } from "./services/connectionTrackingService";
 import { validateEnvironment } from "./middleware/validation";
 import { errorHandler } from "./middleware/errorHandler";
 import { setupVite, serveStatic, log } from "./vite";
@@ -244,6 +245,24 @@ app.use((req, res, next) => {
   // Initialize automated system reporting service
   console.log('[SYSTEM_REPORTS] Initializing automated reporting service...');
   // systemReportService automatically initializes itself
+
+  // Initialize daily connection reporting service with cron job
+  const { default: cron } = await import('node-cron');
+  
+  // Send daily connection report at 8:00 AM Africa/Douala timezone
+  cron.schedule('0 8 * * *', async () => {
+    try {
+      console.log('[DAILY_CONNECTIONS] Sending scheduled daily report...');
+      await ConnectionTrackingService.sendDailyReport();
+      console.log('[DAILY_CONNECTIONS] ✅ Daily report sent successfully to simonpmuehling@gmail.com');
+    } catch (error) {
+      console.error('[DAILY_CONNECTIONS] ❌ Failed to send daily report:', error);
+    }
+  }, {
+    timezone: 'Africa/Douala'
+  });
+  
+  console.log('[DAILY_CONNECTIONS] ✅ Daily connection reports scheduled at 8:00 AM (Africa/Douala) → simonpmuehling@gmail.com');
 
   // Enhanced error handler middleware with critical alerting
   app.use(async (err: any, req: Request, res: Response, next: NextFunction) => {

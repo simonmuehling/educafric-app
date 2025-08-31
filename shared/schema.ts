@@ -370,3 +370,42 @@ export type EmailPreferences = typeof emailPreferences.$inferSelect;
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
 export type TimetableSlot = typeof timetableSlots.$inferSelect;
 export type ParentStudentRelation = typeof parentStudentRelations.$inferSelect;
+
+// Daily connection tracking for analytics and reporting
+export const dailyConnections = pgTable("daily_connections", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull(),
+  user_email: text("user_email").notNull(),
+  user_role: text("user_role").notNull(),
+  user_name: text("user_name").notNull(),
+  ip_address: text("ip_address").notNull(),
+  location: jsonb("location"), // {country, city, region}
+  user_agent: text("user_agent"),
+  connection_date: timestamp("connection_date").defaultNow(),
+  session_id: text("session_id"),
+  access_method: text("access_method").default("web"), // web, mobile, pwa
+  created_at: timestamp("created_at").defaultNow()
+});
+
+// Page/module visit tracking for detailed analytics
+export const pageVisits = pgTable("page_visits", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull(),
+  user_email: text("user_email").notNull(),
+  user_role: text("user_role").notNull(),
+  page_path: text("page_path").notNull(), // /dashboard, /overview, etc.
+  module_name: text("module_name"), // Vue d'ensemble, Gestion Étudiants, etc.
+  dashboard_type: text("dashboard_type"), // Director, Teacher, Parent, etc.
+  time_spent: integer("time_spent"), // seconds
+  ip_address: text("ip_address").notNull(),
+  session_id: text("session_id"),
+  visit_date: timestamp("visit_date").defaultNow(),
+  created_at: timestamp("created_at").defaultNow()
+});
+
+export const insertDailyConnectionSchema = createInsertSchema(dailyConnections);
+export const insertPageVisitSchema = createInsertSchema(pageVisits);
+export type InsertDailyConnection = z.infer<typeof insertDailyConnectionSchema>;
+export type InsertPageVisit = z.infer<typeof insertPageVisitSchema>;
+export type DailyConnection = typeof dailyConnections.$inferSelect;
+export type PageVisit = typeof pageVisits.$inferSelect;

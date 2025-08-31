@@ -72,6 +72,10 @@ import connectionsRoutes from "./routes/connections";
 import educationalContentRoutes from "./routes/api/educational-content";
 import vonageMessagesRouter from "./routes/vonage-messages";
 
+// Import connection tracking
+import { trackConnection, trackPageVisit } from "./middleware/connectionTrackingMiddleware";
+import { ConnectionTrackingService } from "./services/connectionTrackingService";
+
 // Import services
 import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes";
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
@@ -129,6 +133,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize passport middleware - MUST be after session middleware
   app.use(passport.initialize());
   app.use(passport.session());
+  
+  // Add connection tracking middleware for authenticated users
+  app.use('/api', trackConnection);
   
   // Removed debug middleware that was interfering with session
   
@@ -1661,6 +1668,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } catch (error) {
     console.warn('[ROUTES] Notification setup failed to register:', error);
   }
+  
+  // Connection tracking and daily reports routes
+  app.post('/api/tracking/log-page-visit', requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { pagePath, moduleName, dashboardType, timeSpent } = req.body;
+      const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
+      
+      await ConnectionTrackingService.logPageVisit({
+        userId: user.id,
+        userEmail: user.email,
+        userRole: user.role,
+        pagePath,
+        moduleName,
+        dashboardType,
+        timeSpent,
+        ipAddress,
+        sessionId: req.sessionID
+      });
+      
+      res.json({ success: true, message: 'Page visit logged' });
+    } catch (error) {
+      console.error('[PAGE_TRACKING] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to log page visit' });
+    }
+  });
+
+  // Manual trigger for daily report (for testing)
+  app.post('/api/tracking/send-daily-report', requireAnyRole(['Admin', 'SiteAdmin']), async (req, res) => {
+    try {
+      const result = await ConnectionTrackingService.sendDailyReport();
+      res.json({ success: true, message: 'Daily report sent successfully', stats: result.stats });
+    } catch (error) {
+      console.error('[DAILY_REPORT] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to send daily report' });
+    }
+  });
+
+  // Get today's stats
+  app.get('/api/tracking/today-stats', requireAnyRole(['Admin', 'SiteAdmin']), async (req, res) => {
+    try {
+      const stats = await ConnectionTrackingService.getTodayStats();
+      res.json({ success: true, stats });
+    } catch (error) {
+      console.error('[TRACKING_STATS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to get stats' });
+    }
+  });
   
 
   // API 404 handler - must be after all API routes
