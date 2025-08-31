@@ -183,6 +183,69 @@ export const parentStudentRelations = pgTable("parent_student_relations", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// 🔄 TABLE PASSERELLE PARENT-ENFANT : Support pour abonnements par enfant
+export const parentChildSubscriptions = pgTable("parent_child_subscriptions", {
+  id: serial("id").primaryKey(),
+  parentId: integer("parent_id").notNull(),
+  childId: integer("child_id").notNull(), // studentId
+  planType: text("plan_type").notNull(), // 'parent_premium', 'parent_gps', etc.
+  status: text("status").notNull().default("inactive"), // 'active', 'inactive', 'expired'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"), // null = abonnement sans fin
+  paymentMethod: text("payment_method"), // 'stripe', 'orange_money', 'bank_transfer'
+  lastPaymentDate: timestamp("last_payment_date"),
+  nextPaymentDate: timestamp("next_payment_date"),
+  autoRenew: boolean("auto_renew").default(false),
+  // Règles de passerelle
+  schoolPremiumRequired: boolean("school_premium_required").default(true),
+  gatewayActive: boolean("gateway_active").default(false),
+  // Métadonnées
+  metadata: jsonb("metadata"), // Infos supplémentaires spécifiques
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// 🏫 TABLE ABONNEMENTS ÉCOLE : Support pour plans école
+export const schoolSubscriptions = pgTable("school_subscriptions", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  planId: text("plan_id").notNull(), // 'ecole_500_plus', 'ecole_500_moins', etc.
+  status: text("status").notNull().default("freemium"), // 'freemium', 'premium', 'trial', 'expired'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"), // null = plan permanent
+  paymentMethod: text("payment_method"), // 'stripe', 'orange_money', 'bank_transfer'
+  lastPaymentDate: timestamp("last_payment_date"),
+  nextPaymentDate: timestamp("next_payment_date"),
+  autoRenew: boolean("auto_renew").default(false),
+  // NOUVEAU MODÈLE : EDUCAFRIC PAIE LES ÉCOLES
+  educafricPayment: boolean("educafric_payment").default(true), // true = Educafric paie l'école
+  quarterlyAmount: integer("quarterly_amount").default(0), // Montant trimestriel versé
+  // Métadonnées
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// 🎓 TABLE ABONNEMENTS FREELANCER : Support pour répétiteurs
+export const freelancerSubscriptions = pgTable("freelancer_subscriptions", {
+  id: serial("id").primaryKey(),
+  freelancerId: integer("freelancer_id").notNull(),
+  planId: text("plan_id").notNull(), // 'repetiteur_professionnel_semestriel', etc.
+  status: text("status").notNull().default("freemium"), // 'freemium', 'premium', 'trial', 'expired'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  paymentMethod: text("payment_method"), // 'stripe', 'orange_money', 'bank_transfer'
+  lastPaymentDate: timestamp("last_payment_date"),
+  nextPaymentDate: timestamp("next_payment_date"),
+  autoRenew: boolean("auto_renew").default(false),
+  // Limites freemium
+  maxStudents: integer("max_students").default(10),
+  // Métadonnées
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 export const payments = pgTable("payments", {
   id: serial("id").primaryKey(),
   studentId: integer("student_id").notNull(),
