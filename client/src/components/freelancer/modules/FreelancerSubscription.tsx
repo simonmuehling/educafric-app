@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   CreditCard, Crown, Star, CheckCircle, DollarSign, 
   CalendarDays, Smartphone, Mail, Users, BookOpen, 
-  BarChart3, TrendingUp, MapPin, Clock, Award
+  BarChart3, TrendingUp, MapPin, Clock, Award, Loader2,
+  ArrowRight, Shield, MessageSquare, GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/ModernCard';
@@ -16,6 +19,13 @@ const FreelancerSubscription = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('free');
+
+  // 📡 Récupérer les vraies données d'abonnement freelancer
+  const { data: subscriptionData, isLoading } = useQuery({
+    queryKey: ['/api/freelancer/subscription', user?.id],
+    queryFn: () => apiRequest('GET', '/api/freelancer/subscription'),
+    enabled: !!user?.id
+  });
 
   const text = {
     fr: {

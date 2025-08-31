@@ -584,6 +584,76 @@ export class SubscriptionService {
   }
 
   /**
+   * Obtenir les détails d'abonnement pour une école spécifique
+   */
+  static async getSchoolSubscriptionDetails(schoolId: number, schoolEmail: string) {
+    try {
+      // Vérifier si compte exempt
+      if (this.isSandboxOrTestUser(schoolEmail)) {
+        console.log(`[PREMIUM_EXEMPT] School ${schoolEmail} is exempt from premium restrictions`);
+        return {
+          isFreemium: false,
+          planName: 'École Test Premium',
+          features: ['Toutes fonctionnalités', 'Support illimité', 'Test environnement'],
+          hasPremiumAccess: true,
+          exemptReason: 'test_account'
+        };
+      }
+
+      // Logique d'abonnement école réelle
+      return {
+        isFreemium: true,
+        planName: 'École Freemium',
+        features: ['30 élèves max', '5 enseignants max', '5 classes max'],
+        hasPremiumAccess: false
+      };
+    } catch (error) {
+      console.error('[SCHOOL_SUBSCRIPTION] Error:', error);
+      return {
+        isFreemium: true,
+        planName: 'École Freemium',
+        features: ['30 élèves max', '5 enseignants max', '5 classes max'],
+        hasPremiumAccess: false
+      };
+    }
+  }
+
+  /**
+   * Obtenir les détails d'abonnement pour un freelancer spécifique
+   */
+  static async getFreelancerSubscriptionDetails(freelancerId: number, freelancerEmail: string) {
+    try {
+      // Vérifier si compte exempt
+      if (this.isSandboxOrTestUser(freelancerEmail)) {
+        console.log(`[PREMIUM_EXEMPT] Freelancer ${freelancerEmail} is exempt from premium restrictions`);
+        return {
+          isFreemium: false,
+          planName: 'Freelancer Test Premium',
+          features: ['Élèves illimités', 'Sessions illimitées', 'Toutes fonctionnalités'],
+          hasPremiumAccess: true,
+          exemptReason: 'test_account'
+        };
+      }
+
+      // Logique d'abonnement freelancer réelle
+      return {
+        isFreemium: true,
+        planName: 'Freelancer Freemium',
+        features: ['10 élèves max', '20 sessions/mois', 'Fonctionnalités de base'],
+        hasPremiumAccess: false
+      };
+    } catch (error) {
+      console.error('[FREELANCER_SUBSCRIPTION] Error:', error);
+      return {
+        isFreemium: true,
+        planName: 'Freelancer Freemium',
+        features: ['10 élèves max', '20 sessions/mois', 'Fonctionnalités de base'],
+        hasPremiumAccess: false
+      };
+    }
+  }
+
+  /**
    * Obtenir les détails d'abonnement pour un parent
    */
   static async getParentSubscriptionDetails(userId: number, userEmail?: string): Promise<{
