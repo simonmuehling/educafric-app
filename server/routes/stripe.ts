@@ -60,7 +60,7 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
       });
     }
 
-    const { planId, currency = 'xaf' } = req.body;
+    const { planId, currency = 'xaf', sandbox = false } = req.body;
     
     const plan = subscriptionPlans.find(p => p.id === planId);
     if (!plan) {
@@ -70,12 +70,17 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
       });
     }
 
+    // For sandbox testing, use USD and convert price appropriately
+    const finalCurrency = sandbox ? 'usd' : currency.toLowerCase();
+    const finalAmount = sandbox ? Math.round(plan.price / 600) * 100 : plan.price * 100; // Convert XAF to USD for sandbox (rough conversion)
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: plan.price * 100, // Convert to cents
-      currency: currency.toLowerCase(),
+      amount: finalAmount,
+      currency: finalCurrency,
       metadata: {
         planId,
-        userId: (req.user as any).id
+        userId: (req.user as any).id,
+        sandbox: sandbox ? 'true' : 'false'
       }
     });
 
