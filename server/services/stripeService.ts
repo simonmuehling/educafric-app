@@ -221,14 +221,15 @@ export class StripeService {
       const user = await storage.getUserById(userId);
       const customer = await this.getOrCreateCustomer(userId, user.email, `${user.firstName} ${user.lastName}`);
       
-      // XAF is already in smallest unit (no cents), USD needs *100 for cents
-      const stripeAmount = plan.currency.toLowerCase() === 'xaf' ? Math.round(plan.price / 600) : plan.price * 100;
+      // KEEP XAF IN XAF - No conversion to USD needed!
+      const stripeAmount = plan.price; // Direct XAF amount
+      const stripeCurrency = plan.currency.toLowerCase(); // Keep original currency
       
-      console.log(`[STRIPE_DEBUG] PaymentIntent: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} USD`);
+      console.log(`[STRIPE_DEBUG] PaymentIntent: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} ${stripeCurrency} (NO CONVERSION)`);
       
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: stripeAmount, // Fixed XAF conversion
-        currency: 'usd', // Conversion XAF -> USD pour Stripe
+        amount: stripeAmount, // Direct XAF amount
+        currency: stripeCurrency, // Keep XAF currency
         customer: customer.id,
         metadata: {
           userId: userId.toString(),
@@ -323,15 +324,16 @@ export class StripeService {
         }
       });
       
-      // XAF is already in smallest unit (no cents), USD needs *100 for cents  
-      const stripeAmount = plan.currency.toLowerCase() === 'xaf' ? Math.round(plan.price / 600) : plan.price * 100;
+      // KEEP XAF IN XAF - No conversion to USD needed!  
+      const stripeAmount = plan.price; // Direct XAF amount
+      const stripeCurrency = plan.currency.toLowerCase(); // Keep original currency
       
-      console.log(`[STRIPE_DEBUG] Price creation: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} USD`);
+      console.log(`[STRIPE_DEBUG] Price creation: Plan=${plan.price} ${plan.currency} -> Stripe=${stripeAmount} ${stripeCurrency} (NO CONVERSION)`);
       
       const price = await stripe.prices.create({
         product: product.id,
-        unit_amount: stripeAmount, // Fixed XAF conversion
-        currency: 'usd', // Conversion XAF -> USD
+        unit_amount: stripeAmount, // Direct XAF amount
+        currency: stripeCurrency, // Keep XAF currency
         recurring: plan.interval === 'semester' ? {
           interval: 'month',
           interval_count: 6
