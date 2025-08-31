@@ -101,8 +101,44 @@ export const unifiedMessageSchema = z.object({
 });
 
 // Type exports
+// Notifications table for activity center
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  
+  // Notification content
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'payment_success', 'payment_failed', 'subscription_activated', 'subscription_expired'
+  category: text("category").notNull(), // 'payment', 'subscription', 'security', 'system'
+  
+  // Additional data as JSON
+  data: jsonb("data"), // Extra info like amount, plan name, etc.
+  
+  // Status tracking
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  
+  // Action info
+  actionRequired: boolean("action_required").default(false),
+  actionUrl: text("action_url"), // Link to relevant page
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at") // For auto-cleanup of old notifications
+});
+
+// Zod schema for notification creation
+export const createNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  isRead: true,
+  readAt: true
+});
+
 export type Connection = typeof connections.$inferSelect;
 export type NewConnection = z.infer<typeof createConnectionSchema>;
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = z.infer<typeof createMessageSchema>;
 export type MessageAttachment = typeof messageAttachments.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = z.infer<typeof createNotificationSchema>;

@@ -303,16 +303,17 @@ export class ModularStorage {
     ];
   }
   
-  async createNotification(data: any) {
+  async createNotification(userId: number, data: any) {
     const newNotification = { 
       id: Date.now(), 
+      userId,
       ...data, 
       createdAt: new Date().toISOString(),
       isRead: false 
     };
     
     this.notifications.push(newNotification);
-    console.log(`[STORAGE] ✅ Created notification for user ${data.userId}: "${data.title}"`);
+    console.log(`[STORAGE] ✅ Created notification for user ${userId}: "${data.title}"`);
     console.log(`[STORAGE] 📊 Total notifications stored: ${this.notifications.length}`);
     
     return newNotification;

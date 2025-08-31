@@ -3,6 +3,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import { stripeService, subscriptionPlans } from '../services/stripeService';
 import { subscriptionManager } from '../services/subscriptionManager';
+import { PaymentNotificationService } from '../services/paymentNotificationService';
 
 const router = Router();
 
@@ -135,6 +136,20 @@ router.post('/confirm-payment', requireAuth, async (req, res) => {
       // Activate subscription using subscription manager
       await subscriptionManager.activateSubscription(userId, planId, paymentIntentId);
 
+      // Create payment success notification
+      await PaymentNotificationService.createPaymentSuccessNotification(
+        userId, 
+        planId, 
+        paymentIntent.amount, 
+        paymentIntent.currency
+      );
+      
+      // Create subscription activation notification
+      await PaymentNotificationService.createSubscriptionActivatedNotification(
+        userId, 
+        planId
+      );
+
       res.json({
         success: true,
         message: 'Payment confirmed and subscription activated',
@@ -232,6 +247,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
               // Activate subscription via subscription manager
               await subscriptionManager.activateSubscription(parseInt(userId), planId, plan.interval);
               console.log(`[STRIPE_WEBHOOK] ✅ Subscription activated successfully for user ${userId}`);
+              
+              // Create notification for webhook-triggered activation
+              await PaymentNotificationService.createSubscriptionActivatedNotification(
+                parseInt(userId), 
+                planId
+              );
             } else {
               console.error(`[STRIPE_WEBHOOK] ❌ Plan not found: ${planId}`);
             }
@@ -246,7 +267,24 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       case 'payment_intent.payment_failed':
         const failedPayment = event.data.object as Stripe.PaymentIntent;
         console.log('[STRIPE_WEBHOOK] Payment failed:', failedPayment.id);
-        // Handle failed payment
+        
+        // Extract user and plan info from metadata
+        const failedUserId = failedPayment.metadata?.userId;
+        const failedPlanId = failedPayment.metadata?.planId;
+        
+        if (failedUserId && failedPlanId) {
+          try {
+            // Create payment failed notification
+            await PaymentNotificationService.createPaymentFailedNotification(
+              parseInt(failedUserId), 
+              failedPlanId,
+              failedPayment.last_payment_error?.message || 'Unknown error'
+            );
+            console.log(`[STRIPE_WEBHOOK] ⚠️ Payment failed notification created for user ${failedUserId}`);
+          } catch (error) {
+            console.error('[STRIPE_WEBHOOK] ❌ Error creating payment failed notification:', error);
+          }
+        }
         break;
 
       default:
@@ -257,6 +295,53 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   } catch (error) {
     console.error('[STRIPE_WEBHOOK] Error processing webhook:', error);
     res.status(400).json({ error: 'Webhook processing failed' });
+  }
+});
+
+// Get user notifications for payment activities
+router.get('/notifications', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.user as any).id;
+    const { limit = 20, offset = 0 } = req.query;
+    
+    const notifications = await PaymentNotificationService.getUserNotifications(
+      userId, 
+      parseInt(limit as string), 
+      parseInt(offset as string)
+    );
+    
+    res.json({
+      success: true,
+      notifications,
+      count: notifications.length
+    });
+  } catch (error) {
+    console.error('[STRIPE_API] Error fetching notifications:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch notifications'
+    });
+  }
+});
+
+// Mark notification as read
+router.post('/notifications/:id/read', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.user as any).id;
+    const notificationId = parseInt(req.params.id);
+    
+    await PaymentNotificationService.markNotificationAsRead(notificationId, userId);
+    
+    res.json({
+      success: true,
+      message: 'Notification marked as read'
+    });
+  } catch (error) {
+    console.error('[STRIPE_API] Error marking notification as read:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark notification as read'
+    });
   }
 });
 
