@@ -417,9 +417,6 @@ const Subscribe: React.FC = () => {
                 <Elements 
                   stripe={stripeLoaded} 
                   options={{ 
-                    mode: 'payment',
-                    amount: Math.round(selectedPlan.price * 100), // Convertir en centimes pour Stripe
-                    currency: 'usd', // Stripe requiert USD
                     appearance: {
                       theme: 'stripe',
                       variables: {
