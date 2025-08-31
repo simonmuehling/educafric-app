@@ -108,7 +108,7 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
             variant: "destructive",
           });
           setTimeout(() => {
-            window.location.href = '/sandbox-login';
+            window.location.href = '/login';
           }, 2000);
         } else {
           toast({
@@ -332,7 +332,7 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
             variant: "destructive",
           });
           setTimeout(() => {
-            window.location.href = '/sandbox-login';
+            window.location.href = '/login';
           }, 2000);
         } else {
           toast({
