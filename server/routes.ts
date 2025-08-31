@@ -1617,6 +1617,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
+  
+  // Add missing API endpoints for payments and commercial leads
+  app.get('/api/payments', (req, res) => {
+    res.json({ success: true, message: 'Payments endpoint', data: [] });
+  });
+  
+  app.get('/api/commercial/leads', (req, res) => {
+    res.json({ success: true, message: 'Commercial leads endpoint', data: [] });
+  });
+  
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/bulletin-validation', bulletinValidationRoutes);
