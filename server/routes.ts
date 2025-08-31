@@ -160,6 +160,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // TEST ENDPOINT: Force set session for debugging
+  app.post('/api/test/force-session', (req, res) => {
+    const { userId } = req.body;
+    req.session.passport = { user: userId };
+    req.session.save((err) => {
+      if (err) {
+        res.status(500).json({ error: 'Session save failed', details: err.message });
+      } else {
+        res.json({ 
+          success: true, 
+          message: 'Session forced',
+          sessionID: req.sessionID,
+          userId: userId
+        });
+      }
+    });
+  });
+
   app.post('/api/auth/force-logout', (req, res) => {
     req.logout((err) => {
       if (err) {

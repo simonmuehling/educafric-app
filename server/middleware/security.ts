@@ -121,11 +121,11 @@ export const productionSessionConfig = {
     secure: false, // Must be false for HTTP in development
     httpOnly: false, // Allow JavaScript access for PWA functionality  
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days - PWA-friendly persistence
-    sameSite: 'lax' as const, // Lax works better for Replit environment
+    sameSite: 'lax' as const, // Lax is better for development without HTTPS
     path: '/', // Ensure cookie is sent for all paths
     domain: undefined, // Let browser handle domain
   },
-  // name: 'educafric.sid', // Use default connect.sid for compatibility
+  name: 'connect.sid', // Explicitly set the default name
   proxy: true,
   // Configuration pour maintenir les sessions lors des redémarrages
   genid: (req: any) => {

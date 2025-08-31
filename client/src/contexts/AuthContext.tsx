@@ -176,18 +176,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuthStatus = async () => {
     try {
-      // For sandbox users, always prioritize localStorage
+      // Check localStorage but prioritize server authentication for @test.educafric.com
       const cachedUser = localStorage.getItem('educafric_user');
       if (cachedUser) {
         try {
           const userData = JSON.parse(cachedUser);
-          if (userData.sandboxMode) {
-            // For sandbox users, trust localStorage and skip server verification
+          // For actual sandbox users (not @test.educafric.com), trust localStorage
+          if (userData.sandboxMode && !userData.email?.includes('@test.educafric.com')) {
             setUser(userData);
             setIsLoading(false);
             return;
           }
-          setUser(userData);
+          // For @test.educafric.com accounts, clear localStorage and use server auth
+          if (userData.email?.includes('@test.educafric.com')) {
+            localStorage.removeItem('educafric_user');
+          }
         } catch (parseError) {
           localStorage.removeItem('educafric_user');
         }
