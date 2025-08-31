@@ -402,8 +402,9 @@ export class SubscriptionService {
 
   /**
    * Vérifier si un parent peut accéder à une fonctionnalité premium
+   * RÈGLE PASSERELLE: École premium + Parent premium = Communication bidirectionnelle active
    */
-  static async canAccessParentFeature(userId: number, feature: string, userEmail?: string): Promise<boolean> {
+  static async canAccessParentFeature(userId: number, feature: string, userEmail?: string, childId?: number): Promise<boolean> {
     // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
     if (userEmail && this.isSandboxOrTestUser(userEmail)) {
       console.log(`[PARENT_SUBSCRIPTION] User ${userEmail} is exempt from parent feature restrictions`);
@@ -416,8 +417,79 @@ export class SubscriptionService {
       return true;
     }
     
+    // RÈGLE PASSERELLE SPÉCIALE pour communication école-parent
+    if (feature === 'parent_school_communication' && childId) {
+      return await this.canAccessParentSchoolGateway(userId, childId, userEmail);
+    }
+    
     // Par défaut, les parents sont en freemium
     return this.isFreemiumFeature(feature);
+  }
+
+  /**
+   * RÈGLE PASSERELLE: Vérifier si parent peut communiquer avec école via un enfant spécifique
+   * - École premium + Parent sans plan = PASSERELLE INACTIVE
+   * - École premium + Parent premium pour cet enfant = PASSERELLE ACTIVE
+   */
+  static async canAccessParentSchoolGateway(parentId: number, childId: number, userEmail?: string): Promise<boolean> {
+    // ✅ EXEMPTION: Comptes test
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      return true;
+    }
+    
+    try {
+      // En production, récupérer depuis la DB :
+      // 1. L'école de l'enfant
+      // 2. Le plan de l'école
+      // 3. Le plan parent pour cet enfant spécifique
+      
+      // SIMULATION pour démonstration :
+      const childSchoolId = await this.getChildSchoolId(childId);
+      const schoolSubscription = await this.getSchoolSubscription(childSchoolId);
+      const parentSubscriptionForChild = await this.getParentSubscriptionForChild(parentId, childId);
+      
+      // Si l'école n'a pas de plan premium, communication de base autorisée
+      if (!schoolSubscription || schoolSubscription.status !== 'premium') {
+        console.log(`[GATEWAY] École ${childSchoolId} en freemium - communication basique autorisée`);
+        return true;
+      }
+      
+      // Si l'école est premium, le parent DOIT AUSSI avoir un plan pour cet enfant
+      if (schoolSubscription.status === 'premium') {
+        const hasParentPlan = parentSubscriptionForChild && parentSubscriptionForChild.status === 'active';
+        
+        console.log(`[GATEWAY] École ${childSchoolId} premium - Parent plan pour enfant ${childId}: ${hasParentPlan ? 'ACTIF' : 'INACTIF'}`);
+        return hasParentPlan;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('[GATEWAY] Erreur vérification passerelle:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Récupérer l'ID de l'école d'un enfant
+   */
+  static async getChildSchoolId(childId: number): Promise<number> {
+    // En production, requête DB : SELECT schoolId FROM students WHERE id = childId
+    // Simulation : tous les enfants test sont dans l'école 1
+    return 1;
+  }
+
+  /**
+   * Récupérer l'abonnement parent pour un enfant spécifique
+   */
+  static async getParentSubscriptionForChild(parentId: number, childId: number): Promise<{status: string} | null> {
+    // En production, requête DB : 
+    // SELECT * FROM parent_child_subscriptions WHERE parentId = ? AND childId = ?
+    
+    // SIMULATION : Parents test ont un plan actif pour leurs enfants
+    // En réalité, vérifier dans la table des abonnements parent-enfant
+    return {
+      status: 'active' // Simulation - en production, vérifier la vraie DB
+    };
   }
 
   /**
@@ -441,6 +513,77 @@ export class SubscriptionService {
   }
 
   /**
+   * Vérifier l'état de la passerelle pour tous les enfants d'un parent
+   */
+  static async getParentChildrenGatewayStatus(parentId: number, userEmail?: string): Promise<{
+    [childId: number]: {
+      childName: string;
+      schoolName: string;
+      schoolPremium: boolean;
+      parentPlanActive: boolean;
+      gatewayActive: boolean;
+      needsUpgrade: boolean;
+    }
+  }> {
+    // ✅ EXEMPTION: Comptes test - toutes passerelles actives
+    if (userEmail && this.isSandboxOrTestUser(userEmail)) {
+      return {
+        1: {
+          childName: 'Enfant Test',
+          schoolName: 'École Test',
+          schoolPremium: true,
+          parentPlanActive: true,
+          gatewayActive: true,
+          needsUpgrade: false
+        }
+      };
+    }
+    
+    // En production, récupérer tous les enfants du parent depuis la DB
+    const children = await this.getParentChildren(parentId);
+    const gatewayStatus: any = {};
+    
+    for (const child of children) {
+      const schoolId = await this.getChildSchoolId(child.id);
+      const schoolSub = await this.getSchoolSubscription(schoolId);
+      const parentSub = await this.getParentSubscriptionForChild(parentId, child.id);
+      
+      const schoolPremium = schoolSub?.status === 'premium';
+      const parentPlanActive = parentSub?.status === 'active';
+      const gatewayActive = !schoolPremium || (schoolPremium && parentPlanActive);
+      
+      gatewayStatus[child.id] = {
+        childName: child.name,
+        schoolName: child.schoolName,
+        schoolPremium,
+        parentPlanActive,
+        gatewayActive,
+        needsUpgrade: schoolPremium && !parentPlanActive
+      };
+    }
+    
+    return gatewayStatus;
+  }
+
+  /**
+   * Récupérer la liste des enfants d'un parent
+   */
+  static async getParentChildren(parentId: number): Promise<Array<{id: number, name: string, schoolName: string}>> {
+    // En production, requête DB : 
+    // SELECT s.id, s.firstName, s.lastName, sc.name as schoolName 
+    // FROM students s 
+    // JOIN parent_child_connections pc ON s.id = pc.childId 
+    // JOIN schools sc ON s.schoolId = sc.id 
+    // WHERE pc.parentId = ?
+    
+    // SIMULATION
+    return [
+      { id: 1, name: 'Jean Kamga', schoolName: 'Collège Saint-Joseph' },
+      { id: 2, name: 'Marie Kamga', schoolName: 'École Primaire Bilingue' }
+    ];
+  }
+
+  /**
    * Obtenir les détails d'abonnement pour un parent
    */
   static async getParentSubscriptionDetails(userId: number, userEmail?: string): Promise<{
@@ -448,6 +591,7 @@ export class SubscriptionService {
     restrictions: string[];
     planName: string;
     isFreemium: boolean;
+    gatewayStatus?: any;
   }> {
     // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
     if (userEmail && this.isSandboxOrTestUser(userEmail)) {
@@ -458,6 +602,9 @@ export class SubscriptionService {
         isFreemium: false
       };
     }
+    
+    // Récupérer l'état des passerelles pour tous les enfants
+    const gatewayStatus = await this.getParentChildrenGatewayStatus(userId, userEmail);
     
     // Freemium par défaut pour les parents
     return {
@@ -471,10 +618,11 @@ export class SubscriptionService {
         'Pas de géolocalisation GPS',
         'Pas de notifications SMS/WhatsApp',
         'Pas d\'analyses avancées',
-        'Limité à 1 enfant'
+        'Communication école limitée selon plans actifs'
       ],
       planName: 'Parent Freemium',
-      isFreemium: true
+      isFreemium: true,
+      gatewayStatus
     };
   }
 
