@@ -14,7 +14,7 @@ import {
 
 const SandboxLogin = () => {
   const { language } = useLanguage();
-  const { login } = useAuth();
+  const auth = useAuth();
   const [, setLocation] = useLocation();
   const [isLogging, setIsLogging] = useState<string | null>(null);
   const [showNotificationTester, setShowNotificationTester] = useState(false);
@@ -185,10 +185,11 @@ const SandboxLogin = () => {
         const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
         console.log('🎯 Redirecting to:', targetRoute);
         
-        // Directly navigate since sandbox session is already established server-side
-        setTimeout(() => {
-          setLocation(targetRoute);
-        }, 100);
+        // Store user in localStorage and reload to update auth context
+        localStorage.setItem('educafric_user', JSON.stringify(userData.user));
+        
+        // Force a page reload to properly establish the session
+        window.location.href = targetRoute;
       } else {
         const error = await response.json();
         console.error('Sandbox login failed:', error);
