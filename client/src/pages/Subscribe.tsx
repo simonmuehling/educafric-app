@@ -137,8 +137,11 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
     try {
       console.log('[SUBSCRIBE] Processing payment...');
       
+      console.log('[SUBSCRIBE] Using clientSecret:', clientSecret ? 'Present' : 'Missing');
+      
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
+        clientSecret: clientSecret,
         confirmParams: {
           return_url: `${window.location.origin}/subscription-success?plan=${planId}`,
         },
