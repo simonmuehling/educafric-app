@@ -40,6 +40,7 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
   const elements = useElements();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Créer le PaymentIntent dès le chargement
   useEffect(() => {
