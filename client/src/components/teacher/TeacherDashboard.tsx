@@ -102,8 +102,8 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ULTRA-FAST module component creator
-  const createDynamicModule = (moduleName: string, fallbackComponent?: React.ReactNode) => {
+  // ULTRA-FAST module component creator - Fixed hook violation
+  const createDynamicModule = React.useCallback((moduleName: string, fallbackComponent?: React.ReactNode) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
@@ -113,12 +113,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       }
       return React.createElement(ModuleComponent);
     }
-    
-    // Préchargement à la demande seulement pour modules non-critiques
-    React.useEffect(() => {
-      console.log(`[TEACHER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
-      preloadModule(moduleName);
-    }, []);
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
@@ -130,7 +124,16 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
         </div>
       </div>
     );
-  };
+  }, [getModule, apiDataPreloaded, language]);
+
+  // Preload non-critical modules on demand
+  React.useEffect(() => {
+    const nonCriticalModules = ['teacher-settings', 'help'];
+    nonCriticalModules.forEach(moduleName => {
+      console.log(`[TEACHER_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
+      preloadModule(moduleName);
+    });
+  }, [preloadModule]);
 
   // Stable event handlers that survive server restarts
   useStableEventHandler(() => {

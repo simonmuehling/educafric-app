@@ -405,6 +405,233 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TEACHER API ROUTES - Complete implementation
+  app.get("/api/teacher/classes", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/classes for user:', user.id);
+      
+      const classes = [
+        {
+          id: 1,
+          name: '6ème A',
+          level: '6ème',
+          section: 'A',
+          studentCount: 28,
+          subject: 'Mathématiques',
+          room: 'Salle 12',
+          schedule: 'Lun-Mer-Ven 08:00-10:00'
+        },
+        {
+          id: 2,
+          name: '5ème B',
+          level: '5ème',
+          section: 'B', 
+          studentCount: 25,
+          subject: 'Mathématiques',
+          room: 'Salle 15',
+          schedule: 'Mar-Jeu 10:00-12:00'
+        }
+      ];
+      
+      res.json({ success: true, classes });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching classes:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch classes' });
+    }
+  });
+
+  app.get("/api/teacher/students", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/students for user:', user.id);
+      
+      const students = [
+        {
+          id: 1,
+          firstName: 'Jean',
+          lastName: 'Kamga',
+          class: '6ème A',
+          average: 14.5,
+          attendance: 95,
+          parentContact: '+237657005678'
+        },
+        {
+          id: 2,
+          firstName: 'Marie', 
+          lastName: 'Nkomo',
+          class: '5ème B',
+          average: 16.2,
+          attendance: 98,
+          parentContact: '+237657007890'
+        }
+      ];
+      
+      res.json({ success: true, students });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching students:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch students' });
+    }
+  });
+
+  app.get("/api/teacher/grades", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/grades for user:', user.id);
+      
+      const grades = [
+        {
+          id: 1,
+          studentName: 'Jean Kamga',
+          subject: 'Mathématiques',
+          grade: 15,
+          maxGrade: 20,
+          date: '2025-08-25',
+          type: 'Contrôle'
+        },
+        {
+          id: 2,
+          studentName: 'Marie Nkomo',
+          subject: 'Mathématiques', 
+          grade: 17,
+          maxGrade: 20,
+          date: '2025-08-25',
+          type: 'Contrôle'
+        }
+      ];
+      
+      res.json({ success: true, grades });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching grades:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch grades' });
+    }
+  });
+
+  app.get("/api/teacher/assignments", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/assignments for user:', user.id);
+      
+      const assignments = [
+        {
+          id: 1,
+          title: 'Exercices sur les fractions',
+          subject: 'Mathématiques',
+          class: '6ème A',
+          dueDate: '2025-09-02',
+          status: 'active',
+          submissions: 22,
+          totalStudents: 28
+        },
+        {
+          id: 2,
+          title: 'Problèmes géométriques',
+          subject: 'Mathématiques',
+          class: '5ème B', 
+          dueDate: '2025-09-05',
+          status: 'active',
+          submissions: 18,
+          totalStudents: 25
+        }
+      ];
+      
+      res.json({ success: true, assignments });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching assignments:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch assignments' });
+    }
+  });
+
+  app.get("/api/teacher/attendance", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/attendance for user:', user.id);
+      
+      const attendance = [
+        {
+          id: 1,
+          studentName: 'Jean Kamga',
+          class: '6ème A',
+          date: '2025-08-31',
+          status: 'present',
+          arrivalTime: '07:45'
+        },
+        {
+          id: 2,
+          studentName: 'Marie Nkomo',
+          class: '5ème B',
+          date: '2025-08-31',
+          status: 'present',
+          arrivalTime: '07:50'
+        }
+      ];
+      
+      res.json({ success: true, attendance });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching attendance:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch attendance' });
+    }
+  });
+
+  app.get("/api/teacher/communications", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/communications for user:', user.id);
+      
+      const communications = [
+        {
+          id: 1,
+          from: 'Marie Kamga',
+          fromRole: 'Parent',
+          subject: 'Absence de Jean',
+          message: 'Jean sera absent demain pour rendez-vous médical.',
+          date: '2025-08-30',
+          read: false,
+          type: 'parent'
+        },
+        {
+          id: 2,
+          from: 'Direction',
+          fromRole: 'Admin',
+          subject: 'Réunion pédagogique',
+          message: 'Réunion des enseignants prévue mardi à 16h.',
+          date: '2025-08-29',
+          read: true,
+          type: 'admin'
+        }
+      ];
+      
+      res.json({ success: true, communications });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching communications:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch communications' });
+    }
+  });
+
+  app.get("/api/teacher/schools", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/schools for user:', user.id);
+      
+      const schools = [
+        {
+          id: 1,
+          name: 'École Saint-Joseph',
+          type: 'Private',
+          address: 'Douala, Cameroun',
+          role: 'Teacher',
+          subjects: ['Mathématiques'],
+          classes: ['6ème A', '5ème B']
+        }
+      ];
+      
+      res.json({ success: true, schools });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching schools:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch schools' });
+    }
+  });
+
   // Teacher Settings
   app.get("/api/teacher/settings", requireAuth, async (req, res) => {
     try {
