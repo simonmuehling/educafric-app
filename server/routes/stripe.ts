@@ -72,7 +72,19 @@ router.post('/create-payment-intent', requireAuth, async (req, res) => {
 
     // For sandbox testing, use USD and convert price appropriately
     const finalCurrency = sandbox ? 'usd' : currency.toLowerCase();
-    const finalAmount = sandbox ? Math.round(plan.price / 600) * 100 : plan.price * 100; // Convert XAF to USD for sandbox (rough conversion)
+    
+    // XAF is already in smallest unit (1 franc), USD/EUR need *100 for cents
+    let finalAmount: number;
+    if (sandbox) {
+      // Convert XAF to USD for sandbox testing (1 USD ≈ 600 XAF)
+      finalAmount = Math.round(plan.price / 600) * 100; // Convert to USD cents
+    } else if (finalCurrency === 'xaf') {
+      // XAF is already in smallest unit - no conversion needed
+      finalAmount = plan.price;
+    } else {
+      // Other currencies (USD, EUR) need *100 for cents
+      finalAmount = plan.price * 100;
+    }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: finalAmount,
