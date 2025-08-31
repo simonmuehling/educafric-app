@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -253,6 +253,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-blue-500',
       component: createDynamicModule('overview')
+    },
+    {
+      id: 'subscription',
+      label: language === 'fr' ? 'Mon Abonnement' : 'My Subscription',
+      icon: <Star className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-yellow-500 to-orange-500',
+      component: createDynamicModule('subscription')
     },
     {
       id: 'settings',
