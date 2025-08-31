@@ -710,6 +710,18 @@ const Subscribe: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 p-4">
       <div className="container mx-auto max-w-6xl pt-8">
+        {/* Bouton retour */}
+        <div className="mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => window.location.href = '/dashboard'}
+            className="flex items-center gap-2"
+            data-testid="button-back-dashboard"
+          >
+            ← Retour au tableau de bord
+          </Button>
+        </div>
+        
         {/* En-tête */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
