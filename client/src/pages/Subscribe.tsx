@@ -3,11 +3,13 @@ import { useStripe, useElements, Elements, PaymentElement } from '@stripe/react-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle, AlertCircle, CreditCard, Shield, Users, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import PaymentMethodSelector, { PaymentMethod } from '@/components/PaymentMethodSelector';
 
 // 🚀 LAZY LOADING STRIPE - Ne charge que quand nécessaire pour éviter cookies warnings
@@ -40,6 +42,7 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
   const stripe = useStripe();
   const elements = useElements();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
@@ -75,8 +78,8 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
           console.log('[SUBSCRIBE] ✅ Payment intent created successfully');
         } else {
           toast({
-            title: "Erreur de paiement",
-            description: data.message || "Impossible de créer l'intention de paiement",
+            title: t('payment.subscription.paymentError'),
+            description: data.message || t('payment.subscription.cannotCreateIntent'),
             variant: "destructive",
           });
         }
@@ -105,8 +108,8 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
           }
           
           toast({
-            title: "Session expirée",
-            description: "Veuillez vous reconnecter pour continuer",
+            title: t('payment.subscription.sessionExpired'),
+            description: t('payment.subscription.reconnectPrompt'),
             variant: "destructive",
           });
           setTimeout(() => {
@@ -114,8 +117,8 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
           }, 2000);
         } else {
           toast({
-            title: "Erreur de connexion",
-            description: "Impossible de se connecter au service de paiement",
+            title: t('payment.subscription.connectionError'),
+            description: t('payment.subscription.cannotConnect'),
             variant: "destructive",
           });
         }
@@ -204,8 +207,8 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
     } catch (error: any) {
       console.error('[SUBSCRIBE] ❌ Payment processing error:', error);
       toast({
-        title: "Erreur inattendue",
-        description: "Une erreur s'est produite lors du traitement du paiement",
+        title: t('payment.subscription.unexpectedError'),
+        description: t('payment.subscription.paymentProcessingError'),
         variant: "destructive",
       });
     } finally {
@@ -217,7 +220,7 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Préparation du paiement...</span>
+        <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
       </div>
     );
   }
@@ -225,12 +228,12 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6">
-        <h3 className="text-lg font-semibold mb-2">💳 Récapitulatif de votre commande</h3>
+        <h3 className="text-lg font-semibold mb-2">💳 {t('payment.subscription.orderSummary')}</h3>
         <div className="flex justify-between items-center">
           <span className="text-gray-600 dark:text-gray-300">{plan.name}</span>
           <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
             {plan.price.toLocaleString()} {plan.currency.toUpperCase()}
-            <span className="text-sm font-normal">/{plan.interval === 'month' ? 'mois' : plan.interval === 'year' ? 'an' : 'semestre'}</span>
+            <span className="text-sm font-normal">/{plan.interval === 'month' ? t('payment.subscription.perMonth') : plan.interval === 'year' ? t('payment.subscription.perYear') : t('payment.subscription.perSemester')}</span>
           </span>
         </div>
       </div>
@@ -252,19 +255,19 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
         {isProcessing ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Traitement en cours...
+            {t('payment.subscription.processingPayment')}
           </>
         ) : (
           <>
             <CreditCard className="mr-2 h-4 w-4" />
-            Confirmer le paiement de {plan.price.toLocaleString()} {plan.currency.toUpperCase()}
+            {t('payment.subscription.confirmPayment')} {plan.price.toLocaleString()} {plan.currency.toUpperCase()}
           </>
         )}
       </Button>
 
       <div className="flex items-center justify-center text-sm text-gray-500">
         <Shield className="mr-1 h-4 w-4" />
-        Paiement sécurisé par Stripe
+        {t('payment.subscription.securedBy')}
       </div>
     </form>
   );
@@ -277,6 +280,7 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
   onSuccess 
 }) => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [clientSecret, setClientSecret] = useState<string>('');
 
   // Créer le PaymentIntent dès le chargement
@@ -311,8 +315,8 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
           console.log('[SUBSCRIBE] ✅ Payment intent created successfully');
         } else {
           toast({
-            title: "Erreur de paiement",
-            description: data.message || "Impossible de créer l'intention de paiement",
+            title: t('payment.subscription.paymentError'),
+            description: data.message || t('payment.subscription.cannotCreateIntent'),
             variant: "destructive",
           });
         }
@@ -341,8 +345,8 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
           }
           
           toast({
-            title: "Session expirée",
-            description: "Veuillez vous reconnecter pour continuer",
+            title: t('payment.subscription.sessionExpired'),
+            description: t('payment.subscription.reconnectPrompt'),
             variant: "destructive",
           });
           setTimeout(() => {
@@ -350,8 +354,8 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
           }, 2000);
         } else {
           toast({
-            title: "Erreur de connexion",
-            description: "Impossible de se connecter au service de paiement",
+            title: t('payment.subscription.connectionError'),
+            description: t('payment.subscription.cannotConnect'),
             variant: "destructive",
           });
         }
@@ -367,7 +371,7 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Préparation du paiement...</span>
+        <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
       </div>
     );
   }
@@ -393,6 +397,7 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
 // Composant principal d'abonnement
 const Subscribe: React.FC = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'parent' | 'school' | 'freelancer'>('parent');
@@ -409,8 +414,8 @@ const Subscribe: React.FC = () => {
       }).catch((error) => {
         console.error('[STRIPE_OPTIMIZATION] ❌ Error loading Stripe:', error);
         toast({
-          title: "Erreur de chargement",
-          description: "Impossible de charger le système de paiement",
+          title: t('payment.subscription.loadingError'),
+          description: t('payment.subscription.cannotLoadPayment'),
           variant: "destructive",
         });
       });
@@ -440,8 +445,8 @@ const Subscribe: React.FC = () => {
     setSelectedPaymentMethod(null);
     queryClient.invalidateQueries({ queryKey: ['/api/stripe/subscription-status'] });
     toast({
-      title: "🎉 Bienvenue dans EDUCAFRIC Premium !",
-      description: "Votre abonnement est maintenant actif. Profitez de toutes nos fonctionnalités !",
+      title: `🎉 ${t('payment.subscription.welcome')}`,
+      description: t('payment.subscription.enjoyFeatures'),
     });
   };
 
@@ -493,22 +498,26 @@ const Subscribe: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 p-4">
         <div className="container mx-auto max-w-4xl pt-8">
+          {/* Language Toggle */}
+          <div className="flex justify-end mb-4">
+            <LanguageToggle variant="buttons" size="md" />
+          </div>
           <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-green-200 dark:border-green-800">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <CardTitle className="text-2xl text-green-800 dark:text-green-200">
-                🎉 Abonnement Actif !
+                🎉 {t('payment.subscription.activeTitle')}
               </CardTitle>
               <CardDescription className="text-lg">
-                Votre abonnement <span className="font-semibold text-green-600">{subscriptionStatus.planName}</span> est actuellement actif
+                <span className="font-semibold text-green-600">{subscriptionStatus.planName}</span> {t('payment.subscription.activeSubtitle')}
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               {subscriptionStatus.expiresAt && (
                 <p className="text-gray-600 dark:text-gray-300">
-                  Expire le : <span className="font-semibold">{new Date(subscriptionStatus.expiresAt).toLocaleDateString('fr-FR')}</span>
+                  {t('payment.subscription.expiresOn')} <span className="font-semibold">{new Date(subscriptionStatus.expiresAt).toLocaleDateString()}</span>
                 </p>
               )}
               <Button 
@@ -516,7 +525,7 @@ const Subscribe: React.FC = () => {
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 data-testid="button-go-dashboard"
               >
-                📊 Accéder à mon tableau de bord
+                📊 {t('payment.subscription.goDashboard')}
               </Button>
             </CardContent>
           </Card>
@@ -529,6 +538,10 @@ const Subscribe: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 p-4">
         <div className="container mx-auto max-w-4xl pt-8">
+          {/* Language Toggle */}
+          <div className="flex justify-end mb-4">
+            <LanguageToggle variant="buttons" size="md" />
+          </div>
           <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
             <CardHeader>
               <Button 
@@ -540,10 +553,10 @@ const Subscribe: React.FC = () => {
                 className="w-fit mb-4"
                 data-testid="button-back-plans"
               >
-                ← Retour aux plans
+                ← {t('payment.subscription.backToPlans')}
               </Button>
               <CardTitle className="text-center">
-                💳 Finaliser votre abonnement
+                💳 {t('payment.subscription.title')}
               </CardTitle>
               <CardDescription className="text-center">
                 {selectedPlan.name} - {selectedPlan.price.toLocaleString()} {selectedPlan.currency.toUpperCase()}
@@ -569,13 +582,13 @@ const Subscribe: React.FC = () => {
                       className="w-fit"
                       data-testid="button-back-payment-methods"
                     >
-                      ← Choisir une autre méthode
+                      ← {t('payment.subscription.backToPaymentMethods')}
                     </Button>
                   </div>
                   {!stripeLoaded ? (
                     <div className="flex justify-center items-center py-12">
                       <Loader2 className="h-8 w-8 animate-spin" />
-                      <span className="ml-2">Chargement du système de paiement...</span>
+                      <span className="ml-2">{t('payment.subscription.loadingPayment')}</span>
                     </div>
                   ) : (
                     <PaymentForm 
@@ -595,7 +608,7 @@ const Subscribe: React.FC = () => {
                       className="w-fit"
                       data-testid="button-back-payment-methods"
                     >
-                      ← Choisir une autre méthode
+                      ← {t('payment.subscription.backToPaymentMethods')}
                     </Button>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
@@ -710,6 +723,11 @@ const Subscribe: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 p-4">
       <div className="container mx-auto max-w-6xl pt-8">
+        {/* Language Toggle */}
+        <div className="flex justify-end mb-4">
+          <LanguageToggle variant="buttons" size="md" />
+        </div>
+        
         {/* Bouton retour */}
         <div className="mb-6">
           <Button 
@@ -718,7 +736,7 @@ const Subscribe: React.FC = () => {
             className="flex items-center gap-2"
             data-testid="button-back-dashboard"
           >
-            ← Retour au tableau de bord
+            ← {t('nav.dashboard')}
           </Button>
         </div>
         
@@ -762,7 +780,7 @@ const Subscribe: React.FC = () => {
         {plansLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" />
-            <span className="ml-2">Chargement des plans...</span>
+            <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -238,7 +238,44 @@ export const translations = {
         annual: "Annuel",
         active: "Actif",
         expired: "Expiré",
-        pending: "En attente"
+        pending: "En attente",
+        // Subscribe page translations
+        title: "Finaliser votre abonnement",
+        backToPlans: "Retour aux plans",
+        activeTitle: "Abonnement Actif !",
+        activeSubtitle: "est actuellement actif",
+        orderSummary: "Récapitulatif de votre commande",
+        preparingPayment: "Préparation du paiement...",
+        confirmPayment: "Confirmer le paiement de",
+        processingPayment: "Traitement en cours...",
+        securedBy: "Paiement sécurisé par Stripe",
+        backToPaymentMethods: "Choisir une autre méthode",
+        loadingPayment: "Chargement du système de paiement...",
+        goDashboard: "Accéder à mon tableau de bord",
+        expiresOn: "Expire le :",
+        welcome: "Bienvenue dans EDUCAFRIC Premium !",
+        enjoyFeatures: "Votre abonnement est maintenant actif. Profitez de toutes nos fonctionnalités !",
+        // Error messages
+        paymentError: "Erreur de paiement",
+        cannotCreateIntent: "Impossible de créer l'intention de paiement",
+        sessionExpired: "Session expirée",
+        reconnectPrompt: "Veuillez vous reconnecter pour continuer",
+        connectionError: "Erreur de connexion",
+        cannotConnect: "Impossible de se connecter au service de paiement",
+        paymentFailed: "Le paiement a échoué",
+        unexpectedError: "Erreur inattendue",
+        paymentProcessingError: "Une erreur s'est produite lors du traitement du paiement",
+        loadingError: "Erreur de chargement",
+        cannotLoadPayment: "Impossible de charger le système de paiement",
+        // Success messages
+        paymentSuccess: "Paiement réussi !",
+        subscriptionActive: "est maintenant actif",
+        sandboxMode: "Mode Sandbox",
+        sandboxTest: "Test en cours avec compte sandbox - paiement simulé",
+        // Intervals
+        perMonth: "mois",
+        perYear: "an",
+        perSemester: "semestre"
       }
     },
 
@@ -597,7 +634,44 @@ export const translations = {
         annual: "Annual",
         active: "Active",
         expired: "Expired",
-        pending: "Pending"
+        pending: "Pending",
+        // Subscribe page translations
+        title: "Complete your subscription",
+        backToPlans: "Back to plans",
+        activeTitle: "Active Subscription!",
+        activeSubtitle: "is currently active",
+        orderSummary: "Order summary",
+        preparingPayment: "Preparing payment...",
+        confirmPayment: "Confirm payment of",
+        processingPayment: "Processing...",
+        securedBy: "Secured payment by Stripe",
+        backToPaymentMethods: "Choose another method",
+        loadingPayment: "Loading payment system...",
+        goDashboard: "Go to my dashboard",
+        expiresOn: "Expires on:",
+        welcome: "Welcome to EDUCAFRIC Premium!",
+        enjoyFeatures: "Your subscription is now active. Enjoy all our features!",
+        // Error messages
+        paymentError: "Payment error",
+        cannotCreateIntent: "Unable to create payment intent",
+        sessionExpired: "Session expired",
+        reconnectPrompt: "Please log in again to continue",
+        connectionError: "Connection error",
+        cannotConnect: "Unable to connect to payment service",
+        paymentFailed: "Payment failed",
+        unexpectedError: "Unexpected error",
+        paymentProcessingError: "An error occurred while processing payment",
+        loadingError: "Loading error",
+        cannotLoadPayment: "Unable to load payment system",
+        // Success messages
+        paymentSuccess: "Payment successful!",
+        subscriptionActive: "is now active",
+        sandboxMode: "Sandbox Mode",
+        sandboxTest: "Testing with sandbox account - simulated payment",
+        // Intervals
+        perMonth: "month",
+        perYear: "year",
+        perSemester: "semester"
       }
     },
 
