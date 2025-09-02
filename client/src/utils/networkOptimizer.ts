@@ -77,7 +77,10 @@ class NetworkOptimizer {
         try {
           // Only log on retries or in dev mode
           if (attempt > 1 || import.meta.env.DEV) {
-            console.log(`[NETWORK_OPTIMIZER] 📡 Request attempt ${attempt}/${this.config.retries}`);
+            // Only log critical network issues in production
+            if (import.meta.env.DEV) {
+              console.log(`[NETWORK_OPTIMIZER] 📡 Request attempt ${attempt}/${this.config.retries}`);
+            }
           }
           const response = await originalFetch(input, optimizedInit);
           
@@ -156,7 +159,9 @@ class NetworkOptimizer {
       
       // Only log quality changes, not every check
       if (import.meta.env.DEV || this.lastQuality !== quality) {
-        console.log(`[NETWORK_OPTIMIZER] 📊 Connection quality: ${quality} (${avgPing.toFixed(0)}ms avg)`);
+        if (import.meta.env.DEV) {
+          console.log(`[NETWORK_OPTIMIZER] 📊 Connection quality: ${quality} (${avgPing.toFixed(0)}ms avg)`);
+        }
         this.lastQuality = quality;
       }
       
@@ -224,7 +229,9 @@ class NetworkOptimizer {
   }
 
   private enableOfflineMode() {
-    console.log('[NETWORK_OPTIMIZER] 🔄 Enabling offline mode for critical connection');
+    if (import.meta.env.DEV) {
+      console.log('[NETWORK_OPTIMIZER] 🔄 Enabling offline mode for critical connection');
+    }
     
     // Notify application to switch to offline-first mode
     window.dispatchEvent(new CustomEvent('connection-critical', {

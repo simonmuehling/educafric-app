@@ -44,6 +44,14 @@ export const setupConsoleFilter = () => {
     /Disconnected from polkadot/i,
     /Manifest.*validation.*failed/i,
     /PWA.*installation.*blocked/i,
+    /\[NETWORK_OPTIMIZER\].*Request attempt \d+\/\d+/,
+    /\[NETWORK_OPTIMIZER\].*Connection quality: critical/,
+    /\[NETWORK_OPTIMIZER\].*Enabling offline mode for critical connection/,
+    /\[GLOBAL_PRELOADER\].*Starting global module preloading/,
+    /\[GLOBAL_PRELOADER\].*Critical modules ready for instant access/,
+    /\[FAST_LOADER\].*Starting aggressive load for/,
+    /\[FAST_LOADER\].*loaded and cached successfully/,
+    /\[FAST_LOADER\].*COMPLETED:.*total modules cached/,
   ];
 
   // Filter function
