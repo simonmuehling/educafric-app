@@ -15,14 +15,7 @@ export const nameSchema = z.string().min(2, "Name must be at least 2 characters"
 export const phoneSchema = z.string().optional();
 
 // Normalized user schemas
-export const createUserSchema = createInsertSchema(users, {
-  email: emailSchema,
-  password: passwordSchema,
-  firstName: nameSchema,
-  lastName: nameSchema,
-  phone: phoneSchema,
-  role: z.enum(USER_ROLES),
-}).omit({
+export const createUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -30,7 +23,12 @@ export const createUserSchema = createInsertSchema(users, {
   stripeSubscriptionId: true,
   firebaseUid: true,
 }).extend({
+  email: emailSchema,
+  password: passwordSchema,
+  firstName: nameSchema,
+  lastName: nameSchema,
   phoneNumber: phoneSchema, // Accept phoneNumber from frontend
+  role: z.enum(USER_ROLES),
 });
 
 export const updateUserSchema = createUserSchema.partial().omit({ password: true });

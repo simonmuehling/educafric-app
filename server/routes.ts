@@ -1626,6 +1626,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/commercial/leads', (req, res) => {
     res.json({ success: true, message: 'Commercial leads endpoint', data: [] });
   });
+
+  // Commercial activity tracking endpoints
+  app.get('/api/commercial/activities', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const commercialId = user.role === 'Commercial' ? user.id : parseInt(req.query.commercialId as string);
+      
+      if (!commercialId) {
+        return res.status(400).json({ success: false, message: 'Commercial ID is required' });
+      }
+      
+      const limit = parseInt(req.query.limit as string) || 50;
+      const activities = await storage.getCommercialActivities(commercialId, limit);
+      
+      res.json({ success: true, data: activities });
+    } catch (error) {
+      console.error('[COMMERCIAL_ACTIVITIES] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to get activities' });
+    }
+  });
+
+  app.get('/api/commercial/activity-summary', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const commercialId = user.role === 'Commercial' ? user.id : parseInt(req.query.commercialId as string);
+      
+      if (!commercialId) {
+        return res.status(400).json({ success: false, message: 'Commercial ID is required' });
+      }
+      
+      const days = parseInt(req.query.days as string) || 30;
+      const summary = await storage.getCommercialActivitySummary(commercialId, days);
+      
+      res.json({ success: true, data: summary });
+    } catch (error) {
+      console.error('[COMMERCIAL_SUMMARY] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to get activity summary' });
+    }
+  });
   
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);

@@ -5,10 +5,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
   Building2, Calendar, DollarSign, Target, UserCheck, Archive,
-  MessageSquare, Settings, HelpCircle, User
+  MessageSquare, Settings, HelpCircle, User, Activity
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { useFastModules } from '@/utils/fastModuleLoader';
+import ActivitySummary from './modules/ActivitySummary';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
 
@@ -237,6 +238,13 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
       component: createDynamicModule('commercial-whatsapp')
+    },
+    {
+      id: 'activity',
+      label: language === 'fr' ? 'Mon Activité' : 'My Activity',
+      icon: <Activity className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: <ActivitySummary />
     },
     {
       id: 'settings',

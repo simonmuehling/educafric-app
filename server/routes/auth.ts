@@ -204,10 +204,43 @@ router.post('/login', (req, res, next) => {
       });
       
       // Force session save
-      req.session.save((saveErr) => {
+      req.session.save(async (saveErr) => {
         if (saveErr) {
           console.error('[AUTH_ERROR] Session save error:', saveErr);
           return res.status(500).json({ message: 'Failed to save session' });
+        }
+        
+        // Send commercial login alert and track activity if user is Commercial role
+        if (user.role === 'Commercial') {
+          try {
+            // Send email alert
+            const { hostingerMailService } = await import('../services/hostingerMailService');
+            await hostingerMailService.sendCommercialLoginAlert({
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+              email: user.email,
+              loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
+              ip: req.ip || req.connection.remoteAddress || 'Unknown',
+              schoolId: user.schoolId
+            });
+            console.log(`[COMMERCIAL_LOGIN] Alert sent for: ${user.email}`);
+            
+            // Track login activity
+            await storage.createCommercialActivity({
+              commercialId: user.id,
+              activityType: 'login',
+              description: 'Commercial user logged in',
+              metadata: {
+                loginTime: new Date().toISOString(),
+                userAgent: req.headers['user-agent']
+              },
+              ipAddress: req.ip || req.connection.remoteAddress || 'Unknown',
+              userAgent: req.headers['user-agent'],
+              schoolId: user.schoolId
+            });
+            console.log(`[COMMERCIAL_ACTIVITY] Login activity tracked for: ${user.email}`);
+          } catch (alertError) {
+            console.error('[COMMERCIAL_LOGIN] Failed to send alert email or track activity:', alertError);
+          }
         }
         
         // Successfully authenticated and session created
@@ -252,6 +285,10 @@ router.post('/sandbox-login', async (req, res) => {
       'sandbox.director@educafric.demo': { 
         id: 9006, name: 'Dr. Christiane Fouda', role: 'Director', email: 'sandbox.director@educafric.demo', 
         schoolId: 999, phone: '+237655123456', sandboxMode: true 
+      },
+      'sandbox.commercial@educafric.demo': { 
+        id: 9007, name: 'Paul Kamga', role: 'Commercial', email: 'sandbox.commercial@educafric.demo', 
+        schoolId: 999, phone: '+237656123456', sandboxMode: true 
       }
     };
     
@@ -268,10 +305,31 @@ router.post('/sandbox-login', async (req, res) => {
       }
       
       // Force session save
-      req.session.save((saveErr) => {
+      req.session.save(async (saveErr) => {
         if (saveErr) {
           console.error('[SANDBOX_ERROR] Session save error:', saveErr);
           return res.status(500).json({ message: 'Failed to save sandbox session' });
+        }
+        
+        // Send commercial login alert and track activity for sandbox commercial users too
+        if (user.role === 'Commercial') {
+          try {
+            // Send email alert
+            const { hostingerMailService } = await import('../services/hostingerMailService');
+            await hostingerMailService.sendCommercialLoginAlert({
+              name: user.name || user.email,
+              email: user.email,
+              loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
+              ip: req.ip || req.connection.remoteAddress || 'Unknown',
+              schoolId: user.schoolId
+            });
+            console.log(`[SANDBOX_COMMERCIAL] Alert sent for: ${user.email}`);
+            
+            // Track sandbox login activity (note: sandbox users don't persist to DB)
+            console.log(`[SANDBOX_COMMERCIAL] Login activity for: ${user.email} at ${new Date().toISOString()}`);
+          } catch (alertError) {
+            console.error('[SANDBOX_COMMERCIAL] Failed to send alert email:', alertError);
+          }
         }
         
         res.json({ user: user });

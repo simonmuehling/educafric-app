@@ -3,7 +3,8 @@
 
 import { db } from "../db";
 import { users } from "../../shared/schemas/userSchema";
-import { eq } from "drizzle-orm";
+import { commercialActivities } from "../../shared/schema";
+import { eq, desc, sql, and, gte } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import type { IUserStorage } from "./interfaces";
 
@@ -175,5 +176,120 @@ export class UserStorage implements IUserStorage {
   // Storage helper alias
   async getUser(userId: number): Promise<any | null> {
     return this.getUserById(userId);
+  }
+
+  // === COMMERCIAL ACTIVITY METHODS ===
+  async createCommercialActivity(activity: {
+    commercialId: number;
+    activityType: string;
+    description?: string;
+    metadata?: any;
+    ipAddress?: string;
+    userAgent?: string;
+    schoolId?: number;
+  }): Promise<any> {
+    try {
+      const [newActivity] = await db.insert(commercialActivities).values({
+        ...activity,
+        metadata: activity.metadata ? JSON.stringify(activity.metadata) : null
+      }).returning();
+      return newActivity;
+    } catch (error) {
+      console.error(`[COMMERCIAL_ACTIVITY] Failed to log activity: ${error}`);
+      return null;
+    }
+  }
+
+  async getCommercialActivities(commercialId: number, limit: number = 50): Promise<any[]> {
+    try {
+      const activities = await db.select()
+        .from(commercialActivities)
+        .where(eq(commercialActivities.commercialId, commercialId))
+        .orderBy(desc(commercialActivities.createdAt))
+        .limit(limit);
+      return activities;
+    } catch (error) {
+      console.error(`[COMMERCIAL_ACTIVITY] Failed to get activities: ${error}`);
+      return [];
+    }
+  }
+
+  async getCommercialActivitySummary(commercialId: number, days: number = 30): Promise<any> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      
+      const activities = await db.select()
+        .from(commercialActivities)
+        .where(
+          and(
+            eq(commercialActivities.commercialId, commercialId),
+            gte(commercialActivities.createdAt, cutoffDate)
+          )
+        )
+        .orderBy(desc(commercialActivities.createdAt));
+
+      // Group activities by type
+      const summary = {
+        totalActivities: activities.length,
+        period: `${days} days`,
+        activitiesByType: {} as Record<string, number>,
+        recentActivities: activities.slice(0, 10),
+        lastLogin: null as any,
+        loginCount: 0,
+        uniqueDays: new Set<string>(),
+        mostActiveDay: null as string | null
+      };
+
+      activities.forEach(activity => {
+        // Count by type
+        summary.activitiesByType[activity.activityType] = 
+          (summary.activitiesByType[activity.activityType] || 0) + 1;
+        
+        // Track login info
+        if (activity.activityType === 'login') {
+          summary.loginCount++;
+          if (!summary.lastLogin) {
+            summary.lastLogin = activity;
+          }
+        }
+        
+        // Track unique days
+        const dayKey = activity.createdAt?.toISOString().split('T')[0];
+        if (dayKey) {
+          summary.uniqueDays.add(dayKey);
+        }
+      });
+
+      // Calculate most active day
+      const dayCount: Record<string, number> = {};
+      activities.forEach(activity => {
+        const dayKey = activity.createdAt?.toISOString().split('T')[0];
+        if (dayKey) {
+          dayCount[dayKey] = (dayCount[dayKey] || 0) + 1;
+        }
+      });
+      
+      summary.mostActiveDay = Object.entries(dayCount)
+        .sort(([,a], [,b]) => b - a)[0]?.[0] || null;
+
+      return {
+        ...summary,
+        uniqueDaysCount: summary.uniqueDays.size,
+        uniqueDays: undefined // Remove Set from response
+      };
+    } catch (error) {
+      console.error(`[COMMERCIAL_ACTIVITY] Failed to get summary: ${error}`);
+      return {
+        totalActivities: 0,
+        period: `${days} days`,
+        activitiesByType: {},
+        recentActivities: [],
+        lastLogin: null,
+        loginCount: 0,
+        uniqueDaysCount: 0,
+        mostActiveDay: null
+      };
+    }
   }
 }

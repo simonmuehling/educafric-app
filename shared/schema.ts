@@ -67,6 +67,18 @@ export const pwaAnalytics = pgTable("pwa_analytics", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const commercialActivities = pgTable("commercial_activities", {
+  id: serial("id").primaryKey(),
+  commercialId: integer("commercial_id").notNull(),
+  activityType: text("activity_type").notNull(), // login, profile_update, lead_creation, document_access
+  description: text("description"),
+  metadata: jsonb("metadata"), // Additional activity data
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  schoolId: integer("school_id"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const businessPartners = pgTable("business_partners", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),

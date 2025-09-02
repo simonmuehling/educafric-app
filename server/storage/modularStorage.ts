@@ -61,6 +61,27 @@ export class ModularStorage {
     return this.userStorage.getUser(userId); 
   }
 
+  // === COMMERCIAL ACTIVITY METHODS ===
+  async createCommercialActivity(activity: {
+    commercialId: number;
+    activityType: string;
+    description?: string;
+    metadata?: any;
+    ipAddress?: string;
+    userAgent?: string;
+    schoolId?: number;
+  }) {
+    return this.userStorage.createCommercialActivity(activity);
+  }
+  
+  async getCommercialActivities(commercialId: number, limit: number = 50) {
+    return this.userStorage.getCommercialActivities(commercialId, limit);
+  }
+  
+  async getCommercialActivitySummary(commercialId: number, days: number = 30) {
+    return this.userStorage.getCommercialActivitySummary(commercialId, days);
+  }
+
   // === SCHOOL METHODS ===
   async createSchool(school: any) { return this.schoolStorage.createSchool(school); }
   async getSchool(id: number) { return this.schoolStorage.getSchool(id); }
