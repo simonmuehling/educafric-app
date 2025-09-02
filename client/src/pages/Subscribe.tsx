@@ -615,83 +615,83 @@ const Subscribe: React.FC = () => {
                     <div className="text-center">
                       <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
                       <h3 className="text-2xl font-bold text-green-800 mb-2">
-                        Instructions envoyées !
+                        {t('payment.subscription.instructionsSent')}
                       </h3>
                       <p className="text-green-700 mb-4">
-                        Effectuez votre paiement {selectedPaymentMethod === 'orange_money' ? 'Orange Money' : 'par virement bancaire'} 
-                        avec les informations ci-dessous :
+                        {t('payment.subscription.makePayment')} {selectedPaymentMethod === 'orange_money' ? t('payment.subscription.orangeMoneyPayment') : t('payment.subscription.bankTransferPayment')} 
+                        {t('payment.subscription.withInfoBelow')}
                       </p>
                       
                       {/* Afficher les informations détaillées selon la méthode */}
                       {selectedPaymentMethod === 'orange_money' ? (
                         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-                          <h4 className="font-semibold text-orange-800 mb-3">📱 Transfert Orange Money</h4>
+                          <h4 className="font-semibold text-orange-800 mb-3">📱 {t('payment.subscription.orangeTransfer')}</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Bénéficiaire:</span>
+                              <span className="text-gray-600">{t('payment.subscription.beneficiary')}</span>
                               <span className="font-medium">ABANDA AKAK</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Numéro:</span>
+                              <span className="text-gray-600">{t('payment.subscription.number')}</span>
                               <span className="font-medium text-orange-600">677 004 011</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Montant:</span>
+                              <span className="text-gray-600">{t('payment.subscription.amount')}</span>
                               <span className="font-medium text-green-600">{selectedPlan.price.toLocaleString()} XAF</span>
                             </div>
                           </div>
                           <div className="mt-3 text-xs text-orange-700 bg-orange-100 p-2 rounded">
-                            💡 <strong>Code rapide:</strong> Composez #150# → 1 → 1 → 677004011 → {selectedPlan.price} XAF
+                            💡 <strong>{t('payment.subscription.quickCode')}</strong> Composez #150# → 1 → 1 → 677004011 → {selectedPlan.price} XAF
                           </div>
                         </div>
                       ) : (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                          <h4 className="font-semibold text-blue-800 mb-3">🏦 Virement bancaire</h4>
+                          <h4 className="font-semibold text-blue-800 mb-3">🏦 {t('payment.subscription.bankTransfer')}</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Bénéficiaire:</span>
+                              <span className="text-gray-600">{t('payment.subscription.beneficiary')}</span>
                               <span className="font-medium">AFRO METAVERSE MARKETING</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Banque:</span>
+                              <span className="text-gray-600">{t('payment.subscription.bank')}</span>
                               <span className="font-medium">Afriland First Bank</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">RIB complet:</span>
+                              <span className="text-gray-600">{t('payment.subscription.fullRib')}</span>
                               <span className="font-medium text-blue-600">10033 00368 31500012045 68</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Montant:</span>
+                              <span className="text-gray-600">{t('payment.subscription.amount')}</span>
                               <span className="font-medium text-green-600">{selectedPlan.price.toLocaleString()} XAF</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">Motif:</span>
-                              <span className="font-medium">Abonnement EDUCAFRIC - {selectedPlan.name}</span>
+                              <span className="text-gray-600">{t('payment.subscription.reason')}</span>
+                              <span className="font-medium">{t('payment.subscription.subscriptionPrefix')} {selectedPlan.name}</span>
                             </div>
                           </div>
                           <div className="mt-3 text-xs text-blue-700 bg-blue-100 p-2 rounded">
-                            🏦 <strong>Détails:</strong> Code banque: 10033 | Code guichet: 00368 | N° compte: 31500012045 | Clé: 68
+                            🏦 <strong>{t('payment.subscription.bankDetails')}</strong> Code banque: 10033 | Code guichet: 00368 | N° compte: 31500012045 | Clé: 68
                           </div>
                         </div>
                       )}
                       <div className="bg-white rounded-lg p-4 border border-green-200">
-                        <h4 className="font-semibold text-gray-900 mb-2">📧 Prochaines étapes :</h4>
+                        <h4 className="font-semibold text-gray-900 mb-2">📧 {t('payment.subscription.nextSteps')}</h4>
                         <ol className="text-left text-sm text-gray-700 space-y-2">
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">1.</span>
-                            Effectuez le {selectedPaymentMethod === 'orange_money' ? 'transfert Orange Money' : 'virement bancaire'} selon les instructions ci-dessus
+                            {t('payment.subscription.step1Transfer')} {selectedPaymentMethod === 'orange_money' ? t('payment.subscription.step1Orange') : t('payment.subscription.step1Bank')} {t('payment.subscription.step1According')}
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">2.</span>
-                            Envoyez-nous {selectedPaymentMethod === 'orange_money' ? 'une capture d\'écran du SMS de confirmation' : 'le reçu bancaire'} à <strong>support@educafric.com</strong>
+                            {t('payment.subscription.step2Send')} {selectedPaymentMethod === 'orange_money' ? t('payment.subscription.step2Screenshot') : t('payment.subscription.step2Receipt')} {t('payment.subscription.step2Email')} <strong>support@educafric.com</strong>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">3.</span>
-                            Notre équipe validera votre paiement et activera votre abonnement sous {selectedPaymentMethod === 'orange_money' ? '2-4 heures' : '1-2 jours ouvrables'}
+                            {t('payment.subscription.step3Validate')} {selectedPaymentMethod === 'orange_money' ? t('payment.subscription.step3Orange') : t('payment.subscription.step3Bank')}
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="font-semibold text-green-600">4.</span>
-                            Vous recevrez une notification de confirmation par email et SMS
+                            {t('payment.subscription.step4Notification')}
                           </li>
                         </ol>
                       </div>
@@ -700,7 +700,7 @@ const Subscribe: React.FC = () => {
                   
                   <div className="text-center">
                     <p className="text-gray-600 mb-4">
-                      Besoin d'aide ? Contactez notre support
+                      {t('payment.subscription.needHelp')}
                     </p>
                     <div className="flex justify-center gap-4">
                       <Button variant="outline" className="flex items-center gap-2">
