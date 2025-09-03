@@ -354,11 +354,13 @@ const BilingualTranscriptGenerator: React.FC = () => {
                   <SelectValue placeholder={t.class.select} />
                 </SelectTrigger>
                 <SelectContent>
-                  {classesData.map((classe: any) => (
-                    <SelectItem key={classe.id} value={classe.name}>
-                      {classe.name} ({classe.currentStudents} élèves)
-                    </SelectItem>
-                  ))}
+                  {classesData
+                    .filter((classe: any) => classe.name && classe.name.trim() !== '')
+                    .map((classe: any) => (
+                      <SelectItem key={classe.id} value={classe.name}>
+                        {classe.name} ({classe.currentStudents || 0} élèves)
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -379,7 +381,10 @@ const BilingualTranscriptGenerator: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {studentsData
-                      .filter((student: any) => !selectedClass || student.className === selectedClass)
+                      .filter((student: any) => 
+                        student.id && student.firstName && student.lastName &&
+                        (!selectedClass || student.className === selectedClass)
+                      )
                       .map((student: any) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
                           {student.firstName} {student.lastName} - {student.className}
