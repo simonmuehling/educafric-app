@@ -12,8 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap, UserCheck
+  Eye, X, Mail, Phone, GraduationCap, UserCheck, Upload
 } from 'lucide-react';
+import ImportModal from '../ImportModal';
 
 interface Teacher {
   id: number;
@@ -42,6 +43,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [isAddTeacherOpen, setIsAddTeacherOpen] = useState(false);
   const [isEditTeacherOpen, setIsEditTeacherOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [teacherForm, setTeacherForm] = useState({
     name: '',
@@ -339,14 +341,24 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
           <p className="text-gray-500">{text.description}</p>
         </div>
-        <Button 
-          onClick={() => setIsAddTeacherOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-          data-testid="button-add-teacher"
-        >
-          <UserPlus className="w-4 h-4 mr-2" />
-          {text.addTeacher}
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+            data-testid="button-import-teachers"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Importer' : 'Import'}
+          </Button>
+          <Button 
+            onClick={() => setIsAddTeacherOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="button-add-teacher"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            {text.addTeacher}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -762,6 +774,17 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        importType="teachers"
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+          setIsImportModalOpen(false);
+        }}
+      />
     </div>
   );
 };

@@ -1,8 +1,31 @@
 import { Router } from 'express';
 import { storage } from '../storage';
 import * as bcrypt from 'bcryptjs';
+import multer from 'multer';
+import { excelImportService } from '../services/excelImportService';
 
 const router = Router();
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Format de fichier non supporté. Utilisez Excel (.xlsx) ou CSV.'));
+    }
+  }
+});
 
 // Middleware to require authentication
 function requireAuth(req: any, res: any, next: any) {
@@ -974,6 +997,151 @@ router.post('/auto-fix-duplications', requireAuth, requireAdmin, async (req, res
   } catch (error) {
     console.error('[ADMIN_API] Error in auto-fix duplications:', error);
     res.status(500).json({ success: false, message: 'Failed to auto-fix duplications' });
+  }
+});
+
+// ===== ROUTES D'IMPORT EXCEL/CSV =====
+
+// Download template files
+router.get('/import/template/:type', requireAuth, requireAdmin, (req, res) => {
+  try {
+    const { type } = req.params;
+    
+    if (!['teachers', 'students', 'parents'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Type de template non supporté'
+      });
+    }
+    
+    const buffer = excelImportService.generateTemplate(type as 'teachers' | 'students' | 'parents');
+    
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="template_${type}.xlsx"`
+    });
+    
+    res.send(buffer);
+  } catch (error) {
+    console.error('[TEMPLATE_DOWNLOAD] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la génération du template'
+    });
+  }
+});
+
+// Import teachers from Excel/CSV
+router.post('/import/teachers', requireAuth, requireAdmin, upload.single('file'), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aucun fichier fourni'
+      });
+    }
+    
+    console.log('[IMPORT_TEACHERS] Starting import...');
+    
+    // Parse file
+    const data = excelImportService.parseFile(req.file.buffer, req.file.originalname);
+    console.log(`[IMPORT_TEACHERS] Parsed ${data.length} rows`);
+    
+    // Import teachers
+    const result = await excelImportService.importTeachers(data, user.schoolId || 1, user.id);
+    
+    console.log(`[IMPORT_TEACHERS] Created ${result.created} teachers, ${result.errors.length} errors, ${result.warnings.length} warnings`);
+    
+    res.json({
+      success: result.success,
+      message: `Import terminé: ${result.created} enseignants créés`,
+      result: result
+    });
+    
+  } catch (error) {
+    console.error('[IMPORT_TEACHERS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Erreur lors de l'import: ${error.message}`
+    });
+  }
+});
+
+// Import students from Excel/CSV
+router.post('/import/students', requireAuth, requireAdmin, upload.single('file'), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aucun fichier fourni'
+      });
+    }
+    
+    console.log('[IMPORT_STUDENTS] Starting import...');
+    
+    // Parse file
+    const data = excelImportService.parseFile(req.file.buffer, req.file.originalname);
+    console.log(`[IMPORT_STUDENTS] Parsed ${data.length} rows`);
+    
+    // Import students
+    const result = await excelImportService.importStudents(data, user.schoolId || 1, user.id);
+    
+    console.log(`[IMPORT_STUDENTS] Created ${result.created} students, ${result.errors.length} errors, ${result.warnings.length} warnings`);
+    
+    res.json({
+      success: result.success,
+      message: `Import terminé: ${result.created} élèves créés`,
+      result: result
+    });
+    
+  } catch (error) {
+    console.error('[IMPORT_STUDENTS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Erreur lors de l'import: ${error.message}`
+    });
+  }
+});
+
+// Import parents from Excel/CSV
+router.post('/import/parents', requireAuth, requireAdmin, upload.single('file'), async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Aucun fichier fourni'
+      });
+    }
+    
+    console.log('[IMPORT_PARENTS] Starting import...');
+    
+    // Parse file
+    const data = excelImportService.parseFile(req.file.buffer, req.file.originalname);
+    console.log(`[IMPORT_PARENTS] Parsed ${data.length} rows`);
+    
+    // Import parents
+    const result = await excelImportService.importParents(data, user.schoolId || 1, user.id);
+    
+    console.log(`[IMPORT_PARENTS] Created ${result.created} parents, ${result.errors.length} errors, ${result.warnings.length} warnings`);
+    
+    res.json({
+      success: result.success,
+      message: `Import terminé: ${result.created} parents créés`,
+      result: result
+    });
+    
+  } catch (error) {
+    console.error('[IMPORT_PARENTS] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Erreur lors de l'import: ${error.message}`
+    });
   }
 });
 
