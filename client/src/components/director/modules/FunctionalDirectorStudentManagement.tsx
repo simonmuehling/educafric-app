@@ -45,6 +45,12 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    gender: 'all',
+    class: 'all'
+  });
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -77,6 +83,38 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
   // Extract students array from API response
   const students = studentsData?.students || studentsData || [];
+
+  // Export function
+  const handleExportStudents = () => {
+    if (!students || students.length === 0) {
+      toast({
+        title: language === 'fr' ? 'Aucune donnée à exporter' : 'No data to export',
+        description: language === 'fr' ? 'Ajoutez des élèves avant d\'exporter' : 'Add students before exporting',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const csvHeaders = language === 'fr' ? 
+      'Nom,Email,Classe,Statut,Parent,Téléphone Parent' :
+      'Name,Email,Class,Status,Parent,Parent Phone';
+    
+    const csvData = students.map(student => 
+      `"${student.firstName} ${student.lastName}","${student.email}","${student.className}","${student.status}","${student.parentName}","${student.parentPhone}"`
+    ).join('\n');
+    
+    const csv = `${csvHeaders}\n${csvData}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `eleves_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast({
+      title: language === 'fr' ? '📊 Export réussi !' : '📊 Export Successful!',
+      description: language === 'fr' ? 'Liste des élèves exportée' : 'Student list exported'
+    });
+  };
 
   // Create student mutation
   const createStudentMutation = useMutation({
@@ -235,7 +273,13 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                          lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = selectedClass === 'all' || className === selectedClass;
-    return matchesSearch && matchesClass;
+    
+    // Appliquer les filtres avancés
+    const matchesStatus = filters.status === 'all' || student.status === filters.status;
+    const matchesGender = filters.gender === 'all' || student.gender === filters.gender;
+    const matchesFilterClass = filters.class === 'all' || className === filters.class;
+    
+    return matchesSearch && matchesClass && matchesStatus && matchesGender && matchesFilterClass;
   }) : [];
 
   const stats = {
@@ -689,18 +733,102 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Liste des Élèves</h3>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleExportStudents}
+                data-testid="button-export-students"
+              >
                 <Download className="w-4 h-4 mr-2" />
-                Exporter
+                {language === 'fr' ? 'Exporter' : 'Export'}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                data-testid="button-filter-students"
+              >
                 <Filter className="w-4 h-4 mr-2" />
-                Filtrer
+                {language === 'fr' ? 'Filtrer' : 'Filter'}
               </Button>
             </div>
           </div>
         </CardHeader>
         
+        {/* Filter Panel */}
+        {isFilterOpen && (
+          <div className="border-b px-6 py-4 bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Statut' : 'Status'}
+                </Label>
+                <Select 
+                  value={filters.status} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                    <SelectItem value="active">{language === 'fr' ? 'Actif' : 'Active'}</SelectItem>
+                    <SelectItem value="suspended">{language === 'fr' ? 'Suspendu' : 'Suspended'}</SelectItem>
+                    <SelectItem value="graduated">{language === 'fr' ? 'Diplômé' : 'Graduated'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Genre' : 'Gender'}
+                </Label>
+                <Select 
+                  value={filters.gender} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, gender: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                    <SelectItem value="male">{language === 'fr' ? 'Garçon' : 'Male'}</SelectItem>
+                    <SelectItem value="female">{language === 'fr' ? 'Fille' : 'Female'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Classe' : 'Class'}
+                </Label>
+                <Select 
+                  value={filters.class} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, class: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                    <SelectItem value="6ème A">6ème A</SelectItem>
+                    <SelectItem value="6ème B">6ème B</SelectItem>
+                    <SelectItem value="5ème A">5ème A</SelectItem>
+                    <SelectItem value="4ème A">4ème A</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setFilters({ status: 'all', gender: 'all', class: 'all' })}
+              >
+                {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">

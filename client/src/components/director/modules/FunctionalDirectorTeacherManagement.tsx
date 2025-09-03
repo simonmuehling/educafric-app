@@ -45,6 +45,12 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const [isEditTeacherOpen, setIsEditTeacherOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    gender: 'all',
+    subject: 'all',
+    experience: 'all'
+  });
   const [teacherForm, setTeacherForm] = useState({
     name: '',
     email: '',
@@ -73,6 +79,38 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
 
   // Extract teachers array from API response
   const teachers = teachersData?.teachers || teachersData || [];
+
+  // Export function
+  const handleExportTeachers = () => {
+    if (!teachers || teachers.length === 0) {
+      toast({
+        title: language === 'fr' ? 'Aucune donnée à exporter' : 'No data to export',
+        description: language === 'fr' ? 'Ajoutez des enseignants avant d\'exporter' : 'Add teachers before exporting',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const csvHeaders = language === 'fr' ? 
+      'Nom,Email,Téléphone,Matières,Classes,Genre' :
+      'Name,Email,Phone,Subjects,Classes,Gender';
+    
+    const csvData = teachers.map(teacher => 
+      `"${teacher.firstName} ${teacher.lastName}","${teacher.email}","${teacher.phone}","${teacher.teachingSubjects}","${teacher.classes}","${teacher.gender}"`
+    ).join('\n');
+    
+    const csv = `${csvHeaders}\n${csvData}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `enseignants_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast({
+      title: language === 'fr' ? '📊 Export réussi !' : '📊 Export Successful!',
+      description: language === 'fr' ? 'Liste des enseignants exportée' : 'Teacher list exported'
+    });
+  };
 
   // Create teacher mutation
   const createTeacherMutation = useMutation({
@@ -240,7 +278,16 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = selectedSubject === 'all' || teachingSubjects.includes(selectedSubject);
-    return matchesSearch && matchesSubject;
+    
+    // Appliquer les filtres avancés
+    const matchesGender = filters.gender === 'all' || teacher.gender === filters.gender;
+    const matchesFilterSubject = filters.subject === 'all' || teachingSubjects.includes(filters.subject);
+    const matchesExperience = filters.experience === 'all' || 
+      (filters.experience === 'junior' && (teacher.experience || 0) <= 3) ||
+      (filters.experience === 'senior' && (teacher.experience || 0) > 3 && (teacher.experience || 0) <= 10) ||
+      (filters.experience === 'expert' && (teacher.experience || 0) > 10);
+    
+    return matchesSearch && matchesSubject && matchesGender && matchesFilterSubject && matchesExperience;
   }) : [];
   
   // Extract unique subjects from all teachers for dynamic filter
@@ -712,18 +759,103 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Personnel Enseignant</h3>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleExportTeachers}
+                data-testid="button-export-teachers"
+              >
                 <Download className="w-4 h-4 mr-2" />
-                Exporter
+                {language === 'fr' ? 'Exporter' : 'Export'}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                data-testid="button-filter-teachers"
+              >
                 <Filter className="w-4 h-4 mr-2" />
-                Filtrer
+                {language === 'fr' ? 'Filtrer' : 'Filter'}
               </Button>
             </div>
           </div>
         </CardHeader>
         
+        {/* Filter Panel */}
+        {isFilterOpen && (
+          <div className="border-b px-6 py-4 bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Genre' : 'Gender'}
+                </Label>
+                <Select 
+                  value={filters.gender} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, gender: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Tous' : 'All'}</SelectItem>
+                    <SelectItem value="M">{language === 'fr' ? 'Homme' : 'Male'}</SelectItem>
+                    <SelectItem value="F">{language === 'fr' ? 'Femme' : 'Female'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Matière' : 'Subject'}
+                </Label>
+                <Select 
+                  value={filters.subject} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, subject: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                    <SelectItem value="Mathématiques">Mathématiques</SelectItem>
+                    <SelectItem value="Français">Français</SelectItem>
+                    <SelectItem value="Anglais">Anglais</SelectItem>
+                    <SelectItem value="Sciences">Sciences</SelectItem>
+                    <SelectItem value="Histoire">Histoire</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Expérience' : 'Experience'}
+                </Label>
+                <Select 
+                  value={filters.experience} 
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, experience: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{language === 'fr' ? 'Toutes' : 'All'}</SelectItem>
+                    <SelectItem value="junior">{language === 'fr' ? 'Junior (0-3 ans)' : 'Junior (0-3 years)'}</SelectItem>
+                    <SelectItem value="senior">{language === 'fr' ? 'Senior (3-10 ans)' : 'Senior (3-10 years)'}</SelectItem>
+                    <SelectItem value="expert">{language === 'fr' ? 'Expert (10+ ans)' : 'Expert (10+ years)'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setFilters({ gender: 'all', subject: 'all', experience: 'all' })}
+              >
+                {language === 'fr' ? 'Réinitialiser' : 'Reset'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">
