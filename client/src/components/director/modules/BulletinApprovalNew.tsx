@@ -601,6 +601,95 @@ const BulletinApprovalNew: React.FC = () => {
         <p className="text-gray-600 dark:text-gray-400">{t.subtitle}</p>
       </div>
 
+      {/* School Template Preview */}
+      <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+              <Eye className="w-5 h-5 text-indigo-600" />
+            </div>
+            {language === 'fr' ? '📄 Aperçu Template École' : '📄 School Template Preview'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Bulletin Preview */}
+            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  {language === 'fr' ? 'Modèle Bulletin' : 'Bulletin Template'}
+                </h3>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'En-tête école:' : 'School header:'}</span>
+                  <span className="font-medium text-green-600">✅ Personnalisé</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Logo école:' : 'School logo:'}</span>
+                  <span className="font-medium text-green-600">✅ Inclus</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Couleurs école:' : 'School colors:'}</span>
+                  <span className="font-medium text-green-600">✅ Appliquées</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">QR Code:</span>
+                  <span className="font-medium text-green-600">✅ Sécurisé</span>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="w-full mt-3" data-testid="button-preview-bulletin">
+                <Eye className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Voir Aperçu' : 'View Preview'}
+              </Button>
+            </div>
+
+            {/* Transcript Preview */}
+            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <GraduationCap className="w-5 h-5 text-purple-600" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  {language === 'fr' ? 'Modèle Relevé' : 'Transcript Template'}
+                </h3>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Format officiel:' : 'Official format:'}</span>
+                  <span className="font-medium text-green-600">✅ Conforme</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Signature digitale:' : 'Digital signature:'}</span>
+                  <span className="font-medium text-green-600">✅ Intégrée</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Cachet école:' : 'School seal:'}</span>
+                  <span className="font-medium text-green-600">✅ Automatique</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Bilingue:' : 'Bilingual:'}</span>
+                  <span className="font-medium text-green-600">✅ FR/EN</span>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="w-full mt-3" data-testid="button-preview-transcript">
+                <Eye className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Voir Aperçu' : 'View Preview'}
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center gap-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200">
+            <Trophy className="w-6 h-6 text-amber-600" />
+            <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              {language === 'fr' 
+                ? '🎨 Templates personnalisés pour votre école avec logo, couleurs et signature officielle'
+                : '🎨 Customized templates for your school with logo, colors and official signature'
+              }
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>

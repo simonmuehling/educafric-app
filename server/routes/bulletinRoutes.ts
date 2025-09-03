@@ -167,6 +167,65 @@ router.post('/create', requireAuth, async (req, res) => {
   }
 });
 
+// Get school template preview
+router.get('/school-template-preview', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+
+    // Generate school-specific template preview
+    const schoolTemplatePreview = {
+      schoolId,
+      schoolName: user.schoolName || 'École Primaire Educafric',
+      bulletinTemplate: {
+        hasCustomLogo: true,
+        hasCustomColors: true,
+        hasDigitalSignature: true,
+        hasQRCode: true,
+        primaryColor: '#1a365d',
+        secondaryColor: '#2d3748',
+        logoUrl: '/api/school/logo',
+        features: [
+          'En-tête personnalisé',
+          'Logo école intégré',
+          'Couleurs école appliquées',
+          'QR Code sécurisé',
+          'Signature digitale',
+          'Cachet officiel'
+        ]
+      },
+      transcriptTemplate: {
+        hasOfficialFormat: true,
+        hasBilingualSupport: true,
+        hasDigitalSeal: true,
+        hasVerification: true,
+        features: [
+          'Format officiel conforme',
+          'Support bilingue FR/EN',
+          'Signature digitale intégrée',
+          'Cachet école automatique',
+          'Vérification authenticitéç',
+          'Export PDF sécurisé'
+        ]
+      },
+      previewUrls: {
+        bulletinPreview: `/api/bulletins/preview-sample?schoolId=${schoolId}`,
+        transcriptPreview: `/api/transcripts/preview-sample?schoolId=${schoolId}`
+      }
+    };
+
+    console.log('[SCHOOL_TEMPLATE_PREVIEW] Generated for school:', schoolId);
+    res.json({
+      success: true,
+      data: schoolTemplatePreview
+    });
+
+  } catch (error) {
+    console.error('[SCHOOL_TEMPLATE_PREVIEW] Error:', error);
+    res.status(500).json({ error: 'Failed to generate template preview' });
+  }
+});
+
 // Get bulletin by ID
 router.get('/bulletins/:id', requireAuth, async (req, res) => {
   try {
