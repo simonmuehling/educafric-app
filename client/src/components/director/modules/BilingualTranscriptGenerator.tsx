@@ -176,12 +176,17 @@ const BilingualTranscriptGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      // Mock bulletin data for demonstration
+      // Enhanced bulletin data with student photo and official details
       const bulletinData = {
         student: {
           id: selectedStudent?.id || 1,
-          name: selectedStudent?.firstName + ' ' + selectedStudent?.lastName || 'Élève Test',
-          class: selectedClass || 'Classe Test'
+          name: selectedStudent?.firstName + ' ' + selectedStudent?.lastName || 'MBIDA Jean-Paul',
+          class: selectedClass || '6ème A',
+          photoUrl: selectedStudent?.photoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+          birthDate: selectedStudent?.birthDate || '15/03/2010',
+          studentId: selectedStudent?.studentId || 'ELV2024001',
+          nationality: selectedStudent?.nationality || 'Camerounaise',
+          parentName: selectedStudent?.parentName || 'MBIDA Marie-Claire'
         },
         subjects: [
           { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Dupont', comment: 'Excellent travail' },

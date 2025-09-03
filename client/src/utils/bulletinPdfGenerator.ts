@@ -5,6 +5,11 @@ interface Student {
   id: number;
   name: string;
   class: string;
+  photoUrl?: string;
+  birthDate?: string;
+  studentId?: string;
+  nationality?: string;
+  parentName?: string;
 }
 
 interface Subject {
@@ -76,13 +81,18 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   const primaryRgb = hexToRgb(primaryColor);
   const secondaryRgb = hexToRgb(secondaryColor);
 
-  // Text labels
+  // Enhanced bilingual text labels for official transcripts
   const text = {
     fr: {
       title: 'BULLETIN SCOLAIRE',
-      student: 'Élève',
+      officialTranscript: 'RELEVÉ DE NOTES OFFICIEL',
+      student: 'Nom de l\'élève',
       class: 'Classe',
       period: 'Période',
+      birthDate: 'Date de naissance',
+      studentId: 'N° Matricule',
+      nationality: 'Nationalité',
+      parentName: 'Nom du parent/tuteur',
       academicYear: 'Année Scolaire',
       subjects: 'Matières',
       subject: 'Matière',
@@ -105,9 +115,14 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     },
     en: {
       title: 'SCHOOL REPORT CARD',
-      student: 'Student',
+      officialTranscript: 'OFFICIAL ACADEMIC TRANSCRIPT',
+      student: 'Student Name',
       class: 'Class',
       period: 'Period',
+      birthDate: 'Date of Birth',
+      studentId: 'Student ID',
+      nationality: 'Nationality',
+      parentName: 'Parent/Guardian Name',
       academicYear: 'Academic Year',
       subjects: 'Subjects',
       subject: 'Subject',
@@ -142,59 +157,118 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     });
   }
 
-  // Header with school logo
+  // === OFFICIAL HEADER SECTION ===
   pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  pdf.setFontSize(20);
+  pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
 
+  // School header with logo on left
   if (data.schoolBranding?.logoUrl) {
     try {
-      // Load and add school logo
       const logoImg = new Image();
       logoImg.src = data?.schoolBranding?.logoUrl;
       await new Promise((resolve) => {
         logoImg.onload = resolve;
-        logoImg.onerror = resolve; // Continue even if logo fails to load
+        logoImg.onerror = resolve;
       });
       
       if (logoImg.complete) {
-        const logoSize = 25;
+        const logoSize = 30;
         pdf.addImage(logoImg, 'PNG', margin, yPosition, logoSize, logoSize);
-        pdf.text(data?.schoolBranding?.schoolName || 'École', margin + logoSize + 10, yPosition + 15);
       }
     } catch (error) {
       console.error('Error loading school logo:', error);
-      pdf.text(data?.schoolBranding?.schoolName || 'École', margin, yPosition + 15);
     }
-  } else {
-    pdf.text(data.schoolBranding?.schoolName || 'École', margin, yPosition + 15);
   }
 
-  yPosition += 35;
-
-  // Document title
-  pdf.setFontSize(18);
-  pdf.text(t.title, pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 15;
-
-  // Student information section
+  // School name and info (centered)
+  pdf.setFontSize(16);
+  pdf.text(data.schoolBranding?.schoolName || 'ÉCOLE SECONDAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
   pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'normal');
+  pdf.text('RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON', pageWidth / 2, yPosition + 15, { align: 'center' });
+  pdf.text('Paix - Travail - Patrie / Peace - Work - Fatherland', pageWidth / 2, yPosition + 22, { align: 'center' });
+
+  // Student photo on right
+  let studentPhotoLoaded = false;
+  if (data.student?.photoUrl) {
+    try {
+      const photoImg = new Image();
+      photoImg.src = data.student.photoUrl;
+      await new Promise((resolve) => {
+        photoImg.onload = resolve;
+        photoImg.onerror = resolve;
+      });
+      
+      if (photoImg.complete) {
+        const photoSize = 35;
+        const photoX = pageWidth - margin - photoSize;
+        // Draw border for photo
+        pdf.setDrawColor(0, 0, 0);
+        pdf.rect(photoX - 2, yPosition - 2, photoSize + 4, photoSize + 4);
+        pdf.addImage(photoImg, 'JPEG', photoX, yPosition, photoSize, photoSize);
+        studentPhotoLoaded = true;
+      }
+    } catch (error) {
+      console.error('Error loading student photo:', error);
+    }
+  }
+  
+  // If no photo loaded, draw placeholder
+  if (!studentPhotoLoaded) {
+    const photoSize = 35;
+    const photoX = pageWidth - margin - photoSize;
+    pdf.setDrawColor(0, 0, 0);
+    pdf.rect(photoX - 2, yPosition - 2, photoSize + 4, photoSize + 4);
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('PHOTO', photoX + photoSize/2, yPosition + photoSize/2, { align: 'center' });
+    pdf.text('ÉLÈVE', photoX + photoSize/2, yPosition + photoSize/2 + 5, { align: 'center' });
+  }
+
+  yPosition += 45;
+
+  // Document title (official transcript)
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(t.title, pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 8;
+  pdf.setFontSize(14);
+  pdf.text(t.officialTranscript, pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 20;
+
+  // === OFFICIAL STUDENT INFORMATION SECTION ===
+  pdf.setFillColor(240, 240, 240);
+  pdf.rect(margin, yPosition, pageWidth - 2 * margin, 40, 'F');
+  
   pdf.setTextColor(0, 0, 0);
-
-  const studentInfo = [
-    `${t.student}: ${data?.student?.name}`,
-    `${t.class}: ${data?.student?.class}`,
-    `${t.period}: ${data.period}`,
-    `${t.academicYear}: ${data.academicYear}`
-  ];
-
-  studentInfo.forEach((info) => {
-    pdf.text(info, margin, yPosition);
-    yPosition += 8;
-  });
-
-  yPosition += 10;
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  
+  // Left column - Student details
+  const leftColX = margin + 5;
+  const rightColX = pageWidth / 2 + 10;
+  
+  pdf.text(`${t.student}: ${data?.student?.name || 'N/A'}`, leftColX, yPosition + 8);
+  pdf.text(`${t.class}: ${data?.student?.class || 'N/A'}`, leftColX, yPosition + 16);
+  pdf.text(`${t.period}: ${data.period || 'N/A'}`, leftColX, yPosition + 24);
+  pdf.text(`${t.academicYear}: ${data.academicYear || 'N/A'}`, leftColX, yPosition + 32);
+  
+  // Right column - Additional student info
+  if (data.student?.birthDate) {
+    pdf.text(`${t.birthDate}: ${data.student.birthDate}`, rightColX, yPosition + 8);
+  }
+  if (data.student?.studentId) {
+    pdf.text(`${t.studentId}: ${data.student.studentId}`, rightColX, yPosition + 16);
+  }
+  if (data.student?.nationality) {
+    pdf.text(`${t.nationality}: ${data.student.nationality}`, rightColX, yPosition + 24);
+  }
+  if (data.student?.parentName) {
+    pdf.text(`${t.parentName}: ${data.student.parentName}`, rightColX, yPosition + 32);
+  }
+  
+  yPosition += 50;
 
   // Subjects table header
   pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
