@@ -44,12 +44,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     name: '',
     email: '',
     phone: '',
-    subjects: '',
+    gender: '',
+    matricule: '',
+    teachingSubjects: '',
     classes: '',
-    experience: '',
-    qualification: '',
-    schedule: '',
-    salary: ''
+    schedule: ''
   });
 
   // Fetch teachers data from PostgreSQL API
