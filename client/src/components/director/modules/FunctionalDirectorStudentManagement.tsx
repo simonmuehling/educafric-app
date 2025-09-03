@@ -221,7 +221,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   };
 
-  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(student => {
+  const filteredStudents = Array.isArray(students) ? students.filter(student => {
     if (!student) return false;
     const firstName = student.firstName || '';
     const lastName = student.lastName || '';
@@ -236,10 +236,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   }) : [];
 
   const stats = {
-    totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,
-    activeStudents: Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(s => s && s.status === 'active').length : 0,
-    averageGrade: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.average || 0), 0) / (Array.isArray(students) ? students.length : 0) * 10) / 10 : 0,
-    averageAttendance: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.attendance || 0), 0) / (Array.isArray(students) ? students.length : 0)) : 0
+    totalStudents: students.length,
+    activeStudents: students.filter(s => s && s.status === 'active').length,
+    averageGrade: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.average || 0), 0) / students.length * 10) / 10 : 0,
+    averageAttendance: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.attendance || 0), 0) / students.length) : 0
   };
 
   const text = language === 'fr' ? {
