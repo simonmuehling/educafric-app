@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,9 @@ const ClassManagement: React.FC = () => {
   const [isRoomManagementOpen, setIsRoomManagementOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [newRoomName, setNewRoomName] = useState('');
+  
+  // Ref for triggering dialogs from quick actions
+  const createClassTriggerRef = useRef<HTMLButtonElement>(null);
 
   const text = {
     fr: {
@@ -453,7 +456,10 @@ const ClassManagement: React.FC = () => {
               {/* Create Class Dialog */}
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button 
+                    ref={createClassTriggerRef}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     {String(t?.actions?.addClass) || "N/A"}
                   </Button>
@@ -564,13 +570,44 @@ const ClassManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <Label>{String(t?.form?.room) || "N/A"}</Label>
-                    <Input
-                      value={String(newClass?.room) || "N/A"}
-                      onChange={(e) => setNewClass({...newClass, room: e?.target?.value})}
-                      placeholder="Salle 101"
-                      className="bg-white border-gray-300"
-                    />
+                    <Label>{String(t?.form?.room) || "Salle"}</Label>
+                    <Select 
+                      value={newClass.room || ''} 
+                      onValueChange={(value) => {
+                        console.log('[CLASS_MANAGEMENT] 🏢 Room selected:', value);
+                        setNewClass({...newClass, room: value});
+                      }}
+                      disabled={isLoadingRooms}
+                    >
+                      <SelectTrigger className="bg-white border-gray-300">
+                        <SelectValue placeholder={
+                          isLoadingRooms 
+                            ? "Chargement des salles..." 
+                            : roomsData.length === 0 
+                              ? "Aucune salle disponible"
+                              : "Sélectionner une salle (optionnel)"
+                        } />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="">Aucune salle assignée</SelectItem>
+                        {isLoadingRooms ? (
+                          <SelectItem value="disabled-option" disabled>
+                            Chargement des salles...
+                          </SelectItem>
+                        ) : roomsData.length === 0 ? (
+                          <SelectItem value="disabled-option" disabled>
+                            Aucune salle trouvée - Utilisez "Gérer Salles" pour en ajouter
+                          </SelectItem>
+                        ) : (
+                          roomsData.filter((room: any) => !room.isOccupied).map((room: any) => (
+                            <SelectItem key={String(room?.id) || "N/A"} value={room?.name}>
+                              {room?.name} 
+                              {room.capacity && ` (${language === 'fr' ? 'Capacité' : 'Capacity'}: ${room.capacity})`}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button 
@@ -695,13 +732,45 @@ const ClassManagement: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <Label>{String(t?.form?.room) || "N/A"}</Label>
-                    <Input
-                      value={selectedClass?.room || ''}
-                      onChange={(e) => setSelectedClass({...selectedClass, room: e?.target?.value})}
-                      placeholder="Salle 101"
-                      className="bg-white border-gray-300"
-                    />
+                    <Label>{String(t?.form?.room) || "Salle"}</Label>
+                    <Select 
+                      value={selectedClass?.room || ''} 
+                      onValueChange={(value) => {
+                        console.log('[CLASS_MANAGEMENT] 🏢 Room updated:', value);
+                        setSelectedClass({...selectedClass, room: value});
+                      }}
+                      disabled={isLoadingRooms}
+                    >
+                      <SelectTrigger className="bg-white border-gray-300">
+                        <SelectValue placeholder={
+                          isLoadingRooms 
+                            ? "Chargement des salles..." 
+                            : roomsData.length === 0 
+                              ? "Aucune salle disponible"
+                              : "Sélectionner une salle (optionnel)"
+                        } />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="">Aucune salle assignée</SelectItem>
+                        {isLoadingRooms ? (
+                          <SelectItem value="disabled-option" disabled>
+                            Chargement des salles...
+                          </SelectItem>
+                        ) : roomsData.length === 0 ? (
+                          <SelectItem value="disabled-option" disabled>
+                            Aucune salle trouvée
+                          </SelectItem>
+                        ) : (
+                          roomsData.map((room: any) => (
+                            <SelectItem key={String(room?.id) || "N/A"} value={room?.name}>
+                              {room?.name} 
+                              {room.capacity && ` (${language === 'fr' ? 'Capacité' : 'Capacity'}: ${room.capacity})`}
+                              {room.isOccupied && room.name !== selectedClass?.room && ' - Occupée'}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button 
@@ -800,7 +869,10 @@ const ClassManagement: React.FC = () => {
                   id: 'create-class',
                   label: language === 'fr' ? 'Créer Classe' : 'Create Class',
                   icon: <Plus className="w-5 h-5" />,
-                  onClick: () => setShowCreateModal(true),
+                  onClick: () => {
+                    console.log('[CLASS_MANAGEMENT] ➕ Quick action: Creating class...');
+                    createClassTriggerRef.current?.click();
+                  },
                   color: 'bg-blue-600 hover:bg-blue-700'
                 },
                 {
