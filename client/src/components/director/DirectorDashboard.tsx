@@ -12,6 +12,7 @@ import {
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 import NotificationCenter from '@/components/shared/NotificationCenter';
+import BulletinApprovalNew from '@/components/director/modules/BulletinApprovalNew';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -77,7 +78,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   
   // FORCE IMMEDIATE preload of critical slow modules - Director specific
   React.useEffect(() => {
-    const criticalModules = ['overview', 'teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications', 'bulletin-validation'];
+    const criticalModules = ['overview', 'teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -395,7 +396,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.bulletins,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createDynamicModule('bulletin-validation')
+      component: <BulletinApprovalNew />
     },
     {
       id: 'notifications',
