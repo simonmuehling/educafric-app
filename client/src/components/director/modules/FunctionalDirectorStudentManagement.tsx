@@ -14,7 +14,7 @@ import {
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
   Eye, X, Mail, Phone, GraduationCap, Upload, Camera
 } from 'lucide-react';
-import { ImportModal } from '../ImportModal';
+import ImportModal from '../ImportModal';
 
 interface Student {
   id: number;
