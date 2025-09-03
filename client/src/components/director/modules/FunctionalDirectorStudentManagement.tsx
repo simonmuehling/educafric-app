@@ -61,20 +61,17 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
 
   // Fetch students data from PostgreSQL API
-  const { data: studentsData, isLoading } = useQuery({
+  const { data: students = [], isLoading } = useQuery<Student[]>({
     queryKey: ['/api/director/students'],
     queryFn: async () => {
       const response = await fetch('/api/director/students', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch students data');
-      const data = await response.json();
-      return data;
+      return response.json();
     },
     enabled: !!user
   });
-
-  const students = studentsData?.students || [];
 
   // Create student mutation
   const createStudentMutation = useMutation({
@@ -221,7 +218,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     }
   };
 
-  const filteredStudents = Array.isArray(students) ? students.filter(student => {
+  const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(student => {
     if (!student) return false;
     const firstName = student.firstName || '';
     const lastName = student.lastName || '';
@@ -236,10 +233,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   }) : [];
 
   const stats = {
-    totalStudents: students.length,
-    activeStudents: students.filter(s => s && s.status === 'active').length,
-    averageGrade: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.average || 0), 0) / students.length * 10) / 10 : 0,
-    averageAttendance: students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.attendance || 0), 0) / students.length) : 0
+    totalStudents: Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0,
+    activeStudents: Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(s => s && s.status === 'active').length : 0,
+    averageGrade: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.average || 0), 0) / (Array.isArray(students) ? students.length : 0) * 10) / 10 : 0,
+    averageAttendance: Array.isArray(students) && students.length > 0 ? Math.round((Array.isArray(students) ? students : []).reduce((sum, s) => sum + (s.attendance || 0), 0) / (Array.isArray(students) ? students.length : 0)) : 0
   };
 
   const text = language === 'fr' ? {
@@ -328,20 +325,20 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <Button 
-            onClick={() => setIsImportModalOpen(true)}
-            className="bg-green-600 hover:bg-green-700"
-            data-testid="button-import-students"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importer
-          </Button>
-          <Button 
             onClick={() => setIsAddStudentOpen(true)}
             className="bg-blue-600 hover:bg-blue-700"
             data-testid="button-add-student"
           >
             <UserPlus className="w-4 h-4 mr-2" />
             {text.addStudent}
+          </Button>
+          <Button 
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+            data-testid="button-import-students"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importer Excel/CSV
           </Button>
         </div>
       </div>
