@@ -61,17 +61,22 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   });
 
   // Fetch students data from PostgreSQL API
-  const { data: students = [], isLoading } = useQuery<Student[]>({
+  const { data: studentsData, isLoading } = useQuery({
     queryKey: ['/api/director/students'],
     queryFn: async () => {
       const response = await fetch('/api/director/students', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch students data');
-      return response.json();
+      const data = await response.json();
+      console.log('[STUDENTS_DEBUG] API Response:', data);
+      return data;
     },
     enabled: !!user
   });
+
+  // Extract students array from API response
+  const students = studentsData?.students || studentsData || [];
 
   // Create student mutation
   const createStudentMutation = useMutation({

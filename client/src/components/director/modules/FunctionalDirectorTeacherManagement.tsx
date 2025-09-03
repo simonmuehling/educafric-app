@@ -57,7 +57,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   });
 
   // Fetch teachers data from PostgreSQL API
-  const { data: teachers = [], isLoading } = useQuery<Teacher[]>({
+  const { data: teachersData, isLoading } = useQuery({
     queryKey: ['/api/director/teachers'],
     enabled: !!user,
     queryFn: async () => {
@@ -65,9 +65,14 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch teachers');
-      return response.json();
+      const data = await response.json();
+      console.log('[TEACHERS_DEBUG] API Response:', data);
+      return data;
     }
   });
+
+  // Extract teachers array from API response
+  const teachers = teachersData?.teachers || teachersData || [];
 
   // Create teacher mutation
   const createTeacherMutation = useMutation({
