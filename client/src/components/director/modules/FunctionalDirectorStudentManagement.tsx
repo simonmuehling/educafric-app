@@ -443,20 +443,20 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <Button 
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+            data-testid="button-import-students"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Importer' : 'Import'}
+          </Button>
+          <Button 
             onClick={() => setIsAddStudentOpen(true)}
             className="bg-blue-600 hover:bg-blue-700"
             data-testid="button-add-student"
           >
             <UserPlus className="w-4 h-4 mr-2" />
             {text.addStudent}
-          </Button>
-          <Button 
-            onClick={() => setIsImportModalOpen(true)}
-            className="bg-green-600 hover:bg-green-700"
-            data-testid="button-import-students"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {language === 'fr' ? 'Importer Excel/CSV' : 'Import Excel/CSV'}
           </Button>
         </div>
       </div>
