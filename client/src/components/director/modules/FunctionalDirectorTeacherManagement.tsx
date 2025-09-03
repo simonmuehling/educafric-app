@@ -20,13 +20,16 @@ interface Teacher {
   name: string;
   email: string;
   phone: string;
-  subjects: string[];
+  gender?: string;
+  matricule?: string;
+  teachingSubjects?: string[];
+  subjects?: string[]; // Keep for backward compatibility
   classes: string[];
-  experience: number;
-  qualification: string;
   status: 'active' | 'inactive' | 'on_leave';
-  schedule: string;
-  salary: number;
+  schedule?: string;
+  experience?: number; // Keep for display compatibility
+  qualification?: string; // Keep for display compatibility
+  salary?: number; // Keep for display compatibility
 }
 
 const FunctionalDirectorTeacherManagement: React.FC = () => {
