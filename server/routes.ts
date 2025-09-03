@@ -507,6 +507,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= DIRECTOR CLASSES & STUDENTS API =============
+  
+  // Get all classes for director
+  app.get("/api/director/classes", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[DIRECTOR_CLASSES_API] GET /api/director/classes for user:', user.id);
+      
+      // Return mock classes data for director
+      const classes = [
+        { id: 1, name: '6ème A', level: '6ème', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
+        { id: 2, name: '6ème B', level: '6ème', capacity: 30, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
+        { id: 3, name: '5ème A', level: '5ème', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
+        { id: 4, name: '5ème B', level: '5ème', capacity: 28, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
+        { id: 5, name: '4ème A', level: '4ème', capacity: 32, studentCount: 30, schoolId: user.schoolId || 1, isActive: true },
+        { id: 6, name: '3ème A', level: '3ème', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true }
+      ];
+      
+      res.json({ success: true, classes });
+    } catch (error) {
+      console.error('[DIRECTOR_CLASSES_API] Error fetching classes:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch classes' });
+    }
+  });
+
+  // Get students for director (with optional class filter)
+  app.get("/api/director/students", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { classId } = req.query;
+      console.log('[DIRECTOR_STUDENTS_API] GET /api/director/students for user:', user.id, 'classId:', classId);
+      
+      // Mock students data
+      const allStudents = [
+        { id: 1, firstName: 'Jean', lastName: 'Kamga', classId: 1, className: '6ème A', email: 'jean.kamga@test.educafric.com', isActive: true },
+        { id: 2, firstName: 'Marie', lastName: 'Nkomo', classId: 1, className: '6ème A', email: 'marie.nkomo@test.educafric.com', isActive: true },
+        { id: 3, firstName: 'Paul', lastName: 'Mbarga', classId: 1, className: '6ème A', email: 'paul.mbarga@test.educafric.com', isActive: true },
+        { id: 4, firstName: 'Sophie', lastName: 'Biyaga', classId: 2, className: '6ème B', email: 'sophie.biyaga@test.educafric.com', isActive: true },
+        { id: 5, firstName: 'André', lastName: 'Fouda', classId: 2, className: '6ème B', email: 'andre.fouda@test.educafric.com', isActive: true },
+        { id: 6, firstName: 'Claire', lastName: 'Abena', classId: 3, className: '5ème A', email: 'claire.abena@test.educafric.com', isActive: true },
+        { id: 7, firstName: 'Nicolas', lastName: 'Njoya', classId: 3, className: '5ème A', email: 'nicolas.njoya@test.educafric.com', isActive: true },
+        { id: 8, firstName: 'Diane', lastName: 'Mvondo', classId: 4, className: '5ème B', email: 'diane.mvondo@test.educafric.com', isActive: true },
+        { id: 9, firstName: 'Eric', lastName: 'Tchounke', classId: 5, className: '4ème A', email: 'eric.tchounke@test.educafric.com', isActive: true },
+        { id: 10, firstName: 'Sylvie', lastName: 'Owona', classId: 6, className: '3ème A', email: 'sylvie.owona@test.educafric.com', isActive: true }
+      ];
+      
+      // Filter by class if provided
+      const students = classId ? allStudents.filter(s => s.classId == classId) : allStudents;
+      
+      res.json({ success: true, students });
+    } catch (error) {
+      console.error('[DIRECTOR_STUDENTS_API] Error fetching students:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch students' });
+    }
+  });
+
   // Teacher Messages
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {

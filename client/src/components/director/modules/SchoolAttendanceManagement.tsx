@@ -67,29 +67,35 @@ const SchoolAttendanceManagement = () => {
 
   const t = text[language as keyof typeof text];
 
-  // Fetch classes for selection
-  const { data: classes = [] } = useQuery({
-    queryKey: ['/api/classes'],
+  // Fetch classes for selection (Director API)
+  const { data: classesResponse = { classes: [] } } = useQuery({
+    queryKey: ['/api/director/classes'],
     queryFn: async () => {
-      const response = await fetch('/api/classes', {
+      const response = await fetch('/api/director/classes', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch classes');
       return response.json();
     }
   });
+  
+  const classes = classesResponse.classes || [];
 
-  // Fetch students for selected class
-  const { data: students = [] } = useQuery({
-    queryKey: ['/api/students', selectedClass],
+  // Fetch students for selected class (Director API)
+  const { data: studentsResponse = { students: [] } } = useQuery({
+    queryKey: ['/api/director/students', selectedClass],
     queryFn: async () => {
-      if (!selectedClass) return [];
-      const response = await fetch(`/api/students?classId=${selectedClass}`);
+      if (!selectedClass) return { students: [] };
+      const response = await fetch(`/api/director/students?classId=${selectedClass}`, {
+        credentials: 'include'
+      });
       if (!response.ok) throw new Error('Failed to fetch students');
       return response.json();
     },
     enabled: !!selectedClass
   });
+  
+  const students = studentsResponse.students || [];
 
   // Fetch attendance data for selected class and date
   const { data: attendanceData = [] } = useQuery({
@@ -264,7 +270,7 @@ const SchoolAttendanceManagement = () => {
               <option value="">{t.selectClass}</option>
               {(Array.isArray(classes) ? classes : []).map((classItem: any) => (
                 <option key={classItem.id} value={classItem.id}>
-                  {classItem.name || ''}
+                  {classItem.name || classItem.className || `Classe ${classItem.id}`}
                 </option>
               ))}
             </select>
@@ -275,7 +281,7 @@ const SchoolAttendanceManagement = () => {
         {selectedClass && (
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">
-              Présence - {classes.find((c: any) => c?.id?.toString() === selectedClass)?.name} - {selectedDate}
+              Présence - {classes.find((c: any) => c?.id?.toString() === selectedClass)?.name || 'Classe sélectionnée'} - {selectedDate}
             </h4>
             
             {(Array.isArray(students) ? (Array.isArray(students) ? students.length : 0) : 0) > 0 ? (
