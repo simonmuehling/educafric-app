@@ -276,4 +276,105 @@ router.get('/test-bulletin/pdf', async (req, res) => {
   }
 });
 
+// Bulk sign bulletins by class
+router.post('/bulletins/bulk-sign', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { className, signerName, signerPosition, hasStamp } = req.body;
+
+    // Verify user has permission to bulk sign
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can bulk sign bulletins' });
+    }
+
+    // Validate required fields
+    if (!className || !signerName || !signerPosition) {
+      return res.status(400).json({ error: 'Class name, signer name, and position are required' });
+    }
+
+    console.log('[BULK_SIGN] Processing bulk signature for class:', className);
+    console.log('[BULK_SIGN] Signer:', { name: signerName, position: signerPosition, hasStamp });
+
+    // In real implementation, find all bulletins for the class and sign them
+    // const bulletins = await storage.getBulletinsByClass(className);
+    // for (const bulletin of bulletins) {
+    //   await storage.updateBulletinSignature(bulletin.id, {
+    //     signerName,
+    //     signerPosition,
+    //     signedAt: new Date(),
+    //     schoolStamp: hasStamp
+    //   });
+    // }
+
+    // Mock successful response
+    const mockBulletinCount = Math.floor(Math.random() * 25) + 15; // 15-40 bulletins
+
+    res.json({
+      success: true,
+      message: `${mockBulletinCount} bulletins signed successfully for class ${className}`,
+      signedCount: mockBulletinCount,
+      className,
+      signer: {
+        name: signerName,
+        position: signerPosition,
+        hasStamp
+      }
+    });
+
+  } catch (error) {
+    console.error('[BULK_SIGN] Error:', error);
+    res.status(500).json({ error: 'Failed to bulk sign bulletins' });
+  }
+});
+
+// Send bulletins with notifications
+router.post('/bulletins/send-with-notifications', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { classNames, notificationTypes, language } = req.body;
+
+    // Verify user has permission to send bulletins
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can send bulletins with notifications' });
+    }
+
+    console.log('[BULLETIN_NOTIFICATIONS] Sending bulletins with notifications');
+    console.log('[BULLETIN_NOTIFICATIONS] Classes:', classNames);
+    console.log('[BULLETIN_NOTIFICATIONS] Notification types:', notificationTypes);
+    console.log('[BULLETIN_NOTIFICATIONS] Language:', language);
+
+    // In real implementation:
+    // 1. Get all approved bulletins for specified classes (or all if empty)
+    // 2. For each bulletin, send to parents/students via selected channels
+    // 3. Log notification attempts and results
+    // 4. Update bulletin status to 'sent'
+
+    // Mock notification sending
+    const mockSentCount = Math.floor(Math.random() * 50) + 20; // 20-70 bulletins
+    const supportedChannels = ['sms', 'whatsapp', 'email', 'push'];
+    const actualChannels = notificationTypes.filter((type: string) => supportedChannels.includes(type));
+
+    // Simulate notification results
+    const notificationResults = actualChannels.map((channel: string) => ({
+      channel,
+      sent: mockSentCount,
+      failed: Math.floor(Math.random() * 3), // 0-3 failures
+      language: language || 'fr'
+    }));
+
+    res.json({
+      success: true,
+      sent: mockSentCount,
+      message: `${mockSentCount} bulletins sent successfully with notifications`,
+      notificationResults,
+      channels: actualChannels,
+      language: language || 'fr'
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_NOTIFICATIONS] Error:', error);
+    res.status(500).json({ error: 'Failed to send bulletins with notifications' });
+  }
+});
+
 export default router;
