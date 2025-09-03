@@ -1051,4 +1051,147 @@ router.post('/resources/access', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/student/bulletins - Get student's bulletins
+router.get('/bulletins', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const user = req.user as any;
+    
+    // Verify user is a student
+    if (user.role !== 'Student') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only students can access this endpoint.' 
+      });
+    }
+
+    console.log(`[STUDENT_API] 📋 Getting bulletins for student:`, studentId);
+
+    // Mock student bulletins data - in real implementation, get from storage.getBulletinsByStudentId(studentId)
+    const studentBulletins = [
+      {
+        id: 1,
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        className: '6ème A',
+        generalAverage: 14.5,
+        classRank: 8,
+        totalStudentsInClass: 32,
+        conductGrade: 16,
+        absences: 2,
+        status: 'published',
+        publishedAt: '2024-12-15T10:00:00Z',
+        hasQRCode: true,
+        verificationCode: 'EDU-2024-STU-001',
+        subjects: [
+          { name: 'Mathématiques', grade: 15, coefficient: 4, teacher: 'M. Kouame' },
+          { name: 'Français', grade: 13, coefficient: 4, teacher: 'Mme Diallo' },
+          { name: 'Sciences', grade: 16, coefficient: 3, teacher: 'Dr. Ngozi' },
+          { name: 'Histoire-Géographie', grade: 12, coefficient: 3, teacher: 'M. Bamogo' },
+          { name: 'Anglais', grade: 14, coefficient: 2, teacher: 'Miss Johnson' }
+        ],
+        teacherComments: 'Élève sérieux avec de bonnes capacités. Peut mieux faire en français.',
+        directorComments: 'Résultats satisfaisants. Continuer les efforts.'
+      }
+    ];
+
+    res.json({
+      success: true,
+      bulletins: studentBulletins,
+      studentId: studentId,
+      totalBulletins: studentBulletins.length,
+      message: 'Bulletins retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching student bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching bulletins'
+    });
+  }
+});
+
+// GET /api/student/bulletins/:bulletinId - Get specific bulletin
+router.get('/bulletins/:bulletinId', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const user = req.user as any;
+    const bulletinId = parseInt(req.params.bulletinId);
+    
+    // Verify user is a student
+    if (user.role !== 'Student') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only students can access this endpoint.' 
+      });
+    }
+
+    console.log(`[STUDENT_API] 📋 Getting bulletin ${bulletinId} for student:`, studentId);
+
+    // In real implementation: 
+    // const bulletin = await storage.getBulletinById(bulletinId);
+    // Verify bulletin belongs to this student
+    
+    // Mock response
+    res.json({
+      success: true,
+      bulletin: {
+        id: bulletinId,
+        studentId: studentId,
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        status: 'published',
+        canDownload: true,
+        downloadUrl: `/api/student/bulletins/${bulletinId}/download`
+      },
+      message: 'Bulletin details retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error fetching bulletin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching bulletin details'
+    });
+  }
+});
+
+// GET /api/student/bulletins/:bulletinId/download - Download bulletin PDF
+router.get('/bulletins/:bulletinId/download', requireAuth, async (req, res) => {
+  try {
+    const studentId = req.user?.id;
+    const user = req.user as any;
+    const bulletinId = parseInt(req.params.bulletinId);
+    
+    // Verify user is a student
+    if (user.role !== 'Student') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only students can access this endpoint.' 
+      });
+    }
+
+    console.log(`[STUDENT_API] 📥 Downloading bulletin ${bulletinId} for student:`, studentId);
+
+    // In real implementation: 
+    // 1. Verify bulletin belongs to this student
+    // 2. Generate PDF with student's data
+    // 3. Return PDF buffer
+
+    // Mock PDF download response
+    res.json({
+      success: true,
+      message: 'Bulletin PDF generation initiated',
+      downloadUrl: `/api/bulletins/${bulletinId}/pdf`,
+      bulletinId: bulletinId,
+      studentId: studentId
+    });
+
+  } catch (error) {
+    console.error('[STUDENT_API] ❌ Error downloading bulletin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating bulletin download'
+    });
+  }
+});
+
 export default router;

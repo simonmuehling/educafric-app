@@ -595,4 +595,252 @@ router.get('/children/:childId/schedule/:dayOfWeek', requireAuth, async (req: Au
   }
 });
 
+// GET /api/parent/children/:childId/bulletins - Get bulletins for a specific child
+router.get('/children/:childId/bulletins', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const childId = parseInt(req.params.childId);
+    const user = req.user as any;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can access this endpoint.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 📋 Getting bulletins for child ${childId} by parent:`, parentId);
+
+    // In real implementation: 
+    // 1. Verify parent has access to this child
+    // 2. Get bulletins from storage.getBulletinsByStudentId(childId)
+    
+    // Mock child bulletins data
+    const childBulletins = [
+      {
+        id: 1,
+        studentId: childId,
+        studentName: 'Marie Kouame',
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        className: '6ème A',
+        schoolName: 'École Saint-Joseph Yaoundé',
+        generalAverage: 14.5,
+        classRank: 8,
+        totalStudentsInClass: 32,
+        conductGrade: 16,
+        absences: 2,
+        status: 'published',
+        publishedAt: '2024-12-15T10:00:00Z',
+        hasQRCode: true,
+        verificationCode: 'EDU-2024-MAR-001',
+        subjects: [
+          { name: 'Mathématiques', grade: 15, coefficient: 4, teacher: 'M. Kouame' },
+          { name: 'Français', grade: 13, coefficient: 4, teacher: 'Mme Diallo' },
+          { name: 'Sciences', grade: 16, coefficient: 3, teacher: 'Dr. Ngozi' },
+          { name: 'Histoire-Géographie', grade: 12, coefficient: 3, teacher: 'M. Bamogo' },
+          { name: 'Anglais', grade: 14, coefficient: 2, teacher: 'Miss Johnson' }
+        ],
+        teacherComments: 'Élève sérieuse avec de bonnes capacités. Peut mieux faire en français.',
+        directorComments: 'Résultats satisfaisants. Continuer les efforts.',
+        sentToParentAt: '2024-12-15T14:30:00Z',
+        notificationSent: ['sms', 'whatsapp', 'email']
+      }
+    ];
+
+    res.json({
+      success: true,
+      bulletins: childBulletins,
+      childId: childId,
+      parentId: parentId,
+      totalBulletins: childBulletins.length,
+      message: 'Child bulletins retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error fetching child bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching child bulletins'
+    });
+  }
+});
+
+// GET /api/parent/children/:childId/bulletins/:bulletinId - Get specific bulletin for child
+router.get('/children/:childId/bulletins/:bulletinId', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const childId = parseInt(req.params.childId);
+    const bulletinId = parseInt(req.params.bulletinId);
+    const user = req.user as any;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can access this endpoint.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 📋 Getting bulletin ${bulletinId} for child ${childId} by parent:`, parentId);
+
+    // In real implementation: 
+    // 1. Verify parent has access to this child
+    // 2. Verify bulletin belongs to this child
+    // 3. Get full bulletin details
+
+    // Mock response
+    res.json({
+      success: true,
+      bulletin: {
+        id: bulletinId,
+        studentId: childId,
+        parentId: parentId,
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        status: 'published',
+        canDownload: true,
+        downloadUrl: `/api/parent/children/${childId}/bulletins/${bulletinId}/download`,
+        qrVerificationUrl: `/api/bulletin-validation/bulletins/verify-qr`
+      },
+      message: 'Bulletin details retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error fetching bulletin details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching bulletin details'
+    });
+  }
+});
+
+// GET /api/parent/children/:childId/bulletins/:bulletinId/download - Download child's bulletin PDF
+router.get('/children/:childId/bulletins/:bulletinId/download', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const childId = parseInt(req.params.childId);
+    const bulletinId = parseInt(req.params.bulletinId);
+    const user = req.user as any;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can access this endpoint.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 📥 Downloading bulletin ${bulletinId} for child ${childId} by parent:`, parentId);
+
+    // In real implementation: 
+    // 1. Verify parent has access to this child
+    // 2. Verify bulletin belongs to this child
+    // 3. Generate PDF with child's data
+    // 4. Return PDF buffer
+
+    // Mock PDF download response
+    res.json({
+      success: true,
+      message: 'Bulletin PDF download initiated for child',
+      downloadUrl: `/api/bulletins/${bulletinId}/pdf`,
+      bulletinId: bulletinId,
+      childId: childId,
+      parentId: parentId,
+      hasQRCode: true
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error downloading child bulletin:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating child bulletin download'
+    });
+  }
+});
+
+// GET /api/parent/bulletins - Get all bulletins for all children
+router.get('/bulletins', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const user = req.user as any;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can access this endpoint.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 📋 Getting all bulletins for parent:`, parentId);
+
+    // In real implementation: 
+    // 1. Get all children for this parent
+    // 2. Get all bulletins for each child
+    
+    // Mock consolidated bulletins data
+    const allBulletins = [
+      {
+        id: 1,
+        studentId: 1,
+        studentName: 'Marie Kouame',
+        className: '6ème A',
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 14.5,
+        status: 'published',
+        publishedAt: '2024-12-15T10:00:00Z'
+      },
+      {
+        id: 2,
+        studentId: 2,
+        studentName: 'Paul Kouame',
+        className: '3ème B',
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 13.2,
+        status: 'published',
+        publishedAt: '2024-12-15T10:00:00Z'
+      }
+    ];
+
+    res.json({
+      success: true,
+      bulletins: allBulletins,
+      parentId: parentId,
+      totalBulletins: allBulletins.length,
+      children: [
+        { id: 1, name: 'Marie Kouame', class: '6ème A' },
+        { id: 2, name: 'Paul Kouame', class: '3ème B' }
+      ],
+      message: 'All children bulletins retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error fetching all bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching all bulletins'
+    });
+  }
+});
+
 export default router;
