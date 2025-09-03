@@ -199,27 +199,29 @@ const FunctionalStudentGrades: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t.title || ''}</h1>
-          <p className="text-gray-600 mt-1">{t.subtitle}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{t.title || ''}</h1>
+          <p className="text-gray-600 mt-1 text-sm md:text-base">{t.subtitle}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => refetch()} className="flex-1 sm:flex-none">
             <RefreshCw className="w-4 h-4 mr-2" />
-            {t.refresh}
+            <span className="hidden sm:inline">{t.refresh}</span>
+            <span className="sm:hidden">↻</span>
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="flex-1 sm:flex-none">
             <Download className="w-4 h-4 mr-2" />
-            {t.download}
+            <span className="hidden sm:inline">{t.download}</span>
+            <span className="sm:hidden">↓</span>
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Summary Cards - Mobile Optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -270,9 +272,9 @@ const FunctionalStudentGrades: React.FC = () => {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder={t.allSubjects} />
               </SelectTrigger>
               <SelectContent>
@@ -283,7 +285,7 @@ const FunctionalStudentGrades: React.FC = () => {
               </SelectContent>
             </Select>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder={t.currentTerm} />
               </SelectTrigger>
               <SelectContent>

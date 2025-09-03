@@ -398,14 +398,14 @@ const ParentRequestsNew = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-4 md:space-y-6">
+      {/* Header - Mobile Optimized */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
-        <p className="text-gray-600 mb-6">{t.subtitle}</p>
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{t.title || ''}</h2>
+        <p className="text-gray-600 mb-4 md:mb-6 text-sm md:text-base">{t.subtitle}</p>
         
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Statistics Cards - Mobile Optimized */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           {(Array.isArray(stats) ? stats : []).map((stat, index) => (
             <ModernStatsCard key={index} {...stat} />
           ))}
@@ -429,17 +429,17 @@ const ParentRequestsNew = () => {
             {(Array.isArray(requests) ? requests : []).map((request: any) => (
               <div key={request.id} className="bg-white">
                 {/* Request Header */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-blue-600" />
+                <div className="p-4 md:p-6">
+                  <div className="flex flex-col md:flex-row items-start justify-between mb-4 gap-3">
+                    <div className="flex items-center space-x-3 md:space-x-4 w-full">
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">
                           {request.parent_name || 'Parent'}
                         </h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600 truncate">
                           {t.student}: {request.student_name || 'Élève'} 
                           {request.class_name && ` - ${request.class_name}`}
                         </p>
@@ -448,12 +448,12 @@ const ParentRequestsNew = () => {
                         </p>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <Badge className={getStatusColor(request.status)}>
+                    <div className="flex md:flex-col items-start md:items-end gap-2 mt-2 md:mt-0">
+                      <Badge className={`${getStatusColor(request.status)} text-xs`}>
                         {(t as any)[request.status] || request.status}
                       </Badge>
                       {request.priority && (
-                        <Badge className={getPriorityColor(request.priority)}>
+                        <Badge className={`${getPriorityColor(request.priority)} text-xs`}>
                           {(t as any)[request.priority] || request.priority}
                         </Badge>
                       )}

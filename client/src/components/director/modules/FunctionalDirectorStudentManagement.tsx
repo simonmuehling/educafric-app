@@ -797,36 +797,40 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
 
       {/* Students List */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="px-4 md:px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <h3 className="text-lg font-semibold">Liste des Élèves</h3>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={handleExportStudents}
                 data-testid="button-export-students"
+                className="flex-1 sm:flex-none"
               >
                 <Download className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Exporter' : 'Export'}
+                <span className="hidden sm:inline">{language === 'fr' ? 'Exporter' : 'Export'}</span>
+                <span className="sm:hidden">{language === 'fr' ? 'Export' : 'Export'}</span>
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 data-testid="button-filter-students"
+                className="flex-1 sm:flex-none"
               >
                 <Filter className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Filtrer' : 'Filter'}
+                <span className="hidden sm:inline">{language === 'fr' ? 'Filtrer' : 'Filter'}</span>
+                <span className="sm:hidden">{language === 'fr' ? 'Filtre' : 'Filter'}</span>
               </Button>
             </div>
           </div>
         </CardHeader>
         
-        {/* Filter Panel */}
+        {/* Filter Panel - Mobile Optimized */}
         {isFilterOpen && (
-          <div className="border-b px-6 py-4 bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="border-b px-4 md:px-6 py-4 bg-gray-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               <div>
                 <Label className="text-sm font-medium">
                   {language === 'fr' ? 'Statut' : 'Status'}
@@ -913,10 +917,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {(Array.isArray(filteredStudents) ? filteredStudents : []).map((student) => (
-                <div key={student.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <GraduationCap className="w-5 h-5 text-green-600" />
+                <div key={student.id} className="border rounded-lg p-3 md:p-4 hover:bg-gray-50">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
