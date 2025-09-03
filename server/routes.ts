@@ -554,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
       
       // Filter by class if provided
-      const students = classId ? allStudents.filter(s => s.classId == classId) : allStudents;
+      const students = classId ? allStudents.filter(s => s.classId === parseInt(classId as string, 10)) : allStudents;
       
       res.json({ success: true, students });
     } catch (error) {
@@ -1700,6 +1700,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[PARENT_REQUESTS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch parent requests' });
+    }
+  });
+
+  // Parent requests test endpoint - For frontend diagnostics
+  app.get("/api/parent-requests-test", async (req, res) => {
+    try {
+      console.log('[PARENT_REQUESTS_TEST] Test endpoint called');
+      
+      // Mock test data for parent requests
+      const testRequests = [
+        {
+          id: 1,
+          type: 'absence_request',
+          category: 'health',
+          subject: 'Test - Demande d\'absence médicale',
+          description: 'Demande de test pour vérifier le système.',
+          status: 'pending',
+          priority: 'medium',
+          submittedAt: new Date().toISOString(),
+          studentName: 'Emma Test',
+          responseExpected: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      res.json({ success: true, requests: testRequests });
+    } catch (error) {
+      console.error('[PARENT_REQUESTS_TEST] Error:', error);
+      res.status(500).json({ success: false, message: 'Test endpoint failed' });
     }
   });
 
