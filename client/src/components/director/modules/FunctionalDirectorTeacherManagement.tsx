@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap, UserCheck, Upload
+  Eye, X, Mail, Phone, GraduationCap, UserCheck, Upload, Camera
 } from 'lucide-react';
 import ImportModal from '../ImportModal';
 
@@ -51,6 +51,9 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     subject: 'all',
     experience: 'all'
   });
+  const [isViewTeacherOpen, setIsViewTeacherOpen] = useState(false);
+  const [viewingTeacher, setViewingTeacher] = useState<Teacher | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
   const [teacherForm, setTeacherForm] = useState({
     name: '',
     email: '',
@@ -266,6 +269,72 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?')) {
       deleteTeacherMutation.mutate(teacherId);
     }
+  };
+
+  // Upload photo mutation
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async ({ teacherId, formData }: { teacherId: number, formData: FormData }) => {
+      const response = await fetch(`/api/teachers/${teacherId}/photo`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { teacherId } = variables;
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
+        description: language === 'fr' ? 'Photo de profil mise à jour avec succès' : 'Profile photo updated successfully'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/teachers'] });
+    },
+    onError: (error) => {
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'upload' : '❌ Upload Error',
+        description: language === 'fr' ? 'Impossible d\'uploader la photo' : 'Failed to upload photo',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handlePhotoUpload = (teacher: Teacher) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Validation de taille (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: language === 'fr' ? '❌ Fichier trop lourd' : '❌ File Too Large',
+            description: language === 'fr' ? 'La photo doit faire moins de 5MB' : 'Photo must be less than 5MB',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Validation du type
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: language === 'fr' ? '❌ Format invalide' : '❌ Invalid Format',
+            description: language === 'fr' ? 'Seules les images sont acceptées' : 'Only images are accepted',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+        
+        setUploadingPhoto(teacher.id);
+        uploadPhotoMutation.mutate({ teacherId: teacher.id, formData });
+      }
+    };
+    input.click();
   };
 
   const filteredTeachers = Array.isArray(teachers) ? teachers.filter(teacher => {
@@ -902,11 +971,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                           size="sm"
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => {
-                            setSelectedTeacher(teacher);
-                            toast({
-                              title: 'Profil enseignant',
-                              description: `Consultation du profil de ${teacher.name}`
-                            });
+                            setViewingTeacher(teacher);
+                            setIsViewTeacherOpen(true);
                           }}
                           data-testid={`button-view-teacher-${teacher.id}`}
                         >
@@ -922,6 +988,22 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                         >
                           <Edit className="w-4 h-4" />
                           <span className="hidden sm:inline">{text.buttons.edit}</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handlePhotoUpload(teacher)}
+                          disabled={uploadingPhoto === teacher.id}
+                          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          data-testid={`button-photo-teacher-${teacher.id}`}
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span className="hidden sm:inline">
+                            {uploadingPhoto === teacher.id ? 
+                              (language === 'fr' ? 'Upload...' : 'Uploading...') : 
+                              (language === 'fr' ? 'Photo' : 'Photo')
+                            }
+                          </span>
                         </Button>
                         <Button 
                           variant="outline" 
@@ -953,6 +1035,176 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
           setIsImportModalOpen(false);
         }}
       />
+
+      {/* Teacher Details View Modal */}
+      {isViewTeacherOpen && viewingTeacher && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {language === 'fr' ? 'Profil de l\'Enseignant' : 'Teacher Profile'}
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsViewTeacherOpen(false)}
+                data-testid="button-close-teacher-view"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="w-10 h-10 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {viewingTeacher.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <Badge variant={viewingTeacher.status === 'active' ? 'default' : 'secondary'}>
+                      {text.status[viewingTeacher.status]}
+                    </Badge>
+                    <Badge variant="outline">
+                      👤 {viewingTeacher.gender === 'M' ? (language === 'fr' ? 'Homme' : 'Male') : (language === 'fr' ? 'Femme' : 'Female')}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Informations de Contact' : 'Contact Information'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email</label>
+                      <p className="text-gray-900">{viewingTeacher.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Téléphone' : 'Phone'}
+                      </label>
+                      <p className="text-gray-900">{viewingTeacher.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Matricule' : 'Teacher ID'}
+                      </label>
+                      <p className="text-gray-900">{viewingTeacher.matricule || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Informations Professionnelles' : 'Professional Information'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {(viewingTeacher.teachingSubjects || []).map((subject, index) => (
+                          <Badge key={index} variant="outline" className="bg-blue-50">
+                            📚 {subject}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {(viewingTeacher.classes || []).map((classe, index) => (
+                          <Badge key={index} variant="outline" className="bg-green-50">
+                            🎓 {classe}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Expérience' : 'Experience'}
+                      </label>
+                      <p className="text-gray-900">
+                        {viewingTeacher.experience || 0} {language === 'fr' ? 'années' : 'years'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:col-span-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Emploi du Temps' : 'Schedule'}
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                      {viewingTeacher.schedule || (language === 'fr' ? 'Aucun emploi du temps défini' : 'No schedule defined')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 md:col-span-2">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Statistiques' : 'Statistics'}
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">
+                        {(viewingTeacher.teachingSubjects || []).length}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {language === 'fr' ? 'Matières' : 'Subjects'}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">
+                        {(viewingTeacher.classes || []).length}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {language === 'fr' ? 'Classes' : 'Classes'}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">
+                        {viewingTeacher.experience || 0}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {language === 'fr' ? 'Ans d\'exp.' : 'Years exp.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button 
+                  onClick={() => {
+                    setIsViewTeacherOpen(false);
+                    handleEditTeacher(viewingTeacher);
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Modifier' : 'Edit'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsViewTeacherOpen(false)}
+                >
+                  {language === 'fr' ? 'Fermer' : 'Close'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

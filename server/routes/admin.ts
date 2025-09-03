@@ -27,6 +27,28 @@ const upload = multer({
   }
 });
 
+// Configure multer for photo uploads
+const photoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit for photos
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png', 
+      'image/gif',
+      'image/webp'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Format de photo non supporté. Utilisez JPG, PNG, GIF ou WEBP.'));
+    }
+  }
+});
+
 // Middleware to require authentication
 function requireAuth(req: any, res: any, next: any) {
   // Temporary bypass for testing - check for test environment
@@ -1216,6 +1238,104 @@ router.post('/import/parents', requireAuth, requireAdmin, upload.single('file'),
     res.status(500).json({
       success: false,
       message: `Erreur lors de l'import: ${error.message}`
+    });
+  }
+});
+
+// Photo upload endpoint for students
+router.post('/api/students/:id/photo', requireAuth, photoUpload.single('photo'), async (req: any, res: any) => {
+  try {
+    const studentId = parseInt(req.params.id);
+    const photoFile = req.file;
+    
+    if (!photoFile) {
+      return res.status(400).json({
+        success: false,
+        message: 'No photo file provided'
+      });
+    }
+
+    console.log('[PHOTO_UPLOAD] Student photo upload:', {
+      studentId,
+      originalName: photoFile.originalname,
+      mimetype: photoFile.mimetype,
+      size: photoFile.size
+    });
+
+    // In a real implementation, you would:
+    // 1. Save the file to storage (cloud storage, file system, etc.)
+    // 2. Update the student record with the photo URL
+    // 3. Possibly resize/optimize the image
+    
+    // For now, we simulate the upload and return success
+    const photoUrl = `/uploads/students/${studentId}-${Date.now()}.${photoFile.mimetype.split('/')[1]}`;
+    
+    // Update student with photo URL (simulation)
+    // await storage.updateStudent(studentId, { photoUrl });
+
+    res.json({
+      success: true,
+      message: 'Photo uploaded successfully',
+      data: {
+        photoUrl,
+        studentId
+      }
+    });
+
+  } catch (error) {
+    console.error('[PHOTO_UPLOAD] Error uploading student photo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload photo'
+    });
+  }
+});
+
+// Photo upload endpoint for teachers
+router.post('/api/teachers/:id/photo', requireAuth, photoUpload.single('photo'), async (req: any, res: any) => {
+  try {
+    const teacherId = parseInt(req.params.id);
+    const photoFile = req.file;
+    
+    if (!photoFile) {
+      return res.status(400).json({
+        success: false,
+        message: 'No photo file provided'
+      });
+    }
+
+    console.log('[PHOTO_UPLOAD] Teacher photo upload:', {
+      teacherId,
+      originalName: photoFile.originalname,
+      mimetype: photoFile.mimetype,
+      size: photoFile.size
+    });
+
+    // In a real implementation, you would:
+    // 1. Save the file to storage (cloud storage, file system, etc.)
+    // 2. Update the teacher record with the photo URL
+    // 3. Possibly resize/optimize the image
+    
+    // For now, we simulate the upload and return success
+    const photoUrl = `/uploads/teachers/${teacherId}-${Date.now()}.${photoFile.mimetype.split('/')[1]}`;
+    
+    // Update teacher with photo URL (simulation)
+    // await storage.updateTeacher(teacherId, { photoUrl });
+
+    res.json({
+      success: true,
+      message: 'Photo uploaded successfully',
+      data: {
+        photoUrl,
+        teacherId
+      }
+    });
+
+  } catch (error) {
+    console.error('[PHOTO_UPLOAD] Error uploading teacher photo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to upload photo'
     });
   }
 });

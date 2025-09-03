@@ -51,6 +51,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     gender: 'all',
     class: 'all'
   });
+  const [isViewStudentOpen, setIsViewStudentOpen] = useState(false);
+  const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -260,6 +262,72 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet élève ?')) {
       deleteStudentMutation.mutate(studentId);
     }
+  };
+
+  // Upload photo mutation
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async ({ studentId, formData }: { studentId: number, formData: FormData }) => {
+      const response = await fetch(`/api/students/${studentId}/photo`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { studentId } = variables;
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
+        description: language === 'fr' ? 'Photo de profil mise à jour avec succès' : 'Profile photo updated successfully'
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+    },
+    onError: (error) => {
+      setUploadingPhoto(null);
+      toast({
+        title: language === 'fr' ? '❌ Erreur d\'upload' : '❌ Upload Error',
+        description: language === 'fr' ? 'Impossible d\'uploader la photo' : 'Failed to upload photo',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handlePhotoUpload = (student: Student) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        // Validation de taille (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: language === 'fr' ? '❌ Fichier trop lourd' : '❌ File Too Large',
+            description: language === 'fr' ? 'La photo doit faire moins de 5MB' : 'Photo must be less than 5MB',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Validation du type
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: language === 'fr' ? '❌ Format invalide' : '❌ Invalid Format',
+            description: language === 'fr' ? 'Seules les images sont acceptées' : 'Only images are accepted',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('photo', file);
+        
+        setUploadingPhoto(student.id);
+        uploadPhotoMutation.mutate({ studentId: student.id, formData });
+      }
+    };
+    input.click();
   };
 
   const filteredStudents = Array.isArray(students) ? (Array.isArray(students) ? students : []).filter(student => {
@@ -875,11 +943,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                           size="sm"
                           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                           onClick={() => {
-                            setSelectedStudent(student);
-                            toast({
-                              title: 'Profil élève',
-                              description: `Consultation du profil de ${student.firstName} ${student.lastName}`
-                            });
+                            setViewingStudent(student);
+                            setIsViewStudentOpen(true);
                           }}
                           data-testid={`button-view-student-${student.id}`}
                         >
@@ -899,26 +964,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
-                            const input = document.createElement('input');
-                            input.type = 'file';
-                            input.accept = 'image/*';
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) {
-                                setUploadingPhoto(student.id);
-                                // Simuler l'upload - ici on pourrait envoyer à un service réel
-                                toast({
-                                  title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
-                                  description: language === 'fr' ? 
-                                    `Photo de ${student.firstName} ${student.lastName} mise à jour` :
-                                    `Photo for ${student.firstName} ${student.lastName} updated`
-                                });
-                                setTimeout(() => setUploadingPhoto(null), 1000);
-                              }
-                            };
-                            input.click();
-                          }}
+                          onClick={() => handlePhotoUpload(student)}
                           disabled={uploadingPhoto === student.id}
                           className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
                           data-testid={`button-photo-student-${student.id}`}
@@ -960,6 +1006,167 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           });
         }}
       />
+
+      {/* Student Details View Modal */}
+      {isViewStudentOpen && viewingStudent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {language === 'fr' ? 'Profil de l\'Élève' : 'Student Profile'}
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsViewStudentOpen(false)}
+                data-testid="button-close-student-view"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-start gap-6 mb-6">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="w-10 h-10 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {viewingStudent.firstName} {viewingStudent.lastName}
+                  </h3>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <Badge variant={viewingStudent.status === 'active' ? 'default' : 'secondary'}>
+                      {text.status[viewingStudent.status]}
+                    </Badge>
+                    <Badge variant="outline">🎓 {viewingStudent.className}</Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Informations Personnelles' : 'Personal Information'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email</label>
+                      <p className="text-gray-900">{viewingStudent.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Âge' : 'Age'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.age || 'N/A'} ans</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Genre' : 'Gender'}
+                      </label>
+                      <p className="text-gray-900">N/A</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Matricule' : 'Student ID'}
+                      </label>
+                      <p className="text-gray-900">N/A</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Informations Parent' : 'Parent Information'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Nom du Parent' : 'Parent Name'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.parentName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Email Parent' : 'Parent Email'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.parentEmail || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Téléphone Parent' : 'Parent Phone'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.parentPhone || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Performance Scolaire' : 'Academic Performance'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Moyenne Générale' : 'Average Grade'}
+                      </label>
+                      <p className="text-gray-900 text-2xl font-bold text-green-600">
+                        {viewingStudent.average || 0}/20
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Taux de Présence' : 'Attendance Rate'}
+                      </label>
+                      <p className="text-gray-900 text-2xl font-bold text-blue-600">
+                        {viewingStudent.attendance || 0}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 border-b pb-2">
+                    {language === 'fr' ? 'Informations Scolaires' : 'School Information'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Classe' : 'Class'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.className || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">
+                        {language === 'fr' ? 'Niveau' : 'Level'}
+                      </label>
+                      <p className="text-gray-900">{viewingStudent.level || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button 
+                  onClick={() => {
+                    setIsViewStudentOpen(false);
+                    handleEditStudent(viewingStudent);
+                  }}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Modifier' : 'Edit'}
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => setIsViewStudentOpen(false)}
+                >
+                  {language === 'fr' ? 'Fermer' : 'Close'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
