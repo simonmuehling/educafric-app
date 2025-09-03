@@ -563,6 +563,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get teachers for director
+  app.get("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[DIRECTOR_TEACHERS_API] GET /api/director/teachers for user:', user.id);
+      
+      // Mock teachers data
+      const teachers = [
+        { id: 1, firstName: 'Jean Paul', lastName: 'Mbarga', subject: 'Mathématiques', email: 'jp.mbarga@saintjoseph.edu', isActive: true, experience: 8 },
+        { id: 2, firstName: 'Marie Claire', lastName: 'Essono', subject: 'Français', email: 'mc.essono@saintjoseph.edu', isActive: true, experience: 12 },
+        { id: 3, firstName: 'Paul', lastName: 'Atangana', subject: 'Histoire-Géographie', email: 'p.atangana@saintjoseph.edu', isActive: true, experience: 6 },
+        { id: 4, firstName: 'Sophie', lastName: 'Mengue', subject: 'Anglais', email: 's.mengue@saintjoseph.edu', isActive: true, experience: 5 },
+        { id: 5, firstName: 'André', lastName: 'Bikanda', subject: 'Sciences Physiques', email: 'a.bikanda@saintjoseph.edu', isActive: true, experience: 10 },
+        { id: 6, firstName: 'Claire', lastName: 'Owono', subject: 'Sciences Naturelles', email: 'c.owono@saintjoseph.edu', isActive: true, experience: 7 }
+      ];
+      
+      res.json({ success: true, teachers });
+    } catch (error) {
+      console.error('[DIRECTOR_TEACHERS_API] Error fetching teachers:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teachers' });
+    }
+  });
+
   // Teacher Messages
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
@@ -1891,6 +1914,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[TRACKING_STATS] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to get stats' });
+    }
+  });
+
+  // Get parent-child connections for school
+  app.get('/api/school/parent-child-connections', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_PARENTS_API] GET /api/school/parent-child-connections for user:', user.id);
+      
+      // Mock parent-child data
+      const parents = [
+        { id: 1, firstName: 'Marie', lastName: 'Kamga', childName: 'Jean Kamga', email: 'marie.kamga@gmail.com', phone: '+237677001234', isActive: true },
+        { id: 2, firstName: 'Jean', lastName: 'Fosso', childName: 'Aline Fosso', email: 'jean.fosso@yahoo.fr', phone: '+237655005678', isActive: true },
+        { id: 3, firstName: 'Marie', lastName: 'Ewondo', childName: 'Carlos Ewondo', email: 'marie.ewondo@hotmail.com', phone: '+237699876543', isActive: true },
+        { id: 4, firstName: 'Paul', lastName: 'Nkomo', childName: 'Marie Nkomo', email: 'paul.nkomo@gmail.com', phone: '+237670123456', isActive: true },
+        { id: 5, firstName: 'Sophie', lastName: 'Mbarga', childName: 'Paul Mbarga', email: 'sophie.mbarga@yahoo.fr', phone: '+237655987654', isActive: true },
+        { id: 6, firstName: 'André', lastName: 'Biyaga', childName: 'Sophie Biyaga', email: 'andre.biyaga@outlook.com', phone: '+237677543210', isActive: true }
+      ];
+      
+      res.json({ success: true, parents });
+    } catch (error) {
+      console.error('[SCHOOL_PARENTS_API] Error fetching parents:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch parents' });
     }
   });
   

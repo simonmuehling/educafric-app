@@ -24,6 +24,73 @@ const CommunicationsCenter: React.FC = () => {
   const [communicationsHistory, setCommunicationsHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  
+  // Dynamic recipient data
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [parents, setParents] = useState<any[]>([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [loadingRecipients, setLoadingRecipients] = useState(true);
+
+  // Load recipients data from API
+  useEffect(() => {
+    const loadRecipientsData = async () => {
+      setLoadingRecipients(true);
+      try {
+        console.log('[COMMUNICATIONS_CENTER] 👥 Loading recipients data...');
+        
+        // Load teachers
+        const teachersResponse = await fetch('/api/director/teachers', {
+          credentials: 'include'
+        });
+        if (teachersResponse.ok) {
+          const teachersData = await teachersResponse.json();
+          setTeachers(teachersData.teachers || []);
+        }
+        
+        // Load students
+        const studentsResponse = await fetch('/api/director/students', {
+          credentials: 'include'
+        });
+        if (studentsResponse.ok) {
+          const studentsData = await studentsResponse.json();
+          setStudents(studentsData.students || []);
+        }
+        
+        // Load classes
+        const classesResponse = await fetch('/api/director/classes', {
+          credentials: 'include'
+        });
+        if (classesResponse.ok) {
+          const classesData = await classesResponse.json();
+          setClasses(classesData.classes || []);
+        }
+        
+        // Load parents (from school API)
+        const parentsResponse = await fetch('/api/school/parent-child-connections', {
+          credentials: 'include'
+        });
+        if (parentsResponse.ok) {
+          const parentsData = await parentsResponse.json();
+          setParents(parentsData.parents || []);
+        }
+        
+        console.log('[COMMUNICATIONS_CENTER] ✅ Recipients loaded:', {
+          teachers: teachers.length,
+          students: students.length, 
+          parents: parents.length,
+          classes: classes.length
+        });
+        
+      } catch (error) {
+        console.error('[COMMUNICATIONS_CENTER] ❌ Failed to load recipients:', error);
+      } finally {
+        setLoadingRecipients(false);
+      }
+    };
+
+    loadRecipientsData();
+  }, []);
 
   // Load communications history from API - CORRIGÉ
   useEffect(() => {
@@ -519,43 +586,63 @@ const CommunicationsCenter: React.FC = () => {
                     <SelectItem value="everyone" className="hover:bg-gray-50 focus:bg-gray-50 font-semibold text-blue-700">
                       {language === 'fr' ? '📢 Envoyer à Tout le Monde' : '📢 Send to Everyone'}
                     </SelectItem>
-                    <SelectItem value="all-parents" className="hover:bg-gray-50 focus:bg-gray-50">{t?.recipients?.allParents}</SelectItem>
-                    <SelectItem value="all-teachers" className="hover:bg-gray-50 focus:bg-gray-50">{t?.recipients?.allTeachers}</SelectItem>
-                    <SelectItem value="all-students" className="hover:bg-gray-50 focus:bg-gray-50">{t?.recipients?.allStudents}</SelectItem>
-                    
-                    {/* Separateur pour convocations individuelles */}
-                    <SelectItem value="separator-1" disabled className="text-xs text-gray-400 font-semibold">
-                      ──── {language === 'fr' ? 'CONVOCATIONS INDIVIDUELLES' : 'INDIVIDUAL SUMMONS'} ────
+                    <SelectItem value="all-parents" className="hover:bg-gray-50 focus:bg-gray-50">
+                      {t?.recipients?.allParents} ({parents.length})
+                    </SelectItem>
+                    <SelectItem value="all-teachers" className="hover:bg-gray-50 focus:bg-gray-50">
+                      {t?.recipients?.allTeachers} ({teachers.length})
+                    </SelectItem>
+                    <SelectItem value="all-students" className="hover:bg-gray-50 focus:bg-gray-50">
+                      {t?.recipients?.allStudents} ({students.length})
                     </SelectItem>
                     
-                    {/* Parents/Tuteurs spécifiques */}
-                    <SelectItem value="parent-marie-kamga" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👥 Marie Kamga (Parent - Junior Kamga)' : '👥 Marie Kamga (Parent - Junior Kamga)'}
-                    </SelectItem>
-                    <SelectItem value="parent-jean-fosso" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👥 Jean Fosso (Parent - Aline Fosso)' : '👥 Jean Fosso (Parent - Aline Fosso)'}
-                    </SelectItem>
-                    <SelectItem value="parent-marie-ewondo" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👥 Marie Ewondo (Parent - Carlos Ewondo)' : '👥 Marie Ewondo (Parent - Carlos Ewondo)'}
-                    </SelectItem>
+                    {/* Enseignants individuels */}
+                    {teachers.length > 0 && (
+                      <>
+                        <SelectItem value="separator-teachers" disabled className="text-xs text-gray-400 font-semibold">
+                          ──── {language === 'fr' ? 'ENSEIGNANTS INDIVIDUELS' : 'INDIVIDUAL TEACHERS'} ────
+                        </SelectItem>
+                        {teachers.slice(0, 5).map((teacher: any) => (
+                          <SelectItem key={`teacher-${teacher.id}`} value={`teacher-${teacher.id}`} className="hover:bg-gray-50 focus:bg-gray-50">
+                            {language === 'fr' ? '👨‍🏫' : '👨‍🏫'} {teacher.firstName} {teacher.lastName} {teacher.subject ? `(${teacher.subject})` : ''}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                     
-                    {/* Enseignants spécifiques */}
-                    <SelectItem value="teacher-paul-mbarga" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👨‍🏫 Prof. Jean Paul Mbarga (Mathématiques)' : '👨‍🏫 Prof. Jean Paul Mbarga (Mathematics)'}
-                    </SelectItem>
-                    <SelectItem value="teacher-marie-essono" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👩‍🏫 Mme Marie Claire Essono (Français)' : '👩‍🏫 Mrs. Marie Claire Essono (French)'}
-                    </SelectItem>
-                    <SelectItem value="teacher-paul-atangana" className="hover:bg-gray-50 focus:bg-gray-50">
-                      {language === 'fr' ? '👨‍🏫 M. Paul Atangana (Histoire-Géo)' : '👨‍🏫 Mr. Paul Atangana (History-Geography)'}
-                    </SelectItem>
+                    {/* Parents individuels */}
+                    {parents.length > 0 && (
+                      <>
+                        <SelectItem value="separator-parents" disabled className="text-xs text-gray-400 font-semibold">
+                          ──── {language === 'fr' ? 'PARENTS INDIVIDUELS' : 'INDIVIDUAL PARENTS'} ────
+                        </SelectItem>
+                        {parents.slice(0, 5).map((parent: any) => (
+                          <SelectItem key={`parent-${parent.id}`} value={`parent-${parent.id}`} className="hover:bg-gray-50 focus:bg-gray-50">
+                            👥 {parent.firstName} {parent.lastName} {parent.childName ? `(Parent - ${parent.childName})` : ''}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                     
-                    {/* Separateur pour classes */}
-                    <SelectItem value="separator-2" disabled className="text-xs text-gray-400 font-semibold">
-                      ──── {language === 'fr' ? 'CLASSES SPÉCIFIQUES' : 'SPECIFIC CLASSES'} ────
-                    </SelectItem>
-                    <SelectItem value="6eme-a" className="hover:bg-gray-50 focus:bg-gray-50">6ème A (32 élèves)</SelectItem>
-                    <SelectItem value="5eme-b" className="hover:bg-gray-50 focus:bg-gray-50">5ème B (28 élèves)</SelectItem>
+                    {/* Classes spécifiques */}
+                    {classes.length > 0 && (
+                      <>
+                        <SelectItem value="separator-classes" disabled className="text-xs text-gray-400 font-semibold">
+                          ──── {language === 'fr' ? 'CLASSES SPÉCIFIQUES' : 'SPECIFIC CLASSES'} ────
+                        </SelectItem>
+                        {classes.map((classItem: any) => (
+                          <SelectItem key={`class-${classItem.id}`} value={`class-${classItem.id}`} className="hover:bg-gray-50 focus:bg-gray-50">
+                            🎓 {classItem.name} ({classItem.studentCount || 0} élèves)
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    
+                    {loadingRecipients && (
+                      <SelectItem value="loading" disabled className="text-xs text-gray-400">
+                        {language === 'fr' ? '⏳ Chargement des destinataires...' : '⏳ Loading recipients...'}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
