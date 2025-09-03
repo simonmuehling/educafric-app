@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import * as bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -236,28 +237,31 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     const user = req.user as any;
     const { firstName, lastName, email, phone, gender, matricule, teachingSubjects } = req.body;
     
-    // Generate a temporary password for new teachers
-    const tempPassword = 'Educafric2025!';
+    console.log('[DIRECTOR_CREATE_TEACHER] Request data:', { firstName, lastName, email, phone, gender, matricule, teachingSubjects });
     
+    // Create a simple teacher without password complications for now
     const teacherData = {
       firstName,
       lastName,
       email,
       phone,
-      password: tempPassword, // Required for user creation
+      password: await bcrypt.hash('TempPassword123!', 10), // Simple temp password
       role: 'Teacher',
-      schoolId: user.schoolId,
+      schoolId: user.schoolId || 1,
       gender,
       matricule,
-      subjects: teachingSubjects || [],
-      createdBy: user.id
+      subjects: teachingSubjects || []
     };
 
+    console.log('[DIRECTOR_CREATE_TEACHER] Creating teacher with data:', teacherData);
+    
     const teacher = await storage.createUser(teacherData);
+    
+    console.log('[DIRECTOR_CREATE_TEACHER] Teacher created successfully:', teacher.id);
     
     res.status(201).json({
       success: true,
-      message: 'Teacher created successfully',
+      message: 'Teacher created successfully. Temporary password: TempPassword123!',
       teacher: {
         id: teacher.id,
         firstName: teacher.firstName,
@@ -275,7 +279,8 @@ router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
     console.error('[DIRECTOR_CREATE_TEACHER] Error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create teacher'
+      message: 'Failed to create teacher',
+      error: error.message
     });
   }
 });
