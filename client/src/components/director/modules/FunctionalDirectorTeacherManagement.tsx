@@ -68,7 +68,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Create teacher mutation
   const createTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
-      const response = await fetch('/api/director/teacher', {
+      const response = await fetch('/api/director/teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teacherData),
@@ -108,7 +108,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Update teacher mutation
   const updateTeacherMutation = useMutation({
     mutationFn: async (teacherData: any) => {
-      const response = await fetch(`/api/director/teacher/${teacherData.id}`, {
+      const response = await fetch(`/api/director/teachers/${teacherData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teacherData),
@@ -143,7 +143,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   // Delete teacher mutation
   const deleteTeacherMutation = useMutation({
     mutationFn: async (teacherId: number) => {
-      const response = await fetch(`/api/director/teacher/${teacherId}`, {
+      const response = await fetch(`/api/director/teachers/${teacherId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
