@@ -112,7 +112,7 @@ router.post('/send-with-notifications', requireAuth, async (req, res) => {
 });
 
 // Create new bulletin
-router.post('/bulletins', requireAuth, async (req, res) => {
+router.post('/create', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     const { 
@@ -131,15 +131,6 @@ router.post('/bulletins', requireAuth, async (req, res) => {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
 
-    // Calculate average
-    const totalPoints = grades.reduce((sum: number, grade: any) => 
-      sum + (grade.note * grade.coefficient), 0
-    );
-    const totalCoeff = grades.reduce((sum: number, grade: any) => 
-      sum + grade.coefficient, 0
-    );
-    const average = totalCoeff > 0 ? (totalPoints / totalCoeff) : 0;
-
     // Create bulletin data
     const bulletinData = {
       studentId: parseInt(studentId),
@@ -150,7 +141,6 @@ router.post('/bulletins', requireAuth, async (req, res) => {
       generalAppreciation,
       conductGrade: parseInt(conductGrade),
       absences: parseInt(absences),
-      average: parseFloat(average.toFixed(2)),
       createdBy: user.id,
       createdAt: new Date().toISOString(),
       status: 'draft'
@@ -159,7 +149,6 @@ router.post('/bulletins', requireAuth, async (req, res) => {
     // Save to storage (simplified for demo)
     const bulletinId = Date.now(); // Simple ID generation for demo
     
-    // In real implementation, use storage.createBulletin(bulletinData)
     console.log('[BULLETIN_CREATION] Creating bulletin:', bulletinData);
 
     res.json({
