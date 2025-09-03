@@ -32,6 +32,7 @@ class FastModuleLoader {
       'bulletin-validation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
+      'delegated-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),

@@ -1939,6 +1939,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to fetch parents' });
     }
   });
+
+  // ============= MISSING SCHOOL API ROUTES =============
+  
+  // School security settings
+  app.get('/api/school/security', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_SECURITY_API] GET /api/school/security for user:', user.id);
+      
+      const security = {
+        twoFactorEnabled: true,
+        passwordPolicy: 'strong',
+        sessionTimeout: 30,
+        loginAttempts: 3,
+        ipWhitelisting: false,
+        auditLogging: true
+      };
+      
+      res.json({ success: true, security });
+    } catch (error) {
+      console.error('[SCHOOL_SECURITY_API] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch security settings' });
+    }
+  });
+
+  // School configuration
+  app.get('/api/school/configuration', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_CONFIG_API] GET /api/school/configuration for user:', user.id);
+      
+      const configuration = {
+        schoolName: 'Collège Saint-Joseph',
+        academicYear: '2024-2025',
+        language: 'fr',
+        timezone: 'Africa/Douala',
+        currency: 'XAF',
+        maxStudentsPerClass: 35,
+        enableNotifications: true
+      };
+      
+      res.json({ success: true, configuration });
+    } catch (error) {
+      console.error('[SCHOOL_CONFIG_API] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch configuration' });
+    }
+  });
+
+  // School notifications settings
+  app.get('/api/school/notifications', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_NOTIFICATIONS_API] GET /api/school/notifications for user:', user.id);
+      
+      const notifications = {
+        emailEnabled: true,
+        smsEnabled: true,
+        whatsappEnabled: true,
+        pushEnabled: true,
+        digestFrequency: 'daily'
+      };
+      
+      res.json({ success: true, notifications });
+    } catch (error) {
+      console.error('[SCHOOL_NOTIFICATIONS_API] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch notifications settings' });
+    }
+  });
+
+  // School profile
+  app.get('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_PROFILE_API] GET /api/school/profile for user:', user.id);
+      
+      const profile = {
+        name: 'Collège Saint-Joseph',
+        address: 'Yaoundé, Cameroun',
+        phone: '+237677001234',
+        email: 'contact@saintjoseph.edu',
+        website: 'www.saintjoseph.edu',
+        foundedYear: 1995,
+        studentCapacity: 800,
+        currentStudents: 650
+      };
+      
+      res.json({ success: true, profile });
+    } catch (error) {
+      console.error('[SCHOOL_PROFILE_API] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
   
 
   // API 404 handler - must be after all API routes
