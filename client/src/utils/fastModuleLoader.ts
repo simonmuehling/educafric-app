@@ -23,7 +23,7 @@ class FastModuleLoader {
       'director-settings': () => import('@/components/director/modules/FunctionalDirectorProfile'), // Director profile, not settings
       'teachers': () => import('@/components/director/modules/FunctionalDirectorTeacherManagement'),
       'students': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'), // ⚠️ CRITICAL: Must point to Director module!
-      'classes': () => import('@/components/director/modules/FunctionalDirectorClassManagement'),
+      'classes': () => import('@/components/director/modules/ClassManagement'),
       'director-timetable': () => import('@/components/director/modules/TimetableConfiguration'),
       'director-attendance': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
