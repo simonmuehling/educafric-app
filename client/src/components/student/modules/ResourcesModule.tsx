@@ -159,7 +159,7 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
                 <SelectValue placeholder={t.filterBySubject} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t.allSubjects}</SelectItem>
+                <SelectItem value="all-subjects">{t.allSubjects}</SelectItem>
                 <SelectItem value="Mathématiques">📐 Mathématiques</SelectItem>
                 <SelectItem value="Français">📝 Français</SelectItem>
                 <SelectItem value="Physique">⚡ Physique</SelectItem>
@@ -171,7 +171,7 @@ const ResourcesModule: React.FC<ResourcesModuleProps> = ({ language = 'fr' }) =>
                 <SelectValue placeholder={t.filterByLevel} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t.allLevels}</SelectItem>
+                <SelectItem value="all-levels">{t.allLevels}</SelectItem>
                 <SelectItem value="Seconde">🎓 Seconde</SelectItem>
                 <SelectItem value="Première">🎓 Première</SelectItem>
                 <SelectItem value="Terminale">🎓 Terminale</SelectItem>

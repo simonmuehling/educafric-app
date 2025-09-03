@@ -589,7 +589,7 @@ const ClassManagement: React.FC = () => {
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="">Aucune salle assignée</SelectItem>
+                        <SelectItem value="no-room">Aucune salle assignée</SelectItem>
                         {isLoadingRooms ? (
                           <SelectItem value="disabled-option" disabled>
                             Chargement des salles...
@@ -751,7 +751,7 @@ const ClassManagement: React.FC = () => {
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        <SelectItem value="">Aucune salle assignée</SelectItem>
+                        <SelectItem value="no-room">Aucune salle assignée</SelectItem>
                         {isLoadingRooms ? (
                           <SelectItem value="disabled-option" disabled>
                             Chargement des salles...
