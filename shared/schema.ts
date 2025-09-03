@@ -111,6 +111,17 @@ export const partnershipCommunications = pgTable("partnership_communications", {
   sentAt: timestamp("sent_at").defaultNow()
 });
 
+// Table for room management
+export const rooms = pgTable("rooms", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  schoolId: integer("school_id").notNull(),
+  capacity: integer("capacity"),
+  isOccupied: boolean("is_occupied").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Additional missing exports for geolocation services
 export const routeOptimization = pgTable("route_optimization", {
   id: serial("id").primaryKey(),

@@ -32,6 +32,7 @@ const ClassManagement: React.FC = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRoomManagementOpen, setIsRoomManagementOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
+  const [newRoomName, setNewRoomName] = useState('');
 
   const text = {
     fr: {
@@ -216,6 +217,28 @@ const ClassManagement: React.FC = () => {
 
   const teachersData = teachersResponse?.teachers || [];
 
+  // Fetch rooms data
+  const { data: roomsResponse = {}, isLoading: isLoadingRooms, refetch: refetchRooms } = useQuery({
+    queryKey: ['/api/director/rooms'],
+    queryFn: async () => {
+      console.log('[CLASS_MANAGEMENT] 🏢 Fetching rooms for school...');
+      const response = await fetch('/api/director/rooms', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[CLASS_MANAGEMENT] ❌ Failed to fetch rooms:', response.status);
+        throw new Error('Failed to fetch rooms');
+      }
+      const data = await response.json();
+      console.log('[CLASS_MANAGEMENT] ✅ Rooms fetched:', data?.rooms?.length || 0, 'rooms');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const roomsData = roomsResponse?.rooms || [];
+
   // Add default values for display
   const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => ({
     ...classItem,
@@ -289,6 +312,51 @@ const ClassManagement: React.FC = () => {
       setSelectedClass(null);
     }
   });
+
+  // Add room mutation
+  const addRoomMutation = useMutation({
+    mutationFn: async ({ name, capacity }: { name: string, capacity: number }) => {
+      const response = await fetch('/api/director/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name, capacity })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add room');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchRooms(); // Refresh rooms list
+      toast({
+        title: language === 'fr' ? 'Salle ajoutée' : 'Room added',
+        description: language === 'fr' ? 'La salle a été ajoutée avec succès.' : 'Room has been added successfully.'
+      });
+      setNewRoomName('');
+    },
+    onError: (error) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible d\'ajouter la salle.' : 'Failed to add room.',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  const handleAddRoom = () => {
+    if (!newRoomName.trim()) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez saisir un nom de salle.' : 'Please enter a room name.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    console.log('[CLASS_MANAGEMENT] 🏢 Adding new room:', newRoomName);
+    addRoomMutation.mutate({ name: newRoomName, capacity: 30 });
+  };
 
   const handleCreateClass = () => {
     if (!newClass.name || !newClass.level || !newClass.capacity) {
@@ -940,9 +1008,14 @@ const ClassManagement: React.FC = () => {
                     {language === 'fr' ? 'Salles Disponibles' : 'Available Rooms'}
                   </h3>
                   <div className="space-y-2">
-                    {['Salle 101', 'Salle 102', 'Salle 201', 'Salle 202', 'Laboratoire', 'Salle Informatique'].map((room, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <span className="font-medium">{room}</span>
+                    {roomsData.filter((room: any) => !room.isOccupied).map((room: any, index: number) => (
+                      <div key={room.id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div>
+                          <span className="font-medium">{room.name}</span>
+                          <div className="text-xs text-gray-500">
+                            {language === 'fr' ? 'Capacité' : 'Capacity'}: {room.capacity}
+                          </div>
+                        </div>
                         <Badge variant="outline" className="text-green-600 border-green-600">
                           {language === 'fr' ? 'Libre' : 'Free'}
                         </Badge>
@@ -957,17 +1030,24 @@ const ClassManagement: React.FC = () => {
                     {language === 'fr' ? 'Salles Occupées' : 'Occupied Rooms'}
                   </h3>
                   <div className="space-y-2">
-                    {finalClasses.slice(0, 3).map((classItem: any, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                    {roomsData.filter((room: any) => room.isOccupied).map((room: any, index: number) => (
+                      <div key={room.id || index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
                         <div>
-                          <span className="font-medium">{classItem.room || 'N/A'}</span>
-                          <div className="text-xs text-gray-500">{classItem.name}</div>
+                          <span className="font-medium">{room.name}</span>
+                          <div className="text-xs text-gray-500">
+                            {language === 'fr' ? 'Capacité' : 'Capacity'}: {room.capacity}
+                          </div>
                         </div>
                         <Badge variant="outline" className="text-blue-600 border-blue-600">
                           {language === 'fr' ? 'Occupée' : 'Occupied'}
                         </Badge>
                       </div>
                     ))}
+                    {roomsData.filter((room: any) => room.isOccupied).length === 0 && (
+                      <div className="text-center text-gray-500 py-4">
+                        {language === 'fr' ? 'Aucune salle occupée' : 'No occupied rooms'}
+                      </div>
+                    )}
                   </div>
                 </Card>
               </div>
@@ -981,9 +1061,24 @@ const ClassManagement: React.FC = () => {
                   <Input 
                     placeholder={language === 'fr' ? 'Nom de la salle (ex: Salle 301)' : 'Room name (ex: Room 301)'}
                     className="flex-1"
+                    value={newRoomName}
+                    onChange={(e) => setNewRoomName(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddRoom();
+                      }
+                    }}
                   />
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={handleAddRoom}
+                    disabled={addRoomMutation.isPending || !newRoomName.trim()}
+                  >
+                    {addRoomMutation.isPending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    ) : (
+                      <Plus className="w-4 h-4 mr-2" />
+                    )}
                     {language === 'fr' ? 'Ajouter' : 'Add'}
                   </Button>
                 </div>
@@ -992,10 +1087,19 @@ const ClassManagement: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                   <Badge className="bg-green-100 text-green-800">
-                    {language === 'fr' ? '6 Salles Libres' : '6 Free Rooms'}
+                    {language === 'fr' 
+                      ? `${roomsData.filter((r: any) => !r.isOccupied).length} Salles Libres` 
+                      : `${roomsData.filter((r: any) => !r.isOccupied).length} Free Rooms`}
                   </Badge>
                   <Badge className="bg-blue-100 text-blue-800">
-                    {language === 'fr' ? `${finalClasses.length} Salles Occupées` : `${finalClasses.length} Occupied Rooms`}
+                    {language === 'fr' 
+                      ? `${roomsData.filter((r: any) => r.isOccupied).length} Salles Occupées` 
+                      : `${roomsData.filter((r: any) => r.isOccupied).length} Occupied Rooms`}
+                  </Badge>
+                  <Badge className="bg-gray-100 text-gray-800">
+                    {language === 'fr' 
+                      ? `${roomsData.length} Total` 
+                      : `${roomsData.length} Total`}
                   </Badge>
                 </div>
                 <Button variant="outline" onClick={() => setIsRoomManagementOpen(false)}>

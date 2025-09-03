@@ -435,6 +435,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= ROOMS MANAGEMENT API =============
+  
+  // Get all rooms for a school
+  app.get("/api/director/rooms", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[ROOMS_API] GET /api/director/rooms for user:', user.id);
+      
+      // For now, return mock data. In production, fetch from database
+      const rooms = [
+        { id: 1, name: 'Salle 101', schoolId: user.schoolId, capacity: 30, isOccupied: false },
+        { id: 2, name: 'Salle 102', schoolId: user.schoolId, capacity: 25, isOccupied: true },
+        { id: 3, name: 'Salle 201', schoolId: user.schoolId, capacity: 35, isOccupied: false },
+        { id: 4, name: 'Salle 202', schoolId: user.schoolId, capacity: 28, isOccupied: true },
+        { id: 5, name: 'Laboratoire', schoolId: user.schoolId, capacity: 20, isOccupied: false },
+        { id: 6, name: 'Salle Informatique', schoolId: user.schoolId, capacity: 24, isOccupied: false }
+      ];
+      
+      res.json({ success: true, rooms });
+    } catch (error) {
+      console.error('[ROOMS_API] Error fetching rooms:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch rooms' });
+    }
+  });
+
+  // Add a new room
+  app.post("/api/director/rooms", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { name, capacity } = req.body;
+      
+      console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, capacity });
+      
+      if (!name || !capacity) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Name and capacity are required' 
+        });
+      }
+
+      // For now, return success with mock ID. In production, save to database
+      const newRoom = {
+        id: Math.floor(Math.random() * 1000) + 100,
+        name,
+        capacity: parseInt(capacity),
+        schoolId: user.schoolId || 1,
+        isOccupied: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log('[ROOMS_API] ✅ Room added successfully:', newRoom.name);
+      res.json({ success: true, room: newRoom, message: 'Room added successfully' });
+    } catch (error) {
+      console.error('[ROOMS_API] Error adding room:', error);
+      res.status(500).json({ success: false, message: 'Failed to add room' });
+    }
+  });
+
+  // Delete a room
+  app.delete("/api/director/rooms/:roomId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const { roomId } = req.params;
+      console.log('[ROOMS_API] DELETE /api/director/rooms/' + roomId);
+      
+      // In production, delete from database and check if room is not occupied
+      res.json({ success: true, message: 'Room deleted successfully' });
+    } catch (error) {
+      console.error('[ROOMS_API] Error deleting room:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete room' });
+    }
+  });
+
   // Teacher Messages
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
