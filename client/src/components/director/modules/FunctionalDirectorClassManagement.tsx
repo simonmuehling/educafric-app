@@ -496,7 +496,7 @@ const FunctionalDirectorClassManagement: React.FC = () => {
                 <Select 
                   value={classForm.teacherId} 
                   onValueChange={(value) => {
-                    const selectedTeacher = teachers.find(t => t.id.toString() === value);
+                    const selectedTeacher = Array.isArray(teachers) ? teachers.find(t => t.id.toString() === value) : null;
                     setClassForm(prev => ({
                       ...prev,
                       teacherId: value,
@@ -508,7 +508,7 @@ const FunctionalDirectorClassManagement: React.FC = () => {
                     <SelectValue placeholder={isLoadingTeachers ? 'Chargement...' : 'Sélectionner un enseignant'} />
                   </SelectTrigger>
                   <SelectContent>
-                    {teachers.length === 0 ? (
+                    {!Array.isArray(teachers) || teachers.length === 0 ? (
                       <SelectItem value="disabled-option" disabled>
                         {isLoadingTeachers ? 'Chargement...' : 'Aucun enseignant disponible'}
                       </SelectItem>
