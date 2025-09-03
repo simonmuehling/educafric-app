@@ -1059,9 +1059,38 @@ const BulletinApprovalNew: React.FC = () => {
                 {t.cancel || (language === 'fr' ? 'Fermer' : 'Close')}
               </Button>
               <Button 
-                onClick={() => {
+                onClick={async () => {
                   if (selectedBulletin) {
-                    generateBulletinPDF(selectedBulletin, previewLanguage, true);
+                    setIsGeneratingPDF(true);
+                    try {
+                      // Convert Bulletin to BulletinData format
+                      const bulletinData = {
+                        student: {
+                          id: selectedBulletin.studentId,
+                          name: selectedBulletin.studentName,
+                          class: selectedBulletin.className
+                        },
+                        subjects: selectedBulletin.grades.map(grade => ({
+                          name: grade.subjectName,
+                          grade: grade.grade,
+                          coefficient: grade.coefficient,
+                          teacher: 'Teacher', // Default teacher name
+                          comment: grade.comment
+                        })),
+                        period: selectedBulletin.period,
+                        academicYear: selectedBulletin.academicYear,
+                        generalAverage: selectedBulletin.generalAverage,
+                        classRank: selectedBulletin.classRank,
+                        totalStudents: selectedBulletin.totalStudentsInClass,
+                        teacherComments: selectedBulletin.generalComment,
+                        directorComments: selectedBulletin.recommendations
+                      };
+                      await generateBulletinPDF(bulletinData, previewLanguage);
+                    } catch (error) {
+                      console.error('Error generating PDF:', error);
+                    } finally {
+                      setIsGeneratingPDF(false);
+                    }
                   }
                 }}
                 className="bg-green-600 hover:bg-green-700"
