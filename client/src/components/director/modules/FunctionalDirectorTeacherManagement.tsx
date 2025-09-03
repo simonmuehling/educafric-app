@@ -84,7 +84,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       
       setIsAddTeacherOpen(false);
       const teacherName = teacherForm.name || 'Le nouvel enseignant';
-      setTeacherForm({ name: '', email: '', phone: '', subjects: '', classes: '', experience: '', qualification: '', schedule: '', salary: '' });
+      setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '' });
       
       toast({
         title: '✅ Enseignant ajouté avec succès',
@@ -169,10 +169,10 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   const handleCreateTeacher = () => {
     createTeacherMutation.mutate({
       ...teacherForm,
-      subjects: teacherForm.subjects.split(',').map(s => s.trim()),
+      teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()),
       classes: teacherForm.classes.split(',').map(c => c.trim()),
-      experience: parseInt(teacherForm.experience) || 0,
-      salary: parseFloat(teacherForm.salary) || 0
+      gender: teacherForm.gender,
+      matricule: teacherForm.matricule
     });
   };
 
@@ -181,7 +181,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       updateTeacherMutation.mutate({
         ...selectedTeacher,
         ...teacherForm,
-        subjects: teacherForm.subjects.split(',').map(s => s.trim()),
+        teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()),
         classes: teacherForm.classes.split(',').map(c => c.trim())
       });
     }
@@ -193,12 +193,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       name: teacher.name,
       email: teacher.email,
       phone: teacher.phone,
-      subjects: teacher.subjects.join(', '),
-      classes: teacher.classes.join(', '),
-      experience: teacher.experience.toString(),
-      qualification: teacher.qualification,
-      schedule: teacher.schedule,
-      salary: teacher.salary.toString()
+      teachingSubjects: teacher.teachingSubjects ? teacher.teachingSubjects.join(', ') : '',
+      classes: teacher.classes ? teacher.classes.join(', ') : '',
+      gender: teacher.gender || '',
+      matricule: teacher.matricule || '',
+      schedule: teacher.schedule || ''
     });
     setIsEditTeacherOpen(true);
   };
@@ -213,11 +212,11 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     if (!teacher) return false;
     const name = teacher.name || '';
     const email = teacher.email || '';
-    const subjects = Array.isArray(teacher.subjects) ? teacher.subjects : [];
+    const teachingSubjects = Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : [];
     
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || subjects.includes(selectedSubject);
+    const matchesSubject = selectedSubject === 'all' || teachingSubjects.includes(selectedSubject);
     return matchesSearch && matchesSubject;
   }) : [];
 
@@ -458,63 +457,49 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                   className="w-full"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Sexe</Label>
+                  <Select 
+                    value={teacherForm.gender} 
+                    onValueChange={(value) => setTeacherForm(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="M">Masculin</SelectItem>
+                      <SelectItem value="F">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Matricule</Label>
+                  <Input
+                    value={teacherForm.matricule}
+                    onChange={(e) => setTeacherForm(prev => ({ ...prev, matricule: e.target.value }))}
+                    placeholder="MAT-2024-001"
+                    className="w-full"
+                  />
+                </div>
+              </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.subjects}</Label>
+                <Label className="text-sm font-medium">Matières enseignées</Label>
                 <Input
-                  value={teacherForm.subjects}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, subjects: e.target.value }))}
-                  placeholder="Mathématiques, Physique"
+                  value={teacherForm.teachingSubjects}
+                  onChange={(e) => setTeacherForm(prev => ({ ...prev, teachingSubjects: e.target.value }))}
+                  placeholder="Mathématiques, Physique, Chimie"
                   className="w-full"
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.classes}</Label>
+                <Label className="text-sm font-medium">Classes assignées</Label>
                 <Input
                   value={teacherForm.classes}
                   onChange={(e) => setTeacherForm(prev => ({ ...prev, classes: e.target.value }))}
-                  placeholder="6ème A, 5ème B"
+                  placeholder="6ème A, 5ème B, 4ème C"
                   className="w-full"
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">{text.form.experience}</Label>
-                  <Input
-                    type="number"
-                    value={teacherForm.experience}
-                    onChange={(e) => setTeacherForm(prev => ({ ...prev, experience: e.target.value }))}
-                    placeholder="5"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">{text.form.salary}</Label>
-                  <Input
-                    type="number"
-                    value={teacherForm.salary}
-                    onChange={(e) => setTeacherForm(prev => ({ ...prev, salary: e.target.value }))}
-                    placeholder="150000"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">{text.form.qualification}</Label>
-                <Select 
-                  value={teacherForm.qualification} 
-                  onValueChange={(value) => setTeacherForm(prev => ({ ...prev, qualification: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une qualification" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Licence">Licence</SelectItem>
-                    <SelectItem value="Master">Master</SelectItem>
-                    <SelectItem value="Doctorat">Doctorat</SelectItem>
-                    <SelectItem value="BEPC">BEPC</SelectItem>
-                    <SelectItem value="Baccalauréat">Baccalauréat</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button 
@@ -571,10 +556,55 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.subjects}</Label>
+                <Label className="text-sm font-medium">{text.form.phone}</Label>
                 <Input
-                  value={teacherForm.subjects}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, subjects: e.target.value }))}
+                  value={teacherForm.phone}
+                  onChange={(e) => setTeacherForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="+237 6XX XXX XXX"
+                  className="w-full"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Sexe</Label>
+                  <Select 
+                    value={teacherForm.gender} 
+                    onValueChange={(value) => setTeacherForm(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="M">Masculin</SelectItem>
+                      <SelectItem value="F">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Matricule</Label>
+                  <Input
+                    value={teacherForm.matricule}
+                    onChange={(e) => setTeacherForm(prev => ({ ...prev, matricule: e.target.value }))}
+                    placeholder="MAT-2024-001"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Matières enseignées</Label>
+                <Input
+                  value={teacherForm.teachingSubjects}
+                  onChange={(e) => setTeacherForm(prev => ({ ...prev, teachingSubjects: e.target.value }))}
+                  placeholder="Mathématiques, Physique, Chimie"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Classes assignées</Label>
+                <Input
+                  value={teacherForm.classes}
+                  onChange={(e) => setTeacherForm(prev => ({ ...prev, classes: e.target.value }))}
+                  placeholder="6ème A, 5ème B, 4ème C"
                   className="w-full"
                 />
               </div>
@@ -647,9 +677,9 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                         </Badge>
                       </div>
                       <div className="flex flex-wrap items-center gap-4 mb-2 text-sm text-gray-600">
-                        <span>📚 {teacher.subjects.join(', ')}</span>
-                        <span>🎓 {teacher.qualification}</span>
-                        <span>⏰ {teacher.experience} ans</span>
+                        <span>📚 {(teacher.teachingSubjects || []).join(', ')}</span>
+                        {teacher.gender && <span>👤 {teacher.gender === 'M' ? 'Masculin' : 'Féminin'}</span>}
+                        {teacher.matricule && <span>🆔 {teacher.matricule}</span>}
                       </div>
                       <div className="flex flex-wrap items-center gap-4 mb-3 text-xs text-gray-500">
                         <span>📧 {teacher.email || ''}</span>
