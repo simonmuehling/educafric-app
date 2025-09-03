@@ -512,4 +512,149 @@ router.post('/bulletins/:id/notify', requireAuth, async (req, res) => {
   }
 });
 
+// NEW: Preview bulletin template for schools
+router.get('/bulletins/template-preview', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Allow all authenticated users to view the template
+    console.log('[BULLETIN_TEMPLATE] 🎨 Template preview requested by:', user.email);
+
+    // Serve the template HTML file
+    res.sendFile('template-bulletin-educafric.html', { 
+      root: './public/documents',
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8'
+      }
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_TEMPLATE] ❌ Error serving template:', error);
+    res.status(500).json({ error: 'Failed to load bulletin template' });
+  }
+});
+
+// NEW: Get bulletin template as JSON for customization
+router.get('/bulletins/template-data', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Verify user has permission
+    if (!['Teacher', 'Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    console.log('[BULLETIN_TEMPLATE] 📋 Template data requested by:', user.email);
+
+    // Return template structure as JSON for customization
+    const templateData = {
+      school: {
+        name: "ÉCOLE SAINT-JOSEPH YAOUNDÉ",
+        logo: "ESJ",
+        subtitle: "Excellence • Innovation • Leadership",
+        address: "BP 1234 Yaoundé - Cameroun",
+        phone: "+237 222 123 456",
+        website: "www.educafric.com"
+      },
+      student: {
+        name: "KOUAME Marie Célestine",
+        class: "6ème A",
+        age: 12,
+        birthDate: "15 Mars 2012",
+        matricule: "ESJ-2024-001",
+        photo: "👩‍🎓"
+      },
+      academic: {
+        period: "1ER TRIMESTRE 2024-2025",
+        generalAverage: 14.5,
+        classRank: 8,
+        totalStudents: 32,
+        conduct: 16,
+        absences: 2
+      },
+      subjects: [
+        {
+          name: "Mathématiques",
+          grade: 15.0,
+          coefficient: 4,
+          teacher: "M. KOUAME Paul",
+          appreciation: "Très bien"
+        },
+        {
+          name: "Français", 
+          grade: 13.0,
+          coefficient: 4,
+          teacher: "Mme DIALLO Aïcha",
+          appreciation: "Peut mieux faire"
+        },
+        {
+          name: "Sciences Physiques",
+          grade: 16.5,
+          coefficient: 3,
+          teacher: "Dr. NGOZI Emmanuel", 
+          appreciation: "Excellent"
+        },
+        {
+          name: "Histoire-Géographie",
+          grade: 12.0,
+          coefficient: 3,
+          teacher: "M. BAMOGO Alain",
+          appreciation: "Assez bien"
+        },
+        {
+          name: "Anglais",
+          grade: 14.5,
+          coefficient: 2,
+          teacher: "Miss JOHNSON Sarah",
+          appreciation: "Bien"
+        },
+        {
+          name: "Éducation Civique",
+          grade: 17.0,
+          coefficient: 2,
+          teacher: "M. ETOA Pierre",
+          appreciation: "Excellent"
+        },
+        {
+          name: "EPS",
+          grade: 15.0,
+          coefficient: 2,
+          teacher: "M. MBALLA Jean",
+          appreciation: "Très bien"
+        }
+      ],
+      comments: {
+        teacher: "Marie est une élève sérieuse et appliquée qui montre de bonnes capacités dans l'ensemble des matières. Ses résultats en sciences sont particulièrement remarquables. Il conviendrait d'améliorer ses performances en français pour viser l'excellence. Continue tes efforts !",
+        director: "Résultats satisfaisants pour ce premier trimestre. Marie fait preuve de discipline et de régularité dans son travail. Les efforts doivent être maintenus pour conserver ce niveau et progresser vers l'excellence. Félicitations pour sa conduite exemplaire."
+      },
+      signatures: {
+        teacher: "M. KOUAME Paul",
+        director: "Dr. MENDOMO Gabriel"
+      },
+      security: {
+        qrCode: "EDU-2024-MAR-001",
+        verificationUrl: "/api/bulletin-validation/bulletins/verify-qr",
+        generatedDate: "15 Décembre 2024"
+      }
+    };
+
+    res.json({
+      success: true,
+      templateData,
+      message: 'Bulletin template data retrieved successfully',
+      customizable: {
+        school: true,
+        colors: true,
+        subjects: true,
+        grading: true,
+        comments: true
+      }
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_TEMPLATE] ❌ Error getting template data:', error);
+    res.status(500).json({ error: 'Failed to get bulletin template data' });
+  }
+});
+
 export default router;
