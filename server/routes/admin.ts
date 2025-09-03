@@ -234,19 +234,42 @@ router.get('/teachers', requireAuth, requireAdmin, async (req, res) => {
 router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
+    const { firstName, lastName, email, phone, gender, matricule, teachingSubjects } = req.body;
+    
+    // Generate a temporary password for new teachers
+    const tempPassword = 'Educafric2025!';
+    
     const teacherData = {
-      ...req.body,
-      schoolId: user.schoolId,
+      firstName,
+      lastName,
+      email,
+      phone,
+      password: tempPassword, // Required for user creation
       role: 'Teacher',
+      schoolId: user.schoolId,
+      gender,
+      matricule,
+      subjects: teachingSubjects || [],
       createdBy: user.id
     };
 
-    const teacher = await storage.createTeacher(teacherData);
+    const teacher = await storage.createUser(teacherData);
     
     res.status(201).json({
       success: true,
       message: 'Teacher created successfully',
-      teacher
+      teacher: {
+        id: teacher.id,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        email: teacher.email,
+        phone: teacher.phone,
+        gender: teacher.gender,
+        matricule: teacher.matricule,
+        teachingSubjects: teacher.subjects,
+        role: teacher.role,
+        status: 'active'
+      }
     });
   } catch (error) {
     console.error('[DIRECTOR_CREATE_TEACHER] Error:', error);
