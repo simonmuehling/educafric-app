@@ -75,8 +75,8 @@ const BulletinApprovalNew: React.FC = () => {
 
   const text = {
     fr: {
-      title: 'Validation Bulletins Bilingues',
-      subtitle: 'Approbation, génération bilingue et distribution des bulletins scolaires',
+      title: 'Bulletins',
+      subtitle: 'Génération, validation et distribution des bulletins scolaires bilingues avec QR code',
       pendingApproval: 'En Attente d\'Approbation',
       approved: 'Approuvés',
       sent: 'Envoyés',
@@ -137,8 +137,8 @@ const BulletinApprovalNew: React.FC = () => {
       loadingBulletins: 'Chargement des bulletins...'
     },
     en: {
-      title: 'Bulletin Approval',
-      subtitle: 'School report card approval and distribution system',
+      title: 'Bulletins',
+      subtitle: 'Generation, validation and distribution of bilingual school bulletins with QR code',
       pendingApproval: 'Pending Approval',
       approved: 'Approved',
       sent: 'Sent',

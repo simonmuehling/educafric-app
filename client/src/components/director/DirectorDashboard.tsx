@@ -208,7 +208,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       teacherAbsence: 'Absences Profs',
       parentRequests: 'Demandes Parents',
       geolocation: 'Géolocalisation',
-      bulletinApproval: 'Bulletins Bilingues',
+      bulletins: 'Bulletins',
       notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
 
@@ -232,7 +232,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       teacherAbsence: 'Teacher Absences',
       parentRequests: 'Parent Requests',
 
-      bulletinApproval: 'Bilingual Bulletins',
+      bulletins: 'Bulletins',
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
 
@@ -392,8 +392,8 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
 
     {
       id: 'bulletin-validation',
-      label: t.bulletinApproval,
-      icon: <Languages className="w-6 h-6" />,
+      label: t.bulletins,
+      icon: <FileText className="w-6 h-6" />,
       color: 'bg-indigo-500',
       component: createDynamicModule('bulletin-validation')
     },
