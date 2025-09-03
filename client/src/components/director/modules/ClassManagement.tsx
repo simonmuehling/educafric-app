@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2 } from 'lucide-react';
+import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
+import ImportModal from '../ImportModal';
 
 const ClassManagement: React.FC = () => {
   const { language } = useLanguage();
@@ -28,6 +29,7 @@ const ClassManagement: React.FC = () => {
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
 
   const text = {
@@ -343,6 +345,12 @@ const ClassManagement: React.FC = () => {
       classId: selectedClass.id,
       classData: classDataForAPI
     });
+  };
+
+  const handleViewClass = (classItem: any) => {
+    console.log('[CLASS_MANAGEMENT] 👁️ Opening view modal for class:', classItem.name);
+    setSelectedClass(classItem);
+    setIsViewModalOpen(true);
   };
 
   // Loading state
@@ -881,6 +889,14 @@ const ClassManagement: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleViewClass(classItem)}
+                        data-testid={`button-view-class-${String(classItem?.id) || "N/A"}`}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
