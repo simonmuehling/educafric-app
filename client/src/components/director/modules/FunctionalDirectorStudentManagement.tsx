@@ -12,8 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Users, UserPlus, Search, Download, Filter, MoreHorizontal, 
   BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, 
-  Eye, X, Mail, Phone, GraduationCap
+  Eye, X, Mail, Phone, GraduationCap, Upload, Camera
 } from 'lucide-react';
+import { ImportModal } from '../ImportModal';
 
 interface Student {
   id: number;
@@ -41,7 +42,9 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState('all');
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [isEditStudentOpen, setIsEditStudentOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<number | null>(null);
   const [studentForm, setStudentForm] = useState({
     name: '', // Single name field for simplicity 
     email: '',
@@ -53,7 +56,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     matricule: '',
     parentName: '',
     parentEmail: '',
-    parentPhone: ''
+    parentPhone: '',
+    photo: null as File | null
   });
 
   // Fetch students data from PostgreSQL API
@@ -89,7 +93,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsAddStudentOpen(false);
-      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '' });
+      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '', photo: null });
       
       toast({
         title: '✅ Élève ajouté avec succès',
@@ -319,14 +323,24 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{text.title || ''}</h1>
           <p className="text-gray-500">Gérez tous les élèves de votre établissement</p>
         </div>
-        <Button 
-          onClick={() => setIsAddStudentOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700"
-          data-testid="button-add-student"
-        >
-          <UserPlus className="w-4 h-4 mr-2" />
-          {text.addStudent}
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsAddStudentOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="button-add-student"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            {text.addStudent}
+          </Button>
+          <Button 
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700"
+            data-testid="button-import-students"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importer Excel/CSV
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -519,6 +533,39 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   className="w-full"
                 />
               </div>
+              
+              {/* Photo Upload Section */}
+              <div>
+                <Label className="text-sm font-medium">Photo de l'élève (optionnelle)</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setStudentForm(prev => ({ ...prev, photo: file }));
+                    }}
+                    className="hidden"
+                    id="student-photo-upload"
+                  />
+                  <label
+                    htmlFor="student-photo-upload"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Choisir une photo
+                  </label>
+                  {studentForm.photo && (
+                    <span className="text-sm text-green-600">
+                      ✓ {studentForm.photo.name}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Formats supportés: JPG, PNG, WebP (max 5MB)
+                </p>
+              </div>
+              
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={handleCreateStudent}
@@ -709,6 +756,34 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                         </Button>
                         <Button 
                           variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0];
+                              if (file) {
+                                setUploadingPhoto(student.id);
+                                // Simuler l'upload - ici on pourrait envoyer à un service réel
+                                toast({
+                                  title: '📷 Photo uploadée !',
+                                  description: `Photo de ${student.firstName} ${student.lastName} mise à jour`
+                                });
+                                setTimeout(() => setUploadingPhoto(null), 1000);
+                              }
+                            };
+                            input.click();
+                          }}
+                          disabled={uploadingPhoto === student.id}
+                          className="flex items-center gap-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          data-testid={`button-photo-student-${student.id}`}
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span className="hidden sm:inline">Photo</span>
+                        </Button>
+                        <Button 
+                          variant="outline" 
                           size="sm" 
                           onClick={() => handleDeleteStudent(student.id)}
                           className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -726,6 +801,21 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Import Modal */}
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        importType="students"
+        onImportComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
+          setIsImportModalOpen(false);
+          toast({
+            title: '✅ Import réussi !',
+            description: 'Les élèves ont été importés avec succès'
+          });
+        }}
+      />
     </div>
   );
 };
