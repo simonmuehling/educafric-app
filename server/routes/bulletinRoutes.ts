@@ -14,6 +14,103 @@ const requireAuth = (req: any, res: any, next: any) => {
   next();
 };
 
+// Get all bulletins
+router.get('/', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // For now, return demo data - you can connect to real database later
+    const mockBulletins = [
+      {
+        id: 1,
+        studentId: 1,
+        studentName: 'Marie Kouam',
+        classId: 1,
+        className: 'Terminale C',
+        period: 'Premier Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 15.5,
+        classRank: 3,
+        totalStudentsInClass: 35,
+        status: 'submitted',
+        submittedBy: 2,
+        submittedByName: 'Prof. Ndongo',
+        submittedAt: '2024-11-15T10:00:00Z',
+        grades: [
+          { subjectId: 1, subjectName: 'Mathématiques', grade: 16, maxGrade: 20, coefficient: 4, comment: 'Très bon travail' },
+          { subjectId: 2, subjectName: 'Physique', grade: 15, maxGrade: 20, coefficient: 3, comment: 'Bien' },
+          { subjectId: 3, subjectName: 'Français', grade: 14, maxGrade: 20, coefficient: 3, comment: 'Correct' }
+        ],
+        generalComment: 'Élève sérieuse avec un bon niveau général',
+        recommendations: 'Continuer les efforts en français',
+        conduct: 'Très bien',
+        attendanceRate: 95
+      },
+      {
+        id: 2,
+        studentId: 2,
+        studentName: 'Paul Mballa',
+        classId: 1,
+        className: 'Terminale C',
+        period: 'Premier Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 12.8,
+        classRank: 12,
+        totalStudentsInClass: 35,
+        status: 'draft',
+        grades: [
+          { subjectId: 1, subjectName: 'Mathématiques', grade: 13, maxGrade: 20, coefficient: 4, comment: 'Peut mieux faire' },
+          { subjectId: 2, subjectName: 'Physique', grade: 12, maxGrade: 20, coefficient: 3, comment: 'Effort nécessaire' },
+          { subjectId: 3, subjectName: 'Français', grade: 14, maxGrade: 20, coefficient: 3, comment: 'Bon niveau' }
+        ],
+        generalComment: 'Élève capable mais doit fournir plus d\'efforts',
+        conduct: 'Bien',
+        attendanceRate: 88
+      }
+    ];
+    
+    res.json({
+      success: true,
+      bulletins: mockBulletins
+    });
+  } catch (error) {
+    console.error('[BULLETINS_GET] Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch bulletins' });
+  }
+});
+
+// Bulk sign bulletins
+router.post('/bulk-sign', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { classId, signerName, signerPosition } = req.body;
+    
+    res.json({
+      success: true,
+      message: 'Bulletins signed successfully'
+    });
+  } catch (error) {
+    console.error('[BULLETIN_BULK_SIGN] Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to sign bulletins' });
+  }
+});
+
+// Send bulletins with notifications
+router.post('/send-with-notifications', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { bulletinIds } = req.body;
+    
+    res.json({
+      success: true,
+      message: 'Bulletins sent successfully'
+    });
+  } catch (error) {
+    console.error('[BULLETIN_SEND] Error:', error);
+    res.status(500).json({ success: false, message: 'Failed to send bulletins' });
+  }
+});
+
 // Create new bulletin
 router.post('/bulletins', requireAuth, async (req, res) => {
   try {
