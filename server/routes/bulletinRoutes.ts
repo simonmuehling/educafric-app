@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { storage } from '../storage';
+import crypto from 'crypto';
+import { PDFGenerator } from '../services/pdfGenerator';
 
 const router = Router();
 
@@ -246,6 +248,31 @@ router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('[BULLETIN_PDF] Error:', error);
     res.status(500).json({ error: 'Failed to generate PDF' });
+  }
+});
+
+// Generate test bulletin PDF with realistic African school data
+router.get('/test-bulletin/pdf', async (req, res) => {
+  try {
+    console.log('[TEST_BULLETIN_PDF] Generating test bulletin PDF...');
+    
+    // Generate the PDF using the PDF generator service
+    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="test-bulletin-amina-kouakou-2024.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    console.log('[TEST_BULLETIN_PDF] ✅ Test bulletin PDF generated successfully');
+    res.send(pdfBuffer);
+    
+  } catch (error) {
+    console.error('[TEST_BULLETIN_PDF] ❌ Error generating test bulletin PDF:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate test bulletin PDF',
+      details: error.message 
+    });
   }
 });
 

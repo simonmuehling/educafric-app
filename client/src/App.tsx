@@ -73,6 +73,7 @@ import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
+import TestBulletinPDF from "@/pages/TestBulletinPDF";
 import VonageTest from "@/pages/VonageTest";
 
 // Global module preloader for instant UI response
@@ -436,6 +437,7 @@ function Router() {
       <Route path="/bulletin-validation-test" component={BulletinValidationTest} />
       <Route path="/bulletin-creation-test" component={BulletinCreationTest} />
       <Route path="/bulletin-tests" component={BulletinTestSuite} />
+      <Route path="/test-bulletin-pdf" component={TestBulletinPDF} />
       <Route path="/pwa-notifications-test" component={PWANotificationTest} />
       
       {/* Fallback to 404 */}

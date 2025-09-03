@@ -571,6 +571,171 @@ export class PDFGenerator {
     return Buffer.from(doc.output('arraybuffer'));
   }
 
+  static async generateTestBulletinDocument(): Promise<Buffer> {
+    const jsPDFModule = await import('jspdf');
+    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const doc = new jsPDF();
+    
+    // Configuration
+    doc.setFont('helvetica');
+    
+    // Create realistic test data for African school
+    const testBulletinData = {
+      student: { name: 'Amina Kouakou', class: '3ème A' },
+      subjects: [
+        { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph', comment: 'Excellents résultats. Continue ainsi!' },
+        { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou', comment: 'Bon niveau d\'expression écrite' },
+        { name: 'Anglais', grade: 15.5, coefficient: 3, teacher: 'Mr Smith John', comment: 'Good pronunciation and comprehension' },
+        { name: 'Histoire-Géographie', grade: 13.5, coefficient: 3, teacher: 'M. Ouédraogo Paul', comment: 'Connaissances solides sur l\'Afrique' },
+        { name: 'Sciences Physiques', grade: 17.0, coefficient: 3, teacher: 'Mme Camara Aïcha', comment: 'Excellente compréhension des concepts' },
+        { name: 'Sciences Naturelles', grade: 16.0, coefficient: 3, teacher: 'M. Traoré Ibrahim', comment: 'Très bon travail en laboratoire' },
+        { name: 'Éducation Physique', grade: 18.0, coefficient: 1, teacher: 'M. Bamba Sekou', comment: 'Excellent esprit sportif' },
+        { name: 'Arts Plastiques', grade: 15.0, coefficient: 1, teacher: 'Mme Sow Mariam', comment: 'Créativité remarquable' }
+      ],
+      period: '1er Trimestre',
+      academicYear: '2024-2025',
+      generalAverage: 15.43,
+      classRank: 3,
+      totalStudents: 42,
+      teacherComments: 'Amina est une élève exemplaire qui fait preuve d\'une grande assiduité. Ses résultats sont excellents dans toutes les matières scientifiques. Elle participe activement en classe et aide ses camarades.',
+      directorComments: 'Très bons résultats ce trimestre. Amina est un exemple pour ses camarades. Continuez sur cette voie !',
+      verificationCode: 'EDU2024-AMK-T1-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+      schoolBranding: {
+        schoolName: 'Collège Excellence Africaine - Yaoundé',
+        footerText: 'Collège Excellence Africaine - BP 1234 Yaoundé, Cameroun - Tel: +237 222 345 678'
+      }
+    };
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPosition = margin;
+    
+    // Header
+    doc.setTextColor(37, 99, 235);
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(testBulletinData.schoolBranding.schoolName, margin, yPosition + 15);
+    
+    yPosition += 35;
+    doc.setFontSize(16);
+    doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+    
+    // Student info
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Élève: ${testBulletinData.student.name}`, margin, yPosition);
+    doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition + 8);
+    doc.text(`Période: ${testBulletinData.period}`, margin, yPosition + 16);
+    doc.text(`Année Scolaire: ${testBulletinData.academicYear}`, margin, yPosition + 24);
+    yPosition += 40;
+    
+    // Subjects table
+    doc.setFillColor(37, 99, 235);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
+    
+    const colWidths = [50, 20, 15, 20, 40, 35];
+    const headers = ['Matière', 'Note', 'Coeff.', 'Points', 'Enseignant', 'Appréciation'];
+    let xPos = margin + 2;
+    headers.forEach((header, index) => {
+      doc.text(header, xPos, yPosition + 6);
+      xPos += colWidths[index];
+    });
+    yPosition += 8;
+    
+    // Subjects data
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    testBulletinData.subjects.forEach((subject) => {
+      const points = (subject.grade * subject.coefficient).toFixed(1);
+      xPos = margin + 2;
+      doc.text(subject.name, xPos, yPosition + 6);
+      xPos += colWidths[0];
+      doc.text(subject.grade.toString(), xPos, yPosition + 6);
+      xPos += colWidths[1];
+      doc.text(subject.coefficient.toString(), xPos, yPosition + 6);
+      xPos += colWidths[2];
+      doc.text(points, xPos, yPosition + 6);
+      xPos += colWidths[3];
+      doc.text(subject.teacher, xPos, yPosition + 6);
+      xPos += colWidths[4];
+      const comment = subject.comment.length > 25 ? subject.comment.substring(0, 22) + '...' : subject.comment;
+      doc.text(comment, xPos, yPosition + 6);
+      yPosition += 8;
+    });
+    
+    yPosition += 15;
+    
+    // Average and rank
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(37, 99, 235);
+    doc.text(`Moyenne Générale: ${testBulletinData.generalAverage}/20`, margin, yPosition);
+    doc.text(`Rang: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, pageWidth - margin - 50, yPosition);
+    yPosition += 20;
+    
+    // Comments
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text('Appréciations des Enseignants:', margin, yPosition);
+    yPosition += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const teacherCommentLines = doc.splitTextToSize(testBulletinData.teacherComments, pageWidth - 2 * margin);
+    doc.text(teacherCommentLines, margin, yPosition);
+    yPosition += (teacherCommentLines.length * 5) + 10;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Appréciations de la Direction:', margin, yPosition);
+    yPosition += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const directorCommentLines = doc.splitTextToSize(testBulletinData.directorComments, pageWidth - 2 * margin);
+    doc.text(directorCommentLines, margin, yPosition);
+    yPosition += (directorCommentLines.length * 5) + 20;
+    
+    // Signatures
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(37, 99, 235);
+    doc.text('Signatures:', margin, yPosition);
+    yPosition += 15;
+    
+    const signatureWidth = (pageWidth - 3 * margin) / 2;
+    let signatureX = margin;
+    ['Dr. Ngozi Adichie - Directeur', 'Mme Diallo Fatou - Professeur Principal'].forEach((signature) => {
+      doc.setDrawColor(37, 99, 235);
+      doc.rect(signatureX, yPosition, signatureWidth, 30);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(signature, signatureX + 2, yPosition + 20);
+      signatureX += signatureWidth + margin;
+    });
+    yPosition += 40;
+    
+    // Verification
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Ce bulletin est authentifié par signature numérique EDUCAFRIC', margin, yPosition);
+    doc.text(`Code de vérification: ${testBulletinData.verificationCode}`, margin, yPosition + 5);
+    
+    // Footer
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.text(testBulletinData.schoolBranding.footerText, pageWidth / 2, pageHeight - margin, { align: 'center' });
+    
+    return Buffer.from(doc.output('arraybuffer'));
+  }
+
   
   static async generateCommercialDocument(data: DocumentData): Promise<Buffer> {
     const jsPDFModule = await import('jspdf');
