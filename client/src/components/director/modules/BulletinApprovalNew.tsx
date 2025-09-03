@@ -12,8 +12,10 @@ import { Label } from '@/components/ui/label';
 import { 
   ClipboardList, CheckCircle, Clock, XCircle, FileText, Eye, 
   Download, Send, User, Calendar, GraduationCap, BookOpen,
-  MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Trophy
+  MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Trophy, 
+  Languages, Printer, TestTube
 } from 'lucide-react';
+import { generateBulletinPDF } from '@/utils/bulletinPdfGenerator';
 
 interface Bulletin {
   id: number;
@@ -59,11 +61,14 @@ const BulletinApprovalNew: React.FC = () => {
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
   const [approvalComment, setApprovalComment] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewLanguage, setPreviewLanguage] = useState<'fr' | 'en'>('fr');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const text = {
     fr: {
-      title: 'Validation Bulletins',
-      subtitle: 'Système d\'approbation et distribution des bulletins scolaires',
+      title: 'Validation Bulletins Bilingues',
+      subtitle: 'Approbation, génération bilingue et distribution des bulletins scolaires',
       pendingApproval: 'En Attente d\'Approbation',
       approved: 'Approuvés',
       sent: 'Envoyés',
@@ -90,6 +95,12 @@ const BulletinApprovalNew: React.FC = () => {
       download: 'Télécharger',
       send: 'Envoyer',
       comment: 'Commentaire',
+      previewPDF: 'Prévisualiser PDF',
+      generateBilingual: 'Générer Bilingue',
+      testBulletin: 'Tester Bulletin',
+      french: 'Français',
+      english: 'Anglais',
+      both: 'Les deux',
       addComment: 'Ajouter un commentaire',
       approvalComment: 'Commentaire d\'approbation',
       cancel: 'Annuler',
@@ -138,6 +149,12 @@ const BulletinApprovalNew: React.FC = () => {
       download: 'Download',
       send: 'Send',
       comment: 'Comment',
+      previewPDF: 'Preview PDF',
+      generateBilingual: 'Generate Bilingual',
+      testBulletin: 'Test Bulletin',
+      french: 'French',
+      english: 'English',
+      both: 'Both',
       addComment: 'Add comment',
       approvalComment: 'Approval comment',
       cancel: 'Cancel',
