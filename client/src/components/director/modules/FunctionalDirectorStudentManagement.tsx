@@ -43,12 +43,14 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const [isEditStudentOpen, setIsEditStudentOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentForm, setStudentForm] = useState({
-    firstName: '',
-    lastName: '',
+    name: '', // Single name field for simplicity 
     email: '',
+    phone: '',
     className: '',
     level: '',
     age: '',
+    gender: '',
+    matricule: '',
     parentName: '',
     parentEmail: '',
     parentPhone: ''
@@ -70,7 +72,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   // Create student mutation
   const createStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
-      const response = await fetch('/api/director/student', {
+      const response = await fetch('/api/director/students', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(studentData),
@@ -87,11 +89,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsAddStudentOpen(false);
-      setStudentForm({ firstName: '', lastName: '', email: '', className: '', level: '', age: '', parentName: '', parentEmail: '', parentPhone: '' });
+      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '' });
       
       toast({
         title: '✅ Élève ajouté avec succès',
-        description: `${studentForm.firstName} ${studentForm.lastName} (${studentForm.className}) a été ajouté à votre école et apparaît maintenant dans la liste.`
+        description: `L'élève a été créé sans mot de passe requis et apparaît maintenant dans la liste.`
       });
       
       // Scroll to top to show the new student (usually added at beginning of list)
@@ -191,12 +193,14 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
   const handleEditStudent = (student: Student) => {
     setSelectedStudent(student);
     setStudentForm({
-      firstName: student.firstName,
-      lastName: student.lastName,
+      name: `${student.firstName} ${student.lastName}`,
       email: student.email,
+      phone: '',
       className: student.className,
       level: student.level,
       age: student.age.toString(),
+      gender: '',
+      matricule: '',
       parentName: student.parentName,
       parentEmail: student.parentEmail,
       parentPhone: student.parentPhone
@@ -434,35 +438,40 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               </Button>
             </div>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">{(text.form.firstName || '')}</Label>
-                  <Input
-                    value={studentForm.firstName || ''}
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, firstName: e.target.value }))}
-                    placeholder="Prénom"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">{(text.form.lastName || '')}</Label>
-                  <Input
-                    value={studentForm.lastName || ''}
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, lastName: e.target.value }))}
-                    placeholder="Nom"
-                    className="w-full"
-                  />
-                </div>
-              </div>
               <div>
-                <Label className="text-sm font-medium">{(text.form.email || '')}</Label>
+                <Label className="text-sm font-medium">Nom complet de l'élève</Label>
                 <Input
-                  type="email"
-                  value={studentForm.email || ''}
-                  onChange={(e) => setStudentForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="eleve@exemple.com"
+                  value={studentForm.name || ''}
+                  onChange={(e) => setStudentForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ex: Marie Nguemto"
                   className="w-full"
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Genre</Label>
+                  <Select 
+                    value={studentForm.gender} 
+                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, gender: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Genre" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Masculin</SelectItem>
+                      <SelectItem value="female">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Matricule (optionnel)</Label>
+                  <Input
+                    value={studentForm.matricule || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, matricule: e.target.value }))}
+                    placeholder="Ex: STU-001"
+                    className="w-full"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -484,14 +493,24 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">{text.form.age}</Label>
-                  <Input
-                    type="number"
-                    value={studentForm.age}
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, age: e.target.value }))}
-                    placeholder="16"
-                    className="w-full"
-                  />
+                  <Label className="text-sm font-medium">Niveau</Label>
+                  <Select 
+                    value={studentForm.level} 
+                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, level: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Niveau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="6ème">6ème</SelectItem>
+                      <SelectItem value="5ème">5ème</SelectItem>
+                      <SelectItem value="4ème">4ème</SelectItem>
+                      <SelectItem value="3ème">3ème</SelectItem>
+                      <SelectItem value="2nde">2nde</SelectItem>
+                      <SelectItem value="1ère">1ère</SelectItem>
+                      <SelectItem value="Terminale">Terminale</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
@@ -525,11 +544,11 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               <div className="flex gap-2 pt-4">
                 <Button 
                   onClick={handleCreateStudent}
-                  disabled={createStudentMutation.isPending || !studentForm.firstName || !studentForm.lastName}
+                  disabled={createStudentMutation.isPending || !studentForm.name}
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                   data-testid="button-confirm-add-student"
                 >
-                  {createStudentMutation.isPending ? 'Ajout...' : text.buttons.create}
+                  {createStudentMutation.isPending ? 'Ajout...' : 'Créer l\'élève (sans mot de passe)'}
                 </Button>
                 <Button 
                   onClick={() => setIsAddStudentOpen(false)}

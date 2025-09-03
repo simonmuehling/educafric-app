@@ -177,19 +177,64 @@ router.get('/students/analytics', requireAuth, requireAdmin, async (req, res) =>
 router.post('/students', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
+    const { firstName, lastName, name, email, phone, dateOfBirth, classId, level, parentEmail, gender, matricule } = req.body;
+    
+    console.log('[DIRECTOR_CREATE_STUDENT] Request data:', req.body);
+    
+    // Handle name field - split name into firstName and lastName if provided as single name
+    let finalFirstName = firstName;
+    let finalLastName = lastName;
+    
+    if (!firstName && !lastName && name) {
+      const nameParts = name.trim().split(' ');
+      finalFirstName = nameParts[0];
+      finalLastName = nameParts.slice(1).join(' ') || nameParts[0];
+    }
+
+    // Students don't need passwords initially - they can be set later when they first access the system
+    // Generate a temporary email if none provided (required by database)
+    const tempEmail = email || `${finalFirstName?.toLowerCase() || 'student'}.${finalLastName?.toLowerCase() || 'temp'}@temp.educafric.com`;
+    
     const studentData = {
-      ...req.body,
+      firstName: finalFirstName,
+      lastName: finalLastName,
+      email: tempEmail, // Use temporary email if none provided
+      phone: phone || null, // Phone is optional for students
+      dateOfBirth: dateOfBirth || null,
+      gender: gender || null,
+      matricule: matricule || null,
       schoolId: user.schoolId,
       role: 'Student',
+      classId: classId || null,
+      level: level || null,
+      parentEmail: parentEmail || null,
+      status: 'active',
+      password: await bcrypt.hash('StudentTemp123!', 10), // Temporary password that can be changed later
       createdBy: user.id
     };
 
-    const student = await storage.createStudent(studentData);
+    console.log('[DIRECTOR_CREATE_STUDENT] Creating student with data:', studentData);
+
+    const student = await storage.createUser(studentData);
+    
+    console.log('[DIRECTOR_CREATE_STUDENT] Student created successfully:', student.id);
     
     res.status(201).json({
       success: true,
-      message: 'Student created successfully',
-      student
+      message: 'Student created successfully - no password required',
+      student: {
+        id: student.id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        phone: student.phone,
+        gender: student.gender,
+        matricule: student.matricule,
+        classId: student.classId,
+        level: student.level,
+        role: student.role,
+        status: student.status
+      }
     });
   } catch (error) {
     console.error('[DIRECTOR_CREATE_STUDENT] Error:', error);
