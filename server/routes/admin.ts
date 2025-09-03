@@ -258,14 +258,24 @@ router.get('/teachers', requireAuth, requireAdmin, async (req, res) => {
 router.post('/teachers', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
-    const { firstName, lastName, email, phone, gender, matricule, teachingSubjects } = req.body;
+    const { firstName, lastName, name, email, phone, gender, matricule, teachingSubjects } = req.body;
     
-    console.log('[DIRECTOR_CREATE_TEACHER] Request data:', { firstName, lastName, email, phone, gender, matricule, teachingSubjects });
+    console.log('[DIRECTOR_CREATE_TEACHER] Request data:', req.body);
+    
+    // Handle name field - split name into firstName and lastName if provided as single name
+    let finalFirstName = firstName;
+    let finalLastName = lastName;
+    
+    if (!firstName && !lastName && name) {
+      const nameParts = name.trim().split(' ');
+      finalFirstName = nameParts[0];
+      finalLastName = nameParts.slice(1).join(' ') || nameParts[0];
+    }
     
     // Create a simple teacher without password complications for now
     const teacherData = {
-      firstName,
-      lastName,
+      firstName: finalFirstName,
+      lastName: finalLastName,
       email,
       phone,
       password: await bcrypt.hash('TempPassword123!', 10), // Simple temp password
@@ -316,7 +326,27 @@ router.put('/teachers/:id', requireAuth, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid teacher ID' });
     }
     
-    const updates = req.body;
+    const { firstName, lastName, name, email, phone, gender, matricule, teachingSubjects } = req.body;
+    
+    // Handle name field - split name into firstName and lastName if provided as single name
+    let finalFirstName = firstName;
+    let finalLastName = lastName;
+    
+    if (!firstName && !lastName && name) {
+      const nameParts = name.trim().split(' ');
+      finalFirstName = nameParts[0];
+      finalLastName = nameParts.slice(1).join(' ') || nameParts[0];
+    }
+    
+    const updates = {
+      firstName: finalFirstName,
+      lastName: finalLastName,
+      email,
+      phone,
+      gender,
+      matricule,
+      subjects: teachingSubjects || []
+    };
 
     const updatedTeacher = await storage.updateTeacher(teacherId, updates);
     

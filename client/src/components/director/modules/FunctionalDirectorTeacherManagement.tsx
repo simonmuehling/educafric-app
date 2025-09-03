@@ -171,23 +171,36 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
   });
 
   const handleCreateTeacher = () => {
-    createTeacherMutation.mutate({
-      ...teacherForm,
-      teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()),
-      classes: teacherForm.classes.split(',').map(c => c.trim()),
+    const teacherData = {
+      name: teacherForm.name, // Send as single name field for backend to split
+      email: teacherForm.email,
+      phone: teacherForm.phone,
       gender: teacherForm.gender,
-      matricule: teacherForm.matricule
-    });
+      matricule: teacherForm.matricule,
+      teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s),
+      classes: teacherForm.classes.split(',').map(c => c.trim()).filter(c => c)
+    };
+    
+    console.log('[FRONTEND] Creating teacher with data:', teacherData);
+    createTeacherMutation.mutate(teacherData);
   };
 
   const handleUpdateTeacher = () => {
     if (selectedTeacher) {
-      updateTeacherMutation.mutate({
-        ...selectedTeacher,
-        ...teacherForm,
-        teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()),
-        classes: teacherForm.classes.split(',').map(c => c.trim())
-      });
+      const updateData = {
+        id: selectedTeacher.id,
+        name: teacherForm.name,
+        email: teacherForm.email,
+        phone: teacherForm.phone,
+        gender: teacherForm.gender,
+        matricule: teacherForm.matricule,
+        teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s),
+        classes: teacherForm.classes.split(',').map(c => c.trim()).filter(c => c),
+        schedule: teacherForm.schedule
+      };
+      
+      console.log('[FRONTEND] Updating teacher with data:', updateData);
+      updateTeacherMutation.mutate(updateData);
     }
   };
 
@@ -216,13 +229,22 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     if (!teacher) return false;
     const name = teacher.name || '';
     const email = teacher.email || '';
-    const teachingSubjects = Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : [];
+    const teachingSubjects = Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
+                           Array.isArray(teacher.subjects) ? teacher.subjects : [];
     
     const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = selectedSubject === 'all' || teachingSubjects.includes(selectedSubject);
     return matchesSearch && matchesSubject;
   }) : [];
+  
+  // Extract unique subjects from all teachers for dynamic filter
+  const allSubjects = Array.from(new Set(
+    Array.isArray(teachers) ? teachers.flatMap(teacher => 
+      Array.isArray(teacher.teachingSubjects) ? teacher.teachingSubjects : 
+      Array.isArray(teacher.subjects) ? teacher.subjects : []
+    ).filter(subject => subject && subject.trim()) : []
+  )).sort();
 
   const stats = {
     totalTeachers: Array.isArray(teachers) ? teachers.length : 0,
@@ -442,11 +464,20 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{text.allSubjects}</SelectItem>
-                  <SelectItem value="Mathématiques">Mathématiques</SelectItem>
-                  <SelectItem value="Français">Français</SelectItem>
-                  <SelectItem value="Sciences">Sciences</SelectItem>
-                  <SelectItem value="Histoire">Histoire</SelectItem>
-                  <SelectItem value="Anglais">Anglais</SelectItem>
+                  {allSubjects.map(subject => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
+                  {allSubjects.length === 0 && (
+                    <>
+                      <SelectItem value="Mathématiques">Mathématiques</SelectItem>
+                      <SelectItem value="Français">Français</SelectItem>
+                      <SelectItem value="Sciences">Sciences</SelectItem>
+                      <SelectItem value="Histoire">Histoire</SelectItem>
+                      <SelectItem value="Anglais">Anglais</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
