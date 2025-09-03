@@ -269,6 +269,26 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       component: createDynamicModule('director-settings')
     },
     {
+      id: 'classes',
+      label: t.classes,
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'bg-orange-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Gestion Classes Multi-niveaux"
+          userType="School"
+          features={[
+            "Classes illimitées tous niveaux",
+            "Outils pédagogiques avancés",
+            "Affectation automatique enseignants",
+            "Analytics de performance par classe"
+          ]}
+        >
+          {createDynamicModule('classes')}
+        </PremiumFeatureGate>
+      )
+    },
+    {
       id: 'teachers',
       label: t.teachers,
       icon: <UserCheck className="w-6 h-6" />,
@@ -305,26 +325,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           ]}
         >
           {createDynamicModule('students')}
-        </PremiumFeatureGate>
-      )
-    },
-    {
-      id: 'classes',
-      label: t.classes,
-      icon: <BookOpen className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestion Classes Multi-niveaux"
-          userType="School"
-          features={[
-            "Classes illimitées tous niveaux",
-            "Outils pédagogiques avancés",
-            "Affectation automatique enseignants",
-            "Analytics de performance par classe"
-          ]}
-        >
-          {createDynamicModule('classes')}
         </PremiumFeatureGate>
       )
     },
