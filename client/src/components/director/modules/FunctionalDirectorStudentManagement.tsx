@@ -473,45 +473,23 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium">{text.form.className}</Label>
-                  <Select 
-                    value={studentForm.className} 
-                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Classe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="6ème A">6ème A</SelectItem>
-                      <SelectItem value="6ème B">6ème B</SelectItem>
-                      <SelectItem value="5ème A">5ème A</SelectItem>
-                      <SelectItem value="4ème A">4ème A</SelectItem>
-                      <SelectItem value="3ème A">3ème A</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Niveau</Label>
-                  <Select 
-                    value={studentForm.level} 
-                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, level: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Niveau" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="6ème">6ème</SelectItem>
-                      <SelectItem value="5ème">5ème</SelectItem>
-                      <SelectItem value="4ème">4ème</SelectItem>
-                      <SelectItem value="3ème">3ème</SelectItem>
-                      <SelectItem value="2nde">2nde</SelectItem>
-                      <SelectItem value="1ère">1ère</SelectItem>
-                      <SelectItem value="Terminale">Terminale</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label className="text-sm font-medium">Classe (optionnelle)</Label>
+                <Select 
+                  value={studentForm.className} 
+                  onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir une classe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6ème A">6ème A</SelectItem>
+                    <SelectItem value="6ème B">6ème B</SelectItem>
+                    <SelectItem value="5ème A">5ème A</SelectItem>
+                    <SelectItem value="4ème A">4ème A</SelectItem>
+                    <SelectItem value="3ème A">3ème A</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-sm font-medium">{text.form.parentName}</Label>
