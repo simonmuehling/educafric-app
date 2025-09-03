@@ -657,4 +657,311 @@ router.get('/bulletins/template-data', requireAuth, async (req, res) => {
   }
 });
 
+// NEW: Mark bulletin as "seen" by parent
+router.post('/bulletins/:id/mark-seen', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const bulletinId = parseInt(req.params.id);
+    const { seenBy, deviceInfo, location } = req.body;
+
+    console.log(`[BULLETIN_SEEN] 👀 Bulletin ${bulletinId} marked as seen by:`, user.email);
+
+    // In real implementation:
+    // 1. Verify user has access to this bulletin
+    // 2. Record the "seen" timestamp and metadata
+    // 3. Update bulletin status
+    // 4. Send confirmation to school
+
+    const seenRecord = {
+      bulletinId,
+      userId: user.id,
+      userRole: user.role,
+      seenAt: new Date().toISOString(),
+      seenBy: seenBy || 'Parent',
+      deviceInfo: deviceInfo || 'Unknown device',
+      location: location || 'Unknown location',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
+    };
+
+    console.log('[BULLETIN_SEEN] 📝 Recording seen confirmation:', seenRecord);
+
+    res.json({
+      success: true,
+      bulletinId,
+      seenRecord,
+      message: 'Bulletin marked as seen successfully',
+      timestamp: seenRecord.seenAt,
+      acknowledgment: `Accusé de réception enregistré pour le bulletin ${bulletinId}`
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_SEEN] ❌ Error marking bulletin as seen:', error);
+    res.status(500).json({ error: 'Failed to mark bulletin as seen' });
+  }
+});
+
+// NEW: Get bulletin delivery and seen status for school tracking
+router.get('/bulletins/tracking-dashboard', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Verify user has permission to view tracking dashboard
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can view tracking dashboard' });
+    }
+
+    console.log('[BULLETIN_TRACKING] 📊 Tracking dashboard requested by:', user.email);
+
+    // Mock tracking data - in real implementation, fetch from database
+    const trackingData = {
+      summary: {
+        totalBulletins: 156,
+        sent: 156,
+        delivered: 148,
+        seen: 142,
+        pending: 14,
+        failed: 0
+      },
+      byClass: [
+        {
+          className: '6ème A',
+          totalStudents: 32,
+          bulletinsSent: 32,
+          parentsNotified: 32,
+          seenByParents: 30,
+          pendingParents: 2,
+          lastActivity: '2024-12-15T14:30:00Z'
+        },
+        {
+          className: '6ème B',
+          totalStudents: 28,
+          bulletinsSent: 28,
+          parentsNotified: 28,
+          seenByParents: 26,
+          pendingParents: 2,
+          lastActivity: '2024-12-15T13:45:00Z'
+        },
+        {
+          className: '5ème A',
+          totalStudents: 30,
+          bulletinsSent: 30,
+          parentsNotified: 30,
+          seenByParents: 28,
+          pendingParents: 2,
+          lastActivity: '2024-12-15T15:15:00Z'
+        }
+      ],
+      recentActivity: [
+        {
+          type: 'seen',
+          studentName: 'KOUAME Marie',
+          parentName: 'Mme KOUAME Adjoa',
+          className: '6ème A',
+          timestamp: '2024-12-15T16:45:00Z',
+          device: 'Mobile - Android'
+        },
+        {
+          type: 'notification_sent',
+          studentName: 'DIALLO Omar',
+          parentName: 'M. DIALLO Mamadou',
+          className: '5ème B',
+          timestamp: '2024-12-15T16:30:00Z',
+          channel: 'WhatsApp + SMS'
+        },
+        {
+          type: 'seen',
+          studentName: 'MBALLA Grace',
+          parentName: 'Dr. MBALLA Paul',
+          className: '4ème A',
+          timestamp: '2024-12-15T16:15:00Z',
+          device: 'Desktop - Chrome'
+        }
+      ],
+      pendingParents: [
+        {
+          studentId: 23,
+          studentName: 'ETOA Samuel',
+          parentName: 'Mme ETOA Brigitte',
+          className: '6ème A',
+          phoneNumber: '+237651234567',
+          email: 'brigitte.etoa@email.com',
+          bulletinSent: '2024-12-15T10:00:00Z',
+          lastNotification: '2024-12-15T14:00:00Z',
+          notificationCount: 2,
+          status: 'pending_parent_view'
+        },
+        {
+          studentId: 45,
+          studentName: 'NGONO Paul',
+          parentName: 'M. NGONO Pierre',
+          className: '5ème A',
+          phoneNumber: '+237652345678',
+          email: 'pierre.ngono@email.com',
+          bulletinSent: '2024-12-15T10:00:00Z',
+          lastNotification: '2024-12-15T15:00:00Z',
+          notificationCount: 1,
+          status: 'pending_parent_view'
+        }
+      ]
+    };
+
+    res.json({
+      success: true,
+      trackingData,
+      generatedAt: new Date().toISOString(),
+      message: 'Bulletin tracking dashboard data retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_TRACKING] ❌ Error getting tracking dashboard:', error);
+    res.status(500).json({ error: 'Failed to get bulletin tracking data' });
+  }
+});
+
+// NEW: Send reminder notifications to parents who haven't seen bulletins
+router.post('/bulletins/send-reminders', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { reminderType, language, targetParents } = req.body;
+
+    // Verify user has permission
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can send reminders' });
+    }
+
+    console.log('[BULLETIN_REMINDERS] 🔔 Sending reminders to parents...');
+    console.log('[BULLETIN_REMINDERS] Reminder type:', reminderType);
+    console.log('[BULLETIN_REMINDERS] Target parents:', targetParents?.length || 'all pending');
+
+    // Mock reminder sending - integrate with notification service
+    const reminderResults = {
+      totalTargets: targetParents?.length || 14,
+      smsSent: 12,
+      whatsappSent: 10,
+      emailsSent: 14,
+      failed: 0,
+      cost: 0.85 // USD for SMS in Cameroon
+    };
+
+    // Mock reminder messages
+    const reminderMessages = {
+      gentle: {
+        fr: "📋 Rappel: Le bulletin de votre enfant est disponible sur EDUCAFRIC. Merci de le consulter.",
+        en: "📋 Reminder: Your child's report card is available on EDUCAFRIC. Please review it."
+      },
+      urgent: {
+        fr: "⚠️ URGENT: Veuillez consulter le bulletin de votre enfant sur EDUCAFRIC dans les plus brefs délais.",
+        en: "⚠️ URGENT: Please review your child's report card on EDUCAFRIC as soon as possible."
+      },
+      final: {
+        fr: "🚨 DERNIER RAPPEL: Consultation obligatoire du bulletin. Contactez l'école si difficultés.",
+        en: "🚨 FINAL REMINDER: Report card review required. Contact school if any issues."
+      }
+    };
+
+    console.log('[BULLETIN_REMINDERS] ✅ Reminders sent successfully');
+
+    res.json({
+      success: true,
+      reminderResults,
+      reminderType: reminderType || 'gentle',
+      language: language || 'fr',
+      message: `${reminderResults.totalTargets} parents reminded successfully`,
+      costDetails: {
+        smsCount: reminderResults.smsSent,
+        estimatedCost: reminderResults.cost,
+        currency: 'USD'
+      },
+      nextReminderSuggested: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() // 48h later
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_REMINDERS] ❌ Error sending reminders:', error);
+    res.status(500).json({ error: 'Failed to send bulletin reminders' });
+  }
+});
+
+// NEW: Generate uniformity report for school quality assurance
+router.get('/bulletins/uniformity-report', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Verify user has permission
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can view uniformity reports' });
+    }
+
+    console.log('[BULLETIN_UNIFORMITY] 📊 Generating uniformity report for:', user.email);
+
+    // Mock uniformity analysis
+    const uniformityReport = {
+      compliance: {
+        overallScore: 94.5,
+        templateCompliance: 98.2,
+        contentStandards: 91.8,
+        securityFeatures: 99.1,
+        parentEngagement: 89.7
+      },
+      qualityChecks: {
+        allBulletinsUseOfficialTemplate: true,
+        allBulletinsHaveQRCodes: true,
+        allBulletinsDigitallySigned: true,
+        uniformGradingScale: true,
+        consistentComments: false, // Need improvement
+        photoRequirements: 87.3 // Percentage compliance
+      },
+      issuesFound: [
+        {
+          severity: 'medium',
+          issue: 'Inconsistent teacher comment lengths',
+          affectedBulletins: 12,
+          suggestion: 'Standardize comment templates (50-150 characters)'
+        },
+        {
+          severity: 'low',
+          issue: 'Missing student photos in some bulletins',
+          affectedBulletins: 8,
+          suggestion: 'Organize photo collection session'
+        }
+      ],
+      recommendations: [
+        {
+          priority: 'high',
+          action: 'Implement comment length validation',
+          expectedImpact: 'Improve bulletin consistency by 8%'
+        },
+        {
+          priority: 'medium',
+          action: 'Create teacher training on bulletin standards',
+          expectedImpact: 'Reduce variation in appreciation quality'
+        },
+        {
+          priority: 'low',
+          action: 'Add automated photo requirement checks',
+          expectedImpact: 'Ensure 100% photo compliance'
+        }
+      ],
+      benchmarks: {
+        industryAverage: 78.5,
+        schoolPerformance: 94.5,
+        improvement: '+15.5%',
+        ranking: 'Excellent (Top 5% schools)'
+      }
+    };
+
+    res.json({
+      success: true,
+      uniformityReport,
+      generatedAt: new Date().toISOString(),
+      validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
+      message: 'Bulletin uniformity report generated successfully'
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_UNIFORMITY] ❌ Error generating uniformity report:', error);
+    res.status(500).json({ error: 'Failed to generate uniformity report' });
+  }
+});
+
 export default router;

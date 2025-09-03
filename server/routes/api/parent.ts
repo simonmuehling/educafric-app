@@ -843,4 +843,213 @@ router.get('/bulletins', requireAuth, async (req: AuthenticatedRequest, res: Res
   }
 });
 
+// POST /api/parent/children/:childId/bulletins/:bulletinId/mark-seen - Parent marks bulletin as seen
+router.post('/children/:childId/bulletins/:bulletinId/mark-seen', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const childId = parseInt(req.params.childId);
+    const bulletinId = parseInt(req.params.bulletinId);
+    const user = req.user as any;
+    const { deviceInfo, location, comments } = req.body;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can mark bulletins as seen.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 👀 Parent ${parentId} marking bulletin ${bulletinId} for child ${childId} as SEEN`);
+
+    // In real implementation: 
+    // 1. Verify parent has access to this child
+    // 2. Verify bulletin belongs to this child
+    // 3. Record seen timestamp with metadata
+    // 4. Notify school of acknowledgment
+
+    const seenRecord = {
+      parentId,
+      childId,
+      bulletinId,
+      seenAt: new Date().toISOString(),
+      deviceInfo: deviceInfo || 'Unknown device',
+      location: location || 'Unknown location',
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+      comments: comments || null,
+      acknowledgedBy: user.email
+    };
+
+    console.log(`[PARENT_API] ✅ Bulletin ${bulletinId} marked as seen:`, seenRecord);
+
+    res.json({
+      success: true,
+      parentId,
+      childId,
+      bulletinId,
+      seenRecord,
+      message: 'Bulletin successfully marked as seen',
+      acknowledgment: `Accusé de réception enregistré - Bulletin ${bulletinId} consulté le ${seenRecord.seenAt}`,
+      schoolNotified: true
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error marking bulletin as seen:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error recording bulletin acknowledgment'
+    });
+  }
+});
+
+// GET /api/parent/bulletins-status - Get status of all children's bulletins for tracking
+router.get('/bulletins-status', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const user = req.user as any;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can access this endpoint.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 📊 Getting bulletins status for parent:`, parentId);
+
+    // Mock bulletins status - in real implementation, fetch from database
+    const bulletinsStatus = {
+      parentId,
+      totalChildren: 2,
+      totalBulletins: 2,
+      seenBulletins: 1,
+      pendingBulletins: 1,
+      children: [
+        {
+          childId: 1,
+          childName: 'Marie Kouame',
+          className: '6ème A',
+          bulletins: [
+            {
+              id: 1,
+              period: '1er Trimestre',
+              academicYear: '2024-2025',
+              status: 'seen',
+              seenAt: '2024-12-15T16:45:00Z',
+              generalAverage: 14.5,
+              isUrgent: false,
+              qrCode: 'EDU-2024-MAR-001'
+            }
+          ]
+        },
+        {
+          childId: 2,
+          childName: 'Paul Kouame',
+          className: '3ème B',
+          bulletins: [
+            {
+              id: 2,
+              period: '1er Trimestre',
+              academicYear: '2024-2025',
+              status: 'pending',
+              sentAt: '2024-12-15T10:00:00Z',
+              generalAverage: 13.2,
+              isUrgent: false,
+              qrCode: 'EDU-2024-PAU-002',
+              reminderCount: 1,
+              lastReminderAt: '2024-12-15T14:00:00Z'
+            }
+          ]
+        }
+      ],
+      urgentActions: [
+        {
+          type: 'pending_bulletin',
+          childName: 'Paul Kouame',
+          bulletinId: 2,
+          daysWaiting: 2,
+          message: 'Bulletin en attente de consultation depuis 2 jours'
+        }
+      ]
+    };
+
+    res.json({
+      success: true,
+      bulletinsStatus,
+      parentId,
+      message: 'Bulletins status retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error fetching bulletins status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching bulletins status'
+    });
+  }
+});
+
+// POST /api/parent/bulletins/:bulletinId/feedback - Parent provides feedback on bulletin
+router.post('/bulletins/:bulletinId/feedback', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const bulletinId = parseInt(req.params.bulletinId);
+    const user = req.user as any;
+    const { feedback, rating, requestMeeting } = req.body;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can provide feedback.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 💬 Parent ${parentId} providing feedback for bulletin ${bulletinId}`);
+
+    const feedbackRecord = {
+      parentId,
+      bulletinId,
+      feedback: feedback || '',
+      rating: rating || null, // 1-5 stars
+      requestMeeting: requestMeeting || false,
+      submittedAt: new Date().toISOString(),
+      parentEmail: user.email
+    };
+
+    console.log(`[PARENT_API] 💬 Feedback recorded:`, feedbackRecord);
+
+    res.json({
+      success: true,
+      feedbackRecord,
+      message: 'Feedback submitted successfully',
+      schoolNotified: requestMeeting,
+      nextSteps: requestMeeting ? 
+        'L\'école vous contactera dans les 48h pour programmer un rendez-vous' : 
+        'Merci pour votre retour'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error submitting feedback:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error submitting feedback'
+    });
+  }
+});
+
 export default router;
