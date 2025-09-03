@@ -961,7 +961,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                       <div className="flex flex-wrap items-center gap-4 mb-3 text-xs text-gray-500">
                         <span>📧 {teacher.email || ''}</span>
                         <span>📱 {teacher.phone}</span>
-                        <span>🏫 {teacher.classes.join(', ')}</span>
+                        <span>🏫 {(teacher.classes || []).join(', ')}</span>
                       </div>
                       
                       {/* Boutons d'action mobile-first sous le nom */}
