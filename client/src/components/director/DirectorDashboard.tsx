@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -209,6 +209,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Demandes Parents',
       geolocation: 'Géolocalisation',
       bulletinApproval: 'Validation Bulletins',
+      bilingualTranscripts: 'Bulletins Bilingues',
       notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
 
@@ -233,6 +234,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       parentRequests: 'Parent Requests',
 
       bulletinApproval: 'Bulletin Approval',
+      bilingualTranscripts: 'Bilingual Transcripts',
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
 
@@ -396,6 +398,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <ClipboardList className="w-6 h-6" />,
       color: 'bg-cyan-500',
       component: createDynamicModule('bulletin-validation')
+    },
+    {
+      id: 'bilingual-transcripts',
+      label: t.bilingualTranscripts,
+      icon: <Languages className="w-6 h-6" />,
+      color: 'bg-indigo-500',
+      component: createDynamicModule('bilingual-transcripts')
     },
     {
       id: 'notifications',

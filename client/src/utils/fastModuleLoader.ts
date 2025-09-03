@@ -30,6 +30,7 @@ class FastModuleLoader {
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
       'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'bulletin-validation': () => import('@/components/director/modules/BulletinApprovalNew'),
+      'bilingual-transcripts': () => import('@/components/director/modules/BilingualTranscriptGenerator'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
