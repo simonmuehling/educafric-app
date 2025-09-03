@@ -3,7 +3,7 @@
 
 import { db } from "../db";
 import { users, grades, attendance, classes, homework, homeworkSubmissions } from "../../shared/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import type { IStudentStorage } from "./interfaces";
 
 export class StudentStorage implements IStudentStorage {
@@ -85,17 +85,10 @@ export class StudentStorage implements IStudentStorage {
   // Missing methods needed by student routes
   async getStudentsBySchool(schoolId: number): Promise<any[]> {
     try {
-      const students = await db.select({
-        id: users.id,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        email: users.email,
-        phone: users.phone,
-        classId: users.classId,
-        schoolId: users.schoolId,
-        status: users.status,
-        createdAt: users.createdAt
-      }).from(users).where(eq(users.schoolId, schoolId));
+      const students = await db.select()
+        .from(users)
+        .where(and(eq(users.schoolId, schoolId), eq(users.role, 'Student')))
+        .orderBy(desc(users.createdAt));
       
       // Add mock data for better display
       return students.map(student => ({
@@ -107,6 +100,7 @@ export class StudentStorage implements IStudentStorage {
         parentName: 'Parent à contacter',
         parentEmail: 'parent@example.com',
         parentPhone: '+237650000000',
+        status: 'active', // Default status
         average: Math.floor(Math.random() * 10) + 10, // Mock average between 10-20
         attendance: Math.floor(Math.random() * 20) + 80 // Mock attendance between 80-100%
       }));
@@ -154,7 +148,7 @@ export class StudentStorage implements IStudentStorage {
 
   async getStudentsByClass(classId: number): Promise<any[]> {
     try {
-      const students = await db.select().from(users).where(eq(users.classId, classId));
+      const students = await db.select().from(users).where(eq(users.role, 'Student'));
       return students.map(student => ({
         ...student,
         name: `${student.firstName} ${student.lastName}`,
