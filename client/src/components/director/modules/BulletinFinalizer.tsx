@@ -116,11 +116,47 @@ const BulletinFinalizer: React.FC = () => {
 
   const fetchSchoolBranding = async () => {
     try {
-      const response = await apiRequest('GET', '/api/school/1/branding');
-      const data = await response.json();
-      setSchoolBranding(data);
+      // Use the new school profile endpoint that includes logo
+      const response = await fetch('/api/school/profile', { credentials: 'include' });
+      if (response.ok) {
+        const profileData = await response.json();
+        const profile = profileData.profile || profileData;
+        
+        // Transform profile data to branding format
+        const brandingData = {
+          id: 1,
+          schoolId: 1,
+          schoolName: profile.name || 'École Saint-Joseph',
+          logoUrl: profile.logoUrl || null,
+          directorSignatureUrl: null,
+          principalSignatureUrl: null,
+          primaryColor: '#2563eb',
+          secondaryColor: '#64748b',
+          fontFamily: 'Inter',
+          bulletinTemplate: 'standard',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        setSchoolBranding(brandingData);
+      }
     } catch (error) {
       console.error('Error fetching school branding:', error);
+      // Fallback data
+      setSchoolBranding({
+        id: 1,
+        schoolId: 1,
+        schoolName: 'École Saint-Joseph',
+        logoUrl: null,
+        directorSignatureUrl: null,
+        principalSignatureUrl: null,
+        primaryColor: '#2563eb',
+        secondaryColor: '#64748b',
+        fontFamily: 'Inter',
+        bulletinTemplate: 'standard',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
     }
   };
 

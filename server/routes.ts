@@ -2015,20 +2015,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[SCHOOL_PROFILE_API] GET /api/school/profile for user:', user.id);
       
       const profile = {
+        id: 1,
         name: 'Collège Saint-Joseph',
-        address: 'Yaoundé, Cameroun',
+        address: '123 Rue de l\'Education, Yaoundé, Cameroun',
         phone: '+237677001234',
-        email: 'contact@saintjoseph.edu',
-        website: 'www.saintjoseph.edu',
-        foundedYear: 1995,
-        studentCapacity: 800,
-        currentStudents: 650
+        email: 'contact@saint-joseph.edu.cm',
+        website: 'https://saint-joseph.edu.cm',
+        logoUrl: (req.session as any)?.schoolLogo || null, // Get from session
+        description: 'Un établissement d\'excellence dédié à l\'éducation de qualité au Cameroun',
+        establishedYear: 1995,
+        principalName: 'M. Jean-Pierre Mballa',
+        studentCapacity: 800
       };
       
       res.json({ success: true, profile });
     } catch (error) {
       console.error('[SCHOOL_PROFILE_API] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch profile' });
+    }
+  });
+
+  // School Logo Upload Routes
+  app.post('/api/school/logo/upload-url', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log(`[SCHOOL_LOGO_API] POST /api/school/logo/upload-url for user: ${user.id}`);
+      
+      const { ObjectStorageService } = await import('./objectStorage');
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      
+      res.json({ success: true, uploadURL });
+    } catch (error) {
+      console.error('Error getting logo upload URL:', error);
+      res.status(500).json({ success: false, message: 'Failed to get upload URL' });
+    }
+  });
+
+  app.put('/api/school/logo', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log(`[SCHOOL_LOGO_API] PUT /api/school/logo for user: ${user.id}`);
+      
+      const { logoUrl } = req.body;
+      
+      if (!logoUrl) {
+        return res.status(400).json({ success: false, message: 'logoUrl is required' });
+      }
+      
+      const { ObjectStorageService } = await import('./objectStorage');
+      const objectStorageService = new ObjectStorageService();
+      
+      // Set ACL policy for the logo (public since it appears on bulletins)
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        logoUrl,
+        {
+          owner: user.id.toString(),
+          visibility: 'public', // Public so it can be displayed on bulletins/transcripts
+        }
+      );
+      
+      // Store logo URL in session for now (until DB schema is updated)
+      (req.session as any).schoolLogo = objectPath;
+      
+      console.log(`[SCHOOL_LOGO_API] Logo updated successfully: ${objectPath}`);
+      res.json({ success: true, logoPath: objectPath, message: 'School logo updated successfully' });
+      
+    } catch (error) {
+      console.error('Error updating school logo:', error);
+      res.status(500).json({ success: false, message: 'Failed to update logo' });
+    }
+  });
+
+  app.put('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[SCHOOL_PROFILE_API] PUT /api/school/profile for user:', user.id);
+      
+      const updates = req.body;
+      
+      // Store any logo URL in session for now (until DB schema is properly updated)
+      if (updates.logoUrl) {
+        (req.session as any).schoolLogo = updates.logoUrl;
+      }
+      
+      // In real implementation, update database with school profile changes
+      console.log('[SCHOOL_PROFILE_API] School profile updated:', updates);
+      
+      res.json({ success: true, message: 'School profile updated successfully' });
+    } catch (error) {
+      console.error('Error updating school profile:', error);
+      res.status(500).json({ success: false, message: 'Failed to update school profile' });
     }
   });
   

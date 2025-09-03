@@ -22,10 +22,12 @@ import {
 import { 
   Settings, School, Shield, Bell, MapPin, Clock, Users, 
   BookOpen, GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
+import { ObjectUploader } from '@/components/ObjectUploader';
+import type { UploadResult } from '@uppy/core';
 
 interface SchoolProfile {
   id: number;
@@ -35,6 +37,7 @@ interface SchoolProfile {
   email: string;
   website?: string;
   logo?: string;
+  logoUrl?: string;
   description: string;
   establishedYear: number;
   principalName: string;
@@ -78,6 +81,7 @@ const UnifiedSchoolSettings: React.FC = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const text = {
     fr: {
@@ -122,6 +126,11 @@ const UnifiedSchoolSettings: React.FC = () => {
       loginAttempts: 'Tentatives de Connexion Max',
       ipWhitelist: 'Liste Blanche IP',
       backupFrequency: 'Fréquence de Sauvegarde',
+      logo: 'Logo École',
+      uploadLogo: 'Télécharger Logo',
+      logoDescription: 'Logo qui apparaîtra sur les bulletins et transcripts',
+      logoUpdated: 'Logo mis à jour avec succès',
+      logoError: 'Erreur lors du téléchargement du logo',
       numeric: 'Numérique (0-20)',
       letter: 'Lettres (A-F)',
       african: 'Système Africain',
@@ -176,6 +185,11 @@ const UnifiedSchoolSettings: React.FC = () => {
       loginAttempts: 'Max Login Attempts',
       ipWhitelist: 'IP Whitelist',
       backupFrequency: 'Backup Frequency',
+      logo: 'School Logo',
+      uploadLogo: 'Upload Logo',
+      logoDescription: 'Logo will appear on bulletins and transcripts',
+      logoUpdated: 'Logo updated successfully',
+      logoError: 'Error uploading logo',
       numeric: 'Numeric (0-20)',
       letter: 'Letters (A-F)',
       african: 'African System',
@@ -338,6 +352,62 @@ const UnifiedSchoolSettings: React.FC = () => {
     }
   });
 
+  // Logo upload handlers
+  const handleGetLogoUploadParameters = async () => {
+    try {
+      const response = await fetch('/api/school/logo/upload-url', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await response.json();
+      return {
+        method: 'PUT' as const,
+        url: data.uploadURL
+      };
+    } catch (error) {
+      console.error('Error getting upload URL:', error);
+      throw error;
+    }
+  };
+
+  const handleLogoUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      setUploadingLogo(true);
+      
+      try {
+        const uploadedFile = result.successful[0];
+        const logoURL = uploadedFile.uploadURL;
+        
+        // Update school profile with new logo URL
+        const response = await fetch('/api/school/logo', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ logoUrl: logoURL }),
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          queryClient.invalidateQueries({ queryKey: ['/api/school/profile'] });
+          toast({
+            title: language === 'fr' ? 'Succès' : 'Success',
+            description: t.logoUpdated
+          });
+        } else {
+          throw new Error('Failed to update logo');
+        }
+      } catch (error) {
+        console.error('Error updating logo:', error);
+        toast({
+          title: language === 'fr' ? 'Erreur' : 'Error',
+          description: t.logoError,
+          variant: 'destructive'
+        });
+      } finally {
+        setUploadingLogo(false);
+      }
+    }
+  };
+
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
     { id: 'configuration', label: t.configTab, icon: Settings },
@@ -483,6 +553,47 @@ const UnifiedSchoolSettings: React.FC = () => {
                   disabled={!isEditing}
                   rows={3}
                 />
+              </div>
+              
+              {/* School Logo Section */}
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center gap-2">
+                  <Image className="w-5 h-5 text-blue-600" />
+                  <Label className="text-lg font-medium">{t.logo}</Label>
+                </div>
+                <p className="text-sm text-gray-600">{t.logoDescription}</p>
+                
+                {/* Current Logo Display */}
+                {schoolProfile?.logoUrl && (
+                  <div className="flex flex-col items-center space-y-2">
+                    <img 
+                      src={schoolProfile.logoUrl} 
+                      alt="School Logo" 
+                      className="h-24 w-auto object-contain rounded-lg border border-gray-200 p-2"
+                    />
+                    <Badge variant="secondary" className="text-xs">
+                      {language === 'fr' ? 'Logo Actuel' : 'Current Logo'}
+                    </Badge>
+                  </div>
+                )}
+                
+                {/* Logo Upload */}
+                <div className="flex justify-center">
+                  <ObjectUploader
+                    maxNumberOfFiles={1}
+                    maxFileSize={5 * 1024 * 1024} // 5MB
+                    onGetUploadParameters={handleGetLogoUploadParameters}
+                    onComplete={handleLogoUploadComplete}
+                    buttonClassName="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploadingLogo ? (
+                      language === 'fr' ? 'Téléchargement...' : 'Uploading...'
+                    ) : (
+                      t.uploadLogo
+                    )}
+                  </ObjectUploader>
+                </div>
               </div>
               {isEditing && (
                 <div className="flex gap-2">
