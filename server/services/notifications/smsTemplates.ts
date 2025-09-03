@@ -53,5 +53,34 @@ export const SMS_TEMPLATES = {
       `URGENT: ${personName} - ${situation}. Contact school immediately.`,
     fr: (personName: string, situation: string) => 
       `URGENT: ${personName} - ${situation}. Contactez école immédiatement.`
+  },
+
+  // Bulletin notifications - New bulletin available
+  BULLETIN_AVAILABLE: {
+    en: (childName: string, period: string, average: string) => 
+      `📋 ${childName}'s ${period} report card ready! Average: ${average}/20. Download in app with QR code.`,
+    fr: (childName: string, period: string, average: string) => 
+      `📋 Bulletin ${childName} ${period} disponible! Moyenne: ${average}/20. Téléchargez dans l'app avec QR code.`
+  },
+
+  BULLETIN_PUBLISHED: {
+    en: (childName: string, period: string, className: string) => 
+      `✅ ${childName} (${className}) - ${period} report card published. View & download now.`,
+    fr: (childName: string, period: string, className: string) => 
+      `✅ ${childName} (${className}) - Bulletin ${period} publié. Consultez et téléchargez maintenant.`
+  },
+
+  BULLETIN_EXCELLENT: {
+    en: (childName: string, period: string, average: string, rank: string) => 
+      `🏆 Excellent results! ${childName}: ${average}/20, Rank ${rank}. ${period} report card ready.`,
+    fr: (childName: string, period: string, average: string, rank: string) => 
+      `🏆 Excellents résultats! ${childName}: ${average}/20, Rang ${rank}. Bulletin ${period} prêt.`
+  },
+
+  BULLETIN_NEEDS_IMPROVEMENT: {
+    en: (childName: string, period: string, average: string) => 
+      `📚 ${childName} ${period}: Average ${average}/20. Support needed. Contact teacher. Report card ready.`,
+    fr: (childName: string, period: string, average: string) => 
+      `📚 ${childName} ${period}: Moyenne ${average}/20. Soutien nécessaire. Contactez prof. Bulletin prêt.`
   }
 };

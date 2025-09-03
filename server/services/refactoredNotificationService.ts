@@ -3,7 +3,7 @@
  * Improved organization, error handling, and African optimization
  */
 
-import { SMS_TEMPLATES } from '../templates/smsTemplates';
+import { SMS_TEMPLATES } from './notifications/smsTemplates';
 
 export interface NotificationRecipient {
   id: string;

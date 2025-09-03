@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import crypto from 'crypto';
 import { PDFGenerator } from '../services/pdfGenerator';
+import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
 
 const router = Router();
 
@@ -327,7 +328,7 @@ router.post('/bulletins/bulk-sign', requireAuth, async (req, res) => {
   }
 });
 
-// Send bulletins with notifications
+// Send bulletins with notifications - ENHANCED WITH REAL NOTIFICATION SERVICE
 router.post('/bulletins/send-with-notifications', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -338,42 +339,176 @@ router.post('/bulletins/send-with-notifications', requireAuth, async (req, res) 
       return res.status(403).json({ error: 'Only school administrators can send bulletins with notifications' });
     }
 
-    console.log('[BULLETIN_NOTIFICATIONS] Sending bulletins with notifications');
+    console.log('[BULLETIN_NOTIFICATIONS] 📋 Sending bulletins with notifications...');
     console.log('[BULLETIN_NOTIFICATIONS] Classes:', classNames);
     console.log('[BULLETIN_NOTIFICATIONS] Notification types:', notificationTypes);
     console.log('[BULLETIN_NOTIFICATIONS] Language:', language);
 
-    // In real implementation:
-    // 1. Get all approved bulletins for specified classes (or all if empty)
-    // 2. For each bulletin, send to parents/students via selected channels
-    // 3. Log notification attempts and results
-    // 4. Update bulletin status to 'sent'
+    // Mock bulletins data - in real implementation, fetch from database
+    const mockBulletins: BulletinNotificationData[] = [
+      {
+        studentId: 1,
+        studentName: 'Marie Kouame',
+        className: '6ème A',
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 14.5,
+        classRank: 8,
+        totalStudentsInClass: 32,
+        subjects: [
+          { name: 'Mathématiques', grade: 15, coefficient: 4, teacher: 'M. Kouame' },
+          { name: 'Français', grade: 13, coefficient: 4, teacher: 'Mme Diallo' },
+          { name: 'Sciences', grade: 16, coefficient: 3, teacher: 'Dr. Ngozi' },
+          { name: 'Histoire-Géographie', grade: 12, coefficient: 3, teacher: 'M. Bamogo' },
+          { name: 'Anglais', grade: 14, coefficient: 2, teacher: 'Miss Johnson' }
+        ],
+        teacherComments: 'Élève sérieuse avec de bonnes capacités.',
+        directorComments: 'Résultats satisfaisants. Continuer les efforts.',
+        qrCode: 'EDU-2024-MAR-001',
+        downloadUrl: '/api/bulletins/1/pdf',
+        verificationUrl: '/api/bulletin-validation/bulletins/verify-qr'
+      },
+      {
+        studentId: 2,
+        studentName: 'Paul Kouame',
+        className: '3ème B',
+        period: '1er Trimestre',
+        academicYear: '2024-2025',
+        generalAverage: 13.2,
+        classRank: 15,
+        totalStudentsInClass: 28,
+        subjects: [
+          { name: 'Mathématiques', grade: 12, coefficient: 4, teacher: 'M. Kouame' },
+          { name: 'Français', grade: 14, coefficient: 4, teacher: 'Mme Diallo' },
+          { name: 'Sciences', grade: 13, coefficient: 3, teacher: 'Dr. Ngozi' },
+          { name: 'Histoire-Géographie', grade: 13, coefficient: 3, teacher: 'M. Bamogo' },
+          { name: 'Anglais', grade: 15, coefficient: 2, teacher: 'Miss Johnson' }
+        ],
+        teacherComments: 'Bon élève, peut mieux faire en mathématiques.',
+        directorComments: 'Résultats corrects. Encourager les efforts.',
+        qrCode: 'EDU-2024-PAU-002',
+        downloadUrl: '/api/bulletins/2/pdf',
+        verificationUrl: '/api/bulletin-validation/bulletins/verify-qr'
+      }
+    ];
 
-    // Mock notification sending
-    const mockSentCount = Math.floor(Math.random() * 50) + 20; // 20-70 bulletins
-    const supportedChannels = ['sms', 'whatsapp', 'email', 'push'];
-    const actualChannels = notificationTypes.filter((type: string) => supportedChannels.includes(type));
+    // Send bulk notifications using the enhanced service
+    const notificationResult = await bulletinNotificationService.sendBulkBulletinNotifications(
+      mockBulletins,
+      notificationTypes || ['sms', 'email', 'whatsapp'],
+      language || 'fr'
+    );
 
-    // Simulate notification results
-    const notificationResults = actualChannels.map((channel: string) => ({
-      channel,
-      sent: mockSentCount,
-      failed: Math.floor(Math.random() * 3), // 0-3 failures
-      language: language || 'fr'
-    }));
-
+    console.log('[BULLETIN_NOTIFICATIONS] ✅ Bulk notifications completed');
+    
     res.json({
       success: true,
-      sent: mockSentCount,
-      message: `${mockSentCount} bulletins sent successfully with notifications`,
-      notificationResults,
-      channels: actualChannels,
-      language: language || 'fr'
+      sent: notificationResult.successful,
+      failed: notificationResult.failed,
+      total: notificationResult.processed,
+      message: `${notificationResult.successful} bulletins sent successfully with notifications`,
+      notificationResults: notificationResult.results,
+      channels: notificationTypes || ['sms', 'email', 'whatsapp'],
+      language: language || 'fr',
+      summary: {
+        processed: notificationResult.processed,
+        successful: notificationResult.successful,
+        failed: notificationResult.failed
+      }
     });
 
   } catch (error) {
-    console.error('[BULLETIN_NOTIFICATIONS] Error:', error);
+    console.error('[BULLETIN_NOTIFICATIONS] ❌ Error:', error);
     res.status(500).json({ error: 'Failed to send bulletins with notifications' });
+  }
+});
+
+// NEW: Send notification for specific bulletin
+router.post('/bulletins/:id/notify', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const bulletinId = parseInt(req.params.id);
+    const { notificationTypes, language, recipientTypes } = req.body;
+
+    // Verify user has permission
+    if (!['Director', 'Admin', 'SiteAdmin'].includes(user.role)) {
+      return res.status(403).json({ error: 'Only school administrators can send bulletin notifications' });
+    }
+
+    console.log(`[BULLETIN_NOTIFICATIONS] 📋 Sending notification for bulletin ${bulletinId}`);
+
+    // Mock bulletin data - in real implementation, fetch from database
+    const mockBulletinData: BulletinNotificationData = {
+      studentId: bulletinId,
+      studentName: 'Marie Kouame',
+      className: '6ème A',
+      period: '1er Trimestre',
+      academicYear: '2024-2025',
+      generalAverage: 14.5,
+      classRank: 8,
+      totalStudentsInClass: 32,
+      subjects: [
+        { name: 'Mathématiques', grade: 15, coefficient: 4, teacher: 'M. Kouame' },
+        { name: 'Français', grade: 13, coefficient: 4, teacher: 'Mme Diallo' },
+        { name: 'Sciences', grade: 16, coefficient: 3, teacher: 'Dr. Ngozi' }
+      ],
+      teacherComments: 'Élève sérieuse avec de bonnes capacités.',
+      directorComments: 'Résultats satisfaisants.',
+      qrCode: `EDU-2024-${bulletinId.toString().padStart(3, '0')}`,
+      downloadUrl: `/api/bulletins/${bulletinId}/pdf`,
+      verificationUrl: '/api/bulletin-validation/bulletins/verify-qr'
+    };
+
+    // Mock recipients - in real implementation, fetch from database based on student
+    const mockRecipients: BulletinRecipient[] = [];
+    
+    if (!recipientTypes || recipientTypes.includes('student')) {
+      mockRecipients.push({
+        id: `student_${bulletinId}`,
+        name: mockBulletinData.studentName,
+        email: `student${bulletinId}@test.educafric.com`,
+        phone: `+237650000${bulletinId.toString().padStart(3, '0')}`,
+        whatsapp: `+237650000${bulletinId.toString().padStart(3, '0')}`,
+        role: 'Student',
+        preferredLanguage: language || 'fr'
+      });
+    }
+
+    if (!recipientTypes || recipientTypes.includes('parent')) {
+      mockRecipients.push({
+        id: `parent_${bulletinId}`,
+        name: `Parent of ${mockBulletinData.studentName}`,
+        email: `parent${bulletinId}@test.educafric.com`,
+        phone: `+237651000${bulletinId.toString().padStart(3, '0')}`,
+        whatsapp: `+237651000${bulletinId.toString().padStart(3, '0')}`,
+        role: 'Parent',
+        preferredLanguage: language || 'fr',
+        relationToStudent: 'parent'
+      });
+    }
+
+    // Send notifications
+    const result = await bulletinNotificationService.sendBulletinNotifications(
+      mockBulletinData,
+      mockRecipients,
+      notificationTypes || ['sms', 'email', 'whatsapp'],
+      language || 'fr'
+    );
+
+    res.json({
+      success: true,
+      bulletinId,
+      studentName: mockBulletinData.studentName,
+      notificationsSent: result.success,
+      summary: result.summary,
+      channels: notificationTypes || ['sms', 'email', 'whatsapp'],
+      language: language || 'fr',
+      recipients: mockRecipients.length
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_NOTIFICATIONS] ❌ Error sending individual bulletin notification:', error);
+    res.status(500).json({ error: 'Failed to send bulletin notification' });
   }
 });
 
