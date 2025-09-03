@@ -29,6 +29,7 @@ class FastModuleLoader {
       'director-communications': () => import('@/components/director/modules/CommunicationsCenter'),
       'teacher-absence': () => import('@/components/director/modules/TeacherAbsenceManager'),
       'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
+      'parent-requests': () => import('@/components/director/modules/ParentRequestsNew'), // Add missing mapping
       'bulletin-validation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'notifications': () => import('@/components/shared/NotificationCenter'),
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),

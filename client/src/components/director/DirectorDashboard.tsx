@@ -387,7 +387,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: t.parentRequests,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-teal-500',
-      component: createDynamicModule('director-parent-requests')
+      component: createDynamicModule('parent-requests')
     },
 
     {

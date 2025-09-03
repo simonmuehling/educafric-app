@@ -50,15 +50,18 @@ interface SchoolBranding {
   id: number;
   schoolId: number;
   schoolName: string;
-  logoUrl: string;
-  directorSignatureUrl: string;
-  principalSignatureUrl: string;
+  logoUrl: string | null;
+  directorSignatureUrl: string | null;
+  principalSignatureUrl: string | null;
   primaryColor: string;
   secondaryColor: string;
   fontFamily: string;
+  bulletinTemplate: string;
   footerText: string;
   useWatermark: boolean;
   watermarkText: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface BatchSignature {
@@ -134,6 +137,9 @@ const BulletinFinalizer: React.FC = () => {
           secondaryColor: '#64748b',
           fontFamily: 'Inter',
           bulletinTemplate: 'standard',
+          footerText: 'Confidentiel - Bulletin scolaire officiel',
+          useWatermark: true,
+          watermarkText: 'CONFIDENTIEL',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -154,6 +160,9 @@ const BulletinFinalizer: React.FC = () => {
         secondaryColor: '#64748b',
         fontFamily: 'Inter',
         bulletinTemplate: 'standard',
+        footerText: 'Confidentiel - Bulletin scolaire officiel',
+        useWatermark: true,
+        watermarkText: 'CONFIDENTIEL',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
