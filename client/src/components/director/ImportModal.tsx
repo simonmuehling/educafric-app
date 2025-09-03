@@ -341,12 +341,12 @@ const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, importType, 
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {importResult.errors.slice(0, 10).map((error, index) => (
                       <div key={index} className="text-sm text-red-700 dark:text-red-300">
-                        Ligne {error.row}: {error.message}
+                        {language === 'fr' ? 'Ligne' : 'Line'} {error.row}: {error.message}
                       </div>
                     ))}
                     {importResult.errors.length > 10 && (
                       <div className="text-sm text-red-600 italic">
-                        ... et {importResult.errors.length - 10} autres erreurs
+                        {language === 'fr' ? `... et ${importResult.errors.length - 10} autres erreurs` : `... and ${importResult.errors.length - 10} more errors`}
                       </div>
                     )}
                   </div>
@@ -360,12 +360,12 @@ const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, importType, 
                   <div className="space-y-1 max-h-32 overflow-y-auto">
                     {importResult.warnings.slice(0, 10).map((warning, index) => (
                       <div key={index} className="text-sm text-yellow-700 dark:text-yellow-300">
-                        Ligne {warning.row}: {warning.message}
+                        {language === 'fr' ? 'Ligne' : 'Line'} {warning.row}: {warning.message}
                       </div>
                     ))}
                     {importResult.warnings.length > 10 && (
                       <div className="text-sm text-yellow-600 italic">
-                        ... et {importResult.warnings.length - 10} autres avertissements
+                        {language === 'fr' ? `... et ${importResult.warnings.length - 10} autres avertissements` : `... and ${importResult.warnings.length - 10} more warnings`}
                       </div>
                     )}
                   </div>

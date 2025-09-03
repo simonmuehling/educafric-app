@@ -339,7 +339,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
             data-testid="button-import-students"
           >
             <Upload className="w-4 h-4 mr-2" />
-            Importer Excel/CSV
+            {language === 'fr' ? 'Importer Excel/CSV' : 'Import Excel/CSV'}
           </Button>
         </div>
       </div>
@@ -537,7 +537,9 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               
               {/* Photo Upload Section */}
               <div>
-                <Label className="text-sm font-medium">Photo de l'élève (optionnelle)</Label>
+                <Label className="text-sm font-medium">
+                  {language === 'fr' ? 'Photo de l\'élève (optionnelle)' : 'Student Photo (optional)'}
+                </Label>
                 <div className="mt-2 flex items-center gap-4">
                   <input
                     type="file"
@@ -554,7 +556,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer border"
                   >
                     <Upload className="w-4 h-4" />
-                    Choisir une photo
+                    {language === 'fr' ? 'Choisir une photo' : 'Choose Photo'}
                   </label>
                   {studentForm.photo && (
                     <span className="text-sm text-green-600">
@@ -563,7 +565,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Formats supportés: JPG, PNG, WebP (max 5MB)
+                  {language === 'fr' ? 'Formats supportés: JPG, PNG, WebP (max 5MB)' : 'Supported formats: JPG, PNG, WebP (max 5MB)'}
                 </p>
               </div>
               
@@ -774,8 +776,10 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                                 setUploadingPhoto(student.id);
                                 // Simuler l'upload - ici on pourrait envoyer à un service réel
                                 toast({
-                                  title: '📷 Photo uploadée !',
-                                  description: `Photo de ${student.firstName} ${student.lastName} mise à jour`
+                                  title: language === 'fr' ? '📷 Photo uploadée !' : '📷 Photo Uploaded!',
+                                  description: language === 'fr' ? 
+                                    `Photo de ${student.firstName} ${student.lastName} mise à jour` :
+                                    `Photo for ${student.firstName} ${student.lastName} updated`
                                 });
                                 setTimeout(() => setUploadingPhoto(null), 1000);
                               }
@@ -818,8 +822,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
           queryClient.invalidateQueries({ queryKey: ['/api/director/students'] });
           setIsImportModalOpen(false);
           toast({
-            title: '✅ Import réussi !',
-            description: 'Les élèves ont été importés avec succès'
+            title: language === 'fr' ? '✅ Import réussi !' : '✅ Import Successful!',
+            description: language === 'fr' ? 'Les élèves ont été importés avec succès' : 'Students have been imported successfully'
           });
         }}
       />
