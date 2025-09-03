@@ -207,7 +207,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       matricule: '',
       parentName: student.parentName,
       parentEmail: student.parentEmail,
-      parentPhone: student.parentPhone
+      parentPhone: student.parentPhone,
+      photo: null
     });
     setIsEditStudentOpen(true);
   };
@@ -607,16 +608,22 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 <div>
                   <Label className="text-sm font-medium">{(text.form.firstName || '')}</Label>
                   <Input
-                    value={studentForm.firstName || ''}
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    value={studentForm.name.split(' ')[0] || ''}
+                    onChange={(e) => {
+                      const lastName = studentForm.name.split(' ').slice(1).join(' ') || '';
+                      setStudentForm(prev => ({ ...prev, name: e.target.value + (lastName ? ' ' + lastName : '') }));
+                    }}
                     className="w-full"
                   />
                 </div>
                 <div>
                   <Label className="text-sm font-medium">{(text.form.lastName || '')}</Label>
                   <Input
-                    value={studentForm.lastName || ''}
-                    onChange={(e) => setStudentForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    value={studentForm.name.split(' ').slice(1).join(' ') || ''}
+                    onChange={(e) => {
+                      const firstName = studentForm.name.split(' ')[0] || '';
+                      setStudentForm(prev => ({ ...prev, name: firstName + (e.target.value ? ' ' + e.target.value : '') }));
+                    }}
                     className="w-full"
                   />
                 </div>
