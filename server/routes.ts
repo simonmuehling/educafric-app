@@ -1850,6 +1850,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/bulletin-validation', bulletinValidationRoutes);
   trackingRoutes(app);
   app.use('/api/tutorials', tutorialRoutes);
+
+  // Add missing communications routes to fix 404 errors
+  app.get('/api/communications/history', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Mock communications history for now - replace with actual database query
+      const history = [];
+      for (let i = 1; i <= Math.min(limit, 5); i++) {
+        history.push({
+          id: i,
+          type: 'email',
+          recipient: `user${i}@example.com`,
+          subject: `Communication ${i}`,
+          content: `Sample communication content ${i}`,
+          sentAt: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'sent'
+        });
+      }
+      
+      res.json({ success: true, data: history });
+    } catch (error) {
+      console.error('[COMMUNICATIONS_HISTORY] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch communications history' });
+    }
+  });
+
+  app.get('/api/director/communications', requireAuth, requireAnyRole(['Director', 'Admin', 'SiteAdmin']), async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      
+      // Mock director communications data - replace with actual database query
+      const communications = {
+        totalMessages: 25,
+        unreadMessages: 5,
+        recentMessages: [
+          {
+            id: 1,
+            from: 'teacher@example.com',
+            subject: 'Parent meeting request',
+            timestamp: new Date().toISOString(),
+            priority: 'normal',
+            read: false
+          },
+          {
+            id: 2,
+            from: 'parent@example.com',
+            subject: 'Student absence notification',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            priority: 'high',
+            read: true
+          }
+        ],
+        categories: {
+          parents: 12,
+          teachers: 8,
+          system: 5
+        }
+      };
+      
+      res.json({ success: true, data: communications });
+    } catch (error) {
+      console.error('[DIRECTOR_COMMUNICATIONS] Error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch director communications' });
+    }
+  });
   
   // 🚫 WARNING: Keep administration routes LAST to prevent route interception
   app.use('/api/administration', administrationRoutes);

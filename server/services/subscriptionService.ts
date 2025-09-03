@@ -697,9 +697,9 @@ export class SubscriptionService {
   }
 
   /**
-   * Obtenir les détails d'abonnement pour un freelancer
+   * Obtenir les détails d'abonnement pour un freelancer (version étendue)
    */
-  static async getFreelancerSubscriptionDetails(userId: number, userEmail?: string): Promise<{
+  static async getFreelancerSubscriptionDetailsExtended(userId: number, userEmail?: string): Promise<{
     features: string[];
     restrictions: string[];
     planName: string;
