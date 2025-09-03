@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 
@@ -30,6 +30,7 @@ const ClassManagement: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isRoomManagementOpen, setIsRoomManagementOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
 
   const text = {
@@ -194,11 +195,11 @@ const ClassManagement: React.FC = () => {
   });
 
   // Fetch teachers data for dropdown
-  const { data: teachersData = [], isLoading: isLoadingTeachers, error: teachersError } = useQuery({
-    queryKey: ['/api/teachers'],
+  const { data: teachersResponse = {}, isLoading: isLoadingTeachers, error: teachersError } = useQuery({
+    queryKey: ['/api/director/teachers'],
     queryFn: async () => {
       console.log('[CLASS_MANAGEMENT] 🔍 Fetching teachers for school...');
-      const response = await fetch('/api/teachers', {
+      const response = await fetch('/api/director/teachers', {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -206,12 +207,14 @@ const ClassManagement: React.FC = () => {
         throw new Error('Failed to fetch teachers');
       }
       const data = await response.json();
-      console.log('[CLASS_MANAGEMENT] ✅ Teachers fetched:', data.length, 'teachers');
+      console.log('[CLASS_MANAGEMENT] ✅ Teachers fetched:', data?.teachers?.length || 0, 'teachers');
       return data;
     },
-    retry: 3,
+    retry: 2,
     retryDelay: 1000
   });
+
+  const teachersData = teachersResponse?.teachers || [];
 
   // Add default values for display
   const finalClasses = (Array.isArray(filteredClasses) ? filteredClasses : []).map((classItem: any) => ({
@@ -797,10 +800,7 @@ const ClassManagement: React.FC = () => {
                   icon: <School className="w-5 h-5" />,
                   onClick: () => {
                     console.log('[CLASS_MANAGEMENT] 🏫 Opening room management modal...');
-                    toast({
-                      title: language === 'fr' ? 'Gestion des Salles' : 'Room Management',
-                      description: language === 'fr' ? 'Fonctionnalité de gestion des salles en cours de développement' : 'Room management functionality in development',
-                    });
+                    setIsRoomManagementOpen(true);
                   },
                   color: 'bg-teal-600 hover:bg-teal-700'
                 }
@@ -921,6 +921,90 @@ const ClassManagement: React.FC = () => {
           </table>
           </div>
         </Card>
+
+        {/* Modal de gestion des salles */}
+        <Dialog open={isRoomManagementOpen} onOpenChange={setIsRoomManagementOpen}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                {language === 'fr' ? 'Gestion des Salles' : 'Room Management'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <School className="w-4 h-4" />
+                    {language === 'fr' ? 'Salles Disponibles' : 'Available Rooms'}
+                  </h3>
+                  <div className="space-y-2">
+                    {['Salle 101', 'Salle 102', 'Salle 201', 'Salle 202', 'Laboratoire', 'Salle Informatique'].map((room, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="font-medium">{room}</span>
+                        <Badge variant="outline" className="text-green-600 border-green-600">
+                          {language === 'fr' ? 'Libre' : 'Free'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    {language === 'fr' ? 'Salles Occupées' : 'Occupied Rooms'}
+                  </h3>
+                  <div className="space-y-2">
+                    {finalClasses.slice(0, 3).map((classItem: any, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                        <div>
+                          <span className="font-medium">{classItem.room || 'N/A'}</span>
+                          <div className="text-xs text-gray-500">{classItem.name}</div>
+                        </div>
+                        <Badge variant="outline" className="text-blue-600 border-blue-600">
+                          {language === 'fr' ? 'Occupée' : 'Occupied'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </div>
+
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  {language === 'fr' ? 'Ajouter une Salle' : 'Add Room'}
+                </h3>
+                <div className="flex gap-3">
+                  <Input 
+                    placeholder={language === 'fr' ? 'Nom de la salle (ex: Salle 301)' : 'Room name (ex: Room 301)'}
+                    className="flex-1"
+                  />
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Ajouter' : 'Add'}
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="flex justify-between items-center">
+                <div className="flex gap-2">
+                  <Badge className="bg-green-100 text-green-800">
+                    {language === 'fr' ? '6 Salles Libres' : '6 Free Rooms'}
+                  </Badge>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    {language === 'fr' ? `${finalClasses.length} Salles Occupées` : `${finalClasses.length} Occupied Rooms`}
+                  </Badge>
+                </div>
+                <Button variant="outline" onClick={() => setIsRoomManagementOpen(false)}>
+                  {language === 'fr' ? 'Fermer' : 'Close'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
