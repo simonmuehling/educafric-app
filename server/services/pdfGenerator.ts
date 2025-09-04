@@ -612,7 +612,7 @@ export class PDFGenerator {
     let yPosition = margin;
     
     // Header
-    doc.setTextColor(37, 99, 235);
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text(testBulletinData.schoolBranding.schoolName, margin, yPosition + 15);
@@ -633,7 +633,7 @@ export class PDFGenerator {
     yPosition += 40;
     
     // Subjects table
-    doc.setFillColor(37, 99, 235);
+    doc.setFillColor(0, 0, 0);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
