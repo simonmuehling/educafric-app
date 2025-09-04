@@ -73,7 +73,7 @@ export class PDFGenerator {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     
-    // EN-TÊTE COMPACT OFFICIEL CAMEROUN
+    // EN-TÊTE OFFICIEL CAMEROUN IDENTIQUE AU HTML
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
@@ -88,6 +88,14 @@ export class PDFGenerator {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 4;
+    
+    // DÉLÉGATIONS (comme dans le HTML)
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DÉLÉGATION RÉGIONALE DU CENTRE', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 4;
+    doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
     // BLOC ÉCOLE + ÉLÈVE (même ligne pour économiser l'espace)
@@ -112,21 +120,13 @@ export class PDFGenerator {
       doc.text(schoolData.boitePostale, margin, yPosition);
     }
     
-    // Photo de l'élève (si disponible)
-    if (schoolData?.studentPhoto) {
-      try {
-        const photoSize = 20;
-        doc.addImage(schoolData.studentPhoto, 'JPEG', pageWidth - margin - photoSize - 5, yPosition - 15, photoSize, photoSize);
-      } catch (error) {
-        // Placeholder pour photo
-        doc.setDrawColor(150, 150, 150);
-        doc.setLineWidth(0.5);
-        doc.rect(pageWidth - margin - 25, yPosition - 15, 20, 20);
-        doc.setFontSize(6);
-        doc.setTextColor(150, 150, 150);
-        doc.text('PHOTO', pageWidth - margin - 15, yPosition - 5, { align: 'center' });
-      }
-    }
+    // Photo de l'élève (identique au HTML)
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(0.5);
+    doc.rect(pageWidth - margin - 25, yPosition - 15, 20, 20);
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
+    doc.text('PHOTO', pageWidth - margin - 15, yPosition - 5, { align: 'center' });
     
     yPosition += 8;
     
