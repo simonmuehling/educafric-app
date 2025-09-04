@@ -1521,7 +1521,7 @@ export class PDFGenerator {
     doc.setFontSize(8);
     doc.rect(margin, yPosition, pageWidth - 2 * margin, 6, 'F');
     
-    const colWidths = [45, 15, 12, 18, 35, 25];
+    const colWidths = [35, 15, 12, 18, 45, 25];
     const headers = ['Matière', 'Note', 'Coef', 'Points', 'Enseignant', 'Appréciation'];
     let xPos = margin + 1;
     headers.forEach((header, index) => {
@@ -1545,7 +1545,7 @@ export class PDFGenerator {
       xPos += colWidths[2];
       doc.text(points, xPos + 3, yPosition + 3);
       xPos += colWidths[3];
-      doc.text(subject.teacher.length > 15 ? subject.teacher.substring(0, 12) + '...' : subject.teacher, xPos, yPosition + 3);
+      doc.text(subject.teacher, xPos, yPosition + 3);
       xPos += colWidths[4];
       doc.text(subject.comment, xPos, yPosition + 3);
       yPosition += 5;
