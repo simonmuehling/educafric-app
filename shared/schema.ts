@@ -432,3 +432,18 @@ export type InsertDailyConnection = z.infer<typeof insertDailyConnectionSchema>;
 export type InsertPageVisit = z.infer<typeof insertPageVisitSchema>;
 export type DailyConnection = typeof dailyConnections.$inferSelect;
 export type PageVisit = typeof pageVisits.$inferSelect;
+
+// Digital Signatures Table
+export const signatures = pgTable("signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  userRole: text("user_role").notNull(), // 'director', 'principal_teacher'
+  signatureData: text("signature_data").notNull(), // Base64 image data
+  signatureType: text("signature_type").notNull(), // 'drawn', 'uploaded'
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export type InsertSignature = typeof signatures.$inferInsert;
+export type Signature = typeof signatures.$inferSelect;

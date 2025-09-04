@@ -2145,6 +2145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
+  app.use('/api/signatures', require('./routes/signatureRoutes').default);
   app.use('/api/bulletin-validation', bulletinValidationRoutes);
   trackingRoutes(app);
   app.use('/api/tutorials', tutorialRoutes);
