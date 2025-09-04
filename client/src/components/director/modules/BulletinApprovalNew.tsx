@@ -1405,10 +1405,9 @@ const BulletinApprovalNew: React.FC = () => {
                         <h3 className="text-xl font-bold text-black mb-2">KOUAME Marie Célestine</h3>
                         <div className="grid grid-cols-2 gap-4 text-sm text-black">
                           <div><span className="font-semibold">Classe:</span> 6ème A</div>
-                          <div><span className="font-semibold">Âge:</span> 12 ans</div>
+                          <div><span className="font-semibold">Matricule:</span> ESJ-2024-001</div>
                           <div><span className="font-semibold">Né(e) le:</span> 15 Mars 2012</div>
                           <div><span className="font-semibold">Lieu de naissance:</span> Yaoundé, Cameroun</div>
-                          <div><span className="font-semibold">Matricule:</span> ESJ-2024-001</div>
                         </div>
                       </div>
                       <div className="w-20 h-20 border-2 border-black flex items-center justify-center">
