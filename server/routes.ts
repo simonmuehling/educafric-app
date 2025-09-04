@@ -1845,6 +1845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // CRITICAL: Add missing commercial document routes to fix PDF Content-Length errors
   app.get('/api/commercial/documents/:id/download', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
     try {
@@ -1861,7 +1862,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate PDF based on document type - include user data
       const user = req.user as any;
       let pdfBuffer: Buffer;
-      if (docId <= 10) {
+      
+      // Special handling for bulletin workflow documentation
+      if (docId === 101) {
+        pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationFR();
+      } else if (docId === 102) {
+        pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationEN();
+      } else if (docId <= 10) {
         pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
           id: docId.toString(), 
           title: `Commercial Document ${docId}`,
@@ -1909,7 +1916,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate PDF for inline viewing - include user data
       const user = req.user as any;
       let pdfBuffer: Buffer;
-      if (docId <= 10) {
+      
+      // Special handling for bulletin workflow documentation
+      if (docId === 101) {
+        pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationFR();
+      } else if (docId === 102) {
+        pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationEN();
+      } else if (docId <= 10) {
         pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
           id: docId.toString(), 
           title: `Commercial Document ${docId}`,
