@@ -1441,14 +1441,96 @@ export class PDFGenerator {
     };
     console.log('[BULLETIN_PDF] ✅ Generating professional bulletin (ID:', documentData.id + ')');
     
-    // Create realistic test data for African school
+    // SYSTÈME BILINGUE - Traductions
+    const translations = {
+      fr: {
+        title: 'BULLETIN SCOLAIRE',
+        student: 'Élève',
+        class: 'Classe',
+        period: 'Période',
+        born: 'Né(e) le',
+        gender: 'Sexe',
+        birthPlace: 'Lieu de naissance',
+        subjects: {
+          'Mathématiques': 'Mathématiques',
+          'Français': 'Français', 
+          'Anglais': 'Anglais',
+          'Histoire-Géo': 'Histoire-Géo',
+          'Sciences Physiques': 'Sciences Physiques',
+          'Sciences Naturelles': 'Sciences Naturelles',
+          'EPS': 'EPS',
+          'Arts': 'Arts'
+        },
+        headers: ['Matière', 'Note', 'Coef', 'Points', 'Enseignant', 'Appréciation'],
+        average: 'Moyenne',
+        rank: 'Rang',
+        conduct: 'Conduite',
+        councilMinutes: 'PROCÈS-VERBAL DU CONSEIL DE CLASSE:',
+        directorDecision: 'DÉCISION DE LA DIRECTION:',
+        signatures: 'SIGNATURES:',
+        principalTeacher: 'Le Professeur Principal',
+        director: 'Le Directeur',
+        code: 'Code',
+        authentication: 'Authentification',
+        appreciations: {
+          'Excellent': 'Excellent',
+          'Très bien': 'Très bien', 
+          'Bien': 'Bien',
+          'Assez bien': 'Assez bien',
+          'Peut mieux faire': 'Peut mieux faire'
+        }
+      },
+      en: {
+        title: 'SCHOOL REPORT CARD',
+        student: 'Student',
+        class: 'Class',
+        period: 'Period', 
+        born: 'Born',
+        gender: 'Gender',
+        birthPlace: 'Place of birth',
+        subjects: {
+          'Mathématiques': 'Mathematics',
+          'Français': 'French',
+          'Anglais': 'English', 
+          'Histoire-Géo': 'History-Geography',
+          'Sciences Physiques': 'Physical Sciences',
+          'Sciences Naturelles': 'Natural Sciences',
+          'EPS': 'Physical Education',
+          'Arts': 'Arts'
+        },
+        headers: ['Subject', 'Grade', 'Coef', 'Points', 'Teacher', 'Assessment'],
+        average: 'Average',
+        rank: 'Rank',
+        conduct: 'Conduct',
+        councilMinutes: 'CLASS COUNCIL MINUTES:',
+        directorDecision: 'DIRECTOR\'S DECISION:',
+        signatures: 'SIGNATURES:',
+        principalTeacher: 'The Principal Teacher',
+        director: 'The Director',
+        code: 'Code',
+        authentication: 'Authentication',
+        appreciations: {
+          'Excellent': 'Excellent',
+          'Très bien': 'Very good',
+          'Bien': 'Good', 
+          'Assez bien': 'Fairly good',
+          'Peut mieux faire': 'Can do better'
+        }
+      }
+    };
+
+    // Détection de langue (peut être passée en paramètre)
+    const language = 'fr'; // Par défaut français, peut être 'en' pour anglais
+    const t = translations[language];
+
+    // Create realistic test data for African school (bilingue)
     const testBulletinData = {
       student: { 
         name: 'Amina Kouakou', 
         class: '3ème A', 
         dateOfBirth: '15 Mars 2010', 
         placeOfBirth: 'Abidjan, Côte d\'Ivoire',
-        gender: 'Féminin',
+        gender: language === 'fr' ? 'Féminin' : 'Female',
         photo: '/api/students/photos/placeholder.jpg'
       },
       subjects: [
@@ -1488,12 +1570,12 @@ export class PDFGenerator {
       studentPhoto: testBulletinData.student.photo
     });
     
-    // Titre du document (une seule fois)
+    // Titre du document (bilingue)
     yPosition += 5;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
+    doc.text(t.title, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
     // LIGNE DE SÉPARATION entre noms et notes
@@ -1502,16 +1584,16 @@ export class PDFGenerator {
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
     
-    // INFORMATIONS ÉLÈVE COMPLÈTES
+    // INFORMATIONS ÉLÈVE COMPLÈTES (bilingue)
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition);
-    doc.text(`Période: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 60, yPosition);
+    doc.text(`${t.class}: ${testBulletinData.student.class}`, margin, yPosition);
+    doc.text(`${t.period}: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 60, yPosition);
     yPosition += 6;
-    doc.text(`Né(e) le: ${testBulletinData.student.dateOfBirth}`, margin, yPosition);
-    doc.text(`Sexe: ${testBulletinData.student.gender}`, margin + 80, yPosition);
+    doc.text(`${t.born}: ${testBulletinData.student.dateOfBirth}`, margin, yPosition);
+    doc.text(`${t.gender}: ${testBulletinData.student.gender}`, margin + 80, yPosition);
     yPosition += 6;
-    doc.text(`Lieu de naissance: ${testBulletinData.student.placeOfBirth}`, margin, yPosition);
+    doc.text(`${t.birthPlace}: ${testBulletinData.student.placeOfBirth}`, margin, yPosition);
     yPosition += 10;
     
     // TABLEAU DES NOTES (compact)
@@ -1522,7 +1604,7 @@ export class PDFGenerator {
     doc.rect(margin, yPosition, pageWidth - 2 * margin, 6, 'F');
     
     const colWidths = [35, 15, 12, 18, 45, 25];
-    const headers = ['Matière', 'Note', 'Coef', 'Points', 'Enseignant', 'Appréciation'];
+    const headers = t.headers;
     let xPos = margin + 1;
     headers.forEach((header, index) => {
       doc.text(header, xPos, yPosition + 4);
@@ -1537,7 +1619,9 @@ export class PDFGenerator {
     testBulletinData.subjects.forEach((subject) => {
       const points = (subject.grade * subject.coefficient).toFixed(1);
       xPos = margin + 1;
-      doc.text(subject.name, xPos, yPosition + 3);
+      // Nom matière traduit
+      const translatedSubject = t.subjects[subject.name] || subject.name;
+      doc.text(translatedSubject, xPos, yPosition + 3);
       xPos += colWidths[0];
       doc.text(subject.grade.toString(), xPos + 5, yPosition + 3);
       xPos += colWidths[1];
@@ -1547,52 +1631,55 @@ export class PDFGenerator {
       xPos += colWidths[3];
       doc.text(subject.teacher, xPos, yPosition + 3);
       xPos += colWidths[4];
-      doc.text(subject.comment, xPos, yPosition + 3);
+      // Appréciation traduite
+      const translatedComment = t.appreciations[subject.comment] || subject.comment;
+      doc.text(translatedComment, xPos, yPosition + 3);
       yPosition += 5;
     });
     
     yPosition += 8;
     
-    // RÉSULTATS (compact en ligne)
+    // RÉSULTATS (compact en ligne, bilingue)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Moyenne: ${testBulletinData.generalAverage}/20`, margin, yPosition);
-    doc.text(`Rang: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, margin + 60, yPosition);
-    doc.text('Conduite: 18/20 (Très bien)', margin + 110, yPosition);
+    doc.text(`${t.average}: ${testBulletinData.generalAverage}/20`, margin, yPosition);
+    doc.text(`${t.rank}: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, margin + 60, yPosition);
+    const conductComment = language === 'fr' ? 'Très bien' : 'Very good';
+    doc.text(`${t.conduct}: 18/20 (${conductComment})`, margin + 110, yPosition);
     yPosition += 12;
     
-    // PROCÈS-VERBAL DU CONSEIL DE CLASSE
+    // PROCÈS-VERBAL DU CONSEIL DE CLASSE (bilingue)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('PROCÈS-VERBAL DU CONSEIL DE CLASSE:', margin, yPosition);
+    doc.text(t.councilMinutes, margin, yPosition);
     yPosition += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.text(testBulletinData.teacherComments, margin, yPosition);
     yPosition += 8;
     
-    // DÉCISION DE LA DIRECTION
+    // DÉCISION DE LA DIRECTION (bilingue)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('DÉCISION DE LA DIRECTION:', margin, yPosition);
+    doc.text(t.directorDecision, margin, yPosition);
     yPosition += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.text(testBulletinData.directorComments, margin, yPosition);
     yPosition += 15;
     
-    // SIGNATURES OFFICIELLES
+    // SIGNATURES OFFICIELLES (bilingue)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('SIGNATURES:', margin, yPosition);
+    doc.text(t.signatures, margin, yPosition);
     yPosition += 8;
     
     // Signatures côte à côte
     const signatureWidth = (pageWidth - 3 * margin) / 2;
     let signatureX = margin;
     
-    ['Le Professeur Principal', 'Le Directeur'].forEach((title, index) => {
+    [t.principalTeacher, t.director].forEach((title, index) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.text(title, signatureX, yPosition);
@@ -1616,12 +1703,12 @@ export class PDFGenerator {
     // QR CODE DE VÉRIFICATION
     await this.addQRCodeToDocument(doc, documentData, pageWidth - 40, yPosition - 25);
     
-    // Code de vérification
+    // Code de vérification (bilingue)
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Code: ${testBulletinData.verificationCode}`, margin, yPosition);
-    doc.text('Authentification: www.educafric.com/verify', margin, yPosition + 5);
+    doc.text(`${t.code}: ${testBulletinData.verificationCode}`, margin, yPosition);
+    doc.text(`${t.authentication}: www.educafric.com/verify`, margin, yPosition + 5);
     
     yPosition += 10;
     

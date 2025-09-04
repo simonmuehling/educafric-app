@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" id="document-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Template Bulletin EDUCAFRIC - École Saint-Joseph Yaoundé</title>
+    <title id="document-title">Template Bulletin EDUCAFRIC - École Saint-Joseph Yaoundé</title>
     <style>
         * {
             margin: 0;
@@ -380,9 +380,51 @@
                 border-radius: 0;
             }
         }
+
+        /* Bouton de basculement langue */
+        .language-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .language-toggle:hover {
+            background: #0056b3;
+        }
+
+        /* Éléments masqués par défaut pour la langue inactive */
+        .lang-en {
+            display: none;
+        }
+        
+        .lang-fr {
+            display: block;
+        }
+        
+        html[lang="en"] .lang-en {
+            display: block;
+        }
+        
+        html[lang="en"] .lang-fr {
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Bouton de basculement langue -->
+    <button class="language-toggle" onclick="toggleLanguage()">
+        <span class="lang-fr">🇬🇧 English</span>
+        <span class="lang-en">🇫🇷 Français</span>
+    </button>
+
     <div class="bulletin-container">
         <!-- En-tête -->
         <div class="header">
@@ -400,9 +442,10 @@
                 Collège Excellence Africaine - Yaoundé &nbsp;&nbsp; Tél: +237 222 345 678
             </div>
             
-            <!-- Nom élève séparé -->
+            <!-- Nom élève séparé (bilingue) -->
             <div style="font-weight: bold; font-size: 12px; text-align: right; margin-bottom: 4px;">
-                Élève: Amina Kouakou
+                <span class="lang-fr">Élève: Amina Kouakou</span>
+                <span class="lang-en">Student: Amina Kouakou</span>
             </div>
             
             <div class="school-contact">B.P. 1234 Yaoundé</div>
@@ -410,7 +453,10 @@
             <!-- Photo de l'élève -->
             <div class="student-photo-header">PHOTO</div>
             
-            <div class="report-title">BULLETIN SCOLAIRE</div>
+            <div class="report-title">
+                <span class="lang-fr">BULLETIN SCOLAIRE</span>
+                <span class="lang-en">SCHOOL REPORT CARD</span>
+            </div>
             
             <!-- Ligne de séparation entre noms et notes -->
             <div style="border-top: 1px solid black; margin: 10px 15px;"></div>
@@ -420,36 +466,44 @@
             <!-- Informations élève complètes -->
             <div style="font-size: 10px; margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                    <span><strong>Classe:</strong> 3ème A</span>
-                    <span><strong>Période:</strong> 1er Trimestre 2024-2025</span>
+                    <span class="lang-fr"><strong>Classe:</strong> 3ème A</span>
+                    <span class="lang-en"><strong>Class:</strong> 3ème A</span>
+                    <span class="lang-fr"><strong>Période:</strong> 1er Trimestre 2024-2025</span>
+                    <span class="lang-en"><strong>Period:</strong> 1st Quarter 2024-2025</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                    <span><strong>Né(e) le:</strong> 15 Mars 2010</span>
-                    <span><strong>Sexe:</strong> Féminin</span>
+                    <span class="lang-fr"><strong>Né(e) le:</strong> 15 Mars 2010</span>
+                    <span class="lang-en"><strong>Born:</strong> March 15, 2010</span>
+                    <span class="lang-fr"><strong>Sexe:</strong> Féminin</span>
+                    <span class="lang-en"><strong>Gender:</strong> Female</span>
                 </div>
-                <div><strong>Lieu de naissance:</strong> Abidjan, Côte d'Ivoire</div>
+                <div>
+                    <span class="lang-fr"><strong>Lieu de naissance:</strong> Abidjan, Côte d'Ivoire</span>
+                    <span class="lang-en"><strong>Place of birth:</strong> Abidjan, Ivory Coast</span>
+                </div>
             </div>
 
             <!-- Notes par matière -->
             <div class="grades-section">
                 <h3 class="section-title">
                     <span class="section-icon">■</span>
-                    NOTES PAR MATIÈRE
+                    <span class="lang-fr">NOTES PAR MATIÈRE</span>
+                    <span class="lang-en">GRADES BY SUBJECT</span>
                 </h3>
                 <table class="grades-table">
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Matière</th>
-                            <th style="width: 10%;">Note/20</th>
-                            <th style="width: 8%;">Coeff</th>
-                            <th style="width: 12%;">Note × Coeff</th>
-                            <th style="width: 30%;">Professeur</th>
-                            <th style="width: 15%;">Appréciation</th>
+                            <th style="width: 25%;"><span class="lang-fr">Matière</span><span class="lang-en">Subject</span></th>
+                            <th style="width: 10%;"><span class="lang-fr">Note/20</span><span class="lang-en">Grade/20</span></th>
+                            <th style="width: 8%;"><span class="lang-fr">Coeff</span><span class="lang-en">Coef</span></th>
+                            <th style="width: 12%;"><span class="lang-fr">Note × Coeff</span><span class="lang-en">Grade × Coef</span></th>
+                            <th style="width: 30%;"><span class="lang-fr">Professeur</span><span class="lang-en">Teacher</span></th>
+                            <th style="width: 15%;"><span class="lang-fr">Appréciation</span><span class="lang-en">Assessment</span></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Mathématiques</strong></td>
+                            <td><strong><span class="lang-fr">Mathématiques</span><span class="lang-en">Mathematics</span></strong></td>
                             <td class="grade-cell good">16.5</td>
                             <td>4</td>
                             <td>66.0</td>
@@ -457,7 +511,7 @@
                             <td>Excellent</td>
                         </tr>
                         <tr>
-                            <td><strong>Français</strong></td>
+                            <td><strong><span class="lang-fr">Français</span><span class="lang-en">French</span></strong></td>
                             <td class="grade-cell average">14.0</td>
                             <td>4</td>
                             <td>56.0</td>
@@ -631,6 +685,37 @@
         
         // Chargement au démarrage
         document.addEventListener('DOMContentLoaded', loadSchoolParameters);
+    </script>
+    <script>
+        // Système de basculement bilingue
+        function toggleLanguage() {
+            const html = document.getElementById('document-html');
+            const currentLang = html.getAttribute('lang');
+            const newLang = currentLang === 'fr' ? 'en' : 'fr';
+            
+            html.setAttribute('lang', newLang);
+            
+            // Mettre à jour le titre
+            const title = document.getElementById('document-title');
+            if (newLang === 'en') {
+                title.textContent = 'EDUCAFRIC Report Card Template - Saint-Joseph School Yaoundé';
+            } else {
+                title.textContent = 'Template Bulletin EDUCAFRIC - École Saint-Joseph Yaoundé';
+            }
+            
+            // Sauvegarder le choix de langue
+            localStorage.setItem('bulletin-language', newLang);
+        }
+        
+        // Charger la langue sauvegardée au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('bulletin-language') || 'fr';
+            const html = document.getElementById('document-html');
+            
+            if (savedLang !== html.getAttribute('lang')) {
+                toggleLanguage();
+            }
+        });
     </script>
 </body>
 </html>
