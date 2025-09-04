@@ -115,20 +115,21 @@ export class PDFGenerator {
     doc.setTextColor(0, 0, 0); // Remettre en noir
     yPosition += 6;
     
-    // DEUXIÈME LIGNE : Nom de l'élève (aligné à droite pour éviter photo)
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    if (schoolData?.studentName) {
-      doc.text(`Élève: ${schoolData.studentName}`, pageWidth - margin - 85, yPosition);
-    }
-    yPosition += 6;
-    
-    // Boîte postale seule en dessous
+    // Boîte postale centrée sous le téléphone
     if (schoolData?.boitePostale) {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(schoolData.boitePostale, margin, yPosition);
+      doc.text(schoolData.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
     }
+    yPosition += 5;
+    
+    // Nom de l'élève centré sous la boîte postale
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    if (schoolData?.studentName) {
+      doc.text(`Élève: ${schoolData.studentName}`, pageWidth / 2, yPosition, { align: 'center' });
+    }
+    yPosition += 6;
     
     // Photo de l'élève (identique au HTML)
     doc.setDrawColor(150, 150, 150);
