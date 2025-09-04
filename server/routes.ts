@@ -1862,6 +1862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const demoSchool = {
         id: user.schoolId,
         name: "École Internationale de Yaoundé - Campus Sandbox",
+        type: "private", // public, private, enterprise
         address: "Quartier Bastos, Yaoundé",
         phone: "+237 222 123 456",
         email: "contact@ecole-sandbox.cm",

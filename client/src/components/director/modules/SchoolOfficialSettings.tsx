@@ -6,6 +6,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ModernCard } from '@/components/ui/modern-card';
 import { 
@@ -15,6 +16,7 @@ import {
 
 interface SchoolSettings {
   name: string;
+  type: string; // public, private, enterprise
   address: string;
   phone: string;
   email: string;
@@ -33,6 +35,7 @@ const SchoolOfficialSettings: React.FC = () => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<SchoolSettings>({
     name: '',
+    type: 'private',
     address: '',
     phone: '',
     email: '',
@@ -50,6 +53,10 @@ const SchoolOfficialSettings: React.FC = () => {
       schoolInfo: 'Informations École',
       officialInfo: 'Informations Officielles Cameroun',
       name: 'Nom de l\'école',
+      type: 'Type d\'établissement',
+      typePublic: 'Public',
+      typePrivate: 'Privé',
+      typeEnterprise: 'Entreprise',
       address: 'Adresse',
       phone: 'Téléphone',
       email: 'Email',
@@ -75,6 +82,10 @@ const SchoolOfficialSettings: React.FC = () => {
       schoolInfo: 'School Information',
       officialInfo: 'Official Cameroon Information',
       name: 'School name',
+      type: 'Institution type',
+      typePublic: 'Public',
+      typePrivate: 'Private',
+      typeEnterprise: 'Enterprise',
       address: 'Address',
       phone: 'Phone',
       email: 'Email',
@@ -117,6 +128,7 @@ const SchoolOfficialSettings: React.FC = () => {
     if (schoolData?.school) {
       setFormData({
         name: schoolData.school.name || '',
+        type: schoolData.school.type || 'private',
         address: schoolData.school.address || '',
         phone: schoolData.school.phone || '',
         email: schoolData.school.email || '',
@@ -221,6 +233,19 @@ const SchoolOfficialSettings: React.FC = () => {
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className="mt-1"
                   />
+                </div>
+                <div>
+                  <Label htmlFor="type">{t.type}</Label>
+                  <Select value={formData.type} onValueChange={(value) => handleInputChange('type', value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={t.type} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">{t.typePublic}</SelectItem>
+                      <SelectItem value="private">{t.typePrivate}</SelectItem>
+                      <SelectItem value="enterprise">{t.typeEnterprise}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="phone">{t.phone}</Label>

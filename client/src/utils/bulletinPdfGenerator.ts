@@ -95,31 +95,28 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     
-    // Ministère des Enseignements Secondaires
+    // Ministère selon le type d'école - toujours "Ministère des Enseignements Secondaires" au Cameroun
     pdf.setFontSize(12);
     pdf.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     
-    // Délégation Régionale (si définie)
-    if (data.schoolBranding?.regionaleMinisterielle) {
-      pdf.setFontSize(11);
-      pdf.text(data.schoolBranding.regionaleMinisterielle, pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 6;
-    }
+    // Délégation Régionale - utilise les paramètres de l'école ou valeur par défaut
+    const regionaleText = data.schoolBranding?.regionaleMinisterielle || 'Délégation Régionale du Centre';
+    pdf.setFontSize(11);
+    pdf.text(regionaleText, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
     
-    // Délégation Départementale (si définie)
-    if (data.schoolBranding?.delegationDepartementale) {
-      pdf.setFontSize(11);
-      pdf.text(data.schoolBranding.delegationDepartementale, pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 6;
-    }
+    // Délégation Départementale - utilise les paramètres de l'école ou valeur par défaut
+    const departementaleText = data.schoolBranding?.delegationDepartementale || 'Délégation Départementale du Mfoundi';
+    pdf.setFontSize(11);
+    pdf.text(departementaleText, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
     
-    // Boîte Postale (si définie)
-    if (data.schoolBranding?.boitePostale) {
-      pdf.setFontSize(10);
-      pdf.text(data.schoolBranding.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 6;
-    }
+    // Boîte Postale - utilise les paramètres de l'école ou valeur par défaut
+    const boitePostaleText = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
+    pdf.setFontSize(10);
+    pdf.text(boitePostaleText, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
     
     // Ligne de séparation
     pdf.setLineWidth(0.5);
