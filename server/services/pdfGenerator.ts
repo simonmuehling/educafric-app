@@ -1502,22 +1502,34 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Document ID for tracking (without QR code)
-    const documentId = `test-bulletin-${Date.now()}`;
-    console.log('[BULLETIN_PDF] ✅ Generating professional bulletin (ID:', documentId + ')');
+    // Document data for QR code
+    const documentData: DocumentData = {
+      id: `test-bulletin-${Date.now()}`,
+      title: 'Bulletin Scolaire - Amina Kouakou',
+      user: { email: 'system@educafric.com' },
+      type: 'bulletin'
+    };
+    console.log('[BULLETIN_PDF] ✅ Generating professional bulletin (ID:', documentData.id + ')');
     
     // Create realistic test data for African school
     const testBulletinData = {
-      student: { name: 'Amina Kouakou', class: '3ème A', dateOfBirth: '15 Mars 2010', placeOfBirth: 'Abidjan, Côte d\'Ivoire' },
+      student: { 
+        name: 'Amina Kouakou', 
+        class: '3ème A', 
+        dateOfBirth: '15 Mars 2010', 
+        placeOfBirth: 'Abidjan, Côte d\'Ivoire',
+        gender: 'Féminin',
+        photo: '/api/students/photos/placeholder.jpg'
+      },
       subjects: [
-        { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph', comment: 'Excellent' },
-        { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou', comment: 'Assez bien' },
-        { name: 'Anglais', grade: 15.5, coefficient: 3, teacher: 'Mr Smith John', comment: 'Bien' },
-        { name: 'Histoire-Géo', grade: 13.5, coefficient: 3, teacher: 'M. Ouédraogo Paul', comment: 'Assez bien' },
-        { name: 'Sciences Physiques', grade: 17.0, coefficient: 3, teacher: 'Mme Camara Aïcha', comment: 'Excellent' },
-        { name: 'Sciences Naturelles', grade: 16.0, coefficient: 3, teacher: 'M. Traoré Ibrahim', comment: 'Très bien' },
-        { name: 'EPS', grade: 18.0, coefficient: 1, teacher: 'M. Bamba Sekou', comment: 'Excellent' },
-        { name: 'Arts', grade: 15.0, coefficient: 1, teacher: 'Mme Sow Mariam', comment: 'Bien' }
+        { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph Augustin', comment: 'Excellent' },
+        { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou Marie', comment: 'Assez bien' },
+        { name: 'Anglais', grade: 15.5, coefficient: 3, teacher: 'M. Smith John Patrick', comment: 'Bien' },
+        { name: 'Histoire-Géo', grade: 13.5, coefficient: 3, teacher: 'M. Ouédraogo Paul Vincent', comment: 'Assez bien' },
+        { name: 'Sciences Physiques', grade: 17.0, coefficient: 3, teacher: 'Mme Camara Aïcha Binta', comment: 'Excellent' },
+        { name: 'Sciences Naturelles', grade: 16.0, coefficient: 3, teacher: 'M. Traoré Ibrahim Moussa', comment: 'Très bien' },
+        { name: 'EPS', grade: 18.0, coefficient: 1, teacher: 'M. Bamba Sekou Amadou', comment: 'Excellent' },
+        { name: 'Arts', grade: 15.0, coefficient: 1, teacher: 'Mme Sow Mariam Aminata', comment: 'Bien' }
       ],
       period: '1er Trimestre',
       academicYear: '2024-2025',
@@ -1543,7 +1555,7 @@ export class PDFGenerator {
       schoolName: testBulletinData.schoolBranding.schoolName,
       boitePostale: 'B.P. 1234 Yaoundé',
       studentName: testBulletinData.student.name,
-      studentPhoto: undefined // Placeholder pour photo
+      studentPhoto: testBulletinData.student.photo
     });
     
     // Titre du document (une seule fois)
@@ -1554,11 +1566,16 @@ export class PDFGenerator {
     doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
-    // INFORMATIONS ÉLÈVE (compact)
-    doc.setFontSize(9);
+    // INFORMATIONS ÉLÈVE COMPLÈTES
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition);
-    doc.text(`Période: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 50, yPosition);
+    doc.text(`Période: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 60, yPosition);
+    yPosition += 6;
+    doc.text(`Né(e) le: ${testBulletinData.student.dateOfBirth}`, margin, yPosition);
+    doc.text(`Sexe: ${testBulletinData.student.gender}`, margin + 80, yPosition);
+    yPosition += 6;
+    doc.text(`Lieu de naissance: ${testBulletinData.student.placeOfBirth}`, margin, yPosition);
     yPosition += 10;
     
     // TABLEAU DES NOTES (compact)
@@ -1609,44 +1626,68 @@ export class PDFGenerator {
     doc.text('Conduite: 18/20 (Très bien)', margin + 110, yPosition);
     yPosition += 12;
     
-    // APPRÉCIATIONS (compact)
+    // PROCÈS-VERBAL DU CONSEIL DE CLASSE
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('Appréciation générale:', margin, yPosition);
-    yPosition += 5;
+    doc.text('PROCÈS-VERBAL DU CONSEIL DE CLASSE:', margin, yPosition);
+    yPosition += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.text(testBulletinData.teacherComments, margin, yPosition);
     yPosition += 8;
     
+    // DÉCISION DE LA DIRECTION
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.text('Direction:', margin, yPosition);
-    yPosition += 5;
+    doc.text('DÉCISION DE LA DIRECTION:', margin, yPosition);
+    yPosition += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.text(testBulletinData.directorComments, margin, yPosition);
-    yPosition += 12;
-    
-    // Signatures
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(37, 99, 235);
-    doc.text('Signatures:', margin, yPosition);
     yPosition += 15;
     
+    // SIGNATURES OFFICIELLES
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('SIGNATURES:', margin, yPosition);
+    yPosition += 8;
+    
+    // Signatures côte à côte
     const signatureWidth = (pageWidth - 3 * margin) / 2;
     let signatureX = margin;
-    ['Dr. Ngozi Adichie - Directeur', 'Mme Diallo Fatou - Professeur Principal'].forEach((signature) => {
-      doc.setDrawColor(37, 99, 235);
-      doc.rect(signatureX, yPosition, signatureWidth, 30);
+    
+    ['Le Professeur Principal', 'Le Directeur'].forEach((title, index) => {
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text(signature, signatureX + 2, yPosition + 20);
-      signatureX += signatureWidth + margin;
+      doc.setFontSize(8);
+      doc.text(title, signatureX, yPosition);
+      
+      // Ligne pour signature
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(0, 0, 0);
+      doc.line(signatureX, yPosition + 15, signatureX + signatureWidth - 10, yPosition + 15);
+      
+      // Noms des signataires
+      if (index === 0) {
+        doc.text('Mme Diallo Fatou Marie', signatureX, yPosition + 20);
+      } else {
+        doc.text('Dr. Ngozi Adichie Emmanuel', signatureX, yPosition + 20);
+      }
+      
+      signatureX += signatureWidth;
     });
-    yPosition += 40;
+    yPosition += 30;
+    
+    // QR CODE DE VÉRIFICATION
+    await this.addQRCodeToDocument(doc, documentData, pageWidth - 40, yPosition - 25);
+    
+    // Code de vérification
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Code: ${testBulletinData.verificationCode}`, margin, yPosition);
+    doc.text('Authentification: www.educafric.com/verify', margin, yPosition + 5);
+    
+    yPosition += 10;
     
     // Verification
     doc.setFont('helvetica', 'normal');
