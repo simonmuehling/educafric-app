@@ -510,7 +510,7 @@ const BulletinApprovalNew: React.FC = () => {
       </div>
 
       {/* Academic Info */}
-      <div className="grid grid-cols-2 gap-3 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-blue-500" />
           <span>Moyenne: <strong data-testid={`bulletin-average-${bulletin.id}`}>{bulletin.generalAverage}/20</strong></span>
@@ -631,7 +631,7 @@ const BulletinApprovalNew: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-4 p-2 sm:p-4">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t.title || ''}</h1>
@@ -639,7 +639,7 @@ const BulletinApprovalNew: React.FC = () => {
       </div>
 
       {/* School Template Preview */}
-      <Card className="border-2 border-gray-200 bg-white">
+      <Card className="border-2 border-gray-200 bg-white mx-1 sm:mx-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -649,9 +649,9 @@ const BulletinApprovalNew: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {/* Bulletin Preview */}
-            <div className="p-4 bg-white rounded-lg border shadow-sm">
+            <div className="p-3 sm:p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-blue-600" />
                 <h3 className="font-semibold text-black">
@@ -676,11 +676,11 @@ const BulletinApprovalNew: React.FC = () => {
                   <span className="font-medium text-green-600">✅ Sécurisé</span>
                 </div>
               </div>
-              <div className="flex gap-2 mt-3">
+              <div className="flex flex-col sm:flex-row gap-2 mt-3">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex-1" 
+                  className="w-full sm:flex-1" 
                   data-testid="button-preview-bulletin"
                   onClick={handlePreviewBulletin}
                   disabled={isLoadingTemplate}
@@ -693,7 +693,7 @@ const BulletinApprovalNew: React.FC = () => {
                 </Button>
                 <Button 
                   size="sm" 
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                  className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
                   data-testid="button-view-full-template"
                   onClick={() => {
                     window.open('/documents/template-bulletin-educafric.html', '_blank');
@@ -712,7 +712,7 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
 
             {/* Transcript Preview */}
-            <div className="p-4 bg-white rounded-lg border shadow-sm">
+            <div className="p-3 sm:p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <GraduationCap className="w-5 h-5 text-gray-600" />
                 <h3 className="font-semibold text-black">
@@ -754,9 +754,9 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <Trophy className="w-6 h-6 text-gray-600" />
-            <span className="text-sm font-medium text-gray-800">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+            <span className="text-xs sm:text-sm font-medium text-gray-800 text-center sm:text-left">
               {language === 'fr' 
                 ? '🎨 Templates personnalisés pour votre école avec logo, couleurs et signature officielle'
                 : '🎨 Customized templates for your school with logo, colors and official signature'
@@ -767,48 +767,48 @@ const BulletinApprovalNew: React.FC = () => {
       </Card>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t.totalBulletins}</p>
-                <p className="text-2xl font-bold" data-testid="stat-total-bulletins">{(Array.isArray(bulletins) ? bulletins.length : 0)}</p>
+                <p className="text-xl sm:text-2xl font-bold" data-testid="stat-total-bulletins">{(Array.isArray(bulletins) ? bulletins.length : 0)}</p>
               </div>
-              <FileText className="w-8 h-8 text-blue-500" />
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t.pendingApproval}</p>
-                <p className="text-2xl font-bold text-yellow-600" data-testid="stat-pending-bulletins">{(Array.isArray(pendingBulletins) ? pendingBulletins.length : 0)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-yellow-600" data-testid="stat-pending-bulletins">{(Array.isArray(pendingBulletins) ? pendingBulletins.length : 0)}</p>
               </div>
-              <Clock className="w-8 h-8 text-yellow-500" />
+              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t.approved}</p>
-                <p className="text-2xl font-bold text-green-600" data-testid="stat-approved-bulletins">{(Array.isArray(approvedBulletins) ? approvedBulletins.length : 0)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-600" data-testid="stat-approved-bulletins">{(Array.isArray(approvedBulletins) ? approvedBulletins.length : 0)}</p>
               </div>
-              <CheckCircle className="w-8 h-8 text-green-500" />
+              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t.sent}</p>
-                <p className="text-2xl font-bold text-emerald-600" data-testid="stat-sent-bulletins">{(Array.isArray(sentBulletins) ? sentBulletins.length : 0)}</p>
+                <p className="text-xl sm:text-2xl font-bold text-emerald-600" data-testid="stat-sent-bulletins">{(Array.isArray(sentBulletins) ? sentBulletins.length : 0)}</p>
               </div>
-              <Send className="w-8 h-8 text-emerald-500" />
+              <Send className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-500" />
             </div>
           </CardContent>
         </Card>
@@ -848,7 +848,7 @@ const BulletinApprovalNew: React.FC = () => {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
               <div>
@@ -903,10 +903,10 @@ const BulletinApprovalNew: React.FC = () => {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <Button
               onClick={() => setShowBulkSignDialog(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full"
             >
               <Signature className="w-4 h-4" />
               {t.bulkSign || (language === 'fr' ? 'Signature en Lot par Classe' : 'Bulk Sign by Class')}
@@ -914,7 +914,7 @@ const BulletinApprovalNew: React.FC = () => {
             <Button
               onClick={() => handleSendBulletinsWithNotifications([])}
               disabled={isNotifying}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 w-full"
             >
               <Bell className="w-4 h-4" />
               {isNotifying ? (language === 'fr' ? 'Envoi...' : 'Sending...') : (t.sendBulletins || (language === 'fr' ? 'Envoyer avec Notifications' : 'Send with Notifications'))}
