@@ -495,7 +495,7 @@ const BulletinApprovalNew: React.FC = () => {
   const sentBulletins = filterBulletinsByStatus(['sent']);
 
   const BulletinCard = ({ bulletin }: { bulletin: Bulletin }) => (
-    <div className="border rounded-lg p-4 space-y-3 bg-white dark:bg-gray-800">
+    <div className="border rounded-lg p-4 space-y-3 bg-white">
       {/* Bulletin Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -523,7 +523,7 @@ const BulletinApprovalNew: React.FC = () => {
 
       {/* Workflow Info */}
       {bulletin.submittedByName && (
-        <div className="bg-gray-50 dark:bg-gray-700 rounded p-3 text-sm">
+        <div className="bg-gray-50 rounded p-3 text-sm">
           <div className="flex items-center gap-2 mb-1">
             <User className="w-3 h-3 text-gray-400" />
             <span className="text-gray-600 dark:text-gray-300">
@@ -543,7 +543,7 @@ const BulletinApprovalNew: React.FC = () => {
 
       {/* Last Approval Comment */}
       {bulletin.lastApprovalComment && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3">
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
           <div className="flex items-start gap-2">
             <MessageSquare className="w-4 h-4 text-yellow-600 mt-0.5" />
             <div>
@@ -651,7 +651,7 @@ const BulletinApprovalNew: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Bulletin Preview */}
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+            <div className="p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-blue-600" />
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -712,7 +712,7 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
 
             {/* Transcript Preview */}
-            <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+            <div className="p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <GraduationCap className="w-5 h-5 text-gray-600" />
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -754,9 +754,9 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center justify-center gap-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200">
-            <Trophy className="w-6 h-6 text-amber-600" />
-            <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+          <div className="flex items-center justify-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <Trophy className="w-6 h-6 text-gray-600" />
+            <span className="text-sm font-medium text-gray-800">
               {language === 'fr' 
                 ? '🎨 Templates personnalisés pour votre école avec logo, couleurs et signature officielle'
                 : '🎨 Customized templates for your school with logo, colors and official signature'
@@ -818,7 +818,7 @@ const BulletinApprovalNew: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <div className="p-2 bg-blue-100 rounded-lg">
               <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="2" y="2" width="3" height="3"/>
                 <rect x="7" y="2" width="3" height="3"/>
@@ -849,7 +849,7 @@ const BulletinApprovalNew: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <CheckCircle className="w-5 h-5 text-green-600" />
               <div>
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
@@ -860,7 +860,7 @@ const BulletinApprovalNew: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
               <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 12l-6-6 1.41-1.41L10 9.17l8.59-8.58L20 2l-10 10z"/>
               </svg>
@@ -1293,7 +1293,7 @@ const BulletinApprovalNew: React.FC = () => {
             {schoolTemplateData?.data && (
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <div className="p-2 bg-blue-100 rounded-lg">
                     <Trophy className="w-5 h-5 text-blue-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
