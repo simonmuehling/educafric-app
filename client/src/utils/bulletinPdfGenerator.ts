@@ -200,11 +200,11 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     });
   }
 
-  // === PROFESSIONAL BLACK & WHITE HEADER ===
+  // === ENHANCED SCHOOL ADMINISTRATIVE HEADER ===
   addProfessionalHeader();
 
-  // === CLEAN SCHOOL SECTION ===
-  // School logo on left
+  // === SCHOOL LOGO AND INFORMATION ===
+  // School logo on left with enhanced loading
   if (data.schoolBranding?.logoUrl) {
     try {
       const logoImg = new Image();
@@ -214,25 +214,61 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
         logoImg.onerror = resolve;
       });
       
-      if (logoImg.complete) {
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
         const logoSize = 30;
         pdf.addImage(logoImg, 'PNG', margin, yPosition, logoSize, logoSize);
+        console.log('[BULLETIN_LOGO] ✅ Logo école ajouté au bulletin');
+      } else {
+        // Logo placeholder amélioré
+        const logoSize = 30;
+        pdf.setDrawColor(100, 100, 100);
+        pdf.setLineWidth(1);
+        pdf.rect(margin, yPosition, logoSize, logoSize);
+        pdf.setFontSize(8);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text('LOGO', margin + logoSize/2, yPosition + logoSize/2 - 2, { align: 'center' });
+        pdf.text('ÉCOLE', margin + logoSize/2, yPosition + logoSize/2 + 4, { align: 'center' });
       }
     } catch (error) {
       console.error('Error loading school logo:', error);
+      // Logo placeholder en cas d'erreur
+      const logoSize = 30;
+      pdf.setDrawColor(100, 100, 100);
+      pdf.setLineWidth(1);
+      pdf.rect(margin, yPosition, logoSize, logoSize);
+      pdf.setFontSize(8);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('LOGO', margin + logoSize/2, yPosition + logoSize/2 - 2, { align: 'center' });
+      pdf.text('ÉCOLE', margin + logoSize/2, yPosition + logoSize/2 + 4, { align: 'center' });
     }
+  } else {
+    // Logo placeholder par défaut
+    const logoSize = 30;
+    pdf.setDrawColor(100, 100, 100);
+    pdf.setLineWidth(1);
+    pdf.rect(margin, yPosition, logoSize, logoSize);
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('LOGO', margin + logoSize/2, yPosition + logoSize/2 - 2, { align: 'center' });
+    pdf.text('ÉCOLE', margin + logoSize/2, yPosition + logoSize/2 + 4, { align: 'center' });
   }
 
-  // School name - simple and professional
+  // School name with enhanced styling
   pdf.setTextColor(0, 0, 0);
   pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(data.schoolBranding?.schoolName || 'ÉCOLE SECONDAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
+  pdf.text(data.schoolBranding?.schoolName || 'ÉTABLISSEMENT SCOLAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
   
-  // National motto - simple
+  // Contact information if available
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  const schoolContact = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
+  pdf.text(schoolContact, pageWidth / 2, yPosition + 18, { align: 'center' });
+  
+  // National motto
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'italic');
-  pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition + 18, { align: 'center' });
+  pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition + 25, { align: 'center' });
   
   yPosition += 35;
 

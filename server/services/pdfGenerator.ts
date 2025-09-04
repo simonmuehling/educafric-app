@@ -59,6 +59,129 @@ export class PDFGenerator {
   }
 
   /**
+   * Add standardized school administrative header to all documents
+   */
+  static async addSchoolAdministrativeHeader(doc: any, schoolData?: {
+    schoolName?: string;
+    logoUrl?: string;
+    region?: string;
+    department?: string;
+    boitePostale?: string;
+    phone?: string;
+    email?: string;
+  }): Promise<number> {
+    let yPosition = 15;
+    
+    // République du Cameroun - En-tête officiel
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
+    yPosition += 6;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Paix - Travail - Patrie', 105, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    doc.setFontSize(12);
+    doc.text('Ministère des Enseignements Secondaires', 105, yPosition, { align: 'center' });
+    yPosition += 6;
+    
+    // Informations régionales et départementales
+    const region = schoolData?.region || 'Délégation Régionale du Centre';
+    const department = schoolData?.department || 'Délégation Départementale du Mfoundi';
+    
+    doc.setFontSize(10);
+    doc.text(region, 105, yPosition, { align: 'center' });
+    yPosition += 5;
+    doc.text(department, 105, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    // Ligne de séparation
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(0, 0, 0);
+    doc.line(20, yPosition, 190, yPosition);
+    yPosition += 8;
+    
+    // Logo de l'école (côté gauche) - Chargement réel
+    if (schoolData?.logoUrl) {
+      try {
+        const logoImg = new Image();
+        logoImg.src = schoolData.logoUrl;
+        
+        await new Promise((resolve) => {
+          logoImg.onload = resolve;
+          logoImg.onerror = resolve;
+        });
+        
+        if (logoImg.complete && logoImg.naturalWidth > 0) {
+          const logoSize = 25;
+          doc.addImage(logoImg, 'PNG', 20, yPosition, logoSize, logoSize);
+          console.log('[PDF_LOGO] ✅ Logo de l\'école ajouté');
+        } else {
+          // Placeholder si l'image ne charge pas
+          const logoSize = 25;
+          doc.setDrawColor(100, 100, 100);
+          doc.setLineWidth(1);
+          doc.rect(20, yPosition, logoSize, logoSize);
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          doc.text('LOGO', 32.5, yPosition + 12.5, { align: 'center' });
+        }
+      } catch (error) {
+        console.error('[PDF_LOGO] Erreur chargement logo école:', error);
+        // Placeholder en cas d'erreur
+        const logoSize = 25;
+        doc.setDrawColor(100, 100, 100);
+        doc.setLineWidth(1);
+        doc.rect(20, yPosition, logoSize, logoSize);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('LOGO', 32.5, yPosition + 12.5, { align: 'center' });
+      }
+    } else {
+      // Placeholder par défaut si pas de logo fourni
+      const logoSize = 25;
+      doc.setDrawColor(100, 100, 100);
+      doc.setLineWidth(1);
+      doc.rect(20, yPosition, logoSize, logoSize);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('LOGO', 32.5, yPosition + 12.5, { align: 'center' });
+      doc.text('ÉCOLE', 32.5, yPosition + 20, { align: 'center' });
+    }
+    
+    // Nom de l'école et informations
+    const schoolName = schoolData?.schoolName || 'ÉTABLISSEMENT SCOLAIRE';
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(schoolName, 105, yPosition + 8, { align: 'center' });
+    
+    // Informations de contact
+    yPosition += 18;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    
+    const boitePostale = schoolData?.boitePostale || 'B.P. 8524 Yaoundé';
+    const phone = schoolData?.phone || 'Tél: +237 222 345 678';
+    const email = schoolData?.email || 'Email: info@ecole.cm';
+    
+    doc.text(`${boitePostale} | ${phone}`, 105, yPosition, { align: 'center' });
+    yPosition += 4;
+    doc.text(email, 105, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    // Ligne de séparation finale
+    doc.setLineWidth(0.3);
+    doc.line(20, yPosition, 190, yPosition);
+    yPosition += 10;
+    
+    return yPosition;
+  }
+
+  /**
    * Add QR code to any PDF document
    */
   static async addQRCodeToDocument(doc: any, documentData: DocumentData, xPosition: number = 160, yPosition: number = 20): Promise<void> {
@@ -105,14 +228,20 @@ export class PDFGenerator {
       user: { email: 'system@educafric.com' },
       type: 'system'
     };
-    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     
-    // === SIMPLE BLACK & WHITE HEADER ===
-    // République du Cameroun - simple styling
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
+    // Add standardized school administrative header
+    const schoolData = {
+      schoolName: 'SYSTÈME EDUCAFRIC',
+      region: 'Délégation Régionale du Centre',
+      department: 'Délégation Départementale du Mfoundi',
+      boitePostale: 'B.P. 8524 Yaoundé',
+      phone: 'Tél: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+    
+    // Add QR code after header
+    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     yPosition += 7;
     
     doc.setFontSize(12);
@@ -394,17 +523,28 @@ export class PDFGenerator {
         user: { email: 'system@educafric.com' },
         type: 'report'
       };
-      await this.addQRCodeToDocument(doc, documentData, 160, 15);
       
-      // Add school header and logo placeholder
+      // Add standardized school administrative header
+      const schoolData = {
+        schoolName: 'ÉTABLISSEMENT SCOLAIRE',
+        region: 'Délégation Régionale du Centre',
+        department: 'Délégation Départementale du Mfoundi'
+      };
+      let yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+      
+      // Add QR code after header
+      await this.addQRCodeToDocument(doc, documentData, 160, 25);
+      
+      // Add document title
       doc.setFontSize(20);
-      doc.text('RAPPORT DE CLASSE', 105, 20, { align: 'center' });
+      doc.text('RAPPORT DE CLASSE', 105, yPosition, { align: 'center' });
+      yPosition += 10;
       
       doc.setFontSize(12);
       doc.text('EDUCAFRIC - Système de Gestion Scolaire', 105, 30, { align: 'center' });
       
       // Add class information section
-      let yPosition = 50;
+      yPosition = Math.max(yPosition + 20, 70);
       doc.setFontSize(14);
       doc.text('INFORMATIONS DE LA CLASSE', 20, yPosition);
       
@@ -477,12 +617,20 @@ export class PDFGenerator {
       user: { email: 'system@educafric.com' },
       type: 'system'
     };
-    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     
-    // Header with EDUCAFRIC branding
-    doc.setFontSize(24);
-    doc.setTextColor(0, 121, 242); // #0079F2
-    doc.text('EDUCAFRIC', 20, yPosition);
+    // Add standardized school administrative header
+    const schoolData = {
+      schoolName: 'EDUCAFRIC SYSTEM',
+      region: 'Central Region Delegation',
+      department: 'Mfoundi Departmental Delegation',
+      boitePostale: 'P.O. Box 8524 Yaoundé',
+      phone: 'Tel: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+    
+    // Add QR code after header
+    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     doc.setFontSize(14);
     doc.text('African Educational Technology Platform', 20, yPosition + 10);
     
@@ -735,13 +883,19 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add QR code for document verification
-    await this.addQRCodeToDocument(doc, data, 160, 15);
+    // Add standardized school administrative header
+    const schoolData = {
+      schoolName: data.user?.schoolName || 'SYSTÈME EDUCAFRIC',
+      region: 'Délégation Régionale du Centre',
+      department: 'Délégation Départementale du Mfoundi',
+      boitePostale: 'B.P. 8524 Yaoundé',
+      phone: 'Tél: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    let yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
     
-    // En-tête avec logo
-    doc.setFontSize(20);
-    doc.setTextColor(0, 121, 242); // #0079F2
-    doc.text('EDUCAFRIC', 20, 30);
+    // Add QR code after header
+    await this.addQRCodeToDocument(doc, data, 160, 25);
     doc.setFontSize(16);
     doc.text('Plateforme Éducative Africaine', 20, 40);
     
@@ -765,7 +919,7 @@ export class PDFGenerator {
     
     // Contenu principal
     doc.setFontSize(12);
-    let yPosition = 110;
+    yPosition = Math.max(yPosition + 20, 110);
     
     // Section Informations système
     doc.setFontSize(14);
