@@ -1480,14 +1480,9 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add QR code for document verification
-    const documentData: DocumentData = {
-      id: `test-bulletin-${Date.now()}`,
-      title: 'Test Bulletin Document',
-      user: { email: 'system@educafric.com' },
-      type: 'report'
-    };
-    await this.addQRCodeToDocument(doc, documentData, 160, 15);
+    // Document ID for tracking (without QR code)
+    const documentId = `test-bulletin-${Date.now()}`;
+    console.log('[BULLETIN_PDF] ✅ Generating professional bulletin (ID:', documentId + ')');
     
     // Create realistic test data for African school
     const testBulletinData = {
