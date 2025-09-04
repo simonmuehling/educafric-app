@@ -60,6 +60,7 @@ export class PDFGenerator {
 
   /**
    * Add standardized school administrative header to all documents
+   * Optimized for mobile viewing
    */
   static async addSchoolAdministrativeHeader(doc: any, schoolData?: {
     schoolName?: string;
@@ -71,31 +72,32 @@ export class PDFGenerator {
     email?: string;
   }): Promise<number> {
     let yPosition = 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
     
-    // République du Cameroun - En-tête officiel
-    doc.setFontSize(14);
+    // République du Cameroun - En-tête officiel (optimisé mobile)
+    doc.setFontSize(13); // Légèrement plus petit pour mobile
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
-    yPosition += 6;
+    doc.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 7;
     
-    doc.setFontSize(11);
+    doc.setFontSize(10); // Taille optimisée mobile
     doc.setFont('helvetica', 'normal');
-    doc.text('Paix - Travail - Patrie', 105, yPosition, { align: 'center' });
+    doc.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
-    doc.setFontSize(12);
-    doc.text('Ministère des Enseignements Secondaires', 105, yPosition, { align: 'center' });
-    yPosition += 6;
+    doc.setFontSize(11); // Taille optimisée mobile
+    doc.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 7;
     
     // Informations régionales et départementales
     const region = schoolData?.region || 'Délégation Régionale du Centre';
     const department = schoolData?.department || 'Délégation Départementale du Mfoundi';
     
-    doc.setFontSize(10);
-    doc.text(region, 105, yPosition, { align: 'center' });
+    doc.setFontSize(9); // Plus petit pour mobile
+    doc.text(region, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 5;
-    doc.text(department, 105, yPosition, { align: 'center' });
+    doc.text(department, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
     // Ligne de séparation
@@ -116,9 +118,9 @@ export class PDFGenerator {
         });
         
         if (logoImg.complete && logoImg.naturalWidth > 0) {
-          const logoSize = 25;
+          const logoSize = 22; // Taille réduite pour mobile
           doc.addImage(logoImg, 'PNG', 20, yPosition, logoSize, logoSize);
-          console.log('[PDF_LOGO] ✅ Logo de l\'école ajouté');
+          console.log('[PDF_LOGO] ✅ Logo de l\'école ajouté (mobile-optimized)');
         } else {
           // Placeholder si l'image ne charge pas
           const logoSize = 25;
@@ -152,25 +154,28 @@ export class PDFGenerator {
       doc.text('ÉCOLE', 32.5, yPosition + 20, { align: 'center' });
     }
     
-    // Nom de l'école et informations
+    // Nom de l'école et informations (optimisé mobile)
     const schoolName = schoolData?.schoolName || 'ÉTABLISSEMENT SCOLAIRE';
-    doc.setFontSize(16);
+    doc.setFontSize(14); // Taille réduite pour mobile
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text(schoolName, 105, yPosition + 8, { align: 'center' });
+    doc.text(schoolName, pageWidth / 2, yPosition + 8, { align: 'center' });
     
-    // Informations de contact
-    yPosition += 18;
-    doc.setFontSize(9);
+    // Informations de contact (optimisé mobile)
+    yPosition += 16;
+    doc.setFontSize(8); // Plus petit pour mobile
     doc.setFont('helvetica', 'normal');
     
     const boitePostale = schoolData?.boitePostale || 'B.P. 8524 Yaoundé';
     const phone = schoolData?.phone || 'Tél: +237 222 345 678';
     const email = schoolData?.email || 'Email: info@ecole.cm';
     
-    doc.text(`${boitePostale} | ${phone}`, 105, yPosition, { align: 'center' });
+    // Séparer en deux lignes pour mobile
+    doc.text(boitePostale, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 4;
-    doc.text(email, 105, yPosition, { align: 'center' });
+    doc.text(phone, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 4;
+    doc.text(email, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
     // Ligne de séparation finale
@@ -182,10 +187,11 @@ export class PDFGenerator {
   }
 
   /**
-   * Add QR code to any PDF document
+   * Add QR code to any PDF document (mobile-optimized)
    */
   static async addQRCodeToDocument(doc: any, documentData: DocumentData, xPosition: number = 160, yPosition: number = 20): Promise<void> {
     try {
+      const pageWidth = doc.internal.pageSize.getWidth();
       const qrCodeUrl = await this.generateDocumentQRCode({
         documentId: documentData.id,
         documentType: documentData.type,
@@ -193,17 +199,21 @@ export class PDFGenerator {
         timestamp: new Date().toISOString()
       });
 
+      // Adjust QR position for mobile viewing
+      const mobileXPosition = Math.min(xPosition, pageWidth - 30);
+      const qrSize = 22; // Smaller for mobile
+      
       // Add QR code image
-      doc.addImage(qrCodeUrl, 'PNG', xPosition, yPosition, 25, 25);
+      doc.addImage(qrCodeUrl, 'PNG', mobileXPosition, yPosition, qrSize, qrSize);
       
-      // Add verification text
-      doc.setFontSize(8);
+      // Add verification text (smaller for mobile)
+      doc.setFontSize(7); // Smaller text for mobile
       doc.setTextColor(100, 100, 100);
-      doc.text('Vérifier:', xPosition, yPosition + 28);
-      doc.text('educafric.com/verify', xPosition, yPosition + 32);
-      doc.text(`Doc: ${documentData.id.substring(0, 8)}`, xPosition, yPosition + 36);
+      doc.text('Vérifier:', mobileXPosition, yPosition + qrSize + 3);
+      doc.text('educafric.com', mobileXPosition, yPosition + qrSize + 7);
+      doc.text(`${documentData.id.substring(0, 6)}`, mobileXPosition, yPosition + qrSize + 11);
       
-      console.log(`[PDF_QR] ✅ QR code added to document ${documentData.id}`);
+      console.log(`[PDF_QR] ✅ QR code mobile-optimized added to document ${documentData.id}`);
     } catch (error) {
       console.error('[PDF_QR] Error adding QR code to document:', error);
     }

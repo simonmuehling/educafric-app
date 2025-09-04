@@ -200,11 +200,11 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     });
   }
 
-  // === ENHANCED SCHOOL ADMINISTRATIVE HEADER ===
+  // === MOBILE-OPTIMIZED SCHOOL ADMINISTRATIVE HEADER ===
   addProfessionalHeader();
 
-  // === SCHOOL LOGO AND INFORMATION ===
-  // School logo on left with enhanced loading
+  // === MOBILE-OPTIMIZED SCHOOL LOGO AND INFORMATION ===
+  // School logo with mobile-friendly sizing
   if (data.schoolBranding?.logoUrl) {
     try {
       const logoImg = new Image();
@@ -215,12 +215,12 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       });
       
       if (logoImg.complete && logoImg.naturalWidth > 0) {
-        const logoSize = 30;
+        const logoSize = 25; // Réduit pour mobile
         pdf.addImage(logoImg, 'PNG', margin, yPosition, logoSize, logoSize);
-        console.log('[BULLETIN_LOGO] ✅ Logo école ajouté au bulletin');
+        console.log('[BULLETIN_LOGO] ✅ Logo école ajouté au bulletin (mobile-optimized)');
       } else {
-        // Logo placeholder amélioré
-        const logoSize = 30;
+        // Logo placeholder amélioré (mobile)
+        const logoSize = 25;
         pdf.setDrawColor(100, 100, 100);
         pdf.setLineWidth(1);
         pdf.rect(margin, yPosition, logoSize, logoSize);
@@ -231,8 +231,8 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       }
     } catch (error) {
       console.error('Error loading school logo:', error);
-      // Logo placeholder en cas d'erreur
-      const logoSize = 30;
+      // Logo placeholder en cas d'erreur (mobile)
+      const logoSize = 25;
       pdf.setDrawColor(100, 100, 100);
       pdf.setLineWidth(1);
       pdf.rect(margin, yPosition, logoSize, logoSize);
@@ -242,8 +242,8 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       pdf.text('ÉCOLE', margin + logoSize/2, yPosition + logoSize/2 + 4, { align: 'center' });
     }
   } else {
-    // Logo placeholder par défaut
-    const logoSize = 30;
+    // Logo placeholder par défaut (mobile)
+    const logoSize = 25;
     pdf.setDrawColor(100, 100, 100);
     pdf.setLineWidth(1);
     pdf.rect(margin, yPosition, logoSize, logoSize);
@@ -253,20 +253,20 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     pdf.text('ÉCOLE', margin + logoSize/2, yPosition + logoSize/2 + 4, { align: 'center' });
   }
 
-  // School name with enhanced styling
+  // School name with mobile-optimized styling
   pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(16);
+  pdf.setFontSize(14); // Réduit pour mobile
   pdf.setFont('helvetica', 'bold');
   pdf.text(data.schoolBranding?.schoolName || 'ÉTABLISSEMENT SCOLAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
   
-  // Contact information if available
-  pdf.setFontSize(9);
+  // Contact information (mobile-optimized)
+  pdf.setFontSize(8); // Plus petit pour mobile
   pdf.setFont('helvetica', 'normal');
   const schoolContact = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
   pdf.text(schoolContact, pageWidth / 2, yPosition + 18, { align: 'center' });
   
-  // National motto
-  pdf.setFontSize(10);
+  // National motto (mobile-optimized)
+  pdf.setFontSize(9); // Plus petit pour mobile
   pdf.setFont('helvetica', 'italic');
   pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition + 25, { align: 'center' });
   
@@ -544,7 +544,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     const qrData = data.qrCode || `EDUCAFRIC_BULLETIN_${data?.student?.id}_${verificationCode}`;
     
     const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
-      width: 100, 
+      width: 80, // Réduit pour mobile
       margin: 1,
       errorCorrectionLevel: 'M',
       color: {
@@ -553,20 +553,23 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       }
     });
     
-    pdf.addImage(qrCodeDataUrl, 'PNG', margin, yPosition, 25, 25);
+    // QR code mobile-optimized size
+    const qrSize = 22;
+    pdf.addImage(qrCodeDataUrl, 'PNG', margin, yPosition, qrSize, qrSize);
     
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text(`${t.verificationCode}: ${verificationCode}`, margin + 30, yPosition + 10);
+    pdf.setFontSize(8); // Plus petit pour mobile
+    pdf.text(`${t.verificationCode}:`, margin + qrSize + 3, yPosition + 5);
+    pdf.text(verificationCode, margin + qrSize + 3, yPosition + 10);
     
-    const hashDisplay = data.signatures?.[0]?.digitalSignatureHash?.substring(0, 16) || 
-                       'SHA256:' + verificationCode.substring(0, 10);
-    pdf.text(`Hash: ${hashDisplay}...`, margin + 30, yPosition + 15);
+    const hashDisplay = data.signatures?.[0]?.digitalSignatureHash?.substring(0, 12) || 
+                       'SHA256:' + verificationCode.substring(0, 8); // Plus court pour mobile
+    pdf.text(`Hash: ${hashDisplay}...`, margin + qrSize + 3, yPosition + 15);
     
-    // Add verification URL
-    pdf.setFontSize(8);
+    // Add verification URL (mobile-optimized)
+    pdf.setFontSize(7); // Encore plus petit pour mobile
     pdf.setTextColor(100, 100, 100);
-    pdf.text('Verify at: www.educafric.com/verify', margin + 30, yPosition + 20);
+    pdf.text('Vérifier: educafric.com', margin + qrSize + 3, yPosition + 20);
     
     console.log('[BULLETIN_QR] ✅ QR code added to bulletin');
   } catch (error) {
