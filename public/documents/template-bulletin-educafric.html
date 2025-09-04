@@ -27,52 +27,98 @@
         }
         
         .header {
-            background: black;
-            color: white;
+            background: white;
+            color: black;
             padding: 20px;
             text-align: center;
             position: relative;
+            border-bottom: 2px solid black;
         }
         
+        .official-header {
+            margin-bottom: 20px;
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .republique {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .paix-travail {
+            font-size: 12px;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        .ministere {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .delegations {
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        
+        .separation-line {
+            border-top: 1px solid black;
+            margin: 15px 0;
+        }
         
         .header-content {
             position: relative;
             z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
         }
         
         .school-logo {
-            width: 60px;
-            height: 60px;
-            background: #fff;
-            border-radius: 50%;
-            margin: 0 auto 10px;
+            width: 80px;
+            height: 80px;
+            background: #f0f0f0;
+            border: 2px solid black;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 14px;
             color: black;
             font-weight: bold;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        .school-info {
+            flex: 1;
+            margin-left: 20px;
+            text-align: left;
         }
         
         .school-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
         }
         
         .school-subtitle {
-            font-size: 14px;
-            opacity: 0.9;
+            font-size: 12px;
+            opacity: 0.8;
             margin-bottom: 5px;
         }
         
         .report-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin-top: 15px;
             padding: 8px 20px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
+            background: black;
+            color: white;
+            border-radius: 5px;
             display: inline-block;
         }
         
@@ -367,12 +413,28 @@
     <div class="bulletin-container">
         <!-- En-tête -->
         <div class="header">
+            <!-- En-tête officiel du Cameroun -->
+            <div class="official-header">
+                <div class="republique">RÉPUBLIQUE DU CAMEROUN</div>
+                <div class="paix-travail">Paix - Travail - Patrie</div>
+                <div class="ministere">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
+                <div class="delegations">DÉLÉGATION RÉGIONALE DE L'OUEST</div>
+                <div class="delegations">DÉLÉGATION DÉPARTEMENTALE DE MEZAM</div>
+                <div class="delegations">B.P. 8524 BAFOUSSAM</div>
+                <div class="separation-line"></div>
+            </div>
+            
+            <!-- Informations école avec logo -->
             <div class="header-content">
-                <div class="school-logo">ESJ</div>
-                <div class="school-name">ÉCOLE SAINT-JOSEPH YAOUNDÉ</div>
-                <div class="school-subtitle">Excellence • Innovation • Leadership</div>
-                <div class="school-subtitle">📍 BP 1234 Yaoundé - Cameroun | 📞 +237 222 123 456</div>
-                <div class="report-title">📋 BULLETIN SCOLAIRE - 1ER TRIMESTRE 2024-2025</div>
+                <div class="school-logo">
+                    <img src="/uploads/logos/school-logo-default.png" alt="Logo École" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='LOGO<br>ÉCOLE';">
+                </div>
+                <div class="school-info">
+                    <div class="school-name">ÉCOLE SAINT-JOSEPH YAOUNDÉ</div>
+                    <div class="school-subtitle">Excellence • Innovation • Leadership</div>
+                    <div class="school-subtitle">BP 1234 Yaoundé - Cameroun | Tél: +237 222 123 456</div>
+                </div>
+                <div class="report-title">BULLETIN SCOLAIRE - 1ER TRIMESTRE 2024-2025</div>
             </div>
         </div>
 
@@ -381,49 +443,49 @@
             <div class="student-info">
                 <div class="student-header">
                     <div class="student-details">
-                        <div class="student-name">👩‍🎓 KOUAME Marie Célestine</div>
+                        <div class="student-name">KOUAME Marie Célestine</div>
                         <div class="info-grid">
                             <div class="info-item">
-                                <span class="info-label">🎯 Classe:</span>
+                                <span class="info-label">Classe:</span>
                                 <span class="info-value">6ème A</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">📅 Né(e) le:</span>
+                                <span class="info-label">Né(e) le:</span>
                                 <span class="info-value">15 Mars 2012</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">📍 Lieu de naissance:</span>
+                                <span class="info-label">Lieu de naissance:</span>
                                 <span class="info-value">Yaoundé, Cameroun</span>
                             </div>
                             <div class="info-item">
-                                <span class="info-label">🏫 Matricule:</span>
+                                <span class="info-label">Matricule:</span>
                                 <span class="info-value">ESJ-2024-001</span>
                             </div>
                         </div>
                     </div>
-                    <div class="student-photo">👩‍🎓</div>
+                    <div class="student-photo">PHOTO</div>
                 </div>
             </div>
 
             <!-- Résumé des performances -->
             <div class="performance-summary">
                 <div class="summary-card">
-                    <div class="summary-icon">📊</div>
+                    <div class="summary-icon">MOY</div>
                     <div class="summary-value">14.5/20</div>
                     <div class="summary-label">Moyenne Générale</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-icon">🏆</div>
+                    <div class="summary-icon">RANG</div>
                     <div class="summary-value">8ème/32</div>
                     <div class="summary-label">Rang en Classe</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-icon">⚡</div>
+                    <div class="summary-icon">COND</div>
                     <div class="summary-value">16/20</div>
                     <div class="summary-label">Conduite</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-icon">📅</div>
+                    <div class="summary-icon">ABS</div>
                     <div class="summary-value">2 jours</div>
                     <div class="summary-label">Absences</div>
                 </div>
@@ -432,7 +494,7 @@
             <!-- Notes par matière -->
             <div class="grades-section">
                 <h3 class="section-title">
-                    <span class="section-icon">📚</span>
+                    <span class="section-icon">■</span>
                     NOTES PAR MATIÈRE
                 </h3>
                 <table class="grades-table">
@@ -566,13 +628,13 @@
         <!-- Pied de page -->
         <div class="footer-info">
             <div>
-                📱 <strong>EDUCAFRIC Platform</strong> - Technologie Éducative Africaine<br>
-                🌐 <a href="https://www.educafric.com">www.educafric.com</a> | 
-                📧 support@educafric.com | 
-                📞 +237 657 004 011
+                <strong>EDUCAFRIC Platform</strong> - Technologie Éducative Africaine<br>
+                Web: <a href="https://www.educafric.com">www.educafric.com</a> | 
+                Email: support@educafric.com | 
+                Tél: +237 657 004 011
             </div>
             <div style="margin-top: 8px; font-size: 10px; opacity: 0.8;">
-                ✅ Document authentifié électroniquement • 🔒 Sécurisé par QR Code • 📅 Généré le 15 Décembre 2024
+                Document authentifié électroniquement • Sécurisé par signature numérique • Généré le 15 Décembre 2024
             </div>
         </div>
     </div>

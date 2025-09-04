@@ -672,8 +672,8 @@ const BulletinApprovalNew: React.FC = () => {
                   <span className="font-medium text-green-600">✅ Appliquées</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">QR Code:</span>
-                  <span className="font-medium text-green-600">✅ Sécurisé</span>
+                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Signatures:' : 'Signatures:'}</span>
+                  <span className="font-medium text-green-600">✅ Numériques</span>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 mt-3">
@@ -698,7 +698,7 @@ const BulletinApprovalNew: React.FC = () => {
                   onClick={() => {
                     window.open('/documents/template-bulletin-educafric.html', '_blank');
                     toast({
-                      title: language === 'fr' ? '📋 Template Complet' : '📋 Full Template',
+                      title: language === 'fr' ? 'Template Complet' : 'Full Template',
                       description: language === 'fr' 
                         ? 'Ouverture du template complet dans un nouvel onglet'
                         : 'Opening complete template in new tab'

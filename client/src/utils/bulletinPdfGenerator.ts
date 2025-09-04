@@ -1,5 +1,4 @@
 import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
 
 interface Student {
   id: number;
@@ -56,7 +55,6 @@ interface BulletinData {
   totalStudents: number;
   teacherComments?: string;
   directorComments?: string;
-  qrCode?: string;
   verificationCode?: string;
   schoolBranding?: SchoolBranding;
   signatures?: DigitalSignature[];
@@ -152,8 +150,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       director: 'Directeur',
       principalTeacher: 'Professeur Principal',
       verificationCode: 'Code de Vérification',
-      qrCode: 'Code QR',
-      authenticityNote: 'Ce bulletin est authentifié par signature numérique et code QR',
+      authenticityNote: 'Ce bulletin est authentifié par signature numérique',
       digitalSignature: 'Signature Numérique'
     },
     en: {
@@ -182,8 +179,7 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       director: 'Director',
       principalTeacher: 'Principal Teacher',
       verificationCode: 'Verification Code',
-      qrCode: 'QR Code',
-      authenticityNote: 'This report card is authenticated by digital signature and QR code',
+      authenticityNote: 'This report card is authenticated by digital signature',
       digitalSignature: 'Digital Signature'
     }
   };
@@ -531,54 +527,33 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     yPosition += 50;
   }
 
-  // QR Code and verification - ALWAYS ADD QR CODE
+  // Document authenticity note - Professional without QR code
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
+  pdf.setFontSize(10);
   pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
   pdf.text(t.authenticityNote, margin, yPosition);
-  yPosition += 10;
+  yPosition += 8;
 
-  // Generate QR code - always create one even if verificationCode is missing
-  try {
-    const verificationCode = data.verificationCode || `EDU-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    const qrData = data.qrCode || `EDUCAFRIC_BULLETIN_${data?.student?.id}_${verificationCode}`;
-    
-    const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
-      width: 80, // Réduit pour mobile
-      margin: 1,
-      errorCorrectionLevel: 'M',
-      color: {
-        dark: '#000000',
-        light: '#FFFFFF'
-      }
-    });
-    
-    // QR code mobile-optimized size
-    const qrSize = 22;
-    pdf.addImage(qrCodeDataUrl, 'PNG', margin, yPosition, qrSize, qrSize);
-    
+  // Verification information - Professional format
+  if (data.verificationCode) {
     pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(8); // Plus petit pour mobile
-    pdf.text(`${t.verificationCode}:`, margin + qrSize + 3, yPosition + 5);
-    pdf.text(verificationCode, margin + qrSize + 3, yPosition + 10);
-    
-    const hashDisplay = data.signatures?.[0]?.digitalSignatureHash?.substring(0, 12) || 
-                       'SHA256:' + verificationCode.substring(0, 8); // Plus court pour mobile
-    pdf.text(`Hash: ${hashDisplay}...`, margin + qrSize + 3, yPosition + 15);
-    
-    // Add verification URL (mobile-optimized)
-    pdf.setFontSize(7); // Encore plus petit pour mobile
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('Vérifier: educafric.com', margin + qrSize + 3, yPosition + 20);
-    
-    console.log('[BULLETIN_QR] ✅ QR code added to bulletin');
-  } catch (error) {
-    console.error('[BULLETIN_QR] Error generating QR code:', error);
-    // Fallback: Add simple verification text if QR fails
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(10);
-    pdf.text('Document verification: www.educafric.com', margin, yPosition + 10);
+    pdf.setFontSize(9);
+    pdf.text(`${t.verificationCode}: ${data.verificationCode}`, margin, yPosition);
+    yPosition += 6;
   }
+
+  // Digital signature hash if available
+  if (data.signatures?.[0]?.digitalSignatureHash) {
+    const hashDisplay = data.signatures[0].digitalSignatureHash.substring(0, 16);
+    pdf.text(`Signature numérique: ${hashDisplay}...`, margin, yPosition);
+    yPosition += 6;
+  }
+
+  // Verification website
+  pdf.setFontSize(8);
+  pdf.setTextColor(100, 100, 100);
+  pdf.text('Authentification: www.educafric.com', margin, yPosition);
+  yPosition += 10;
 
   // Footer
   if (data.schoolBranding?.footerText) {
