@@ -98,16 +98,21 @@ export class PDFGenerator {
     doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
-    // PREMIÈRE LIGNE : École + Téléphone
+    // École (centrée)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     
     if (schoolData?.schoolName) {
-      doc.text(schoolData.schoolName, margin, yPosition);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Tél: +237 222 345 678', margin + 100, yPosition);
+      doc.text(schoolData.schoolName, pageWidth / 2, yPosition, { align: 'center' });
     }
+    yPosition += 5;
+    
+    // Téléphone centré sous l'école
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Tél: +237 222 345 678', pageWidth / 2, yPosition, { align: 'center' });
+    doc.setTextColor(0, 0, 0); // Remettre en noir
     yPosition += 6;
     
     // DEUXIÈME LIGNE : Nom de l'élève (aligné à droite pour éviter photo)
