@@ -5,11 +5,12 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ModernStatsCard } from '@/components/ui/ModernCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { 
   BarChart3, Download, Calendar, Users, BookOpen, 
   TrendingUp, FileText, PieChart, Activity, Award,
-  Target, Clock, CheckCircle
+  Target, Clock, CheckCircle, Filter, X
 } from 'lucide-react';
 import ClassReports from './ClassReports';
 
@@ -17,11 +18,23 @@ const ReportsAnalytics: React.FC = () => {
   const { language } = useLanguage();
   const { toast } = useToast();
   const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('all');
+  const [filtersActive, setFiltersActive] = useState(false);
 
   const text = {
     fr: {
       title: 'Rapports et Analyses',
       subtitle: 'Analyses détaillées et rapports de performance de votre établissement',
+      filters: {
+        title: 'Filtres de Rapport',
+        byClass: 'Filtrer par Classe',
+        byTeacher: 'Filtrer par Enseignant',
+        allClasses: 'Toutes les Classes',
+        allTeachers: 'Tous les Enseignants',
+        active: 'Filtres Actifs',
+        clear: 'Effacer'
+      },
       stats: {
         totalReports: 'Rapports Générés',
         studentsAnalyzed: 'Élèves Analysés',
@@ -51,6 +64,15 @@ const ReportsAnalytics: React.FC = () => {
     en: {
       title: 'Reports & Analytics',
       subtitle: 'Detailed analytics and performance reports for your institution',
+      filters: {
+        title: 'Report Filters',
+        byClass: 'Filter by Class',
+        byTeacher: 'Filter by Teacher',
+        allClasses: 'All Classes',
+        allTeachers: 'All Teachers',
+        active: 'Active Filters',
+        clear: 'Clear'
+      },
       stats: {
         totalReports: 'Reports Generated',
         studentsAnalyzed: 'Students Analyzed',
@@ -107,19 +129,28 @@ const ReportsAnalytics: React.FC = () => {
   });
 
   const { data: analytics } = useQuery({
-    queryKey: ['/api/director/analytics'],
+    queryKey: ['/api/director/analytics', selectedClass, selectedTeacher],
     queryFn: async () => {
-      const response = await fetch('/api/director/analytics', { credentials: 'include' });
+      const params = new URLSearchParams();
+      if (selectedClass !== 'all') params.append('classId', selectedClass);
+      if (selectedTeacher !== 'all') params.append('teacherId', selectedTeacher);
+      
+      const response = await fetch(`/api/director/analytics?${params.toString()}`, { credentials: 'include' });
       return response.ok ? response.json() : {};
     }
   });
 
-  // Calculate real stats from data
-  const studentCount = students.students?.length || 0;
-  const teacherCount = teachers.teachers?.length || 0;
-  const classCount = classes.classes?.length || 0;
-  const totalCapacity = classes.classes?.reduce((sum: number, cls: any) => sum + (cls.capacity || 0), 0) || 0;
+  // Calculate real stats from filtered data
+  const studentCount = filteredStudents?.length || 0;
+  const teacherCount = filteredTeachers?.length || 0;
+  const classCount = filteredClasses?.length || 0;
+  const totalCapacity = filteredClasses?.reduce((sum: number, cls: any) => sum + (cls.capacity || 0), 0) || 0;
   const occupancyRate = totalCapacity > 0 ? Math.round((studentCount / totalCapacity) * 100) : 0;
+
+  // Update totals for context
+  const totalStudents = students.students?.length || 0;
+  const totalTeachers = teachers.teachers?.length || 0;
+  const totalClasses = classes.classes?.length || 0;
 
   const analyticsStats = [
     {
@@ -198,6 +229,49 @@ const ReportsAnalytics: React.FC = () => {
 
   const [showClassReports, setShowClassReports] = useState(false);
 
+  // Filter logic
+  const getFilteredData = () => {
+    let filteredStudents = students.students || [];
+    let filteredTeachers = teachers.teachers || [];
+    let filteredClasses = classes.classes || [];
+
+    // Apply class filter
+    if (selectedClass !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => student.classId?.toString() === selectedClass);
+      filteredClasses = filteredClasses.filter((cls: any) => cls.id?.toString() === selectedClass);
+      // Filter teachers who teach the selected class
+      filteredTeachers = filteredTeachers.filter((teacher: any) => 
+        teacher.classIds && teacher.classIds.includes(parseInt(selectedClass))
+      );
+    }
+
+    // Apply teacher filter
+    if (selectedTeacher !== 'all') {
+      // Find students taught by the selected teacher
+      const teacherClasses = classes.classes?.filter((cls: any) => 
+        cls.teacherId?.toString() === selectedTeacher
+      ).map((cls: any) => cls.id) || [];
+      filteredStudents = filteredStudents.filter((student: any) => 
+        teacherClasses.includes(student.classId)
+      );
+      filteredTeachers = filteredTeachers.filter((teacher: any) => teacher.id?.toString() === selectedTeacher);
+    }
+
+    return { filteredStudents, filteredTeachers, filteredClasses };
+  };
+
+  const { filteredStudents, filteredTeachers, filteredClasses } = getFilteredData();
+
+  // Update filters active state
+  useEffect(() => {
+    setFiltersActive(selectedClass !== 'all' || selectedTeacher !== 'all');
+  }, [selectedClass, selectedTeacher]);
+
+  const clearFilters = () => {
+    setSelectedClass('all');
+    setSelectedTeacher('all');
+  };
+
   const handleGenerateReport = async (reportType: string) => {
     // Handle special case for class reports
     if (reportType === 'classReports') {
@@ -209,10 +283,13 @@ const ReportsAnalytics: React.FC = () => {
     
     // Generation de rapport basé sur vraies données
     setTimeout(() => {
+      const filterInfo = filtersActive ? 
+        `\nFILTRES APPLIQUÉS:\n${selectedClass !== 'all' ? `- Classe: ${classes.classes?.find((c: any) => c.id.toString() === selectedClass)?.name}\n` : ''}${selectedTeacher !== 'all' ? `- Enseignant: ${teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName} ${teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.lastName}\n` : ''}` : '';
+      
       const reportData = `${t.reports[reportType as keyof typeof t.reports]} - ${new Date().toLocaleDateString()}
 
 RAPPORT GÉNÉRÉ AUTOMATIQUEMENT PAR EDUCAFRIC
-==========================================
+==========================================${filterInfo}
 
 DONNÉES ANALYSÉES:
 - ${studentCount} élèves répartis dans ${classCount} classes
@@ -221,12 +298,14 @@ DONNÉES ANALYSÉES:
 - Période: ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
 
 STATISTIQUES CLÉS:
-- Classes avec le plus d'élèves: ${classes.classes?.sort((a: any, b: any) => (b.studentCount || 0) - (a.studentCount || 0)).slice(0, 2).map((c: any) => `${c.name} (${c.studentCount || 0})`).join(', ')}
+- Classes avec le plus d'élèves: ${filteredClasses?.sort((a: any, b: any) => (b.studentCount || 0) - (a.studentCount || 0)).slice(0, 2).map((c: any) => `${c.name} (${c.studentCount || 0})`).join(', ') || 'N/A'}
 - Moyenne élèves/classe: ${classCount > 0 ? Math.round(studentCount / classCount) : 0}
 - Rapport enseignant/élèves: 1:${teacherCount > 0 ? Math.round(studentCount / teacherCount) : 0}
 
+${filtersActive ? `DONNÉES FILTRÉES: ${studentCount}/${totalStudents} élèves, ${teacherCount}/${totalTeachers} enseignants, ${classCount}/${totalClasses} classes` : 'DONNÉES COMPLÈTES DE L\'ÉTABLISSEMENT'}
+
 Généré le: ${new Date().toLocaleString('fr-FR')}
-Source: Système Educafric - Collège Saint-Joseph`;
+Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue Complète)'}`;
       
       const blob = new Blob([reportData], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
@@ -292,6 +371,107 @@ Source: Système Educafric - Collège Saint-Joseph`;
             <p className="text-gray-600 mt-2">{t.subtitle}</p>
           </div>
         </div>
+
+        {/* Advanced Filters */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <CardHeader>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Filter className="w-5 h-5 text-blue-600" />
+              {t.filters?.title}
+            </h2>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Class Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {t.filters?.byClass}
+                </label>
+                <Select value={selectedClass} onValueChange={setSelectedClass}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t.filters?.allClasses} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.filters?.allClasses}</SelectItem>
+                    {(classes.classes || []).map((cls: any) => (
+                      <SelectItem key={cls.id} value={cls.id.toString()}>
+                        {cls.name} ({cls.studentCount || 0} élèves)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Teacher Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {t.filters?.byTeacher}
+                </label>
+                <Select value={selectedTeacher} onValueChange={setSelectedTeacher}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t.filters?.allTeachers} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.filters?.allTeachers}</SelectItem>
+                    {(teachers.teachers || []).map((teacher: any) => (
+                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                        {teacher.firstName} {teacher.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clear Filters */}
+              <div className="space-y-2 flex items-end">
+                <div className="w-full">
+                  {filtersActive && (
+                    <div className="mb-2">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        <Filter className="w-3 h-3 mr-1" />
+                        {t.filters?.active}
+                      </Badge>
+                    </div>
+                  )}
+                  <Button 
+                    onClick={clearFilters}
+                    variant="outline"
+                    className="w-full"
+                    disabled={!filtersActive}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    {t.filters?.clear}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Summary */}
+            {filtersActive && (
+              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>{language === 'fr' ? 'Filtres appliqués:' : 'Applied filters:'}</strong>
+                  {selectedClass !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Classe:' : 'Class:'} {classes.classes?.find((c: any) => c.id.toString() === selectedClass)?.name}
+                    </span>
+                  )}
+                  {selectedTeacher !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Enseignant:' : 'Teacher:'} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.lastName}
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {language === 'fr' ? 
+                    `Affichage: ${studentCount}/${totalStudents} élèves, ${teacherCount}/${totalTeachers} enseignants, ${classCount}/${totalClasses} classes` :
+                    `Showing: ${studentCount}/${totalStudents} students, ${teacherCount}/${totalTeachers} teachers, ${classCount}/${totalClasses} classes`
+                  }
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
