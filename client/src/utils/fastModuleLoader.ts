@@ -184,8 +184,7 @@ class FastModuleLoader {
       'teacher-settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
       'parent-settings': () => import('@/components/parent/modules/ParentSettings'),
       'freelancer-settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
-      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'), // For school/admin settings - FIXED DUPLICATION
-      'official-settings': () => import('@/components/director/modules/SchoolOfficialSettings'), // Paramètres officiels Cameroun
+      'school-settings': () => import('@/components/director/modules/UnifiedSchoolSettings'), // For school/admin settings with official Cameroon info
       
       // Settings module aliases for different naming conventions
       'StudentSettings': () => import('@/components/student/modules/StudentSettings'),

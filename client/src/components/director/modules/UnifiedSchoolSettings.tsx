@@ -22,7 +22,7 @@ import {
 import { 
   Settings, School, Shield, Bell, MapPin, Clock, Users, 
   BookOpen, GraduationCap, Palette, Globe, Database,
-  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image
+  Eye, EyeOff, Save, Smartphone, Mail, Phone, Upload, Image, Flag
 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import MobileIconTabNavigation from '@/components/shared/MobileIconTabNavigation';
@@ -32,6 +32,7 @@ import type { UploadResult } from '@uppy/core';
 interface SchoolProfile {
   id: number;
   name: string;
+  type: string; // public, private, enterprise
   address: string;
   phone: string;
   email: string;
@@ -42,6 +43,11 @@ interface SchoolProfile {
   establishedYear: number;
   principalName: string;
   studentCapacity: number;
+  // Champs officiels camerounais
+  regionaleMinisterielle?: string;
+  delegationDepartementale?: string;
+  boitePostale?: string;
+  arrondissement?: string;
 }
 
 interface SchoolConfiguration {
@@ -88,6 +94,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       title: 'Paramètres École',
       subtitle: 'Configuration complète de votre établissement scolaire',
       profileTab: 'Profil École',
+      officialTab: 'Informations Officielles',
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
       securityTab: 'Sécurité',
@@ -96,6 +103,10 @@ const UnifiedSchoolSettings: React.FC = () => {
       edit: 'Modifier',
       loading: 'Chargement...',
       schoolName: 'Nom de l\'École',
+      schoolType: 'Type d\'Établissement',
+      typePublic: 'Public',
+      typePrivate: 'Privé', 
+      typeEnterprise: 'Entreprise',
       address: 'Adresse',
       phone: 'Téléphone',
       email: 'Email',
@@ -104,6 +115,16 @@ const UnifiedSchoolSettings: React.FC = () => {
       establishedYear: 'Année de Création',
       principalName: 'Nom du Directeur',
       studentCapacity: 'Capacité d\'Élèves',
+      // Champs officiels camerounais
+      regionaleMinisterielle: 'Délégation Régionale',
+      regionaleExample: 'Ex: Délégation Régionale du Centre',
+      delegationDepartementale: 'Délégation Départementale',
+      delegationExample: 'Ex: Délégation Départementale du Mfoundi',
+      boitePostale: 'Boîte Postale',
+      boiteExample: 'Ex: B.P. 8524 Yaoundé',
+      arrondissement: 'Arrondissement',
+      arrondissementExample: 'Ex: Yaoundé 1er',
+      officialInfo: 'Ces informations apparaîtront sur tous les bulletins et documents officiels',
       academicYear: 'Année Académique',
       gradeSystem: 'Système de Notes',
       schoolLanguage: 'Langue de l\'École',
@@ -147,6 +168,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       title: 'School Settings',
       subtitle: 'Complete configuration of your educational institution',
       profileTab: 'School Profile',
+      officialTab: 'Official Information',
       configTab: 'Configuration',
       notificationsTab: 'Notifications',
       securityTab: 'Security',
@@ -155,6 +177,10 @@ const UnifiedSchoolSettings: React.FC = () => {
       edit: 'Edit',
       loading: 'Loading...',
       schoolName: 'School Name',
+      schoolType: 'Institution Type',
+      typePublic: 'Public',
+      typePrivate: 'Private',
+      typeEnterprise: 'Enterprise', 
       address: 'Address',
       phone: 'Phone',
       email: 'Email',
@@ -163,6 +189,16 @@ const UnifiedSchoolSettings: React.FC = () => {
       establishedYear: 'Established Year',
       principalName: 'Principal Name',
       studentCapacity: 'Student Capacity',
+      // Champs officiels camerounais
+      regionaleMinisterielle: 'Regional Delegation',
+      regionaleExample: 'Ex: Centre Regional Delegation',
+      delegationDepartementale: 'Departmental Delegation',
+      delegationExample: 'Ex: Mfoundi Departmental Delegation',
+      boitePostale: 'P.O. Box',
+      boiteExample: 'Ex: P.O. Box 8524 Yaoundé',
+      arrondissement: 'District',
+      arrondissementExample: 'Ex: Yaoundé 1st',
+      officialInfo: 'This information will appear on all bulletins and official documents',
       academicYear: 'Academic Year',
       gradeSystem: 'Grade System',
       schoolLanguage: 'School Language',
@@ -410,6 +446,7 @@ const UnifiedSchoolSettings: React.FC = () => {
 
   const tabs = [
     { id: 'profile', label: t.profileTab, icon: School },
+    { id: 'official', label: t.officialTab, icon: Flag },
     { id: 'configuration', label: t.configTab, icon: Settings },
     { id: 'notifications', label: t.notificationsTab, icon: Bell },
     { id: 'security', label: t.securityTab, icon: Shield }
@@ -437,7 +474,7 @@ const UnifiedSchoolSettings: React.FC = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Desktop Navigation */}
         <div className="hidden md:block">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             {tabs.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
@@ -614,6 +651,100 @@ const UnifiedSchoolSettings: React.FC = () => {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Official Information Tab */}
+        <TabsContent value="official" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Flag className="w-5 h-5" />
+                {t.officialTab}
+              </CardTitle>
+              <CardDescription>
+                {t.officialInfo}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="schoolType">{t.schoolType}</Label>
+                  <Select defaultValue={schoolProfile?.type || 'private'}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t.schoolType} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="public">{t.typePublic}</SelectItem>
+                      <SelectItem value="private">{t.typePrivate}</SelectItem>
+                      <SelectItem value="enterprise">{t.typeEnterprise}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="arrondissement">{t.arrondissement}</Label>
+                  <Input
+                    id="arrondissement"
+                    defaultValue={schoolProfile?.arrondissement || ''}
+                    placeholder={t.arrondissementExample}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="regionaleMinisterielle">{t.regionaleMinisterielle}</Label>
+                  <Input
+                    id="regionaleMinisterielle"
+                    defaultValue={schoolProfile?.regionaleMinisterielle || ''}
+                    placeholder={t.regionaleExample}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="delegationDepartementale">{t.delegationDepartementale}</Label>
+                  <Input
+                    id="delegationDepartementale"
+                    defaultValue={schoolProfile?.delegationDepartementale || ''}
+                    placeholder={t.delegationExample}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="boitePostale">{t.boitePostale}</Label>
+                  <Input
+                    id="boitePostale"
+                    defaultValue={schoolProfile?.boitePostale || ''}
+                    placeholder={t.boiteExample}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Flag className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-blue-900 dark:text-blue-100">
+                      {language === 'fr' ? 'En-têtes automatiques' : 'Automatic Headers'}
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-300">
+                      {language === 'fr' 
+                        ? 'République du Cameroun, Ministère des Enseignements Secondaires' 
+                        : 'Republic of Cameroon, Ministry of Secondary Education'
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary">
+                  {language === 'fr' ? 'Automatique' : 'Automatic'}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    // Implement save logic for official settings
+                    updateProfileMutation.mutate({});
+                  }}
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? t.loading : t.save}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
