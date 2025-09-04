@@ -63,6 +63,7 @@ const ReportCardManagement: React.FC = () => {
   const [academicYear] = useState<string>('2024-2025');
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [editingCard, setEditingCard] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
 
   // Form data for new bulletin
   const [bulletinData, setBulletinData] = useState<BulletinData>({
@@ -89,11 +90,30 @@ const ReportCardManagement: React.FC = () => {
     'Musique'
   ];
 
+  // Fetch teacher classes and students
+  const { data: teacherClasses } = useQuery({
+    queryKey: ['/api/teacher/classes'],
+    queryFn: () => apiRequest('GET', '/api/teacher/classes')
+  });
+
+  const { data: classStudents } = useQuery({
+    queryKey: ['/api/teacher/students', selectedClass],
+    queryFn: () => apiRequest('GET', `/api/teacher/students?classId=${selectedClass}`),
+    enabled: !!selectedClass
+  });
+
+  const { data: studentAttendance } = useQuery({
+    queryKey: ['/api/teacher/student-attendance', selectedStudent, selectedPeriod],
+    queryFn: () => apiRequest('GET', `/api/teacher/student-attendance?studentId=${selectedStudent}&period=${selectedPeriod}`),
+    enabled: !!selectedStudent && !!selectedPeriod
+  });
+
   // Translations
   const t = {
     reportCardManagement: language === 'fr' ? 'Gestion des Bulletins' : 'Report Card Management',
     createBulletin: language === 'fr' ? 'Créer un Bulletin' : 'Create Report Card',
     selectClass: language === 'fr' ? 'Sélectionner la classe' : 'Select Class',
+    selectStudent: language === 'fr' ? 'Sélectionner l\'élève' : 'Select Student',
     selectPeriod: language === 'fr' ? 'Sélectionner la période' : 'Select Period',
     studentName: language === 'fr' ? 'Nom de l\'élève' : 'Student Name',
     subjects: language === 'fr' ? 'Matières' : 'Subjects',
@@ -118,7 +138,9 @@ const ReportCardManagement: React.FC = () => {
     needsImprovement: language === 'fr' ? 'À améliorer' : 'Needs Improvement',
     addGrade: language === 'fr' ? 'Ajouter une note' : 'Add Grade',
     coefficient: language === 'fr' ? 'Coefficient' : 'Coefficient',
-    editBulletin: language === 'fr' ? 'Modifier le bulletin' : 'Edit Report Card'
+    editBulletin: language === 'fr' ? 'Modifier le bulletin' : 'Edit Report Card',
+    autoCalculate: language === 'fr' ? 'Calculé automatiquement' : 'Automatically calculated',
+    charLimit: language === 'fr' ? 'caractères max' : 'characters max'
   };
 
   // Fetch existing bulletins
@@ -274,18 +296,49 @@ const ReportCardManagement: React.FC = () => {
       {/* Class and Period Selection */}
       <ModernCard>
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div>
               <Label>{t.selectClass}</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <Select value={selectedClass} onValueChange={(value) => {
+                setSelectedClass(value);
+                setSelectedStudent(''); // Reset student when class changes
+              }}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Choisir une classe..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">6ème A</SelectItem>
-                  <SelectItem value="2">6ème B</SelectItem>
-                  <SelectItem value="3">5ème A</SelectItem>
-                  <SelectItem value="4">5ème B</SelectItem>
+                  {(teacherClasses?.classes || []).map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{t.selectStudent}</Label>
+              <Select value={selectedStudent} onValueChange={(value) => {
+                setSelectedStudent(value);
+                // Auto-calculate attendance when student is selected
+                const student = (classStudents?.students || []).find((s: any) => s.id.toString() === value);
+                if (student && studentAttendance?.data) {
+                  const calculatedRate = Math.round((studentAttendance.data.presentDays / studentAttendance.data.totalDays) * 100);
+                  setBulletinData(prev => ({
+                    ...prev,
+                    studentId: parseInt(value),
+                    studentName: student.fullName,
+                    className: student.className,
+                    attendanceRate: calculatedRate,
+                    absences: studentAttendance.data.absentDays || 0,
+                    lateArrivals: studentAttendance.data.lateDays || 0
+                  }));
+                }
+              }} disabled={!selectedClass}>
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedClass ? "Choisir un élève..." : "Sélectionner d'abord une classe"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(classStudents?.students || []).map((student: any) => (
+                    <SelectItem key={student.id} value={student.id.toString()}>{student.fullName}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -315,25 +368,21 @@ const ReportCardManagement: React.FC = () => {
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.createBulletin}</h3>
           
-          {/* Student Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <Label>{t.studentName} *</Label>
-              <Input
-                value={bulletinData.studentName || ''}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, studentName: e?.target?.value }))}
-                placeholder="Nom complet de l'élève"
-              />
+          {/* Student Info - Auto-filled from selection */}
+          {selectedStudent && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50 rounded-lg">
+              <div>
+                <Label>Élève sélectionné</Label>
+                <p className="font-semibold text-blue-800">{bulletinData.studentName}</p>
+                <p className="text-sm text-blue-600">Classe: {bulletinData.className}</p>
+              </div>
+              <div>
+                <Label>Présence automatique</Label>
+                <p className="font-semibold text-green-600">{bulletinData.attendanceRate}% - {t.autoCalculate}</p>
+                <p className="text-sm text-gray-600">Absences: {bulletinData.absences} | Retards: {bulletinData.lateArrivals}</p>
+              </div>
             </div>
-            <div>
-              <Label>Classe</Label>
-              <Input
-                value={bulletinData.className || '6ème A'}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, className: e?.target?.value }))}
-                placeholder="Classe de l'élève"
-              />
-            </div>
-          </div>
+          )}
 
           {/* Grades Section */}
           <div className="mb-6">
@@ -421,19 +470,37 @@ const ReportCardManagement: React.FC = () => {
               <Label>{t.generalComment}</Label>
               <Textarea
                 value={bulletinData.generalComment}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, generalComment: e?.target?.value }))}
+                onChange={(e) => {
+                  const text = e?.target?.value || '';
+                  if (text.length <= 250) {
+                    setBulletinData(prev => ({ ...prev, generalComment: text }));
+                  }
+                }}
                 rows={4}
                 placeholder="Appréciation générale sur l'élève..."
+                className={bulletinData.generalComment.length > 200 ? 'border-orange-300 focus:border-orange-500' : ''}
               />
+              <p className={`text-xs mt-1 ${bulletinData.generalComment.length > 200 ? 'text-orange-600' : 'text-gray-500'}`}>
+                {bulletinData.generalComment.length}/250 {t.charLimit}
+              </p>
             </div>
             <div>
               <Label>{t.recommendations}</Label>
               <Textarea
                 value={bulletinData.recommendations}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, recommendations: e?.target?.value }))}
+                onChange={(e) => {
+                  const text = e?.target?.value || '';
+                  if (text.length <= 200) {
+                    setBulletinData(prev => ({ ...prev, recommendations: text }));
+                  }
+                }}
                 rows={4}
                 placeholder="Conseils et recommandations..."
+                className={bulletinData.recommendations.length > 150 ? 'border-orange-300 focus:border-orange-500' : ''}
               />
+              <p className={`text-xs mt-1 ${bulletinData.recommendations.length > 150 ? 'text-orange-600' : 'text-gray-500'}`}>
+                {bulletinData.recommendations.length}/200 {t.charLimit}
+              </p>
             </div>
           </div>
 
@@ -457,14 +524,23 @@ const ReportCardManagement: React.FC = () => {
               </Select>
             </div>
             <div>
-              <Label>Taux de présence (%)</Label>
+              <Label>Taux de présence (%) - {t.autoCalculate}</Label>
               <Input
                 type="number"
                 min="0"
                 max="100"
                 value={bulletinData.attendanceRate}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, attendanceRate: parseFloat(e?.target?.value) }))}
+                disabled={!!selectedStudent}
+                className={!!selectedStudent ? 'bg-green-50 border-green-200' : ''}
+                onChange={(e) => {
+                  if (!selectedStudent) {
+                    setBulletinData(prev => ({ ...prev, attendanceRate: parseFloat(e?.target?.value) }));
+                  }
+                }}
               />
+              {selectedStudent && (
+                <p className="text-xs text-green-600 mt-1">Calculé automatiquement depuis les données de présence</p>
+              )}
             </div>
             <div>
               <Label>Nombre d'absences</Label>
