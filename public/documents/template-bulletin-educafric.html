@@ -418,9 +418,9 @@
                 <div class="republique">RÉPUBLIQUE DU CAMEROUN</div>
                 <div class="paix-travail">Paix - Travail - Patrie</div>
                 <div class="ministere">MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</div>
-                <div class="delegations">DÉLÉGATION RÉGIONALE DE L'OUEST</div>
-                <div class="delegations">DÉLÉGATION DÉPARTEMENTALE DE MEZAM</div>
-                <div class="delegations">B.P. 8524 BAFOUSSAM</div>
+                <div class="delegations" id="delegation-regionale">DÉLÉGATION RÉGIONALE DE L'OUEST</div>
+                <div class="delegations" id="delegation-departementale">DÉLÉGATION DÉPARTEMENTALE DE MEZAM</div>
+                <div class="delegations" id="boite-postale">B.P. 8524 BAFOUSSAM</div>
                 <div class="separation-line"></div>
             </div>
             
@@ -599,27 +599,21 @@
             <!-- Signatures et QR Code -->
             <div class="footer-section">
                 <div class="signature-box">
-                    <div class="signature-title">👨‍🏫 Professeur Principal</div>
+                    <div class="signature-title">Professeur Principal</div>
                     <div class="signature-line">M. KOUAME Paul</div>
                 </div>
                 
                 <div class="signature-box">
-                    <div class="signature-title">🎓 Directeur de l'École</div>
+                    <div class="signature-title">Directeur de l'École</div>
                     <div class="signature-line">Dr. MENDOMO Gabriel</div>
                 </div>
                 
-                <div class="qr-section">
-                    <div class="qr-title">🔍 AUTHENTIFICATION QR</div>
-                    <div class="qr-code">
-                        QR CODE<br>
-                        🔐<br>
-                        SÉCURISÉ
-                    </div>
-                    <div class="qr-code-text">EDU-2024-MAR-001</div>
-                    <div class="qr-instructions">
-                        Scannez ce code avec<br>
-                        l'app EDUCAFRIC pour<br>
-                        vérifier l'authenticité
+                <div class="verification-section">
+                    <div style="font-size: 11px; color: #666; text-align: center;">
+                        <strong>Authentification numérique</strong><br>
+                        Code de vérification: EDU-2024-MAR-001<br>
+                        Signature: SHA256:A3F7E8...<br>
+                        Vérifiez sur: www.educafric.com
                     </div>
                 </div>
             </div>
@@ -638,5 +632,58 @@
             </div>
         </div>
     </div>
+    <script>
+        // Chargement dynamique des paramètres école depuis l'API
+        async function loadSchoolParameters() {
+            try {
+                const response = await fetch('/api/director/settings');
+                if (!response.ok) throw new Error('Paramètres école non disponibles');
+                
+                const data = await response.json();
+                const school = data?.settings?.school;
+                
+                if (school) {
+                    // Mise à jour des délégations officielles
+                    if (school.regionaleMinisterielle) {
+                        document.getElementById('delegation-regionale').textContent = school.regionaleMinisterielle;
+                    }
+                    if (school.delegationDepartementale) {
+                        document.getElementById('delegation-departementale').textContent = school.delegationDepartementale;
+                    }
+                    if (school.boitePostale) {
+                        document.getElementById('boite-postale').textContent = school.boitePostale;
+                    }
+                    
+                    // Mise à jour des informations école
+                    if (school.name) {
+                        document.querySelector('.school-name').textContent = school.name;
+                    }
+                    if (school.address) {
+                        document.querySelector('.school-address').textContent = school.address;
+                    }
+                    if (school.phone) {
+                        document.querySelector('.school-phone').textContent = 'Tél: ' + school.phone;
+                    }
+                    if (school.email) {
+                        document.querySelector('.school-email').textContent = 'Email: ' + school.email;
+                    }
+                    
+                    // Mise à jour du logo
+                    if (school.logoUrl) {
+                        const logoImg = document.querySelector('.school-logo img');
+                        if (logoImg) {
+                            logoImg.src = school.logoUrl;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('[BULLETIN_TEMPLATE] Utilisation des paramètres par défaut');
+                // Les valeurs par défaut restent affichées
+            }
+        }
+        
+        // Chargement au démarrage
+        document.addEventListener('DOMContentLoaded', loadSchoolParameters);
+    </script>
 </body>
 </html>
