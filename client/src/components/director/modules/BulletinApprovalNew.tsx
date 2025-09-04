@@ -1340,36 +1340,77 @@ const BulletinApprovalNew: React.FC = () => {
               </div>
             </div>
 
-            {/* Preview Sample */}
-            <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <div className="text-center space-y-4">
-                <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg inline-block">
-                  {previewType === 'bulletin' ? (
-                    <FileText className="w-8 h-8 text-blue-600" />
-                  ) : (
-                    <GraduationCap className="w-8 h-8 text-purple-600" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    {previewType === 'bulletin' ? 
-                      (language === 'fr' ? 'Aperçu Bulletin' : 'Bulletin Preview') :
-                      (language === 'fr' ? 'Aperçu Relevé de Notes' : 'Transcript Preview')
-                    }
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    {language === 'fr' 
-                      ? 'Document généré avec le branding et les couleurs de votre école'
-                      : 'Document generated with your school branding and colors'
-                    }
-                  </p>
-                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                    <span>🎨 Logo école</span>
-                    <span>🔒 QR sécurisé</span>
-                    <span>✍️ Signature</span>
-                    <span>🌐 Bilingue</span>
+            {/* Preview Sample - BULLETIN TEMPLATE VISUAL */}
+            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg p-8">
+              <div className="text-center space-y-6">
+                {/* School Header Mockup */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <GraduationCap className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-center flex-1 mx-4">
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                        {schoolTemplateData?.data?.schoolName || 'École Primaire Educafric'}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">République du Cameroun</p>
+                    </div>
+                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                      <span className="text-xs text-gray-500">QR</span>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center border-t border-gray-200 dark:border-gray-600 pt-4">
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                      {previewType === 'bulletin' ? 
+                        (language === 'fr' ? 'BULLETIN SCOLAIRE' : 'SCHOOL BULLETIN') :
+                        (language === 'fr' ? 'RELEVÉ DE NOTES OFFICIEL' : 'OFFICIAL TRANSCRIPT')
+                      }
+                    </h2>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>{language === 'fr' ? 'Élève:' : 'Student:'}</span>
+                        <span className="font-semibold">Marie Kouame</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>{language === 'fr' ? 'Classe:' : 'Class:'}</span>
+                        <span className="font-semibold">6ème A</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>{language === 'fr' ? 'Période:' : 'Period:'}</span>
+                        <span className="font-semibold">1er Trimestre 2024-2025</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>{language === 'fr' ? 'Moyenne:' : 'Average:'}</span>
+                        <span className="font-bold text-blue-600">14.5/20</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 text-center">
+                    <div className="flex items-center justify-center gap-6 text-xs">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-green-500" />
+                        <span className="text-gray-600 dark:text-gray-400">Signature digitale</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Stamp className="w-3 h-3 text-blue-500" />
+                        <span className="text-gray-600 dark:text-gray-400">Cachet école</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Languages className="w-3 h-3 text-purple-500" />
+                        <span className="text-gray-600 dark:text-gray-400">FR/EN</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                
+                <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                  {language === 'fr' 
+                    ? '👆 Aperçu du template personnalisé avec les couleurs et le logo de votre école'
+                    : '👆 Preview of customized template with your school colors and logo'
+                  }
+                </p>
               </div>
             </div>
 
