@@ -676,20 +676,39 @@ const BulletinApprovalNew: React.FC = () => {
                   <span className="font-medium text-green-600">✅ Sécurisé</span>
                 </div>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full mt-3" 
-                data-testid="button-preview-bulletin"
-                onClick={handlePreviewBulletin}
-                disabled={isLoadingTemplate}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                {isLoadingTemplate ? 
-                  (language === 'fr' ? 'Chargement...' : 'Loading...') :
-                  (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
-                }
-              </Button>
+              <div className="flex gap-2 mt-3">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1" 
+                  data-testid="button-preview-bulletin"
+                  onClick={handlePreviewBulletin}
+                  disabled={isLoadingTemplate}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  {isLoadingTemplate ? 
+                    (language === 'fr' ? 'Chargement...' : 'Loading...') :
+                    (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
+                  }
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                  data-testid="button-view-full-template"
+                  onClick={() => {
+                    window.open('/documents/template-bulletin-educafric.html', '_blank');
+                    toast({
+                      title: language === 'fr' ? '📋 Template Complet' : '📋 Full Template',
+                      description: language === 'fr' 
+                        ? 'Ouverture du template complet dans un nouvel onglet'
+                        : 'Opening complete template in new tab'
+                    });
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Template Complet' : 'Full Template'}
+                </Button>
+              </div>
             </div>
 
             {/* Transcript Preview */}
@@ -1340,85 +1359,253 @@ const BulletinApprovalNew: React.FC = () => {
               </div>
             </div>
 
-            {/* Preview Sample - BULLETIN TEMPLATE VISUAL */}
+            {/* COMPLETE BULLETIN TEMPLATE PREVIEW */}
             <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg p-8">
-              <div className="text-center space-y-6">
-                {/* School Header Mockup */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <GraduationCap className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="text-center flex-1 mx-4">
-                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                        {schoolTemplateData?.data?.schoolName || 'École Primaire Educafric'}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">République du Cameroun</p>
-                    </div>
-                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
-                      <span className="text-xs text-gray-500">QR</span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-center border-t border-gray-200 dark:border-gray-600 pt-4">
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                      {previewType === 'bulletin' ? 
-                        (language === 'fr' ? 'BULLETIN SCOLAIRE' : 'SCHOOL BULLETIN') :
-                        (language === 'fr' ? 'RELEVÉ DE NOTES OFFICIEL' : 'OFFICIAL TRANSCRIPT')
-                      }
-                    </h2>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{language === 'fr' ? 'Élève:' : 'Student:'}</span>
-                        <span className="font-semibold">Marie Kouame</span>
+              <div className="space-y-6">
+                {/* Complete Bulletin Template */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl mx-auto">
+                  {/* Header with School Branding */}
+                  <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
+                          <GraduationCap className="w-8 h-8 text-white" />
+                        </div>
+                        <div className="text-center flex-1 mx-6">
+                          <h1 className="text-2xl font-bold mb-1">
+                            {schoolTemplateData?.data?.schoolName || 'ÉCOLE PRIMAIRE EDUCAFRIC'}
+                          </h1>
+                          <p className="text-white/90 text-sm">Excellence • Innovation • Leadership</p>
+                          <p className="text-white/80 text-xs mt-1">📍 République du Cameroun | 📞 +237 123 456 789</p>
+                        </div>
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded border-2 border-dashed border-white/50 flex items-center justify-center">
+                          <div className="text-center">
+                            <span className="text-xs block">QR</span>
+                            <span className="text-[8px] block">🔐</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{language === 'fr' ? 'Classe:' : 'Class:'}</span>
-                        <span className="font-semibold">6ème A</span>
-                      </div>
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{language === 'fr' ? 'Période:' : 'Period:'}</span>
-                        <span className="font-semibold">1er Trimestre 2024-2025</span>
-                      </div>
-                      <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{language === 'fr' ? 'Moyenne:' : 'Average:'}</span>
-                        <span className="font-bold text-blue-600">14.5/20</span>
+                      <div className="text-center">
+                        <div className="inline-block bg-white/20 backdrop-blur-sm px-6 py-2 rounded-full">
+                          <h2 className="text-lg font-bold">
+                            📋 {previewType === 'bulletin' ? 
+                              (language === 'fr' ? 'BULLETIN SCOLAIRE' : 'SCHOOL BULLETIN') :
+                              (language === 'fr' ? 'RELEVÉ DE NOTES OFFICIEL' : 'OFFICIAL TRANSCRIPT')
+                            }
+                          </h2>
+                          <p className="text-white/90 text-sm">1er Trimestre 2024-2025</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 text-center">
-                    <div className="flex items-center justify-center gap-6 text-xs">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span className="text-gray-600 dark:text-gray-400">Signature digitale</span>
+
+                  {/* Student Information */}
+                  <div className="p-6 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">👩‍🎓 KOUAME Marie Célestine</h3>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div><span className="font-semibold">🎯 Classe:</span> 6ème A</div>
+                          <div><span className="font-semibold">🎂 Âge:</span> 12 ans</div>
+                          <div><span className="font-semibold">📅 Né(e) le:</span> 15 Mars 2012</div>
+                          <div><span className="font-semibold">🏫 Matricule:</span> ESJ-2024-001</div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Stamp className="w-3 h-3 text-blue-500" />
-                        <span className="text-gray-600 dark:text-gray-400">Cachet école</span>
+                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-800 dark:to-indigo-900 rounded-lg flex items-center justify-center border-4 border-emerald-500">
+                        <span className="text-2xl">👩‍🎓</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Languages className="w-3 h-3 text-purple-500" />
-                        <span className="text-gray-600 dark:text-gray-400">FR/EN</span>
+                    </div>
+                  </div>
+
+                  {/* Performance Summary Cards */}
+                  <div className="p-6">
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                        <div className="text-2xl mb-1">📊</div>
+                        <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">14.5/20</div>
+                        <div className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Moyenne Générale</div>
                       </div>
+                      <div className="bg-gradient-to-br from-yellow-50 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-lg p-4 text-center border border-yellow-200 dark:border-yellow-700">
+                        <div className="text-2xl mb-1">🏆</div>
+                        <div className="text-lg font-bold text-orange-700 dark:text-orange-300">8ème/32</div>
+                        <div className="text-xs text-orange-600 dark:text-orange-400 uppercase tracking-wide">Rang en Classe</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                        <div className="text-2xl mb-1">⚡</div>
+                        <div className="text-lg font-bold text-blue-700 dark:text-blue-300">16/20</div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 uppercase tracking-wide">Conduite</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                        <div className="text-2xl mb-1">📅</div>
+                        <div className="text-lg font-bold text-purple-700 dark:text-purple-300">2 jours</div>
+                        <div className="text-xs text-purple-600 dark:text-purple-400 uppercase tracking-wide">Absences</div>
+                      </div>
+                    </div>
+
+                    {/* Grades Table Preview */}
+                    <div className="mb-6">
+                      <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-emerald-600" />
+                        📚 NOTES PAR MATIÈRE
+                      </h4>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-600 overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase">Matière</th>
+                              <th className="px-4 py-3 text-center text-xs font-semibold uppercase">Note/20</th>
+                              <th className="px-4 py-3 text-center text-xs font-semibold uppercase">Coeff</th>
+                              <th className="px-4 py-3 text-left text-xs font-semibold uppercase">Professeur</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-sm">
+                            <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-3 font-semibold">Mathématiques</td>
+                              <td className="px-4 py-3 text-center font-bold text-blue-600">15.0</td>
+                              <td className="px-4 py-3 text-center">4</td>
+                              <td className="px-4 py-3">M. KOUAME Paul</td>
+                            </tr>
+                            <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-3 font-semibold">Français</td>
+                              <td className="px-4 py-3 text-center font-bold text-yellow-600">13.0</td>
+                              <td className="px-4 py-3 text-center">4</td>
+                              <td className="px-4 py-3">Mme DIALLO Aïcha</td>
+                            </tr>
+                            <tr className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                              <td className="px-4 py-3 font-semibold">Sciences</td>
+                              <td className="px-4 py-3 text-center font-bold text-green-600">16.5</td>
+                              <td className="px-4 py-3 text-center">3</td>
+                              <td className="px-4 py-3">Dr. NGOZI Emmanuel</td>
+                            </tr>
+                            <tr className="bg-emerald-50 dark:bg-emerald-900/20 font-semibold">
+                              <td className="px-4 py-3">TOTAL</td>
+                              <td className="px-4 py-3 text-center font-bold text-emerald-700 dark:text-emerald-300">14.5</td>
+                              <td className="px-4 py-3 text-center">20</td>
+                              <td className="px-4 py-3 text-emerald-700 dark:text-emerald-300">Moyenne Générale</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Comments Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4 text-blue-600" />
+                          <h5 className="font-semibold text-blue-800 dark:text-blue-300">👨‍🏫 Professeur Principal</h5>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                          "Marie est une élève sérieuse qui montre de bonnes capacités. Excellents résultats en sciences..."
+                        </p>
+                      </div>
+                      <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                        <div className="flex items-center gap-2 mb-2">
+                          <GraduationCap className="w-4 h-4 text-green-600" />
+                          <h5 className="font-semibold text-green-800 dark:text-green-300">🎓 Directeur</h5>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                          "Résultats satisfaisants. Marie fait preuve de discipline et de régularité..."
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Signatures Section */}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                        <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">👨‍🏫 PROFESSEUR</div>
+                        <div className="h-8 border-t border-gray-400 mt-6"></div>
+                        <div className="text-xs text-gray-500 mt-1">M. KOUAME Paul</div>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-center border-2 border-dashed border-gray-300 dark:border-gray-600">
+                        <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">🎓 DIRECTEUR</div>
+                        <div className="h-8 border-t border-gray-400 mt-6"></div>
+                        <div className="text-xs text-gray-500 mt-1">Dr. MENDOMO Gabriel</div>
+                      </div>
+                      <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 text-center border-2 border-blue-300 dark:border-blue-600">
+                        <div className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-2">🔍 QR AUTHENTIFICATION</div>
+                        <div className="w-12 h-12 mx-auto bg-white border-2 border-blue-400 rounded flex items-center justify-center text-xs text-blue-600">
+                          QR<br/>🔐
+                        </div>
+                        <div className="text-[10px] text-blue-600 dark:text-blue-400 mt-1 font-mono">EDU-2024-001</div>
+                      </div>
+                    </div>
+
+                    {/* Security Features */}
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-700">
+                      <div className="flex items-center justify-center gap-8 text-xs">
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-green-500" />
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">✅ Signature digitale</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Stamp className="w-3 h-3 text-blue-500" />
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">🔵 Cachet école</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Languages className="w-3 h-3 text-purple-500" />
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">🟣 Support FR/EN</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-3 h-3 text-orange-500" />
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">🟠 Anti-falsification</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Brand */}
+                  <div className="bg-emerald-600 text-white p-3 text-center">
+                    <div className="text-xs">
+                      📱 <strong>EDUCAFRIC Platform</strong> - Technologie Éducative Africaine<br/>
+                      🌐 www.educafric.com | 📧 support@educafric.com | 📞 +237 657 004 011
+                    </div>
+                    <div className="text-[10px] opacity-80 mt-1">
+                      ✅ Document authentifié électroniquement • 🔒 Sécurisé par QR Code • 📅 Généré le {new Date().toLocaleDateString('fr-FR')}
                     </div>
                   </div>
                 </div>
                 
-                <p className="text-sm text-gray-700 dark:text-gray-300 italic">
-                  {language === 'fr' 
-                    ? '👆 Aperçu du template personnalisé avec les couleurs et le logo de votre école'
-                    : '👆 Preview of customized template with your school colors and logo'
-                  }
-                </p>
+                <div className="text-center">
+                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300 mb-2">
+                    {language === 'fr' 
+                      ? '👆 APERÇU COMPLET DU BULLETIN DE VOTRE ÉCOLE'
+                      : '👆 COMPLETE PREVIEW OF YOUR SCHOOL BULLETIN'
+                    }
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'fr' 
+                      ? 'Template personnalisé avec vos couleurs, logo et informations école • Format professionnel sécurisé'
+                      : 'Customized template with your colors, logo and school information • Secure professional format'
+                    }
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowTemplatePreview(false)} className="flex-1">
                 <XCircle className="w-4 h-4 mr-2" />
                 {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+              <Button 
+                variant="outline"
+                className="flex-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400"
+                onClick={() => {
+                  const url = '/api/bulletins/template-preview/pdf';
+                  window.open(url, '_blank');
+                  toast({
+                    title: language === 'fr' ? '📋 Document 12 PDF' : '📋 Document 12 PDF',
+                    description: language === 'fr' 
+                      ? 'Téléchargement du template PDF complet format Document 12'
+                      : 'Downloading complete PDF template in Document 12 format'
+                  });
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'PDF Complet' : 'Full PDF'}
               </Button>
               <Button 
                 className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
@@ -1433,7 +1620,7 @@ const BulletinApprovalNew: React.FC = () => {
                 }}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Valider Template' : 'Validate Template'}
+                {language === 'fr' ? 'Valider' : 'Validate'}
               </Button>
             </div>
           </div>

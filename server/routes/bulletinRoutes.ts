@@ -422,6 +422,32 @@ router.get('/test-bulletin/pdf', async (req, res) => {
   }
 });
 
+// Generate Document 12 format PDF for schools
+router.get('/template-preview/pdf', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    console.log('[DOCUMENT_12_PDF] Generating Document 12 format PDF for school:', user.schoolId);
+    
+    // Generate the PDF using the PDF generator service
+    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="document-12-bulletin-template-educafric.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    console.log('[DOCUMENT_12_PDF] ✅ Document 12 PDF generated successfully');
+    res.send(pdfBuffer);
+    
+  } catch (error) {
+    console.error('[DOCUMENT_12_PDF] ❌ Error generating Document 12 PDF:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate Document 12 PDF',
+      details: error.message 
+    });
+  }
+});
+
 // Bulk sign bulletins by class
 router.post('/bulletins/bulk-sign', requireAuth, async (req, res) => {
   try {
