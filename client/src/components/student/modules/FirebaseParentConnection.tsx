@@ -41,7 +41,7 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
   const { toast } = useToast();
   const [connectionData, setConnectionData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [method, setMethod] = useState<'dynamic_link' | 'smart_qr' | 'notification'>('dynamic_link');
+  const method = 'dynamic_link'; // Seule méthode autorisée
   const [firebaseConfig, setFirebaseConfig] = useState<any>(null);
 
   const texts = {
@@ -145,13 +145,13 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
     loadFirebaseConfig();
   }, []);
 
-  const generateConnection = async (selectedMethod: 'dynamic_link' | 'smart_qr' | 'notification') => {
+  const generateConnection = async () => {
     setLoading(true);
     try {
       // Log analytics event
-      if (typeof window !== 'undefined' && window.gtag) {
-        window.gtag('event', 'parent_connection_request', {
-          method: selectedMethod,
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'parent_connection_request', {
+          method: 'dynamic_link',
           student_id: studentId
         });
       }
@@ -161,7 +161,7 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ 
-          method: selectedMethod,
+          method: 'dynamic_link',
           language,
           config: firebaseConfig 
         })
@@ -171,17 +171,16 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
       
       if (result.success) {
         setConnectionData(result.data);
-        setMethod(selectedMethod);
         
         toast({
-          title: language === 'fr' ? '🔥 Connexion Firebase créée !' : '🔥 Firebase connection created!',
+          title: language === 'fr' ? '🔥 Lien Dynamique créé !' : '🔥 Dynamic Link created!',
           description: result.message
         });
 
         // Track success
-        if (typeof window !== 'undefined' && window.gtag) {
-          window.gtag('event', 'connection_generated', {
-            method: selectedMethod,
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'connection_generated', {
+            method: 'dynamic_link',
             success: true
           });
         }
@@ -189,7 +188,7 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
     } catch (error) {
       toast({
         title: language === 'fr' ? 'Erreur Firebase' : 'Firebase Error',
-        description: language === 'fr' ? 'Impossible de générer la connexion' : 'Failed to generate connection',
+        description: language === 'fr' ? 'Impossible de générer le lien' : 'Failed to generate link',
         variant: 'destructive'
       });
     } finally {
@@ -289,187 +288,85 @@ const FirebaseParentConnection: React.FC<FirebaseParentConnectionProps> = ({ stu
         </CardContent>
       </Card>
 
-      {/* Method Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(['dynamic_link', 'smart_qr', 'notification'] as const).map((methodType) => (
-          <Card 
-            key={methodType}
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              method === methodType ? 'ring-2 ring-orange-500 bg-orange-50' : 'hover:bg-gray-50'
-            }`}
-            onClick={() => setMethod(methodType)}
-          >
-            <CardContent className="pt-6">
-              <h3 className="font-medium text-gray-800 mb-2">
-                {t.methods[methodType].title}
-              </h3>
-              <p className="text-sm text-gray-600 mb-3">
-                {t.methods[methodType].description}
-              </p>
-              
-              {/* Features */}
-              <div className="space-y-1 mb-4">
-                {t.methods[methodType].features.map((feature, idx) => (
-                  <div key={idx} className="flex items-center space-x-2">
-                    <CheckCircle2 className="h-3 w-3 text-green-500" />
-                    <span className="text-xs text-gray-600">{feature}</span>
-                  </div>
-                ))}
-              </div>
+      {/* Method Selection - Lien Dynamique uniquement */}
+      <div className="max-w-md mx-auto">
+        <Card className="ring-2 ring-orange-500 bg-orange-50">
+          <CardContent className="pt-6">
+            <h3 className="font-medium text-gray-800 mb-2">
+              {t.methods.dynamic_link.title}
+            </h3>
+            <p className="text-sm text-gray-600 mb-3">
+              {t.methods.dynamic_link.description}
+            </p>
+            
+            {/* Features */}
+            <div className="space-y-1 mb-4">
+              {t.methods.dynamic_link.features.map((feature, idx) => (
+                <div key={idx} className="flex items-center space-x-2">
+                  <CheckCircle2 className="h-3 w-3 text-green-500" />
+                  <span className="text-xs text-gray-600">{feature}</span>
+                </div>
+              ))}
+            </div>
 
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  generateConnection(methodType);
-                }}
-                disabled={loading}
-                variant={method === methodType ? 'default' : 'outline'}
-                className="w-full"
-              >
-                {t.methods[methodType].action}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+            <Button 
+              onClick={() => generateConnection()}
+              disabled={loading}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+              data-testid="button-generate-dynamic-link"
+            >
+              {loading ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'fr' ? 'Génération...' : 'Generating...'}
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-4 h-4 mr-2" />
+                  {t.methods.dynamic_link.action}
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Firebase Connection Display */}
-      {connectionData && (
+      {/* Firebase Connection Display - Lien Dynamique uniquement */}
+      {connectionData && method === 'dynamic_link' && (
         <Card className="border-green-200 bg-green-50">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-green-800">
               <Zap className="h-5 w-5 text-orange-500" />
-              <span>Firebase {t.methods[method].title} - Généré</span>
+              <span>Firebase {t.methods.dynamic_link.title} - Généré</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {method === 'dynamic_link' && (
-              <div className="space-y-4">
-                <div className="bg-white p-6 rounded-xl border-2 border-orange-300 shadow-lg">
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
-                      <Link2 className="h-8 w-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-800">Lien Dynamique Firebase</h3>
-                      <p className="text-sm text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg font-mono break-all">
-                        {connectionData.dynamicLink}
-                      </p>
-                    </div>
+            <div className="space-y-4">
+              <div className="bg-white p-6 rounded-xl border-2 border-orange-300 shadow-lg">
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                    <Link2 className="h-8 w-8 text-white" />
                   </div>
-                </div>
-                
-                <div className="flex space-x-2 justify-center">
-                  <Button onClick={() => shareViaFirebase(connectionData)} className="bg-orange-600 hover:bg-orange-700">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    {t.share}
-                  </Button>
-                  <Button onClick={() => copyToClipboard(connectionData.dynamicLink)} variant="outline">
-                    <Copy className="h-4 w-4 mr-2" />
-                    {t.copied}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {method === 'smart_qr' && (
-              <div className="text-center space-y-4">
-                <div className="bg-white p-6 rounded-xl border-2 border-purple-300 shadow-lg">
-                  <div className="relative mx-auto max-w-sm">
-                    {/* Firebase-powered Smart QR Container */}
-                    <div className="bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl p-4 shadow-xl">
-                      <div className="bg-white rounded-2xl p-4">
-                        
-                        {/* EDUCAFRIC Header */}
-                        <div className="text-center mb-3">
-                          <div className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                            🔥 EDUCAFRIC
-                          </div>
-                          <div className="text-xs text-gray-600">Firebase Smart QR</div>
-                        </div>
-                        
-                        {/* QR Code réel */}
-                        <div className="flex justify-center mb-3">
-                          {connectionData.qrCode ? (
-                            <img 
-                              src={connectionData.qrCode} 
-                              alt="QR Code EDUCAFRIC" 
-                              className="w-56 h-56 rounded-lg border border-gray-200"
-                              style={{ imageRendering: 'pixelated' }}
-                            />
-                          ) : (
-                            <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
-                              <QrCode className="h-32 w-32 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Code et info */}
-                        <div className="text-center">
-                          <div className="text-sm font-mono text-purple-600 bg-purple-50 px-3 py-1 rounded-full inline-block">
-                            {connectionData.shortCode}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2">
-                            {language === 'fr' ? 'Scannez avec votre appareil photo' : 'Scan with your camera'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Animated dots */}
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-green-400 rounded-full animate-bounce"></div>
-                  </div>
-                </div>
-                
-                {/* QR Info */}
-                <div className="bg-blue-50 p-3 rounded-lg text-sm">
-                  <p className="text-blue-800 font-medium">
-                    {language === 'fr' ? '📱 Instructions :' : '📱 Instructions:'}
-                  </p>
-                  <p className="text-blue-700">
-                    {language === 'fr' 
-                      ? '1. Ouvrez l\'appareil photo sur votre téléphone\n2. Pointez vers le QR code\n3. Touchez le lien qui apparaît'
-                      : '1. Open camera on your phone\n2. Point at QR code\n3. Tap the link that appears'
-                    }
-                  </p>
-                </div>
-                
-                <div className="flex space-x-2 justify-center">
-                  <Button onClick={downloadSmartQR} variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
-                    {t.download}
-                  </Button>
-                  <Button onClick={() => shareViaFirebase(connectionData)} className="bg-purple-600 hover:bg-purple-700">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    {t.share}
-                  </Button>
-                  <Button onClick={() => copyToClipboard(connectionData.qrData || connectionData.shortCode)} variant="outline">
-                    <Copy className="h-4 w-4 mr-2" />
-                    {t.copy}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {method === 'notification' && (
-              <div className="text-center space-y-4">
-                <div className="bg-white p-8 rounded-xl border-2 border-blue-300 shadow-lg">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mb-4">
-                    <Bell className="h-10 w-10 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">Notification Push Envoyée</h3>
-                  <p className="text-sm text-gray-600">
-                    Vos parents recevront une notification push directe avec un bouton pour rejoindre EDUCAFRIC
-                  </p>
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-xs text-blue-700">
-                      📱 Notification: "Votre enfant vous invite à rejoindre EDUCAFRIC" + bouton d'action
+                  <div>
+                    <h3 className="font-bold text-lg text-gray-800">Lien Dynamique Firebase</h3>
+                    <p className="text-sm text-gray-600 mt-2 p-3 bg-gray-50 rounded-lg font-mono break-all">
+                      {connectionData.dynamicLink}
                     </p>
                   </div>
                 </div>
               </div>
-            )}
+              
+              <div className="flex space-x-2 justify-center">
+                <Button onClick={() => shareViaFirebase(connectionData)} className="bg-orange-600 hover:bg-orange-700">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  {t.share}
+                </Button>
+                <Button onClick={() => copyToClipboard(connectionData.dynamicLink)} variant="outline">
+                  <Copy className="h-4 w-4 mr-2" />
+                  {t.copied}
+                </Button>
+              </div>
+            </div>
 
             {/* Firebase Analytics */}
             {connectionData.analytics && (
