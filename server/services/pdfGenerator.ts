@@ -9,6 +9,84 @@ export interface DocumentData {
 export class PDFGenerator {
 
   /**
+   * Universal QR Code generator for all school documents
+   */
+  static async generateDocumentQRCode(documentData: {
+    documentId: string;
+    documentType: string;
+    schoolId?: string;
+    userId?: string;
+    timestamp?: string;
+  }): Promise<string> {
+    try {
+      const QRCode = await import('qrcode');
+      
+      // Create verification data
+      const verificationData = {
+        type: 'educafric_document',
+        version: '2025.1',
+        documentId: documentData.documentId,
+        documentType: documentData.documentType,
+        schoolId: documentData.schoolId || 'system',
+        userId: documentData.userId || 'system',
+        timestamp: documentData.timestamp || new Date().toISOString(),
+        verifyUrl: `https://www.educafric.com/verify-document/${documentData.documentId}`
+      };
+
+      // Generate QR code
+      const qrCodeDataURL = await QRCode.default.toDataURL(JSON.stringify(verificationData), {
+        errorCorrectionLevel: 'M',
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        width: 120
+      });
+
+      return qrCodeDataURL;
+    } catch (error) {
+      console.error('[PDF_QR] Error generating QR code:', error);
+      // Return a simple fallback QR code
+      return `data:image/svg+xml;base64,${btoa(`
+        <svg width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+          <rect width="120" height="120" fill="white" stroke="black" stroke-width="1"/>
+          <text x="60" y="60" text-anchor="middle" font-family="Arial" font-size="10" fill="black">QR Code</text>
+          <text x="60" y="75" text-anchor="middle" font-family="Arial" font-size="8" fill="black">${documentData.documentId}</text>
+        </svg>
+      `)}`;
+    }
+  }
+
+  /**
+   * Add QR code to any PDF document
+   */
+  static async addQRCodeToDocument(doc: any, documentData: DocumentData, xPosition: number = 160, yPosition: number = 20): Promise<void> {
+    try {
+      const qrCodeUrl = await this.generateDocumentQRCode({
+        documentId: documentData.id,
+        documentType: documentData.type,
+        userId: documentData.user?.id || documentData.user?.email,
+        timestamp: new Date().toISOString()
+      });
+
+      // Add QR code image
+      doc.addImage(qrCodeUrl, 'PNG', xPosition, yPosition, 25, 25);
+      
+      // Add verification text
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Vérifier:', xPosition, yPosition + 28);
+      doc.text('educafric.com/verify', xPosition, yPosition + 32);
+      doc.text(`Doc: ${documentData.id.substring(0, 8)}`, xPosition, yPosition + 36);
+      
+      console.log(`[PDF_QR] ✅ QR code added to document ${documentData.id}`);
+    } catch (error) {
+      console.error('[PDF_QR] Error adding QR code to document:', error);
+    }
+  }
+
+  /**
    * Generate bulletin creation workflow documentation in French
    */
   static async generateBulletinWorkflowDocumentationFR(): Promise<Buffer> {
@@ -19,6 +97,15 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     let yPosition = 30;
+
+    // Add QR code for document verification
+    const documentData: DocumentData = {
+      id: `bulletin-workflow-fr-${Date.now()}`,
+      title: 'Guide Création Bulletins Workflow FR',
+      user: { email: 'system@educafric.com' },
+      type: 'system'
+    };
+    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     
     // === SIMPLE BLACK & WHITE HEADER ===
     // République du Cameroun - simple styling
@@ -300,6 +387,15 @@ export class PDFGenerator {
       const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
       const doc = new jsPDF();
       
+      // Add QR code for document verification
+      const documentData: DocumentData = {
+        id: `class-report-${classId}-${schoolId}-${Date.now()}`,
+        title: `Rapport de Classe ${classId}`,
+        user: { email: 'system@educafric.com' },
+        type: 'report'
+      };
+      await this.addQRCodeToDocument(doc, documentData, 160, 15);
+      
       // Add school header and logo placeholder
       doc.setFontSize(20);
       doc.text('RAPPORT DE CLASSE', 105, 20, { align: 'center' });
@@ -373,6 +469,15 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     let yPosition = 30;
+    
+    // Add QR code for document verification
+    const documentData: DocumentData = {
+      id: `bulletin-workflow-en-${Date.now()}`,
+      title: 'Bulletin Creation Workflow Guide EN',
+      user: { email: 'system@educafric.com' },
+      type: 'system'
+    };
+    await this.addQRCodeToDocument(doc, documentData, 160, 25);
     
     // Header with EDUCAFRIC branding
     doc.setFontSize(24);
@@ -630,6 +735,9 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
+    // Add QR code for document verification
+    await this.addQRCodeToDocument(doc, data, 160, 15);
+    
     // En-tête avec logo
     doc.setFontSize(20);
     doc.setTextColor(0, 121, 242); // #0079F2
@@ -762,6 +870,9 @@ export class PDFGenerator {
     
     // Configuration
     doc.setFont('helvetica');
+    
+    // Add QR code for document verification
+    await this.addQRCodeToDocument(doc, data, 160, 15);
     
     // Header with logo
     doc.setFontSize(22);
@@ -929,6 +1040,9 @@ export class PDFGenerator {
     
     // Configuration
     doc.setFont('helvetica');
+    
+    // Add QR code for document verification
+    await this.addQRCodeToDocument(doc, data, 160, 15);
     
     // En-tête spécial bulletins
     doc.setFontSize(20);
@@ -1193,6 +1307,15 @@ export class PDFGenerator {
     
     // Configuration
     doc.setFont('helvetica');
+    
+    // Add QR code for document verification
+    const documentData: DocumentData = {
+      id: `test-bulletin-${Date.now()}`,
+      title: 'Test Bulletin Document',
+      user: { email: 'system@educafric.com' },
+      type: 'report'
+    };
+    await this.addQRCodeToDocument(doc, documentData, 160, 15);
     
     // Create realistic test data for African school
     const testBulletinData = {
@@ -1765,6 +1888,9 @@ export class PDFGenerator {
     
     // Configuration
     doc.setFont('helvetica');
+    
+    // Add QR code for document verification
+    await this.addQRCodeToDocument(doc, data, 160, 15);
     
     // En-tête avec logo EDUCAFRIC
     doc.setFontSize(24);
