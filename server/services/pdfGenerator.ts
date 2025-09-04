@@ -20,43 +20,39 @@ export class PDFGenerator {
     doc.setFont('helvetica');
     let yPosition = 30;
     
-    // === MODERN PROFESSIONAL HEADER ===
-    // Gradient header background
-    doc.setFillColor(26, 54, 93); // Primary blue
-    doc.rect(0, 0, 210, 45, 'F');
-    
-    // République du Cameroun - Modern styling
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, 15, { align: 'center' });
-    
-    // Ministère
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', 105, 25, { align: 'center' });
-    
-    // Modern badge for branding
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(15, 30, 180, 12, 3, 3, 'F');
-    
-    // EDUCAFRIC branding in badge
-    doc.setTextColor(0, 121, 242);
+    // === SIMPLE BLACK & WHITE HEADER ===
+    // République du Cameroun - simple styling
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('EDUCAFRIC', 25, 37);
+    doc.setTextColor(0, 0, 0);
+    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
+    yPosition += 7;
+    
+    doc.setFontSize(12);
+    doc.text('Ministère des Enseignements Secondaires', 105, yPosition, { align: 'center' });
+    yPosition += 10;
+    
+    // Simple border for branding section
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.5);
+    doc.rect(15, yPosition, 180, 15);
+    
+    // EDUCAFRIC branding - simple
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('EDUCAFRIC', 25, yPosition + 8);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('Plateforme Éducative Africaine', 25, 40);
+    doc.text('Plateforme Éducative Africaine', 25, yPosition + 12);
     
     // Document type indicator
-    doc.setTextColor(100, 100, 100);
     doc.setFontSize(9);
-    doc.text('DOCUMENT OFFICIEL', 175, 37, { align: 'right' });
-    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 175, 40, { align: 'right' });
+    doc.text('DOCUMENT OFFICIEL', 175, yPosition + 8, { align: 'right' });
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 175, yPosition + 12, { align: 'right' });
     
-    yPosition = 55;
+    yPosition += 25;
     
     // Titre principal
     doc.setFontSize(20);
