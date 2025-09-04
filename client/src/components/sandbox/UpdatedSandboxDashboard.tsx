@@ -219,6 +219,40 @@ const UpdatedSandboxDashboard = () => {
         </Card>
       </div>
 
+      {/* Nouvelle section - Améliorations récentes */}
+      <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-800">
+            <Sparkles className="h-5 w-5" />
+            🆕 {language === 'fr' ? 'Nouvelles Améliorations' : 'Latest Improvements'}
+          </CardTitle>
+          <CardDescription className="text-orange-700">
+            {language === 'fr' 
+              ? 'QR codes et en-têtes administratifs optimisés pour mobile'
+              : 'Mobile-optimized QR codes and administrative headers'
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-orange-200">
+              <QrCode className="h-6 w-6 text-orange-600" />
+              <div>
+                <p className="font-medium text-sm">QR Codes Mobile</p>
+                <p className="text-xs text-gray-600">Optimisés pour smartphones</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-orange-200">
+              <Stamp className="h-6 w-6 text-orange-600" />
+              <div>
+                <p className="font-medium text-sm">En-têtes Admin</p>
+                <p className="text-xs text-gray-600">Logo école automatique</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>

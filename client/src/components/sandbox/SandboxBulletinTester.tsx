@@ -39,7 +39,7 @@ const SandboxBulletinTester = () => {
       setTestResults(prev => [data, ...prev]);
       toast({
         title: '✅ Bulletin de test créé',
-        description: `QR Code généré avec hash ${data.hash.substring(0, 8)}...`,
+        description: `✨ QR Code mobile-optimisé généré avec hash ${data.hash.substring(0, 8)}...`,
       });
     }
   });
@@ -75,7 +75,7 @@ const SandboxBulletinTester = () => {
       setTestResults(prev => [...data.bulletins, ...prev]);
       toast({
         title: '📚 Tests en masse créés',
-        description: `${data.bulletins.length} bulletins générés avec succès`,
+        description: `${data.bulletins.length} bulletins avec QR codes et en-têtes administratifs générés`,
       });
     }
   });
@@ -141,21 +141,21 @@ const SandboxBulletinTester = () => {
           </Button>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 border-orange-200 bg-orange-50">
           <div className="flex items-center gap-3 mb-3">
-            <ClipboardCheck className="w-6 h-6 text-purple-600" />
-            <h3 className="font-semibold">Suite Complète</h3>
+            <Stamp className="w-6 h-6 text-orange-600" />
+            <h3 className="font-semibold">🆕 En-têtes Admin</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Ouvrir l'interface complète de test
+            Test des nouveaux en-têtes administratifs avec logos
           </p>
           <Button
-            onClick={() => window.open('/bulletin-tests', '_blank')}
-            variant="secondary"
-            className="w-full"
+            onClick={() => createTestBulletinMutation.mutate()}
+            variant="outline"
+            className="w-full border-orange-300 text-orange-700 hover:bg-orange-100"
           >
-            <Eye className="w-4 h-4 mr-2" />
-            Ouvrir Suite
+            <FileText className="w-4 h-4 mr-2" />
+            Test Nouveau Format
           </Button>
         </Card>
       </div>
@@ -168,7 +168,7 @@ const SandboxBulletinTester = () => {
             Résultats des Tests de Validation
           </CardTitle>
           <CardDescription>
-            Bulletins de test générés avec QR codes et validation
+            🆕 Bulletins avec QR codes mobile-optimisés et en-têtes administratifs complets
           </CardDescription>
         </CardHeader>
         <CardContent>
