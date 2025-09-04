@@ -29,97 +29,69 @@
         .header {
             background: white;
             color: black;
-            padding: 20px;
+            padding: 12px;
             text-align: center;
             position: relative;
-            border-bottom: 2px solid black;
+            border-bottom: 1px solid black;
         }
         
         .official-header {
-            margin-bottom: 20px;
+            margin-bottom: 8px;
             font-family: 'Times New Roman', serif;
         }
         
         .republique {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .paix-travail {
-            font-size: 12px;
-            font-style: italic;
-            margin-bottom: 8px;
-        }
-        
-        .ministere {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .delegations {
-            font-size: 12px;
             margin-bottom: 3px;
         }
         
-        .separation-line {
-            border-top: 1px solid black;
-            margin: 15px 0;
+        .paix-travail {
+            font-size: 10px;
+            font-style: italic;
+            margin-bottom: 5px;
         }
         
-        .header-content {
-            position: relative;
-            z-index: 1;
+        .ministere {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .school-header-line {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-top: 15px;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
         }
         
-        .school-logo {
-            width: 80px;
-            height: 80px;
-            background: #f0f0f0;
-            border: 2px solid black;
-            border-radius: 10px;
+        .school-contact {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .student-photo-header {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            width: 60px;
+            height: 60px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            color: black;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.2;
-        }
-        
-        .school-info {
-            flex: 1;
-            margin-left: 20px;
-            text-align: left;
-        }
-        
-        .school-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .school-subtitle {
-            font-size: 12px;
-            opacity: 0.8;
-            margin-bottom: 5px;
+            font-size: 10px;
+            color: #666;
         }
         
         .report-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            margin-top: 15px;
-            padding: 8px 20px;
-            background: black;
-            color: white;
-            border-radius: 5px;
-            display: inline-block;
+            margin: 8px 0;
+            text-align: center;
         }
         
         .content {
@@ -245,8 +217,9 @@
         .grades-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: white;
+            font-size: 10px;
             border: 2px solid black;
         }
         
@@ -424,71 +397,24 @@
                 <div class="separation-line"></div>
             </div>
             
-            <!-- Informations école avec logo -->
-            <div class="header-content">
-                <div class="school-logo">
-                    <img src="/uploads/logos/school-logo-default.png" alt="Logo École" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'; this.parentElement.innerHTML='LOGO<br>ÉCOLE';">
-                </div>
-                <div class="school-info">
-                    <div class="school-name">ÉCOLE SAINT-JOSEPH YAOUNDÉ</div>
-                    <div class="school-subtitle">Excellence • Innovation • Leadership</div>
-                    <div class="school-subtitle">BP 1234 Yaoundé - Cameroun | Tél: +237 222 123 456</div>
-                </div>
-                <div class="report-title">BULLETIN SCOLAIRE - 1ER TRIMESTRE 2024-2025</div>
+            <!-- École et élève sur la même ligne -->
+            <div class="school-header-line">
+                <span>Collège Excellence Africaine - Yaoundé</span>
+                <span>Élève: Amina Kouakou</span>
             </div>
+            <div class="school-contact">B.P. 1234 Yaoundé</div>
+            
+            <!-- Photo de l'élève -->
+            <div class="student-photo-header">PHOTO</div>
+            
+            <div class="report-title">BULLETIN SCOLAIRE</div>
         </div>
 
-        <div class="content">
-            <!-- Informations élève -->
-            <div class="student-info">
-                <div class="student-header">
-                    <div class="student-details">
-                        <div class="student-name">KOUAME Marie Célestine</div>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Classe:</span>
-                                <span class="info-value">6ème A</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Né(e) le:</span>
-                                <span class="info-value">15 Mars 2012</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Lieu de naissance:</span>
-                                <span class="info-value">Yaoundé, Cameroun</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Matricule:</span>
-                                <span class="info-value">ESJ-2024-001</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="student-photo">PHOTO</div>
-                </div>
-            </div>
-
-            <!-- Résumé des performances -->
-            <div class="performance-summary">
-                <div class="summary-card">
-                    <div class="summary-icon">MOY</div>
-                    <div class="summary-value">14.5/20</div>
-                    <div class="summary-label">Moyenne Générale</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-icon">RANG</div>
-                    <div class="summary-value">8ème/32</div>
-                    <div class="summary-label">Rang en Classe</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-icon">COND</div>
-                    <div class="summary-value">16/20</div>
-                    <div class="summary-label">Conduite</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-icon">ABS</div>
-                    <div class="summary-value">2 jours</div>
-                    <div class="summary-label">Absences</div>
-                </div>
+        <div class="content" style="padding: 15px;">
+            <!-- Informations élève compactes -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 11px;">
+                <span><strong>Classe:</strong> 3ème A</span>
+                <span><strong>Période:</strong> 1er Trimestre 2024-2025</span>
             </div>
 
             <!-- Notes par matière -->
@@ -511,109 +437,101 @@
                     <tbody>
                         <tr>
                             <td><strong>Mathématiques</strong></td>
-                            <td class="grade-cell good">15.0</td>
+                            <td class="grade-cell good">16.5</td>
                             <td>4</td>
-                            <td>60</td>
-                            <td>M. KOUAME Paul</td>
-                            <td>Très bien</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Français</strong></td>
-                            <td class="grade-cell average">13.0</td>
-                            <td>4</td>
-                            <td>52</td>
-                            <td>Mme DIALLO Aïcha</td>
-                            <td>Peut mieux faire</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Sciences Physiques</strong></td>
-                            <td class="grade-cell excellent">16.5</td>
-                            <td>3</td>
-                            <td>49.5</td>
-                            <td>Dr. NGOZI Emmanuel</td>
+                            <td>66.0</td>
+                            <td>M. Koné Joseph</td>
                             <td>Excellent</td>
                         </tr>
                         <tr>
-                            <td><strong>Histoire-Géographie</strong></td>
-                            <td class="grade-cell average">12.0</td>
-                            <td>3</td>
-                            <td>36</td>
-                            <td>M. BAMOGO Alain</td>
+                            <td><strong>Français</strong></td>
+                            <td class="grade-cell average">14.0</td>
+                            <td>4</td>
+                            <td>56.0</td>
+                            <td>Mme Diallo Fatou</td>
                             <td>Assez bien</td>
                         </tr>
                         <tr>
                             <td><strong>Anglais</strong></td>
-                            <td class="grade-cell good">14.5</td>
-                            <td>2</td>
-                            <td>29</td>
-                            <td>Miss JOHNSON Sarah</td>
+                            <td class="grade-cell good">15.5</td>
+                            <td>3</td>
+                            <td>46.5</td>
+                            <td>Mr Smith John</td>
                             <td>Bien</td>
                         </tr>
                         <tr>
-                            <td><strong>Éducation Civique</strong></td>
+                            <td><strong>Histoire-Géo</strong></td>
+                            <td class="grade-cell average">13.5</td>
+                            <td>3</td>
+                            <td>40.5</td>
+                            <td>M. Ouédraogo Paul</td>
+                            <td>Assez bien</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sciences Physiques</strong></td>
                             <td class="grade-cell excellent">17.0</td>
-                            <td>2</td>
-                            <td>34</td>
-                            <td>M. ETOA Pierre</td>
+                            <td>3</td>
+                            <td>51.0</td>
+                            <td>Mme Camara Aïcha</td>
                             <td>Excellent</td>
                         </tr>
                         <tr>
-                            <td><strong>EPS</strong></td>
-                            <td class="grade-cell good">15.0</td>
-                            <td>2</td>
-                            <td>30</td>
-                            <td>M. MBALLA Jean</td>
+                            <td><strong>Sciences Naturelles</strong></td>
+                            <td class="grade-cell good">16.0</td>
+                            <td>3</td>
+                            <td>48.0</td>
+                            <td>M. Traoré Ibrahim</td>
                             <td>Très bien</td>
                         </tr>
-                        <tr style="background: #f0f0f0; font-weight: bold;">
-                            <td><strong>TOTAL</strong></td>
-                            <td class="grade-cell good"><strong>14.5</strong></td>
-                            <td><strong>20</strong></td>
-                            <td><strong>290.5</strong></td>
-                            <td colspan="2"><strong>Moyenne Générale: 14.5/20</strong></td>
+                        <tr>
+                            <td><strong>EPS</strong></td>
+                            <td class="grade-cell excellent">18.0</td>
+                            <td>1</td>
+                            <td>18.0</td>
+                            <td>M. Bamba Sekou</td>
+                            <td>Excellent</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Arts</strong></td>
+                            <td class="grade-cell good">15.0</td>
+                            <td>1</td>
+                            <td>15.0</td>
+                            <td>Mme Sow Mariam</td>
+                            <td>Bien</td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
 
-            <!-- Commentaires -->
-            <div class="comments-section">
-                <div class="comment-box">
-                    <div class="comment-title">
-                        👨‍🏫 Appréciation du Professeur Principal
-                    </div>
-                    <div class="comment-text">
-                        "Marie est une élève sérieuse et appliquée qui montre de bonnes capacités dans l'ensemble des matières. Ses résultats en sciences sont particulièrement remarquables. Il conviendrait d'améliorer ses performances en français pour viser l'excellence. Continue tes efforts !"
-                    </div>
+                <!-- Résultats compacts en ligne -->
+                <div style="display: flex; justify-content: space-between; margin: 15px 0; font-weight: bold; font-size: 12px;">
+                    <span>Moyenne: 15.43/20</span>
+                    <span>Rang: 3/42</span>
+                    <span>Conduite: 18/20 (Très bien)</span>
                 </div>
-                <div class="comment-box">
-                    <div class="comment-title">
-                        🎓 Observation du Directeur
-                    </div>
-                    <div class="comment-text">
-                        "Résultats satisfaisants pour ce premier trimestre. Marie fait preuve de discipline et de régularité dans son travail. Les efforts doivent être maintenus pour conserver ce niveau et progresser vers l'excellence. Félicitations pour sa conduite exemplaire."
-                    </div>
-                </div>
-            </div>
 
-            <!-- Signatures et QR Code -->
-            <div class="footer-section">
-                <div class="signature-box">
-                    <div class="signature-title">Professeur Principal</div>
-                    <div class="signature-line">M. KOUAME Paul</div>
+                <!-- Appréciations compactes -->
+                <div style="margin: 15px 0;">
+                    <div style="margin-bottom: 8px;">
+                        <strong style="font-size: 11px;">Appréciation générale:</strong>
+                        <span style="font-size: 10px; margin-left: 5px;">Élève sérieuse et appliquée. Très bon travail.</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong style="font-size: 11px;">Direction:</strong>
+                        <span style="font-size: 10px; margin-left: 5px;">Excellent trimestre. Continuez ainsi !</span>
+                    </div>
                 </div>
-                
-                <div class="signature-box">
-                    <div class="signature-title">Directeur de l'École</div>
-                    <div class="signature-line">Dr. MENDOMO Gabriel</div>
-                </div>
-                
-                <div class="verification-section">
-                    <div style="font-size: 11px; color: #666; text-align: center;">
-                        <strong>Authentification numérique</strong><br>
-                        Code de vérification: EDU-2024-MAR-001<br>
-                        Signature: SHA256:A3F7E8...<br>
-                        Vérifiez sur: www.educafric.com
+
+                <!-- Signatures compactes -->
+                <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 20px;">
+                    <div style="text-align: center;">
+                        <div style="border-top: 1px solid black; width: 150px; margin-bottom: 3px;"></div>
+                        <strong>Dr. Ngozi Adichie</strong><br>
+                        <em>Directeur</em>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="border-top: 1px solid black; width: 150px; margin-bottom: 3px;"></div>
+                        <strong>Mme Diallo Fatou</strong><br>
+                        <em>Professeur Principal</em>
                     </div>
                 </div>
             </div>

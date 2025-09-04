@@ -62,57 +62,79 @@ export class PDFGenerator {
    * Add standardized school administrative header to all documents
    * Optimized for mobile viewing
    */
-  static async addSchoolAdministrativeHeader(doc: any, schoolData?: {
+  static async addCompactSchoolHeader(doc: any, schoolData?: {
     schoolName?: string;
     logoUrl?: string;
-    region?: string;
-    department?: string;
     boitePostale?: string;
-    phone?: string;
-    email?: string;
+    studentName?: string;
+    studentPhoto?: string;
   }): Promise<number> {
-    let yPosition = 15;
+    let yPosition = 12;
     const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
     
-    // République du Cameroun - En-tête officiel (optimisé mobile)
-    doc.setFontSize(13); // Légèrement plus petit pour mobile
+    // EN-TÊTE COMPACT OFFICIEL CAMEROUN
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     doc.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    yPosition += 5;
     
-    doc.setFontSize(10); // Taille optimisée mobile
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 8;
+    yPosition += 5;
     
-    doc.setFontSize(11); // Taille optimisée mobile
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    yPosition += 8;
     
-    // Informations régionales et départementales
-    const region = schoolData?.region || 'Délégation Régionale du Centre';
-    const department = schoolData?.department || 'Délégation Départementale du Mfoundi';
+    // BLOC ÉCOLE + ÉLÈVE (même ligne pour économiser l'espace)
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
     
-    doc.setFontSize(9); // Plus petit pour mobile
-    doc.setFont('helvetica', 'normal');
-    doc.text(region, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-    doc.text(department, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
-    
-    // Boîte postale
-    if (schoolData?.boitePostale) {
-      doc.text(schoolData.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
+    // École à gauche
+    if (schoolData?.schoolName) {
+      doc.text(schoolData.schoolName, margin, yPosition);
     }
+    
+    // Nom de l'élève à droite
+    if (schoolData?.studentName) {
+      doc.text(`Élève: ${schoolData.studentName}`, pageWidth - margin - 60, yPosition);
+    }
+    yPosition += 6;
+    
+    // Boîte postale seulement
+    if (schoolData?.boitePostale) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(schoolData.boitePostale, margin, yPosition);
+    }
+    
+    // Photo de l'élève (si disponible)
+    if (schoolData?.studentPhoto) {
+      try {
+        const photoSize = 20;
+        doc.addImage(schoolData.studentPhoto, 'JPEG', pageWidth - margin - photoSize - 5, yPosition - 15, photoSize, photoSize);
+      } catch (error) {
+        // Placeholder pour photo
+        doc.setDrawColor(150, 150, 150);
+        doc.setLineWidth(0.5);
+        doc.rect(pageWidth - margin - 25, yPosition - 15, 20, 20);
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text('PHOTO', pageWidth - margin - 15, yPosition - 5, { align: 'center' });
+      }
+    }
+    
     yPosition += 8;
     
-    // Ligne de séparation
-    doc.setLineWidth(0.5);
+    // Ligne de séparation fine
+    doc.setLineWidth(0.3);
     doc.setDrawColor(0, 0, 0);
-    doc.line(20, yPosition, 190, yPosition);
-    yPosition += 8;
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 5;
     
     // Logo de l'école (côté gauche) - Chargement réel
     if (schoolData?.logoUrl) {
@@ -256,7 +278,7 @@ export class PDFGenerator {
       phone: 'Tél: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -548,7 +570,7 @@ export class PDFGenerator {
         region: 'Délégation Régionale du Centre',
         department: 'Délégation Départementale du Mfoundi'
       };
-      let yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+      let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
       
       // Add QR code after header
       await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -645,7 +667,7 @@ export class PDFGenerator {
       phone: 'Tel: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -910,7 +932,7 @@ export class PDFGenerator {
       phone: 'Tél: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    let yPosition = await this.addSchoolAdministrativeHeader(doc, schoolData);
+    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
@@ -1488,22 +1510,22 @@ export class PDFGenerator {
     const testBulletinData = {
       student: { name: 'Amina Kouakou', class: '3ème A', dateOfBirth: '15 Mars 2010', placeOfBirth: 'Abidjan, Côte d\'Ivoire' },
       subjects: [
-        { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph', comment: 'Excellents résultats. Continue ainsi!' },
-        { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou', comment: 'Bon niveau d\'expression écrite' },
-        { name: 'Anglais', grade: 15.5, coefficient: 3, teacher: 'Mr Smith John', comment: 'Good pronunciation and comprehension' },
-        { name: 'Histoire-Géographie', grade: 13.5, coefficient: 3, teacher: 'M. Ouédraogo Paul', comment: 'Connaissances solides sur l\'Afrique' },
-        { name: 'Sciences Physiques', grade: 17.0, coefficient: 3, teacher: 'Mme Camara Aïcha', comment: 'Excellente compréhension des concepts' },
-        { name: 'Sciences Naturelles', grade: 16.0, coefficient: 3, teacher: 'M. Traoré Ibrahim', comment: 'Très bon travail en laboratoire' },
-        { name: 'Éducation Physique', grade: 18.0, coefficient: 1, teacher: 'M. Bamba Sekou', comment: 'Excellent esprit sportif' },
-        { name: 'Arts Plastiques', grade: 15.0, coefficient: 1, teacher: 'Mme Sow Mariam', comment: 'Créativité remarquable' }
+        { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph', comment: 'Excellent' },
+        { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou', comment: 'Assez bien' },
+        { name: 'Anglais', grade: 15.5, coefficient: 3, teacher: 'Mr Smith John', comment: 'Bien' },
+        { name: 'Histoire-Géo', grade: 13.5, coefficient: 3, teacher: 'M. Ouédraogo Paul', comment: 'Assez bien' },
+        { name: 'Sciences Physiques', grade: 17.0, coefficient: 3, teacher: 'Mme Camara Aïcha', comment: 'Excellent' },
+        { name: 'Sciences Naturelles', grade: 16.0, coefficient: 3, teacher: 'M. Traoré Ibrahim', comment: 'Très bien' },
+        { name: 'EPS', grade: 18.0, coefficient: 1, teacher: 'M. Bamba Sekou', comment: 'Excellent' },
+        { name: 'Arts', grade: 15.0, coefficient: 1, teacher: 'Mme Sow Mariam', comment: 'Bien' }
       ],
       period: '1er Trimestre',
       academicYear: '2024-2025',
       generalAverage: 15.43,
       classRank: 3,
       totalStudents: 42,
-      teacherComments: 'Amina est une élève exemplaire qui fait preuve d\'une grande assiduité. Ses résultats sont excellents dans toutes les matières scientifiques. Elle participe activement en classe et aide ses camarades.',
-      directorComments: 'Très bons résultats ce trimestre. Amina est un exemple pour ses camarades. Continuez sur cette voie !',
+      teacherComments: 'Élève sérieuse et appliquée. Très bon travail.',
+      directorComments: 'Excellent trimestre. Continuez ainsi !',
       verificationCode: 'EDU2024-AMK-T1-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
       schoolBranding: {
         schoolName: 'Collège Excellence Africaine - Yaoundé',
@@ -1516,109 +1538,95 @@ export class PDFGenerator {
     const margin = 15;
     let yPosition = margin;
     
-    // === EN-TÊTE OFFICIEL CAMEROUNAIS COMPLET ===
-    // Utilisation de l'en-tête standardisé avec les paramètres de l'école
-    yPosition = await this.addSchoolAdministrativeHeader(doc, {
+    // === EN-TÊTE COMPACT UNIFIÉ ===
+    yPosition = await this.addCompactSchoolHeader(doc, {
       schoolName: testBulletinData.schoolBranding.schoolName,
-      region: 'DÉLÉGATION RÉGIONALE DU CENTRE',
-      department: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI',
       boitePostale: 'B.P. 1234 Yaoundé',
-      phone: '+237 222 345 678',
-      email: 'contact@college-excellence.cm'
+      studentName: testBulletinData.student.name,
+      studentPhoto: undefined // Placeholder pour photo
     });
     
-    // Titre du document
-    yPosition += 5;
-    doc.setFontSize(16);
+    // Titre du document (une seule fois)
+    yPosition += 3;
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 15;
+    yPosition += 8;
     
-    // Student info
-    doc.setFontSize(12);
+    // INFORMATIONS ÉLÈVE (compact)
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
+    doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition);
+    doc.text(`Période: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 50, yPosition);
+    yPosition += 10;
+    
+    // TABLEAU DES NOTES (compact)
+    doc.setFillColor(220, 220, 220);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Élève: ${testBulletinData.student.name}`, margin, yPosition);
-    doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition + 8);
-    doc.text(`Né(e) le: ${testBulletinData.student.dateOfBirth}`, margin, yPosition + 16);
-    doc.text(`Lieu de naissance: ${testBulletinData.student.placeOfBirth}`, margin, yPosition + 24);
-    doc.text(`Période: ${testBulletinData.period}`, margin, yPosition + 32);
-    doc.text(`Année Scolaire: ${testBulletinData.academicYear}`, margin, yPosition + 40);
-    yPosition += 48;
-    
-    // Subjects table
-    doc.setFillColor(0, 0, 0);
-    doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
+    doc.setFontSize(8);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 6, 'F');
     
-    const colWidths = [50, 20, 15, 20, 40, 35];
-    const headers = ['Matière', 'Note', 'Coeff.', 'Points', 'Enseignant', 'Appréciation'];
-    let xPos = margin + 2;
+    const colWidths = [45, 15, 12, 18, 35, 25];
+    const headers = ['Matière', 'Note', 'Coef', 'Points', 'Enseignant', 'Appréciation'];
+    let xPos = margin + 1;
     headers.forEach((header, index) => {
-      doc.text(header, xPos, yPosition + 6);
+      doc.text(header, xPos, yPosition + 4);
       xPos += colWidths[index];
     });
-    yPosition += 8;
+    yPosition += 6;
     
-    // Subjects data
+    // Données matières (compact)
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
+    doc.setFontSize(7);
     testBulletinData.subjects.forEach((subject) => {
       const points = (subject.grade * subject.coefficient).toFixed(1);
-      xPos = margin + 2;
-      doc.text(subject.name, xPos, yPosition + 6);
+      xPos = margin + 1;
+      doc.text(subject.name, xPos, yPosition + 3);
       xPos += colWidths[0];
-      doc.text(subject.grade.toString(), xPos, yPosition + 6);
+      doc.text(subject.grade.toString(), xPos + 5, yPosition + 3);
       xPos += colWidths[1];
-      doc.text(subject.coefficient.toString(), xPos, yPosition + 6);
+      doc.text(subject.coefficient.toString(), xPos + 3, yPosition + 3);
       xPos += colWidths[2];
-      doc.text(points, xPos, yPosition + 6);
+      doc.text(points, xPos + 3, yPosition + 3);
       xPos += colWidths[3];
-      doc.text(subject.teacher, xPos, yPosition + 6);
+      doc.text(subject.teacher.length > 15 ? subject.teacher.substring(0, 12) + '...' : subject.teacher, xPos, yPosition + 3);
       xPos += colWidths[4];
-      const comment = subject.comment.length > 25 ? subject.comment.substring(0, 22) + '...' : subject.comment;
-      doc.text(comment, xPos, yPosition + 6);
-      yPosition += 8;
+      doc.text(subject.comment, xPos, yPosition + 3);
+      yPosition += 5;
     });
     
-    yPosition += 15;
+    yPosition += 8;
     
-    // Average and rank
+    // RÉSULTATS (compact en ligne)
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Moyenne Générale: ${testBulletinData.generalAverage}/20`, margin, yPosition);
-    doc.text(`Rang: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, pageWidth - margin - 50, yPosition);
+    doc.text(`Moyenne: ${testBulletinData.generalAverage}/20`, margin, yPosition);
+    doc.text(`Rang: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, margin + 60, yPosition);
+    doc.text('Conduite: 18/20 (Très bien)', margin + 110, yPosition);
     yPosition += 12;
     
-    // Conduite (Note de conduite ajoutée)
-    doc.text('Conduite: 18/20 (Très bien)', margin, yPosition);
-    yPosition += 15;
-    
-    // Comments
+    // APPRÉCIATIONS (compact)
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.text('Appréciations des Enseignants:', margin, yPosition);
-    yPosition += 8;
+    doc.setFontSize(9);
+    doc.text('Appréciation générale:', margin, yPosition);
+    yPosition += 5;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    const teacherCommentLines = doc.splitTextToSize(testBulletinData.teacherComments, pageWidth - 2 * margin);
-    doc.text(teacherCommentLines, margin, yPosition);
-    yPosition += (teacherCommentLines.length * 5) + 10;
+    doc.setFontSize(8);
+    doc.text(testBulletinData.teacherComments, margin, yPosition);
+    yPosition += 8;
     
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('Appréciations de la Direction:', margin, yPosition);
-    yPosition += 8;
+    doc.setFontSize(9);
+    doc.text('Direction:', margin, yPosition);
+    yPosition += 5;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    const directorCommentLines = doc.splitTextToSize(testBulletinData.directorComments, pageWidth - 2 * margin);
-    doc.text(directorCommentLines, margin, yPosition);
-    yPosition += (directorCommentLines.length * 5) + 20;
+    doc.setFontSize(8);
+    doc.text(testBulletinData.directorComments, margin, yPosition);
+    yPosition += 12;
     
     // Signatures
     doc.setFont('helvetica', 'bold');
