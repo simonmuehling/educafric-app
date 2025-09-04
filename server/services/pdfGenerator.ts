@@ -82,12 +82,13 @@ export class PDFGenerator {
     yPosition += 7;
     
     doc.setFontSize(10); // Taille optimisée mobile
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica', 'italic');
     doc.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
     doc.setFontSize(11); // Taille optimisée mobile
-    doc.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     
     // Informations régionales et départementales
@@ -95,9 +96,16 @@ export class PDFGenerator {
     const department = schoolData?.department || 'Délégation Départementale du Mfoundi';
     
     doc.setFontSize(9); // Plus petit pour mobile
+    doc.setFont('helvetica', 'normal');
     doc.text(region, pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 5;
     doc.text(department, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 5;
+    
+    // Boîte postale
+    if (schoolData?.boitePostale) {
+      doc.text(schoolData.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
+    }
     yPosition += 8;
     
     // Ligne de séparation
@@ -1513,16 +1521,24 @@ export class PDFGenerator {
     const margin = 15;
     let yPosition = margin;
     
-    // Header
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text(testBulletinData.schoolBranding.schoolName, margin, yPosition + 15);
+    // === EN-TÊTE OFFICIEL CAMEROUNAIS COMPLET ===
+    // Utilisation de l'en-tête standardisé avec les paramètres de l'école
+    yPosition = await this.addSchoolAdministrativeHeader(doc, {
+      schoolName: testBulletinData.schoolBranding.schoolName,
+      region: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      department: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI',
+      boitePostale: 'B.P. 1234 Yaoundé',
+      phone: '+237 222 345 678',
+      email: 'contact@college-excellence.cm'
+    });
     
-    yPosition += 35;
+    // Titre du document
+    yPosition += 5;
     doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
     doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 20;
+    yPosition += 15;
     
     // Student info
     doc.setFontSize(12);
@@ -1577,11 +1593,15 @@ export class PDFGenerator {
     
     // Average and rank
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(37, 99, 235);
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
     doc.text(`Moyenne Générale: ${testBulletinData.generalAverage}/20`, margin, yPosition);
     doc.text(`Rang: ${testBulletinData.classRank}/${testBulletinData.totalStudents}`, pageWidth - margin - 50, yPosition);
-    yPosition += 20;
+    yPosition += 12;
+    
+    // Conduite (Note de conduite ajoutée)
+    doc.text('Conduite: 18/20 (Très bien)', margin, yPosition);
+    yPosition += 15;
     
     // Comments
     doc.setFont('helvetica', 'bold');
