@@ -20,7 +20,16 @@ export class PDFGenerator {
     doc.setFont('helvetica');
     let yPosition = 30;
     
-    // En-tête avec branding EDUCAFRIC
+    // En-tête officiel Cameroun
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
+    yPosition += 7;
+    doc.setFontSize(12);
+    doc.text('Ministère des Enseignements Secondaires', 105, yPosition, { align: 'center' });
+    yPosition += 10;
+    
+    // Branding EDUCAFRIC (système)
     doc.setFontSize(24);
     doc.setTextColor(0, 121, 242); // #0079F2
     doc.text('EDUCAFRIC', 20, yPosition);

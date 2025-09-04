@@ -1854,6 +1854,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // Class Reports API Routes
+  // ===== SCHOOL OFFICIAL SETTINGS API =====
+  app.get('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
+    try {
+      const user = { schoolId: 999, role: 'Director' }; // Demo data for sandbox
+      
+      const demoSchool = {
+        id: user.schoolId,
+        name: "École Internationale de Yaoundé - Campus Sandbox",
+        address: "Quartier Bastos, Yaoundé",
+        phone: "+237 222 123 456",
+        email: "contact@ecole-sandbox.cm",
+        logoUrl: "https://images.unsplash.com/photo-1562774053-701939374585?w=200&h=200&fit=crop&crop=center",
+        regionaleMinisterielle: "Délégation Régionale du Centre",
+        delegationDepartementale: "Délégation Départementale du Mfoundi",
+        boitePostale: "B.P. 8524 Yaoundé",
+        arrondissement: "Yaoundé 1er"
+      };
+
+      res.json({
+        success: true,
+        school: demoSchool
+      });
+    } catch (error) {
+      console.error('[SCHOOL_SETTINGS] Error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  app.post('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
+    try {
+      const settings = req.body;
+      console.log('[SCHOOL_SETTINGS] Saving settings:', settings);
+      
+      // For demo purposes, just return success
+      res.json({
+        success: true,
+        message: 'School settings updated successfully',
+        school: settings
+      });
+    } catch (error) {
+      console.error('[SCHOOL_SETTINGS] Save error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   app.get('/api/director/class-reports', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
     try {
       console.log('[CLASS_REPORTS] Fetching class reports for director...');

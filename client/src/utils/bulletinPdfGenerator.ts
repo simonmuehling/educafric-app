@@ -30,6 +30,11 @@ interface SchoolBranding {
   footerText?: string;
   useWatermark?: boolean;
   watermarkText?: string;
+  // Nouveaux champs officiels camerounais
+  regionaleMinisterielle?: string;
+  delegationDepartementale?: string;
+  boitePostale?: string;
+  arrondissement?: string;
 }
 
 interface DigitalSignature {
@@ -80,6 +85,48 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
 
   const primaryRgb = hexToRgb(primaryColor);
   const secondaryRgb = hexToRgb(secondaryColor);
+
+  // ===== FONCTION POUR EN-TÊTE OFFICIEL CAMEROUN =====
+  const addOfficialCameroonHeader = () => {
+    // République du Cameroun
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 7;
+    
+    // Ministère des Enseignements Secondaires
+    pdf.setFontSize(12);
+    pdf.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 7;
+    
+    // Délégation Régionale (si définie)
+    if (data.schoolBranding?.regionaleMinisterielle) {
+      pdf.setFontSize(11);
+      pdf.text(data.schoolBranding.regionaleMinisterielle, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 6;
+    }
+    
+    // Délégation Départementale (si définie)
+    if (data.schoolBranding?.delegationDepartementale) {
+      pdf.setFontSize(11);
+      pdf.text(data.schoolBranding.delegationDepartementale, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 6;
+    }
+    
+    // Boîte Postale (si définie)
+    if (data.schoolBranding?.boitePostale) {
+      pdf.setFontSize(10);
+      pdf.text(data.schoolBranding.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 6;
+    }
+    
+    // Ligne de séparation
+    pdf.setLineWidth(0.5);
+    pdf.setDrawColor(0, 0, 0);
+    pdf.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
+    yPosition += 8;
+  };
 
   // Enhanced bilingual text labels for official transcripts
   const text = {
@@ -157,10 +204,9 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     });
   }
 
-  // === OFFICIAL HEADER SECTION ===
-  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  pdf.setFontSize(16);
-  pdf.setFont('helvetica', 'bold');
+  // === OFFICIAL CAMEROON HEADER SECTION ===
+  // Appliquer l'en-tête officiel camerounais
+  addOfficialCameroonHeader();
 
   // School header with logo on left
   if (data.schoolBranding?.logoUrl) {
@@ -181,12 +227,18 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     }
   }
 
-  // School name and info (centered)
+  // School name (centered)
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
   pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
   pdf.text(data.schoolBranding?.schoolName || 'ÉCOLE SECONDAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
-  pdf.setFontSize(12);
-  pdf.text('RÉPUBLIQUE DU CAMEROUN / REPUBLIC OF CAMEROON', pageWidth / 2, yPosition + 15, { align: 'center' });
-  pdf.text('Paix - Travail - Patrie / Peace - Work - Fatherland', pageWidth / 2, yPosition + 22, { align: 'center' });
+  
+  // Devise nationale si pas de champs officiels spécifiés
+  if (!data.schoolBranding?.regionaleMinisterielle) {
+    pdf.setFontSize(10);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Paix - Travail - Patrie / Peace - Work - Fatherland', pageWidth / 2, yPosition + 18, { align: 'center' });
+  }
 
   // Student photo on right
   let studentPhotoLoaded = false;

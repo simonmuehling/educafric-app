@@ -20,6 +20,13 @@ export const schools = pgTable("schools", {
   termStartDate: timestamp("term_start_date"),
   termEndDate: timestamp("term_end_date"),
   settings: jsonb("settings"),
+  
+  // Champs officiels du gouvernement camerounais pour documents
+  regionaleMinisterielle: text("regionale_ministerielle"), // Ex: "Délégation Régionale du Centre"
+  delegationDepartementale: text("delegation_departementale"), // Ex: "Délégation Départementale du Mfoundi"
+  boitePostale: text("boite_postale"), // Ex: "B.P. 1234 Yaoundé"
+  arrondissement: text("arrondissement"), // Ex: "Yaoundé 1er"
+  
   geolocationEnabled: boolean("geolocation_enabled").default(false),
   pwaEnabled: boolean("pwa_enabled").default(true),
   whatsappEnabled: boolean("whatsapp_enabled").default(false),
