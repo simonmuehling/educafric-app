@@ -654,7 +654,7 @@ const BulletinApprovalNew: React.FC = () => {
             <div className="p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="font-semibold text-black">
                   {language === 'fr' ? 'Modèle Bulletin' : 'Bulletin Template'}
                 </h3>
               </div>
@@ -715,7 +715,7 @@ const BulletinApprovalNew: React.FC = () => {
             <div className="p-4 bg-white rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <GraduationCap className="w-5 h-5 text-gray-600" />
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="font-semibold text-black">
                   {language === 'fr' ? 'Modèle Relevé' : 'Transcript Template'}
                 </h3>
               </div>
