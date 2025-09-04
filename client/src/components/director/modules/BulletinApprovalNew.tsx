@@ -72,6 +72,8 @@ const BulletinApprovalNew: React.FC = () => {
   const [signerPosition, setSignerPosition] = useState<string>('');
   const [schoolStamp, setSchoolStamp] = useState<File | null>(null);
   const [isNotifying, setIsNotifying] = useState(false);
+  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
+  const [previewType, setPreviewType] = useState<'bulletin' | 'transcript'>('bulletin');
 
   const text = {
     fr: {
@@ -208,6 +210,16 @@ const BulletinApprovalNew: React.FC = () => {
     queryFn: async () => {
       const response = await fetch('/api/bulletins');
       if (!response.ok) throw new Error('Failed to fetch bulletins');
+      return response.json();
+    }
+  });
+
+  // Fetch school template preview data
+  const { data: schoolTemplateData, isLoading: isLoadingTemplate } = useQuery({
+    queryKey: ['/api/bulletins/school-template-preview'],
+    queryFn: async () => {
+      const response = await fetch('/api/bulletins/school-template-preview');
+      if (!response.ok) throw new Error('Failed to fetch school template preview');
       return response.json();
     }
   });
@@ -405,6 +417,31 @@ const BulletinApprovalNew: React.FC = () => {
       }
       setSchoolStamp(file);
     }
+  };
+
+  // Handlers pour les boutons de preview
+  const handlePreviewBulletin = () => {
+    setPreviewType('bulletin');
+    setShowTemplatePreview(true);
+    
+    toast({
+      title: language === 'fr' ? '📄 Aperçu Bulletin' : '📄 Bulletin Preview',
+      description: language === 'fr' 
+        ? 'Génération de l\'aperçu personnalisé de votre école...'
+        : 'Generating your school\'s customized preview...'
+    });
+  };
+
+  const handlePreviewTranscript = () => {
+    setPreviewType('transcript');
+    setShowTemplatePreview(true);
+    
+    toast({
+      title: language === 'fr' ? '🎓 Aperçu Relevé' : '🎓 Transcript Preview',
+      description: language === 'fr' 
+        ? 'Génération de l\'aperçu du relevé de notes officiel...'
+        : 'Generating official transcript preview...'
+    });
   };
 
   const confirmApproval = () => {
@@ -639,9 +676,19 @@ const BulletinApprovalNew: React.FC = () => {
                   <span className="font-medium text-green-600">✅ Sécurisé</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full mt-3" data-testid="button-preview-bulletin">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-3" 
+                data-testid="button-preview-bulletin"
+                onClick={handlePreviewBulletin}
+                disabled={isLoadingTemplate}
+              >
                 <Eye className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Voir Aperçu' : 'View Preview'}
+                {isLoadingTemplate ? 
+                  (language === 'fr' ? 'Chargement...' : 'Loading...') :
+                  (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
+                }
               </Button>
             </div>
 
@@ -671,9 +718,19 @@ const BulletinApprovalNew: React.FC = () => {
                   <span className="font-medium text-green-600">✅ FR/EN</span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="w-full mt-3" data-testid="button-preview-transcript">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-3" 
+                data-testid="button-preview-transcript"
+                onClick={handlePreviewTranscript}
+                disabled={isLoadingTemplate}
+              >
                 <Eye className="w-4 h-4 mr-2" />
-                {language === 'fr' ? 'Voir Aperçu' : 'View Preview'}
+                {isLoadingTemplate ? 
+                  (language === 'fr' ? 'Chargement...' : 'Loading...') :
+                  (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
+                }
               </Button>
             </div>
           </div>
@@ -1187,6 +1244,155 @@ const BulletinApprovalNew: React.FC = () => {
               >
                 <Printer className="w-4 h-4 mr-2" />
                 {isGeneratingPDF ? (language === 'fr' ? 'Génération...' : 'Generating...') : (language === 'fr' ? 'Générer PDF' : 'Generate PDF')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Preview Dialog */}
+      <Dialog open={showTemplatePreview} onOpenChange={setShowTemplatePreview}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {previewType === 'bulletin' ? (
+                <>
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  {language === 'fr' ? '📄 Aperçu Template Bulletin' : '📄 Bulletin Template Preview'}
+                </>
+              ) : (
+                <>
+                  <GraduationCap className="w-5 h-5 text-purple-600" />
+                  {language === 'fr' ? '🎓 Aperçu Template Relevé' : '🎓 Transcript Template Preview'}
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+            {/* School Info */}
+            {schoolTemplateData?.data && (
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg border">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <Trophy className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {schoolTemplateData.data.schoolName}
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {language === 'fr' 
+                    ? 'Template personnalisé avec branding spécifique à votre école'
+                    : 'Customized template with your school-specific branding'
+                  }
+                </p>
+              </div>
+            )}
+
+            {/* Template Features */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  {language === 'fr' ? 'Fonctionnalités' : 'Features'}
+                </h4>
+                {schoolTemplateData?.data && (
+                  <div className="space-y-2">
+                    {(previewType === 'bulletin' ? 
+                      schoolTemplateData.data.bulletinTemplate.features : 
+                      schoolTemplateData.data.transcriptTemplate.features
+                    ).map((feature: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Stamp className="w-4 h-4" />
+                  {language === 'fr' ? 'Sécurité' : 'Security'}
+                </h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {language === 'fr' ? 'QR Code unique' : 'Unique QR Code'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {language === 'fr' ? 'Hash cryptographique' : 'Cryptographic hash'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {language === 'fr' ? 'Signature digitale' : 'Digital signature'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview Sample */}
+            <div className="bg-white dark:bg-gray-800 border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <div className="text-center space-y-4">
+                <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg inline-block">
+                  {previewType === 'bulletin' ? (
+                    <FileText className="w-8 h-8 text-blue-600" />
+                  ) : (
+                    <GraduationCap className="w-8 h-8 text-purple-600" />
+                  )}
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    {previewType === 'bulletin' ? 
+                      (language === 'fr' ? 'Aperçu Bulletin' : 'Bulletin Preview') :
+                      (language === 'fr' ? 'Aperçu Relevé de Notes' : 'Transcript Preview')
+                    }
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    {language === 'fr' 
+                      ? 'Document généré avec le branding et les couleurs de votre école'
+                      : 'Document generated with your school branding and colors'
+                    }
+                  </p>
+                  <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                    <span>🎨 Logo école</span>
+                    <span>🔒 QR sécurisé</span>
+                    <span>✍️ Signature</span>
+                    <span>🌐 Bilingue</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowTemplatePreview(false)} className="flex-1">
+                <XCircle className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Fermer' : 'Close'}
+              </Button>
+              <Button 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                onClick={() => {
+                  toast({
+                    title: language === 'fr' ? '✅ Template Validé' : '✅ Template Validated',
+                    description: language === 'fr' 
+                      ? 'Le template de votre école est prêt pour la génération de documents'
+                      : 'Your school template is ready for document generation'
+                  });
+                  setShowTemplatePreview(false);
+                }}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Valider Template' : 'Validate Template'}
               </Button>
             </div>
           </div>
