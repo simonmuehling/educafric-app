@@ -227,6 +227,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve static files
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+  app.use(express.static('public'));
+
+  // Route spéciale pour la page de vérification des bulletins
+  app.get('/verify/:verificationCode?', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public/verify.html'));
+  });
+
+  app.get('/verify', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public/verify.html'));
+  });
 
   // Document serving routes
   app.get('/documents/:filename', async (req, res) => {
