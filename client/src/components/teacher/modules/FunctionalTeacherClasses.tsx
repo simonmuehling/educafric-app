@@ -136,19 +136,6 @@ const FunctionalTeacherClasses: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={() => {
-            toast({
-              title: language === 'fr' ? 'Nouvelle classe' : 'New Class',
-              description: language === 'fr' ? 'Contactez l\'administration pour créer une nouvelle classe' : 'Contact administration to create a new class'
-            });
-          }}
-          data-testid="button-create-class"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouvelle Classe
-        </Button>
       </div>
 
       {/* Stats Cards - Mobile Optimized */}
