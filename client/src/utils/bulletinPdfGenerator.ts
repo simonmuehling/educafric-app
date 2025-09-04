@@ -53,6 +53,8 @@ interface BulletinData {
   generalAverage: number;
   classRank: number;
   totalStudents: number;
+  conductGrade?: number;  // Note de conduite sur 20
+  conduct?: string;       // Appréciation textuelle de conduite
   teacherComments?: string;
   directorComments?: string;
   verificationCode?: string;
@@ -91,12 +93,18 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     pdf.setFont('helvetica', 'bold');
     pdf.setTextColor(0, 0, 0);
     pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
+    
+    // Devise du Cameroun
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'italic');
+    pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     
     // Ministère
     pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'normal');
-    pdf.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 7;
     
     // Délégations avec encadré simple
@@ -144,6 +152,8 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       comment: 'Observation',
       generalAverage: 'Moyenne Générale',
       classRank: 'Rang',
+      conduct: 'Conduite',
+      conductGrade: 'Note de conduite',
       teacherComments: 'Observations des Enseignants',
       directorComments: 'Observations de la Direction',
       signatures: 'Signatures',
@@ -173,6 +183,8 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       comment: 'Comment',
       generalAverage: 'General Average',
       classRank: 'Rank',
+      conduct: 'Conduct',
+      conductGrade: 'Conduct Grade',
       teacherComments: 'Teacher Comments',
       directorComments: 'Director Comments',
       signatures: 'Signatures',
@@ -449,7 +461,27 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   pdf.text(`${t.generalAverage}: ${data?.generalAverage?.toFixed(2)}/20`, margin, yPosition);
   pdf.text(`${t.classRank}: ${data.classRank}/${data.totalStudents}`, pageWidth - margin - 60, yPosition);
 
-  yPosition += 20;
+  yPosition += 12;
+
+  // Section conduite si disponible
+  if (data.conductGrade !== undefined || data.conduct) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.setTextColor(0, 0, 0);
+    
+    let conductText = t.conduct + ': ';
+    if (data.conductGrade !== undefined) {
+      conductText += `${data.conductGrade}/20`;
+    }
+    if (data.conduct) {
+      conductText += data.conductGrade !== undefined ? ` (${data.conduct})` : data.conduct;
+    }
+    
+    pdf.text(conductText, margin, yPosition);
+    yPosition += 12;
+  }
+
+  yPosition += 8;
 
   // Comments sections
   if (data.teacherComments) {
