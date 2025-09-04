@@ -88,7 +88,7 @@ router.get('/bulletins/verify/:validationHash', async (req, res) => {
   try {
     const { validationHash } = req.params;
     
-    // Codes de démonstration pour les tests
+    // Codes de démonstration pour les tests (bilingues)
     const demoCodes = {
       'DEMO2024': {
         isValid: true,
@@ -99,10 +99,10 @@ router.get('/bulletins/verify/:validationHash', async (req, res) => {
             className: 'CM2 A'
           },
           school: {
-            name: 'École Primaire Les Palmiers',
+            name: 'École Primaire Les Palmiers / Les Palmiers Primary School',
             address: 'Yaoundé, Cameroun'
           },
-          period: '1er Trimestre 2024-2025',
+          period: '1er Trimestre 2024-2025 / 1st Term 2024-2025',
           average: 14.5,
           rank: 5
         },
@@ -118,13 +118,13 @@ router.get('/bulletins/verify/:validationHash', async (req, res) => {
           student: {
             firstName: 'Paul',
             lastName: 'Mbala',
-            className: '6ème B'
+            className: '6ème B / 6th Grade B'
           },
           school: {
-            name: 'Collège Bilingue Excellence',
+            name: 'Collège Bilingue Excellence / Excellence Bilingual College',
             address: 'Douala, Cameroun'
           },
-          period: '2ème Trimestre 2024-2025',
+          period: '2ème Trimestre 2024-2025 / 2nd Term 2024-2025',
           average: 16.2,
           rank: 2
         },
@@ -151,7 +151,7 @@ router.get('/bulletins/verify/:validationHash', async (req, res) => {
     console.error('[BULLETIN_VALIDATION] Verify bulletin error:', error);
     res.status(500).json({ 
       isValid: false, 
-      errorMessage: 'Verification service error' 
+      errorMessage: 'Erreur de service de vérification / Verification service error' 
     });
   }
 });

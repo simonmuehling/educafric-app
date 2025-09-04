@@ -194,7 +194,20 @@ const BulletinSignature: React.FC<BulletinSignatureProps> = ({
       clear: 'Effacer',
       cancel: 'Annuler',
       save: 'Enregistrer',
-      preview: 'Aperçu'
+      preview: 'Aperçu',
+      signerInfo: 'Informations du signataire',
+      signatureMode: 'Mode de signature',
+      required: 'requis',
+      selectPosition: 'Sélectionner...',
+      changeSignature: 'Changer',
+      fileRequirements: 'PNG, JPG (max 2MB)',
+      errorTitle: 'Erreur',
+      successTitle: 'Succès',
+      signatureSentSuccess: 'Bulletin signé et envoyé avec succès!',
+      fillAllFields: 'Veuillez remplir toutes les informations',
+      createOrUploadSignature: 'Veuillez créer ou télécharger une signature',
+      sendingError: 'Erreur lors de l\'envoi',
+      fileTooLarge: 'Le fichier est trop volumineux (max 2MB)'
     },
     en: {
       signAndSend: 'Sign & Send',
@@ -212,7 +225,20 @@ const BulletinSignature: React.FC<BulletinSignatureProps> = ({
       clear: 'Clear',
       cancel: 'Cancel',
       save: 'Save',
-      preview: 'Preview'
+      preview: 'Preview',
+      signerInfo: 'Signer Information',
+      signatureMode: 'Signature Mode',
+      required: 'required',
+      selectPosition: 'Select...',
+      changeSignature: 'Change',
+      fileRequirements: 'PNG, JPG (max 2MB)',
+      errorTitle: 'Error',
+      successTitle: 'Success',
+      signatureSentSuccess: 'Bulletin signed and sent successfully!',
+      fillAllFields: 'Please fill all required fields',
+      createOrUploadSignature: 'Please create or upload a signature',
+      sendingError: 'Error sending bulletin',
+      fileTooLarge: 'File too large (max 2MB)'
     }
   };
 
