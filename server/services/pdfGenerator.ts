@@ -20,28 +20,43 @@ export class PDFGenerator {
     doc.setFont('helvetica');
     let yPosition = 30;
     
-    // En-tête officiel Cameroun
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, yPosition, { align: 'center' });
-    yPosition += 7;
+    // === MODERN PROFESSIONAL HEADER ===
+    // Gradient header background
+    doc.setFillColor(26, 54, 93); // Primary blue
+    doc.rect(0, 0, 210, 45, 'F');
+    
+    // République du Cameroun - Modern styling
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('RÉPUBLIQUE DU CAMEROUN', 105, 15, { align: 'center' });
+    
+    // Ministère
     doc.setFontSize(12);
-    doc.text('Ministère des Enseignements Secondaires', 105, yPosition, { align: 'center' });
-    yPosition += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', 105, 25, { align: 'center' });
     
-    // Branding EDUCAFRIC (système)
-    doc.setFontSize(24);
-    doc.setTextColor(0, 121, 242); // #0079F2
-    doc.text('EDUCAFRIC', 20, yPosition);
+    // Modern badge for branding
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(15, 30, 180, 12, 3, 3, 'F');
+    
+    // EDUCAFRIC branding in badge
+    doc.setTextColor(0, 121, 242);
     doc.setFontSize(14);
-    doc.text('Plateforme Éducative Africaine', 20, yPosition + 10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('EDUCAFRIC', 25, 37);
     
-    // Ligne de séparation
-    doc.setDrawColor(0, 121, 242);
-    doc.setLineWidth(1);
-    doc.line(20, yPosition + 15, 190, yPosition + 15);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Plateforme Éducative Africaine', 25, 40);
     
-    yPosition += 25;
+    // Document type indicator
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    doc.text('DOCUMENT OFFICIEL', 175, 37, { align: 'right' });
+    doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, 175, 40, { align: 'right' });
+    
+    yPosition = 55;
     
     // Titre principal
     doc.setFontSize(20);

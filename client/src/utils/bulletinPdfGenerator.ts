@@ -86,43 +86,39 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
   const primaryRgb = hexToRgb(primaryColor);
   const secondaryRgb = hexToRgb(secondaryColor);
 
-  // ===== FONCTION POUR EN-TÊTE OFFICIEL CAMEROUN =====
-  const addOfficialCameroonHeader = () => {
-    // République du Cameroun
-    pdf.setFontSize(14);
+  // ===== MODERN HEADER DESIGN =====
+  const addModernHeader = () => {
+    // Gradient background for header
+    pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    pdf.rect(0, 0, pageWidth, 50, 'F');
+    
+    // République du Cameroun avec style moderne
+    pdf.setFontSize(16);
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(0, 0, 0);
-    pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, 15, { align: 'center' });
     
-    // Ministère selon le type d'école - toujours "Ministère des Enseignements Secondaires" au Cameroun
+    // Ministère avec style élégant
     pdf.setFontSize(12);
-    pdf.text('Ministère des Enseignements Secondaires', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 7;
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, 25, { align: 'center' });
     
-    // Délégation Régionale - utilise les paramètres de l'école ou valeur par défaut
+    // Badge avec délégations
+    pdf.setFillColor(255, 255, 255);
+    pdf.roundedRect(15, 32, pageWidth - 30, 15, 3, 3, 'F');
+    
+    pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    
     const regionaleText = data.schoolBranding?.regionaleMinisterielle || 'Délégation Régionale du Centre';
-    pdf.setFontSize(11);
-    pdf.text(regionaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
-    
-    // Délégation Départementale - utilise les paramètres de l'école ou valeur par défaut
     const departementaleText = data.schoolBranding?.delegationDepartementale || 'Délégation Départementale du Mfoundi';
-    pdf.setFontSize(11);
-    pdf.text(departementaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
-    
-    // Boîte Postale - utilise les paramètres de l'école ou valeur par défaut
     const boitePostaleText = data.schoolBranding?.boitePostale || 'B.P. 8524 Yaoundé';
-    pdf.setFontSize(10);
-    pdf.text(boitePostaleText, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 6;
     
-    // Ligne de séparation
-    pdf.setLineWidth(0.5);
-    pdf.setDrawColor(0, 0, 0);
-    pdf.line(margin, yPosition + 2, pageWidth - margin, yPosition + 2);
-    yPosition += 8;
+    pdf.text(`${regionaleText} • ${departementaleText}`, pageWidth / 2, 38, { align: 'center' });
+    pdf.text(boitePostaleText, pageWidth / 2, 43, { align: 'center' });
+    
+    yPosition = 60;
   };
 
   // Enhanced bilingual text labels for official transcripts
@@ -201,11 +197,15 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     });
   }
 
-  // === OFFICIAL CAMEROON HEADER SECTION ===
-  // Appliquer l'en-tête officiel camerounais
-  addOfficialCameroonHeader();
+  // === MODERN PROFESSIONAL HEADER ===
+  addModernHeader();
 
-  // School header with logo on left
+  // === MODERN SCHOOL SECTION ===
+  // Elegant school information card
+  pdf.setFillColor(248, 250, 252); // Light gray background
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 35, 5, 5, 'F');
+  
+  // School logo on left
   if (data.schoolBranding?.logoUrl) {
     try {
       const logoImg = new Image();
@@ -216,28 +216,37 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       });
       
       if (logoImg.complete) {
-        const logoSize = 30;
-        pdf.addImage(logoImg, 'PNG', margin, yPosition, logoSize, logoSize);
+        const logoSize = 25;
+        pdf.addImage(logoImg, 'PNG', margin + 5, yPosition + 5, logoSize, logoSize);
       }
     } catch (error) {
       console.error('Error loading school logo:', error);
     }
   }
 
-  // School name (centered)
+  // School name with modern typography
   pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  pdf.setFontSize(16);
+  pdf.setFontSize(18);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(data.schoolBranding?.schoolName || 'ÉCOLE SECONDAIRE', pageWidth / 2, yPosition + 8, { align: 'center' });
+  pdf.text(data.schoolBranding?.schoolName || 'ÉCOLE SECONDAIRE', pageWidth / 2, yPosition + 15, { align: 'center' });
   
-  // Devise nationale si pas de champs officiels spécifiés
-  if (!data.schoolBranding?.regionaleMinisterielle) {
-    pdf.setFontSize(10);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text('Paix - Travail - Patrie / Peace - Work - Fatherland', pageWidth / 2, yPosition + 18, { align: 'center' });
-  }
+  // National motto in elegant style
+  pdf.setFontSize(9);
+  pdf.setTextColor(100, 100, 100);
+  pdf.setFont('helvetica', 'italic');
+  pdf.text('« Paix - Travail - Patrie »', pageWidth / 2, yPosition + 25, { align: 'center' });
+  
+  yPosition += 40;
 
-  // Student photo on right
+  // === MODERN STUDENT SECTION ===
+  // Professional student information card
+  const studentCardHeight = 45;
+  
+  // Gradient background for student card
+  pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, studentCardHeight, 8, 8, 'F');
+  
+  // Student photo with modern styling
   let studentPhotoLoaded = false;
   if (data.student?.photoUrl) {
     try {
@@ -250,11 +259,14 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
       
       if (photoImg.complete) {
         const photoSize = 35;
-        const photoX = pageWidth - margin - photoSize;
-        // Draw border for photo
-        pdf.setDrawColor(0, 0, 0);
-        pdf.rect(photoX - 2, yPosition - 2, photoSize + 4, photoSize + 4);
-        pdf.addImage(photoImg, 'JPEG', photoX, yPosition, photoSize, photoSize);
+        const photoX = pageWidth - margin - photoSize - 8;
+        
+        // White circular background for photo
+        pdf.setFillColor(255, 255, 255);
+        pdf.circle(photoX + photoSize/2, yPosition + studentCardHeight/2, photoSize/2 + 2, 'F');
+        
+        // Add photo with rounded border effect
+        pdf.addImage(photoImg, 'JPEG', photoX, yPosition + (studentCardHeight - photoSize)/2, photoSize, photoSize);
         studentPhotoLoaded = true;
       }
     } catch (error) {
@@ -262,120 +274,235 @@ export const generateBulletinPDF = async (data: BulletinData, language: 'fr' | '
     }
   }
   
-  // If no photo loaded, draw placeholder
+  // Modern photo placeholder if no photo
   if (!studentPhotoLoaded) {
     const photoSize = 35;
-    const photoX = pageWidth - margin - photoSize;
-    pdf.setDrawColor(0, 0, 0);
-    pdf.rect(photoX - 2, yPosition - 2, photoSize + 4, photoSize + 4);
+    const photoX = pageWidth - margin - photoSize - 8;
+    
+    // White circular background
+    pdf.setFillColor(255, 255, 255);
+    pdf.circle(photoX + photoSize/2, yPosition + studentCardHeight/2, photoSize/2 + 2, 'F');
+    
+    // Placeholder icon
+    pdf.setDrawColor(200, 200, 200);
+    pdf.setLineWidth(1);
+    pdf.circle(photoX + photoSize/2, yPosition + studentCardHeight/2, photoSize/2, 'D');
+    
     pdf.setFontSize(8);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('PHOTO', photoX + photoSize/2, yPosition + photoSize/2, { align: 'center' });
-    pdf.text('ÉLÈVE', photoX + photoSize/2, yPosition + photoSize/2 + 5, { align: 'center' });
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('PHOTO', photoX + photoSize/2, yPosition + studentCardHeight/2 - 2, { align: 'center' });
+    pdf.text('ÉLÈVE', photoX + photoSize/2, yPosition + studentCardHeight/2 + 4, { align: 'center' });
   }
+  
+  yPosition += studentCardHeight + 10;
 
   yPosition += 45;
 
-  // Document title (official transcript)
+  // === MODERN DOCUMENT TITLE ===
+  // Decorative title section with professional styling
+  pdf.setFillColor(250, 250, 250);
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 5, 5, 'F');
+  
+  // Title with modern typography
+  pdf.setFontSize(22);
+  pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  pdf.setFontSize(20);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(t.title, pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 8;
-  pdf.setFontSize(14);
-  pdf.text(t.officialTranscript, pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 20;
-
-  // === OFFICIAL STUDENT INFORMATION SECTION ===
-  pdf.setFillColor(240, 240, 240);
-  pdf.rect(margin, yPosition, pageWidth - 2 * margin, 40, 'F');
+  pdf.text(t.title, pageWidth / 2, yPosition + 12, { align: 'center' });
   
-  pdf.setTextColor(0, 0, 0);
+  // Subtitle
   pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(t.officialTranscript, pageWidth / 2, yPosition + 20, { align: 'center' });
+  
+  // Decorative line under title
+  pdf.setLineWidth(2);
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.line(pageWidth / 2 - 40, yPosition + 23, pageWidth / 2 + 40, yPosition + 23);
+  
+  yPosition += 35;
+
+  // === MODERN STUDENT INFORMATION CARDS ===
+  const cardHeight = 50;
+  
+  // Student info card with modern design
+  pdf.setFillColor(245, 248, 252); // Light blue background
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, cardHeight, 6, 6, 'F');
+  
+  // Add accent border
+  pdf.setLineWidth(2);
+  pdf.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.line(margin, yPosition, margin, yPosition + cardHeight);
+  
+  // Student name with prominent styling
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
+  pdf.text(data?.student?.name || 'N/A', margin + 10, yPosition + 12);
   
-  // Left column - Student details
-  const leftColX = margin + 5;
-  const rightColX = pageWidth / 2 + 10;
+  // Two-column layout for details
+  pdf.setTextColor(60, 60, 60);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
   
-  pdf.text(`${t.student}: ${data?.student?.name || 'N/A'}`, leftColX, yPosition + 8);
-  pdf.text(`${t.class}: ${data?.student?.class || 'N/A'}`, leftColX, yPosition + 16);
-  pdf.text(`${t.period}: ${data.period || 'N/A'}`, leftColX, yPosition + 24);
-  pdf.text(`${t.academicYear}: ${data.academicYear || 'N/A'}`, leftColX, yPosition + 32);
+  const leftColX = margin + 10;
+  const rightColX = pageWidth / 2 + 5;
   
-  // Right column - Additional student info
+  // Left column
+  pdf.text(`${t.class}: ${data?.student?.class || 'N/A'}`, leftColX, yPosition + 22);
+  pdf.text(`${t.period}: ${data.period || 'N/A'}`, leftColX, yPosition + 30);
+  pdf.text(`${t.academicYear}: ${data.academicYear || 'N/A'}`, leftColX, yPosition + 38);
+  
+  // Right column with additional info
   if (data.student?.birthDate) {
-    pdf.text(`${t.birthDate}: ${data.student.birthDate}`, rightColX, yPosition + 8);
+    pdf.text(`${t.birthDate}: ${data.student.birthDate}`, rightColX, yPosition + 22);
   }
   if (data.student?.studentId) {
-    pdf.text(`${t.studentId}: ${data.student.studentId}`, rightColX, yPosition + 16);
+    pdf.text(`${t.studentId}: ${data.student.studentId}`, rightColX, yPosition + 30);
   }
   if (data.student?.nationality) {
-    pdf.text(`${t.nationality}: ${data.student.nationality}`, rightColX, yPosition + 24);
-  }
-  if (data.student?.parentName) {
-    pdf.text(`${t.parentName}: ${data.student.parentName}`, rightColX, yPosition + 32);
+    pdf.text(`${t.nationality}: ${data.student.nationality}`, rightColX, yPosition + 38);
   }
   
-  yPosition += 50;
+  yPosition += cardHeight + 15;
 
-  // Subjects table header
+  // === MODERN GRADES TABLE ===
+  // Professional table header with gradient effect
   pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 12, 3, 3, 'F');
+  
+  // Table title
   pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
-  pdf.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F');
-
+  pdf.text(t.gradesTable || 'RÉSULTATS ACADÉMIQUES', pageWidth / 2, yPosition + 8, { align: 'center' });
+  
+  yPosition += 18;
+  
+  // Column headers with modern styling
+  pdf.setFillColor(248, 250, 252);
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 10, 2, 2, 'F');
+  
+  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  
   const colWidths = [60, 25, 20, 25, 40, 45];
   const headers = [t.subject, t.grade, t.coefficient, t.points, t.teacher, t.comment];
-  let xPos = margin + 2;
+  let xPos = margin + 3;
 
   headers.forEach((header, index) => {
-    pdf.text(header, xPos, yPosition + 6);
+    pdf.text(header, xPos, yPosition + 7);
     xPos += colWidths[index];
   });
 
-  yPosition += 8;
+  yPosition += 12;
 
-  // Subjects data
+  // === SUBJECTS DATA WITH MODERN STYLING ===
   pdf.setTextColor(0, 0, 0);
   pdf.setFont('helvetica', 'normal');
   pdf.setFontSize(10);
+  
+  // Add alternating row colors for better readability
 
-  data?.subjects?.forEach((subject) => {
-    const points = (subject.grade * subject.coefficient).toFixed(2);
-    xPos = margin + 2;
+  data?.subjects?.forEach((subject, index) => {
+    const rowHeight = 12;
     
-    pdf.text(subject.name, xPos, yPosition + 6);
+    if (yPosition + rowHeight > pageHeight - 40) {
+      pdf.addPage();
+      yPosition = margin;
+    }
+
+    // Alternating row background for modern table look
+    if (index % 2 === 0) {
+      pdf.setFillColor(252, 253, 254);
+      pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, rowHeight, 1, 1, 'F');
+    }
+
+    xPos = margin + 3;
+    
+    // Subject name with better spacing
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(subject.name, xPos, yPosition + 8);
     xPos += colWidths[0];
     
-    pdf.text(subject?.grade?.toString(), xPos, yPosition + 6);
+    // Grade with color coding
+    pdf.setFont('helvetica', 'bold');
+    const grade = subject.grade;
+    if (grade >= 16) {
+      pdf.setTextColor(34, 197, 94); // Green for excellent
+    } else if (grade >= 14) {
+      pdf.setTextColor(59, 130, 246); // Blue for good
+    } else if (grade >= 10) {
+      pdf.setTextColor(251, 146, 60); // Orange for average
+    } else {
+      pdf.setTextColor(239, 68, 68); // Red for poor
+    }
+    pdf.text(grade.toString(), xPos, yPosition + 8);
+    pdf.setTextColor(0, 0, 0); // Reset color
     xPos += colWidths[1];
     
-    pdf.text(subject?.coefficient?.toString(), xPos, yPosition + 6);
+    // Coefficient
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(subject.coefficient.toString(), xPos, yPosition + 8);
     xPos += colWidths[2];
     
-    pdf.text(points, xPos, yPosition + 6);
+    // Points calculation
+    const points = (grade * subject.coefficient).toFixed(2);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(points, xPos, yPosition + 8);
     xPos += colWidths[3];
     
-    pdf.text(subject.teacher, xPos, yPosition + 6);
+    // Teacher name
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(60, 60, 60);
+    pdf.text(subject.teacher, xPos, yPosition + 8);
     xPos += colWidths[4];
     
-    pdf.text(subject.comment || '', xPos, yPosition + 6);
-    
-    yPosition += 8;
+    // Comment with better formatting
+    if (subject.comment) {
+      pdf.setTextColor(100, 100, 100);
+      pdf.setFontSize(9);
+      const comment = pdf.splitTextToSize(subject.comment, colWidths[5] - 2);
+      comment.forEach((line: string, lineIndex: number) => {
+        pdf.text(line, xPos, yPosition + 6 + (lineIndex * 3));
+      });
+      pdf.setFontSize(10);
+    }
+
+    pdf.setTextColor(0, 0, 0); // Reset color
+    yPosition += rowHeight;
   });
 
   yPosition += 10;
 
-  // General average and rank
+  // === MODERN SUMMARY SECTION ===
+  yPosition += 10;
+  
+  // Summary card with modern styling
+  pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.roundedRect(margin, yPosition, pageWidth - 2 * margin, 25, 5, 5, 'F');
+  
+  // Average and rank with prominent display
   pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.setFontSize(14);
+  pdf.setTextColor(255, 255, 255);
+  
+  pdf.text(`${t.generalAverage}: ${data?.generalAverage?.toFixed(2)}/20`, margin + 10, yPosition + 12);
+  pdf.text(`${t.classRank}: ${data.classRank}/${data.totalStudents}`, pageWidth - margin - 80, yPosition + 12);
+  
+  // Performance indicator
+  const average = data?.generalAverage || 0;
+  let performanceText = '';
+  if (average >= 16) performanceText = language === 'fr' ? 'EXCELLENT' : 'EXCELLENT';
+  else if (average >= 14) performanceText = language === 'fr' ? 'TRÈS BIEN' : 'VERY GOOD';
+  else if (average >= 12) performanceText = language === 'fr' ? 'BIEN' : 'GOOD';
+  else if (average >= 10) performanceText = language === 'fr' ? 'ASSEZ BIEN' : 'SATISFACTORY';
+  else performanceText = language === 'fr' ? 'À AMÉLIORER' : 'NEEDS IMPROVEMENT';
+  
+  pdf.setFontSize(10);
+  pdf.text(performanceText, pageWidth / 2, yPosition + 20, { align: 'center' });
 
-  pdf.text(`${t.generalAverage}: ${data?.generalAverage?.toFixed(2)}/20`, margin, yPosition);
-  pdf.text(`${t.classRank}: ${data.classRank}/${data.totalStudents}`, pageWidth - margin - 60, yPosition);
-
-  yPosition += 20;
+  yPosition += 35;
 
   // Comments sections
   if (data.teacherComments) {
