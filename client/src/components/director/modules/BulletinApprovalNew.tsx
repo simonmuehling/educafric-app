@@ -639,7 +639,7 @@ const BulletinApprovalNew: React.FC = () => {
       </div>
 
       {/* School Template Preview */}
-      <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950">
+      <Card className="border-2 border-gray-200 bg-white dark:bg-gray-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
             <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
@@ -714,7 +714,7 @@ const BulletinApprovalNew: React.FC = () => {
             {/* Transcript Preview */}
             <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
               <div className="flex items-center gap-2 mb-3">
-                <GraduationCap className="w-5 h-5 text-purple-600" />
+                <GraduationCap className="w-5 h-5 text-gray-600" />
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                   {language === 'fr' ? 'Modèle Relevé' : 'Transcript Template'}
                 </h3>
@@ -873,13 +873,13 @@ const BulletinApprovalNew: React.FC = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <Stamp className="w-5 h-5 text-purple-600" />
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <Stamp className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="text-sm font-medium text-purple-800 dark:text-purple-200">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                   {language === 'fr' ? 'Hash sécurisé' : 'Secure hash'}
                 </p>
-                <p className="text-xs text-purple-700 dark:text-purple-300">
+                <p className="text-xs text-gray-700 dark:text-gray-300">
                   {language === 'fr' ? 'Anti-contrefaçon' : 'Anti-counterfeit'}
                 </p>
               </div>
@@ -1281,7 +1281,7 @@ const BulletinApprovalNew: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <GraduationCap className="w-5 h-5 text-purple-600" />
+                  <GraduationCap className="w-5 h-5 text-gray-600" />
                   {language === 'fr' ? '🎓 Aperçu Template Relevé' : '🎓 Transcript Template Preview'}
                 </>
               )}
@@ -1360,7 +1360,7 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
 
             {/* COMPLETE BULLETIN TEMPLATE PREVIEW */}
-            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-2 border-dashed border-blue-300 dark:border-blue-700 rounded-lg p-8">
+            <div className="bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8">
               <div className="space-y-6">
                 {/* Complete Bulletin Template */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl mx-auto">
