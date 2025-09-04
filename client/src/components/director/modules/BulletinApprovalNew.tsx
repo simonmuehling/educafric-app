@@ -691,23 +691,6 @@ const BulletinApprovalNew: React.FC = () => {
                     (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
                   }
                 </Button>
-                <Button 
-                  size="sm" 
-                  className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
-                  data-testid="button-view-full-template"
-                  onClick={() => {
-                    window.open('/documents/template-bulletin-educafric.html', '_blank');
-                    toast({
-                      title: language === 'fr' ? 'Template Complet' : 'Full Template',
-                      description: language === 'fr' 
-                        ? 'Ouverture du template complet dans un nouvel onglet'
-                        : 'Opening complete template in new tab'
-                    });
-                  }}
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Template Complet' : 'Full Template'}
-                </Button>
               </div>
             </div>
 
