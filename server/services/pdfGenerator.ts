@@ -98,7 +98,7 @@ export class PDFGenerator {
     doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 8;
     
-    // BLOC ÉCOLE + ÉLÈVE (même ligne pour économiser l'espace)
+    // BLOC ÉCOLE + ÉLÈVE (repositionné pour éviter chevauchement)
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     
@@ -107,17 +107,18 @@ export class PDFGenerator {
       doc.text(schoolData.schoolName, margin, yPosition);
     }
     
-    // Nom de l'élève à droite
+    // Nom de l'élève repositionné plus à gauche pour éviter la photo
     if (schoolData?.studentName) {
-      doc.text(`Élève: ${schoolData.studentName}`, pageWidth - margin - 60, yPosition);
+      doc.text(`Élève: ${schoolData.studentName}`, pageWidth - margin - 85, yPosition);
     }
     yPosition += 6;
     
-    // Boîte postale seulement
+    // Informations de contact complètes
     if (schoolData?.boitePostale) {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.text(schoolData.boitePostale, margin, yPosition);
+      doc.text('Tél: +237 222 345 678', margin + 80, yPosition);
     }
     
     // Photo de l'élève (identique au HTML)
@@ -130,7 +131,7 @@ export class PDFGenerator {
     
     yPosition += 8;
     
-    // Ligne de séparation fine
+    // Ligne de séparation entre en-tête et contenu
     doc.setLineWidth(0.3);
     doc.setDrawColor(0, 0, 0);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -1489,7 +1490,13 @@ export class PDFGenerator {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 10;
+    yPosition += 8;
+    
+    // LIGNE DE SÉPARATION entre noms et notes
+    doc.setLineWidth(0.5);
+    doc.setDrawColor(0, 0, 0);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+    yPosition += 6;
     
     // INFORMATIONS ÉLÈVE COMPLÈTES
     doc.setFontSize(8);
