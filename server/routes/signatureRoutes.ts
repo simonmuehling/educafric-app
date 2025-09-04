@@ -134,7 +134,7 @@ router.delete('/:userRole', requireAuth, async (req, res) => {
   }
 });
 
-// Appliquer signature et envoyer bulletin (pour démo)
+// Appliquer signature et envoyer bulletin (pour démo) - route publique pour test
 router.post('/apply-and-send', async (req, res) => {
   try {
     const { bulletinId, signatureData, signerInfo, studentName } = req.body;
