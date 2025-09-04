@@ -1559,12 +1559,12 @@ export class PDFGenerator {
     });
     
     // Titre du document (une seule fois)
-    yPosition += 3;
+    yPosition += 5;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
     doc.text('BULLETIN SCOLAIRE', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 8;
+    yPosition += 10;
     
     // INFORMATIONS ÉLÈVE COMPLÈTES
     doc.setFontSize(8);
