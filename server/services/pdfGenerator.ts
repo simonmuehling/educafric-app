@@ -1620,17 +1620,7 @@ export class PDFGenerator {
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
     
-    // INFORMATIONS ÉLÈVE COMPLÈTES (bilingue)
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${t.class}: ${testBulletinData.student.class}`, margin, yPosition);
-    doc.text(`${t.period}: ${testBulletinData.period} ${testBulletinData.academicYear}`, pageWidth - margin - 60, yPosition);
-    yPosition += 6;
-    doc.text(`${t.born}: ${testBulletinData.student.dateOfBirth}`, margin, yPosition);
-    doc.text(`${t.gender}: ${testBulletinData.student.gender}`, margin + 80, yPosition);
-    yPosition += 6;
-    doc.text(`${t.birthPlace}: ${testBulletinData.student.placeOfBirth}`, margin, yPosition);
-    yPosition += 10;
+    // INFORMATIONS DÉJÀ PRÉSENTES DANS L'EN-TÊTE - SECTION SUPPRIMÉE
     
     // TABLEAU DES NOTES (compact)
     doc.setFillColor(220, 220, 220);
