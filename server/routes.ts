@@ -34,8 +34,6 @@ import { storage } from "./storage.js";
 import { users, schools, classes, subjects, grades } from "../shared/schema.js";
 import { eq, and } from "drizzle-orm";
 
-const db = storage.db;
-
 // Import existing route modules
 import geolocationRoutes from "./routes/geolocation";
 import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
@@ -88,7 +86,6 @@ import { registerCriticalAlertingRoutes } from "./routes/criticalAlertingRoutes"
 import { registerSiteAdminRoutes } from "./routes/siteAdminRoutes";
 import { registerSubscriptionRoutes } from "./routes/subscriptionRoutes";
 import { autoscaleRoutes } from "./services/sandboxAutoscaleService";
-import { storage } from "./storage";
 
 // Configure multer for file uploads
 const logoStorage = multer.diskStorage({
