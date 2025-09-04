@@ -2034,6 +2034,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Liste des documents commerciaux
+  app.get('/api/commercial/documents', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const commercialDocuments = [
+        { id: 1, title: "Kit de Prospection EDUCAFRIC Complet", description: "Document commercial complet", type: "commercial", url: "/documents/kit-prospection-educafric-complet.html" },
+        { id: 2, title: "Guide Commercial Bulletins EDUCAFRIC", description: "Guide pour la vente du système de bulletins", type: "commercial", url: "/documents/guide-commercial-bulletins-educafric-2025.html" },
+        { id: 3, title: "Guide Signatures Numériques - Professeurs Principaux", description: "Système de signatures numériques pour bulletins", type: "commercial", url: "/documents/guide-signatures-numeriques-professeurs-principaux.html" },
+        { id: 7, title: "Digital Signatures Guide - Principal Teachers", description: "Digital signature system for report cards (English)", type: "commercial", url: "/documents/digital-signatures-guide-principal-teachers-en.html" },
+        { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
+        { id: 5, title: "Tarifs et Offres 2025", description: "Grille tarifaire détaillée", type: "commercial", url: null },
+        { id: 6, title: "ROI Calculator EDUCAFRIC", description: "Calculateur de retour sur investissement", type: "commercial", url: null }
+      ];
+      
+      res.json({ success: true, documents: commercialDocuments });
+    } catch (error) {
+      console.error('[COMMERCIAL_DOCS] Error fetching documents list:', error);
+      res.status(500).json({ error: 'Failed to fetch commercial documents' });
+    }
+  });
+
   // CRITICAL: Add missing commercial document routes to fix PDF Content-Length errors
   app.get('/api/commercial/documents/:id/download', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
     try {
