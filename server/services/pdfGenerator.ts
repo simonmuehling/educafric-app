@@ -73,71 +73,99 @@ export class PDFGenerator {
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     
-    // EN-TÊTE OFFICIEL CAMEROUN IDENTIQUE AU HTML
-    doc.setFontSize(11);
+    // === STRUCTURE EN 3 COLONNES ===
+    const leftColX = margin;
+    const centerX = pageWidth / 2;
+    const rightColX = pageWidth - margin - 80;
+    let startY = yPosition;
+    
+    // COLONNE GAUCHE - Informations officielles et école
+    let leftY = startY;
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
+    doc.text('RÉPUBLIQUE DU CAMEROUN', leftColX, leftY);
+    leftY += 4;
     
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
-    doc.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 5;
+    doc.text('Paix - Travail - Patrie', leftColX, leftY);
+    leftY += 4;
     
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', leftColX, leftY);
+    leftY += 4;
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DÉLÉGATION RÉGIONALE DU CENTRE', leftColX, leftY);
+    leftY += 3;
+    doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', leftColX, leftY);
+    leftY += 5;
+    
+    // École et contact
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 4;
-    
-    // DÉLÉGATIONS (comme dans le HTML)
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('DÉLÉGATION RÉGIONALE DU CENTRE', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 4;
-    doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 8;
-    
-    // École (centrée)
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    
     if (schoolData?.schoolName) {
-      doc.text(schoolData.schoolName, pageWidth / 2, yPosition, { align: 'center' });
+      doc.text(schoolData.schoolName, leftColX, leftY);
     }
-    yPosition += 5;
+    leftY += 3;
     
-    // Téléphone centré sous l'école
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text('Tél: +237 222 345 678', pageWidth / 2, yPosition, { align: 'center' });
-    doc.setTextColor(0, 0, 0); // Remettre en noir
-    yPosition += 6;
+    doc.text('Tél: +237 222 345 678', leftColX, leftY);
+    leftY += 3;
     
-    // Boîte postale centrée sous le téléphone
     if (schoolData?.boitePostale) {
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text(schoolData.boitePostale, pageWidth / 2, yPosition, { align: 'center' });
+      doc.text(schoolData.boitePostale, leftColX, leftY);
     }
-    yPosition += 5;
     
-    // Nom de l'élève centré sous la boîte postale
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    if (schoolData?.studentName) {
-      doc.text(`Élève: ${schoolData.studentName}`, pageWidth / 2, yPosition, { align: 'center' });
-    }
-    yPosition += 6;
+    // COLONNE DROITE - Informations élève avec photo
+    let rightY = startY;
     
-    // Photo de l'élève (identique au HTML)
+    // Photo élève (en haut à droite de la colonne droite)
     doc.setDrawColor(150, 150, 150);
     doc.setLineWidth(0.5);
-    doc.rect(pageWidth - margin - 25, yPosition - 15, 20, 20);
+    doc.rect(pageWidth - margin - 25, rightY, 20, 20);
     doc.setFontSize(6);
     doc.setTextColor(150, 150, 150);
-    doc.text('PHOTO', pageWidth - margin - 15, yPosition - 5, { align: 'center' });
+    doc.text('PHOTO', pageWidth - margin - 15, rightY + 12, { align: 'center' });
+    
+    // Informations élève à côté de la photo
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    if (schoolData?.studentName) {
+      doc.text(`Élève: ${schoolData.studentName}`, rightColX, rightY + 4);
+    }
+    rightY += 8;
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Classe: 3ème A', rightColX, rightY);
+    rightY += 3;
+    doc.text('Né(e) le: 15 Mars 2010', rightColX, rightY);
+    rightY += 3;
+    doc.text('Lieu de naissance: Abidjan, Côte d\'Ivoire', rightColX, rightY);
+    
+    // CENTRE - Logo établissement (placeholder)
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.5);
+    doc.rect(centerX - 15, startY, 30, 30);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('LOGO', centerX, startY + 18, { align: 'center' });
+    doc.text('ÉTABLISSEMENT', centerX, startY + 25, { align: 'center' });
+    
+    // PÉRIODE CENTRÉE SOUS LE LOGO
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Période: 1er Trimestre 2024-2025', centerX, startY + 40, { align: 'center' });
+    
+    
+    yPosition = startY + 50;
     
     yPosition += 8;
     
