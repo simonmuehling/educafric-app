@@ -147,6 +147,8 @@ export class PDFGenerator {
     rightY += 3;
     doc.text('Né(e) le: 15 Mars 2010', rightColX, rightY);
     rightY += 3;
+    doc.text('Sexe: Féminin', rightColX, rightY);
+    rightY += 3;
     doc.text('Lieu de naissance: Abidjan, Côte d\'Ivoire', rightColX, rightY);
     
     // CENTRE - Logo établissement (placeholder - taille réduite)
