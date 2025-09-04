@@ -149,20 +149,20 @@ export class PDFGenerator {
     rightY += 3;
     doc.text('Lieu de naissance: Abidjan, Côte d\'Ivoire', rightColX, rightY);
     
-    // CENTRE - Logo établissement (placeholder)
+    // CENTRE - Logo établissement (placeholder - taille réduite)
     doc.setDrawColor(100, 100, 100);
     doc.setLineWidth(0.5);
-    doc.rect(centerX - 15, startY, 30, 30);
-    doc.setFontSize(8);
+    doc.rect(centerX - 10, startY, 20, 20);
+    doc.setFontSize(6);
     doc.setTextColor(100, 100, 100);
-    doc.text('LOGO', centerX, startY + 18, { align: 'center' });
-    doc.text('ÉTABLISSEMENT', centerX, startY + 25, { align: 'center' });
+    doc.text('LOGO', centerX, startY + 12, { align: 'center' });
+    doc.text('ÉCOLE', centerX, startY + 17, { align: 'center' });
     
     // PÉRIODE CENTRÉE SOUS LE LOGO
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(0, 0, 0);
-    doc.text('Période: 1er Trimestre 2024-2025', centerX, startY + 40, { align: 'center' });
+    doc.text('Période: 1er Trimestre 2024-2025', centerX, startY + 30, { align: 'center' });
     
     
     yPosition = startY + 50;
