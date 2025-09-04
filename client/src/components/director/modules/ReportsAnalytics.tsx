@@ -11,6 +11,7 @@ import {
   TrendingUp, FileText, PieChart, Activity, Award,
   Target, Clock, CheckCircle
 } from 'lucide-react';
+import ClassReports from './ClassReports';
 
 const ReportsAnalytics: React.FC = () => {
   const { language } = useLanguage();
@@ -35,7 +36,8 @@ const ReportsAnalytics: React.FC = () => {
         teachers: 'Évaluation Enseignants',
         students: 'Progression Élèves',
         parent: 'Engagement Parents',
-        comparative: 'Analyse Comparative'
+        comparative: 'Analyse Comparative',
+        classReports: 'Rapports par Classe'
       },
       actions: {
         generate: 'Générer',
@@ -63,7 +65,8 @@ const ReportsAnalytics: React.FC = () => {
         teachers: 'Teacher Evaluation',
         students: 'Student Progress',
         parent: 'Parent Engagement',
-        comparative: 'Comparative Analysis'
+        comparative: 'Comparative Analysis',
+        classReports: 'Class Reports'
       },
       actions: {
         generate: 'Generate',
@@ -157,7 +160,8 @@ const ReportsAnalytics: React.FC = () => {
     { id: 'teachers', name: t?.reports?.teachers, icon: Award, color: 'bg-indigo-500', description: language === 'fr' ? 'Évaluation des enseignants' : 'Teacher evaluation' },
     { id: 'students', name: t?.reports?.students, icon: Users, color: 'bg-pink-500', description: language === 'fr' ? 'Progression des élèves' : 'Student progress' },
     { id: 'parent', name: t?.reports?.parent, icon: Activity, color: 'bg-teal-500', description: language === 'fr' ? 'Engagement parental' : 'Parent engagement' },
-    { id: 'comparative', name: t?.reports?.comparative, icon: PieChart, color: 'bg-cyan-500', description: language === 'fr' ? 'Comparaison avec autres établissements' : 'Comparison with other institutions' }
+    { id: 'comparative', name: t?.reports?.comparative, icon: PieChart, color: 'bg-cyan-500', description: language === 'fr' ? 'Comparaison avec autres établissements' : 'Comparison with other institutions' },
+    { id: 'classReports', name: t?.reports?.classReports, icon: Users, color: 'bg-red-500', description: language === 'fr' ? 'Rapports détaillés par classe avec notes' : 'Detailed class reports with grades' }
   ];
 
   // Generate recent reports based on real data
@@ -192,7 +196,15 @@ const ReportsAnalytics: React.FC = () => {
     }
   ];
 
+  const [showClassReports, setShowClassReports] = useState(false);
+
   const handleGenerateReport = async (reportType: string) => {
+    // Handle special case for class reports
+    if (reportType === 'classReports') {
+      setShowClassReports(true);
+      return;
+    }
+    
     setGeneratingReport(reportType);
     
     // Generation de rapport basé sur vraies données
@@ -248,6 +260,24 @@ Source: Système Educafric - Collège Saint-Joseph`;
       return <Badge className="bg-yellow-100 text-yellow-800">{language === 'fr' ? 'Génération...' : 'Generating...'}</Badge>;
     }
   };
+
+  // Show Class Reports component if selected
+  if (showClassReports) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="p-4">
+          <Button 
+            onClick={() => setShowClassReports(false)}
+            variant="outline"
+            className="mb-4"
+          >
+            ← {language === 'fr' ? 'Retour aux Rapports' : 'Back to Reports'}
+          </Button>
+          <ClassReports />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">

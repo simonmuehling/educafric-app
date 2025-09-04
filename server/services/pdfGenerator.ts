@@ -272,6 +272,79 @@ export class PDFGenerator {
   /**
    * Generate bulletin creation workflow documentation in English
    */
+  static async generateClassReportPDF(classId: number, schoolId: number): Promise<Buffer> {
+    try {
+      console.log(`[PDF_GENERATOR] Generating class report PDF for class ${classId}...`);
+      
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+      const doc = new jsPDF();
+      
+      // Add school header and logo placeholder
+      doc.setFontSize(20);
+      doc.text('RAPPORT DE CLASSE', 105, 20, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.text('EDUCAFRIC - Système de Gestion Scolaire', 105, 30, { align: 'center' });
+      
+      // Add class information section
+      let yPosition = 50;
+      doc.setFontSize(14);
+      doc.text('INFORMATIONS DE LA CLASSE', 20, yPosition);
+      
+      yPosition += 10;
+      doc.setFontSize(10);
+      doc.text(`Classe: ${classId}`, 20, yPosition);
+      yPosition += 5;
+      doc.text(`École ID: ${schoolId}`, 20, yPosition);
+      yPosition += 5;
+      doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, yPosition);
+      
+      // Add grades section
+      yPosition += 20;
+      doc.setFontSize(14);
+      doc.text('NOTES ET PERFORMANCES', 20, yPosition);
+      
+      yPosition += 15;
+      doc.setFontSize(10);
+      doc.text('Élève', 20, yPosition);
+      doc.text('Matière', 60, yPosition);
+      doc.text('Note', 100, yPosition);
+      doc.text('Max', 120, yPosition);
+      doc.text('%', 140, yPosition);
+      doc.text('Commentaire', 160, yPosition);
+      
+      // Add sample data (in real implementation, this would fetch from database)
+      yPosition += 10;
+      for (let i = 0; i < 10; i++) {
+        doc.text(`Élève ${i + 1}`, 20, yPosition);
+        doc.text('Mathématiques', 60, yPosition);
+        doc.text('15.5', 100, yPosition);
+        doc.text('20', 120, yPosition);
+        doc.text('77.5%', 140, yPosition);
+        doc.text('Bon travail', 160, yPosition);
+        yPosition += 5;
+        
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+      }
+      
+      // Add footer
+      doc.setFontSize(8);
+      doc.text('Généré par EDUCAFRIC - Système de Gestion Scolaire', 105, 290, { align: 'center' });
+      doc.text(`Date de génération: ${new Date().toLocaleString('fr-FR')}`, 105, 295, { align: 'center' });
+      
+      console.log('[PDF_GENERATOR] ✅ Class report PDF generated successfully');
+      return Buffer.from(doc.output('arraybuffer'));
+      
+    } catch (error) {
+      console.error('[PDF_GENERATOR] Error generating class report PDF:', error);
+      throw error;
+    }
+  }
+
   static async generateBulletinWorkflowDocumentationEN(): Promise<Buffer> {
     const jsPDFModule = await import('jspdf');
     const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
