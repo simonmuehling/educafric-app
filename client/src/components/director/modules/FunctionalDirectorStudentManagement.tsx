@@ -61,6 +61,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     level: '',
     age: '',
     gender: '',
+    dateOfBirth: '', // Date de naissance
+    placeOfBirth: '', // Lieu de naissance
     matricule: '',
     parentName: '',
     parentEmail: '',
@@ -138,7 +140,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       queryClient.refetchQueries({ queryKey: ['/api/director/students'] });
       
       setIsAddStudentOpen(false);
-      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '', photo: null });
+      setStudentForm({ name: '', email: '', phone: '', className: '', level: '', age: '', gender: '', dateOfBirth: '', placeOfBirth: '', matricule: '', parentName: '', parentEmail: '', parentPhone: '', photo: null });
       
       toast({
         title: '✅ Élève ajouté avec succès',
@@ -249,6 +251,8 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       level: student.level,
       age: student.age.toString(),
       gender: '',
+      dateOfBirth: '', // Sera rempli avec les données existantes si disponible
+      placeOfBirth: '', // Sera rempli avec les données existantes si disponible
       matricule: '',
       parentName: student.parentName,
       parentEmail: student.parentEmail,
@@ -605,6 +609,29 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                   />
                 </div>
               </div>
+              
+              {/* Date et lieu de naissance - NOUVEAUX CHAMPS */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Date de naissance</Label>
+                  <Input
+                    type="date"
+                    value={studentForm.dateOfBirth || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Lieu de naissance</Label>
+                  <Input
+                    value={studentForm.placeOfBirth || ''}
+                    onChange={(e) => setStudentForm(prev => ({ ...prev, placeOfBirth: e.target.value }))}
+                    placeholder="Ex: Yaoundé, Cameroun"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              
               <div>
                 <Label className="text-sm font-medium">Classe (optionnelle)</Label>
                 <Select 

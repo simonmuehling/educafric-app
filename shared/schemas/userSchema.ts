@@ -14,6 +14,8 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   gender: text("gender"),
+  dateOfBirth: text("date_of_birth"), // Date de naissance au format YYYY-MM-DD
+  placeOfBirth: text("place_of_birth"), // Lieu de naissance (ville, pays)
   phone: text("phone").unique(),
   schoolId: integer("school_id"),
   

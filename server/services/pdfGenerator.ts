@@ -581,7 +581,7 @@ export class PDFGenerator {
     
     // Create realistic test data for African school
     const testBulletinData = {
-      student: { name: 'Amina Kouakou', class: '3ème A' },
+      student: { name: 'Amina Kouakou', class: '3ème A', dateOfBirth: '15 Mars 2010', placeOfBirth: 'Abidjan, Côte d\'Ivoire' },
       subjects: [
         { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph', comment: 'Excellents résultats. Continue ainsi!' },
         { name: 'Français', grade: 14.0, coefficient: 4, teacher: 'Mme Diallo Fatou', comment: 'Bon niveau d\'expression écrite' },
@@ -628,9 +628,11 @@ export class PDFGenerator {
     doc.setTextColor(0, 0, 0);
     doc.text(`Élève: ${testBulletinData.student.name}`, margin, yPosition);
     doc.text(`Classe: ${testBulletinData.student.class}`, margin, yPosition + 8);
-    doc.text(`Période: ${testBulletinData.period}`, margin, yPosition + 16);
-    doc.text(`Année Scolaire: ${testBulletinData.academicYear}`, margin, yPosition + 24);
-    yPosition += 40;
+    doc.text(`Né(e) le: ${testBulletinData.student.dateOfBirth}`, margin, yPosition + 16);
+    doc.text(`Lieu de naissance: ${testBulletinData.student.placeOfBirth}`, margin, yPosition + 24);
+    doc.text(`Période: ${testBulletinData.period}`, margin, yPosition + 32);
+    doc.text(`Année Scolaire: ${testBulletinData.academicYear}`, margin, yPosition + 40);
+    yPosition += 48;
     
     // Subjects table
     doc.setFillColor(0, 0, 0);

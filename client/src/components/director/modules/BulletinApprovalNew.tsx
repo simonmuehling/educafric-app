@@ -1407,6 +1407,7 @@ const BulletinApprovalNew: React.FC = () => {
                           <div><span className="font-semibold">Classe:</span> 6ème A</div>
                           <div><span className="font-semibold">Âge:</span> 12 ans</div>
                           <div><span className="font-semibold">Né(e) le:</span> 15 Mars 2012</div>
+                          <div><span className="font-semibold">Lieu de naissance:</span> Yaoundé, Cameroun</div>
                           <div><span className="font-semibold">Matricule:</span> ESJ-2024-001</div>
                         </div>
                       </div>
