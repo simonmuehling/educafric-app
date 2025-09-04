@@ -639,10 +639,10 @@ const BulletinApprovalNew: React.FC = () => {
       </div>
 
       {/* School Template Preview */}
-      <Card className="border-2 border-gray-200 bg-white dark:bg-gray-900">
+      <Card className="border-2 border-gray-200 bg-white">
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+            <div className="p-2 bg-blue-100 rounded-lg">
               <Eye className="w-5 h-5 text-indigo-600" />
             </div>
             {language === 'fr' ? '📄 Aperçu Template École' : '📄 School Template Preview'}
@@ -1360,10 +1360,10 @@ const BulletinApprovalNew: React.FC = () => {
             </div>
 
             {/* COMPLETE BULLETIN TEMPLATE PREVIEW */}
-            <div className="bg-gray-50 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-8">
+            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8">
               <div className="space-y-6">
                 {/* Complete Bulletin Template */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl mx-auto">
+                <div className="bg-white rounded-lg shadow-xl max-w-4xl mx-auto">
                   {/* Header with School Branding */}
                   <div className="border-2 border-black p-6">
                     <div className="flex items-center justify-between mb-4">
