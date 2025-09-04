@@ -160,7 +160,7 @@ router.post('/register', async (req, res) => {
     const user = await storage.createUser({
       ...validatedData,
       password: hashedPassword,
-      phone: validatedData.phoneNumber || validatedData.phone, // Map phoneNumber to phone field
+      phone: validatedData.phoneNumber, // Map phoneNumber to phone field
     });
 
     const { password, ...userWithoutPassword } = user;

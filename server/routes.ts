@@ -1844,6 +1844,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to get activity summary' });
     }
   });
+
+  // CRITICAL: Add missing commercial document routes to fix PDF Content-Length errors
+  app.get('/api/commercial/documents/:id/download', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const docId = parseInt(req.params.id);
+      if (!docId || isNaN(docId)) {
+        return res.status(400).json({ error: 'Invalid document ID' });
+      }
+
+      console.log(`[COMMERCIAL_DOCS] Generating PDF download for document ${docId}`);
+
+      // Import PDF generator dynamically to avoid initial load issues
+      const { PDFGenerator } = await import('./services/pdfGenerator.js');
+      
+      // Generate PDF based on document type - include user data
+      const user = req.user as any;
+      let pdfBuffer: Buffer;
+      if (docId <= 10) {
+        pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
+          id: docId.toString(), 
+          title: `Commercial Document ${docId}`,
+          user: user || { email: 'system@educafric.com' },
+          type: 'commercial' as const
+        });
+      } else {
+        pdfBuffer = await PDFGenerator.generateSystemReport({ 
+          id: docId.toString(), 
+          title: `System Report ${docId}`,
+          user: user || { email: 'system@educafric.com' },
+          type: 'system' as const
+        });
+      }
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('PDF generation returned empty buffer');
+      }
+
+      // Set correct PDF headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="commercial-doc-${docId}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log(`[COMMERCIAL_DOCS] ✅ PDF generated successfully: ${pdfBuffer.length} bytes`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('[COMMERCIAL_DOCS] PDF download error:', error);
+      res.status(500).json({ error: 'Failed to generate PDF', details: (error as Error).message });
+    }
+  });
+
+  app.get('/api/commercial/documents/:id/view', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const docId = parseInt(req.params.id);
+      if (!docId || isNaN(docId)) {
+        return res.status(400).json({ error: 'Invalid document ID' });
+      }
+
+      console.log(`[COMMERCIAL_DOCS] Generating PDF view for document ${docId}`);
+
+      // Import PDF generator dynamically
+      const { PDFGenerator } = await import('./services/pdfGenerator.js');
+      
+      // Generate PDF for inline viewing - include user data
+      const user = req.user as any;
+      let pdfBuffer: Buffer;
+      if (docId <= 10) {
+        pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
+          id: docId.toString(), 
+          title: `Commercial Document ${docId}`,
+          user: user || { email: 'system@educafric.com' },
+          type: 'commercial' as const
+        });
+      } else {
+        pdfBuffer = await PDFGenerator.generateSystemReport({ 
+          id: docId.toString(), 
+          title: `System Report ${docId}`,
+          user: user || { email: 'system@educafric.com' },
+          type: 'system' as const
+        });
+      }
+
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('PDF generation returned empty buffer');
+      }
+
+      // Set headers for inline PDF viewing
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="commercial-doc-${docId}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log(`[COMMERCIAL_DOCS] ✅ PDF view generated successfully: ${pdfBuffer.length} bytes`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('[COMMERCIAL_DOCS] PDF view error:', error);
+      res.status(500).json({ error: 'Failed to generate PDF', details: (error as Error).message });
+    }
+  });
   
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
