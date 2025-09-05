@@ -183,7 +183,8 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content - Full Width (No Sidebar) */}
       <div className="flex flex-col flex-1 h-screen overflow-y-auto">
         {children}
-        <InactivityMonitor warningTime={25} logoutTime={30} />
+        {/* InactivityMonitor temporarily disabled to test connection issues */}
+        {/* <InactivityMonitor warningTime={55} logoutTime={60} /> */}
       </div>
       {/* WebInspector removed to prevent fetch override interference with PWA analytics */}
       

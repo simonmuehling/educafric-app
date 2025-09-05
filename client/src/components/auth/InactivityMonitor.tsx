@@ -12,8 +12,8 @@ interface InactivityMonitorProps {
 }
 
 const InactivityMonitor: React.FC<InactivityMonitorProps> = ({ 
-  warningTime = 25, // Show warning at 25 minutes
-  logoutTime = 30   // Auto logout at 30 minutes
+  warningTime = 55, // Show warning at 55 minutes (increased from 25)
+  logoutTime = 60   // Auto logout at 60 minutes (increased from 30)
 }) => {
   const { user, logout } = useAuth();
   const { language } = useLanguage();
@@ -167,7 +167,7 @@ const InactivityMonitor: React.FC<InactivityMonitorProps> = ({
         timeout = setTimeout(() => {
           resetActivityTimer();
           timeout = null;
-        }, 1000); // Throttle to once per second
+        }, 5000); // Throttle to once per 5 seconds (reduced frequency)
       };
     })();
 
@@ -229,8 +229,8 @@ const InactivityMonitor: React.FC<InactivityMonitorProps> = ({
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // Check session status every 5 minutes
-    const statusInterval = setInterval(checkSessionStatus, 5 * 60 * 1000);
+    // Check session status every 10 minutes (reduced frequency)
+    const statusInterval = setInterval(checkSessionStatus, 10 * 60 * 1000);
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
