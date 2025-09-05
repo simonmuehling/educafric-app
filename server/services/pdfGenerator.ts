@@ -1461,9 +1461,15 @@ export class PDFGenerator {
   }
 
   static async generateTestBulletinDocument(): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
-    const doc = new jsPDF();
+    try {
+      const jsPDFModule = await import('jspdf');
+      const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF || jsPDFModule;
+      
+      if (!jsPDF || typeof jsPDF !== 'function') {
+        throw new Error('jsPDF constructor not found in imported module');
+      }
+      
+      const doc = new jsPDF();
     
     // Configuration
     doc.setFont('helvetica');
@@ -1751,6 +1757,11 @@ export class PDFGenerator {
     doc.text(testBulletinData.schoolBranding.footerText, pageWidth / 2, pageHeight - margin, { align: 'center' });
     
     return Buffer.from(doc.output('arraybuffer'));
+    
+    } catch (error) {
+      console.error('[PDF_GENERATOR] Error generating test bulletin document:', error);
+      throw new Error(`Failed to generate Document 12 PDF: ${error.message}`);
+    }
   }
 
   

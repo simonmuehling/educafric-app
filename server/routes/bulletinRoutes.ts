@@ -422,6 +422,32 @@ router.get('/test-bulletin/pdf', async (req, res) => {
   }
 });
 
+// Preview sample bulletin for sandbox (missing route implementation)
+router.get('/preview-sample', async (req, res) => {
+  try {
+    const schoolId = req.query.schoolId || 1;
+    console.log('[BULLETIN_PREVIEW_SAMPLE] Generating preview sample for school:', schoolId);
+    
+    // Generate the PDF using the PDF generator service
+    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    
+    // Set headers for PDF preview (inline display)
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="bulletin-preview-sample.pdf"');
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    console.log('[BULLETIN_PREVIEW_SAMPLE] ✅ Preview sample PDF generated successfully');
+    res.send(pdfBuffer);
+    
+  } catch (error) {
+    console.error('[BULLETIN_PREVIEW_SAMPLE] ❌ Error generating preview sample:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate bulletin preview sample',
+      details: error.message 
+    });
+  }
+});
+
 // Generate Document 12 format PDF for schools
 router.get('/template-preview/pdf', requireAuth, async (req, res) => {
   try {
