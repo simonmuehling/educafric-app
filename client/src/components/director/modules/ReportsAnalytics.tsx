@@ -160,7 +160,7 @@ const ReportsAnalytics: React.FC = () => {
     }
   });
 
-  // Helper function to get filtered data
+  // Enhanced helper function to get filtered data with all 6 filters
   const getFilteredData = () => {
     let filteredStudents = students.students || [];
     let filteredTeachers = teachers.teachers || [];
@@ -182,6 +182,43 @@ const ReportsAnalytics: React.FC = () => {
         filteredClasses.some((cls: any) => cls.teacherId?.toString() === selectedTeacher && cls.id === student.classId)
       );
       filteredTeachers = filteredTeachers.filter((teacher: any) => teacher.id?.toString() === selectedTeacher);
+    }
+
+    // Apply period filter
+    if (selectedPeriod !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => 
+        student.period === selectedPeriod || !student.period
+      );
+    }
+
+    // Apply subject filter (filter students who have grades in the selected subject)
+    if (selectedSubject !== 'all') {
+      const subjectKey = selectedSubject.toLowerCase()
+        .replace('é', 'e')
+        .replace('è', 'e')
+        .replace('mathématiques', 'maths')
+        .replace('français', 'francais');
+      
+      filteredStudents = filteredStudents.filter((student: any) => {
+        if (student.grades && typeof student.grades === 'object') {
+          return student.grades[subjectKey] !== undefined;
+        }
+        return true; // Include students without detailed grades
+      });
+    }
+
+    // Apply behavior filter
+    if (selectedBehavior !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => 
+        student.behavior === selectedBehavior
+      );
+    }
+
+    // Apply performance filter
+    if (selectedPerformance !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => 
+        student.performance === selectedPerformance
+      );
     }
 
     return { filteredStudents, filteredTeachers, filteredClasses };
@@ -855,7 +892,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
               </div>
             </div>
 
-            {/* Filter Summary */}
+            {/* Enhanced Filter Summary */}
             {filtersActive && (
               <div className="mt-4 p-3 bg-blue-100 rounded-lg">
                 <p className="text-sm text-blue-800">
@@ -868,6 +905,26 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   {selectedTeacher !== 'all' && (
                     <span className="ml-2">
                       {language === 'fr' ? 'Enseignant:' : 'Teacher:'} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.firstName} {teachers.teachers?.find((t: any) => t.id.toString() === selectedTeacher)?.lastName}
+                    </span>
+                  )}
+                  {selectedPeriod !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Période:' : 'Period:'} {selectedPeriod}
+                    </span>
+                  )}
+                  {selectedSubject !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Matière:' : 'Subject:'} {selectedSubject}
+                    </span>
+                  )}
+                  {selectedBehavior !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Comportement:' : 'Behavior:'} {selectedBehavior}
+                    </span>
+                  )}
+                  {selectedPerformance !== 'all' && (
+                    <span className="ml-2">
+                      {language === 'fr' ? 'Performance:' : 'Performance:'} {selectedPerformance.replace('-', ' ')}
                     </span>
                   )}
                 </p>

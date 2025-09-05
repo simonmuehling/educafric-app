@@ -475,19 +475,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For sandbox mode, we'll use mock data that responds to filters
       const isSandbox = user.email?.includes('@test.educafric.com') || user.email?.includes('sandbox');
       
-      // Mock data that represents real structure
+      // Enhanced mock data with complete filter information
       const mockStudents = [
-        { id: 1, classId: 1, firstName: 'Marie', lastName: 'Nguema', schoolId: 1 },
-        { id: 2, classId: 1, firstName: 'Paul', lastName: 'Mbala', schoolId: 1 },
-        { id: 3, classId: 2, firstName: 'Sophie', lastName: 'Atangana', schoolId: 1 },
-        { id: 4, classId: 2, firstName: 'Jean', lastName: 'Eyenga', schoolId: 1 },
-        { id: 5, classId: 3, firstName: 'Grace', lastName: 'Ondoa', schoolId: 1 }
+        { 
+          id: 1, classId: 1, firstName: 'Marie', lastName: 'Nguema', schoolId: 1,
+          matricule: 'EDU2025001', 
+          grades: { francais: 16.5, maths: 15.0, anglais: 17.0, moyenne: 16.2 },
+          behavior: 'TB', performance: 'excellent', period: 'Trimestre 1'
+        },
+        { 
+          id: 2, classId: 1, firstName: 'Paul', lastName: 'Mbala', schoolId: 1,
+          matricule: 'EDU2025002', 
+          grades: { francais: 13.5, maths: 14.5, anglais: 12.0, moyenne: 13.3 },
+          behavior: 'B', performance: 'bien', period: 'Trimestre 1'
+        },
+        { 
+          id: 3, classId: 2, firstName: 'Sophie', lastName: 'Atangana', schoolId: 1,
+          matricule: 'EDU2025003', 
+          grades: { francais: 11.0, maths: 10.5, anglais: 12.5, moyenne: 11.3 },
+          behavior: 'AB', performance: 'assez-bien', period: 'Trimestre 1'
+        },
+        { 
+          id: 4, classId: 2, firstName: 'Jean', lastName: 'Eyenga', schoolId: 1,
+          matricule: 'EDU2025004', 
+          grades: { francais: 9.0, maths: 8.5, anglais: 9.5, moyenne: 9.0 },
+          behavior: 'P', performance: 'passable', period: 'Trimestre 1'
+        },
+        { 
+          id: 5, classId: 3, firstName: 'Grace', lastName: 'Ondoa', schoolId: 1,
+          matricule: 'EDU2025005', 
+          grades: { francais: 18.0, maths: 17.5, anglais: 16.0, moyenne: 17.2 },
+          behavior: 'TB', performance: 'excellent', period: 'Trimestre 1'
+        },
+        { 
+          id: 6, classId: 1, firstName: 'Ahmed', lastName: 'Bakari', schoolId: 1,
+          matricule: 'EDU2025006', 
+          grades: { francais: 7.0, maths: 6.5, anglais: 8.0, moyenne: 7.2 },
+          behavior: 'I', performance: 'insuffisant', period: 'Trimestre 1'
+        },
+        { 
+          id: 7, classId: 2, firstName: 'Christine', lastName: 'Fouda', schoolId: 1,
+          matricule: 'EDU2025007', 
+          grades: { francais: 14.8, maths: 15.2, anglais: 14.0, moyenne: 14.7 },
+          behavior: 'TB', performance: 'tres-bien', period: 'Trimestre 1'
+        },
+        { 
+          id: 8, classId: 3, firstName: 'Boris', lastName: 'Manga', schoolId: 1,
+          matricule: 'EDU2025008', 
+          grades: { francais: 12.5, maths: 13.0, anglais: 11.5, moyenne: 12.3 },
+          behavior: 'B', performance: 'bien', period: 'Trimestre 1'
+        }
       ];
       
       const mockTeachers = [
-        { id: 1, firstName: 'Dr. Marie', lastName: 'NKOMO', classIds: [1, 2], schoolId: 1 },
-        { id: 2, firstName: 'Prof. Paul', lastName: 'ATANGANA', classIds: [2, 3], schoolId: 1 },
-        { id: 3, firstName: 'Mme Sarah', lastName: 'BIYA', classIds: [1], schoolId: 1 }
+        { 
+          id: 1, firstName: 'Dr. Marie', lastName: 'NKOMO', classIds: [1, 2], schoolId: 1,
+          subjects: ['Mathématiques', 'Sciences Physiques'], 
+          mainSubject: 'Mathématiques'
+        },
+        { 
+          id: 2, firstName: 'Prof. Paul', lastName: 'ATANGANA', classIds: [2, 3], schoolId: 1,
+          subjects: ['Français', 'Histoire-Géographie'], 
+          mainSubject: 'Français'
+        },
+        { 
+          id: 3, firstName: 'Mme Sarah', lastName: 'BIYA', classIds: [1], schoolId: 1,
+          subjects: ['Anglais', 'Allemand'], 
+          mainSubject: 'Anglais'
+        }
       ];
       
       const mockClasses = [
