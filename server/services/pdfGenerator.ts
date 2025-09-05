@@ -68,6 +68,8 @@ export class PDFGenerator {
     boitePostale?: string;
     studentName?: string;
     studentPhoto?: string;
+    matricule?: string;
+    studentId?: string;
   }): Promise<number> {
     let yPosition = 12;
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -145,6 +147,15 @@ export class PDFGenerator {
     doc.setFont('helvetica', 'normal');
     doc.text('Classe: 3ème A', rightColX, rightY);
     rightY += 3;
+    
+    // ✅ MATRICULE AJOUTÉ
+    if (schoolData?.matricule || schoolData?.studentId) {
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Matricule: ${schoolData.matricule || schoolData.studentId}`, rightColX, rightY);
+      rightY += 3;
+      doc.setFont('helvetica', 'normal');
+    }
+    
     doc.text('Né(e) le: 15 Mars 2010', rightColX, rightY);
     rightY += 3;
     doc.text('Sexe: Féminin', rightColX, rightY);
@@ -1573,7 +1584,9 @@ export class PDFGenerator {
         dateOfBirth: '15 Mars 2010', 
         placeOfBirth: 'Abidjan, Côte d\'Ivoire',
         gender: language === 'fr' ? 'Féminin' : 'Female',
-        photo: '/api/students/photos/placeholder.jpg'
+        photo: '/api/students/photos/placeholder.jpg',
+        matricule: 'CEA-2024-0157', // ✅ MATRICULE AJOUTÉ
+        studentId: 'CEA-2024-0157'  // ✅ STUDENT ID AJOUTÉ
       },
       subjects: [
         { name: 'Mathématiques', grade: 16.5, coefficient: 4, teacher: 'M. Koné Joseph Augustin', comment: 'Excellent' },
@@ -1609,7 +1622,9 @@ export class PDFGenerator {
       schoolName: testBulletinData.schoolBranding.schoolName,
       boitePostale: 'B.P. 1234 Yaoundé',
       studentName: testBulletinData.student.name,
-      studentPhoto: testBulletinData.student.photo
+      studentPhoto: testBulletinData.student.photo,
+      matricule: testBulletinData.student.matricule, // ✅ PASSER LE MATRICULE
+      studentId: testBulletinData.student.studentId   // ✅ PASSER LE STUDENT ID
     });
     
     // Titre du document (bilingue)
