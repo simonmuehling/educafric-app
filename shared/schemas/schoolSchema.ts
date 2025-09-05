@@ -41,13 +41,12 @@ export const classes = pgTable("classes", {
   name: text("name").notNull(),
   level: text("level").notNull(),
   section: text("section"),
-  capacity: integer("capacity"),
+  maxStudents: integer("max_students"), // Alignement avec la vraie structure DB
   schoolId: integer("school_id").notNull(),
   teacherId: integer("teacher_id"),
-  academicYear: text("academic_year"),
+  academicYearId: integer("academic_year_id").notNull(), // Alignement avec DB réelle
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const subjects = pgTable("subjects", {

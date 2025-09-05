@@ -743,8 +743,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               name: cls.name,
               level: cls.level,
               section: cls.section,
-              capacity: cls.capacity || 35,
-              studentCount: Math.min(studentCountForClass, cls.capacity || 35),
+              capacity: (cls as any).max_students || 35,
+              studentCount: Math.min(studentCountForClass, (cls as any).max_students || 35),
               schoolId: cls.schoolId,
               teacherId: cls.teacherId,
               isActive: true
