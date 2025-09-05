@@ -148,12 +148,17 @@ export class PDFGenerator {
     doc.text('Classe: 3ème A', rightColX, rightY);
     rightY += 3;
     
-    // ✅ MATRICULE AJOUTÉ
+    // ✅ MATRICULE AJOUTÉ - Debug forcé
+    console.log('[MATRICULE_DEBUG] schoolData.matricule:', schoolData?.matricule);
+    console.log('[MATRICULE_DEBUG] schoolData.studentId:', schoolData?.studentId);
     if (schoolData?.matricule || schoolData?.studentId) {
       doc.setFont('helvetica', 'bold');
       doc.text(`Matricule: ${schoolData.matricule || schoolData.studentId}`, rightColX, rightY);
       rightY += 3;
       doc.setFont('helvetica', 'normal');
+      console.log('[MATRICULE_DEBUG] ✅ Matricule affiché:', schoolData.matricule || schoolData.studentId);
+    } else {
+      console.log('[MATRICULE_DEBUG] ❌ Aucun matricule trouvé dans schoolData');
     }
     
     doc.text('Né(e) le: 15 Mars 2010', rightColX, rightY);
@@ -547,7 +552,7 @@ export class PDFGenerator {
         region: 'Délégation Régionale du Centre',
         department: 'Délégation Départementale du Mfoundi'
       };
-      let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+      yPosition = await this.addCompactSchoolHeader(doc, schoolData);
       
       // Add QR code after header
       await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -909,7 +914,7 @@ export class PDFGenerator {
       phone: 'Tél: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
@@ -1049,7 +1054,7 @@ export class PDFGenerator {
       phone: 'Tel: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Titre principal
     doc.setFontSize(16);
@@ -1224,7 +1229,7 @@ export class PDFGenerator {
       phone: 'Tél: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Titre principal
     doc.setFontSize(16);
@@ -1500,7 +1505,7 @@ export class PDFGenerator {
       id: `test-bulletin-${Date.now()}`,
       title: 'Bulletin Scolaire - Amina Kouakou',
       user: { email: 'system@educafric.com' },
-      type: 'bulletin'
+      type: 'report'
     };
     console.log('[BULLETIN_PDF] ✅ Generating professional bulletin (ID:', documentData.id + ')');
     
@@ -1805,7 +1810,7 @@ export class PDFGenerator {
       phone: 'Tél: +237 656 200 472',
       email: 'Email: info@educafric.com'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
