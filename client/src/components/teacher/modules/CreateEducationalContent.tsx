@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   BookOpen, Upload, Download, Eye, Plus, Edit, Save, 
   FileText, Image, Video, AudioLines, Target, Clock,
-  Users, Star, Calendar, CheckSquare, X, Search
+  Users, Star, Calendar, CheckSquare, X, Search, Share2, CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // Removed apiRequest import - using fetch with credentials instead
 
 const CreateEducationalContent = () => {
@@ -208,7 +209,8 @@ const CreateEducationalContent = () => {
     { id: 'lessons', name: t.lessons, icon: BookOpen },
     { id: 'exercises', name: t.exercises, icon: CheckSquare },
     { id: 'resources', name: t.resources, icon: Upload },
-    { id: 'templates', name: t.templates, icon: FileText }
+    { id: 'templates', name: t.templates, icon: FileText },
+    { id: 'shared', name: language === 'fr' ? 'Contenu Partagé' : 'Shared Content', icon: Users }
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,6 +225,55 @@ const CreateEducationalContent = () => {
 
   const removeFile = (index: number) => {
     setUploadedFiles(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
+  };
+
+  const shareContent = async (contentId: number) => {
+    try {
+      const response = await fetch(`/api/educational-content/${contentId}/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ shareWithSchool: true })
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "Contenu partagé" : "Content shared",
+          description: language === 'fr' ? "Le contenu a été partagé avec votre école" : "Content has been shared with your school",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de partager le contenu" : "Failed to share content",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const submitForApproval = async (contentId: number) => {
+    try {
+      const response = await fetch(`/api/educational-content/${contentId}/submit-for-approval`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? "Soumis pour validation" : "Submitted for approval",
+          description: language === 'fr' ? "Le contenu a été soumis au directeur pour validation" : "Content has been submitted to the director for approval",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de soumettre le contenu" : "Failed to submit content",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSaveContent = async () => {
@@ -367,6 +418,24 @@ const CreateEducationalContent = () => {
                           <Edit className="w-3 h-3 mr-1" />
                           {t.edit}
                         </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => shareContent(content.id)}
+                          className="text-blue-600"
+                        >
+                          <Share2 className="w-3 h-3 mr-1" />
+                          {language === 'fr' ? 'Partager' : 'Share'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => submitForApproval(content.id)}
+                          className="text-green-600"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          {language === 'fr' ? 'Soumettre' : 'Submit'}
+                        </Button>
                       </div>
                     </div>
                   );
@@ -472,6 +541,19 @@ const CreateEducationalContent = () => {
                   </div>
                 ))}
               </div>
+            </ModernCard>
+          </div>
+        );
+
+      case 'shared':
+        return (
+          <div className="space-y-6">
+            <ModernCard className="p-4">
+              <h3 className="text-lg font-semibold mb-4">
+                {language === 'fr' ? 'Contenu Partagé par les Collègues' : 'Content Shared by Colleagues'}
+              </h3>
+              
+              <SharedContentGrid language={language} toast={toast} />
             </ModernCard>
           </div>
         );
@@ -654,6 +736,193 @@ const CreateEducationalContent = () => {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+// SharedContentGrid Component
+interface SharedContentGridProps {
+  language: string;
+  toast: any;
+}
+
+const SharedContentGrid: React.FC<SharedContentGridProps> = ({ language, toast }) => {
+  const queryClient = useQueryClient();
+
+  // Fetch shared content
+  const { data: sharedData, isLoading } = useQuery({
+    queryKey: ['/api/educational-content/shared'],
+    refetchInterval: 60000
+  });
+
+  // Download content mutation
+  const downloadMutation = useMutation({
+    mutationFn: async (contentId: number) => {
+      const response = await fetch(`/api/educational-content/${contentId}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download content');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? "Contenu téléchargé" : "Content downloaded",
+        description: language === 'fr' ? "Le contenu a été ajouté à votre bibliothèque" : "Content has been added to your library",
+        variant: "default"
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? "Erreur" : "Error",
+        description: language === 'fr' ? "Impossible de télécharger le contenu" : "Failed to download content",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sharedContent = (sharedData as any)?.sharedContent || [];
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'lesson': return <BookOpen className="w-4 h-4" />;
+      case 'exercise': return <CheckSquare className="w-4 h-4" />;
+      case 'assessment': return <Star className="w-4 h-4" />;
+      default: return <FileText className="w-4 h-4" />;
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'lesson': return language === 'fr' ? 'Leçon' : 'Lesson';
+      case 'exercise': return language === 'fr' ? 'Exercice' : 'Exercise';
+      case 'assessment': return language === 'fr' ? 'Évaluation' : 'Assessment';
+      case 'project': return language === 'fr' ? 'Projet' : 'Project';
+      default: return type;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="h-24 bg-gray-200 rounded-lg"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (sharedContent.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">
+          {language === 'fr' ? 'Aucun contenu partagé' : 'No shared content'}
+        </h3>
+        <p className="text-gray-600">
+          {language === 'fr' 
+            ? 'Vos collègues n\'ont pas encore partagé de contenu avec vous.' 
+            : 'Your colleagues haven\'t shared any content with you yet.'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {sharedContent.map((content: any) => (
+        <div key={content.id} className="border rounded-lg p-4 hover:bg-gray-50">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                {getTypeIcon(content.type)}
+                <h4 className="text-lg font-semibold">{content.title}</h4>
+                <Badge variant="outline">{getTypeLabel(content.type)}</Badge>
+                <Badge variant="secondary">{content.subject}</Badge>
+                <Badge variant="outline">{content.level}</Badge>
+              </div>
+              
+              <p className="text-gray-600 mb-3">{content.description}</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Users className="w-4 h-4" />
+                  <span>{language === 'fr' ? 'Partagé par' : 'Shared by'} {content.sharedBy}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Calendar className="w-4 h-4" />
+                  <span>{formatDate(content.sharedAt)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Clock className="w-4 h-4" />
+                  <span>{content.duration} min</span>
+                </div>
+              </div>
+
+              {content.objectives && (
+                <div className="mb-3">
+                  <strong className="text-sm">
+                    {language === 'fr' ? 'Objectifs:' : 'Objectives:'}
+                  </strong>
+                  <p className="text-sm text-gray-600">{content.objectives}</p>
+                </div>
+              )}
+
+              {content.files.length > 0 && (
+                <div className="mb-3">
+                  <strong className="text-sm">
+                    {language === 'fr' ? 'Fichiers joints:' : 'Attached files:'}
+                  </strong>
+                  <div className="flex gap-2 mt-1">
+                    {content.files.map((file: any, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        <FileText className="w-3 h-3 mr-1" />
+                        {file.originalName}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-1">
+                {content.tags.map((tag: string, index: number) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 ml-4">
+              <Button
+                onClick={() => downloadMutation.mutate(content.id)}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={downloadMutation.isPending}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Télécharger' : 'Download'}
+              </Button>
+              <Button variant="outline" size="sm">
+                <Eye className="w-4 h-4 mr-2" />
+                {language === 'fr' ? 'Aperçu' : 'Preview'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

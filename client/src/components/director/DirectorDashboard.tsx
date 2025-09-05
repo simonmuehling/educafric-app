@@ -13,6 +13,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 import NotificationCenter from '@/components/shared/NotificationCenter';
 import BulletinApprovalNew from '@/components/director/modules/BulletinApprovalNew';
+import EducationalContentApproval from '@/components/director/modules/EducationalContentApproval';
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
@@ -397,6 +398,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-indigo-500',
       component: <BulletinApprovalNew />
+    },
+    {
+      id: 'content-approval',
+      label: language === 'fr' ? 'Contenu Pédagogique' : 'Educational Content',
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'bg-emerald-500',
+      component: <EducationalContentApproval />
     },
     {
       id: 'notifications',

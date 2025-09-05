@@ -252,4 +252,321 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Share educational content with other teachers
+router.post('/:id/share', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { targetTeachers, shareWithSchool } = req.body;
+    const user = (req as any).user;
+
+    // Verify user owns this content or has permission to share
+    if (user.role !== 'Teacher' && user.role !== 'Director') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teachers and directors can share content'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] Sharing content ${id} by ${user.firstName} ${user.lastName}`);
+
+    // Mock sharing logic - in production, update database sharing permissions
+    const sharingRecord = {
+      contentId: parseInt(id),
+      sharedBy: user.id,
+      sharedByName: `${user.firstName} ${user.lastName}`,
+      targetTeachers: targetTeachers || [],
+      shareWithSchool: shareWithSchool || false,
+      sharedAt: new Date().toISOString(),
+      schoolId: user.schoolId
+    };
+
+    res.json({
+      success: true,
+      message: 'Content shared successfully',
+      sharing: sharingRecord
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Share error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to share educational content'
+    });
+  }
+});
+
+// Get shared content for a teacher
+router.get('/shared', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teachers can access shared content'
+      });
+    }
+
+    // Mock shared content - in production, query database for content shared with this teacher
+    const sharedContent = [
+      {
+        id: 3,
+        title: "Equations du Premier Degré",
+        description: "Cours complet sur la résolution d'équations simples",
+        type: "lesson",
+        subject: "mathematiques",
+        level: "4eme",
+        duration: 50,
+        objectives: "Résoudre des équations du premier degré à une inconnue",
+        teacherId: 999,
+        teacherName: "Marie Dubois",
+        schoolId: user.schoolId,
+        files: [
+          { filename: "equations.pdf", originalName: "Equations.pdf", url: "/uploads/educational-content/equations.pdf" }
+        ],
+        status: "published",
+        sharedAt: "2025-09-01T09:00:00Z",
+        sharedBy: "Marie Dubois",
+        visibility: "school",
+        downloadCount: 8,
+        rating: 4.8,
+        tags: ["mathematiques", "equations", "4eme"]
+      },
+      {
+        id: 4,
+        title: "Analyse de Texte Littéraire",
+        description: "Méthode d'analyse pour les textes de Maupassant",
+        type: "exercise",
+        subject: "francais",
+        level: "3eme",
+        duration: 45,
+        objectives: "Analyser un texte littéraire en identifiant les procédés stylistiques",
+        teacherId: 998,
+        teacherName: "Jean Martin",
+        schoolId: user.schoolId,
+        files: [],
+        status: "published", 
+        sharedAt: "2025-09-02T14:30:00Z",
+        sharedBy: "Jean Martin",
+        visibility: "school",
+        downloadCount: 12,
+        rating: 4.3,
+        tags: ["francais", "litterature", "analyse"]
+      }
+    ];
+
+    res.json({
+      success: true,
+      sharedContent,
+      total: sharedContent.length
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Fetch shared error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch shared content'
+    });
+  }
+});
+
+// Submit content for director approval
+router.post('/:id/submit-for-approval', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only teachers can submit content for approval'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] Teacher ${user.id} submitting content ${id} for approval`);
+
+    // Mock approval submission - in production, update content status and notify directors
+    const submissionRecord = {
+      contentId: parseInt(id),
+      teacherId: user.id,
+      teacherName: `${user.firstName} ${user.lastName}`,
+      submittedAt: new Date().toISOString(),
+      status: 'pending_approval',
+      schoolId: user.schoolId
+    };
+
+    res.json({
+      success: true,
+      message: 'Content submitted for director approval',
+      submission: submissionRecord
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Submit approval error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit content for approval'
+    });
+  }
+});
+
+// Director: Get content pending approval
+router.get('/pending-approval', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+
+    if (user.role !== 'Director' && user.role !== 'SiteAdmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only directors can view pending content'
+      });
+    }
+
+    // Mock pending content - in production, query database for content awaiting approval
+    const pendingContent = [
+      {
+        id: 5,
+        title: "Introduction à la Chimie",
+        description: "Premiers concepts de chimie pour élèves de seconde",
+        type: "lesson",
+        subject: "physique",
+        level: "2nde",
+        duration: 60,
+        objectives: "Comprendre les concepts de base de la chimie",
+        teacherId: 123,
+        teacherName: "Sophie Bernard",
+        schoolId: user.schoolId,
+        files: [
+          { filename: "chimie-intro.pdf", originalName: "Introduction Chimie.pdf" }
+        ],
+        status: "pending_approval",
+        submittedAt: "2025-09-04T10:15:00Z",
+        visibility: "school",
+        tags: ["chimie", "sciences", "2nde"]
+      },
+      {
+        id: 6,
+        title: "Exercices de Géométrie",
+        description: "Série d'exercices sur les triangles et parallélogrammes",
+        type: "exercise",
+        subject: "mathematiques",
+        level: "5eme",
+        duration: 40,
+        objectives: "Maîtriser les propriétés des figures géométriques",
+        teacherId: 124,
+        teacherName: "Paul Legrand",
+        schoolId: user.schoolId,
+        files: [],
+        status: "pending_approval",
+        submittedAt: "2025-09-04T15:30:00Z",
+        visibility: "school",
+        tags: ["geometrie", "mathematiques", "5eme"]
+      }
+    ];
+
+    res.json({
+      success: true,
+      pendingContent,
+      total: pendingContent.length
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Fetch pending error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending content'
+    });
+  }
+});
+
+// Director: Approve/reject content
+router.post('/:id/approve', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approved, comment } = req.body;
+    const user = (req as any).user;
+
+    if (user.role !== 'Director' && user.role !== 'SiteAdmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only directors can approve content'
+      });
+    }
+
+    console.log(`[EDUCATIONAL_CONTENT] Director ${user.id} ${approved ? 'approving' : 'rejecting'} content ${id}`);
+
+    // Mock approval logic - in production, update content status and notify teacher
+    const approvalRecord = {
+      contentId: parseInt(id),
+      directorId: user.id,
+      directorName: `${user.firstName} ${user.lastName}`,
+      approved: approved,
+      comment: comment || '',
+      reviewedAt: new Date().toISOString(),
+      newStatus: approved ? 'approved' : 'rejected',
+      schoolId: user.schoolId
+    };
+
+    res.json({
+      success: true,
+      message: `Content ${approved ? 'approved' : 'rejected'} successfully`,
+      approval: approvalRecord
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Approval error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process content approval'
+    });
+  }
+});
+
+// Get content statistics for school
+router.get('/stats', requireAuth, async (req, res) => {
+  try {
+    const user = (req as any).user;
+
+    // Mock statistics - in production, aggregate from database
+    const stats = {
+      totalContent: 47,
+      pendingApproval: 3,
+      approved: 38,
+      rejected: 2,
+      shared: 24,
+      bySubject: {
+        mathematiques: 12,
+        francais: 10,
+        anglais: 8,
+        sciences: 7,
+        histoire: 5,
+        autres: 5
+      },
+      byType: {
+        lesson: 22,
+        exercise: 15,
+        assessment: 6,
+        project: 4
+      },
+      topContributors: [
+        { teacherId: 123, teacherName: "Marie Dubois", contentCount: 8 },
+        { teacherId: 124, teacherName: "Jean Martin", contentCount: 6 },
+        { teacherId: 125, teacherName: "Sophie Bernard", contentCount: 5 }
+      ]
+    };
+
+    res.json({
+      success: true,
+      stats
+    });
+
+  } catch (error) {
+    console.error('[EDUCATIONAL_CONTENT] Stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch content statistics'
+    });
+  }
+});
+
 export default router;
