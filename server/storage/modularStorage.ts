@@ -7,6 +7,7 @@ import { GradeStorage } from "./gradeStorage";
 import { StudentStorage } from "./studentStorage";
 import { PWAStorage } from "./pwaStorage";
 import { TimetableStorage } from "./timetableStorage";
+import { BulletinStorage } from "./bulletinStorage";
 
 // Main storage class combining all modules
 export class ModularStorage {
@@ -16,6 +17,7 @@ export class ModularStorage {
   private studentStorage: StudentStorage;
   private pwaStorage: PWAStorage;
   private timetableStorage: TimetableStorage;
+  private bulletinStorage: BulletinStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -24,6 +26,7 @@ export class ModularStorage {
     this.studentStorage = new StudentStorage();
     this.pwaStorage = new PWAStorage();
     this.timetableStorage = new TimetableStorage();
+    this.bulletinStorage = new BulletinStorage();
   }
 
   // === USER METHODS ===
@@ -857,4 +860,12 @@ export class ModularStorage {
       return 0;
     }
   }
+
+  // === BULLETIN METHODS ===
+  async getBulletin(id: number) { return this.bulletinStorage.getBulletin(id); }
+  async createBulletin(bulletin: any) { return this.bulletinStorage.createBulletin(bulletin); }
+  async updateBulletin(id: number, updates: any) { return this.bulletinStorage.updateBulletin(id, updates); }
+  async getBulletinsByStudent(studentId: number) { return this.bulletinStorage.getBulletinsByStudent(studentId); }
+  async getBulletinsByClass(classId: number) { return this.bulletinStorage.getBulletinsByClass(classId); }
+  async getBulletinsBySchool(schoolId: number) { return this.bulletinStorage.getBulletinsBySchool(schoolId); }
 }

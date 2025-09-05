@@ -1214,4 +1214,107 @@ router.post('/bulletins/:bulletinId/feedback', requireAuth, async (req: Authenti
   }
 });
 
+// POST /api/parent/verify-bulletin - Verify bulletin authenticity for parents
+router.post('/verify-bulletin', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const parentId = req.user.id;
+    const user = req.user as any;
+    const { qrCode, verificationCode, verificationType } = req.body;
+    
+    // Verify user is a parent
+    if (user.role !== 'Parent') {
+      return res.status(403).json({ 
+        error: 'Access denied. Only parents can verify bulletins.' 
+      });
+    }
+
+    console.log(`[PARENT_API] 🔍 Parent ${parentId} verifying bulletin - Type: ${verificationType}`);
+
+    // Validate input
+    if (!qrCode && !verificationCode) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'QR code or verification code is required' 
+      });
+    }
+
+    // Use the verification code for validation
+    const codeToVerify = verificationCode || qrCode;
+
+    // Mock verification logic - in production, this would integrate with the bulletin validation service
+    const demoCodes = {
+      'DEMO2024': {
+        success: true,
+        bulletin: {
+          id: 1,
+          studentName: 'Marie Nguema',
+          className: 'CM2 A',
+          termId: '1er Trimestre 2024-2025',
+          generalAverage: 14.5,
+          classRank: 5,
+          totalStudentsInClass: 25,
+          publishedAt: '2024-12-15T00:00:00.000Z',
+          grades: [
+            { subjectName: 'Mathématiques', grade: 15, coefficient: 3 },
+            { subjectName: 'Français', grade: 14, coefficient: 3 },
+            { subjectName: 'Sciences', grade: 16, coefficient: 2 },
+            { subjectName: 'Histoire-Géographie', grade: 13, coefficient: 2 },
+            { subjectName: 'Anglais', grade: 15, coefficient: 2 }
+          ]
+        }
+      },
+      'EDU2024': {
+        success: true,
+        bulletin: {
+          id: 2,
+          studentName: 'Paul Mbala',
+          className: '6ème B',
+          termId: '2ème Trimestre 2024-2025',
+          generalAverage: 16.2,
+          classRank: 2,
+          totalStudentsInClass: 28,
+          publishedAt: new Date().toISOString(),
+          grades: [
+            { subjectName: 'Mathématiques', grade: 17, coefficient: 4 },
+            { subjectName: 'Français', grade: 16, coefficient: 4 },
+            { subjectName: 'Sciences Physiques', grade: 15, coefficient: 3 },
+            { subjectName: 'SVT', grade: 16, coefficient: 3 },
+            { subjectName: 'Histoire-Géographie', grade: 17, coefficient: 3 },
+            { subjectName: 'Anglais', grade: 16, coefficient: 3 }
+          ]
+        }
+      }
+    };
+
+    // Check if it's a demo code
+    if (demoCodes[codeToVerify as keyof typeof demoCodes]) {
+      const demoResult = demoCodes[codeToVerify as keyof typeof demoCodes];
+      console.log(`✅ [PARENT_VERIFY] Demo bulletin validated: ${codeToVerify} for parent: ${parentId}`);
+      
+      return res.json(demoResult);
+    }
+
+    // If not a demo code, check against actual verification service
+    // In production, this would call the bulletin validation service
+    console.log(`❌ [PARENT_VERIFY] Invalid code: ${codeToVerify} for parent: ${parentId}`);
+    
+    res.json({
+      success: false,
+      error: 'Code de vérification invalide ou bulletin non trouvé'
+    });
+
+  } catch (error) {
+    console.error('[PARENT_API] ❌ Error verifying bulletin:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la vérification du bulletin'
+    });
+  }
+});
+
 export default router;

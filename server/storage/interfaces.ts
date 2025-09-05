@@ -53,3 +53,12 @@ export interface IPWAStorage {
   getPwaUserStatistics(): Promise<any>;
   updateUserAccessMethod(userId: number, accessMethod: string, isPwaInstalled: boolean): Promise<void>;
 }
+
+export interface IBulletinStorage {
+  getBulletin(id: number): Promise<any | null>;
+  createBulletin(bulletin: any): Promise<any>;
+  updateBulletin(id: number, updates: any): Promise<any>;
+  getBulletinsByStudent(studentId: number): Promise<any[]>;
+  getBulletinsByClass(classId: number): Promise<any[]>;
+  getBulletinsBySchool(schoolId: number): Promise<any[]>;
+}
