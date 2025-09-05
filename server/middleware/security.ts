@@ -77,8 +77,8 @@ export function configureSecurityMiddleware(app: Express) {
       // Higher limit for file uploads
       req.setTimeout(60000); // 60 seconds for uploads
     } else {
-      // Standard timeout for API requests
-      req.setTimeout(30000); // 30 seconds
+      // Timeout étendu pour les API requests - augmenté pour éviter déconnexions
+      req.setTimeout(300000); // 5 minutes (au lieu de 30 secondes)
     }
     next();
   });
@@ -120,7 +120,7 @@ export const productionSessionConfig = {
   cookie: {
     secure: false, // Must be false for HTTP in development
     httpOnly: true, // Standard session cookie security
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 JOURS (au lieu de 24h) - Durée largement augmentée
     sameSite: 'lax' as const, // Standard for same-site requests
     path: '/', // Available for all paths
   },

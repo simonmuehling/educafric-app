@@ -19,7 +19,7 @@ export const compressionMiddleware = compression({
 });
 
 // Request timeout middleware
-export const timeoutMiddleware = (timeoutMs: number = 15000) => {
+export const timeoutMiddleware = (timeoutMs: number = 300000) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const timeout = setTimeout(() => {
       if (!res.headersSent) {
