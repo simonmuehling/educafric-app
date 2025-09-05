@@ -140,6 +140,36 @@ const ReportsAnalytics: React.FC = () => {
     }
   });
 
+  // Helper function to get filtered data
+  const getFilteredData = () => {
+    let filteredStudents = students.students || [];
+    let filteredTeachers = teachers.teachers || [];
+    let filteredClasses = classes.classes || [];
+
+    // Apply class filter
+    if (selectedClass !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => student.classId?.toString() === selectedClass);
+      filteredClasses = filteredClasses.filter((cls: any) => cls.id?.toString() === selectedClass);
+      // Filter teachers by class
+      filteredTeachers = filteredTeachers.filter((teacher: any) => 
+        filteredClasses.some((cls: any) => cls.teacherId === teacher.id)
+      );
+    }
+
+    // Apply teacher filter
+    if (selectedTeacher !== 'all') {
+      filteredStudents = filteredStudents.filter((student: any) => 
+        filteredClasses.some((cls: any) => cls.teacherId?.toString() === selectedTeacher && cls.id === student.classId)
+      );
+      filteredTeachers = filteredTeachers.filter((teacher: any) => teacher.id?.toString() === selectedTeacher);
+    }
+
+    return { filteredStudents, filteredTeachers, filteredClasses };
+  };
+
+  // Get filtered data
+  const { filteredStudents, filteredTeachers, filteredClasses } = getFilteredData();
+
   // Calculate real stats from filtered data
   const studentCount = filteredStudents?.length || 0;
   const teacherCount = filteredTeachers?.length || 0;
@@ -229,38 +259,6 @@ const ReportsAnalytics: React.FC = () => {
 
   const [showClassReports, setShowClassReports] = useState(false);
 
-  // Filter logic
-  const getFilteredData = () => {
-    let filteredStudents = students.students || [];
-    let filteredTeachers = teachers.teachers || [];
-    let filteredClasses = classes.classes || [];
-
-    // Apply class filter
-    if (selectedClass !== 'all') {
-      filteredStudents = filteredStudents.filter((student: any) => student.classId?.toString() === selectedClass);
-      filteredClasses = filteredClasses.filter((cls: any) => cls.id?.toString() === selectedClass);
-      // Filter teachers who teach the selected class
-      filteredTeachers = filteredTeachers.filter((teacher: any) => 
-        teacher.classIds && teacher.classIds.includes(parseInt(selectedClass))
-      );
-    }
-
-    // Apply teacher filter
-    if (selectedTeacher !== 'all') {
-      // Find students taught by the selected teacher
-      const teacherClasses = classes.classes?.filter((cls: any) => 
-        cls.teacherId?.toString() === selectedTeacher
-      ).map((cls: any) => cls.id) || [];
-      filteredStudents = filteredStudents.filter((student: any) => 
-        teacherClasses.includes(student.classId)
-      );
-      filteredTeachers = filteredTeachers.filter((teacher: any) => teacher.id?.toString() === selectedTeacher);
-    }
-
-    return { filteredStudents, filteredTeachers, filteredClasses };
-  };
-
-  const { filteredStudents, filteredTeachers, filteredClasses } = getFilteredData();
 
   // Update filters active state
   useEffect(() => {
