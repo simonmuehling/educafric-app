@@ -13,7 +13,7 @@ import {
   ClipboardList, CheckCircle, Clock, XCircle, FileText, Eye, 
   Download, Send, User, Calendar, GraduationCap, BookOpen,
   MessageSquare, AlertCircle, ThumbsUp, ThumbsDown, Trophy, 
-  Languages, Printer, TestTube, Upload, Stamp, Users, Bell, Signature
+  Languages, Printer, TestTube, Stamp
 } from 'lucide-react';
 import { generateBulletinPDF } from '@/utils/bulletinPdfGenerator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,12 +66,6 @@ const BulletinApprovalNew: React.FC = () => {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [previewLanguage, setPreviewLanguage] = useState<'fr' | 'en'>('fr');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [showBulkSignDialog, setShowBulkSignDialog] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<string>('');
-  const [signerName, setSignerName] = useState<string>('');
-  const [signerPosition, setSignerPosition] = useState<string>('');
-  const [schoolStamp, setSchoolStamp] = useState<File | null>(null);
-  const [isNotifying, setIsNotifying] = useState(false);
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
   const [previewType, setPreviewType] = useState<'bulletin'>('bulletin');
 
@@ -311,113 +305,8 @@ const BulletinApprovalNew: React.FC = () => {
     setShowPreviewDialog(true);
   };
 
-  // Fonction pour signature en lot par classe
-  const handleBulkSignClass = async () => {
-    if (!selectedClass || !signerName || !signerPosition) {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' 
-          ? 'Veuillez remplir tous les champs obligatoires'
-          : 'Please fill all required fields',
-        variant: 'destructive'
-      });
-      return;
-    }
 
-    try {
-      const response = await fetch('/api/bulletins/bulk-sign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          className: selectedClass,
-          signerName,
-          signerPosition,
-          hasStamp: !!schoolStamp
-        })
-      });
 
-      if (!response.ok) throw new Error('Failed to bulk sign');
-
-      toast({
-        title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' 
-          ? `Bulletins de la classe ${selectedClass} signés avec succès`
-          : `Bulletins for class ${selectedClass} signed successfully`
-      });
-
-      setShowBulkSignDialog(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/bulletins'] });
-    } catch (error) {
-      console.error('Error bulk signing:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' 
-          ? 'Erreur lors de la signature en lot'
-          : 'Error during bulk signing',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  // Fonction pour envoyer les bulletins avec notifications
-  const handleSendBulletinsWithNotifications = async (classNames: string[]) => {
-    setIsNotifying(true);
-    try {
-      const response = await fetch('/api/bulletins/send-with-notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          classNames,
-          notificationTypes: ['sms', 'whatsapp', 'email', 'push'],
-          language: language
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to send bulletins');
-
-      const result = await response.json();
-
-      toast({
-        title: language === 'fr' ? 'Succès' : 'Success',
-        description: language === 'fr' 
-          ? `${result.sent} bulletins envoyés avec notifications`
-          : `${result.sent} bulletins sent with notifications`
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['/api/bulletins'] });
-    } catch (error) {
-      console.error('Error sending bulletins:', error);
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' 
-          ? 'Erreur lors de l\'envoi des bulletins'
-          : 'Error sending bulletins',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsNotifying(false);
-    }
-  };
-
-  // Upload du cachet de l'école
-  const handleStampUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: language === 'fr' ? 'Erreur' : 'Error',
-          description: language === 'fr' 
-            ? 'Le fichier doit faire moins de 5MB'
-            : 'File must be less than 5MB',
-          variant: 'destructive'
-        });
-        return;
-      }
-      setSchoolStamp(file);
-    }
-  };
 
   // Handlers pour les boutons de preview
   const handlePreviewBulletin = () => {
@@ -819,40 +708,6 @@ const BulletinApprovalNew: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Bulk Actions Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            {language === 'fr' ? 'Actions en Lot - École Uniquement' : 'Bulk Actions - School Only'}
-          </CardTitle>
-          <p className="text-sm text-blue-600 font-medium">
-            ⚡ {language === 'fr' 
-              ? 'Validation uniquement par l\'école - Plus de validation professeur principal requise'
-              : 'School validation only - No principal teacher validation required'
-            }
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-3 sm:gap-4">
-            <Button
-              onClick={() => setShowBulkSignDialog(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full"
-            >
-              <Signature className="w-4 h-4" />
-              {t.bulkSign || (language === 'fr' ? 'Signature en Lot par Classe' : 'Bulk Sign by Class')}
-            </Button>
-            <Button
-              onClick={() => handleSendBulletinsWithNotifications([])}
-              disabled={isNotifying}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 w-full"
-            >
-              <Bell className="w-4 h-4" />
-              {isNotifying ? (language === 'fr' ? 'Envoi...' : 'Sending...') : (t.sendBulletins || (language === 'fr' ? 'Envoyer avec Notifications' : 'Send with Notifications'))}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Tabs Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1021,83 +876,6 @@ const BulletinApprovalNew: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Sign Dialog */}
-      <Dialog open={showBulkSignDialog} onOpenChange={setShowBulkSignDialog}>
-        <DialogContent className="max-w-lg bg-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Signature className="w-5 h-5" />
-              {language === 'fr' ? 'Signature en Lot par Classe' : 'Bulk Sign by Class'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>{t.selectClass || (language === 'fr' ? 'Sélectionner Classe' : 'Select Class')}</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder={language === 'fr' ? 'Choisir une classe...' : 'Choose a class...'} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="6ème A">6ème A</SelectItem>
-                  <SelectItem value="6ème B">6ème B</SelectItem>
-                  <SelectItem value="5ème A">5ème A</SelectItem>
-                  <SelectItem value="4ème A">4ème A</SelectItem>
-                  <SelectItem value="3ème A">3ème A</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label>{t.signerName || (language === 'fr' ? 'Nom du Signataire' : 'Signer Name')}</Label>
-              <Input
-                value={signerName}
-                onChange={(e) => setSignerName(e.target.value)}
-                placeholder={language === 'fr' ? 'Ex: Dr. Jean Dupont' : 'Ex: Dr. John Smith'}
-              />
-            </div>
-            
-            <div>
-              <Label>{t.signerPosition || (language === 'fr' ? 'Position dans l\'École' : 'Position in School')}</Label>
-              <Input
-                value={signerPosition}
-                onChange={(e) => setSignerPosition(e.target.value)}
-                placeholder={language === 'fr' ? 'Ex: Directeur Général' : 'Ex: Principal'}
-              />
-            </div>
-            
-            <div>
-              <Label className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                {t.uploadStamp || (language === 'fr' ? 'Télécharger Cachet (Optionnel)' : 'Upload Stamp (Optional)')}
-              </Label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleStampUpload}
-                className="file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              {schoolStamp && (
-                <p className="text-sm text-green-600 mt-1">
-                  ✅ {schoolStamp.name}
-                </p>
-              )}
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowBulkSignDialog(false)}>
-                {t.cancel || (language === 'fr' ? 'Annuler' : 'Cancel')}
-              </Button>
-              <Button 
-                onClick={handleBulkSignClass}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Signature className="w-4 h-4 mr-2" />
-                {t.signAndSend || (language === 'fr' ? 'Signer et Continuer' : 'Sign and Continue')}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
