@@ -1042,15 +1042,20 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add QR code for document verification
-    await this.addQRCodeToDocument(doc, data, 160, 15);
+    // ✅ EN-TÊTE OFFICIEL ÉCOLE 
+    const schoolData = {
+      schoolName: 'EDUCATIONAL INSTITUTION',
+      boitePostale: 'P.O. Box 8524 Yaoundé',
+      phone: 'Tel: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
-    // Header with logo
-    doc.setFontSize(22);
-    doc.setTextColor(59, 130, 246); // Blue
-    doc.text('EDUCAFRIC', 20, 30);
-    doc.setFontSize(14);
-    doc.text('African Educational Technology Platform', 20, 40);
+    // Titre principal
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('AFRICAN EDUCATIONAL TECHNOLOGY PLATFORM', 105, yPosition, { align: 'center' });
+    yPosition += 10;
     
     // Separator line
     doc.setDrawColor(59, 130, 246);
@@ -1212,15 +1217,20 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add QR code for document verification
-    await this.addQRCodeToDocument(doc, data, 160, 15);
+    // ✅ EN-TÊTE OFFICIEL ÉCOLE 
+    const schoolData = {
+      schoolName: 'ÉTABLISSEMENT SCOLAIRE',
+      boitePostale: 'B.P. 8524 Yaoundé',
+      phone: 'Tél: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
-    // En-tête spécial bulletins
-    doc.setFontSize(20);
-    doc.setTextColor(59, 130, 246); // #3B82F6
-    doc.text('EDUCAFRIC', 20, 30);
-    doc.setFontSize(14);
-    doc.text('Guide Bulletins Scolaires', 20, 40);
+    // Titre principal
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('GUIDE BULLETINS SCOLAIRES', 105, yPosition, { align: 'center' });
+    yPosition += 10;
     
     // Ligne de séparation
     doc.setDrawColor(59, 130, 246);
@@ -1788,33 +1798,31 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // En-tête commercial
-    doc.setFontSize(20);
-    doc.setTextColor(139, 92, 246); // #8B5CF6
-    doc.text('EDUCAFRIC', 20, 30);
-    doc.setFontSize(14);
-    doc.text('Solution Éducative Digitale', 20, 40);
+    // ✅ EN-TÊTE OFFICIEL ÉCOLE (comme pour les bulletins)
+    const schoolData = {
+      schoolName: 'ÉTABLISSEMENT SCOLAIRE',
+      boitePostale: 'B.P. 8524 Yaoundé',
+      phone: 'Tél: +237 656 200 472',
+      email: 'Email: info@educafric.com'
+    };
+    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
     
-    // Ligne de séparation
-    doc.setDrawColor(139, 92, 246);
-    doc.setLineWidth(1);
-    doc.line(20, 45, 190, 45);
+    // Add QR code after header
+    await this.addQRCodeToDocument(doc, data, 160, 25);
     
-    // Métadonnées
-    doc.setFontSize(12);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Document Commercial ID: ${data.id}`, 20, 55);
-    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 20, 62);
-    doc.text(`Représentant: ${data.user.email}`, 20, 69);
-    
-    // Titre principal
-    doc.setFontSize(18);
+    // Titre principal (ajusté pour nouvelle position)
+    doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
-    doc.text(data.title || 'Document Commercial EDUCAFRIC', 20, 85);
+    doc.text(data.title || 'DOCUMENT COMMERCIAL EDUCAFRIC', 105, yPosition, { align: 'center' });
+    yPosition += 15;
     
-    // Contenu commercial
-    doc.setFontSize(12);
-    let yPosition = 105;
+    // Métadonnées (repositionnées après en-tête)
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Document ID: ${data.id}`, 20, yPosition);
+    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 105, yPosition);
+    doc.text(`Représentant: ${data.user.email}`, 20, yPosition + 7);
+    yPosition += 20;
     
     // Section Présentation
     doc.setFontSize(14);
