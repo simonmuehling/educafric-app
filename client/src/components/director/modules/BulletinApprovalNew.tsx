@@ -73,7 +73,7 @@ const BulletinApprovalNew: React.FC = () => {
   const [schoolStamp, setSchoolStamp] = useState<File | null>(null);
   const [isNotifying, setIsNotifying] = useState(false);
   const [showTemplatePreview, setShowTemplatePreview] = useState(false);
-  const [previewType, setPreviewType] = useState<'bulletin' | 'transcript'>('bulletin');
+  const [previewType, setPreviewType] = useState<'bulletin'>('bulletin');
 
   const text = {
     fr: {
@@ -432,17 +432,6 @@ const BulletinApprovalNew: React.FC = () => {
     });
   };
 
-  const handlePreviewTranscript = () => {
-    setPreviewType('transcript');
-    setShowTemplatePreview(true);
-    
-    toast({
-      title: language === 'fr' ? '🎓 Aperçu Relevé' : '🎓 Transcript Preview',
-      description: language === 'fr' 
-        ? 'Génération de l\'aperçu du relevé de notes officiel...'
-        : 'Generating official transcript preview...'
-    });
-  };
 
   const confirmApproval = () => {
     if (!selectedBulletin) return;
@@ -694,47 +683,6 @@ const BulletinApprovalNew: React.FC = () => {
               </div>
             </div>
 
-            {/* Transcript Preview */}
-            <div className="p-3 sm:p-4 bg-white rounded-lg border shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <GraduationCap className="w-5 h-5 text-gray-600" />
-                <h3 className="font-semibold text-black">
-                  {language === 'fr' ? 'Modèle Relevé' : 'Transcript Template'}
-                </h3>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Format officiel:' : 'Official format:'}</span>
-                  <span className="font-medium text-green-600">✅ Conforme</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Signature digitale:' : 'Digital signature:'}</span>
-                  <span className="font-medium text-green-600">✅ Intégrée</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Cachet école:' : 'School seal:'}</span>
-                  <span className="font-medium text-green-600">✅ Automatique</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">{language === 'fr' ? 'Bilingue:' : 'Bilingual:'}</span>
-                  <span className="font-medium text-green-600">✅ FR/EN</span>
-                </div>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full mt-3" 
-                data-testid="button-preview-transcript"
-                onClick={handlePreviewTranscript}
-                disabled={isLoadingTemplate}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                {isLoadingTemplate ? 
-                  (language === 'fr' ? 'Chargement...' : 'Loading...') :
-                  (language === 'fr' ? 'Voir Aperçu' : 'View Preview')
-                }
-              </Button>
-            </div>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -1257,17 +1205,8 @@ const BulletinApprovalNew: React.FC = () => {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              {previewType === 'bulletin' ? (
-                <>
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  {language === 'fr' ? '📄 Aperçu Template Bulletin' : '📄 Bulletin Template Preview'}
-                </>
-              ) : (
-                <>
-                  <GraduationCap className="w-5 h-5 text-gray-600" />
-                  {language === 'fr' ? '🎓 Aperçu Template Relevé' : '🎓 Transcript Template Preview'}
-                </>
-              )}
+              <FileText className="w-5 h-5 text-blue-600" />
+              {language === 'fr' ? '📄 Aperçu Template Bulletin' : '📄 Bulletin Template Preview'}
             </DialogTitle>
           </DialogHeader>
 
@@ -1301,10 +1240,7 @@ const BulletinApprovalNew: React.FC = () => {
                 </h4>
                 {schoolTemplateData?.data && (
                   <div className="space-y-2">
-                    {(previewType === 'bulletin' ? 
-                      schoolTemplateData.data.bulletinTemplate.features : 
-                      schoolTemplateData.data.transcriptTemplate.features
-                    ).map((feature: string, index: number) => (
+                    {schoolTemplateData.data.bulletinTemplate.features.map((feature: string, index: number) => (
                       <div key={index} className="flex items-center gap-2 text-sm">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         <span className="text-gray-700 dark:text-gray-300">{feature}</span>
