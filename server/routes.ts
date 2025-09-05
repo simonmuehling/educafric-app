@@ -2570,6 +2570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 2, title: "Guide Commercial Bulletins EDUCAFRIC", description: "Guide pour la vente du système de bulletins", type: "commercial", url: "/documents/guide-commercial-bulletins-educafric-2025.html" },
         { id: 3, title: "Guide Signatures Numériques - Professeurs Principaux", description: "Système de signatures numériques pour bulletins", type: "commercial", url: "/documents/guide-signatures-numeriques-professeurs-principaux.html" },
         { id: 7, title: "Digital Signatures Guide - Principal Teachers", description: "Digital signature system for report cards (English)", type: "commercial", url: "/documents/digital-signatures-guide-principal-teachers-en.html" },
+        { id: 8, title: "Module Contenu Pédagogique Collaboratif", description: "Système de création et partage de ressources éducatives", type: "commercial", url: "/documents/module-contenu-pedagogique-collaboratif.html" },
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
         { id: 5, title: "Tarifs et Offres 2025", description: "Grille tarifaire détaillée", type: "commercial", url: null },
         { id: 6, title: "ROI Calculator EDUCAFRIC", description: "Calculateur de retour sur investissement", type: "commercial", url: null }
