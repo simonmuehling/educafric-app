@@ -461,7 +461,28 @@ router.post('/attendance/excuse', requireAuth, async (req: AuthenticatedRequest,
         sentAt: new Date().toISOString()
       });
       
-      // 4. SMS notification to school (if configured)
+      // 4. Notify school notification center (CRITICAL)
+      console.log(`[EXCUSE_NOTIFICATION] 🔔 Notification center de l'école: ${childInfo.schoolName}`);
+      excuse.notificationsSent.push({
+        recipient: 'school_notification_center',
+        recipientId: childInfo.schoolId,
+        method: 'dashboard',
+        priority: 'high',
+        category: 'excuse_request',
+        sentAt: new Date().toISOString()
+      });
+      
+      // 5. Notify school director
+      console.log(`[EXCUSE_NOTIFICATION] 👨‍💼 Notifying school director`);
+      excuse.notificationsSent.push({
+        recipient: 'school_director',
+        recipientId: childInfo.schoolId,
+        method: 'email_and_dashboard',
+        priority: 'medium',
+        sentAt: new Date().toISOString()
+      });
+      
+      // 6. SMS notification to school (if configured)
       if (childInfo.schoolPhone) {
         console.log(`[EXCUSE_NOTIFICATION] 📱 SMS to school: ${childInfo.schoolPhone}`);
         excuse.notificationsSent.push({
