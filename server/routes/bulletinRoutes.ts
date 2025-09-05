@@ -423,6 +423,7 @@ router.get('/test-bulletin/pdf', async (req, res) => {
 });
 
 // Preview sample bulletin for sandbox (missing route implementation)
+// No authentication required for preview samples in sandbox
 router.get('/preview-sample', async (req, res) => {
   try {
     const schoolId = req.query.schoolId || 1;
