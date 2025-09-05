@@ -12,7 +12,7 @@ const SandboxContext = createContext<SandboxContextType | undefined>(undefined);
 export function SandboxProvider({ children }: { children: ReactNode }) {
   // Use AuthContext directly instead of useAuth hook to avoid circular dependency
   const authContext = useContext(AuthContext);
-  const user = authContext?.user;
+  const user = authContext?.user || null; // Initialisation explicite pour éviter "Cannot access uninitialized variable"
 
   // ✅ MISE À JOUR 2025: Détection sandbox améliorée avec sécurité renforcée
   const isSandboxMode = Boolean(
@@ -30,14 +30,16 @@ export function SandboxProvider({ children }: { children: ReactNode }) {
   // In sandbox mode, all premium features are unlocked
   const isPremiumUnlocked = isSandboxMode;
 
-  // ✅ SANDBOX 2025: Types d'utilisateurs sandbox étendus
-  const sandboxUser = user?.role?.toLowerCase() === 'director' ? 'director' :
-                     user?.role?.toLowerCase() === 'teacher' ? 'teacher' :
-                     user?.role?.toLowerCase() === 'student' ? 'student' :
-                     user?.role?.toLowerCase() === 'parent' ? 'parent' :
-                     user?.role?.toLowerCase() === 'freelancer' ? 'freelancer' :
-                     user?.role?.toLowerCase() === 'commercial' ? 'commercial' :
-                     user?.role?.toLowerCase() === 'admin' || user?.role?.toLowerCase() === 'siteadmin' ? 'admin' :
+  // ✅ SANDBOX 2025: Types d'utilisateurs sandbox étendus - initialisation sécurisée
+  const userRole = user?.role?.toLowerCase();
+  const sandboxUser = !userRole ? null :
+                     userRole === 'director' ? 'director' :
+                     userRole === 'teacher' ? 'teacher' :
+                     userRole === 'student' ? 'student' :
+                     userRole === 'parent' ? 'parent' :
+                     userRole === 'freelancer' ? 'freelancer' :
+                     userRole === 'commercial' ? 'commercial' :
+                     (userRole === 'admin' || userRole === 'siteadmin') ? 'admin' :
                      null;
 
   return (
