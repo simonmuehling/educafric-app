@@ -186,39 +186,70 @@ const ReportsAnalytics: React.FC = () => {
 
     // Apply period filter
     if (selectedPeriod !== 'all') {
-      filteredStudents = filteredStudents.filter((student: any) => 
-        student.period === selectedPeriod || !student.period
-      );
+      if (selectedPeriod === 'na') {
+        // Show only students with no period specified
+        filteredStudents = filteredStudents.filter((student: any) => 
+          !student.period || student.period === '' || student.period === null
+        );
+      } else {
+        // Show students with the specific period
+        filteredStudents = filteredStudents.filter((student: any) => 
+          student.period === selectedPeriod
+        );
+      }
     }
 
     // Apply subject filter (filter students who have grades in the selected subject)
     if (selectedSubject !== 'all') {
-      const subjectKey = selectedSubject.toLowerCase()
-        .replace('é', 'e')
-        .replace('è', 'e')
-        .replace('mathématiques', 'maths')
-        .replace('français', 'francais');
-      
-      filteredStudents = filteredStudents.filter((student: any) => {
-        if (student.grades && typeof student.grades === 'object') {
-          return student.grades[subjectKey] !== undefined;
-        }
-        return true; // Include students without detailed grades
-      });
+      if (selectedSubject === 'na') {
+        // Show only students with no subject grades specified
+        filteredStudents = filteredStudents.filter((student: any) => 
+          !student.grades || Object.keys(student.grades || {}).length === 0
+        );
+      } else {
+        const subjectKey = selectedSubject.toLowerCase()
+          .replace('é', 'e')
+          .replace('è', 'e')
+          .replace('mathématiques', 'maths')
+          .replace('français', 'francais');
+        
+        filteredStudents = filteredStudents.filter((student: any) => {
+          if (student.grades && typeof student.grades === 'object') {
+            return student.grades[subjectKey] !== undefined;
+          }
+          return false; // Exclude students without grades when filtering by specific subject
+        });
+      }
     }
 
     // Apply behavior filter
     if (selectedBehavior !== 'all') {
-      filteredStudents = filteredStudents.filter((student: any) => 
-        student.behavior === selectedBehavior
-      );
+      if (selectedBehavior === 'na') {
+        // Show only students with no behavior evaluation
+        filteredStudents = filteredStudents.filter((student: any) => 
+          !student.behavior || student.behavior === '' || student.behavior === null
+        );
+      } else {
+        // Show students with specific behavior rating
+        filteredStudents = filteredStudents.filter((student: any) => 
+          student.behavior === selectedBehavior
+        );
+      }
     }
 
     // Apply performance filter
     if (selectedPerformance !== 'all') {
-      filteredStudents = filteredStudents.filter((student: any) => 
-        student.performance === selectedPerformance
-      );
+      if (selectedPerformance === 'na') {
+        // Show only students with no performance evaluation
+        filteredStudents = filteredStudents.filter((student: any) => 
+          !student.performance || student.performance === '' || student.performance === null
+        );
+      } else {
+        // Show students with specific performance level
+        filteredStudents = filteredStudents.filter((student: any) => 
+          student.performance === selectedPerformance
+        );
+      }
     }
 
     return { filteredStudents, filteredTeachers, filteredClasses };
@@ -786,6 +817,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allPeriods}</SelectItem>
+                    <SelectItem value="na">Non spécifié / N/A</SelectItem>
                     <SelectItem value="Trimestre 1">Trimestre 1</SelectItem>
                     <SelectItem value="Trimestre 2">Trimestre 2</SelectItem>
                     <SelectItem value="Trimestre 3">Trimestre 3</SelectItem>
@@ -810,6 +842,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allSubjects}</SelectItem>
+                    <SelectItem value="na">Non spécifié / N/A</SelectItem>
                     <SelectItem value="Français">Français</SelectItem>
                     <SelectItem value="Mathématiques">Mathématiques</SelectItem>
                     <SelectItem value="Anglais">Anglais</SelectItem>
@@ -838,6 +871,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allBehaviors}</SelectItem>
+                    <SelectItem value="na">Non évalué / N/A</SelectItem>
                     <SelectItem value="TB">Très Bien (TB)</SelectItem>
                     <SelectItem value="B">Bien (B)</SelectItem>
                     <SelectItem value="AB">Assez Bien (AB)</SelectItem>
@@ -858,6 +892,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t.filters?.allPerformances}</SelectItem>
+                    <SelectItem value="na">Non évalué / N/A</SelectItem>
                     <SelectItem value="excellent">Excellent (≥16/20)</SelectItem>
                     <SelectItem value="tres-bien">Très Bien (14-15.99/20)</SelectItem>
                     <SelectItem value="bien">Bien (12-13.99/20)</SelectItem>
@@ -909,22 +944,22 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
                   )}
                   {selectedPeriod !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Période:' : 'Period:'} {selectedPeriod}
+                      {language === 'fr' ? 'Période:' : 'Period:'} {selectedPeriod === 'na' ? 'Non spécifié' : selectedPeriod}
                     </span>
                   )}
                   {selectedSubject !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Matière:' : 'Subject:'} {selectedSubject}
+                      {language === 'fr' ? 'Matière:' : 'Subject:'} {selectedSubject === 'na' ? 'Non spécifié' : selectedSubject}
                     </span>
                   )}
                   {selectedBehavior !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Comportement:' : 'Behavior:'} {selectedBehavior}
+                      {language === 'fr' ? 'Comportement:' : 'Behavior:'} {selectedBehavior === 'na' ? 'Non évalué' : selectedBehavior}
                     </span>
                   )}
                   {selectedPerformance !== 'all' && (
                     <span className="ml-2">
-                      {language === 'fr' ? 'Performance:' : 'Performance:'} {selectedPerformance.replace('-', ' ')}
+                      {language === 'fr' ? 'Performance:' : 'Performance:'} {selectedPerformance === 'na' ? 'Non évalué' : selectedPerformance.replace('-', ' ')}
                     </span>
                   )}
                 </p>

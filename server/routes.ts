@@ -524,6 +524,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           matricule: 'EDU2025008', 
           grades: { francais: 12.5, maths: 13.0, anglais: 11.5, moyenne: 12.3 },
           behavior: 'B', performance: 'bien', period: 'Trimestre 1'
+        },
+        { 
+          id: 9, classId: 1, firstName: 'Aminata', lastName: 'Diallo', schoolId: 1,
+          matricule: 'EDU2025009', 
+          grades: null, // Pas de notes
+          behavior: null, // Pas d'évaluation comportement
+          performance: null, // Pas d'évaluation performance
+          period: null // Pas de période spécifiée
+        },
+        { 
+          id: 10, classId: 2, firstName: 'Felix', lastName: 'Nkou', schoolId: 1,
+          matricule: 'EDU2025010', 
+          grades: { francais: 8.5 }, // Seulement français
+          behavior: '', // Comportement vide
+          performance: '', // Performance vide
+          period: '' // Période vide
         }
       ];
       
