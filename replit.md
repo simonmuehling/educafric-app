@@ -1,19 +1,19 @@
 # Educafric - African Educational Technology Platform
 
 ## Overview
-Educafric is a comprehensive African educational technology platform providing a complete digital learning ecosystem for schools, teachers, parents, and students. It offers a robust, bilingual (French/English), mobile-first solution with integrated academic management, communication tools, and financial features tailored for the African market, such as SMS/WhatsApp communication and localized payment options. The project aims to offer significant cost savings for schools, high ROI for all stakeholders, and improved educational outcomes, aligning with UN Sustainable Development Goals for education. Educafric is preparing for a production deployment and 3500+ concurrent user rollout with a revolutionary payment model where Educafric pays schools.
+Educafric is a comprehensive, bilingual (French/English), mobile-first African educational technology platform. It provides a complete digital learning ecosystem with integrated academic management, communication tools, and financial features tailored for the African market (e.g., SMS/WhatsApp communication, localized payments). The platform aims to offer significant cost savings for schools, high ROI for stakeholders, and improved educational outcomes, aligning with UN Sustainable Development Goals. It is designed for production deployment, supporting 3500+ concurrent users, and features a unique payment model where Educafric pays schools. It includes a smart data separation system to distinguish between sandbox and real user data based on email patterns, ensuring strict data integrity.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-**EXEMPTION PREMIUM PERMANENTE** :
+**EXEMPTION PREMIUM PERMANENTE**:
 - ✅ Comptes sandbox et @test.educafric.com sont définitivement exemptés de TOUTES restrictions premium
 - ✅ Patterns d'exemption : @test.educafric.com, sandbox@, demo@, test@, .sandbox@, .demo@, .test@
 - ✅ Exemptions appliquées dans middleware subscriptionMiddleware.ts et service subscriptionService.ts
 - ✅ Exemptions couvrent : restrictions de fonctionnalités, limites freemium, vérifications d'abonnement
 - ✅ Logs automatiques : [PREMIUM_EXEMPT] et [LIMITS_EXEMPT] pour tracking
 
-**PROTECTION ANTI-CONFLIT MODULES** :
+**PROTECTION ANTI-CONFLIT MODULES**:
 - ✅ Système de mapping des modules réorganisé avec séparation stricte par dashboard
 - ✅ Validation automatique des mappings pour détecter les conflits et doublons
 - ✅ Protection spéciale pour le module 'students' : DOIT pointer vers FunctionalDirectorStudentManagement
@@ -21,17 +21,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ Commentaires de protection et alertes intégrés dans fastModuleLoader.ts
 - ⚠️ RÈGLE CRITIQUE : NE JAMAIS mélanger les mappings de modules entre dashboards différents
 
-**RESTAURATION ROUTES POST-REFACTOR** :
+**RESTAURATION ROUTES POST-REFACTOR**:
 - ✅ **11 routes critiques restaurées** après problèmes causés par le refactor majeur
-- ✅ Routes API manquantes : `/api/classes`, `/api/grades`, `/api/currency`, `/api/stripe`, `/api/uploads`, `/api/bulletins`, `/api/tracking`, `/api/tutorials`
-- ✅ **Corrections schéma DB** : Mapping `trackedDevices` → `trackingDevices`, suppression colonnes inexistantes
-- ✅ **Erreurs TypeScript résolues** : `notificationRoutes.ts` aligné avec schéma réel (suppression `readAt`, `recipientId`, `recipientRole`)
-- ✅ **Imports manquants ajoutés** dans `server/routes.ts` avec 13 nouvelles importations
-- ✅ **Interface Directeur fonctionnelle** : Création enseignants/élèves/classes maintenant opérationnelle
-- ✅ **Services restaurés** : PWA, notifications, géolocalisation, paiements Stripe, upload fichiers
+- ✅ Corrections schéma DB et erreurs TypeScript résolues.
+- ✅ Imports manquants ajoutés dans `server/routes.ts`.
+- ✅ Interface Directeur fonctionnelle, services restaurés (PWA, notifications, géolocalisation, paiements Stripe, upload fichiers).
 - ✅ Serveur stable avec logs: `[TRACKING] ✅`, `[NOTIFICATIONS] ✅`, `All routes configured ✅`
 
-**RÉSOLUTION CONFLITS ROUTES PARAMÈTRES** :
+**RÉSOLUTION CONFLITS ROUTES PARAMÈTRES**:
 - ✅ **Problème résolu** : Conflits entre routes settings définies dans routes.ts principal ET routers externes
 - ✅ **Solution implémentée** : Réorganisation ordre d'enregistrement - routes settings définies AVANT routers externes
 - ✅ **Routes Settings fonctionnelles** : `/api/director/settings`, `/api/teacher/settings`, `/api/student/settings`, `/api/parent/settings`, `/api/freelancer/settings`, `/api/school/settings`
@@ -40,7 +37,7 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Architecture optimisée** : Ordre prioritaire - Settings → API Modules → System Routes → Services
 - ⚠️ **RÈGLE CRITIQUE** : Toujours maintenir l'ordre d'enregistrement des routes pour éviter conflits futurs
 
-**ROUTES API INTERFACES UTILISATEURS COMPLÈTES** :
+**ROUTES API INTERFACES UTILISATEURS COMPLÈTES**:
 - ✅ **Routes Teacher** : `/api/teacher/schools`, `/api/teacher/classes`, `/api/teacher/students`
 - ✅ **Routes Student** : `/api/student/grades`, `/api/student/timetable`, `/api/student/request-account-deletion`
 - ✅ **Routes Parent** : `/api/parent/children`, `/api/parent/safe-zones`, `/api/parent/children/:childId/location`, `/api/parent/children/:childId/alerts`, `/api/parent/approve-account-deletion`
@@ -55,31 +52,20 @@ Preferred communication style: Simple, everyday language.
 Website URL Standard: All "Contacts Utiles" information must use https://www.educafric.com (not https://educafric.com) across all documents, guides, and system files.
 
 Console Error Prevention: 
-- ✅ RÉSOLU: Toutes erreurs PWA/MIME type JavaScript complètement éliminées
-- Console filtering activé en production et développement pour éliminer spam
-- Interception globale des erreurs MIME avec preventDefault() 
-- Validation PWA automatique avec `./scripts/validate-pwa.sh`
-- Fichier .htaccess créé pour production avec MIME types corrects
-
-**BUG FIXES COMPLETED (August 2025)**:
-- ✅ **React Hook Dependencies**: Fixed useEffect dependency array in App.tsx with proper user?.id and autoTrackPWAUsage dependencies
-- ✅ **Database Connection Pool**: Enhanced error handling and automatic connection recovery with recreateConnection method
-- ✅ **Memory Optimization Conflicts**: Consolidated multiple memory optimizers to prevent performance degradation 
-- ✅ **Service Worker Path Resolution**: Fixed race conditions with multiple fallback paths and minimal working service worker
-- ✅ **User Data Access**: Verified and maintained proper null checks across all components
-- ✅ **Error Handling & Console Spam**: Reduced production console spam by limiting error logs to development mode
-- ✅ **Performance Improvements**: Resolved slow request issues with optimized memory management and connection pooling
-- ✅ **PWA Stability**: Service worker now provides working response instead of 404 errors
+- ✅ Toutes erreurs PWA/MIME type JavaScript complètement éliminées.
+- Console filtering activé en production et développement.
+- Interception globale des erreurs MIME avec preventDefault().
+- Validation PWA automatique avec `./scripts/validate-pwa.sh`.
+- Fichier .htaccess créé pour production avec MIME types corrects.
 
 Fast Module Optimization System:
-- ✅ FastModuleLoader: Système de préchargement instantané pour tous dashboards
-- ✅ 14 modules critiques préchargés automatiquement au démarrage (Director, Parent, Commercial)
-- ✅ Cache intelligent avec gestion mémoire optimisée
-- ✅ Préchargement au survol des icônes pour UX instantanée
-- ✅ OptimizedModuleWrapper pour éviter re-renders inutiles
-- ✅ Performance monitoring intégré avec métriques temps réel
-- ✅ Support complet modules existants réels (plus de modules inexistants)
-- Backup complet: `BACKUP_FAST_MODULE_OPTIMIZATION_2025-08-18.md`
+- ✅ FastModuleLoader: Système de préchargement instantané pour tous dashboards.
+- ✅ 14 modules critiques préchargés automatiquement au démarrage (Director, Parent, Commercial).
+- ✅ Cache intelligent avec gestion mémoire optimisée.
+- ✅ Préchargement au survol des icônes pour UX instantanée.
+- ✅ OptimizedModuleWrapper pour éviter re-renders inutiles.
+- ✅ Performance monitoring intégré avec métriques temps réel.
+- ✅ Support complet modules existants réels (plus de modules inexistants).
 
 - ALWAYS consolidate ALL dashboards (Teacher, Student, Parent, Freelancer, Commercial, SiteAdmin) when making changes
 - NEVER make partial updates to only some dashboards
@@ -97,50 +83,44 @@ Fast Module Optimization System:
 ## System Architecture
 
 ### Frontend Architecture
-- **React** with TypeScript.
-- **Tailwind CSS** for responsive, mobile-first styling with a custom African-themed color palette, emphasizing a modern, vibrant, and 3D-inspired visual redesign.
-- **Wouter** for lightweight client-side routing.
-- **TanStack Query** for server state management and caching.
-- **Radix UI + Shadcn/UI** for accessible, production-ready component primitives.
-- **Progressive Web App (PWA)** capabilities.
-- **Unified UI/UX**: All dashboards utilize a consistent modern design system with colorful gradients, rounded cards, animated interactions, and the Nunito font.
-- **Component Standardization**: Standardized reusable components like `ModuleContainer`, `StatCard`, `ModernCard`, `ModernDashboardLayout`, and `ModernTabNavigation`.
-- **Mobile Optimization**: Features like `MobileActionsOverlay`, compact mobile navigation, and intelligent superposition elements are designed for an optimal smartphone experience.
-- **React Native**: Separate mobile application (`educafric-mobile/`) for Android with shared backend infrastructure.
+- Built with React and TypeScript, using Wouter for routing, TanStack Query for state management, and Radix UI + Shadcn/UI for components.
+- Styled with Tailwind CSS, featuring a custom African-themed color palette, modern gradients, rounded cards, and animated interactions using the Nunito font.
+- Designed as a Progressive Web App (PWA) with strong mobile optimization, including `MobileActionsOverlay` and compact navigation.
+- Ensures unified UI/UX across all dashboards through standardized, reusable components like `ModuleContainer` and `ModernDashboardLayout`.
+- A separate React Native application (`educafric-mobile/`) exists for Android, sharing the backend.
 
 ### Backend Architecture
-- **Express.js** server with RESTful API design.
-- **Drizzle ORM** with PostgreSQL for type-safe database operations.
-- **Session-based authentication** using `express-session` and `Passport.js`.
-- **Role-based access control** supporting 8 distinct user roles.
-- **BCrypt** for secure password hashing.
-- **Consolidated Error Handling**: Unified error recognition and automated repair system.
-- **Security Hardening**: Includes `helmet`, `cors`, `express-rate-limit`, `Two-Factor Authentication (2FA)`, and an `Intrusion Detection System (IDS)`.
+- Uses Express.js for RESTful APIs.
+- Drizzle ORM with PostgreSQL for type-safe database operations.
+- Implements session-based authentication with `express-session` and `Passport.js`.
+- Features robust role-based access control for 8 distinct user roles.
+- Employs BCrypt for secure password hashing.
+- Includes consolidated error handling and security hardening measures (helmet, cors, rate-limiting, 2FA, IDS).
 
 ### Database Design
-- **PostgreSQL** as the primary database, hosted on **Neon Serverless**.
-- **Multi-tenant architecture** supporting multiple schools.
-- **Comprehensive schema** covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation data.
-- **Academic year/term structure** for proper educational data organization.
+- PostgreSQL is the primary database, hosted on Neon Serverless.
+- Supports a multi-tenant architecture to accommodate multiple schools.
+- Features a comprehensive schema covering users, schools, classes, grades, attendance, homework, payments, communication logs, and geolocation data.
+- Structured to organize educational data by academic year/term.
 
 ### Key Features and System Design Choices
-- **Authentication & Authorization**: Secure local and Firebase Google OAuth authentication with comprehensive session management and granular permissions for 8 user roles, including intelligent multi-role detection.
-- **Educational Management System**: Robust grade management with African-style report cards, real-time attendance tracking, homework assignment and submission, and flexible timetable management with African cultural adaptations.
-- **Communication System**: Integrated multi-channel notification system (SMS via Vonage, WhatsApp Business API, Email via Hostinger SMTP, and PWA push notifications) with bilingual, contextual templates.
-- **Payment & Subscription Management**: Stripe integration for international payments, alongside local African payment methods (Orange Money, Express Union, Afriland First Bank). Supports multiple subscription tiers and role-based access to premium modules.
-- **Geolocation Services**: Comprehensive GPS tracking for tablets, smartwatches, and phones, featuring geofencing, safe zone management, real-time device monitoring, and emergency alerts with route optimization and attendance automation.
-- **Document Management System**: Centralized system for managing commercial, administrative, and legal documents with digital signatures, PDF generation, controlled access, and permission management.
-- **Bidirectional Connection System**: Allows parents to connect with children, students with parents, and freelancers with students, with smart duplicate detection and school verification for activation.
-- **Phone Number Validation**: Comprehensive phone number uniqueness validation system with owner exception handling, format validation for Cameroon numbers, and WhatsApp number support.
-- **Bilingual Support**: Dynamic French/English language switching with complete localization of UI, educational content, and documentation, including context-aware translations specific to African educational terminology.
-- **Sandbox Environment**: A dedicated, fully unlocked sandbox environment with realistic African demo data and comprehensive developer tools.
-- **Tutorial System**: Backend-driven tutorial system with progress tracking and analytics.
-- **Mobile School Configuration Guide**: Optimized for smartphone with responsive interface and integration into the unified dashboard system.
+- **Authentication & Authorization**: Secure local and Firebase Google OAuth with comprehensive session management and granular permissions.
+- **Educational Management System**: Grade management with African-style report cards, real-time attendance, homework assignment, and flexible timetable management.
+- **Communication System**: Multi-channel notifications via Vonage (SMS/WhatsApp), Hostinger SMTP (Email), and PWA push notifications, with bilingual, contextual templates.
+- **Payment & Subscription Management**: Stripe integration for international payments, complemented by local African payment methods (Orange Money, Express Union, Afriland First Bank). Supports multiple subscription tiers.
+- **Geolocation Services**: GPS tracking for devices, geofencing, safe zone management, real-time monitoring, and emergency alerts.
+- **Document Management System**: Centralized system for commercial, administrative, and legal documents, with digital signatures, PDF generation, and controlled access.
+- **Bidirectional Connection System**: Facilitates connections between parents-children, students-parents, and freelancers-students, with duplicate detection and school verification.
+- **Phone Number Validation**: Comprehensive uniqueness and format validation, especially for Cameroon numbers, with WhatsApp support.
+- **Bilingual Support**: Dynamic French/English language switching with complete localization of UI, content, and documentation, including African educational terminology.
+- **Sandbox Environment**: A dedicated, fully unlocked environment with realistic African demo data.
+- **Tutorial System**: Backend-driven with progress tracking and analytics.
+- **Mobile School Configuration Guide**: Optimized for smartphones and integrated into the unified dashboard system.
 
 ### Pricing Structure
-- **Schools**: Annual plans only, no student limitations.
-- **Freelancers**: Professional plan.
-- **Parent Quarterly Subscriptions**.
+- Schools: Annual plans only, no student limitations.
+- Freelancers: Professional plan.
+- Parents: Quarterly subscriptions.
 
 ## External Dependencies
 
