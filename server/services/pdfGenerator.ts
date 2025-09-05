@@ -235,8 +235,7 @@ export class PDFGenerator {
    * Generate bulletin creation workflow documentation in French
    */
   static async generateBulletinWorkflowDocumentationFR(): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -534,8 +533,7 @@ export class PDFGenerator {
     try {
       console.log(`[PDF_GENERATOR] Generating class report PDF for class ${classId}...`);
       
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+      const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
       // Add QR code for document verification
@@ -624,8 +622,7 @@ export class PDFGenerator {
   }
 
   static async generateBulletinWorkflowDocumentationEN(): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -898,8 +895,7 @@ export class PDFGenerator {
     return Buffer.from(doc.output('arraybuffer'));
   }
   static async generateSystemReport(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -1040,8 +1036,7 @@ export class PDFGenerator {
   }
 
   static async generateBulletinGuideEnglishDocument(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -1215,8 +1210,7 @@ export class PDFGenerator {
   }
 
   static async generateBulletinGuideDocument(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -1488,8 +1482,8 @@ export class PDFGenerator {
 
   static async generateTestBulletinDocument(): Promise<Buffer> {
     try {
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF || jsPDFModule;
+      // Import jsPDF with proper module resolution
+      const { jsPDF } = await import('jspdf');
       
       if (!jsPDF || typeof jsPDF !== 'function') {
         throw new Error('jsPDF constructor not found in imported module');
@@ -1796,8 +1790,7 @@ export class PDFGenerator {
 
   
   static async generateCommercialDocument(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -1909,8 +1902,7 @@ export class PDFGenerator {
   }
   
   static async generateProposalDocument(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -1994,8 +1986,7 @@ export class PDFGenerator {
   }
 
   static async generateMultiRoleGuideDocument(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
@@ -2198,8 +2189,7 @@ export class PDFGenerator {
   }
 
   static async generateBulletinValidationGuide(data: DocumentData): Promise<Buffer> {
-    const jsPDFModule = await import('jspdf');
-    const jsPDF = jsPDFModule.default || jsPDFModule.jsPDF;
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     
     // Configuration
