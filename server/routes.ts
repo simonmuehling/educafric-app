@@ -334,13 +334,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log('[DIRECTOR_API] GET /api/director/overview for user:', user.id);
       
-      // Check if user is in sandbox/demo mode
+      // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || // Nouveau: @educafric.demo
                            user.email?.includes('sandbox@') || 
                            user.email?.includes('demo@') || 
                            user.email?.includes('.sandbox@') ||
                            user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@');
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.'); // Nouveau: sandbox.* patterns
       
       let overviewStats;
       
@@ -691,13 +693,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log('[DIRECTOR_CLASSES_API] GET /api/director/classes for user:', user.id);
       
-      // Check if user is in sandbox/demo mode
+      // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || // Nouveau: @educafric.demo
                            user.email?.includes('sandbox@') || 
                            user.email?.includes('demo@') || 
                            user.email?.includes('.sandbox@') ||
                            user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@');
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.'); // Nouveau: sandbox.* patterns
       
       let classes;
       
@@ -800,13 +804,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log('[DIRECTOR_TEACHERS_API] GET /api/director/teachers for user:', user.id);
       
-      // Check if user is in sandbox/demo mode
+      // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || // Nouveau: @educafric.demo
                            user.email?.includes('sandbox@') || 
                            user.email?.includes('demo@') || 
                            user.email?.includes('.sandbox@') ||
                            user.email?.includes('.demo@') ||
-                           user.email?.includes('.test@');
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.'); // Nouveau: sandbox.* patterns
       
       let teachers;
       
