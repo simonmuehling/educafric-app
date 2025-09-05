@@ -2566,7 +2566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/commercial/documents', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
     try {
       const commercialDocuments = [
-        { id: 1, title: "Kit de Prospection EDUCAFRIC Complet", description: "Document commercial complet", type: "commercial", url: "/documents/kit-prospection-educafric-complet.html" },
+        { id: 1, title: "Guide Explicatif Commerciaux EDUCAFRIC", description: "Document commercial complet", type: "commercial", url: "/documents/guide-explicatif-commerciaux-educafric-2025.html" },
         { id: 2, title: "Guide Commercial Bulletins EDUCAFRIC", description: "Guide pour la vente du système de bulletins", type: "commercial", url: "/documents/guide-commercial-bulletins-educafric-2025.html" },
         { id: 3, title: "Guide Signatures Numériques - Professeurs Principaux", description: "Système de signatures numériques pour bulletins", type: "commercial", url: "/documents/guide-signatures-numeriques-professeurs-principaux.html" },
         { id: 7, title: "Digital Signatures Guide - Principal Teachers", description: "Digital signature system for report cards (English)", type: "commercial", url: "/documents/digital-signatures-guide-principal-teachers-en.html" },
