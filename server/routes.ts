@@ -1743,6 +1743,194 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Family Messages API - Get messages for a connection
+  app.get("/api/family/messages/:connectionId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const { connectionId } = req.params;
+      console.log('[FAMILY_MESSAGES] Getting messages for connection:', connectionId, 'user:', userId);
+      
+      // Mock messages data
+      const messages = [
+        {
+          id: 1,
+          connectionId: Number(connectionId),
+          senderId: userId,
+          senderName: 'Marie Ndomo',
+          senderType: 'parent',
+          message: 'Bonjour Emma! Comment s\'est passée ta journée?',
+          messageType: 'text',
+          timestamp: '2024-08-24T14:30:00Z',
+          isRead: true,
+          isEncrypted: true
+        },
+        {
+          id: 2,
+          connectionId: Number(connectionId),
+          senderId: 1,
+          senderName: 'Emma Tall',
+          senderType: 'child',
+          message: 'Ça va bien maman! J\'ai eu une bonne note en maths.',
+          messageType: 'text',
+          timestamp: '2024-08-24T15:00:00Z',
+          isRead: false,
+          isEncrypted: true
+        }
+      ];
+
+      res.json(messages);
+    } catch (error) {
+      console.error('[FAMILY_MESSAGES] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch family messages' 
+      });
+    }
+  });
+
+  // Family Messages API - Send message
+  app.post("/api/family/messages", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const { connectionId, message, messageType } = req.body;
+      console.log('[FAMILY_MESSAGES] Sending message:', { connectionId, message, messageType, userId });
+      
+      if (!connectionId || !message) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Connection ID and message are required' 
+        });
+      }
+
+      // Mock message creation
+      const newMessage = {
+        id: Date.now(),
+        connectionId: Number(connectionId),
+        senderId: userId,
+        senderName: 'Parent User',
+        senderType: 'parent',
+        message,
+        messageType: messageType || 'text',
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        isEncrypted: true
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Message sent successfully',
+        data: newMessage 
+      });
+    } catch (error) {
+      console.error('[FAMILY_MESSAGES] Error sending message:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send message' 
+      });
+    }
+  });
+
+  // Family Search Users API - Search for students by email or phone
+  app.post("/api/family/search-users", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const { searchValue, searchType } = req.body;
+      console.log('[FAMILY_SEARCH] Searching users:', { searchValue, searchType, userId });
+      
+      if (!searchValue || !searchType) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Search value and type are required' 
+        });
+      }
+
+      // Mock user search results
+      let users = [];
+      
+      if (searchType === 'email' && searchValue.includes('student')) {
+        users = [
+          {
+            id: 1,
+            firstName: 'Emma',
+            lastName: 'Tall',
+            email: 'emma.tall@test.educafric.com',
+            phone: '+237690123456',
+            schoolName: 'École Saint-Joseph Yaoundé',
+            className: '6ème A'
+          }
+        ];
+      } else if (searchType === 'phone' && searchValue.includes('237')) {
+        users = [
+          {
+            id: 2,
+            firstName: 'Paul',
+            lastName: 'Mvondo',
+            email: 'paul.mvondo@test.educafric.com',
+            phone: '+237690654321',
+            schoolName: 'École Saint-Joseph Yaoundé',
+            className: '3ème B'
+          }
+        ];
+      }
+
+      res.json({ 
+        success: true, 
+        users,
+        total: users.length,
+        searchType,
+        searchValue 
+      });
+    } catch (error) {
+      console.error('[FAMILY_SEARCH] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to search users' 
+      });
+    }
+  });
+
+  // Family Connections API - Create new connection
+  app.post("/api/family/connections", requireAuth, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || (req.session as any)?.userId;
+      const { childEmail, childPhone } = req.body;
+      console.log('[FAMILY_CONNECTIONS] Creating connection:', { childEmail, childPhone, userId });
+      
+      if (!childEmail && !childPhone) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Child email or phone is required' 
+        });
+      }
+
+      // Mock connection creation
+      const newConnection = {
+        id: Date.now(),
+        parentId: userId,
+        childEmail,
+        childPhone,
+        childName: childEmail ? 'Emma Tall' : 'Paul Mvondo',
+        connectionStatus: 'pending',
+        lastContact: new Date().toISOString(),
+        unreadMessages: 0,
+        isOnline: false,
+        createdAt: new Date().toISOString()
+      };
+
+      res.json({ 
+        success: true, 
+        message: 'Connexion créée avec succès. En attente d\'approbation de l\'enfant.',
+        connection: newConnection 
+      });
+    } catch (error) {
+      console.error('[FAMILY_CONNECTIONS] Error creating connection:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create connection' 
+      });
+    }
+  });
+
   // Parent requests API - FIXED MISSING ROUTE
   app.get("/api/parent/requests", requireAuth, async (req, res) => {
     try {
