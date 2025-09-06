@@ -21,6 +21,10 @@ const ModularBulletinGenerator: React.FC<ModularBulletinGeneratorProps> = ({ onG
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
+    // Informations officielles Cameroun
+    regionalDelegation: 'DU CENTRE',
+    departmentalDelegation: 'DU MFOUNDI',
+    
     // Informations école
     schoolName: '',
     schoolAddress: '',
@@ -38,26 +42,83 @@ const ModularBulletinGenerator: React.FC<ModularBulletinGeneratorProps> = ({ onG
     studentGender: 'M',
     className: '',
     studentNumber: '',
+    studentPhoto: '', // URL photo élève
+    isRepeater: false,
+    enrollment: 0,
     
     // Période et évaluations
     period: '1er Trimestre',
+    termNumber: '1', // T1, T2, T3
     generalAverage: 0,
     classRank: 1,
     totalStudents: 30,
     conduct: 'Bien',
+    conductGrade: 18,
     absences: 0,
     teacherComments: '',
     directorComments: '',
+    verificationCode: '',
     
-    // Matières (exemple)
+    // Matières modulables avec toutes les colonnes
     subjects: [
-      { name: 'Français', grade: 0, maxGrade: 20, coefficient: 4, comments: '' },
-      { name: 'Mathématiques', grade: 0, maxGrade: 20, coefficient: 4, comments: '' },
-      { name: 'Sciences', grade: 0, maxGrade: 20, coefficient: 3, comments: '' },
-      { name: 'Anglais', grade: 0, maxGrade: 20, coefficient: 3, comments: '' },
-      { name: 'Histoire-Géo', grade: 0, maxGrade: 20, coefficient: 2, comments: '' },
-      { name: 'EPS', grade: 0, maxGrade: 20, coefficient: 1, comments: '' }
-    ]
+      { 
+        name: 'Français', 
+        t1Grade: 0, 
+        t2Grade: 0, 
+        t3Grade: 0, 
+        coefficient: 4, 
+        total: 0,
+        position: 1,
+        averageMark: 0,
+        remark: 'Competence Well Acquired(CWA)',
+        teacherName: '',
+        comments: '' 
+      },
+      { 
+        name: 'Mathématiques', 
+        t1Grade: 0, 
+        t2Grade: 0, 
+        t3Grade: 0, 
+        coefficient: 4, 
+        total: 0,
+        position: 1,
+        averageMark: 0,
+        remark: 'Competence Well Acquired(CWA)',
+        teacherName: '',
+        comments: '' 
+      },
+      { 
+        name: 'Anglais', 
+        t1Grade: 0, 
+        t2Grade: 0, 
+        t3Grade: 0, 
+        coefficient: 3, 
+        total: 0,
+        position: 1,
+        averageMark: 0,
+        remark: 'Competence Well Acquired(CWA)',
+        teacherName: '',
+        comments: '' 
+      },
+      { 
+        name: 'Sciences', 
+        t1Grade: 0, 
+        t2Grade: 0, 
+        t3Grade: 0, 
+        coefficient: 3, 
+        total: 0,
+        position: 1,
+        averageMark: 0,
+        remark: 'Competence Well Acquired(CWA)',
+        teacherName: '',
+        comments: '' 
+      }
+    ],
+    
+    // Sections modulables (Général, Professionnel, Autres)
+    subjectsGeneral: [],
+    subjectsProfessional: [],
+    subjectsOthers: []
   });
   
   const [isGenerating, setIsGenerating] = useState(false);

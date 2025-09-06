@@ -26,15 +26,26 @@ export interface BulletinTemplateData {
     className: string;
     studentNumber: string;
     photo?: string; // URL de la photo de l'élève
+    isRepeater?: boolean;
+    enrollment?: number;
   };
   period: string;
+  termNumber?: string; // T1, T2, T3
   subjects: Array<{
     name: string;
-    grade: number;
-    maxGrade: number;
+    grade?: number; // Pour compatibilité
+    maxGrade?: number; // Pour compatibilité  
     coefficient: number;
     comments?: string;
     teacherName?: string; // Nom de l'enseignant de la matière
+    // Nouvelles colonnes format camerounais
+    t1Grade?: number;
+    t2Grade?: number;
+    t3Grade?: number;
+    total?: number;
+    position?: number;
+    averageMark?: number;
+    remark?: string;
   }>;
   generalAverage: number;
   classRank: number;
@@ -45,6 +56,22 @@ export interface BulletinTemplateData {
   teacherComments: string;
   directorComments: string;
   verificationCode?: string; // Code de vérification unique
+  // Nouvelles données performance académique
+  firstTermAverage?: number;
+  secondTermAverage?: number;
+  thirdTermAverage?: number;
+  annualAverage?: number;
+  annualPosition?: number;
+  totalEnrolment?: number;
+  appreciation?: string;
+  // Nouvelles données discipline
+  punishment?: string;
+  sanctions?: string;
+  finalRemark?: string;
+  classPerformance?: string;
+  highestAvg?: number;
+  lowestAvg?: number;
+  councilDecision?: string;
 }
 
 export interface ReportTemplateData {
@@ -575,24 +602,41 @@ export class ModularTemplateGenerator {
               <thead>
                 <tr>
                   <th>Matière</th>
-                  <th>Note</th>
+                  <th>T1/20</th>
+                  <th>T2/20</th>
+                  <th>T3/20</th>
                   <th>Coef</th>
-                  <th>Points</th>
-                  <th>Enseignant</th>
-                  <th>Appréciation</th>
+                  <th>Total</th>
+                  <th>Position</th>
+                  <th>Average Mark</th>
+                  <th>Remark</th>
+                  <th>Teacher's Name</th>
                 </tr>
               </thead>
               <tbody>
                 ${data.subjects.map(subject => {
-                  const points = (subject.grade * subject.coefficient).toFixed(1);
+                  // Support pour les deux formats (ancien et nouveau)
+                  const t1 = subject.t1Grade !== undefined ? subject.t1Grade : (subject.grade || 0);
+                  const t2 = subject.t2Grade !== undefined ? subject.t2Grade : (subject.grade || 0);
+                  const t3 = subject.t3Grade !== undefined ? subject.t3Grade : (subject.grade || 0);
+                  const total = subject.total !== undefined ? subject.total : (t3 * subject.coefficient);
+                  const position = subject.position || 1;
+                  const averageMark = subject.averageMark !== undefined ? subject.averageMark : subject.grade || 0;
+                  const remark = subject.remark || subject.comments || '';
+                  const teacherName = subject.teacherName || 'Non assigné';
+                  
                   return `
                     <tr>
                       <td style="text-align: left; font-weight: bold;">${subject.name}</td>
-                      <td>${subject.grade}</td>
+                      <td>${t1.toFixed(2)}</td>
+                      <td>${t2.toFixed(2)}</td>
+                      <td>${t3.toFixed(2)}</td>
                       <td>${subject.coefficient}</td>
-                      <td>${points}</td>
-                      <td style="text-align: left;">${subject.teacherName || 'Non assigné'}</td>
-                      <td style="text-align: left;">${subject.comments || ''}</td>
+                      <td>${total.toFixed(2)}</td>
+                      <td>${position}</td>
+                      <td>${averageMark.toFixed(2)}</td>
+                      <td style="text-align: left; font-size: 6px;">${remark}</td>
+                      <td style="text-align: left; font-size: 7px;">${teacherName}</td>
                     </tr>
                   `;
                 }).join('')}
