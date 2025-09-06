@@ -40,6 +40,8 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [subjectsLoaded, setSubjectsLoaded] = useState(false);
+  const [subjectsSource, setSubjectsSource] = useState<'class' | 'default' | 'manual'>('manual');
 
   const [formData, setFormData] = useState({
     // Informations officielles Cameroun
@@ -251,9 +253,75 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
     return `${prefix}-${initials}-${term}-${random}`;
   };
 
-  // Pré-remplir matières avec enseignants
-  const loadSubjectsForClass = (className: string) => {
-    // Matières communes avec affectation automatique d'enseignants
+  // Charger matières et enseignants réels de la classe
+  const loadSubjectsForClass = async (classId: string) => {
+    try {
+      // Charger les matières assignées à cette classe spécifique
+      const subjectsResponse = await fetch(`/api/director/subjects?classId=${classId}`);
+      const teachersResponse = await fetch(`/api/director/teachers?classId=${classId}`);
+      
+      let classSubjects = [];
+      let classTeachers = [];
+      
+      if (subjectsResponse.ok) {
+        const subjectsData = await subjectsResponse.json();
+        classSubjects = subjectsData.subjects || [];
+      }
+      
+      if (teachersResponse.ok) {
+        const teachersData = await teachersResponse.json();
+        classTeachers = teachersData.teachers || [];
+      }
+      
+      // Si des matières existent pour cette classe, les utiliser
+      if (classSubjects.length > 0) {
+        const subjectsWithTeachers = classSubjects.map(subject => {
+          // Trouver l'enseignant assigné à cette matière dans cette classe
+          const assignedTeacher = classTeachers.find(t => 
+            t.subjectId === subject.id || 
+            t.subject?.toLowerCase().includes(subject.name.toLowerCase()) ||
+            t.specialization?.toLowerCase().includes(subject.name.toLowerCase())
+          );
+          
+          return {
+            name: subject.name,
+            t1Grade: 0,
+            t2Grade: 0,
+            t3Grade: 0,
+            coefficient: subject.coefficient || 1,
+            total: 0,
+            position: 1,
+            averageMark: 0,
+            remark: 'Competence Well Acquired(CWA)',
+            teacherName: assignedTeacher ? `${assignedTeacher.firstName} ${assignedTeacher.lastName}` : 'Non assigné',
+            comments: ''
+          };
+        });
+
+        setFormData(prev => ({
+          ...prev,
+          subjectsGeneral: subjectsWithTeachers.filter(s => s.name.match(/Français|Anglais|Mathématiques|Sciences|Histoire|EPS|Arts/i) || true),
+          subjectsProfessional: subjectsWithTeachers.filter(s => s.name.match(/Technique|Professionnel|Technologie|Couture|Dessin/i)),
+          subjectsOthers: []
+        }));
+        
+        setSubjectsSource('class');
+        setSubjectsLoaded(true);
+      } else {
+        // Fallback: utiliser matières communes si aucune matière spécifique n'est trouvée
+        loadDefaultSubjects();
+        setSubjectsSource('default');
+        setSubjectsLoaded(true);
+      }
+    } catch (error) {
+      console.error('Erreur chargement matières de la classe:', error);
+      // Fallback en cas d'erreur
+      loadDefaultSubjects();
+    }
+  };
+
+  // Matières par défaut si aucune matière spécifique à la classe n'est trouvée
+  const loadDefaultSubjects = () => {
     const commonSubjects = [
       { name: 'Français', type: 'general', coefficient: 4 },
       { name: 'Anglais', type: 'general', coefficient: 3 },
@@ -293,6 +361,9 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
       subjectsProfessional: [],
       subjectsOthers: []
     }));
+    
+    setSubjectsSource('default');
+    setSubjectsLoaded(true);
   };
 
   // Sélection classe
@@ -310,7 +381,7 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
       
       // Charger élèves et matières automatiquement
       await loadStudentsByClass(classId);
-      loadSubjectsForClass(selectedClass.name);
+      await loadSubjectsForClass(classId);
     }
   };
 
@@ -1134,9 +1205,27 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
         {/* Évaluations Académiques */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
-              {t.academicInfo}
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                {t.academicInfo}
+              </div>
+              {subjectsLoaded && (
+                <div className="flex items-center text-sm">
+                  {subjectsSource === 'class' && (
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Matières de la classe
+                    </span>
+                  )}
+                  {subjectsSource === 'default' && (
+                    <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full flex items-center">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                      Matières standard
+                    </span>
+                  )}
+                </div>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
