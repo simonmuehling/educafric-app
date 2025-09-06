@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,21 @@ const DocumentsContracts = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [downloadDateFilter, setDownloadDateFilter] = useState('');
+  const [downloadedDocs, setDownloadedDocs] = useState<{[key: number]: string}>({});
+  
+  // Load downloaded docs from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('educafric-doc-downloads');
+    if (stored) {
+      try {
+        const downloads = JSON.parse(stored);
+        setDownloadedDocs(downloads);
+      } catch (error) {
+        console.error('Error loading download history:', error);
+      }
+    }
+  }, []);
 
 
   const text = {
@@ -21,6 +36,12 @@ const DocumentsContracts = () => {
       subtitle: 'Hub documentaire commercial et gestion des contrats',
       searchPlaceholder: 'Rechercher document...',
       addDocument: 'Ajouter Document',
+      downloadDateFilter: 'Filtrer par date de téléchargement',
+      allDates: 'Toutes les dates',
+      today: 'Aujourd\'hui',
+      yesterday: 'Hier',
+      thisWeek: 'Cette semaine',
+      thisMonth: 'Ce mois',
       all: 'Tous',
       contracts: 'Contrats',
       brochures: 'Brochures',
@@ -52,6 +73,12 @@ const DocumentsContracts = () => {
       subtitle: 'Commercial document hub and contract management',
       searchPlaceholder: 'Search documents...',
       addDocument: 'Add Document',
+      downloadDateFilter: 'Filter by download date',
+      allDates: 'All dates',
+      today: 'Today',
+      yesterday: 'Yesterday',
+      thisWeek: 'This week',
+      thisMonth: 'This month',
       all: 'All',
       contracts: 'Contracts',
       brochures: 'Brochures',
@@ -113,7 +140,7 @@ const DocumentsContracts = () => {
       size: '28.7 KB',
       format: 'HTML',
       url: '/documents/guide-freemium-premium-commercial-fr-en.html',
-      description: '🚀 GUIDE COMMERCIAL COMPLET INTERACTIF BILINGUE avec boutons changement de langue - ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, Entreprise 150,000 XAF/an, GPS 50,000 XAF/an, Publique Complet 90,000 XAF/an (économie 10,000), Privée Complet 115,000 XAF/an (économie 10,000) - PARENTS: Publique 1,000 XAF/mois (12,000/an), Privée 1,500 XAF/mois (18,000/an), GPS 1,000 XAF/mois (12,000/an) avec réductions familiales - FREELANCERS: Professionnel 12,500 XAF/semestre, 25,000 XAF/an - 🚀 COMPLETE INTERACTIVE BILINGUAL COMMERCIAL GUIDE with language toggle buttons - SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, Enterprise 150,000 XAF/year, GPS 50,000 XAF/year, Public Complete 90,000 XAF/year (save 10,000), Private Complete 115,000 XAF/year (save 10,000) - PARENTS: Public 1,000 XAF/month (12,000/year), Private 1,500 XAF/month (18,000/year), GPS 1,000 XAF/month (12,000/year) with family discounts - FREELANCERS: Professional 12,500 XAF/semester, 25,000 XAF/year'
+      description: 'Guide commercial complet interactif bilingue avec boutons changement de langue - ÉCOLES: Publique 50,000 XAF/an, Privée 75,000 XAF/an, Entreprise 150,000 XAF/an, GPS 50,000 XAF/an, Publique Complet 90,000 XAF/an, Privée Complet 115,000 XAF/an - PARENTS: Publique 1,000 XAF/mois, Privée 1,500 XAF/mois, GPS 1,000 XAF/mois avec réductions familiales - FREELANCERS: Professionnel 12,500 XAF/semestre, 25,000 XAF/an - Complete interactive bilingual commercial guide with language toggle buttons - SCHOOLS: Public 50,000 XAF/year, Private 75,000 XAF/year, Enterprise 150,000 XAF/year, GPS 50,000 XAF/year, Public Complete 90,000 XAF/year, Private Complete 115,000 XAF/year - PARENTS: Public 1,000 XAF/month, Private 1,500 XAF/month, GPS 1,000 XAF/month with family discounts - FREELANCERS: Professional 12,500 XAF/semester, 25,000 XAF/year'
     },
 
     {
@@ -209,7 +236,7 @@ const DocumentsContracts = () => {
       size: '54.1 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'VERSION 6.0 - Contrat officiel actualisé du 17 août 2025 avec nouveau modèle de paiement : EDUCAFRIC paie maintenant les établissements. École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an'
+      description: 'Version 6.0 - Contrat officiel actualisé du 17 août 2025 avec nouveau modèle de paiement : EDUCAFRIC paie maintenant les établissements. École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an'
     },
     {
       id: 53,
@@ -222,7 +249,7 @@ const DocumentsContracts = () => {
       size: '48.7 KB',
       format: 'HTML',
       url: '/documents/educafric-official-contract-2025-updated-version-6-en.html',
-      description: 'VERSION 6.0 - English version of official contract updated August 17, 2025 with NEW PAYMENT MODEL: EDUCAFRIC pays schools directly. Schools 500+ students: 150,000 CFA/year, Schools under 500: 200,000 CFA/year - Parents: Public 12,000 CFA/year, Private 18,000 CFA/year with FAMILY DISCOUNTS up to 20% - Freelancers Professional: 25,000 CFA/year'
+      description: 'Version 6.0 - English version of official contract updated August 17, 2025 with new payment model: EDUCAFRIC pays schools directly. Schools 500+ students: 150,000 CFA/year, Schools under 500: 200,000 CFA/year - Parents: Public 12,000 CFA/year, Private 18,000 CFA/year with family discounts up to 20% - Freelancers Professional: 25,000 CFA/year'
     },
     {
       id: 28,
@@ -319,7 +346,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 5,
-      name: 'SYSTÈME DE NOTIFICATIONS EDUCAFRIC COMPLET (FR/EN)',
+      name: 'Système de Notifications EDUCAFRIC Complet (FR/EN)',
       type: 'guide',
       category: 'technical',
       school: 'Support Technique',
@@ -328,7 +355,7 @@ const DocumentsContracts = () => {
       size: '11.2 KB',
       format: 'PDF',
       url: '/documents/notifications-system-educafric-fr.html',
-      description: 'SYSTÈME COMPLET BILINGUE : SMS automatiques (Vonage API), WhatsApp Business intégré, Email (Hostinger SMTP), Notifications Push PWA, Alertes géolocalisation temps réel, Notifications notes/présence, Communications parents-écoles bidirectionnelles, Templates contextuels français/anglais - COMPLETE BILINGUAL SYSTEM: Automatic SMS (Vonage API), Integrated WhatsApp Business, Email (Hostinger SMTP), PWA Push notifications, Real-time geolocation alerts, Grade/attendance notifications, Bidirectional parent-school communications, Contextual French/English templates'
+      description: 'Système complet bilingue : SMS automatiques (Vonage API), WhatsApp Business intégré, Email (Hostinger SMTP), Notifications Push PWA, Alertes géolocalisation temps réel, Notifications notes/présence, Communications parents-écoles bidirectionnelles, Templates contextuels français/anglais - Complete bilingual system: Automatic SMS (Vonage API), Integrated WhatsApp Business, Email (Hostinger SMTP), PWA Push notifications, Real-time geolocation alerts, Grade/attendance notifications, Bidirectional parent-school communications, Contextual French/English templates'
     },
     {
       id: 6,
@@ -341,7 +368,7 @@ const DocumentsContracts = () => {
       size: '8.7 KB',
       format: 'PDF',
       url: '/documents/geolocalisation-resume-educafric-fr.html',
-      description: 'SYSTÈME GÉOLOCALISATION EDUCAFRIC : Suivi GPS temps réel élèves/personnel, Zones de sécurité configurables, Géofencing intelligent, Alertes automatiques SMS/WhatsApp/Email, Historique déplacements complet, Compatible tablettes/smartwatches/téléphones, Optimisation itinéraires bus scolaires, Automatisation présence classes, Boutons urgence, Rapports parents/écoles, Interface cartographie interactive'
+      description: 'Système géolocalisation EDUCAFRIC : Suivi GPS temps réel élèves/personnel, Zones de sécurité configurables, Géofencing intelligent, Alertes automatiques SMS/WhatsApp/Email, Historique déplacements complet, Compatible tablettes/smartwatches/téléphones, Optimisation itinéraires bus scolaires, Automatisation présence classes, Boutons urgence, Rapports parents/écoles, Interface cartographie interactive'
     },
     {
       id: 7,
@@ -661,7 +688,7 @@ const DocumentsContracts = () => {
       size: '4.8 MB',
       format: 'HTML',
       url: '/documents/argumentaire-vente-educafric-fr.html',
-      description: 'ARGUMENTAIRE DE VENTE COMPLET BILINGUE avec objections et réponses, scripts téléphone, présentation face-à-face, templates WhatsApp - Version française et anglaise élargie - COMPLETE BILINGUAL SALES PITCH with objections, phone scripts, face-to-face presentation, WhatsApp templates - Extended French and English version'
+      description: 'Argumentaire de vente complet bilingue avec objections et réponses, scripts téléphone, présentation face-à-face, templates WhatsApp - Version française et anglaise élargie - Complete bilingual sales pitch with objections, phone scripts, face-to-face presentation, WhatsApp templates - Extended French and English version'
     },
     {
       id: 26,
@@ -793,17 +820,67 @@ const DocumentsContracts = () => {
       url: '/documents/educ-presentation-4.pdf',
       description: 'Présentation EDUCAFRIC pour enseignants - Gestion de classe, bulletins, communication parents.'
     },
+    {
+      id: 62,
+      name: 'Demande d\'Offres EDUCAFRIC - FR',
+      type: 'proposal',
+      category: 'contracts',
+      school: 'Document Officiel',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '150 KB',
+      format: 'PDF',
+      url: '/documents/demande-offres-educafric-fr.pdf',
+      description: 'Document officiel de demande d\'offre pour établissements - Notifications instantanées, géolocalisation, emplois du temps, communication unifiée'
+    },
+    {
+      id: 63,
+      name: 'Proposal Request EDUCAFRIC - EN',
+      type: 'proposal',
+      category: 'contracts',
+      school: 'Official Document',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '152 KB',
+      format: 'PDF',
+      url: '/documents/proposal-request-educafric-en.pdf',
+      description: 'Official proposal request document for institutions - Instant notifications, child geolocation, interactive timetables, unified communication'
+    },
   ];
+
+  const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
+    if (!downloadDate || filter === 'all') return true;
+    
+    const now = new Date();
+    const docDate = new Date(downloadDate);
+    
+    switch (filter) {
+      case 'today':
+        return docDate.toDateString() === now.toDateString();
+      case 'yesterday':
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return docDate.toDateString() === yesterday.toDateString();
+      case 'thisWeek':
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - now.getDay());
+        return docDate >= weekStart;
+      case 'thisMonth':
+        return docDate.getMonth() === now.getMonth() && docDate.getFullYear() === now.getFullYear();
+      default:
+        return true;
+    }
+  };
 
   const filteredDocuments = documents
     .filter(doc => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            doc.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+      const matchesDownloadDate = downloadDateFilter === 'all' || downloadDateFilter === '' || 
+                                 isWithinDateRange(downloadedDocs[doc.id], downloadDateFilter);
       
-
-      
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && matchesDownloadDate;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
@@ -834,6 +911,16 @@ const DocumentsContracts = () => {
   };
 
   const handleDownloadDocument = (doc: any) => {
+    // Record download date
+    const now = new Date().toISOString();
+    setDownloadedDocs(prev => ({ ...prev, [doc.id]: now }));
+    
+    // Store in localStorage for persistence
+    const stored = localStorage.getItem('educafric-doc-downloads') || '{}';
+    const downloads = JSON.parse(stored);
+    downloads[doc.id] = now;
+    localStorage.setItem('educafric-doc-downloads', JSON.stringify(downloads));
+    
     // For XLSX templates, download directly via API
     if (doc.format === 'XLSX' && doc.url.includes('/api/bulk/template/')) {
       window.open(doc.url, '_blank');
@@ -906,23 +993,42 @@ const DocumentsContracts = () => {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {['all', 'marketing', 'contracts', 'templates', 'technical', 'legal'].map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  className="text-xs"
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Category Filter */}
+              <div className="flex flex-wrap gap-2">
+                {['all', 'marketing', 'contracts', 'templates', 'technical', 'legal'].map((category) => (
+                  <Button
+                    key={category}
+                    variant={selectedCategory === category ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category)}
+                    className="text-xs"
+                  >
+                    {category === 'all' ? t.all : 
+                     category === 'marketing' ? t.marketing :
+                     category === 'contracts' ? t.contracts :
+                     category === 'templates' ? t.templates :
+                     category === 'technical' ? 'Technique' :
+                     category === 'legal' ? t.legal : category}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Download Date Filter */}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <select 
+                  value={downloadDateFilter} 
+                  onChange={(e) => setDownloadDateFilter(e.target.value)}
+                  className="text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {category === 'all' ? t.all : 
-                   category === 'marketing' ? t.marketing :
-                   category === 'contracts' ? t.contracts :
-                   category === 'templates' ? t.templates :
-                   category === 'technical' ? 'Technique' :
-                   category === 'legal' ? t.legal : category}
-                </Button>
-              ))}
+                  <option value="all">{t.allDates}</option>
+                  <option value="today">{t.today}</option>
+                  <option value="yesterday">{t.yesterday}</option>
+                  <option value="thisWeek">{t.thisWeek}</option>
+                  <option value="thisMonth">{t.thisMonth}</option>
+                </select>
+              </div>
             </div>
           </div>
         </CardHeader>
