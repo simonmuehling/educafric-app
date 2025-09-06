@@ -30,7 +30,12 @@ import {
   AlertCircle,
   Mail,
   MessageSquare,
-  Bell
+  Bell,
+  PenTool,
+  Shield,
+  QrCode,
+  Signature,
+  Phone
 } from 'lucide-react';
 
 interface Subject {
@@ -285,32 +290,142 @@ export default function BulletinManagementUnified() {
     try {
       setLoading(true);
       
-      // Signature digitale et envoi avec notifications
-      const response = await fetch('/api/bulletins/send-with-notifications', {
+      // Première étape : Signature en lot
+      const signResponse = await fetch('/api/bulletins/bulk-sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bulletinIds,
+          signerName: formData.directorName,
+          signerPosition: 'Directeur',
+          hasStamp: true,
+          schoolName: formData.schoolName
+        })
+      });
+
+      if (!signResponse.ok) {
+        throw new Error('Erreur lors de la signature');
+      }
+
+      const signResult = await signResponse.json();
+      console.log('📋 [BULLETIN_SIGNATURE] Signature réussie:', signResult);
+
+      // Deuxième étape : Envoi avec notifications multi-canaux
+      const notificationResponse = await fetch('/api/bulletins/send-with-notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bulletinIds,
           notificationTypes: ['sms', 'email', 'whatsapp'],
-          language: formData.language
+          language: formData.language,
+          schoolInfo: {
+            name: formData.schoolName,
+            director: formData.directorName,
+            phone: formData.schoolPhone,
+            email: formData.schoolEmail
+          }
         })
+      });
+
+      if (notificationResponse.ok) {
+        const result = await notificationResponse.json();
+        
+        // Notification de succès détaillée
+        toast({
+          title: "✅ Signature et Envoi Réussis",
+          description: `${result.sent} bulletins signés numériquement et envoyés avec notifications (SMS, Email, WhatsApp)`,
+        });
+        
+        console.log('📧 [BULLETIN_NOTIFICATIONS] Envoi réussi:', result);
+        
+        // Recharger les bulletins
+        await loadPendingBulletins();
+      }
+    } catch (error) {
+      console.error('❌ [BULLETIN_PROCESS] Erreur:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du processus de signature et d'envoi des bulletins",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Créer un nouveau bulletin modulable
+  const createModularBulletin = async () => {
+    try {
+      setLoading(true);
+
+      const bulletinData = {
+        studentId: parseInt(selectedStudentId),
+        classId: parseInt(selectedClassId),
+        schoolData: {
+          name: formData.schoolName,
+          address: formData.schoolAddress,
+          phone: formData.schoolPhone,
+          email: formData.schoolEmail,
+          director: formData.directorName,
+          regionalDelegation: formData.regionalDelegation,
+          departmentalDelegation: formData.departmentalDelegation
+        },
+        studentData: {
+          firstName: formData.studentFirstName,
+          lastName: formData.studentLastName,
+          birthDate: formData.studentBirthDate,
+          birthPlace: formData.studentBirthPlace,
+          gender: formData.studentGender,
+          studentNumber: formData.studentNumber,
+          photo: formData.studentPhoto
+        },
+        academicData: {
+          className: formData.className,
+          academicYear: formData.academicYear,
+          term: formData.term,
+          enrollment: formData.enrollment
+        },
+        grades: {
+          general: formData.subjectsGeneral,
+          professional: formData.subjectsProfessional,
+          others: formData.subjectsOthers
+        },
+        evaluations: {
+          generalAverage: formData.generalAverage,
+          classRank: formData.classRank,
+          totalStudents: formData.totalStudents,
+          workAppreciation: formData.workAppreciation,
+          conductAppreciation: formData.conductAppreciation,
+          generalAppreciation: formData.generalAppreciation
+        },
+        language: formData.language
+      };
+
+      const response = await fetch('/api/bulletins/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bulletinData)
       });
 
       if (response.ok) {
         const result = await response.json();
         toast({
           title: "Succès",
-          description: `${result.sent} bulletins signés et envoyés avec notifications`,
+          description: "Bulletin modulable créé avec succès",
         });
+        
+        // Générer et ouvrir le PDF
+        const pdfUrl = `/api/bulletins/bulletins/${result.id}/pdf`;
+        window.open(pdfUrl, '_blank');
         
         // Recharger les bulletins
         await loadPendingBulletins();
       }
     } catch (error) {
-      console.error('Erreur envoi bulletins:', error);
+      console.error('Erreur création bulletin:', error);
       toast({
         title: "Erreur",
-        description: "Erreur lors de l'envoi des bulletins",
+        description: "Erreur lors de la création du bulletin",
         variant: "destructive",
       });
     } finally {
@@ -450,7 +565,7 @@ export default function BulletinManagementUnified() {
                       size="sm"
                       disabled={loading}
                     >
-                      <Send className="w-4 h-4 mr-1" />
+                      <Signature className="w-4 h-4 mr-1" />
                       {t.signAndSend}
                     </Button>
                   )}
@@ -613,14 +728,20 @@ export default function BulletinManagementUnified() {
                   Bulletins Approuvés ({approvedBulletins.length})
                 </div>
                 {approvedBulletins.length > 0 && (
-                  <Button
-                    onClick={() => signAndSendBulletins(approvedBulletins.map(b => b.id))}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    disabled={loading}
-                  >
-                    <Send className="w-4 h-4 mr-1" />
-                    Envoyer Tous
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      onClick={() => signAndSendBulletins(approvedBulletins.map(b => b.id))}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      disabled={loading}
+                    >
+                      <Signature className="w-4 h-4 mr-1" />
+                      Signer et Envoyer Tous ({approvedBulletins.length})
+                    </Button>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Signature numérique + Notifications multi-canaux
+                    </div>
+                  </div>
                 )}
               </CardTitle>
             </CardHeader>
@@ -866,6 +987,7 @@ export default function BulletinManagementUnified() {
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700"
                       disabled={!selectedStudentId || loading}
+                      onClick={createModularBulletin}
                     >
                       {loading ? (
                         <>
