@@ -250,6 +250,36 @@ const DocumentManagement = () => {
       permissions: 'commercial_team',
       visibleTo: ['SiteAdmin', 'Admin', 'Commercial'],
       attachedAsset: true
+    },
+    
+    // === SCHOOL REPORT CARD TEMPLATES ===
+    {
+      id: 88,
+      name: language === 'fr' ? 'Bulletin A4 Optimisé EDUCAFRIC - FR.html' : 'Report Card A4 Optimized EDUCAFRIC - FR.html',
+      type: 'HTML',
+      size: '35 KB',
+      createdBy: 'EDUCAFRIC System',
+      createdOn: new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US'),
+      status: 'active',
+      category: 'school_template',
+      permissions: 'school_admin',
+      visibleTo: ['SiteAdmin', 'Admin', 'Director'],
+      directUrl: '/documents/bulletin-a4-optimise-educafric-fr.html',
+      description: language === 'fr' ? 'Modèle de bulletin compact optimisé pour impression A4 - Toutes les informations sur une seule page' : 'Compact report card template optimized for A4 printing - All information on single page'
+    },
+    {
+      id: 89,
+      name: language === 'fr' ? 'Bulletin A4 Optimisé EDUCAFRIC - EN.html' : 'Report Card A4 Optimized EDUCAFRIC - EN.html',
+      type: 'HTML',
+      size: '34 KB',
+      createdBy: 'EDUCAFRIC System',
+      createdOn: new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US'),
+      status: 'active',
+      category: 'school_template',
+      permissions: 'school_admin',
+      visibleTo: ['SiteAdmin', 'Admin', 'Director'],
+      directUrl: '/documents/report-card-a4-optimized-educafric-en.html',
+      description: language === 'fr' ? 'Modèle de bulletin compact optimisé pour impression A4 - Toutes les informations sur une seule page' : 'Compact report card template optimized for A4 printing - All information on single page'
     }
   ];
 
@@ -283,6 +313,16 @@ const DocumentManagement = () => {
 
   const handleViewDocument = async (doc: any) => {
     try {
+      // Handle school template documents with direct URLs
+      if (doc.category === 'school_template' && doc.directUrl) {
+        window.open(doc.directUrl, '_blank');
+        toast({
+          title: language === 'fr' ? 'Modèle ouvert' : 'Template opened',
+          description: language === 'fr' ? `Consultation de ${doc.name}` : `Viewing ${doc.name}`,
+        });
+        return;
+      }
+
       // Ouvrir le document avec credentials pour maintenir la session
       const response = await fetch(`/api/documents/${doc.id}/view`, {
         method: 'GET',
