@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { FileText, Eye, Plus, Trash2, Download, Settings, School, User, BookOpen, Languages } from 'lucide-react';
+import { FileText, Eye, Plus, Trash2, Download, Settings, School, User, BookOpen, Languages, Upload, Camera } from 'lucide-react';
 
 interface Subject {
   name: string;
@@ -39,6 +39,7 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState({
     // Informations officielles Cameroun
@@ -330,6 +331,89 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
         studentPhoto: selectedStudent.photoUrl || '',
         verificationCode: generateVerificationCode()
       }));
+    }
+  };
+
+  // Upload photo élève
+  const uploadStudentPhoto = async (file: File) => {
+    setUploadingPhoto(true);
+    try {
+      // 1. Obtenir l'URL de téléchargement
+      const uploadResponse = await fetch('/api/objects/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Erreur lors de la préparation du téléchargement');
+      }
+
+      const { uploadURL } = await uploadResponse.json();
+
+      // 2. Télécharger le fichier directement vers le stockage cloud
+      const fileUploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!fileUploadResponse.ok) {
+        throw new Error('Erreur lors du téléchargement de la photo');
+      }
+
+      // 3. Mettre à jour l'URL de la photo dans le formulaire
+      const photoURL = uploadURL.split('?')[0]; // Enlever les paramètres de signature
+      setFormData(prev => ({
+        ...prev,
+        studentPhoto: photoURL
+      }));
+
+      toast({
+        title: "Succès",
+        description: "Photo téléchargée avec succès",
+      });
+
+    } catch (error) {
+      console.error('Erreur upload photo:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du téléchargement de la photo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  // Gestionnaire de sélection de fichier
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Erreur",
+          description: "Veuillez sélectionner une image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Vérifier la taille (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Erreur", 
+          description: "L'image ne doit pas dépasser 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      uploadStudentPhoto(file);
     }
   };
 
@@ -971,12 +1055,78 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
               />
             </div>
             <div>
-              <Label>URL Photo Élève (optionnel)</Label>
-              <Input 
-                value={formData.studentPhoto}
-                onChange={(e) => handleInputChange('studentPhoto', e.target.value)}
-                placeholder="https://..."
-              />
+              <Label>Photo Élève (optionnel)</Label>
+              <div className="mt-2 space-y-3">
+                {/* Prévisualisation de la photo */}
+                {formData.studentPhoto && (
+                  <div className="flex items-center space-x-3">
+                    <img 
+                      src={formData.studentPhoto} 
+                      alt="Photo élève" 
+                      className="w-16 h-20 object-cover border border-gray-300 rounded"
+                    />
+                    <Button
+                      onClick={() => setFormData(prev => ({ ...prev, studentPhoto: '' }))}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </Button>
+                  </div>
+                )}
+                
+                {/* URL manuelle ou upload */}
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <Label className="text-sm">URL de la photo</Label>
+                    <Input 
+                      value={formData.studentPhoto}
+                      onChange={(e) => handleInputChange('studentPhoto', e.target.value)}
+                      placeholder="https://... ou utilisez le bouton ci-dessous"
+                      className="text-sm"
+                    />
+                  </div>
+                  
+                  <div className="text-center">
+                    <span className="text-sm text-gray-500">ou</span>
+                  </div>
+                  
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="photo-upload"
+                      disabled={uploadingPhoto}
+                    />
+                    <Button
+                      onClick={() => document.getElementById('photo-upload')?.click()}
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingPhoto}
+                      className="w-full"
+                    >
+                      {uploadingPhoto ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                          Téléchargement...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Télécharger une photo
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Max 5MB • JPG, PNG, GIF
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
