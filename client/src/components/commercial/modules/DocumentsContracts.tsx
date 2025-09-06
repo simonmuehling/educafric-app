@@ -1147,6 +1147,34 @@ const DocumentsContracts = () => {
       url: '/documents/systeme-validation-bulletins-admin-commercial.html',
       description: 'Guide complet du système de validation des bulletins EDUCAFRIC - Processus complet: Draft → Submitted → Approved → Published → Verified avec traçabilité hiérarchique'
     },
+
+    // === MODÈLES DE BULLETINS STANDARDISÉS (Bilingue) ===
+    {
+      id: 86,
+      name: 'Modèle de Bulletin Standardisé EDUCAFRIC - FR',
+      type: 'template',
+      category: 'templates',
+      school: 'Système EDUCAFRIC',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '85 KB',
+      format: 'HTML',
+      url: '/documents/modele-bulletin-standardise-educafric-fr.html',
+      description: 'Modèle unifié de bulletin pour tous les établissements africains - Version française avec tous les champs standardisés analysés à partir de bulletins réels'
+    },
+    {
+      id: 87,
+      name: 'Standardized Report Card Template EDUCAFRIC - EN',
+      type: 'template',
+      category: 'templates',
+      school: 'EDUCAFRIC System',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '83 KB',
+      format: 'HTML',
+      url: '/documents/standardized-report-card-template-educafric-en.html',
+      description: 'Unified report card template for all African institutions - English version with all standardized fields analyzed from real report cards'
+    },
   ];
 
   const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
