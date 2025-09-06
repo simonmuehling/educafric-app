@@ -2773,6 +2773,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 27, title: "Géolocalisation Résumé EDUCAFRIC - FR", description: "Présentation du système de géolocalisation", type: "commercial", url: "/documents/geolocalisation-resume-educafric-fr.html" },
         { id: 28, title: "Geolocation Overview EDUCAFRIC - EN", description: "Geolocation system overview and features", type: "commercial", url: "/documents/geolocation-overview-educafric-en.html" },
         
+        // === DEMANDES D'OFFRES OFFICIELLES (Bilingue PDF) ===
+        { id: 29, title: "Demande d'Offres EDUCAFRIC - FR", description: "Document officiel de demande d'offre pour établissements", type: "commercial", url: "/documents/demande-offres-educafric-fr.pdf" },
+        { id: 30, title: "Proposal Request EDUCAFRIC - EN", description: "Official proposal request document for institutions", type: "commercial", url: "/documents/proposal-request-educafric-en.pdf" },
+        
         // === DOCUMENTS SYSTÈME (PDF uniquement) ===
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
         { id: 5, title: "Tarifs et Offres 2025", description: "Grille tarifaire détaillée", type: "commercial", url: null },
