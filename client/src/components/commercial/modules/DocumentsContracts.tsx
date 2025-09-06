@@ -1175,6 +1175,34 @@ const DocumentsContracts = () => {
       url: '/documents/standardized-report-card-template-educafric-en.html',
       description: 'Unified report card template for all African institutions - English version with all standardized fields analyzed from real report cards'
     },
+
+    // === MODÈLES OPTIMISÉS A4 (Format Pratique pour Écoles) ===
+    {
+      id: 88,
+      name: 'Bulletin A4 Optimisé EDUCAFRIC - FR',
+      type: 'template',
+      category: 'templates',
+      school: 'Format École Pratique',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '35 KB',
+      format: 'HTML',
+      url: '/documents/bulletin-a4-optimise-educafric-fr.html',
+      description: 'Modèle de bulletin compact optimisé pour impression A4 - Toutes les informations sur une seule page, format pratique pour les écoles africaines'
+    },
+    {
+      id: 89,
+      name: 'Report Card A4 Optimized EDUCAFRIC - EN',
+      type: 'template',
+      category: 'templates',
+      school: 'Practical School Format',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '34 KB',
+      format: 'HTML',
+      url: '/documents/report-card-a4-optimized-educafric-en.html',
+      description: 'Compact report card template optimized for A4 printing - All information on single page, practical format for African schools'
+    },
   ];
 
   const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
