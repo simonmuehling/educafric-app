@@ -31,31 +31,40 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
   const { language } = useLanguage();
   const { toast } = useToast();
   
+  // États pour les données importées
+  const [classes, setClasses] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     // Informations officielles Cameroun
     regionalDelegation: 'DU CENTRE',
     departmentalDelegation: 'DU MFOUNDI',
     
-    // Informations école
-    schoolName: 'Collège Excellence Africaine - Yaoundé',
-    schoolAddress: 'B.P. 1234 Yaoundé',
-    schoolCity: 'Yaoundé',
-    schoolPhone: '+237 222 345 678',
-    schoolEmail: 'info@ecole-excellence.com',
-    directorName: 'Dr. Ngozi Adichie Emmanuel',
+    // Informations école (vont être importées automatiquement)
+    schoolName: '',
+    schoolAddress: '',
+    schoolCity: '',
+    schoolPhone: '',
+    schoolEmail: '',
+    directorName: '',
     academicYear: '2024-2025',
     
-    // Informations élève
-    studentFirstName: 'Amina',
-    studentLastName: 'Kouakou',
-    studentBirthDate: '15 Mars 2010',
-    studentBirthPlace: 'Abidjan, Côte d\'Ivoire',
-    studentGender: 'F',
-    className: '3ème A',
-    studentNumber: 'CEA-2024-0157',
+    // Informations élève (vont être importées automatiquement)
+    studentFirstName: '',
+    studentLastName: '',
+    studentBirthDate: '',
+    studentBirthPlace: '',
+    studentGender: '',
+    className: '',
+    studentNumber: '',
     studentPhoto: '', // URL photo élève
     isRepeater: false,
-    enrollment: 42,
+    enrollment: 0,
     
     // Période et évaluations
     period: '1er Trimestre 2024-2025',
@@ -68,7 +77,7 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
     absences: 2,
     teacherComments: 'Élève sérieuse et appliquée. Très bon travail.',
     directorComments: 'Excellent trimestre. Continuez ainsi !',
-    verificationCode: 'EDU2024-AMK-T1-4ZFYJM',
+    verificationCode: '', // Sera généré automatiquement
     
     // Performance académique
     firstTermAverage: 12.58,
@@ -169,10 +178,169 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
   const [previewLanguage, setPreviewLanguage] = useState<'fr' | 'en'>('fr');
   const [activeSection, setActiveSection] = useState<'general' | 'professional' | 'others'>('general');
 
+  // Charger les données au montage du composant
+  React.useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  // Charger données existantes
+  const loadInitialData = async () => {
+    setLoading(true);
+    try {
+      // Charger classes, enseignants, informations école
+      const [classesRes, teachersRes, settingsRes] = await Promise.all([
+        fetch('/api/director/classes'),
+        fetch('/api/director/teachers'),
+        fetch('/api/director/settings')
+      ]);
+
+      if (classesRes.ok) {
+        const classesData = await classesRes.json();
+        setClasses(classesData.classes || []);
+      }
+
+      if (teachersRes.ok) {
+        const teachersData = await teachersRes.json();
+        setTeachers(teachersData.teachers || []);
+      }
+
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        const school = settingsData.settings?.school;
+        if (school) {
+          setFormData(prev => ({
+            ...prev,
+            schoolName: school.name || '',
+            schoolAddress: school.address || '',
+            schoolCity: school.city || '',
+            schoolPhone: school.phone || '',
+            schoolEmail: school.email || '',
+            directorName: school.directorName || ''
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Erreur chargement données:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Charger élèves d'une classe
+  const loadStudentsByClass = async (classId: string) => {
+    if (!classId) return;
+    
+    try {
+      const response = await fetch(`/api/director/students?classId=${classId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Erreur chargement élèves:', error);
+    }
+  };
+
+  // Générer code de vérification unique
+  const generateVerificationCode = () => {
+    const prefix = 'EDU2024';
+    const initials = formData.studentFirstName.charAt(0) + formData.studentLastName.charAt(0);
+    const term = formData.termNumber || 'T1';
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `${prefix}-${initials}-${term}-${random}`;
+  };
+
+  // Pré-remplir matières avec enseignants
+  const loadSubjectsForClass = (className: string) => {
+    // Matières communes avec affectation automatique d'enseignants
+    const commonSubjects = [
+      { name: 'Français', type: 'general', coefficient: 4 },
+      { name: 'Anglais', type: 'general', coefficient: 3 },
+      { name: 'Mathématiques', type: 'general', coefficient: 4 },
+      { name: 'Sciences Physiques', type: 'general', coefficient: 3 },
+      { name: 'Sciences Naturelles', type: 'general', coefficient: 3 },
+      { name: 'Histoire-Géographie', type: 'general', coefficient: 3 },
+      { name: 'EPS', type: 'general', coefficient: 1 },
+      { name: 'Arts', type: 'general', coefficient: 1 }
+    ];
+
+    // Affecter automatiquement des enseignants aux matières
+    const subjectsWithTeachers = commonSubjects.map(subject => {
+      const teacher = teachers.find(t => 
+        t.subject?.toLowerCase().includes(subject.name.toLowerCase()) ||
+        t.specialization?.toLowerCase().includes(subject.name.toLowerCase())
+      );
+      
+      return {
+        name: subject.name,
+        t1Grade: 0,
+        t2Grade: 0,
+        t3Grade: 0,
+        coefficient: subject.coefficient,
+        total: 0,
+        position: 1,
+        averageMark: 0,
+        remark: 'Competence Well Acquired(CWA)',
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Non assigné',
+        comments: ''
+      };
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      subjectsGeneral: subjectsWithTeachers,
+      subjectsProfessional: [],
+      subjectsOthers: []
+    }));
+  };
+
+  // Sélection classe
+  const handleClassSelection = async (classId: string) => {
+    setSelectedClassId(classId);
+    setSelectedStudentId('');
+    
+    const selectedClass = classes.find(c => c.id.toString() === classId);
+    if (selectedClass) {
+      setFormData(prev => ({
+        ...prev,
+        className: selectedClass.name,
+        enrollment: selectedClass.studentCount || 0
+      }));
+      
+      // Charger élèves et matières automatiquement
+      await loadStudentsByClass(classId);
+      loadSubjectsForClass(selectedClass.name);
+    }
+  };
+
+  // Sélection élève
+  const handleStudentSelection = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    
+    const selectedStudent = students.find(s => s.id.toString() === studentId);
+    if (selectedStudent) {
+      setFormData(prev => ({
+        ...prev,
+        studentFirstName: selectedStudent.firstName || '',
+        studentLastName: selectedStudent.lastName || '',
+        studentBirthDate: selectedStudent.birthDate || '',
+        studentBirthPlace: selectedStudent.birthPlace || '',
+        studentGender: selectedStudent.gender || '',
+        studentNumber: selectedStudent.studentNumber || selectedStudent.matricule || '',
+        studentPhoto: selectedStudent.photoUrl || '',
+        verificationCode: generateVerificationCode()
+      }));
+    }
+  };
+
   const text = {
     fr: {
       title: 'Générateur de Bulletins Modulables EDUCAFRIC - Format Cameroun',
       subtitle: 'Système complet avec en-tête officiel camerounais',
+      classSelection: 'Étape 1: Sélection de Classe et Élève',
+      selectClass: 'Choisir une classe',
+      selectStudent: 'Choisir un élève',
+      loadData: 'Charger les données',
       cameroonHeader: 'En-tête Officiel Cameroun',
       schoolInfo: 'Informations École',
       studentInfo: 'Informations Élève',
@@ -197,6 +365,10 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
     en: {
       title: 'EDUCAFRIC Modular Bulletin Generator - Cameroon Format',
       subtitle: 'Complete system with official Cameroon header',
+      classSelection: 'Step 1: Class and Student Selection',
+      selectClass: 'Select a class',
+      selectStudent: 'Select a student',
+      loadData: 'Load data',
       cameroonHeader: 'Official Cameroon Header',
       schoolInfo: 'School Information',
       studentInfo: 'Student Information',
@@ -267,6 +439,13 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
     setIsGenerating(true);
     
     try {
+      // Générer automatiquement le code de vérification si pas déjà fait
+      let verificationCode = formData.verificationCode;
+      if (!verificationCode) {
+        verificationCode = generateVerificationCode();
+        setFormData(prev => ({ ...prev, verificationCode }));
+      }
+
       const bulletinData = {
         schoolInfo: {
           schoolName: formData.schoolName,
@@ -303,7 +482,7 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
         absences: formData.absences,
         teacherComments: formData.teacherComments,
         directorComments: formData.directorComments,
-        verificationCode: formData.verificationCode,
+        verificationCode: verificationCode,
         language: previewLanguage
       };
 
@@ -549,6 +728,62 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
             </div>
           </div>
         </CardHeader>
+      </Card>
+
+      {/* Sélection Classe et Élève - PRIORITÉ */}
+      <Card className="mb-6 border-2 border-blue-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-600">
+            <School className="w-6 h-6" />
+            {t.classSelection}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2">Chargement des données...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">{t.selectClass}</Label>
+                <Select value={selectedClassId} onValueChange={handleClassSelection}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Sélectionner une classe..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classes.map((classe) => (
+                      <SelectItem key={classe.id} value={classe.id.toString()}>
+                        {classe.name} ({classe.studentCount || 0} élèves)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium">{t.selectStudent}</Label>
+                <Select 
+                  value={selectedStudentId} 
+                  onValueChange={handleStudentSelection}
+                  disabled={!selectedClassId || students.length === 0}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Sélectionner un élève..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.firstName} {student.lastName} ({student.studentNumber || student.matricule})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -817,11 +1052,11 @@ const ModularBulletinGeneratorAdvanced: React.FC<ModularBulletinGeneratorAdvance
               />
             </div>
             <div>
-              <Label>Code de Vérification</Label>
+              <Label>Code de Vérification (généré automatiquement)</Label>
               <Input 
-                value={formData.verificationCode}
-                onChange={(e) => handleInputChange('verificationCode', e.target.value)}
-                placeholder="EDU2024-AMK-T1-4ZFYJM"
+                value={formData.verificationCode || 'Sera généré lors de la création du bulletin'}
+                disabled
+                className="bg-gray-100 text-gray-600"
               />
             </div>
             <div>
