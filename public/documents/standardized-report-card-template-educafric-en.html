@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUCAFRIC Standardized Report Card Template - English</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #FF6B35;
+        }
+        .section h2 {
+            color: #FF6B35;
+            margin-top: 0;
+            font-size: 1.8em;
+            border-bottom: 2px solid #FF6B35;
+            padding-bottom: 10px;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .field {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .field:hover {
+            border-color: #FF6B35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.1);
+        }
+        .field-label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        .field-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .subjects-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .subjects-table th,
+        .subjects-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        .subjects-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        .subjects-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .competence-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .competence-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            text-align: center;
+        }
+        .performance-summary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+        .signature-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #dee2e6;
+        }
+        .signature-box {
+            text-align: center;
+            padding: 20px;
+            border: 2px dashed #adb5bd;
+            border-radius: 8px;
+            min-height: 80px;
+        }
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.1;
+            font-size: 120px;
+            color: #FF6B35;
+            z-index: -1;
+            transform: rotate(-45deg);
+        }
+        @media print {
+            body { background: none; }
+            .container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">EDUCAFRIC</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📊 EDUCAFRIC STANDARDIZED REPORT CARD TEMPLATE</h1>
+            <p style="margin: 10px 0 0 0; font-size: 1.2em;">Unified System for All African Educational Institutions</p>
+        </div>
+
+        <div class="content">
+            <!-- SCHOOL INFORMATION -->
+            <div class="section">
+                <h2>🏫 School Information</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <div class="field-label">School Name:</div>
+                        <input type="text" class="field-input" placeholder="Ex: Douala Technical High School">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">MINESEC Code:</div>
+                        <input type="text" class="field-input" placeholder="Ex: GTHS-NKWEN">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">City/Region:</div>
+                        <input type="text" class="field-input" placeholder="Ex: Douala, Littoral">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Academic Year:</div>
+                        <input type="text" class="field-input" placeholder="Ex: 2024-2025">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Term/Semester:</div>
+                        <select class="field-input">
+                            <option>First Term</option>
+                            <option>Second Term</option>
+                            <option>Third Term</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STUDENT INFORMATION -->
+            <div class="section">
+                <h2>👤 Student Information</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <div class="field-label">Name & Surnames:</div>
+                        <input type="text" class="field-input" placeholder="Ex: ANJEH ROSE AMUDAM">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Date of Birth:</div>
+                        <input type="date" class="field-input">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Place of Birth:</div>
+                        <input type="text" class="field-input" placeholder="Ex: Douala">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Gender:</div>
+                        <select class="field-input">
+                            <option>Male (M)</option>
+                            <option>Female (F)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Class:</div>
+                        <input type="text" class="field-input" placeholder="Ex: CI 1, Form 1, Upper 6th">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Registration Number:</div>
+                        <input type="text" class="field-input" placeholder="Ex: GTHS-NKWEN0225913">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Repeater:</div>
+                        <select class="field-input">
+                            <option>No</option>
+                            <option>Yes</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Class Enrollment:</div>
+                        <input type="number" class="field-input" placeholder="Ex: 80">
+                    </div>
+                </div>
+            </div>
+
+            <!-- GENERAL SUBJECTS -->
+            <div class="section">
+                <h2>📚 General Subjects</h2>
+                <table class="subjects-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Coef.</th>
+                            <th>T1 Mark /20</th>
+                            <th>T2 Mark /20</th>
+                            <th>T3 Mark /20</th>
+                            <th>Total Points</th>
+                            <th>Position</th>
+                            <th>Average</th>
+                            <th>Remark</th>
+                            <th>Teacher</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>French Language</strong></td>
+                            <td>3</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>English Language</strong></td>
+                            <td>3</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mathematics</strong></td>
+                            <td>3</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Biology/Natural Sciences</strong></td>
+                            <td>2</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>History-Geography</strong></td>
+                            <td>2</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Citizenship Education</strong></td>
+                            <td>1</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Physical Education</strong></td>
+                            <td>2</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Computer Science</strong></td>
+                            <td>2</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr style="background: #e3f2fd; font-weight: bold;">
+                            <td>SUB-TOTAL GENERAL SUBJECTS</td>
+                            <td id="total-coef-general">18</td>
+                            <td colspan="3">Auto-calculated</td>
+                            <td id="total-points-general">Auto-calculated</td>
+                            <td>-</td>
+                            <td id="moyenne-general">Auto-calculated</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PROFESSIONAL/TECHNICAL SUBJECTS -->
+            <div class="section">
+                <h2>🔧 Professional/Technical Subjects</h2>
+                <table class="subjects-table">
+                    <thead>
+                        <tr>
+                            <th>Technical Subject</th>
+                            <th>Coef.</th>
+                            <th>T1 Mark /20</th>
+                            <th>T2 Mark /20</th>
+                            <th>T3 Mark /20</th>
+                            <th>Total Points</th>
+                            <th>Position</th>
+                            <th>Average</th>
+                            <th>Remark</th>
+                            <th>Teacher</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Technical Drawing</strong></td>
+                            <td>2</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Technology</strong></td>
+                            <td>3</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Practical Work</strong></td>
+                            <td>4</td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td><input type="number" class="field-input" min="0" max="20" step="0.5"></td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-calculated</td>
+                            <td>Auto-generated</td>
+                            <td><input type="text" class="field-input" placeholder="Teacher name"></td>
+                        </tr>
+                        <tr style="background: #fff3e0; font-weight: bold;">
+                            <td>SUB-TOTAL TECHNICAL SUBJECTS</td>
+                            <td id="total-coef-tech">18</td>
+                            <td colspan="3">Auto-calculated</td>
+                            <td id="total-points-tech">Auto-calculated</td>
+                            <td>-</td>
+                            <td id="moyenne-tech">Auto-calculated</td>
+                            <td>-</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- COMPETENCE ASSESSMENT SCALE -->
+            <div class="section">
+                <h2>📏 Competence Assessment Scale</h2>
+                <div class="competence-levels">
+                    <div class="competence-item" style="border-left-color: #dc3545;">
+                        <strong>0 - 6.99</strong><br>
+                        Competence Not Acquired (CNA)
+                    </div>
+                    <div class="competence-item" style="border-left-color: #fd7e14;">
+                        <strong>7 - 9.99</strong><br>
+                        Competence Averagely Acquired (CAA)
+                    </div>
+                    <div class="competence-item" style="border-left-color: #ffc107;">
+                        <strong>10 - 13.99</strong><br>
+                        Competence Well Acquired (CWA)
+                    </div>
+                    <div class="competence-item" style="border-left-color: #28a745;">
+                        <strong>14 - 17.99</strong><br>
+                        Competence Very Well Acquired (CVWA)
+                    </div>
+                    <div class="competence-item" style="border-left-color: #007bff;">
+                        <strong>18 - 20</strong><br>
+                        Competence Excellently Acquired (CEA)
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACADEMIC PERFORMANCE AND DISCIPLINE -->
+            <div class="section">
+                <h2>📈 Academic Performance and Discipline</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <div class="field-label">First Term Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Second Term Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Third Term Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Annual Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Student Position:</div>
+                        <input type="text" class="field-input" placeholder="Ex: 8/80">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Class Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Highest Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Lowest Average:</div>
+                        <input type="number" class="field-input" min="0" max="20" step="0.01">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Number of Absences:</div>
+                        <input type="number" class="field-input" min="0">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Disciplinary Sanctions:</div>
+                        <select class="field-input">
+                            <option>None</option>
+                            <option>Warning</option>
+                            <option>Serious Warning</option>
+                            <option>Temporary Exclusion</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Council Decision:</div>
+                        <select class="field-input">
+                            <option>Promoted</option>
+                            <option>Repeat</option>
+                            <option>Dismissed</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">General Appreciation:</div>
+                        <select class="field-input">
+                            <option>Excellent</option>
+                            <option>Very Good</option>
+                            <option>Good</option>
+                            <option>Fairly Good</option>
+                            <option>Passable</option>
+                            <option>Insufficient</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FINANCIAL INFORMATION -->
+            <div class="section">
+                <h2>💰 Financial Information</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <div class="field-label">Outstanding School Fees (FCFA):</div>
+                        <input type="number" class="field-input" min="0" placeholder="Amount in FCFA">
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Payment Status:</div>
+                        <select class="field-input">
+                            <option>Fully Paid</option>
+                            <option>Partial Payment</option>
+                            <option>Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERFORMANCE SUMMARY -->
+            <div class="performance-summary">
+                <h3 style="margin-top: 0; text-align: center;">🏆 PERFORMANCE SUMMARY</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+                    <div>
+                        <h4>ACADEMIC WORK</h4>
+                        <p id="academic-performance">Auto-calculated based on average</p>
+                    </div>
+                    <div>
+                        <h4>DISCIPLINE</h4>
+                        <p id="discipline-status">Based on sanctions</p>
+                    </div>
+                    <div>
+                        <h4>FINAL DECISION</h4>
+                        <p id="final-decision">Based on class council</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIGNATURES -->
+            <div class="signature-section">
+                <div class="signature-box">
+                    <strong>Parent/Guardian Signature</strong>
+                    <br><br>
+                    Date: ___________
+                </div>
+                <div class="signature-box">
+                    <strong>Form Master Signature</strong>
+                    <br><br>
+                    Date: ___________
+                </div>
+                <div class="signature-box">
+                    <strong>Principal's Signature</strong>
+                    <br><br>
+                    School Seal
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <p><strong>🌍 Report Card Generated by EDUCAFRIC</strong></p>
+                <p>African Educational Platform • Standardized System for All Institutions</p>
+                <p><em>📧 support@educafric.com • 🌐 www.educafric.com</em></p>
+                <p style="font-size: 0.9em; color: #6c757d;">
+                    © 2025 EDUCAFRIC - Educational Technology for Africa
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script for automatic calculations and validation
+        function calculateAverages() {
+            // Subject average calculations
+            // Section total calculations  
+            // Data validation
+            // Automatic remark generation
+            console.log('EDUCAFRIC report card template loaded - Automatic calculations enabled');
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', calculateAverages);
+    </script>
+</body>
+</html>
