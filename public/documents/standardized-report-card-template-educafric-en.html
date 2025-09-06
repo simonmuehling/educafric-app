@@ -9,28 +9,27 @@
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
+            background: white;
+            color: #000;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 2px solid #000;
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            background: white;
             padding: 30px;
             text-align: center;
-            color: white;
+            color: #000;
+            border-bottom: 3px solid #000;
         }
         .header h1 {
             margin: 0;
             font-size: 2.5em;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         .content {
             padding: 40px;
@@ -38,15 +37,14 @@
         .section {
             margin-bottom: 40px;
             padding: 25px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 5px solid #FF6B35;
+            background: white;
+            border: 2px solid #000;
         }
         .section h2 {
-            color: #FF6B35;
+            color: #000;
             margin-top: 0;
             font-size: 1.8em;
-            border-bottom: 2px solid #FF6B35;
+            border-bottom: 2px solid #000;
             padding-bottom: 10px;
         }
         .field-grid {
@@ -58,24 +56,17 @@
         .field {
             background: white;
             padding: 15px;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-        .field:hover {
-            border-color: #FF6B35;
-            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.1);
+            border: 1px solid #000;
         }
         .field-label {
             font-weight: bold;
-            color: #495057;
+            color: #000;
             margin-bottom: 5px;
         }
         .field-input {
             width: 100%;
             padding: 8px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
+            border: 1px solid #000;
             font-size: 14px;
         }
         .subjects-table {
@@ -83,23 +74,21 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
         .subjects-table th,
         .subjects-table td {
             padding: 12px;
             text-align: center;
-            border: 1px solid #dee2e6;
+            border: 1px solid #000;
         }
         .subjects-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: white;
+            color: #000;
             font-weight: bold;
+            border: 2px solid #000;
         }
         .subjects-table tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: white;
         }
         .competence-levels {
             display: grid;
@@ -110,15 +99,14 @@
         .competence-item {
             background: white;
             padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
+            border: 1px solid #000;
             text-align: center;
         }
         .performance-summary {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
+            background: white;
+            color: #000;
             padding: 25px;
-            border-radius: 10px;
+            border: 2px solid #000;
             margin-top: 30px;
         }
         .signature-section {
@@ -127,24 +115,16 @@
             gap: 30px;
             margin-top: 40px;
             padding-top: 30px;
-            border-top: 2px solid #dee2e6;
+            border-top: 2px solid #000;
         }
         .signature-box {
             text-align: center;
             padding: 20px;
-            border: 2px dashed #adb5bd;
-            border-radius: 8px;
+            border: 2px solid #000;
             min-height: 80px;
         }
         .watermark {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            opacity: 0.1;
-            font-size: 120px;
-            color: #FF6B35;
-            z-index: -1;
-            transform: rotate(-45deg);
+            display: none;
         }
         @media print {
             body { background: none; }
@@ -153,18 +133,17 @@
     </style>
 </head>
 <body>
-    <div class="watermark">EDUCAFRIC</div>
     
     <div class="container">
         <div class="header">
-            <h1>📊 EDUCAFRIC STANDARDIZED REPORT CARD TEMPLATE</h1>
+            <h1>EDUCAFRIC STANDARDIZED REPORT CARD TEMPLATE</h1>
             <p style="margin: 10px 0 0 0; font-size: 1.2em;">Unified System for All African Educational Institutions</p>
         </div>
 
         <div class="content">
             <!-- SCHOOL INFORMATION -->
             <div class="section">
-                <h2>🏫 School Information</h2>
+                <h2>School Information</h2>
                 <div class="field-grid">
                     <div class="field">
                         <div class="field-label">School Name:</div>
@@ -195,7 +174,7 @@
 
             <!-- STUDENT INFORMATION -->
             <div class="section">
-                <h2>👤 Student Information</h2>
+                <h2>Student Information</h2>
                 <div class="field-grid">
                     <div class="field">
                         <div class="field-label">Name & Surnames:</div>
@@ -240,7 +219,7 @@
 
             <!-- GENERAL SUBJECTS -->
             <div class="section">
-                <h2>📚 General Subjects</h2>
+                <h2>General Subjects</h2>
                 <table class="subjects-table">
                     <thead>
                         <tr>
@@ -353,7 +332,7 @@
                             <td>Auto-generated</td>
                             <td><input type="text" class="field-input" placeholder="Teacher name"></td>
                         </tr>
-                        <tr style="background: #e3f2fd; font-weight: bold;">
+                        <tr style="background: white; font-weight: bold; border: 2px solid #000;">
                             <td>SUB-TOTAL GENERAL SUBJECTS</td>
                             <td id="total-coef-general">18</td>
                             <td colspan="3">Auto-calculated</td>
@@ -369,7 +348,7 @@
 
             <!-- PROFESSIONAL/TECHNICAL SUBJECTS -->
             <div class="section">
-                <h2>🔧 Professional/Technical Subjects</h2>
+                <h2>Professional/Technical Subjects</h2>
                 <table class="subjects-table">
                     <thead>
                         <tr>
@@ -422,7 +401,7 @@
                             <td>Auto-generated</td>
                             <td><input type="text" class="field-input" placeholder="Teacher name"></td>
                         </tr>
-                        <tr style="background: #fff3e0; font-weight: bold;">
+                        <tr style="background: white; font-weight: bold; border: 2px solid #000;">
                             <td>SUB-TOTAL TECHNICAL SUBJECTS</td>
                             <td id="total-coef-tech">18</td>
                             <td colspan="3">Auto-calculated</td>
@@ -438,25 +417,25 @@
 
             <!-- COMPETENCE ASSESSMENT SCALE -->
             <div class="section">
-                <h2>📏 Competence Assessment Scale</h2>
+                <h2>Competence Assessment Scale</h2>
                 <div class="competence-levels">
-                    <div class="competence-item" style="border-left-color: #dc3545;">
+                    <div class="competence-item">
                         <strong>0 - 6.99</strong><br>
                         Competence Not Acquired (CNA)
                     </div>
-                    <div class="competence-item" style="border-left-color: #fd7e14;">
+                    <div class="competence-item">
                         <strong>7 - 9.99</strong><br>
                         Competence Averagely Acquired (CAA)
                     </div>
-                    <div class="competence-item" style="border-left-color: #ffc107;">
+                    <div class="competence-item">
                         <strong>10 - 13.99</strong><br>
                         Competence Well Acquired (CWA)
                     </div>
-                    <div class="competence-item" style="border-left-color: #28a745;">
+                    <div class="competence-item">
                         <strong>14 - 17.99</strong><br>
                         Competence Very Well Acquired (CVWA)
                     </div>
-                    <div class="competence-item" style="border-left-color: #007bff;">
+                    <div class="competence-item">
                         <strong>18 - 20</strong><br>
                         Competence Excellently Acquired (CEA)
                     </div>
@@ -465,7 +444,7 @@
 
             <!-- ACADEMIC PERFORMANCE AND DISCIPLINE -->
             <div class="section">
-                <h2>📈 Academic Performance and Discipline</h2>
+                <h2>Academic Performance and Discipline</h2>
                 <div class="field-grid">
                     <div class="field">
                         <div class="field-label">First Term Average:</div>
@@ -536,7 +515,7 @@
 
             <!-- FINANCIAL INFORMATION -->
             <div class="section">
-                <h2>💰 Financial Information</h2>
+                <h2>Financial Information</h2>
                 <div class="field-grid">
                     <div class="field">
                         <div class="field-label">Outstanding School Fees (FCFA):</div>
@@ -555,7 +534,7 @@
 
             <!-- PERFORMANCE SUMMARY -->
             <div class="performance-summary">
-                <h3 style="margin-top: 0; text-align: center;">🏆 PERFORMANCE SUMMARY</h3>
+                <h3 style="margin-top: 0; text-align: center;">PERFORMANCE SUMMARY</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
                     <div>
                         <h4>ACADEMIC WORK</h4>
@@ -592,11 +571,11 @@
             </div>
 
             <!-- FOOTER -->
-            <div style="text-align: center; margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                <p><strong>🌍 Report Card Generated by EDUCAFRIC</strong></p>
+            <div style="text-align: center; margin-top: 40px; padding: 20px; background: white; border: 2px solid #000;">
+                <p><strong>Report Card Generated by EDUCAFRIC</strong></p>
                 <p>African Educational Platform • Standardized System for All Institutions</p>
-                <p><em>📧 support@educafric.com • 🌐 www.educafric.com</em></p>
-                <p style="font-size: 0.9em; color: #6c757d;">
+                <p><em>support@educafric.com • www.educafric.com</em></p>
+                <p style="font-size: 0.9em; color: #000;">
                     © 2025 EDUCAFRIC - Educational Technology for Africa
                 </p>
             </div>
