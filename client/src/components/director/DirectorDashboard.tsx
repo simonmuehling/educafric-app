@@ -456,10 +456,17 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       component: createDynamicModule('document-management')
     },
     {
-      id: 'modular-bulletins',
-      label: language === 'fr' ? 'Bulletins Modulables' : 'Modular Bulletins',
+      id: 'bulletin-management',
+      label: language === 'fr' ? 'Gestion Bulletins Unifiée' : 'Unified Bulletin Management',
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-emerald-500',
+      component: createDynamicModule('bulletin-management')
+    },
+    {
+      id: 'modular-bulletins',
+      label: language === 'fr' ? 'Bulletins Modulables (Ancien)' : 'Modular Bulletins (Legacy)',
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-gray-400',
       component: createDynamicModule('modular-bulletin-generator')
     }
   ];
