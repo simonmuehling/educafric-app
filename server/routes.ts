@@ -328,6 +328,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // USER SETTINGS API ROUTES - DEFINED FIRST TO AVOID CONFLICTS
   // =============================================
 
+  // DASHBOARD API ROUTES - Main dashboard endpoints
+  app.get("/api/director/dashboard", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[DIRECTOR_DASHBOARD] GET /api/director/dashboard for user:', user.id);
+      
+      // Aggregate data from overview and analytics endpoints
+      const overviewResponse = await fetch(`http://localhost:${process.env.PORT || 5000}/api/director/overview`, {
+        headers: { 'Cookie': req.headers.cookie || '' }
+      });
+      
+      if (!overviewResponse.ok) {
+        throw new Error('Failed to fetch overview data');
+      }
+      
+      const overviewData = await overviewResponse.json();
+      
+      // Return dashboard data with overview stats
+      res.json({
+        success: true,
+        data: {
+          overview: overviewData,
+          timestamp: new Date().toISOString(),
+          userRole: 'Director'
+        }
+      });
+    } catch (error: any) {
+      console.error('[DIRECTOR_DASHBOARD] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to load dashboard data',
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/teacher/dashboard", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_DASHBOARD] GET /api/teacher/dashboard for user:', user.id);
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let dashboardData;
+      
+      if (isSandboxUser) {
+        // Mock data for sandbox users
+        dashboardData = {
+          classes: [
+            { id: 1, name: '6ème A', studentCount: 35, averageGrade: 14.2 },
+            { id: 2, name: '5ème B', studentCount: 32, averageGrade: 13.8 },
+            { id: 3, name: '4ème A', studentCount: 28, averageGrade: 15.1 }
+          ],
+          recentGrades: [
+            { studentName: 'Marie Kouam', subject: 'Mathématiques', grade: 16, date: '2024-01-15' },
+            { studentName: 'Jean Mballa', subject: 'Français', grade: 14, date: '2024-01-14' },
+            { studentName: 'Fatima Said', subject: 'Sciences', grade: 18, date: '2024-01-13' }
+          ],
+          upcomingEvents: [
+            { title: 'Conseil de classe 6ème A', date: '2024-01-20', type: 'meeting' },
+            { title: 'Examen Mathématiques', date: '2024-01-22', type: 'exam' }
+          ]
+        };
+      } else {
+        // For real users, implement actual data fetching
+        dashboardData = {
+          classes: [],
+          recentGrades: [],
+          upcomingEvents: []
+        };
+      }
+      
+      res.json({
+        success: true,
+        data: {
+          ...dashboardData,
+          timestamp: new Date().toISOString(),
+          userRole: 'Teacher'
+        }
+      });
+    } catch (error: any) {
+      console.error('[TEACHER_DASHBOARD] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to load teacher dashboard',
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/student/dashboard", requireAuth, requireAnyRole(['Student', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[STUDENT_DASHBOARD] GET /api/student/dashboard for user:', user.id);
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let dashboardData;
+      
+      if (isSandboxUser) {
+        // Mock data for sandbox users
+        dashboardData = {
+          grades: [
+            { subject: 'Mathématiques', grade: 16, coefficient: 4, date: '2024-01-15' },
+            { subject: 'Français', grade: 14, coefficient: 4, date: '2024-01-14' },
+            { subject: 'Sciences Physiques', grade: 15, coefficient: 3, date: '2024-01-13' },
+            { subject: 'Histoire-Géographie', grade: 13, coefficient: 2, date: '2024-01-12' }
+          ],
+          attendance: {
+            present: 42,
+            absent: 3,
+            late: 1,
+            percentage: 93.5
+          },
+          homework: [
+            { subject: 'Mathématiques', title: 'Exercices chapitre 5', dueDate: '2024-01-18', status: 'pending' },
+            { subject: 'Français', title: 'Dissertation', dueDate: '2024-01-20', status: 'submitted' },
+            { subject: 'Sciences', title: 'TP Chimie', dueDate: '2024-01-19', status: 'pending' }
+          ],
+          announcements: [
+            { title: 'Conseil de classe', content: 'Le conseil de classe aura lieu le 20 janvier', date: '2024-01-16' },
+            { title: 'Sortie pédagogique', content: 'Visite du musée national le 25 janvier', date: '2024-01-15' }
+          ]
+        };
+      } else {
+        // For real users, implement actual data fetching
+        dashboardData = {
+          grades: [],
+          attendance: { present: 0, absent: 0, late: 0, percentage: 0 },
+          homework: [],
+          announcements: []
+        };
+      }
+      
+      res.json({
+        success: true,
+        data: {
+          ...dashboardData,
+          timestamp: new Date().toISOString(),
+          userRole: 'Student'
+        }
+      });
+    } catch (error: any) {
+      console.error('[STUDENT_DASHBOARD] Error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to load student dashboard',
+        error: error.message 
+      });
+    }
+  });
+
   // DIRECTOR API ROUTES - Overview and Analytics
   app.get("/api/director/overview", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
