@@ -2734,39 +2734,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/commercial/documents', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
     try {
       const commercialDocuments = [
-        // Guides commerciaux principaux
-        { id: 1, title: "Guide Explicatif Commerciaux EDUCAFRIC", description: "Document commercial complet", type: "commercial", url: "/documents/guide-explicatif-commerciaux-educafric-2025.html" },
-        { id: 2, title: "Guide Commercial Bulletins EDUCAFRIC", description: "Guide pour la vente du système de bulletins", type: "commercial", url: "/documents/guide-commercial-bulletins-educafric-2025.html" },
-        { id: 9, title: "Commercial Bulletin Guide - English", description: "Commercial guide for bulletin system (English)", type: "commercial", url: "/documents/commercial-bulletin-guide-educafric-2025-en.html" },
+        // === GUIDES COMMERCIAUX PRINCIPAUX (Bilingue) ===
+        { id: 1, title: "Guide Explicatif Commerciaux EDUCAFRIC - FR", description: "Document commercial complet en français", type: "commercial", url: "/documents/guide-explicatif-commerciaux-educafric-2025.html" },
+        { id: 2, title: "Guide Commercial Bulletins EDUCAFRIC - FR", description: "Guide pour la vente du système de bulletins", type: "commercial", url: "/documents/guide-commercial-bulletins-educafric-2025.html" },
+        { id: 9, title: "Commercial Bulletin Guide - EN", description: "Commercial guide for bulletin system (English)", type: "commercial", url: "/documents/commercial-bulletin-guide-educafric-2025-en.html" },
         
-        // Brochures commerciales
-        { id: 10, title: "Brochure Commerciale EDUCAFRIC - Français", description: "Brochure commerciale complète en français", type: "commercial", url: "/documents/brochure-commerciale-educafric-fr.html" },
-        { id: 11, title: "EDUCAFRIC Commercial Brochure - English", description: "Complete commercial brochure in English", type: "commercial", url: "/documents/educafric-commercial-brochure-en.html" },
+        // === BROCHURES COMMERCIALES (Bilingue) ===
+        { id: 10, title: "Brochure Commerciale EDUCAFRIC - FR", description: "Brochure commerciale complète en français", type: "commercial", url: "/documents/brochure-commerciale-educafric-fr.html" },
+        { id: 11, title: "EDUCAFRIC Commercial Brochure - EN", description: "Complete commercial brochure in English", type: "commercial", url: "/documents/educafric-commercial-brochure-en.html" },
         
-        // Arguments de vente
-        { id: 12, title: "Argumentaire de Vente EDUCAFRIC", description: "Document de vente complet", type: "commercial", url: "/documents/argumentaire-vente-educafric-fr.html" },
-        { id: 13, title: "EDUCAFRIC Sales Pitch - English", description: "Complete sales pitch document", type: "commercial", url: "/documents/educafric-sales-pitch-en.html" },
+        // === ARGUMENTAIRES DE VENTE (Bilingue) ===
+        { id: 12, title: "Argumentaire de Vente EDUCAFRIC - FR", description: "Document de vente complet en français", type: "commercial", url: "/documents/argumentaire-vente-educafric-fr.html" },
+        { id: 13, title: "EDUCAFRIC Sales Pitch Complete - EN", description: "Complete sales pitch document in English", type: "commercial", url: "/documents/educafric-sales-pitch-complete-en.html" },
+        { id: 22, title: "EDUCAFRIC Sales Pitch Original - EN", description: "Original sales pitch document", type: "commercial", url: "/documents/educafric-sales-pitch-en.html" },
         
-        // Tarifs et propositions
-        { id: 14, title: "Tarifs Complets EDUCAFRIC 2025", description: "Grille tarifaire complète pour 2025", type: "commercial", url: "/documents/tarifs-complets-educafric-2025.html" },
-        { id: 15, title: "Proposition Tarifaire Personnalisée", description: "Document de proposition tarifaire personnalisée", type: "commercial", url: "/documents/proposition-tarifaire-personnalisee-fr.html" },
-        { id: 16, title: "Customized Pricing Proposal - English", description: "Personalized pricing proposal document", type: "commercial", url: "/documents/customized-pricing-proposal-en.html" },
+        // === TARIFS ET PROPOSITIONS (Bilingue) ===
+        { id: 14, title: "Tarifs Complets EDUCAFRIC 2025 - FR", description: "Grille tarifaire complète pour 2025", type: "commercial", url: "/documents/tarifs-complets-educafric-2025.html" },
+        { id: 15, title: "Proposition Tarifaire Personnalisée - FR", description: "Document de proposition tarifaire personnalisée", type: "commercial", url: "/documents/proposition-tarifaire-personnalisee-fr.html" },
+        { id: 23, title: "Proposition Tarifaire Sur Mesure - FR", description: "Nouvelle proposition tarifaire personnalisée", type: "commercial", url: "/documents/proposition-tarifaire-sur-mesure-fr.html" },
+        { id: 16, title: "Customized Pricing Proposal - EN", description: "Personalized pricing proposal document", type: "commercial", url: "/documents/customized-pricing-proposal-en.html" },
         
-        // Contrats commerciaux
-        { id: 17, title: "Contrat Commercial EDUCAFRIC 2025", description: "Contrat commercial actualisé 2025", type: "commercial", url: "/documents/contrat-commercial-educafric-2025-actualise.html" },
-        { id: 18, title: "Commercial Partnership Contract - English", description: "Commercial partnership contract", type: "commercial", url: "/documents/commercial-partnership-contract-en.html" },
+        // === CONTRATS COMMERCIAUX (Bilingue) ===
+        { id: 17, title: "Contrat Commercial EDUCAFRIC 2025 - FR", description: "Contrat commercial actualisé 2025", type: "commercial", url: "/documents/contrat-commercial-educafric-2025-actualise.html" },
+        { id: 24, title: "Contrat Partenariat Commercial EDUCAFRIC - FR", description: "Contrat de partenariat commercial français", type: "commercial", url: "/documents/contrat-partenariat-commercial-educafric-fr.html" },
+        { id: 18, title: "Commercial Partnership Contract - EN", description: "Commercial partnership contract in English", type: "commercial", url: "/documents/commercial-partnership-contract-en.html" },
         
-        // Guides techniques commerciaux
-        { id: 3, title: "Guide Signatures Numériques - Professeurs Principaux", description: "Système de signatures numériques pour bulletins", type: "commercial", url: "/documents/guide-signatures-numeriques-professeurs-principaux.html" },
-        { id: 7, title: "Digital Signatures Guide - Principal Teachers", description: "Digital signature system for report cards (English)", type: "commercial", url: "/documents/digital-signatures-guide-principal-teachers-en.html" },
-        { id: 19, title: "Guide Commercial Modules Premium", description: "Guide de vente des modules premium", type: "commercial", url: "/documents/guide-commercial-modules-premium.html" },
-        { id: 20, title: "Guide Commercial Bulletins Sécurisés 2025", description: "Guide commercial pour bulletins sécurisés", type: "commercial", url: "/documents/guide-commercial-bulletins-securises-2025-actualise.html" },
-        { id: 21, title: "Secure Bulletins Commercial Guide 2025 - English", description: "Commercial guide for secure bulletins", type: "commercial", url: "/documents/secure-bulletins-commercial-guide-2025-updated-en.html" },
+        // === GUIDES TECHNIQUES COMMERCIAUX (Bilingue) ===
+        { id: 3, title: "Guide Signatures Numériques - FR", description: "Système de signatures numériques pour bulletins", type: "commercial", url: "/documents/guide-signatures-numeriques-professeurs-principaux.html" },
+        { id: 7, title: "Digital Signatures Guide - EN", description: "Digital signature system for report cards", type: "commercial", url: "/documents/digital-signatures-guide-principal-teachers-en.html" },
+        { id: 19, title: "Guide Commercial Modules Premium - FR", description: "Guide de vente des modules premium", type: "commercial", url: "/documents/guide-commercial-modules-premium.html" },
+        { id: 20, title: "Guide Commercial Bulletins Sécurisés 2025 - FR", description: "Guide commercial pour bulletins sécurisés", type: "commercial", url: "/documents/guide-commercial-bulletins-securises-2025-actualise.html" },
+        { id: 21, title: "Secure Bulletins Commercial Guide 2025 - EN", description: "Commercial guide for secure bulletins", type: "commercial", url: "/documents/secure-bulletins-commercial-guide-2025-updated-en.html" },
         
-        // Modules pédagogiques
-        { id: 8, title: "Module Contenu Pédagogique Collaboratif", description: "Système de création et partage de ressources éducatives", type: "commercial", url: "/documents/module-contenu-pedagogique-collaboratif.html" },
+        // === SYSTÈMES ET MODULES (Bilingue) ===
+        { id: 8, title: "Module Contenu Pédagogique Collaboratif - FR", description: "Système de création et partage de ressources éducatives", type: "commercial", url: "/documents/module-contenu-pedagogique-collaboratif.html" },
+        { id: 25, title: "Système de Notifications EDUCAFRIC - FR", description: "Documentation du système de notifications multicanal", type: "commercial", url: "/documents/notifications-system-educafric-fr.html" },
+        { id: 26, title: "Notification System EDUCAFRIC - EN", description: "Multi-channel notification system documentation", type: "commercial", url: "/documents/notifications-system-educafric-en.html" },
+        { id: 27, title: "Géolocalisation Résumé EDUCAFRIC - FR", description: "Présentation du système de géolocalisation", type: "commercial", url: "/documents/geolocalisation-resume-educafric-fr.html" },
+        { id: 28, title: "Geolocation Overview EDUCAFRIC - EN", description: "Geolocation system overview and features", type: "commercial", url: "/documents/geolocation-overview-educafric-en.html" },
         
-        // Documents système (PDF seulement)
+        // === DOCUMENTS SYSTÈME (PDF uniquement) ===
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
         { id: 5, title: "Tarifs et Offres 2025", description: "Grille tarifaire détaillée", type: "commercial", url: null },
         { id: 6, title: "ROI Calculator EDUCAFRIC", description: "Calculateur de retour sur investissement", type: "commercial", url: null }
