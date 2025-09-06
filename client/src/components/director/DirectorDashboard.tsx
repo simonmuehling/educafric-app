@@ -454,6 +454,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-cyan-500',
       component: createDynamicModule('document-management')
+    },
+    {
+      id: 'modular-bulletins',
+      label: language === 'fr' ? 'Bulletins Modulables' : 'Modular Bulletins',
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-emerald-500',
+      component: createDynamicModule('modular-bulletin-generator')
     }
   ];
 

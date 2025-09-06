@@ -37,6 +37,7 @@ class FastModuleLoader {
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
+      'modular-bulletin-generator': () => import('@/components/director/modules/ModularBulletinGenerator'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
