@@ -49,39 +49,46 @@ router.get('/bulletin/preview', (req, res) => {
   // Données d'exemple pour la prévisualisation
   const sampleData: BulletinTemplateData = {
     schoolInfo: {
-      schoolName: "ÉCOLE BILINGUE EXCELLENCE",
-      address: "BP 1234, Quartier Bastos",
+      schoolName: "Collège Excellence Africaine - Yaoundé",
+      address: "B.P. 1234 Yaoundé",
       city: "Yaoundé",
-      phoneNumber: "+237 6XX XX XX XX",
+      phoneNumber: "+237 222 345 678",
       email: "info@ecole-excellence.com",
-      directorName: "M. DUPONT Jean",
-      academicYear: "2024-2025"
+      directorName: "Dr. Ngozi Adichie Emmanuel",
+      academicYear: "2024-2025",
+      regionalDelegation: "DU CENTRE",
+      departmentalDelegation: "DU MFOUNDI"
     },
     student: {
-      firstName: "NGONO",
-      lastName: "Marie Claire",
-      birthDate: "15/03/2010",
-      birthPlace: "Yaoundé",
+      firstName: "Amina",
+      lastName: "Kouakou",
+      birthDate: "15 Mars 2010",
+      birthPlace: "Abidjan, Côte d'Ivoire",
       gender: "Féminin",
-      className: "6ème A",
-      studentNumber: "ECE2024001"
+      className: "3ème A",
+      studentNumber: "CEA-2024-0157",
+      photo: undefined // Pas de photo dans l'exemple
     },
     period: "1er Trimestre 2024-2025",
     subjects: [
-      { name: "Français", grade: 15, maxGrade: 20, coefficient: 4, comments: "Bon travail" },
-      { name: "Mathématiques", grade: 12, maxGrade: 20, coefficient: 4, comments: "Peut mieux faire" },
-      { name: "Sciences", grade: 16, maxGrade: 20, coefficient: 3, comments: "Très bien" },
-      { name: "Anglais", grade: 14, maxGrade: 20, coefficient: 3, comments: "Satisfaisant" },
-      { name: "Histoire-Géo", grade: 13, maxGrade: 20, coefficient: 2, comments: "Assez bien" },
-      { name: "EPS", grade: 17, maxGrade: 20, coefficient: 1, comments: "Excellent" }
+      { name: "Mathématiques", grade: 16.5, maxGrade: 20, coefficient: 4, comments: "Excellent", teacherName: "M. Koné Joseph Augustin" },
+      { name: "Français", grade: 14, maxGrade: 20, coefficient: 4, comments: "Assez bien", teacherName: "Mme Diallo Fatou Marie" },
+      { name: "Anglais", grade: 15.5, maxGrade: 20, coefficient: 3, comments: "Bien", teacherName: "M. Smith John Patrick" },
+      { name: "Histoire-Géo", grade: 13.5, maxGrade: 20, coefficient: 3, comments: "Assez bien", teacherName: "M. Ouédraogo Paul Vincent" },
+      { name: "Sciences Physiques", grade: 17, maxGrade: 20, coefficient: 3, comments: "Excellent", teacherName: "Mme Camara Aïcha Binta" },
+      { name: "Sciences Naturelles", grade: 16, maxGrade: 20, coefficient: 3, comments: "Très bien", teacherName: "M. Traoré Ibrahim Moussa" },
+      { name: "EPS", grade: 18, maxGrade: 20, coefficient: 1, comments: "Excellent", teacherName: "M. Bamba Sekou Amadou" },
+      { name: "Arts", grade: 15, maxGrade: 20, coefficient: 1, comments: "Bien", teacherName: "Mme Sow Mariam Aminata" }
     ],
-    generalAverage: 14.2,
-    classRank: 5,
-    totalStudents: 32,
-    conduct: "Très Bien",
+    generalAverage: 15.43,
+    classRank: 3,
+    totalStudents: 42,
+    conduct: "Très bien",
+    conductGrade: 18,
     absences: 2,
-    teacherComments: "Élève sérieuse et appliquée. Continue tes efforts en mathématiques.",
-    directorComments: "Résultats encourageants. Félicitations pour ton travail."
+    teacherComments: "Élève sérieuse et appliquée. Très bon travail.",
+    directorComments: "Excellent trimestre. Continuez ainsi !",
+    verificationCode: "EDU2024-AMK-T1-4ZFYJM"
   };
   
   const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(sampleData, language);

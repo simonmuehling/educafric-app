@@ -10,6 +10,9 @@ export interface SchoolInfo {
   logo?: string;
   directorName: string;
   academicYear: string;
+  // Informations officielles Cameroun
+  regionalDelegation: string; // ex: "DU CENTRE"
+  departmentalDelegation: string; // ex: "DU MFOUNDI"
 }
 
 export interface BulletinTemplateData {
@@ -22,6 +25,7 @@ export interface BulletinTemplateData {
     gender: string;
     className: string;
     studentNumber: string;
+    photo?: string; // URL de la photo de l'élève
   };
   period: string;
   subjects: Array<{
@@ -30,14 +34,17 @@ export interface BulletinTemplateData {
     maxGrade: number;
     coefficient: number;
     comments?: string;
+    teacherName?: string; // Nom de l'enseignant de la matière
   }>;
   generalAverage: number;
   classRank: number;
   totalStudents: number;
   conduct: string;
+  conductGrade: number; // Note de conduite sur 20
   absences: number;
   teacherComments: string;
   directorComments: string;
+  verificationCode?: string; // Code de vérification unique
 }
 
 export interface ReportTemplateData {
@@ -58,7 +65,7 @@ export interface ReportTemplateData {
 
 export class ModularTemplateGenerator {
   
-  // Génération de l'en-tête standard EDUCAFRIC avec informations de l'école
+  // Génération de l'en-tête officiel camerounais avec informations de l'école
   private generateEducafricHeader(schoolInfo: SchoolInfo, documentType: string, language: 'fr' | 'en' = 'fr'): string {
     const titles = {
       fr: {
@@ -86,20 +93,37 @@ export class ModularTemplateGenerator {
     
     return `
       <div class="educafric-header">
-        <div class="header-top">
-          <div class="school-info">
-            <h1 class="school-name">${schoolInfo.schoolName}</h1>
-            <p class="school-address">${schoolInfo.address}, ${schoolInfo.city}</p>
-            <p class="school-contact">Tél: ${schoolInfo.phoneNumber} | Email: ${schoolInfo.email}</p>
+        <div class="official-header">
+          <div class="cameroon-header">
+            <div class="official-left">
+              <p class="republic"><strong>RÉPUBLIQUE DU CAMEROUN</strong></p>
+              <p class="motto"><em>Paix - Travail - Patrie</em></p>
+              <p class="ministry"><strong>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</strong></p>
+              <p class="delegation"><strong>DÉLÉGATION RÉGIONALE ${schoolInfo.regionalDelegation}</strong></p>
+              <p class="delegation"><strong>DÉLÉGATION DÉPARTEMENTALE ${schoolInfo.departmentalDelegation}</strong></p>
+            </div>
+            <div class="logos-section">
+              <div class="logo-placeholder">
+                ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-img" />` : '<div class="logo-box">LOGO<br>ÉCOLE</div>'}
+              </div>
+            </div>
           </div>
-          ${schoolInfo.logo ? `<div class="school-logo"><img src="${schoolInfo.logo}" alt="Logo École" /></div>` : ''}
         </div>
-        <div class="document-title">
-          <h2>${titleText}</h2>
-          <p class="academic-year">${language === 'fr' ? 'Année Académique' : 'Academic Year'}: ${schoolInfo.academicYear}</p>
+        
+        <div class="school-info-section">
+          <div class="school-details">
+            <h2 class="school-name">${schoolInfo.schoolName}</h2>
+            <p class="school-contact">Tél: ${schoolInfo.phoneNumber}</p>
+            <p class="school-address">${schoolInfo.address}</p>
+          </div>
         </div>
-        <div class="powered-by">
-          <small>Powered by EDUCAFRIC - www.educafric.com</small>
+        
+        <div class="document-title-section">
+          <h2 class="document-title">${titleText}</h2>
+        </div>
+        
+        <div class="period-section">
+          <p class="academic-period">${language === 'fr' ? 'Période' : 'Period'}: ${schoolInfo.academicYear}</p>
         </div>
       </div>
     `;
@@ -132,46 +156,103 @@ export class ModularTemplateGenerator {
         }
         
         .educafric-header {
-          border-bottom: 3px solid #000;
+          border-bottom: 2px solid #000;
           padding-bottom: 10px;
           margin-bottom: 15px;
         }
         
-        .header-top {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        .official-header {
           margin-bottom: 10px;
         }
         
-        .school-info {
+        .cameroon-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 10px;
+        }
+        
+        .official-left {
           flex: 1;
         }
         
-        .school-name {
-          font-size: 18px;
+        .republic {
+          font-size: 12px;
           font-weight: bold;
-          margin: 0 0 5px 0;
-          text-transform: uppercase;
+          margin: 0 0 2px 0;
+          text-align: left;
         }
         
-        .school-address, .school-contact {
+        .motto {
           font-size: 10px;
-          margin: 2px 0;
-          color: #333;
+          margin: 0 0 5px 0;
+          text-align: left;
         }
         
-        .school-logo img {
-          max-height: 60px;
-          max-width: 80px;
+        .ministry {
+          font-size: 10px;
+          font-weight: bold;
+          margin: 0 0 2px 0;
+          text-align: left;
+        }
+        
+        .delegation {
+          font-size: 9px;
+          font-weight: bold;
+          margin: 0 0 1px 0;
+          text-align: left;
+        }
+        
+        .logos-section {
+          display: flex;
+          gap: 15px;
+          align-items: center;
+        }
+        
+        .logo-placeholder {
+          text-align: center;
+        }
+        
+        .school-logo-img {
+          max-height: 50px;
+          max-width: 60px;
+          border: 1px solid #000;
+        }
+        
+        .logo-box {
+          width: 60px;
+          height: 50px;
+          border: 1px solid #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 8px;
+          text-align: center;
+          line-height: 1.1;
+        }
+        
+        .school-info-section {
+          text-align: center;
+          margin-bottom: 10px;
+        }
+        
+        .school-name {
+          font-size: 14px;
+          font-weight: bold;
+          margin: 0 0 3px 0;
+        }
+        
+        .school-contact, .school-address {
+          font-size: 9px;
+          margin: 1px 0;
+        }
+        
+        .document-title-section {
+          text-align: center;
+          margin: 15px 0 10px 0;
         }
         
         .document-title {
-          text-align: center;
-          margin: 10px 0;
-        }
-        
-        .document-title h2 {
           font-size: 16px;
           font-weight: bold;
           margin: 0;
@@ -179,21 +260,15 @@ export class ModularTemplateGenerator {
           letter-spacing: 1px;
         }
         
-        .academic-year {
-          font-size: 12px;
-          margin: 5px 0;
-          font-weight: bold;
-        }
-        
-        .powered-by {
+        .period-section {
           text-align: center;
-          margin-top: 5px;
+          margin-bottom: 15px;
         }
         
-        .powered-by small {
-          font-size: 8px;
-          color: #666;
-          font-style: italic;
+        .academic-period {
+          font-size: 11px;
+          margin: 0;
+          font-weight: bold;
         }
         
         .content-section {
@@ -224,6 +299,73 @@ export class ModularTemplateGenerator {
           padding-left: 5px;
         }
         
+        .student-header-section {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 15px;
+          align-items: flex-start;
+        }
+        
+        .student-info-left {
+          flex: 1;
+          font-size: 9px;
+        }
+        
+        .student-photo-section {
+          margin-left: 20px;
+        }
+        
+        .student-photo {
+          width: 80px;
+          height: 100px;
+          border: 1px solid #000;
+          object-fit: cover;
+        }
+        
+        .photo-placeholder {
+          width: 80px;
+          height: 100px;
+          border: 1px solid #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: bold;
+          background: #f9f9f9;
+        }
+        
+        .period-info {
+          text-align: center;
+          margin-bottom: 15px;
+          font-size: 10px;
+        }
+        
+        .subjects-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 15px;
+          font-size: 8px;
+        }
+        
+        .subjects-table th,
+        .subjects-table td {
+          border: 1px solid #000;
+          padding: 3px;
+          text-align: center;
+        }
+        
+        .subjects-table th {
+          background: white;
+          font-weight: bold;
+          font-size: 7px;
+        }
+        
+        .summary-section {
+          text-align: center;
+          margin: 10px 0;
+          font-size: 10px;
+        }
+        
         .data-table {
           width: 100%;
           border-collapse: collapse;
@@ -244,6 +386,17 @@ export class ModularTemplateGenerator {
           font-size: 7px;
         }
         
+        .comments-section {
+          margin: 20px 0;
+          font-size: 9px;
+        }
+        
+        .comments-section h4 {
+          font-size: 9px;
+          font-weight: bold;
+          margin: 10px 0 5px 0;
+        }
+        
         .footer-section {
           margin-top: 20px;
           display: grid;
@@ -254,17 +407,44 @@ export class ModularTemplateGenerator {
         
         .signature-box {
           text-align: center;
+          padding: 10px;
+          min-height: 80px;
+        }
+        
+        .verification-section {
+          margin-top: 15px;
+          display: flex;
+          justify-content: space-between;
+          font-size: 8px;
+          border-top: 1px solid #000;
+          padding-top: 10px;
+        }
+        
+        .verification-left {
+          flex: 1;
+        }
+        
+        .verification-right {
+          width: 100px;
+          text-align: center;
+        }
+        
+        .qr-placeholder {
           border: 1px solid #000;
-          padding: 5px;
-          min-height: 40px;
+          padding: 10px;
+          height: 60px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          font-size: 7px;
         }
         
         .document-footer {
           text-align: center;
-          font-size: 7px;
-          margin-top: 10px;
-          border-top: 1px solid #000;
+          font-size: 8px;
+          margin-top: 15px;
           padding-top: 5px;
+          font-weight: bold;
         }
         
         @media print {
@@ -350,71 +530,78 @@ export class ModularTemplateGenerator {
         <div class="document-container">
           ${header}
           
-          <div class="content-section">
-            <h3>${t.studentInfo}</h3>
-            <div class="info-grid">
-              <div>
-                <div class="info-row">
-                  <span class="info-label">${t.name}:</span>
-                  <span class="info-value">${data.student.firstName} ${data.student.lastName}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">${t.birthDate}:</span>
-                  <span class="info-value">${data.student.birthDate}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">${t.birthPlace}:</span>
-                  <span class="info-value">${data.student.birthPlace}</span>
-                </div>
+          <div class="student-header-section">
+            <div class="student-info-left">
+              <div class="info-row">
+                <span class="info-label">Élève:</span>
+                <span class="info-value">${data.student.firstName} ${data.student.lastName}</span>
               </div>
-              <div>
-                <div class="info-row">
-                  <span class="info-label">${t.gender}:</span>
-                  <span class="info-value">${data.student.gender}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">${t.class}:</span>
-                  <span class="info-value">${data.student.className}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">${t.number}:</span>
-                  <span class="info-value">${data.student.studentNumber}</span>
-                </div>
+              <div class="info-row">
+                <span class="info-label">Classe:</span>
+                <span class="info-value">${data.student.className}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Matricule:</span>
+                <span class="info-value">${data.student.studentNumber}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Né(e) le:</span>
+                <span class="info-value">${data.student.birthDate}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Sexe:</span>
+                <span class="info-value">${data.student.gender}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Lieu de naissance:</span>
+                <span class="info-value">${data.student.birthPlace}</span>
               </div>
             </div>
-            <div class="info-row">
-              <span class="info-label">${t.period}:</span>
-              <span class="info-value">${data.period}</span>
+            <div class="student-photo-section">
+              ${data.student.photo ? 
+                `<img src="${data.student.photo}" alt="Photo élève" class="student-photo" />` : 
+                '<div class="photo-placeholder">PHOTO</div>'
+              }
             </div>
+          </div>
+          
+          <div class="period-info">
+            <p><strong>Période: ${data.period}</strong></p>
           </div>
 
           <div class="content-section">
             <h3>${t.subjects}</h3>
-            <table class="data-table">
+            <table class="subjects-table">
               <thead>
                 <tr>
-                  <th>${t.subject}</th>
-                  <th>${t.grade}</th>
-                  <th>${t.coeff}</th>
-                  <th>${t.comments}</th>
+                  <th>Matière</th>
+                  <th>Note</th>
+                  <th>Coef</th>
+                  <th>Points</th>
+                  <th>Enseignant</th>
+                  <th>Appréciation</th>
                 </tr>
               </thead>
               <tbody>
-                ${data.subjects.map(subject => `
-                  <tr>
-                    <td style="text-align: left; font-weight: bold;">${subject.name}</td>
-                    <td>${subject.grade}/${subject.maxGrade}</td>
-                    <td>${subject.coefficient}</td>
-                    <td style="text-align: left;">${subject.comments || ''}</td>
-                  </tr>
-                `).join('')}
-                <tr style="background: #f5f5f5; font-weight: bold;">
-                  <td>${t.average}</td>
-                  <td>${data.generalAverage}/20</td>
-                  <td colspan="2">${t.rank}: ${data.classRank}/${data.totalStudents}</td>
-                </tr>
+                ${data.subjects.map(subject => {
+                  const points = (subject.grade * subject.coefficient).toFixed(1);
+                  return `
+                    <tr>
+                      <td style="text-align: left; font-weight: bold;">${subject.name}</td>
+                      <td>${subject.grade}</td>
+                      <td>${subject.coefficient}</td>
+                      <td>${points}</td>
+                      <td style="text-align: left;">${subject.teacherName || 'Non assigné'}</td>
+                      <td style="text-align: left;">${subject.comments || ''}</td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
+            
+            <div class="summary-section">
+              <p><strong>Moyenne: ${data.generalAverage}/20 &nbsp;&nbsp;&nbsp;&nbsp; Rang: ${data.classRank}/${data.totalStudents} &nbsp;&nbsp;&nbsp;&nbsp; Conduite: ${data.conductGrade}/20 (${data.conduct})</strong></p>
+            </div>
           </div>
 
           <div class="content-section">
@@ -445,21 +632,50 @@ export class ModularTemplateGenerator {
             </div>
           </div>
 
+          <div class="comments-section">
+            <h4>PROCÈS-VERBAL DU CONSEIL DE CLASSE:</h4>
+            <p>${data.teacherComments}</p>
+            
+            <h4>DÉCISION DE LA DIRECTION:</h4>
+            <p>${data.directorComments}</p>
+          </div>
+
           <div class="footer-section">
             <div class="signature-box">
-              <strong>${t.teacher}</strong><br>
-              <div style="height: 30px;"></div>
-              <div style="border-top: 1px solid #000; padding-top: 2px;">Signature</div>
+              <strong>Le Professeur Principal</strong><br>
+              <div style="height: 40px;"></div>
+              <div style="border-top: 1px solid #000; padding-top: 5px;">
+                <strong>Mme Diallo Fatou Marie</strong>
+              </div>
             </div>
             <div class="signature-box">
-              <strong>${t.director}</strong><br>
-              <div style="height: 30px;"></div>
-              <div style="border-top: 1px solid #000; padding-top: 2px;">Signature</div>
+              <strong>Le Directeur</strong><br>
+              <div style="height: 40px;"></div>
+              <div style="border-top: 1px solid #000; padding-top: 5px;">
+                <strong>${data.schoolInfo.directorName}</strong>
+              </div>
             </div>
           </div>
 
+          ${data.verificationCode ? `
+          <div class="verification-section">
+            <div class="verification-left">
+              <p><strong>Code: ${data.verificationCode}</strong></p>
+              <p><strong>Authentification: www.educafric.com/verify</strong></p>
+              <p>Ce bulletin est authentifié par signature numérique EDUCAFRIC</p>
+              <p><strong>Code de vérification: ${data.verificationCode}</strong></p>
+            </div>
+            <div class="verification-right">
+              <div class="qr-placeholder">
+                <p><strong>Vérifier:</strong></p>
+                <p>educafric.com<br>test-b</p>
+              </div>
+            </div>
+          </div>
+          ` : ''}
+
           <div class="document-footer">
-            <p>Document généré le ${new Date().toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')} par EDUCAFRIC</p>
+            <p><strong>${data.schoolInfo.schoolName} - ${data.schoolInfo.address} - Tel: ${data.schoolInfo.phoneNumber}</strong></p>
           </div>
         </div>
       </body>
