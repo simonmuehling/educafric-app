@@ -62,6 +62,7 @@ import manualPaymentRoutes from "./routes/manual-payments";
 import uploadsRoutes from "./routes/uploads";
 import bulletinRoutes from "./routes/bulletinRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
+import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
 // Old duplicated imports removed - replaced by unified messaging system
@@ -2902,6 +2903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
+  app.use('/api/templates', templateRoutes);
   // Routes de signature simplifiées pour démo
   app.post('/api/signatures/apply-and-send', async (req, res) => {
     try {
