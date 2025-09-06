@@ -846,6 +846,307 @@ const DocumentsContracts = () => {
       url: '/documents/proposal-request-educafric-en.pdf',
       description: 'Official proposal request document for institutions - Instant notifications, child geolocation, interactive timetables, unified communication'
     },
+
+    // === DOCUMENTS FROM API COMMERCIAL SYSTEM ===
+    // GUIDES COMMERCIAUX PRINCIPAUX (Bilingue)
+    {
+      id: 64,
+      name: 'Guide Explicatif Commerciaux EDUCAFRIC - FR',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '45 KB',
+      format: 'HTML',
+      url: '/documents/guide-explicatif-commerciaux-educafric-2025.html',
+      description: 'Document commercial complet en français'
+    },
+    {
+      id: 65,
+      name: 'Guide Commercial Bulletins EDUCAFRIC - FR',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '42 KB',
+      format: 'HTML',
+      url: '/documents/guide-commercial-bulletins-educafric-2025.html',
+      description: 'Guide pour la vente du système de bulletins'
+    },
+    {
+      id: 66,
+      name: 'Commercial Bulletin Guide - EN',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '40 KB',
+      format: 'HTML',
+      url: '/documents/commercial-bulletin-guide-educafric-2025-en.html',
+      description: 'Commercial guide for bulletin system (English)'
+    },
+
+    // BROCHURES COMMERCIALES (Bilingue)
+    {
+      id: 67,
+      name: 'Brochure Commerciale EDUCAFRIC - FR',
+      type: 'brochure',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '38 KB',
+      format: 'HTML',
+      url: '/documents/brochure-commerciale-educafric-fr.html',
+      description: 'Brochure commerciale complète en français'
+    },
+    {
+      id: 68,
+      name: 'EDUCAFRIC Commercial Brochure - EN',
+      type: 'brochure',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '36 KB',
+      format: 'HTML',
+      url: '/documents/educafric-commercial-brochure-en.html',
+      description: 'Complete commercial brochure in English'
+    },
+
+    // ARGUMENTAIRES DE VENTE (Bilingue)
+    {
+      id: 69,
+      name: 'Argumentaire de Vente EDUCAFRIC - FR',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '35 KB',
+      format: 'HTML',
+      url: '/documents/argumentaire-vente-educafric-fr.html',
+      description: 'Document de vente complet en français'
+    },
+    {
+      id: 70,
+      name: 'EDUCAFRIC Sales Pitch Complete - EN',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '38 KB',
+      format: 'HTML',
+      url: '/documents/educafric-sales-pitch-complete-en.html',
+      description: 'Complete sales pitch document in English'
+    },
+    {
+      id: 71,
+      name: 'EDUCAFRIC Sales Pitch Original - EN',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '32 KB',
+      format: 'HTML',
+      url: '/documents/educafric-sales-pitch-en.html',
+      description: 'Original sales pitch document'
+    },
+
+    // TARIFS ET PROPOSITIONS (Bilingue)
+    {
+      id: 72,
+      name: 'Tarifs Complets EDUCAFRIC 2025 - FR',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Documentation Officielle',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '28 KB',
+      format: 'HTML',
+      url: '/documents/tarifs-complets-educafric-2025.html',
+      description: 'Grille tarifaire complète pour 2025'
+    },
+    {
+      id: 73,
+      name: 'Proposition Tarifaire Personnalisée - FR',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Documentation Officielle',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '26 KB',
+      format: 'HTML',
+      url: '/documents/proposition-tarifaire-personnalisee-fr.html',
+      description: 'Document de proposition tarifaire personnalisée'
+    },
+    {
+      id: 74,
+      name: 'Proposition Tarifaire Sur Mesure - FR',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Documentation Officielle',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '29 KB',
+      format: 'HTML',
+      url: '/documents/proposition-tarifaire-sur-mesure-fr.html',
+      description: 'Nouvelle proposition tarifaire personnalisée'
+    },
+    {
+      id: 75,
+      name: 'Customized Pricing Proposal - EN',
+      type: 'pricing',
+      category: 'contracts',
+      school: 'Official Documentation',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '27 KB',
+      format: 'HTML',
+      url: '/documents/customized-pricing-proposal-en.html',
+      description: 'Personalized pricing proposal document'
+    },
+
+    // CONTRATS COMMERCIAUX (Bilingue)
+    {
+      id: 76,
+      name: 'Contrat Commercial EDUCAFRIC 2025 - FR',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Tous Partenaires',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '52 KB',
+      format: 'HTML',
+      url: '/documents/contrat-commercial-educafric-2025-actualise.html',
+      description: 'Contrat commercial actualisé 2025'
+    },
+    {
+      id: 77,
+      name: 'Contrat Partenariat Commercial EDUCAFRIC - FR',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Tous Partenaires',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '48 KB',
+      format: 'HTML',
+      url: '/documents/contrat-partenariat-commercial-educafric-fr.html',
+      description: 'Contrat de partenariat commercial français'
+    },
+    {
+      id: 78,
+      name: 'Commercial Partnership Contract - EN',
+      type: 'contract',
+      category: 'contracts',
+      school: 'All Partners',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '46 KB',
+      format: 'HTML',
+      url: '/documents/commercial-partnership-contract-en.html',
+      description: 'Commercial partnership contract in English'
+    },
+
+    // GUIDES TECHNIQUES COMMERCIAUX (Bilingue)
+    {
+      id: 79,
+      name: 'Guide Signatures Numériques - FR',
+      type: 'guide',
+      category: 'technical',
+      school: 'Support Technique',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '33 KB',
+      format: 'HTML',
+      url: '/documents/guide-signatures-numeriques-professeurs-principaux.html',
+      description: 'Système de signatures numériques pour bulletins'
+    },
+    {
+      id: 80,
+      name: 'Digital Signatures Guide - EN',
+      type: 'guide',
+      category: 'technical',
+      school: 'Technical Support',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '31 KB',
+      format: 'HTML',
+      url: '/documents/digital-signatures-guide-principal-teachers-en.html',
+      description: 'Digital signature system for report cards'
+    },
+    {
+      id: 81,
+      name: 'Guide Commercial Modules Premium - FR',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '39 KB',
+      format: 'HTML',
+      url: '/documents/guide-commercial-modules-premium.html',
+      description: 'Guide de vente des modules premium'
+    },
+    {
+      id: 82,
+      name: 'Guide Commercial Bulletins Sécurisés 2025 - FR',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Équipe Commerciale',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '44 KB',
+      format: 'HTML',
+      url: '/documents/guide-commercial-bulletins-securises-2025-actualise.html',
+      description: 'Guide commercial pour bulletins sécurisés'
+    },
+    {
+      id: 83,
+      name: 'Secure Bulletins Commercial Guide 2025 - EN',
+      type: 'guide',
+      category: 'marketing',
+      school: 'Sales Team',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '42 KB',
+      format: 'HTML',
+      url: '/documents/secure-bulletins-commercial-guide-2025-updated-en.html',
+      description: 'Commercial guide for secure bulletins'
+    },
+
+    // SYSTÈMES ET MODULES (Bilingue)
+    {
+      id: 84,
+      name: 'Module Contenu Pédagogique Collaboratif - FR',
+      type: 'guide',
+      category: 'technical',
+      school: 'Support Technique',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '37 KB',
+      format: 'HTML',
+      url: '/documents/module-contenu-pedagogique-collaboratif.html',
+      description: 'Système de création et partage de ressources éducatives'
+    },
+    {
+      id: 85,
+      name: 'Guide Complet de Validation des Bulletins - Système EDUCAFRIC',
+      type: 'guide',
+      category: 'technical',
+      school: 'Administration & Commercial',
+      date: '2025-09-06',
+      status: 'finalized',
+      size: '58 KB',
+      format: 'HTML',
+      url: '/documents/systeme-validation-bulletins-admin-commercial.html',
+      description: 'Guide complet du système de validation des bulletins EDUCAFRIC - Processus complet: Draft → Submitted → Approved → Published → Verified avec traçabilité hiérarchique'
+    },
   ];
 
   const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
