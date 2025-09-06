@@ -180,6 +180,19 @@ export default function BulletinManagementUnified() {
     }
   };
 
+  // Charger les élèves d'une classe
+  const loadStudentsByClass = async (classId: string) => {
+    try {
+      const response = await fetch(`/api/director/students?classId=${classId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Erreur chargement élèves:', error);
+    }
+  };
+
   // Charger les bulletins en attente d'approbation
   const loadPendingBulletins = async () => {
     try {
@@ -196,6 +209,47 @@ export default function BulletinManagementUnified() {
       }
     } catch (error) {
       console.error('Erreur chargement bulletins:', error);
+    }
+  };
+
+  // Gestion de la sélection de classe
+  const handleClassSelection = async (classId: string) => {
+    setSelectedClassId(classId);
+    setSelectedStudentId(''); // Reset student selection
+    
+    if (classId) {
+      await loadStudentsByClass(classId);
+      
+      // Mettre à jour les informations de classe dans le formulaire
+      const selectedClass = classes.find(c => c.id.toString() === classId);
+      if (selectedClass) {
+        setFormData(prev => ({
+          ...prev,
+          className: selectedClass.name,
+          enrollment: selectedClass.studentCount || 0
+        }));
+      }
+    }
+  };
+
+  // Gestion de la sélection d'élève
+  const handleStudentSelection = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    
+    if (studentId) {
+      const selectedStudent = students.find(s => s.id.toString() === studentId);
+      if (selectedStudent) {
+        setFormData(prev => ({
+          ...prev,
+          studentFirstName: selectedStudent.firstName || '',
+          studentLastName: selectedStudent.lastName || '',
+          studentBirthDate: selectedStudent.birthDate || '',
+          studentBirthPlace: selectedStudent.birthPlace || '',
+          studentGender: selectedStudent.gender || '',
+          studentNumber: selectedStudent.studentNumber || selectedStudent.matricule || '',
+          studentPhoto: selectedStudent.photoUrl || '',
+        }));
+      }
     }
   };
 
@@ -429,8 +483,8 @@ export default function BulletinManagementUnified() {
               <Badge variant={
                 bulletin.status === 'draft' ? 'secondary' :
                 bulletin.status === 'submitted' ? 'default' :
-                bulletin.status === 'approved' ? 'success' :
-                'primary'
+                bulletin.status === 'approved' ? 'outline' :
+                'default'
               }>
                 {bulletin.status === 'draft' ? 'Brouillon' :
                  bulletin.status === 'submitted' ? 'Soumis' :
@@ -623,7 +677,7 @@ export default function BulletinManagementUnified() {
                     <Label>Classe</Label>
                     <Select
                       value={selectedClassId}
-                      onValueChange={(value) => setSelectedClassId(value)}
+                      onValueChange={handleClassSelection}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t.selectClass} />
@@ -641,7 +695,7 @@ export default function BulletinManagementUnified() {
                     <Label>Élève</Label>
                     <Select
                       value={selectedStudentId}
-                      onValueChange={(value) => setSelectedStudentId(value)}
+                      onValueChange={handleStudentSelection}
                       disabled={!selectedClassId}
                     >
                       <SelectTrigger>
