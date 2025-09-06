@@ -1527,8 +1527,8 @@ export class PDFGenerator {
         average: 'Moyenne',
         rank: 'Rang',
         conduct: 'Conduite',
-        councilMinutes: 'PROCÈS-VERBAL DU CONSEIL DE CLASSE:',
-        directorDecision: 'DÉCISION DE LA DIRECTION:',
+        // councilMinutes: 'PROCÈS-VERBAL DU CONSEIL DE CLASSE:', // Supprimé
+        // directorDecision: 'DÉCISION DE LA DIRECTION:', // Supprimé
         signatures: 'SIGNATURES:',
         principalTeacher: 'Le Professeur Principal',
         director: 'Le Directeur',
@@ -1705,25 +1705,9 @@ export class PDFGenerator {
     doc.text(`${t.conduct}: 18/20 (${conductComment})`, margin + 110, yPosition);
     yPosition += 12;
     
-    // PROCÈS-VERBAL DU CONSEIL DE CLASSE (bilingue)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(t.councilMinutes, margin, yPosition);
-    yPosition += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text(testBulletinData.teacherComments, margin, yPosition);
+    // Suppression des sections PROCÈS-VERBAL et DÉCISION DE LA DIRECTION
+    // Ces sections ont été retirées à la demande de l'utilisateur
     yPosition += 8;
-    
-    // DÉCISION DE LA DIRECTION (bilingue)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(t.directorDecision, margin, yPosition);
-    yPosition += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text(testBulletinData.directorComments, margin, yPosition);
-    yPosition += 15;
     
     // SIGNATURES OFFICIELLES (bilingue)
     doc.setFont('helvetica', 'bold');

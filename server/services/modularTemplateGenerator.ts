@@ -677,11 +677,7 @@ export class ModularTemplateGenerator {
           </div>
 
           <div class="comments-section">
-            <h4>PROCÈS-VERBAL DU CONSEIL DE CLASSE:</h4>
-            <p>${data.teacherComments}</p>
-            
-            <h4>DÉCISION DE LA DIRECTION:</h4>
-            <p>${data.directorComments}</p>
+            <!-- Sections PROCÈS-VERBAL et DÉCISION DE LA DIRECTION supprimées -->
           </div>
 
           <div class="footer-section">

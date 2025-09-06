@@ -86,8 +86,8 @@ router.get('/bulletin/preview', (req, res) => {
     conduct: "Très bien",
     conductGrade: 18,
     absences: 2,
-    teacherComments: "Élève sérieuse et appliquée. Très bon travail.",
-    directorComments: "Excellent trimestre. Continuez ainsi !",
+    teacherComments: "Bon travail général. Peut améliorer en mathématiques.",
+    directorComments: "Résultats corrects. Encourager les efforts en sciences.",
     verificationCode: "EDU2024-AMK-T1-4ZFYJM"
   };
   
