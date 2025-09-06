@@ -38,6 +38,7 @@ class FastModuleLoader {
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       'modular-bulletin-generator': () => import('@/components/director/modules/ModularBulletinGeneratorAdvanced'),
+      'bulletin-management': () => import('@/components/director/modules/BulletinManagementUnified'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
