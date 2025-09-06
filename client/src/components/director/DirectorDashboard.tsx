@@ -447,6 +447,13 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <Building2 className="w-6 h-6" />,
       color: 'bg-slate-600',
       component: createDynamicModule('school-settings')
+    },
+    {
+      id: 'document-management',
+      label: language === 'fr' ? 'Gestion Documents' : 'Document Management',
+      icon: <FileText className="w-6 h-6" />,
+      color: 'bg-cyan-500',
+      component: createDynamicModule('document-management')
     }
   ];
 

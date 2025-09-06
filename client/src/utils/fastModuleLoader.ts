@@ -36,6 +36,7 @@ class FastModuleLoader {
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
+      'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
