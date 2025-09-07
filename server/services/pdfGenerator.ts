@@ -3081,8 +3081,16 @@ export class PDFGenerator {
       doc.text(subject.name, xPosition + 3, yPosition + 3);
       xPosition += columnWidths[0];
       
-      // Note avec couleur selon performance
-      const gradeValue = typeof subject.grade === 'number' ? subject.grade : parseFloat(subject.grade) || 0;
+      // Note avec couleur selon performance - Gestion robuste des types
+      let gradeValue = 0;
+      if (typeof subject.grade === 'number') {
+        gradeValue = subject.grade;
+      } else if (typeof subject.grade === 'string') {
+        gradeValue = parseFloat(subject.grade) || 0;
+      } else if (subject.average && typeof subject.average === 'number') {
+        gradeValue = subject.average;
+      }
+      
       doc.setTextColor(gradeValue >= 14 ? 34 : gradeValue >= 10 ? 0 : 239, 
                        gradeValue >= 14 ? 197 : gradeValue >= 10 ? 0 : 68, 
                        gradeValue >= 14 ? 94 : gradeValue >= 10 ? 0 : 68);
