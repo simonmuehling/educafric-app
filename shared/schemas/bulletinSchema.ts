@@ -102,8 +102,8 @@ export const bulletinWorkflow = pgTable("bulletin_workflow", {
   academicYear: text("academic_year").notNull(),
   
   // Workflow status
-  currentStatus: text("current_status").notNull().default("waiting_for_grades"), 
-  // waiting_for_grades, grades_complete, bulletin_generated, under_review, approved, sent
+  currentStatus: text("current_status").notNull().default("awaiting_teacher_submissions"), 
+  // awaiting_teacher_submissions, incomplete, ready_for_approval, approved, sent
   
   // Progress tracking
   totalSubjects: integer("total_subjects").notNull(),
