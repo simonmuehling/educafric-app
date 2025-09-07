@@ -1124,7 +1124,9 @@ export default function BulletinManagementUnified() {
         // ✅ DONNÉES T3 SPÉCIFIQUES SELON JSON FOURNI
         ...(formData.term === 'Troisième Trimestre' && {
           evaluations: {
-            ...bulletinData.evaluations,
+            generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
+            classRank: formData.classRank,
+            totalStudents: formData.totalStudents,
             summary: {
               avgT3: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
               rankT3: `${formData.classRank || 1}/${formData.totalStudents || 30}`,
