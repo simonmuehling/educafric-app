@@ -37,7 +37,6 @@ class FastModuleLoader {
       'help': () => import('@/components/help/HelpCenter'),
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
-      'modular-bulletin-generator': () => import('@/components/director/modules/ModularBulletinGeneratorAdvanced'),
       'bulletin-management': () => import('@/components/director/modules/BulletinManagementUnified'),
       
       // =============================================
@@ -71,7 +70,6 @@ class FastModuleLoader {
       'ClassManagement': () => import('@/components/director/modules/ClassManagement'),
       'StudentManagement': () => import('@/components/director/modules/FunctionalDirectorStudentManagement'),
       'TeacherManagement': () => import('@/components/director/modules/TeacherManagement'),
-      'BulletinValidation': () => import('@/components/director/modules/BulletinApprovalNew'),
       'AttendanceManagement': () => import('@/components/director/modules/SchoolAttendanceManagement'),
       'Communications': () => import('@/components/director/modules/Communications'),
       'AdministratorManagement': () => import('@/components/director/modules/AdministratorManagementFunctional'),
