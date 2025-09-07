@@ -353,6 +353,32 @@ export default function BulletinManagementUnified() {
     }
   };
 
+  // Prévisualiser un bulletin
+  const previewBulletin = async () => {
+    try {
+      if (!selectedStudentId || !selectedClassId) {
+        toast({
+          title: "Attention",
+          description: "Veuillez sélectionner une classe et un élève",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Ouvrir l'aperçu du template
+      const previewUrl = `/api/templates/bulletin/preview?language=${formData.language}&studentId=${selectedStudentId}&classId=${selectedClassId}`;
+      window.open(previewUrl, '_blank');
+      
+    } catch (error) {
+      console.error('Erreur aperçu bulletin:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'aperçu du bulletin",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Créer un nouveau bulletin modulable
   const createModularBulletin = async () => {
     try {
@@ -1031,7 +1057,11 @@ export default function BulletinManagementUnified() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Button variant="outline" disabled={!selectedStudentId}>
+                    <Button 
+                      variant="outline" 
+                      disabled={!selectedStudentId}
+                      onClick={previewBulletin}
+                    >
                       <Eye className="w-4 h-4 mr-1" />
                       {t.preview}
                     </Button>
