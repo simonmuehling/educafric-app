@@ -46,6 +46,13 @@ export interface BulletinTemplateData {
     position?: number;
     averageMark?: number;
     remark?: string;
+    // ✅ NOUVEAUX CHAMPS POUR MOYENNES ANNUELLES (selon JSON fourni)
+    t1?: number;
+    t2?: number;
+    t3?: number;
+    avgAnnual?: number; // Moyenne annuelle de la matière
+    coef?: number; // Alias pour coefficient
+    teacher?: string; // Alias pour teacherName
   }>;
   generalAverage: number;
   classRank: number;
@@ -72,6 +79,31 @@ export interface BulletinTemplateData {
   highestAvg?: number;
   lowestAvg?: number;
   councilDecision?: string;
+  // ✅ NOUVEAUX CHAMPS T3 SELON JSON FOURNI
+  summary?: {
+    avgT3?: number;
+    rankT3?: string;
+    avgAnnual?: number;
+    rankAnnual?: string;
+    conduct?: {
+      score: number;
+      label: string;
+    };
+    absences?: {
+      justified: number;
+      unjustified: number;
+    };
+  };
+  decision?: {
+    council?: string; // "Admis en 5ème" ou "Redouble"
+    mention?: string; // "Bien", "Très Bien", etc.
+    observationsTeacher?: string;
+    observationsDirector?: string;
+  };
+  signatures?: {
+    homeroomTeacher?: string;
+    director?: string;
+  };
 }
 
 export interface ReportTemplateData {
@@ -641,7 +673,7 @@ export class ModularTemplateGenerator {
               <thead>
                 <tr>
                   <th>Matière</th>
-                  <th>Note/20</th>
+                  ${currentTerm === 'T3' ? '<th>T1</th><th>T2</th><th>T3</th><th>Moy.Ann</th>' : '<th>Note/20</th>'}
                   <th>Coef</th>
                   <th>Points</th>
                   <th>Enseignant</th>
@@ -650,29 +682,61 @@ export class ModularTemplateGenerator {
               </thead>
               <tbody>
                 ${data.subjects.map(subject => {
-                  // ✅ UTILISER SEULEMENT LA NOTE DU TRIMESTRE SÉLECTIONNÉ
-                  const gradeValue = subject.grade || 0;
-                  const coefficient = subject.coefficient || 1;
-                  const points = (gradeValue * coefficient).toFixed(1);
-                  const remark = subject.comments || '';
-                  const teacherName = subject.teacherName || 'Non assigné';
+                  // ✅ AFFICHAGE CONDITIONNEL SELON LE TRIMESTRE
+                  const coefficient = subject.coefficient || subject.coef || 1;
+                  const teacherName = subject.teacherName || subject.teacher || 'Non assigné';
+                  const remark = subject.comments || subject.remark || '';
                   
-                  return `
-                    <tr>
-                      <td style="text-align: left; font-weight: bold;">${subject.name}</td>
-                      <td>${gradeValue}</td>
-                      <td>${coefficient}</td>
-                      <td>${points}</td>
-                      <td style="text-align: left; font-size: 7px;">${teacherName}</td>
-                      <td style="text-align: left; font-size: 6px;">${remark}</td>
-                    </tr>
-                  `;
+                  if (currentTerm === 'T3' && (subject.t1 !== undefined || subject.t2 !== undefined || subject.t3 !== undefined)) {
+                    // FORMAT T3 AVEC MOYENNES ANNUELLES
+                    const t1 = subject.t1 || 0;
+                    const t2 = subject.t2 || 0;
+                    const t3 = subject.t3 || subject.grade || 0;
+                    const avgAnnual = subject.avgAnnual || ((t1 + t2 + t3) / 3);
+                    const points = (avgAnnual * coefficient).toFixed(1);
+                    
+                    return `
+                      <tr>
+                        <td style="text-align: left; font-weight: bold;">${subject.name}</td>
+                        <td>${t1.toFixed(1)}</td>
+                        <td>${t2.toFixed(1)}</td>
+                        <td>${t3.toFixed(1)}</td>
+                        <td><strong>${avgAnnual.toFixed(1)}</strong></td>
+                        <td>${coefficient}</td>
+                        <td>${points}</td>
+                        <td style="text-align: left; font-size: 7px;">${teacherName}</td>
+                        <td style="text-align: left; font-size: 6px;">${remark}</td>
+                      </tr>
+                    `;
+                  } else {
+                    // FORMAT T1/T2 CLASSIQUE
+                    const gradeValue = subject.grade || 0;
+                    const points = (gradeValue * coefficient).toFixed(1);
+                    
+                    return `
+                      <tr>
+                        <td style="text-align: left; font-weight: bold;">${subject.name}</td>
+                        <td>${gradeValue}</td>
+                        <td>${coefficient}</td>
+                        <td>${points}</td>
+                        <td style="text-align: left; font-size: 7px;">${teacherName}</td>
+                        <td style="text-align: left; font-size: 6px;">${remark}</td>
+                      </tr>
+                    `;
+                  }
                 }).join('')}
               </tbody>
             </table>
             
             <div class="summary-section">
-              <p><strong>Moyenne: ${data.generalAverage}/20 &nbsp;&nbsp;&nbsp;&nbsp; Rang: ${data.classRank}/${data.totalStudents} &nbsp;&nbsp;&nbsp;&nbsp; Conduite: ${data.conductGrade}/20 (${data.conduct})</strong></p>
+              ${currentTerm === 'T3' && data.summary ? `
+                <p><strong>Moyenne T3: ${data.summary.avgT3 || data.generalAverage}/20 &nbsp;&nbsp;&nbsp;&nbsp; Rang T3: ${data.summary.rankT3 || data.classRank + '/' + data.totalStudents}</strong></p>
+                <p><strong>Moyenne Annuelle: ${data.summary.avgAnnual || data.annualAverage}/20 &nbsp;&nbsp;&nbsp;&nbsp; Rang Annuel: ${data.summary.rankAnnual || data.annualPosition + '/' + data.totalStudents}</strong></p>
+                <p><strong>Conduite: ${data.summary.conduct?.score || data.conductGrade}/20 (${data.summary.conduct?.label || data.conduct})</strong></p>
+                <p><strong>Absences: ${data.summary.absences?.justified || 0} justifiées, ${data.summary.absences?.unjustified || 0} injustifiées</strong></p>
+              ` : `
+                <p><strong>Moyenne: ${data.generalAverage}/20 &nbsp;&nbsp;&nbsp;&nbsp; Rang: ${data.classRank}/${data.totalStudents} &nbsp;&nbsp;&nbsp;&nbsp; Conduite: ${data.conductGrade}/20 (${data.conduct})</strong></p>
+              `}
             </div>
           </div>
 
@@ -694,14 +758,36 @@ export class ModularTemplateGenerator {
           </div>
 
           <div class="content-section">
-            <div class="info-row">
-              <span class="info-label">${t.teacherComments}:</span>
-              <span class="info-value">${data.teacherComments}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">${t.directorComments}:</span>
-              <span class="info-value">${data.directorComments}</span>
-            </div>
+            ${currentTerm === 'T3' && data.decision ? `
+              <h3>DÉCISION DU CONSEIL DE CLASSE</h3>
+              <div class="decision-section">
+                <div class="info-row">
+                  <span class="info-label"><strong>Décision:</strong></span>
+                  <span class="info-value"><strong style="color: ${data.decision.council?.includes('Admis') ? '#2563eb' : '#dc2626'};">${data.decision.council || 'À déterminer'}</strong></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label"><strong>Mention:</strong></span>
+                  <span class="info-value"><strong>${data.decision.mention || 'Passable'}</strong></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Observations Professeur Principal:</span>
+                  <span class="info-value">${data.decision.observationsTeacher || data.teacherComments}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Observations Directeur:</span>
+                  <span class="info-value">${data.decision.observationsDirector || data.directorComments}</span>
+                </div>
+              </div>
+            ` : `
+              <div class="info-row">
+                <span class="info-label">${t.teacherComments}:</span>
+                <span class="info-value">${data.teacherComments}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">${t.directorComments}:</span>
+                <span class="info-value">${data.directorComments}</span>
+              </div>
+            `}
           </div>
 
           <div class="comments-section">
@@ -713,14 +799,14 @@ export class ModularTemplateGenerator {
               <strong>Le Professeur Principal</strong><br>
               <div style="height: 40px;"></div>
               <div style="border-top: 1px solid #000; padding-top: 5px;">
-                <strong>Mme Diallo Fatou Marie</strong>
+                <strong>${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
               </div>
             </div>
             <div class="signature-box">
               <strong>Le Directeur</strong><br>
               <div style="height: 40px;"></div>
               <div style="border-top: 1px solid #000; padding-top: 5px;">
-                <strong>${data.schoolInfo.directorName}</strong>
+                <strong>${data.signatures?.director || data.schoolInfo.directorName}</strong>
               </div>
             </div>
           </div>

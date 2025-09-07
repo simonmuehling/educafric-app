@@ -2978,6 +2978,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/uploads', uploadsRoutes);
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/templates', templateRoutes);
+  
+  // ✅ ROUTES BULLETIN T3 AVEC MOYENNES ANNUELLES (via route directe)
+  app.post('/api/bulletin-t3/test-t3', async (req, res) => {
+    try {
+      console.log('[BULLETIN_T3_TEST] 🎯 Génération bulletin T3 avec moyennes annuelles');
+      
+      const { ModularTemplateGenerator } = await import('./services/modularTemplateGenerator.js');
+      const templateGenerator = new ModularTemplateGenerator();
+      
+      // ✅ DONNÉES T3 AVEC LA STRUCTURE JSON FOURNIE PAR L'UTILISATEUR
+      const exampleT3Data = {
+        schoolInfo: {
+          schoolName: "Collège Saint-Joseph",
+          address: "B.P. 1234 Douala",
+          city: "Douala, Cameroun", 
+          phoneNumber: "+237657004011",
+          email: "info@college-saint-joseph.cm",
+          directorName: "M. Ndongo",
+          academicYear: "2024-2025",
+          regionalDelegation: "DU LITTORAL",
+          departmentalDelegation: "DU WOURI",
+          logo: "https://ui-avatars.com/api/?name=CSJ&size=60&background=1e40af&color=ffffff&format=png&bold=true"
+        },
+        student: {
+          firstName: "Jean",
+          lastName: "Kamga",
+          birthDate: "2012-03-10",
+          birthPlace: "Yaoundé",
+          gender: "Masculin",
+          className: "6ème A",
+          studentNumber: "CJA-2025-06",
+          photo: "https://ui-avatars.com/api/?name=Jean%20Kamga&size=100&background=2563eb&color=ffffff&format=png"
+        },
+        period: "Troisième Trimestre",
+        subjects: [
+          {
+            name: "Mathématiques",
+            coefficient: 5,
+            t1: 14,
+            t2: 16,
+            t3: 18,
+            avgAnnual: 16,
+            teacherName: "M. Ndongo",
+            comments: "Très Bien"
+          },
+          {
+            name: "Français", 
+            coefficient: 5,
+            t1: 12,
+            t2: 13, 
+            t3: 15,
+            avgAnnual: 13.3,
+            teacherName: "Mme Tchoumba",
+            comments: "Bien"
+          },
+          {
+            name: "Anglais",
+            coefficient: 4,
+            t1: 13,
+            t2: 14,
+            t3: 16,
+            avgAnnual: 14.3,
+            teacherName: "Mr. Smith",
+            comments: "Bien"
+          }
+        ],
+        generalAverage: 16.2,
+        classRank: 2,
+        totalStudents: 45,
+        conduct: "Très Bien",
+        conductGrade: 17,
+        absences: 2,
+        teacherComments: "Très bon trimestre, régulier et sérieux.",
+        directorComments: "Encouragements pour l'année prochaine.",
+        verificationCode: "EDU2025-KAM-3T",
+        summary: {
+          avgT3: 16.2,
+          rankT3: "2/45",
+          avgAnnual: 15.4,
+          rankAnnual: "3/45",
+          conduct: {
+            score: 17,
+            label: "Très Bien"
+          },
+          absences: {
+            justified: 2,
+            unjustified: 0
+          }
+        },
+        decision: {
+          council: "Admis en 5ème",
+          mention: "Bien",
+          observationsTeacher: "Très bon trimestre, régulier et sérieux.",
+          observationsDirector: "Encouragements pour l'année prochaine."
+        },
+        signatures: {
+          homeroomTeacher: "Mme Diallo Fatou Marie",
+          director: "M. Ndongo"
+        }
+      };
+      
+      const htmlContent = templateGenerator.generateBulletinTemplate(exampleT3Data, 'fr');
+      
+      console.log('[BULLETIN_T3_TEST] ✅ Bulletin T3 généré avec succès');
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlContent);
+      
+    } catch (error) {
+      console.error('[BULLETIN_T3_TEST] ❌ Erreur:', error);
+      res.status(500).json({ error: 'Erreur génération bulletin T3' });
+    }
+  });
   // Routes de signature simplifiées pour démo
   app.post('/api/signatures/apply-and-send', async (req, res) => {
     try {
