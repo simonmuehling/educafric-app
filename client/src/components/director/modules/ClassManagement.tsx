@@ -163,7 +163,7 @@ const ClassManagement: React.FC = () => {
         capacity: 'Capacité',
         teacher: 'Enseignant principal',
         room: 'Salle',
-        selectTeacher: 'Sélectionner un enseignant',
+        selectTeacher: 'Sélectionner un enseignant (optionnel)',
         selectLevel: 'Sélectionner un niveau',
         subjects: 'Matières et Coefficients',
         addSubject: 'Ajouter Matière',
@@ -230,7 +230,7 @@ const ClassManagement: React.FC = () => {
         capacity: 'Capacity',
         teacher: 'Main teacher',
         room: 'Room',
-        selectTeacher: 'Select a teacher',
+        selectTeacher: 'Select a teacher (optional)',
         selectLevel: 'Select a level',
         subjects: 'Subjects and Coefficients',
         addSubject: 'Add Subject',
@@ -746,17 +746,28 @@ const ClassManagement: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label>{String(t?.form?.teacher) || "N/A"}</Label>
+                    <Label className="flex items-center">
+                      {String(t?.form?.teacher) || "N/A"}
+                      <span className="ml-1 text-xs text-gray-500">(optionnel)</span>
+                    </Label>
                     <Select 
                       value={String(newClass?.teacherId) || ""} 
                       onValueChange={(value) => {
                         console.log('[CLASS_MANAGEMENT] 👨‍🏫 Teacher selected:', value);
-                        const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
-                        setNewClass({
-                          ...newClass, 
-                          teacherId: value,
-                          teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || ""} ${String(selectedTeacher?.lastName) || ""}` : ''
-                        });
+                        if (value === "no-teacher") {
+                          setNewClass({
+                            ...newClass, 
+                            teacherId: '',
+                            teacherName: ''
+                          });
+                        } else {
+                          const selectedTeacher = teachersData.find((t: any) => t?.id?.toString() === value);
+                          setNewClass({
+                            ...newClass, 
+                            teacherId: value,
+                            teacherName: selectedTeacher ? `${String(selectedTeacher?.firstName) || ""} ${String(selectedTeacher?.lastName) || ""}` : ''
+                          });
+                        }
                       }}
                       disabled={isLoadingTeachers}
                     >
@@ -766,12 +777,15 @@ const ClassManagement: React.FC = () => {
                             ? "Chargement des enseignants..." 
                             : teachersError 
                               ? "Erreur de chargement" 
-                              : teachersData.length === 0 
-                                ? "Aucun enseignant disponible"
-                                : String(t?.form?.selectTeacher) || "Sélectionner un enseignant"
+                              : "Aucun enseignant principal (optionnel)"
                         } />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
+                        <SelectItem value="no-teacher">
+                          <div className="flex items-center text-gray-600">
+                            <span>❌ Aucun enseignant principal</span>
+                          </div>
+                        </SelectItem>
                         {isLoadingTeachers ? (
                           <SelectItem value="disabled-option" disabled>
                             Chargement des enseignants...
@@ -787,8 +801,12 @@ const ClassManagement: React.FC = () => {
                         ) : (
                           teachersData.map((teacher: any) => (
                             <SelectItem key={String(teacher?.id) || "N/A"} value={teacher?.id?.toString()}>
-                              {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}
-                              {teacher.subjects && teacher.subjects.length > 0 && ` (${teacher?.subjects?.join(', ')})`}
+                              <div className="flex items-center">
+                                <span>👨‍🏫 {String(teacher?.firstName) || "Prénom"} {String(teacher?.lastName) || "Nom"}</span>
+                                {teacher.subjects && teacher.subjects.length > 0 && (
+                                  <span className="ml-2 text-xs text-gray-500">({teacher?.subjects?.join(', ')})</span>
+                                )}
+                              </div>
                             </SelectItem>
                           ))
                         )}
@@ -799,6 +817,9 @@ const ClassManagement: React.FC = () => {
                         Erreur: {teachersError.message}
                       </p>
                     )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 Vous pouvez assigner un enseignant principal plus tard
+                    </p>
                   </div>
                   <div>
                     <Label>{String(t?.form?.room) || "Salle"}</Label>
