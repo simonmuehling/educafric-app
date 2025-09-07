@@ -62,8 +62,56 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
     matricule: '',
     teachingSubjects: '',
     classes: '',
-    schedule: ''
+    schedule: '',
+    selectedClasses: [] as string[]
   });
+
+  // Fetch classes data for dropdown
+  const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
+    queryKey: ['/api/director/classes'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TEACHER_MANAGEMENT] 🔍 Fetching classes for teacher assignment...');
+      const response = await fetch('/api/director/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TEACHER_MANAGEMENT] ❌ Failed to fetch classes:', response.status);
+        throw new Error('Failed to fetch classes');
+      }
+      const data = await response.json();
+      console.log('[TEACHER_MANAGEMENT] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const availableClasses = classesResponse?.classes || [];
+
+  // Function to get subjects from selected classes
+  const getAvailableSubjects = () => {
+    if (!teacherForm.selectedClasses.length) {
+      return []; // No subjects if no classes selected
+    }
+    
+    const subjects = new Set<string>();
+    teacherForm.selectedClasses.forEach(className => {
+      const classData = availableClasses.find((c: any) => c.name === className);
+      if (classData?.subjects) {
+        classData.subjects.forEach((subject: any) => {
+          subjects.add(subject.name);
+        });
+      }
+    });
+    
+    // Fallback subjects if no subjects found in classes
+    if (subjects.size === 0) {
+      return ['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais'];
+    }
+    
+    return Array.from(subjects);
+  };
 
   // Fetch teachers data from PostgreSQL API
   const { data: teachersData, isLoading } = useQuery({
@@ -134,7 +182,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       
       setIsAddTeacherOpen(false);
       const teacherName = teacherForm.name || 'Le nouvel enseignant';
-      setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '' });
+      setTeacherForm({ name: '', email: '', phone: '', gender: '', matricule: '', teachingSubjects: '', classes: '', schedule: '', selectedClasses: [] });
       
       toast({
         title: '✅ Enseignant ajouté avec succès',
@@ -224,7 +272,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       gender: teacherForm.gender,
       matricule: teacherForm.matricule,
       teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s),
-      classes: teacherForm.classes.split(',').map(c => c.trim()).filter(c => c)
+      classes: teacherForm.selectedClasses
     };
     
     console.log('[FRONTEND] Creating teacher with data:', teacherData);
@@ -241,7 +289,7 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
         gender: teacherForm.gender,
         matricule: teacherForm.matricule,
         teachingSubjects: teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s),
-        classes: teacherForm.classes.split(',').map(c => c.trim()).filter(c => c),
+        classes: teacherForm.selectedClasses,
         schedule: teacherForm.schedule
       };
       
@@ -260,7 +308,8 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
       classes: teacher.classes ? teacher.classes.join(', ') : '',
       gender: teacher.gender || '',
       matricule: teacher.matricule || '',
-      schedule: teacher.schedule || ''
+      schedule: teacher.schedule || '',
+      selectedClasses: teacher.classes || []
     });
     setIsEditTeacherOpen(true);
   };
@@ -676,22 +725,101 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.teachingSubjects}</Label>
-                <Input
-                  value={teacherForm.teachingSubjects}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, teachingSubjects: e.target.value }))}
-                  placeholder={text.placeholders.teachingSubjects}
-                  className="w-full"
-                />
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>🏫 {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}</span>
+                  {isLoadingClasses && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                </Label>
+                {isLoadingClasses ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                  </div>
+                ) : availableClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Aucune classe disponible - Créez d\'abord des classes' : 'No classes available - Create classes first'}
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                    <div className="space-y-2">
+                      {availableClasses.map((classItem: any) => (
+                        <label key={classItem.id} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded">
+                          <input
+                            type="checkbox"
+                            checked={teacherForm.selectedClasses.includes(classItem.name)}
+                            onChange={(e) => {
+                              const newSelectedClasses = e.target.checked
+                                ? [...teacherForm.selectedClasses, classItem.name]
+                                : teacherForm.selectedClasses.filter(c => c !== classItem.name);
+                              setTeacherForm(prev => ({ 
+                                ...prev, 
+                                selectedClasses: newSelectedClasses,
+                                // Clear subjects when classes change
+                                teachingSubjects: ''
+                              }));
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm font-medium">{classItem.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {classItem.level}
+                          </Badge>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' 
+                    ? 'Sélectionnez les classes que cet enseignant supervise' 
+                    : 'Select the classes this teacher will supervise'}
+                </p>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.classes}</Label>
-                <Input
-                  value={teacherForm.classes}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, classes: e.target.value }))}
-                  placeholder={text.placeholders.classes}
-                  className="w-full"
-                />
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>📚 {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {language === 'fr' ? 'Basé sur les classes' : 'Based on classes'}
+                  </Badge>
+                </Label>
+                {teacherForm.selectedClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 
+                      '⬆️ Sélectionnez d\'abord les classes pour voir les matières disponibles' : 
+                      '⬆️ Select classes first to see available subjects'}
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-gray-50 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
+                      {getAvailableSubjects().map((subject: string) => {
+                        const isSelected = teacherForm.teachingSubjects.includes(subject);
+                        return (
+                          <label key={subject} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const currentSubjects = teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s);
+                                const newSubjects = e.target.checked
+                                  ? [...currentSubjects, subject]
+                                  : currentSubjects.filter(s => s !== subject);
+                                setTeacherForm(prev => ({ 
+                                  ...prev, 
+                                  teachingSubjects: newSubjects.join(', ')
+                                }));
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">{subject}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Matières disponibles selon les classes sélectionnées' : 
+                    'Available subjects based on selected classes'}
+                </p>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button 
@@ -783,22 +911,101 @@ const FunctionalDirectorTeacherManagement: React.FC = () => {
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.teachingSubjects}</Label>
-                <Input
-                  value={teacherForm.teachingSubjects}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, teachingSubjects: e.target.value }))}
-                  placeholder={text.placeholders.teachingSubjects}
-                  className="w-full"
-                />
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>🏫 {language === 'fr' ? 'Classes Assignées' : 'Assigned Classes'}</span>
+                  {isLoadingClasses && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                </Label>
+                {isLoadingClasses ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                  </div>
+                ) : availableClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Aucune classe disponible - Créez d\'abord des classes' : 'No classes available - Create classes first'}
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-gray-50 max-h-40 overflow-y-auto">
+                    <div className="space-y-2">
+                      {availableClasses.map((classItem: any) => (
+                        <label key={classItem.id} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded">
+                          <input
+                            type="checkbox"
+                            checked={teacherForm.selectedClasses.includes(classItem.name)}
+                            onChange={(e) => {
+                              const newSelectedClasses = e.target.checked
+                                ? [...teacherForm.selectedClasses, classItem.name]
+                                : teacherForm.selectedClasses.filter(c => c !== classItem.name);
+                              setTeacherForm(prev => ({ 
+                                ...prev, 
+                                selectedClasses: newSelectedClasses,
+                                // Clear subjects when classes change
+                                teachingSubjects: ''
+                              }));
+                            }}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="text-sm font-medium">{classItem.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {classItem.level}
+                          </Badge>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' 
+                    ? 'Sélectionnez les classes que cet enseignant supervise' 
+                    : 'Select the classes this teacher will supervise'}
+                </p>
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.classes}</Label>
-                <Input
-                  value={teacherForm.classes}
-                  onChange={(e) => setTeacherForm(prev => ({ ...prev, classes: e.target.value }))}
-                  placeholder={text.placeholders.classes}
-                  className="w-full"
-                />
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>📚 {language === 'fr' ? 'Matières Enseignées' : 'Teaching Subjects'}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {language === 'fr' ? 'Basé sur les classes' : 'Based on classes'}
+                  </Badge>
+                </Label>
+                {teacherForm.selectedClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 
+                      '⬆️ Sélectionnez d\'abord les classes pour voir les matières disponibles' : 
+                      '⬆️ Select classes first to see available subjects'}
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-gray-50 max-h-32 overflow-y-auto">
+                    <div className="space-y-2">
+                      {getAvailableSubjects().map((subject: string) => {
+                        const isSelected = teacherForm.teachingSubjects.includes(subject);
+                        return (
+                          <label key={subject} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const currentSubjects = teacherForm.teachingSubjects.split(',').map(s => s.trim()).filter(s => s);
+                                const newSubjects = e.target.checked
+                                  ? [...currentSubjects, subject]
+                                  : currentSubjects.filter(s => s !== subject);
+                                setTeacherForm(prev => ({ 
+                                  ...prev, 
+                                  teachingSubjects: newSubjects.join(', ')
+                                }));
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">{subject}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Matières disponibles selon les classes sélectionnées' : 
+                    'Available subjects based on selected classes'}
+                </p>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button 
