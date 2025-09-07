@@ -288,6 +288,9 @@ router.post('/send-with-notifications', requireAuth, async (req, res) => {
   }
 });
 
+// ✅ STOCKAGE TEMPORAIRE DES MÉTADONNÉES DE BULLETINS
+const bulletinMetadataStore = new Map<number, any>();
+
 // Create new bulletin with real database integration
 router.post('/create', requireAuth, async (req, res) => {
   try {
@@ -311,9 +314,9 @@ router.post('/create', requireAuth, async (req, res) => {
 
     const schoolId = user.schoolId || 1;
     
-    console.log('[BULLETIN_CREATION] Creating bulletin for student:', studentId, 'class:', classId);
+    console.log('[BULLETIN_CREATION] Creating bulletin for student:', studentData?.fullName || studentId, 'class:', classId);
 
-    // Create bulletin data - simplified for now
+    // Create bulletin data with REAL metadata storage
     const bulletinId = Date.now() + Math.floor(Math.random() * 1000);
     
     const newBulletin = {
@@ -340,8 +343,11 @@ router.post('/create', requireAuth, async (req, res) => {
       createdAt: new Date()
     };
     
-    // TODO: Save to database when tables are ready
-    // For now, bulletin is created successfully
+    // ✅ STOCKER LES MÉTADONNÉES RÉELLES pour le PDF
+    bulletinMetadataStore.set(bulletinId, newBulletin);
+    console.log('[BULLETIN_CREATION] 📂 Métadonnées stockées pour bulletin:', bulletinId);
+    console.log('[BULLETIN_CREATION] 👤 Élève enregistré:', studentData?.fullName);
+    console.log('[BULLETIN_CREATION] 🏫 Classe enregistrée:', studentData?.className);
     
     console.log('[BULLETIN_CREATION] ✅ Bulletin created successfully:', bulletinId);
 
@@ -1367,7 +1373,7 @@ router.get('/bulletins/uniformity-report', requireAuth, async (req, res) => {
   }
 });
 
-// Download PDF for a specific bulletin with real data
+// Download PDF for a specific bulletin with REAL student data
 router.get('/:id/download-pdf', requireAuth, async (req, res) => {
   try {
     const bulletinId = parseInt(req.params.id);
@@ -1375,29 +1381,38 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
     
     console.log(`[BULLETIN_DOWNLOAD_PDF] Downloading PDF for bulletin ${bulletinId}`);
     
-    // Get bulletin data - simplified for now
-    const bulletin = {
-      id: bulletinId,
-      studentId: 1,
-      schoolId: user.schoolId || 1,
-      term: 'Premier Trimestre',
-      status: 'approved'
-    };
+    // ✅ RÉCUPÉRER LES VRAIES MÉTADONNÉES STOCKÉES
+    const bulletinData = bulletinMetadataStore.get(bulletinId);
+    
+    if (!bulletinData) {
+      console.error(`[BULLETIN_DOWNLOAD_PDF] ❌ Bulletin métadonnées non trouvées pour ID: ${bulletinId}`);
+      return res.status(404).json({
+        success: false, 
+        message: 'Bulletin non trouvé. Veuillez le re-créer.'
+      });
+    }
+    
+    console.log(`[BULLETIN_DOWNLOAD_PDF] ✅ Métadonnées trouvées pour:`, bulletinData.metadata?.studentData?.fullName);
     
     // Basic access check
-    if (bulletin.schoolId !== (user.schoolId || 1) && !['Admin', 'SiteAdmin'].includes(user.role)) {
+    if (bulletinData.schoolId !== (user.schoolId || 1) && !['Admin', 'SiteAdmin'].includes(user.role)) {
       return res.status(403).json({ 
         success: false, 
         message: 'Accès non autorisé' 
       });
     }
     
-    // Generate PDF with real bulletin data
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    // ✅ GÉNÉRER PDF AVEC LES VRAIES DONNÉES DE L'ÉLÈVE
+    const pdfBuffer = await PDFGenerator.generateBulletinWithRealData(bulletinData.metadata);
+    
+    // Generate proper filename with real student name
+    const studentName = bulletinData.metadata?.studentData?.fullName?.replace(/\s/g, '-') || 'eleve';
+    const term = bulletinData.term?.replace(/\s/g, '-') || 'trimestre';
+    const filename = `bulletin-${studentName}-${term}-${bulletinId}.pdf`;
     
     // Set headers for PDF download
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="bulletin-${bulletin.studentId}-${bulletin.term}-${bulletinId}.pdf"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
     
     console.log(`[BULLETIN_DOWNLOAD_PDF] ✅ PDF generated successfully for bulletin ${bulletinId}`);
