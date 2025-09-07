@@ -418,6 +418,59 @@ export default function BulletinManagementUnified() {
     }
   };
 
+  // Gestion des notifications
+  const handleNotifications = () => {
+    try {
+      // Ouvrir les paramètres de notifications ou la page de gestion des notifications
+      toast({
+        title: "🔔 Notifications",
+        description: "Redirection vers la gestion des notifications...",
+      });
+      
+      // Dans une vraie implémentation, on pourrait ouvrir un modal ou naviguer vers une page
+      // Pour l'instant, on affiche un toast informatif
+      setTimeout(() => {
+        toast({
+          title: "💡 Fonctionnalité en développement",
+          description: "La gestion avancée des notifications sera bientôt disponible",
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Erreur notifications:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'accès aux notifications",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Gestion des paramètres
+  const handleSettings = () => {
+    try {
+      // Ouvrir les paramètres du module de gestion des bulletins
+      toast({
+        title: "⚙️ Paramètres",
+        description: "Redirection vers les paramètres...",
+      });
+      
+      // Dans une vraie implémentation, on pourrait ouvrir un modal de paramètres
+      setTimeout(() => {
+        toast({
+          title: "💡 Configuration du Module",
+          description: "Les paramètres avancés du module bulletins seront bientôt disponibles",
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Erreur paramètres:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'accès aux paramètres",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Prévisualiser un bulletin
   const previewBulletin = async () => {
     try {
@@ -835,15 +888,6 @@ export default function BulletinManagementUnified() {
                        '📝 Brouillon'}
                     </Badge>
                   )}
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {}}
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    PDF
-                  </Button>
                 </div>
               )}
             </div>
@@ -892,11 +936,11 @@ export default function BulletinManagementUnified() {
             <p className="text-gray-600 mt-1">{t.description}</p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleNotifications}>
               <Bell className="w-4 h-4 mr-1" />
               Notifications
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleSettings}>
               <Settings className="w-4 h-4 mr-1" />
               Paramètres
             </Button>
