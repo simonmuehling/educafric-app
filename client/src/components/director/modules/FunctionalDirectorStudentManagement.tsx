@@ -679,7 +679,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                       <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="unassigned">
                         {language === 'fr' ? 'Aucune classe (à assigner plus tard)' : 'No class (assign later)'}
                       </SelectItem>
                       {availableClasses.map((classItem: any) => (
@@ -861,7 +861,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">
+                      <SelectItem value="unassigned">
                         {language === 'fr' ? 'Aucune classe (à assigner plus tard)' : 'No class (assign later)'}
                       </SelectItem>
                       {availableClasses.map((classItem: any) => (
