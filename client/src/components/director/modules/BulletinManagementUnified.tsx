@@ -794,35 +794,50 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Créer un nouveau bulletin avec vraie logique workflow et différenciation par trimestre
+  // Créer un nouveau bulletin avec EXACTEMENT LES MÊMES DONNÉES QUE L'APERÇU
   const createModularBulletin = async () => {
     try {
       setLoading(true);
-      
-      console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId, 'trimestre:', formData.term);
 
-      // Les données sont déjà importées automatiquement via importedGrades
-      if (importedGrades) {
-        console.log('[BULLETIN_CREATE] Utilisation des notes importées:', importedGrades);
+      if (!selectedStudentId || !selectedClassId) {
         toast({
-          title: "🎯 Utilisation des notes importées",
-          description: `Création avec moyenne ${importedGrades.termAverage}/20 - ${Object.keys(importedGrades.termGrades).length} matières`,
+          title: "Attention",
+          description: "Veuillez sélectionner une classe et un élève",
+          variant: "destructive",
         });
-      } else {
-        console.log('[BULLETIN_CREATE] Mode saisie manuelle');
-        toast({
-          title: "📝 Mode saisie manuelle", 
-          description: "Création du bulletin avec les données saisies manuellement",
-        });
+        return;
       }
 
-      // Logique spécifique par trimestre
+      console.log('[BULLETIN_CREATE] 🎯 Création du bulletin avec MÊMES DONNÉES que l\'aperçu');
+      console.log('[BULLETIN_CREATE] Élève:', selectedStudentId, 'Classe:', selectedClassId, 'Trimestre:', formData.term);
+
+      // ✅ VÉRIFICATIONS ET NOTIFICATIONS AUTOMATIQUES COMME L'APERÇU  
+      if (!formData.studentFirstName || !formData.studentLastName) {
+        toast({
+          title: "⚠️ Informations manquantes",
+          description: "Les informations de l'élève ne se sont pas chargées automatiquement. Veuillez re-sélectionner l'élève.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Notification des données utilisées (comme l'aperçu)
+      const dataSource = importedGrades && Object.keys(importedGrades.termGrades || {}).length > 0 ? 
+        "importées automatiquement" : "saisie manuelle";
+      
+      toast({
+        title: "🎯 Création en cours...",
+        description: `Bulletin ${formData.term} pour ${formData.studentFirstName} ${formData.studentLastName} - Notes ${dataSource}`,
+        duration: 4000,
+      });
+
+      // 🎯 UTILISER EXACTEMENT LA MÊME PRÉPARATION DES DONNÉES QUE L'APERÇU
       const getTermSpecificData = () => {
         const baseData = {
           // Utiliser la moyenne importée automatiquement si disponible
           generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
           classRank: formData.classRank,
-          totalStudents: formData.totalStudents,
+          totalStudents: formData.totalStudents || students.length,
           workAppreciation: formData.workAppreciation,
           conductAppreciation: formData.conductAppreciation,
           generalAppreciation: formData.generalAppreciation
@@ -835,7 +850,7 @@ export default function BulletinManagementUnified() {
               termType: 'first',
               evaluationPeriod: 'Évaluation du 1er trimestre',
               nextTermAdvice: 'Conseils pour le 2ème trimestre',
-              canPromote: false, // Pas de décision de passage au 1er trimestre
+              canPromote: false,
               generalAppreciation: baseData.generalAppreciation || 'Début d\'année scolaire - Adaptation en cours'
             };
           
@@ -845,13 +860,12 @@ export default function BulletinManagementUnified() {
               termType: 'second',
               evaluationPeriod: 'Évaluation du 2ème trimestre',
               nextTermAdvice: 'Préparation pour l\'évaluation finale',
-              canPromote: false, // Pas de décision de passage au 2ème trimestre
+              canPromote: false,
               generalAppreciation: baseData.generalAppreciation || 'Milieu d\'année - Évaluation des progrès'
             };
           
           case 'Troisième Trimestre':
-            // Logique de passage/redoublement pour le 3ème trimestre
-            const averageThreshold = 10; // Seuil de passage (sur 20)
+            const averageThreshold = 10;
             const isPromoted = baseData.generalAverage >= averageThreshold;
             
             return {
@@ -859,7 +873,7 @@ export default function BulletinManagementUnified() {
               termType: 'third',
               evaluationPeriod: 'Évaluation finale de l\'année',
               nextTermAdvice: isPromoted ? 'Admis en classe supérieure' : 'Doit reprendre la classe',
-              canPromote: true, // Le 3ème trimestre détermine le passage
+              canPromote: true,
               isPromoted: isPromoted,
               finalDecision: isPromoted ? 'ADMIS' : 'REDOUBLE',
               generalAppreciation: baseData.generalAppreciation || 
@@ -875,13 +889,8 @@ export default function BulletinManagementUnified() {
 
       const termSpecificData = getTermSpecificData();
 
+      // 🎯 STRUCTURE IDENTIQUE À previewBulletin
       const bulletinData = {
-        studentId: parseInt(selectedStudentId),
-        classId: parseInt(selectedClassId),
-        term: formData.term,
-        academicYear: formData.academicYear,
-        // Données spécifiques au trimestre
-        termSpecificData: termSpecificData,
         schoolData: {
           name: formData.schoolName,
           address: formData.schoolAddress,
@@ -889,7 +898,9 @@ export default function BulletinManagementUnified() {
           email: formData.schoolEmail,
           director: formData.directorName,
           regionalDelegation: formData.regionalDelegation,
-          departmentalDelegation: formData.departmentalDelegation
+          departmentalDelegation: formData.departmentalDelegation,
+          matricule: formData.studentNumber,
+          studentId: formData.studentNumber
         },
         studentData: {
           firstName: formData.studentFirstName,
@@ -897,55 +908,76 @@ export default function BulletinManagementUnified() {
           birthDate: formData.studentBirthDate,
           birthPlace: formData.studentBirthPlace,
           gender: formData.studentGender,
-          studentNumber: formData.studentNumber,
-          photo: formData.studentPhoto
+          matricule: formData.studentNumber,
+          photo: formData.studentPhoto,
+          fullName: `${formData.studentFirstName} ${formData.studentLastName}`
         },
         academicData: {
           className: formData.className,
           academicYear: formData.academicYear,
           term: formData.term,
-          enrollment: formData.enrollment
+          enrollment: formData.enrollment || students.length,
+          ...termSpecificData
         },
-        grades: importedGrades ? {
-          // Utiliser les notes importées automatiquement
-          general: Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => ({
-            name: subject === 'MATH' ? 'Mathématiques' :
-                  subject === 'PHYS' ? 'Physique' :
-                  subject === 'CHIM' ? 'Chimie' :
-                  subject === 'BIO' ? 'Biologie' :
-                  subject === 'FRANC' ? 'Français' :
-                  subject === 'ANG' ? 'Anglais' :
-                  subject === 'HIST' ? 'Histoire' :
-                  subject === 'GEO' ? 'Géographie' : subject,
-            t1Grade: grades.CC || 0,
-            t2Grade: grades.EXAM || 0,
-            coefficient: 2,
-            average: ((grades.CC + grades.EXAM) / 2) || 0,
-            teacherComment: grades.CC >= 18 ? 'Excellent travail' :
-                           grades.CC >= 15 ? 'Très bien' :
-                           grades.CC >= 12 ? 'Bien' :
-                           grades.CC >= 10 ? 'Assez bien' : 'Doit faire des efforts'
-          })),
+        grades: {
+          general: importedGrades && Object.keys(importedGrades.termGrades).length > 0 ? 
+            Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => ({
+              name: subject === 'MATH' ? 'Mathématiques' :
+                    subject === 'PHYS' ? 'Physique' :
+                    subject === 'CHIM' ? 'Chimie' :
+                    subject === 'BIO' ? 'Biologie' :
+                    subject === 'FRANC' ? 'Français' :
+                    subject === 'ANG' ? 'Anglais' :
+                    subject === 'HIST' ? 'Histoire' :
+                    subject === 'GEO' ? 'Géographie' : subject,
+              grade: ((grades.CC + grades.EXAM) / 2).toFixed(2),
+              coefficient: 2,
+              average: ((grades.CC + grades.EXAM) / 2).toFixed(2),
+              teacherComment: grades.CC >= 18 ? 'Excellent travail' :
+                             grades.CC >= 15 ? 'Très bien' :
+                             grades.CC >= 12 ? 'Bien' :
+                             grades.CC >= 10 ? 'Assez bien' : 'Doit faire des efforts'
+            })) :
+            formData.subjectsGeneral.map(subject => ({
+              name: subject.name,
+              grade: subject.averageMark.toFixed(2),
+              coefficient: subject.coefficient,
+              average: subject.averageMark.toFixed(2),
+              teacherComment: subject.comments || 'Bon travail'
+            })),
           professional: formData.subjectsProfessional,
           others: formData.subjectsOthers
-        } : {
-          general: formData.subjectsGeneral,
-          professional: formData.subjectsProfessional,
-          others: formData.subjectsOthers
         },
-        evaluations: termSpecificData, // Utilise les données spécifiques au trimestre
-        language: formData.language
+        signature: {
+          directorName: formData.directorName,
+          schoolName: formData.schoolName,
+          date: new Date().toLocaleDateString('fr-FR')
+        },
+        language: formData.language,
+        
+        // 🎯 DONNÉES ADDITIONNELLES POUR L'API DE CRÉATION
+        studentId: parseInt(selectedStudentId),
+        classId: parseInt(selectedClassId),
+        termSpecificData: termSpecificData
       };
 
-      console.log('[BULLETIN_CREATE] Données du bulletin:', bulletinData);
-      console.log('[BULLETIN_CREATE] 🔍 Notes importées utilisées:', importedGrades);
-      console.log('[BULLETIN_CREATE] 📚 Notes générales envoyées:', bulletinData.grades.general);
+      console.log('[BULLETIN_CREATE] ✅ Données préparées avec structure identique à l\'aperçu:', bulletinData);
+      console.log('[BULLETIN_CREATE] 🔍 Notes importées:', importedGrades ? '✅ Oui' : '❌ Non');
+      console.log('[BULLETIN_CREATE] 📊 Informations élève chargées:', {
+        nom: bulletinData.studentData.fullName,
+        photo: bulletinData.studentData.photo ? '✅ Oui' : '❌ Non',
+        matricule: bulletinData.studentData.matricule,
+        notes: bulletinData.grades.general.length + ' matières'
+      });
       
-      // Vérification critique : s'assurer que les notes sont bien présentes
-      if (!importedGrades) {
-        console.error('[BULLETIN_CREATE] ⚠️ ATTENTION: Création sans notes importées - mode manuel');
-      } else {
-        console.log('[BULLETIN_CREATE] ✅ Utilisation des notes importées avec moyenne:', importedGrades.termAverage);
+      // Dernière vérification avant création
+      if (!bulletinData.grades.general || bulletinData.grades.general.length === 0) {
+        toast({
+          title: "⚠️ Problème de notes",
+          description: "Aucune note trouvée. Veuillez re-sélectionner l'élève ou saisir manuellement",
+          variant: "destructive",
+        });
+        return;
       }
 
       const response = await fetch('/api/bulletins/create', {
