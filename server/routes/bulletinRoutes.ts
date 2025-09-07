@@ -6,6 +6,13 @@ import { PDFGenerator } from '../services/pdfGenerator';
 import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
+import { 
+  importStudentGradesFromDB, 
+  generateCompleteBulletin, 
+  calculateTermAverage,
+  DEFAULT_CONFIG,
+  type StudentBulletinData 
+} from '../services/cameroonGradingService';
 
 const router = Router();
 
@@ -16,6 +23,171 @@ const requireAuth = (req: any, res: any, next: any) => {
   }
   next();
 };
+
+// Route d'importation automatique des notes selon la classe
+router.post('/import-grades', requireAuth, async (req, res) => {
+  try {
+    const { studentId, classId, term, academicYear } = req.body;
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+
+    console.log('[BULLETIN_IMPORT] Importation automatique pour:', {
+      studentId, classId, term, academicYear, schoolId
+    });
+
+    // Importer les notes depuis la base de données
+    const termGrades = await importStudentGradesFromDB(
+      parseInt(studentId),
+      parseInt(classId), 
+      term,
+      academicYear,
+      db
+    );
+
+    // Récupérer les coefficients de la classe (simulé pour le moment)
+    const defaultCoefficients = {
+      'MATH': 5,
+      'PHY': 4, 
+      'CHI': 3,
+      'FRA': 4,
+      'ANG': 3,
+      'HIS': 2,
+      'GEO': 2,
+      'EPS': 1
+    };
+
+    // Calculer la moyenne du trimestre
+    const termAverage = calculateTermAverage(
+      termGrades,
+      defaultCoefficients,
+      DEFAULT_CONFIG.componentWeights,
+      DEFAULT_CONFIG.SCALE
+    );
+
+    console.log('[BULLETIN_IMPORT] Notes importées:', termGrades);
+    console.log('[BULLETIN_IMPORT] Moyenne calculée:', termAverage);
+
+    res.json({
+      success: true,
+      data: {
+        termGrades,
+        termAverage,
+        coefficients: defaultCoefficients,
+        studentId: parseInt(studentId),
+        classId: parseInt(classId),
+        term,
+        academicYear
+      },
+      message: term === 'T1' ? 'Notes du 1er trimestre importées' : 
+               term === 'T2' ? 'Notes du 2ème trimestre importées' :
+               'Notes du 3ème trimestre importées'
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_IMPORT] Erreur:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'importation des notes',
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    });
+  }
+});
+
+// Route pour créer un nouveau bulletin avec importation automatique
+router.post('/create-with-import', requireAuth, async (req, res) => {
+  try {
+    const { studentId, classId, term, academicYear, language = 'fr' } = req.body;
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+
+    console.log('[BULLETIN_CREATE] Création bulletin avec importation:', {
+      studentId, classId, term, academicYear, schoolId
+    });
+
+    // 1. Importer toutes les notes de l'élève
+    const allTermsData: Record<string, any> = {};
+    for (const termKey of DEFAULT_CONFIG.TERMS) {
+      if (termKey <= term) { // Seulement les trimestres passés/actuels
+        allTermsData[termKey] = await importStudentGradesFromDB(
+          parseInt(studentId),
+          parseInt(classId),
+          termKey,
+          academicYear,
+          db
+        );
+      }
+    }
+
+    // 2. Préparer les données complètes de l'élève
+    const studentData: StudentBulletinData = {
+      id: studentId.toString(),
+      name: `Élève ${studentId}`, // À récupérer depuis la DB
+      classId: parseInt(classId),
+      grades: allTermsData,
+      coefficients: {
+        'MATH': 5, 'PHY': 4, 'CHI': 3, 'FRA': 4,
+        'ANG': 3, 'HIS': 2, 'GEO': 2, 'EPS': 1
+      }
+    };
+
+    // 3. Générer le bulletin complet
+    const bulletinData = generateCompleteBulletin(studentData, DEFAULT_CONFIG);
+
+    // 4. Créer l'entrée bulletin dans la DB
+    const [newBulletin] = await db.insert(bulletins).values({
+      studentId: parseInt(studentId),
+      classId: parseInt(classId),
+      schoolId,
+      term,
+      academicYear,
+      status: 'draft',
+      generalAverage: bulletinData.annualAverage?.toString() || bulletinData.termAverages[term]?.toString(),
+      teacherComments: '',
+      metadata: {
+        termAverages: bulletinData.termAverages,
+        subjectDetails: bulletinData.subjectDetails,
+        language,
+        importedAt: new Date().toISOString(),
+        autoImported: true
+      }
+    }).returning();
+
+    // 5. Créer le workflow
+    await db.insert(bulletinWorkflow).values({
+      studentId: parseInt(studentId),
+      classId: parseInt(classId),
+      schoolId,
+      term,
+      academicYear,
+      currentStatus: 'awaiting_teacher_submissions',
+      totalSubjects: Object.keys(studentData.coefficients).length,
+      completedSubjects: Object.keys(allTermsData[term] || {}).length,
+      bulletinId: newBulletin.id
+    });
+
+    console.log('[BULLETIN_CREATE] Bulletin créé avec ID:', newBulletin.id);
+
+    res.json({
+      success: true,
+      data: {
+        bulletin: newBulletin,
+        calculatedData: bulletinData,
+        importedGrades: allTermsData
+      },
+      message: language === 'fr' ? 
+        `Bulletin ${term} créé avec importation automatique` :
+        `${term} report card created with automatic import`
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_CREATE] Erreur:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création du bulletin',
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    });
+  }
+});
 
 // Get all bulletins - simplified with storage layer
 router.get('/', requireAuth, async (req, res) => {
