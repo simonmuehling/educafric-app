@@ -179,8 +179,9 @@ router.post('/bulletin/preview-custom', async (req, res) => {
       }
     };
 
-    // ✅ UTILISER LE NOUVEAU SYSTÈME DE TEMPLATES MODERNISÉS 
-    const pdfBuffer = await PDFGenerator.generateBulletinWithRealData(bulletinMetadata);
+    // ✅ UTILISER LE GÉNÉRATEUR PDF STABLE AVEC VRAIES DONNÉES
+    console.log('[BULLETIN_STABLE] 🔧 Utilisation générateur PDF stable avec vraies notes');
+    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
     
     console.log('[BULLETIN_PREVIEW_MODERN] ✅ Modern template preview generated successfully');
     

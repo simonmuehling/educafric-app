@@ -1402,9 +1402,9 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
       });
     }
     
-    // ✅ GÉNÉRER PDF AVEC LES NOUVEAUX TEMPLATES MODERNISÉS 
-    console.log('[BULLETIN_CREATE_MODERN] 🎯 Utilisation des nouveaux templates pour:', bulletinData.metadata.studentData?.fullName);
-    const pdfBuffer = await PDFGenerator.generateBulletinWithRealData(bulletinData.metadata);
+    // ✅ GÉNÉRER PDF AVEC LE GÉNÉRATEUR STABLE ET VRAIES DONNÉES
+    console.log('[BULLETIN_CREATE_STABLE] 🔧 Utilisation générateur stable pour:', bulletinData.metadata.studentData?.fullName);
+    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
     
     // Generate proper filename with real student name
     const studentName = bulletinData.metadata?.studentData?.fullName?.replace(/\s/g, '-') || 'eleve';
