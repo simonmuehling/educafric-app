@@ -2,6 +2,7 @@
 import express from 'express';
 import { modularTemplateGenerator, BulletinTemplateData, ReportTemplateData } from '../services/modularTemplateGenerator';
 import { PDFGenerator } from '../services/pdfGenerator';
+import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
 
 const router = express.Router();
 
@@ -179,9 +180,9 @@ router.post('/bulletin/preview-custom', async (req, res) => {
       }
     };
 
-    // ✅ UTILISER LE GÉNÉRATEUR PDF STABLE AVEC VRAIES DONNÉES
-    console.log('[BULLETIN_STABLE] 🔧 Utilisation générateur PDF stable avec vraies notes');
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    // ✅ UTILISER LE GÉNÉRATEUR PDF SIMPLE ET FONCTIONNEL
+    console.log('[BULLETIN_SIMPLE] 🔧 Utilisation générateur simple fonctionnel');
+    const pdfBuffer = await SimpleBulletinGenerator.generateSimpleBulletin();
     
     console.log('[BULLETIN_PREVIEW_MODERN] ✅ Modern template preview generated successfully');
     

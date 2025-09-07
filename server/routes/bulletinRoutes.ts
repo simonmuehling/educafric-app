@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { db } from '../db';
 import crypto from 'crypto';
 import { PDFGenerator } from '../services/pdfGenerator';
+import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
 import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
@@ -1402,9 +1403,9 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
       });
     }
     
-    // ✅ GÉNÉRER PDF AVEC LE GÉNÉRATEUR STABLE ET VRAIES DONNÉES
-    console.log('[BULLETIN_CREATE_STABLE] 🔧 Utilisation générateur stable pour:', bulletinData.metadata.studentData?.fullName);
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    // ✅ GÉNÉRER PDF AVEC LE GÉNÉRATEUR SIMPLE ET FONCTIONNEL
+    console.log('[BULLETIN_CREATE_SIMPLE] 🔧 Utilisation générateur simple pour:', bulletinData.metadata.studentData?.fullName);
+    const pdfBuffer = await SimpleBulletinGenerator.generateSimpleBulletin();
     
     // Generate proper filename with real student name
     const studentName = bulletinData.metadata?.studentData?.fullName?.replace(/\s/g, '-') || 'eleve';
