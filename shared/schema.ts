@@ -7,6 +7,7 @@ export * from "./schemas/userSchema";
 export * from "./schemas/schoolSchema";
 export * from "./schemas/academicSchema";
 export * from "./schemas/messagingSchema";
+export * from "./schemas/bulletinSchema";
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -20,8 +21,9 @@ export * from "./bulletinValidationSchema";
 import { users } from "./schemas/userSchema";
 import { schools, classes, subjects } from "./schemas/schoolSchema";
 import { grades, attendance, homework, homeworkSubmissions } from "./schemas/academicSchema";
+import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from "./schemas/bulletinSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";

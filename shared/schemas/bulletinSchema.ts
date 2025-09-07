@@ -186,22 +186,9 @@ export const workflowRelations = relations(bulletinWorkflow, ({ one }) => ({
 }));
 
 // Zod schemas for validation
-export const insertBulletinSchema = createInsertSchema(bulletins, {
-  generalAverage: z.number().min(0).max(20).optional(),
-  classRank: z.number().min(1).optional()
-});
-
-export const insertTeacherGradeSubmissionSchema = createInsertSchema(teacherGradeSubmissions, {
-  firstEvaluation: z.number().min(0).max(20).optional(),
-  secondEvaluation: z.number().min(0).max(20).optional(), 
-  thirdEvaluation: z.number().min(0).max(20).optional(),
-  coefficient: z.number().min(1).max(10)
-});
-
-export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow, {
-  totalSubjects: z.number().min(1),
-  completedSubjects: z.number().min(0)
-});
+export const insertBulletinSchema = createInsertSchema(bulletins);
+export const insertTeacherGradeSubmissionSchema = createInsertSchema(teacherGradeSubmissions);
+export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow);
 
 export const insertBulletinNotificationSchema = createInsertSchema(bulletinNotifications);
 

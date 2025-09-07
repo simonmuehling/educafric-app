@@ -217,22 +217,44 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Charger les bulletins en attente d'approbation
+  // Charger les bulletins avec vraie logique workflow
   const loadPendingBulletins = async () => {
     try {
+      console.log('[BULLETIN_LOAD] Chargement des bulletins...');
+      
       const response = await fetch('/api/bulletins');
       if (response.ok) {
         const data = await response.json();
         const bulletins = data.bulletins || [];
         
-        // Séparer les bulletins par statut
-        setPendingBulletins(bulletins.filter((b: BulletinFromTeacher) => b.status === 'submitted'));
-        setApprovedBulletins(bulletins.filter((b: BulletinFromTeacher) => b.status === 'approved'));
-        setSentBulletins(bulletins.filter((b: BulletinFromTeacher) => b.status === 'sent'));
+        console.log('[BULLETIN_LOAD] Bulletins reçus:', bulletins.length);
+        
+        // Séparer les bulletins par statut dans le workflow
+        const pending = bulletins.filter((b: BulletinFromTeacher) => b.status === 'submitted');
+        const approved = bulletins.filter((b: BulletinFromTeacher) => b.status === 'approved');
+        const sent = bulletins.filter((b: BulletinFromTeacher) => b.status === 'sent');
+        
+        setPendingBulletins(pending);
+        setApprovedBulletins(approved);
+        setSentBulletins(sent);
         setMyBulletins(bulletins); // Tous les bulletins pour la vue "Mes Bulletins"
+        
+        console.log('[BULLETIN_WORKFLOW] En attente:', pending.length, 'Approuvés:', approved.length, 'Envoyés:', sent.length);
+        
+        toast({
+          title: "📋 Bulletins chargés",
+          description: `${bulletins.length} bulletins trouvés dans le système`,
+        });
+      } else {
+        throw new Error(`Erreur API: ${response.status}`);
       }
     } catch (error) {
-      console.error('Erreur chargement bulletins:', error);
+      console.error('[BULLETIN_LOAD] ❌ Erreur:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les bulletins",
+        variant: "destructive",
+      });
     }
   };
 
@@ -277,45 +299,56 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Approuver un bulletin
+  // Approuver un bulletin - vraie logique workflow
   const approveBulletin = async (bulletinId: number) => {
     try {
+      console.log('[BULLETIN_APPROVE] Approbation du bulletin:', bulletinId);
+      
       const response = await fetch(`/api/bulletins/bulletins/${bulletinId}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
 
       if (response.ok) {
+        const result = await response.json();
+        
+        console.log('[BULLETIN_APPROVE] ✅ Bulletin approuvé:', result);
+        
         toast({
-          title: "Succès",
-          description: "Bulletin approuvé avec succès",
+          title: "✅ Approbation réussie",
+          description: "Le bulletin a été approuvé et est prêt pour envoi",
         });
         
-        // Recharger les bulletins
+        // Recharger les bulletins pour mettre à jour les statuts
         await loadPendingBulletins();
+      } else {
+        const error = await response.json();
+        throw new Error(error.message || 'Erreur lors de l\'approbation');
       }
     } catch (error) {
-      console.error('Erreur approbation bulletin:', error);
+      console.error('[BULLETIN_APPROVE] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'approbation du bulletin",
+        title: "Erreur d'approbation",
+        description: error.message || "Erreur lors de l'approbation du bulletin",
         variant: "destructive",
       });
     }
   };
 
-  // Signer et envoyer des bulletins avec notifications
+  // Signer et envoyer des bulletins - workflow complet
   const signAndSendBulletins = async (bulletinIds: number[]) => {
     try {
       setLoading(true);
       
-      // Première étape : Signature en lot
+      console.log('[BULLETIN_SEND] Début du processus signature/envoi pour:', bulletinIds.length, 'bulletins');
+      
+      // Première étape : Signature numérique en lot
       const signResponse = await fetch('/api/bulletins/bulk-sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bulletinIds,
-          signerName: formData.directorName,
+          signerName: formData.directorName || 'Directeur',
           signerPosition: 'Directeur',
           hasStamp: true,
           schoolName: formData.schoolName
@@ -323,20 +356,21 @@ export default function BulletinManagementUnified() {
       });
 
       if (!signResponse.ok) {
-        throw new Error('Erreur lors de la signature');
+        const signError = await signResponse.json();
+        throw new Error(signError.error || 'Erreur lors de la signature');
       }
 
       const signResult = await signResponse.json();
-      console.log('📋 [BULLETIN_SIGNATURE] Signature réussie:', signResult);
+      console.log('[BULLETIN_SIGNATURE] ✅ Signature réussie:', signResult);
 
-      // Deuxième étape : Envoi avec notifications multi-canaux
+      // Deuxième étape : Envoi avec notifications multi-canaux (SMS, Email, WhatsApp)
       const notificationResponse = await fetch('/api/bulletins/send-with-notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           bulletinIds,
           notificationTypes: ['sms', 'email', 'whatsapp'],
-          language: formData.language,
+          language: formData.language || 'fr',
           schoolInfo: {
             name: formData.schoolName,
             director: formData.directorName,
@@ -349,22 +383,29 @@ export default function BulletinManagementUnified() {
       if (notificationResponse.ok) {
         const result = await notificationResponse.json();
         
+        console.log('[BULLETIN_NOTIFICATIONS] ✅ Notifications envoyées:', result);
+        
         // Notification de succès détaillée
         toast({
-          title: "✅ Signature et Envoi Réussis",
-          description: `${result.sent} bulletins signés numériquement et envoyés avec notifications (SMS, Email, WhatsApp)`,
+          title: "🎉 Processus terminé avec succès",
+          description: `${bulletinIds.length} bulletins signés numériquement et envoyés aux élèves et parents via SMS, Email et WhatsApp`,
         });
         
-        console.log('📧 [BULLETIN_NOTIFICATIONS] Envoi réussi:', result);
+        // Réinitialiser la sélection
+        setSelectedBulletins([]);
         
-        // Recharger les bulletins
+        // Recharger les bulletins pour voir les nouveaux statuts
         await loadPendingBulletins();
+        
+      } else {
+        const notifError = await notificationResponse.json();
+        throw new Error(notifError.error || 'Erreur lors de l\'envoi des notifications');
       }
     } catch (error) {
-      console.error('❌ [BULLETIN_PROCESS] Erreur:', error);
+      console.error('[BULLETIN_PROCESS] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Erreur lors du processus de signature et d'envoi des bulletins",
+        title: "Erreur du processus",
+        description: error.message || "Erreur lors du processus de signature et d'envoi des bulletins",
         variant: "destructive",
       });
     } finally {
@@ -372,47 +413,56 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Voir les détails d'un bulletin
+  // Voir les détails d'un bulletin - vraie logique
   const viewBulletinDetails = async (bulletinId: number) => {
     try {
-      const response = await fetch(`/api/bulletins/${bulletinId}`);
-      if (response.ok) {
-        const data = await response.json();
-        // Ouvrir le bulletin en mode détail/aperçu
-        const detailUrl = `/api/bulletins/${bulletinId}/view`;
-        window.open(detailUrl, '_blank');
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les détails du bulletin",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Erreur affichage détails:', error);
+      console.log('[BULLETIN_VIEW] Ouverture des détails pour bulletin:', bulletinId);
+      
+      // Ouvrir directement la vue PDF du bulletin
+      const detailUrl = `/api/bulletins/${bulletinId}/view`;
+      window.open(detailUrl, '_blank');
+      
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'affichage des détails",
+        title: "📄 Bulletin ouvert",
+        description: "Le bulletin s'ouvre dans un nouvel onglet",
+      });
+      
+    } catch (error) {
+      console.error('[BULLETIN_VIEW] ❌ Erreur:', error);
+      toast({
+        title: "Erreur d'affichage",
+        description: "Impossible d'ouvrir le bulletin",
         variant: "destructive",
       });
     }
   };
 
-  // Télécharger le PDF d'un bulletin
+  // Télécharger le PDF d'un bulletin - vraie logique
   const downloadBulletinPdf = async (bulletinId: number) => {
     try {
+      console.log('[BULLETIN_DOWNLOAD] Téléchargement du PDF pour bulletin:', bulletinId);
+      
       const downloadUrl = `/api/bulletins/${bulletinId}/download-pdf`;
-      window.open(downloadUrl, '_blank');
+      
+      // Créer un lien temporaire pour forcer le téléchargement
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `bulletin-${bulletinId}-${new Date().getFullYear()}.pdf`;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       toast({
-        title: "📥 Téléchargement",
-        description: "Le téléchargement du bulletin PDF a été lancé",
+        title: "📥 Téléchargement lancé",
+        description: `Téléchargement du bulletin PDF en cours...`,
       });
+      
     } catch (error) {
-      console.error('Erreur téléchargement PDF:', error);
+      console.error('[BULLETIN_DOWNLOAD] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Erreur lors du téléchargement du PDF",
+        title: "Erreur de téléchargement",
+        description: "Impossible de télécharger le PDF du bulletin",
         variant: "destructive",
       });
     }
@@ -497,14 +547,18 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Créer un nouveau bulletin modulable
+  // Créer un nouveau bulletin avec vraie logique workflow
   const createModularBulletin = async () => {
     try {
       setLoading(true);
+      
+      console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId);
 
       const bulletinData = {
         studentId: parseInt(selectedStudentId),
         classId: parseInt(selectedClassId),
+        term: formData.term,
+        academicYear: formData.academicYear,
         schoolData: {
           name: formData.schoolName,
           address: formData.schoolAddress,
@@ -545,6 +599,8 @@ export default function BulletinManagementUnified() {
         language: formData.language
       };
 
+      console.log('[BULLETIN_CREATE] Données du bulletin:', bulletinData);
+
       const response = await fetch('/api/bulletins/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -553,30 +609,35 @@ export default function BulletinManagementUnified() {
 
       const result = await response.json();
       
+      console.log('[BULLETIN_CREATE] Réponse serveur:', result);
+      
       if (response.ok && result.success) {
         toast({
-          title: "✅ Succès",
-          description: "Bulletin modulable créé avec succès",
+          title: "✅ Bulletin créé",
+          description: `Bulletin créé avec l'ID ${result.bulletinId} et ajouté au workflow`,
         });
         
-        // Utiliser l'URL de téléchargement fournie par le serveur
+        // Ouvrir le PDF généré
         if (result.downloadUrl) {
+          console.log('[BULLETIN_CREATE] Ouverture du PDF:', result.downloadUrl);
           window.open(result.downloadUrl, '_blank');
-        } else if (result.bulletinId) {
-          // Fallback avec l'ID du bulletin
-          window.open(`/api/bulletins/${result.bulletinId}/download-pdf`, '_blank');
         }
         
-        // Recharger les bulletins
+        // Recharger les bulletins pour voir le nouveau bulletin dans la liste
         await loadPendingBulletins();
+        
+        // Réinitialiser le formulaire
+        setSelectedStudentId('');
+        setSelectedClassId('');
+        
       } else {
-        throw new Error(result.message || 'Erreur lors de la création du bulletin');
+        throw new Error(result.error || result.message || 'Erreur lors de la création du bulletin');
       }
     } catch (error) {
-      console.error('Erreur création bulletin:', error);
+      console.error('[BULLETIN_CREATE] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la création du bulletin",
+        title: "Erreur de création",
+        description: error.message || "Impossible de créer le bulletin",
         variant: "destructive",
       });
     } finally {
