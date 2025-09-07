@@ -646,8 +646,7 @@ const UnifiedSchoolSettings: React.FC = () => {
                       maxFileSize={5 * 1024 * 1024} // 5MB
                       onGetUploadParameters={handleGetLogoUploadParameters}
                       onComplete={handleLogoUploadComplete}
-                      buttonClassName={`${schoolProfile?.logoUrl ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      disabled={uploadingLogo}
+                      buttonClassName={`${schoolProfile?.logoUrl ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} ${uploadingLogo ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       {uploadingLogo ? (
