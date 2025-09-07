@@ -588,9 +588,9 @@ const ClassManagement: React.FC = () => {
                   <div>
                     <Label>{String(t?.form?.className) || "N/A"}</Label>
                     <Input
-                      value={String(newClass?.name) || "N/A"}
-                      onChange={(e) => setNewClass({...newClass, name: e?.target?.value})}
-                      placeholder="6ème A"
+                      value={newClass.name}
+                      onChange={(e) => setNewClass({...newClass, name: e.target.value})}
+                      placeholder="Ex: 6ème A, Terminale C, CP..."
                       className="bg-white border-gray-300"
                     />
                   </div>
