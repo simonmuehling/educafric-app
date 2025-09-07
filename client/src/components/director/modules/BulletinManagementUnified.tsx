@@ -469,58 +469,7 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Gestion des notifications
-  const handleNotifications = () => {
-    try {
-      // Ouvrir les paramètres de notifications ou la page de gestion des notifications
-      toast({
-        title: "🔔 Notifications",
-        description: "Redirection vers la gestion des notifications...",
-      });
-      
-      // Dans une vraie implémentation, on pourrait ouvrir un modal ou naviguer vers une page
-      // Pour l'instant, on affiche un toast informatif
-      setTimeout(() => {
-        toast({
-          title: "💡 Fonctionnalité en développement",
-          description: "La gestion avancée des notifications sera bientôt disponible",
-        });
-      }, 1000);
-    } catch (error) {
-      console.error('Erreur notifications:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de l'accès aux notifications",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Gestion des paramètres
-  const handleSettings = () => {
-    try {
-      // Ouvrir les paramètres du module de gestion des bulletins
-      toast({
-        title: "⚙️ Paramètres",
-        description: "Redirection vers les paramètres...",
-      });
-      
-      // Dans une vraie implémentation, on pourrait ouvrir un modal de paramètres
-      setTimeout(() => {
-        toast({
-          title: "💡 Configuration du Module",
-          description: "Les paramètres avancés du module bulletins seront bientôt disponibles",
-        });
-      }, 1000);
-    } catch (error) {
-      console.error('Erreur paramètres:', error);
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de l'accès aux paramètres",
-        variant: "destructive",
-      });
-    }
-  };
+  // Fonctions supprimées: handleNotifications et handleSettings (selon demande utilisateur)
 
   // Prévisualiser un bulletin
   const previewBulletin = async () => {
@@ -548,18 +497,78 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Créer un nouveau bulletin avec vraie logique workflow
+  // Créer un nouveau bulletin avec vraie logique workflow et différenciation par trimestre
   const createModularBulletin = async () => {
     try {
       setLoading(true);
       
-      console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId);
+      console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId, 'trimestre:', formData.term);
+
+      // Logique spécifique par trimestre
+      const getTermSpecificData = () => {
+        const baseData = {
+          generalAverage: formData.generalAverage,
+          classRank: formData.classRank,
+          totalStudents: formData.totalStudents,
+          workAppreciation: formData.workAppreciation,
+          conductAppreciation: formData.conductAppreciation,
+          generalAppreciation: formData.generalAppreciation
+        };
+
+        switch (formData.term) {
+          case 'Premier Trimestre':
+            return {
+              ...baseData,
+              termType: 'first',
+              evaluationPeriod: 'Évaluation du 1er trimestre',
+              nextTermAdvice: 'Conseils pour le 2ème trimestre',
+              canPromote: false, // Pas de décision de passage au 1er trimestre
+              generalAppreciation: baseData.generalAppreciation || 'Début d\'année scolaire - Adaptation en cours'
+            };
+          
+          case 'Deuxième Trimestre':
+            return {
+              ...baseData,
+              termType: 'second',
+              evaluationPeriod: 'Évaluation du 2ème trimestre',
+              nextTermAdvice: 'Préparation pour l\'évaluation finale',
+              canPromote: false, // Pas de décision de passage au 2ème trimestre
+              generalAppreciation: baseData.generalAppreciation || 'Milieu d\'année - Évaluation des progrès'
+            };
+          
+          case 'Troisième Trimestre':
+            // Logique de passage/redoublement pour le 3ème trimestre
+            const averageThreshold = 10; // Seuil de passage (sur 20)
+            const isPromoted = baseData.generalAverage >= averageThreshold;
+            
+            return {
+              ...baseData,
+              termType: 'third',
+              evaluationPeriod: 'Évaluation finale de l\'année',
+              nextTermAdvice: isPromoted ? 'Admis en classe supérieure' : 'Doit reprendre la classe',
+              canPromote: true, // Le 3ème trimestre détermine le passage
+              isPromoted: isPromoted,
+              finalDecision: isPromoted ? 'ADMIS' : 'REDOUBLE',
+              generalAppreciation: baseData.generalAppreciation || 
+                (isPromoted 
+                  ? 'Fin d\'année - Résultats satisfaisants, passage autorisé' 
+                  : 'Fin d\'année - Résultats insuffisants, reprise nécessaire')
+            };
+          
+          default:
+            return baseData;
+        }
+      };
+
+      const termSpecificData = getTermSpecificData();
 
       const bulletinData = {
         studentId: parseInt(selectedStudentId),
         classId: parseInt(selectedClassId),
         term: formData.term,
         academicYear: formData.academicYear,
+        // Données spécifiques au trimestre
+        termSpecificData: termSpecificData,
         schoolData: {
           name: formData.schoolName,
           address: formData.schoolAddress,
@@ -589,14 +598,7 @@ export default function BulletinManagementUnified() {
           professional: formData.subjectsProfessional,
           others: formData.subjectsOthers
         },
-        evaluations: {
-          generalAverage: formData.generalAverage,
-          classRank: formData.classRank,
-          totalStudents: formData.totalStudents,
-          workAppreciation: formData.workAppreciation,
-          conductAppreciation: formData.conductAppreciation,
-          generalAppreciation: formData.generalAppreciation
-        },
+        evaluations: termSpecificData, // Utilise les données spécifiques au trimestre
         language: formData.language
       };
 
@@ -998,14 +1000,7 @@ export default function BulletinManagementUnified() {
             <p className="text-gray-600 mt-1">{t.description}</p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={handleNotifications}>
-              <Bell className="w-4 h-4 mr-1" />
-              Notifications
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSettings}>
-              <Settings className="w-4 h-4 mr-1" />
-              Paramètres
-            </Button>
+            {/* Boutons paramètres et notifications supprimés selon demande utilisateur */}
           </div>
         </div>
       </div>
@@ -1307,6 +1302,30 @@ export default function BulletinManagementUnified() {
                       {formData.term} {formData.academicYear}
                     </span>
                   </div>
+                  {/* Informations spécifiques au trimestre */}
+                  {formData.term === 'Troisième Trimestre' && (
+                    <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded-md">
+                      <div className="flex items-center text-sm text-orange-800">
+                        <AlertCircle className="w-4 h-4 mr-2" />
+                        <span className="font-medium">Trimestre Final:</span>
+                        <span className="ml-2">Ce bulletin détermine le passage en classe supérieure</span>
+                      </div>
+                    </div>
+                  )}
+                  {formData.term === 'Premier Trimestre' && (
+                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="text-sm text-blue-800">
+                        <span className="font-medium">1er Trimestre:</span> Évaluation de début d'année - Adaptation en cours
+                      </div>
+                    </div>
+                  )}
+                  {formData.term === 'Deuxième Trimestre' && (
+                    <div className="mt-3 p-2 bg-purple-50 border border-purple-200 rounded-md">
+                      <div className="text-sm text-purple-800">
+                        <span className="font-medium">2ème Trimestre:</span> Évaluation de milieu d'année - Préparation finale
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
