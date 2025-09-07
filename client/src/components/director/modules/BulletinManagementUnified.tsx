@@ -1364,62 +1364,120 @@ export default function BulletinManagementUnified() {
   );
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* En-tête */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <FileText className="mr-3 h-6 w-6 text-blue-600" />
-              {t.title}
-            </h1>
-            <p className="text-gray-600 mt-1">{t.description}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* EN-TÊTE MODERNE INSPIRÉ GEGOK12 */}
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
+                  <FileText className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white">📊 Bulletins GegoK12</h1>
+                  <p className="text-blue-100 mt-1">
+                    Système professionnel de génération de bulletins • Design moderne • Coefficients flexibles
+                  </p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center space-x-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-white">{myBulletins.length}</div>
+                  <div className="text-xs text-blue-100">Bulletins créés</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-white">{pendingBulletins.length}</div>
+                  <div className="text-xs text-blue-100">En attente</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* BARRE DE STATUT MODERNE */}
+            <div className="mt-4 flex items-center space-x-6 text-sm text-blue-100">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>Templates T1, T2, T3 modernisés</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Star className="h-4 w-4" />
+                <span>Coefficients Math(4), Sciences(3)</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Settings className="h-4 w-4" />
+                <span>Interface mobile pour enseignants</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* STATISTIQUES MODERNES GEGOK12 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-orange-500 rounded-full">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-orange-800 font-medium">En Attente</p>
+                  <p className="text-2xl font-bold text-orange-900">{pendingBulletins.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-500 rounded-full">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-800 font-medium">Approuvés</p>
+                  <p className="text-2xl font-bold text-green-900">{approvedBulletins.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-500 rounded-full">
+                  <Send className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-800 font-medium">Envoyés</p>
+                  <p className="text-2xl font-bold text-blue-900">{sentBulletins.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-500 rounded-full">
+                  <Archive className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-purple-800 font-medium">Total</p>
+                  <p className="text-2xl font-bold text-purple-900">{myBulletins.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Maintenir le contenu existant mais avec un meilleur style */}
+        <div>
           <div className="flex items-center space-x-2">
             {/* Boutons paramètres et notifications supprimés selon demande utilisateur */}
           </div>
         </div>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-orange-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">En Attente</p>
-              <p className="text-2xl font-bold">{pendingBulletins.length}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Approuvés</p>
-              <p className="text-2xl font-bold">{approvedBulletins.length}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center">
-            <Send className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Envoyés</p>
-              <p className="text-2xl font-bold">{sentBulletins.length}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="flex items-center">
-            <Archive className="h-8 w-8 text-gray-600" />
-            <div className="ml-3">
-              <p className="text-sm text-gray-600">Total</p>
-              <p className="text-2xl font-bold">{myBulletins.length}</p>
-            </div>
-          </div>
-        </Card>
-      </div>
 
       {/* Onglets principaux */}
       <Tabs defaultValue="pending" className="w-full">
