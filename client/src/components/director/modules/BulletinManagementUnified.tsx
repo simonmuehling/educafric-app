@@ -94,6 +94,10 @@ export default function BulletinManagementUnified() {
   const [myBulletins, setMyBulletins] = useState<BulletinFromTeacher[]>([]);
   const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
 
+  // État pour les notes importées automatiquement
+  const [importedGrades, setImportedGrades] = useState<any>(null);
+  const [showImportedGrades, setShowImportedGrades] = useState<boolean>(false);
+
   // État pour le formulaire modulable
   const [formData, setFormData] = useState({
     // Informations officielles Cameroun
@@ -336,6 +340,10 @@ export default function BulletinManagementUnified() {
         console.log('[AUTO_IMPORT] ✅ Importation réussie:', data);
         
         if (data.success && data.data.termGrades && Object.keys(data.data.termGrades).length > 0) {
+          // Stocker les notes importées pour l'affichage
+          setImportedGrades(data.data);
+          setShowImportedGrades(true);
+          
           // Pré-remplir la moyenne calculée automatiquement
           if (data.data.termAverage) {
             setFormData(prev => ({
@@ -349,6 +357,8 @@ export default function BulletinManagementUnified() {
             description: `🎯 Notes importées automatiquement - ${term}: Moyenne calculée ${data.data.termAverage || 'N/A'}/20 selon la classe ${classId}`,
           });
         } else {
+          setImportedGrades(null);
+          setShowImportedGrades(false);
           toast({
             title: "ℹ️ Pas de notes",
             description: "📝 Saisie manuelle - Aucune note importée",
@@ -356,6 +366,8 @@ export default function BulletinManagementUnified() {
         }
       } else {
         console.log('[AUTO_IMPORT] ⚠️ Pas de notes disponibles');
+        setImportedGrades(null);
+        setShowImportedGrades(false);
         toast({
           title: "📝 Saisie manuelle",
           description: "Aucune note importée - Veuillez saisir manuellement",
@@ -363,6 +375,8 @@ export default function BulletinManagementUnified() {
       }
     } catch (error) {
       console.error('[AUTO_IMPORT] ❌ Erreur:', error);
+      setImportedGrades(null);
+      setShowImportedGrades(false);
       toast({
         title: "⚠️ Erreur d'importation",
         description: "Problème lors de l'importation automatique",
@@ -1682,6 +1696,109 @@ export default function BulletinManagementUnified() {
               </CardContent>
             </Card>
             </div>
+
+            {/* Notes Importées Automatiquement */}
+            {showImportedGrades && importedGrades && (
+              <Card className="border-green-200 bg-green-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-green-800">
+                    <CheckCircle className="mr-2 h-5 w-5" />
+                    Notes Importées Automatiquement
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label className="text-sm font-medium">Moyenne Calculée</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge className={`text-lg px-3 py-1 ${
+                          parseFloat(importedGrades.termAverage) >= 15 ? 'bg-green-100 text-green-800' :
+                          parseFloat(importedGrades.termAverage) >= 12 ? 'bg-blue-100 text-blue-800' :
+                          parseFloat(importedGrades.termAverage) >= 10 ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {importedGrades.termAverage}/20
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          Trimestre {importedGrades.term}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Nombre de Matières</Label>
+                      <p className="text-lg font-semibold text-gray-800 mt-1">
+                        {Object.keys(importedGrades.termGrades).length} matières
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Tableau des notes par matière */}
+                  <div className="bg-white rounded-lg border overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Matière</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Note CC</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Note Examen</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Moyenne</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => {
+                          const average = ((grades.CC + grades.EXAM) / 2).toFixed(2);
+                          return (
+                            <tr key={subject} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                                {subject === 'MATH' ? 'Mathématiques' :
+                                 subject === 'PHYS' ? 'Physique' :
+                                 subject === 'CHIM' ? 'Chimie' :
+                                 subject === 'BIO' ? 'Biologie' :
+                                 subject === 'FRANC' ? 'Français' :
+                                 subject === 'ANG' ? 'Anglais' :
+                                 subject === 'HIST' ? 'Histoire' :
+                                 subject === 'GEO' ? 'Géographie' :
+                                 subject}
+                              </td>
+                              <td className="px-4 py-3 text-center text-sm text-gray-600">
+                                {grades.CC?.toFixed(1) || 'N/A'}
+                              </td>
+                              <td className="px-4 py-3 text-center text-sm text-gray-600">
+                                {grades.EXAM?.toFixed(1) || 'N/A'}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <Badge className={`text-sm ${
+                                  parseFloat(average) >= 15 ? 'bg-green-100 text-green-800' :
+                                  parseFloat(average) >= 12 ? 'bg-blue-100 text-blue-800' :
+                                  parseFloat(average) >= 10 ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {average}/20
+                                </Badge>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">✅ Importation réussie</span> - Les notes sont prêtes à être utilisées pour le bulletin
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowImportedGrades(false)}
+                      className="text-gray-600 hover:text-gray-700"
+                    >
+                      Masquer
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Informations Élève */}
             {selectedStudentId && (
