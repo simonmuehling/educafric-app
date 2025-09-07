@@ -166,13 +166,7 @@ router.post('/bulletin/preview-custom', (req, res) => {
       absences: 0, // À implémenter plus tard
       teacherComments: evaluations?.generalAppreciation || termSpecificData?.generalAppreciation || "En cours de saisie...",
       directorComments: termSpecificData?.nextTermAdvice || "Commentaire du directeur en cours...",
-      verificationCode: `EDU2024-${studentData?.lastName?.substr(0,3)?.toUpperCase() || 'XXX'}-PREV-${Date.now().toString().substr(-6)}`,
-      // Informations spécifiques au trimestre
-      termType: termSpecificData?.termType,
-      evaluationPeriod: termSpecificData?.evaluationPeriod,
-      finalDecision: termSpecificData?.finalDecision,
-      isPromoted: termSpecificData?.isPromoted,
-      canPromote: termSpecificData?.canPromote
+      verificationCode: `EDU2024-${studentData?.lastName?.substr(0,3)?.toUpperCase() || 'XXX'}-PREV-${Date.now().toString().substr(-6)}`
     };
 
     // Ajouter des matières d'exemple si aucune n'est fournie
@@ -214,7 +208,9 @@ router.get('/report/preview', (req, res) => {
       phoneNumber: "+237 6XX XX XX XX",
       email: "info@ecole-excellence.com",
       directorName: "M. DUPONT Jean",
-      academicYear: "2024-2025"
+      academicYear: "2024-2025",
+      regionalDelegation: "DU CENTRE",
+      departmentalDelegation: "DU MFOUNDI"
     },
     reportType: reportType as any,
     filters: {
