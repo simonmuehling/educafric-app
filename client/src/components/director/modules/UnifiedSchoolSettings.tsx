@@ -583,44 +583,86 @@ const UnifiedSchoolSettings: React.FC = () => {
                 />
               </div>
               
-              {/* School Logo Section */}
-              <div className="space-y-4 border-t pt-4">
+              {/* School Logo Section - Enhanced with better visibility */}
+              <div className="space-y-4 border-t pt-4 bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center gap-2">
                   <Image className="w-5 h-5 text-blue-600" />
                   <Label className="text-lg font-medium">{t.logo}</Label>
                 </div>
                 <p className="text-sm text-gray-600">{t.logoDescription}</p>
                 
-                {/* Current Logo Display */}
-                {schoolProfile?.logoUrl && (
-                  <div className="flex flex-col items-center space-y-2">
-                    <img 
-                      src={schoolProfile.logoUrl} 
-                      alt="School Logo" 
-                      className="h-24 w-auto object-contain rounded-lg border border-gray-200 p-2"
-                    />
-                    <Badge variant="secondary" className="text-xs">
-                      {language === 'fr' ? 'Logo Actuel' : 'Current Logo'}
-                    </Badge>
-                  </div>
-                )}
-                
-                {/* Logo Upload */}
-                <div className="flex justify-center">
-                  <ObjectUploader
-                    maxNumberOfFiles={1}
-                    maxFileSize={5 * 1024 * 1024} // 5MB
-                    onGetUploadParameters={handleGetLogoUploadParameters}
-                    onComplete={handleLogoUploadComplete}
-                    buttonClassName="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploadingLogo ? (
-                      language === 'fr' ? 'Téléchargement...' : 'Uploading...'
-                    ) : (
-                      t.uploadLogo
+                {/* Enhanced Logo Display */}
+                <div className="flex flex-col items-center space-y-4 bg-white rounded-lg p-6 border-2 border-dashed border-gray-200">
+                  {schoolProfile?.logoUrl ? (
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="relative">
+                        <img 
+                          src={schoolProfile.logoUrl} 
+                          alt="School Logo" 
+                          className="h-32 w-auto max-w-[200px] object-contain rounded-lg border border-gray-200 p-2 bg-white shadow-sm"
+                        />
+                        <Badge variant="default" className="absolute -top-2 -right-2 bg-green-500 text-white">
+                          ✓
+                        </Badge>
+                      </div>
+                      <div className="text-center">
+                        <Badge variant="secondary" className="text-sm">
+                          {language === 'fr' ? '✅ Logo Téléchargé' : '✅ Logo Uploaded'}
+                        </Badge>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {language === 'fr' ? 'Logo affiché sur les bulletins' : 'Logo displayed on bulletins'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center space-y-3 text-center py-8">
+                      <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <Image className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <div>
+                        <Badge variant="outline" className="text-sm mb-2">
+                          {language === 'fr' ? '📋 Aucun Logo' : '📋 No Logo'}
+                        </Badge>
+                        <p className="text-sm text-gray-500">
+                          {language === 'fr' ? 'Téléchargez le logo de votre école' : 'Upload your school logo'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Upload Status and Button */}
+                  <div className="w-full flex flex-col items-center space-y-3">
+                    {uploadingLogo && (
+                      <div className="flex items-center space-x-2 text-blue-600">
+                        <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+                        <span className="text-sm">
+                          {language === 'fr' ? 'Téléchargement en cours...' : 'Uploading...'}
+                        </span>
+                      </div>
                     )}
-                  </ObjectUploader>
+                    
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={5 * 1024 * 1024} // 5MB
+                      onGetUploadParameters={handleGetLogoUploadParameters}
+                      onComplete={handleLogoUploadComplete}
+                      buttonClassName={`${schoolProfile?.logoUrl ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'} ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={uploadingLogo}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadingLogo ? (
+                        language === 'fr' ? 'Téléchargement...' : 'Uploading...'
+                      ) : schoolProfile?.logoUrl ? (
+                        language === 'fr' ? 'Changer le Logo' : 'Change Logo'
+                      ) : (
+                        t.uploadLogo
+                      )}
+                    </ObjectUploader>
+                    
+                    <p className="text-xs text-gray-400 text-center">
+                      {language === 'fr' ? 'Formats: PNG, JPG, JPEG • Max: 5MB' : 'Formats: PNG, JPG, JPEG • Max: 5MB'}
+                    </p>
+                  </div>
                 </div>
               </div>
               {isEditing && (
