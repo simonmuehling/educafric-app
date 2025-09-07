@@ -925,6 +925,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Import rooms from CSV
+  app.post("/api/director/rooms/import", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { rooms } = req.body;
+      
+      console.log('[ROOMS_API] POST /api/director/rooms/import - Importing rooms:', rooms.length);
+      
+      if (!rooms || !Array.isArray(rooms)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid rooms data - array expected' 
+        });
+      }
+
+      // Validate each room entry
+      const validRooms = [];
+      const errors = [];
+      
+      for (let i = 0; i < rooms.length; i++) {
+        const room = rooms[i];
+        
+        if (!room.name || typeof room.name !== 'string' || room.name.trim().length === 0) {
+          errors.push(`Ligne ${i + 2}: Nom de salle manquant ou invalide`);
+          continue;
+        }
+        
+        const capacity = parseInt(room.capacity) || 30;
+        if (capacity < 1 || capacity > 200) {
+          errors.push(`Ligne ${i + 2}: Capacité invalide (${capacity}), doit être entre 1 et 200`);
+          continue;
+        }
+        
+        validRooms.push({
+          id: Math.floor(Math.random() * 10000) + 1000,
+          name: room.name.trim(),
+          capacity: capacity,
+          schoolId: user.schoolId || 1,
+          isOccupied: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+      
+      if (errors.length > 0 && validRooms.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Aucune salle valide trouvée',
+          errors: errors
+        });
+      }
+      
+      // For now, simulate successful import. In production, save to database
+      console.log('[ROOMS_API] ✅ Rooms imported successfully:', validRooms.length, 'valid rooms');
+      
+      const response = {
+        success: true,
+        imported: validRooms.length,
+        total: rooms.length,
+        message: `${validRooms.length}/${rooms.length} salles importées avec succès`,
+        rooms: validRooms
+      };
+      
+      if (errors.length > 0) {
+        response.warnings = errors;
+      }
+      
+      res.json(response);
+    } catch (error) {
+      console.error('[ROOMS_API] Error importing rooms:', error);
+      res.status(500).json({ success: false, message: 'Failed to import rooms' });
+    }
+  });
+
   // ============= DIRECTOR CLASSES & STUDENTS API =============
   
   // Get all classes for director

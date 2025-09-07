@@ -1529,37 +1529,85 @@ const ClassManagement: React.FC = () => {
                 </Card>
               </div>
 
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  {language === 'fr' ? 'Ajouter une Salle' : 'Add Room'}
-                </h3>
-                <div className="flex gap-3">
-                  <Input 
-                    placeholder={language === 'fr' ? 'Nom de la salle (ex: Salle 301)' : 'Room name (ex: Room 301)'}
-                    className="flex-1"
-                    value={newRoomName}
-                    onChange={(e) => setNewRoomName(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleAddRoom();
-                      }
-                    }}
-                  />
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700"
-                    onClick={handleAddRoom}
-                    disabled={addRoomMutation.isPending || !newRoomName.trim()}
-                  >
-                    {addRoomMutation.isPending ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    ) : (
-                      <Plus className="w-4 h-4 mr-2" />
-                    )}
-                    {language === 'fr' ? 'Ajouter' : 'Add'}
-                  </Button>
-                </div>
-              </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    {language === 'fr' ? 'Ajouter une Salle' : 'Add Room'}
+                  </h3>
+                  <div className="flex gap-3">
+                    <Input 
+                      placeholder={language === 'fr' ? 'Nom de la salle (ex: Salle 301)' : 'Room name (ex: Room 301)'}
+                      className="flex-1"
+                      value={newRoomName}
+                      onChange={(e) => setNewRoomName(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddRoom();
+                        }
+                      }}
+                    />
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={handleAddRoom}
+                      disabled={addRoomMutation.isPending || !newRoomName.trim()}
+                    >
+                      {addRoomMutation.isPending ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      ) : (
+                        <Plus className="w-4 h-4 mr-2" />
+                      )}
+                      {language === 'fr' ? 'Ajouter' : 'Add'}
+                    </Button>
+                  </div>
+                </Card>
+
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    {language === 'fr' ? 'Import CSV' : 'CSV Import'}
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline"
+                        onClick={downloadRoomsTemplate}
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        {language === 'fr' ? 'Modèle' : 'Template'}
+                      </Button>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={handleFileImport}
+                          disabled={isImportingRooms}
+                          className="hidden"
+                          id="rooms-csv-input"
+                        />
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={() => document.getElementById('rooms-csv-input')?.click()}
+                          disabled={isImportingRooms}
+                        >
+                          {isImportingRooms ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-2" />
+                          )}
+                          {language === 'fr' ? 'Importer' : 'Import'}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {language === 'fr' 
+                        ? 'Format: nom,capacité (téléchargez le modèle pour plus de détails)' 
+                        : 'Format: name,capacity (download template for details)'}
+                    </p>
+                  </div>
+                </Card>
+              </div>
 
               <div className="flex justify-between items-center">
                 <div className="flex gap-2">
