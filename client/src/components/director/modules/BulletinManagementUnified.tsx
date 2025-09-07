@@ -471,7 +471,7 @@ export default function BulletinManagementUnified() {
 
   // Fonctions supprimées: handleNotifications et handleSettings (selon demande utilisateur)
 
-  // Prévisualiser un bulletin
+  // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
       if (!selectedStudentId || !selectedClassId) {
@@ -483,15 +483,147 @@ export default function BulletinManagementUnified() {
         return;
       }
 
-      // Ouvrir l'aperçu du template
-      const previewUrl = `/api/templates/bulletin/preview?language=${formData.language}&studentId=${selectedStudentId}&classId=${selectedClassId}`;
-      window.open(previewUrl, '_blank');
+      console.log('[PREVIEW_BULLETIN] 🔍 Generating preview with current form data');
+
+      // Construire la même logique que createModularBulletin mais pour l'aperçu
+      const getTermSpecificData = () => {
+        const baseData = {
+          generalAverage: formData.generalAverage,
+          classRank: formData.classRank,
+          totalStudents: formData.totalStudents,
+          workAppreciation: formData.workAppreciation,
+          conductAppreciation: formData.conductAppreciation,
+          generalAppreciation: formData.generalAppreciation
+        };
+
+        switch (formData.term) {
+          case 'Premier Trimestre':
+            return {
+              ...baseData,
+              termType: 'first',
+              evaluationPeriod: 'Évaluation du 1er trimestre',
+              nextTermAdvice: 'Conseils pour le 2ème trimestre',
+              canPromote: false,
+              generalAppreciation: baseData.generalAppreciation || 'Début d\'année scolaire - Adaptation en cours'
+            };
+          
+          case 'Deuxième Trimestre':
+            return {
+              ...baseData,
+              termType: 'second',
+              evaluationPeriod: 'Évaluation du 2ème trimestre',
+              nextTermAdvice: 'Préparation pour l\'évaluation finale',
+              canPromote: false,
+              generalAppreciation: baseData.generalAppreciation || 'Milieu d\'année - Évaluation des progrès'
+            };
+          
+          case 'Troisième Trimestre':
+            const averageThreshold = 10;
+            const isPromoted = baseData.generalAverage >= averageThreshold;
+            
+            return {
+              ...baseData,
+              termType: 'third',
+              evaluationPeriod: 'Évaluation finale de l\'année',
+              nextTermAdvice: isPromoted ? 'Admis en classe supérieure' : 'Doit reprendre la classe',
+              canPromote: true,
+              isPromoted: isPromoted,
+              finalDecision: isPromoted ? 'ADMIS' : 'REDOUBLE',
+              generalAppreciation: baseData.generalAppreciation || 
+                (isPromoted 
+                  ? 'Fin d\'année - Résultats satisfaisants, passage autorisé' 
+                  : 'Fin d\'année - Résultats insuffisants, reprise nécessaire')
+            };
+          
+          default:
+            return baseData;
+        }
+      };
+
+      const termSpecificData = getTermSpecificData();
+
+      // Préparer les données exactes du formulaire pour l'aperçu
+      const previewData = {
+        schoolData: {
+          name: formData.schoolName,
+          address: formData.schoolAddress,
+          phone: formData.schoolPhone,
+          email: formData.schoolEmail,
+          director: formData.directorName,
+          regionalDelegation: formData.regionalDelegation,
+          departmentalDelegation: formData.departmentalDelegation
+        },
+        studentData: {
+          firstName: formData.studentFirstName,
+          lastName: formData.studentLastName,
+          birthDate: formData.studentBirthDate,
+          birthPlace: formData.studentBirthPlace,
+          gender: formData.studentGender,
+          studentNumber: formData.studentNumber,
+          photo: formData.studentPhoto
+        },
+        academicData: {
+          className: formData.className,
+          academicYear: formData.academicYear,
+          term: formData.term,
+          enrollment: formData.enrollment
+        },
+        grades: {
+          general: formData.subjectsGeneral,
+          professional: formData.subjectsProfessional,
+          others: formData.subjectsOthers
+        },
+        evaluations: termSpecificData,
+        termSpecificData: termSpecificData,
+        language: formData.language
+      };
+
+      console.log('[PREVIEW_BULLETIN] 📋 Sending preview data:', previewData);
+
+      // Créer un formulaire pour POST vers l'aperçu
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/templates/bulletin/preview-custom';
+      form.target = '_blank';
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'data';
+      input.value = JSON.stringify(previewData);
+      form.appendChild(input);
+
+      // Utilisation de fetch avec POST
+      const response = await fetch('/api/templates/bulletin/preview-custom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(previewData)
+      });
+
+      if (response.ok) {
+        const htmlContent = await response.text();
+        
+        // Ouvrir dans une nouvelle fenêtre
+        const previewWindow = window.open('', '_blank');
+        if (previewWindow) {
+          previewWindow.document.write(htmlContent);
+          previewWindow.document.close();
+        }
+
+        toast({
+          title: "📋 Aperçu généré",
+          description: "L'aperçu avec vos données actuelles a été ouvert",
+        });
+      } else {
+        throw new Error(`Erreur serveur: ${response.status}`);
+      }
       
     } catch (error) {
-      console.error('Erreur aperçu bulletin:', error);
+      console.error('[PREVIEW_BULLETIN] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'aperçu du bulletin",
+        title: "Erreur d'aperçu",
+        description: "Impossible de générer l'aperçu avec vos données",
         variant: "destructive",
       });
     }
