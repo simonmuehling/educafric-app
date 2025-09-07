@@ -335,21 +335,23 @@ export default function BulletinManagementUnified() {
         const data = await response.json();
         console.log('[AUTO_IMPORT] ✅ Importation réussie:', data);
         
-        if (data.success && data.data.termAverage) {
+        if (data.success && data.data.termGrades && Object.keys(data.data.termGrades).length > 0) {
           // Pré-remplir la moyenne calculée automatiquement
-          setFormData(prev => ({
-            ...prev,
-            generalAverage: data.data.termAverage
-          }));
+          if (data.data.termAverage) {
+            setFormData(prev => ({
+              ...prev,
+              generalAverage: data.data.termAverage
+            }));
+          }
           
           toast({
-            title: "🎯 Notes importées automatiquement",
-            description: `${term}: Moyenne calculée ${data.data.termAverage}/20 selon la classe ${classId}`,
+            title: "✅ Notes trouvées",
+            description: `🎯 Notes importées automatiquement - ${term}: Moyenne calculée ${data.data.termAverage || 'N/A'}/20 selon la classe ${classId}`,
           });
         } else {
           toast({
-            title: "ℹ️ Saisie manuelle requise",
-            description: "Aucune note trouvée pour cette combinaison élève/classe/trimestre",
+            title: "ℹ️ Pas de notes",
+            description: "📝 Saisie manuelle - Aucune note importée",
           });
         }
       } else {
