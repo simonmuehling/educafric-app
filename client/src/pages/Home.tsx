@@ -1,13 +1,15 @@
 import FrontpageNavbar from '@/components/FrontpageNavbar';
-import ModernEducafricHero from '@/components/ModernEducafricHero';
 import SandboxBanner from '@/components/SandboxBanner';
-import ModernFeatureSlider from '@/components/ModernFeatureSlider';
 import FrontPagePWAInstallPrompt from '@/components/pwa/FrontPagePWAInstallPrompt';
+
+// Lazy load heavy components for faster initial page load
+import { lazy, Suspense } from 'react';
+const ModernEducafricHero = lazy(() => import('@/components/ModernEducafricHero'));
+const ModernFeatureSlider = lazy(() => import('@/components/ModernFeatureSlider'));
+const ModernStatsSection = lazy(() => import('@/components/ModernStatsSection'));
 
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'wouter';
-import ModernStatsSection from '@/components/ModernStatsSection';
-import ModernSubscriptionPlans from '@/components/ModernSubscriptionPlans';
 import EducafricFooter from '@/components/EducafricFooter';
 
 export default function Home() {
@@ -34,7 +36,9 @@ export default function Home() {
       <FrontpageNavbar />
       
       {/* Hero Section */}
-      <ModernEducafricHero />
+      <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 animate-pulse"></div>}>
+        <ModernEducafricHero />
+      </Suspense>
 
       {/* Sandbox Demo Banner */}
       <div className="container mx-auto px-6 -mt-8">
@@ -42,10 +46,14 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <ModernFeatureSlider />
+      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="w-12 h-12 mx-auto border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div></div></div>}>
+        <ModernFeatureSlider />
+      </Suspense>
 
       {/* Stats Section */}
-      <ModernStatsSection />
+      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="w-12 h-12 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div></div>}>
+        <ModernStatsSection />
+      </Suspense>
 
 
 

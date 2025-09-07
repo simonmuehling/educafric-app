@@ -57,6 +57,15 @@ class NetworkOptimizer {
     const originalFetch = window.fetch;
     
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      // Skip optimization for home page critical resources to improve load time
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      const isHomepageCritical = url.includes('/sw.js') || url.includes('main.tsx') || url.includes('.css') || url.includes('favicon');
+      
+      if (isHomepageCritical) {
+        // Fast path for critical home page resources
+        return originalFetch(input, init);
+      }
+      
       const optimizedInit: RequestInit = {
         ...init,
         // Optimized headers for African networks
@@ -66,37 +75,24 @@ class NetworkOptimizer {
           'Accept-Encoding': 'gzip, deflate, br',
           ...init?.headers
         },
-        // Extended timeout for slow networks
-        signal: AbortSignal.timeout(this.config.timeout)
+        // Reduced timeout for faster homepage experience
+        signal: AbortSignal.timeout(this.config.timeout / 2)
       };
 
       let lastError: Error = new Error('Network request failed');
       
-      // Retry mechanism for unstable connections
-      for (let attempt = 1; attempt <= this.config.retries; attempt++) {
+      // Reduced retries for faster responses
+      const maxRetries = url.includes('/api/') ? this.config.retries : 1;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          // Only log on retries or in dev mode
-          if (attempt > 1 || import.meta.env.DEV) {
-            // Only log critical network issues in production
-            if (import.meta.env.DEV) {
-              console.log(`[NETWORK_OPTIMIZER] 📡 Request attempt ${attempt}/${this.config.retries}`);
-            }
-          }
           const response = await originalFetch(input, optimizedInit);
-          
-          // Log successful connection (silently record)
           this.recordConnectionSuccess();
-          
           return response;
         } catch (error: any) {
           lastError = error;
-          // Only warn on final failure
-          if (attempt === this.config.retries) {
-            console.warn(`[NETWORK_OPTIMIZER] ⚠️ Request failed after ${attempt} attempts:`, error.message);
-          }
-          
-          if (attempt < this.config.retries) {
-            await this.delay(this.config.retryDelay * attempt); // Exponential backoff
+          if (attempt < maxRetries) {
+            await this.delay(500); // Shorter delay for faster recovery
           }
         }
       }

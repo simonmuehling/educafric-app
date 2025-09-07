@@ -77,21 +77,24 @@ import SignatureTest from "@/pages/SignatureTest";
 import TestBulletinPDF from "@/pages/TestBulletinPDF";
 import VonageTest from "@/pages/VonageTest";
 
-// Global module preloader for instant UI response
+// Deferred module preloader - Only load when user is about to need dashboard access
 const useGlobalModulePreloader = () => {
   useEffect(() => {
-    const startGlobalPreload = async () => {
-      if (import.meta.env.DEV) {
-        console.log('[GLOBAL_PRELOADER] 🚀 Starting global module preloading...');
-      }
-      await fastModuleLoader.preloadCriticalModules();
-      if (import.meta.env.DEV) {
-        console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
-      }
+    const startDeferredPreload = async () => {
+      // Defer preloading until after home page is fully loaded (3 seconds delay)
+      setTimeout(async () => {
+        if (import.meta.env.DEV) {
+          console.log('[GLOBAL_PRELOADER] 🚀 Starting deferred module preloading...');
+        }
+        await fastModuleLoader.preloadCriticalModules();
+        if (import.meta.env.DEV) {
+          console.log('[GLOBAL_PRELOADER] ✅ Critical modules ready for instant access');
+        }
+      }, 3000);
     };
     
-    // Start preloading immediately when app loads
-    startGlobalPreload();
+    // Only start preloading after initial page render is complete
+    startDeferredPreload();
   }, []);
 };
 const BulletinValidationTest = lazy(() => import("@/pages/BulletinValidationTest"));
