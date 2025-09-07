@@ -5,7 +5,7 @@
  * - Filtres rapports avancés par classes/enseignants
  * - Documents commerciaux bilingues
  * - Système de vérification QR codes
- * Dernière mise à jour: Septembre 2025
+ * Dernière mise à jour: 7 Septembre 2025 ✨
  */
 
 import { Router } from 'express';
@@ -57,7 +57,7 @@ router.get('/school/profile', requireSandboxAuth, (req, res) => {
     teachersCount: 38,
     classesCount: 22,
     established: 2010,
-    lastUpdate: '2025-01-15',
+    lastUpdate: '2025-09-07',
     accreditation: 'Ministère de l\'Éducation du Cameroun - Accréditation Premium 2025',
     curriculum: 'Programme Bilingue Franco-Anglais avec IA & Signatures Numériques',
     newFeatures2025: [

@@ -10,21 +10,64 @@ interface AuthenticatedRequest extends Request {
 
 const router = Router();
 
-// Sandbox students data
+// Endpoint de statut du sandbox (nouveau)
+router.get('/status', async (req: Request, res: Response) => {
+  try {
+    const status = {
+      active: true,
+      lastUpdated: '2025-09-07',
+      version: '3.0',
+      features: [
+        'Signatures numériques bulletins',
+        'Données bilingues FR/EN',
+        'Géolocalisation temps réel', 
+        'Notifications SMS/WhatsApp',
+        'Rapports avancés'
+      ],
+      students: 45,
+      teachers: 12,
+      classes: 8,
+      environment: 'Sandbox EDUCAFRIC 2025 ✨'
+    };
+    res.json(status);
+  } catch (error: any) {
+    res.status(500).json({ message: 'Erreur statut sandbox', error: error.message });
+  }
+});
+
+// Sandbox students data - ACTUALISÉES SEPTEMBRE 2025
 router.get('/students', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const sandboxStudents = [
       {
-        id: 1, firstName: 'Marie', lastName: 'Durand', email: 'marie.durand@test.com',
-        classId: 1, className: '6ème A', gender: 'F', phone: '+237655123456'
+        id: 1, firstName: 'Marie', lastName: 'Nkomo', email: 'marie.nkomo@test.educafric.com',
+        classId: 1, className: '6ème A', gender: 'F', phone: '+237655123456',
+        grades: { math: 16.5, french: 15.2, english: 17.0 }, lastActivity: '2025-09-07',
+        status: 'Actif', parentPhone: '+237677234567'
       },
       {
-        id: 2, firstName: 'Paul', lastName: 'Martin', email: 'paul.martin@test.com',
-        classId: 1, className: '6ème A', gender: 'M', phone: '+237655123457'
+        id: 2, firstName: 'Paul', lastName: 'Atangana', email: 'paul.atangana@test.educafric.com',
+        classId: 1, className: '6ème A', gender: 'M', phone: '+237655123457',
+        grades: { math: 14.0, french: 16.8, english: 15.5 }, lastActivity: '2025-09-07',
+        status: 'Actif', parentPhone: '+237677234568'
       },
       {
-        id: 3, firstName: 'Sophie', lastName: 'Bernard', email: 'sophie.bernard@test.com',
-        classId: 2, className: '5ème B', gender: 'F', phone: '+237655123458'
+        id: 3, firstName: 'Sophie', lastName: 'Mbida', email: 'sophie.mbida@test.educafric.com',
+        classId: 2, className: '5ème B', gender: 'F', phone: '+237655123458',
+        grades: { math: 18.0, french: 17.5, english: 16.2 }, lastActivity: '2025-09-07',
+        status: 'Actif', parentPhone: '+237677234569'
+      },
+      {
+        id: 4, firstName: 'Jean', lastName: 'Kamga', email: 'jean.kamga@test.educafric.com',
+        classId: 3, className: '4ème C', gender: 'M', phone: '+237655123459',
+        grades: { math: 15.8, french: 14.5, english: 16.8 }, lastActivity: '2025-09-07',
+        status: 'Actif', parentPhone: '+237677234570'
+      },
+      {
+        id: 5, firstName: 'Grace', lastName: 'Fouda', email: 'grace.fouda@test.educafric.com',
+        classId: 4, className: '3ème D', gender: 'F', phone: '+237655123460',
+        grades: { math: 17.2, french: 18.0, english: 17.8 }, lastActivity: '2025-09-07',
+        status: 'Actif', parentPhone: '+237677234571'
       }
     ];
     res.json(sandboxStudents);
@@ -38,9 +81,26 @@ router.get('/students', requireAuth, async (req: AuthenticatedRequest, res: Resp
 router.get('/classes', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const sandboxClasses = [
-      { id: 1, name: '6ème A', level: '6ème', studentsCount: 25, teacherId: 1 },
-      { id: 2, name: '5ème B', level: '5ème', studentsCount: 28, teacherId: 2 },
-      { id: 3, name: '4ème C', level: '4ème', studentsCount: 22, teacherId: 3 }
+      { 
+        id: 1, name: '6ème A', level: '6ème', studentsCount: 28, teacherId: 1,
+        teacherName: 'Mme. Essola Catherine', room: 'Salle 105',
+        schedule: 'Lun-Mar-Jeu 08:00-12:00', lastUpdated: '2025-09-07'
+      },
+      { 
+        id: 2, name: '5ème B', level: '5ème', studentsCount: 32, teacherId: 2,
+        teacherName: 'M. Biya François', room: 'Salle 203',
+        schedule: 'Mar-Mer-Ven 09:00-13:00', lastUpdated: '2025-09-07'
+      },
+      { 
+        id: 3, name: '4ème C', level: '4ème', studentsCount: 26, teacherId: 3,
+        teacherName: 'M. Ondoa Vincent', room: 'Salle 301',
+        schedule: 'Lun-Mer-Ven 10:00-14:00', lastUpdated: '2025-09-07'
+      },
+      { 
+        id: 4, name: '3ème D', level: '3ème', studentsCount: 24, teacherId: 4,
+        teacherName: 'Mme. Nguesso Marie', room: 'Salle 102',
+        schedule: 'Mar-Jeu-Ven 08:00-12:00', lastUpdated: '2025-09-07'
+      }
     ];
     res.json(sandboxClasses);
   } catch (error: any) {
@@ -55,15 +115,28 @@ router.get('/grades', requireAuth, async (req: AuthenticatedRequest, res: Respon
     const sandboxGrades = [
       {
         id: 1, studentId: 1, subjectId: 1, subjectName: 'Mathématiques',
-        value: 15.5, maxValue: 20, date: '2024-03-15', type: 'Contrôle'
+        value: 16.5, maxValue: 20, date: '2025-09-05', type: 'Devoir Surveillé',
+        teacherId: 1, teacherName: 'Mme. Essola Catherine', term: 'Trimestre 1'
       },
       {
         id: 2, studentId: 1, subjectId: 2, subjectName: 'Français',
-        value: 17, maxValue: 20, date: '2024-03-18', type: 'Composition'
+        value: 15.2, maxValue: 20, date: '2025-09-06', type: 'Composition',
+        teacherId: 2, teacherName: 'M. Biya François', term: 'Trimestre 1'
       },
       {
         id: 3, studentId: 2, subjectId: 1, subjectName: 'Mathématiques',
-        value: 12, maxValue: 20, date: '2024-03-15', type: 'Contrôle'
+        value: 14.0, maxValue: 20, date: '2025-09-05', type: 'Devoir Surveillé',
+        teacherId: 1, teacherName: 'Mme. Essola Catherine', term: 'Trimestre 1'
+      },
+      {
+        id: 4, studentId: 3, subjectId: 1, subjectName: 'Mathématiques',
+        value: 18.0, maxValue: 20, date: '2025-09-05', type: 'Devoir Surveillé',
+        teacherId: 3, teacherName: 'M. Ondoa Vincent', term: 'Trimestre 1'
+      },
+      {
+        id: 5, studentId: 4, subjectId: 3, subjectName: 'Anglais',
+        value: 16.8, maxValue: 20, date: '2025-09-04', type: 'Expression Orale',
+        teacherId: 4, teacherName: 'Mrs. Smith Jennifer', term: 'Trimestre 1'
       }
     ];
     res.json(sandboxGrades);
@@ -78,14 +151,25 @@ router.get('/homework', requireAuth, async (req: AuthenticatedRequest, res: Resp
   try {
     const sandboxHomework = [
       {
-        id: 1, title: 'Exercices de mathématiques', description: 'Résoudre les exercices 1 à 10',
+        id: 1, title: 'Équations du premier degré', 
+        description: 'Résoudre les exercices 15 à 25 du manuel de mathématiques',
         subjectId: 1, subjectName: 'Mathématiques', classId: 1, className: '6ème A',
-        dueDate: '2024-03-25', assignedDate: '2024-03-20', teacherId: 1
+        dueDate: '2025-09-10', assignedDate: '2025-09-07', teacherId: 1,
+        teacherName: 'Mme. Essola Catherine', status: 'En cours'
       },
       {
-        id: 2, title: 'Rédaction - Description', description: 'Rédiger une description de 200 mots',
-        subjectId: 2, subjectName: 'Français', classId: 1, className: '6ème A',
-        dueDate: '2024-03-27', assignedDate: '2024-03-22', teacherId: 2
+        id: 2, title: 'Analyse de texte - Le petit prince', 
+        description: 'Analyser le chapitre 5 et répondre aux questions 1-8',
+        subjectId: 2, subjectName: 'Français', classId: 2, className: '5ème B',
+        dueDate: '2025-09-12', assignedDate: '2025-09-07', teacherId: 2,
+        teacherName: 'M. Biya François', status: 'En cours'
+      },
+      {
+        id: 3, title: 'English Grammar - Present Perfect',
+        description: 'Complete exercises on page 45-47, focus on present perfect tense',
+        subjectId: 3, subjectName: 'Anglais', classId: 3, className: '4ème C',
+        dueDate: '2025-09-11', assignedDate: '2025-09-07', teacherId: 4,
+        teacherName: 'Mrs. Smith Jennifer', status: 'En cours'
       }
     ];
     res.json(sandboxHomework);
@@ -100,12 +184,22 @@ router.get('/communications', requireAuth, async (req: AuthenticatedRequest, res
   try {
     const sandboxCommunications = [
       {
-        id: 1, title: 'Réunion parents-enseignants', content: 'La réunion aura lieu le 30 mars',
-        type: 'Annonce', priority: 'high', date: '2024-03-22', authorId: 1
+        id: 1, title: 'Nouvelle année scolaire 2025-2026', 
+        content: 'Bienvenue dans notre environnement sandbox EDUCAFRIC 2025! Nouvelles fonctionnalités: signatures numériques, géolocalisation et rapports avancés.',
+        type: 'Annonce', priority: 'high', date: '2025-09-07', authorId: 1,
+        authorName: 'Direction EDUCAFRIC', sent: true, recipients: 'Tous'
       },
       {
-        id: 2, title: 'Sortie éducative', content: 'Visite du musée national le 5 avril',
-        type: 'Information', priority: 'medium', date: '2024-03-23', authorId: 2
+        id: 2, title: 'Formation signatures numériques bulletins',
+        content: 'Les professeurs principaux peuvent maintenant signer numériquement les bulletins. Formation programmée le 15 septembre 2025.',
+        type: 'Information', priority: 'medium', date: '2025-09-07', authorId: 2,
+        authorName: 'Service Informatique', sent: true, recipients: 'Enseignants'
+      },
+      {
+        id: 3, title: 'Test notifications SMS/WhatsApp',
+        content: 'Le système de notifications multicanalvias SMS et WhatsApp est maintenant opérationnel. Test en cours sur tous les comptes sandbox.',
+        type: 'Test', priority: 'medium', date: '2025-09-07', authorId: 3,
+        authorName: 'Équipe Technique', sent: true, recipients: 'Parents'
       }
     ];
     res.json(sandboxCommunications);
@@ -120,8 +214,29 @@ router.get('/attendance', requireAuth, async (req: AuthenticatedRequest, res: Re
   try {
     const sandboxAttendance = [
       {
-        id: 1, studentId: 1, studentName: 'Marie Durand', classId: 1,
-        date: '2024-03-22', status: 'present', period: 'morning'
+        id: 1, studentId: 1, studentName: 'Marie Nkomo', classId: 1, className: '6ème A',
+        date: '2025-09-07', status: 'présent', period: 'matin',
+        arrivalTime: '07:45', teacherId: 1, teacherName: 'Mme. Essola Catherine'
+      },
+      {
+        id: 2, studentId: 2, studentName: 'Paul Atangana', classId: 1, className: '6ème A',
+        date: '2025-09-07', status: 'présent', period: 'matin',
+        arrivalTime: '08:02', teacherId: 1, teacherName: 'Mme. Essola Catherine'
+      },
+      {
+        id: 3, studentId: 3, studentName: 'Sophie Mbida', classId: 2, className: '5ème B',
+        date: '2025-09-07', status: 'présent', period: 'matin',
+        arrivalTime: '07:58', teacherId: 2, teacherName: 'M. Biya François'
+      },
+      {
+        id: 4, studentId: 4, studentName: 'Jean Kamga', classId: 3, className: '4ème C',
+        date: '2025-09-07', status: 'retard', period: 'matin',
+        arrivalTime: '08:25', teacherId: 3, teacherName: 'M. Ondoa Vincent', reason: 'Transport'
+      },
+      {
+        id: 5, studentId: 5, studentName: 'Grace Fouda', classId: 4, className: '3ème D',
+        date: '2025-09-07', status: 'présent', period: 'matin',
+        arrivalTime: '07:40', teacherId: 4, teacherName: 'Mme. Nguesso Marie'
       },
       {
         id: 2, studentId: 2, studentName: 'Paul Martin', classId: 1,
@@ -384,5 +499,85 @@ router.post('/timetable/create', requireAuth, async (req: AuthenticatedRequest, 
 router.get('/autoscale/metrics', requireAuth, autoscaleRoutes.getMetrics);
 router.post('/autoscale/refresh', requireAuth, autoscaleRoutes.forceRefresh);
 router.get('/autoscale/status', requireAuth, autoscaleRoutes.getStatus);
+
+// Nouvel endpoint: Enseignants du sandbox actualisés 2025
+router.get('/teachers', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const sandboxTeachers = [
+      {
+        id: 1, firstName: 'Catherine', lastName: 'Essola', 
+        email: 'catherine.essola@test.educafric.com',
+        subject: 'Mathématiques', phone: '+237677123456',
+        canSignBulletins: true, digitalSignatureActive: true,
+        classes: ['6ème A', '5ème A'], status: 'Actif',
+        lastActivity: '2025-09-07'
+      },
+      {
+        id: 2, firstName: 'François', lastName: 'Biya',
+        email: 'francois.biya@test.educafric.com', 
+        subject: 'Français', phone: '+237677123457',
+        canSignBulletins: true, digitalSignatureActive: true,
+        classes: ['5ème B', '4ème B'], status: 'Actif',
+        lastActivity: '2025-09-07'
+      },
+      {
+        id: 3, firstName: 'Vincent', lastName: 'Ondoa',
+        email: 'vincent.ondoa@test.educafric.com',
+        subject: 'Histoire-Géographie', phone: '+237677123458',
+        canSignBulletins: false, digitalSignatureActive: false,
+        classes: ['4ème C', '3ème C'], status: 'Actif',
+        lastActivity: '2025-09-07'
+      },
+      {
+        id: 4, firstName: 'Jennifer', lastName: 'Smith',
+        email: 'jennifer.smith@test.educafric.com',
+        subject: 'Anglais', phone: '+237677123459',
+        canSignBulletins: true, digitalSignatureActive: true,
+        classes: ['3ème D', '2nde A'], status: 'Actif',
+        lastActivity: '2025-09-07'
+      }
+    ];
+    res.json(sandboxTeachers);
+  } catch (error: any) {
+    console.error('[SANDBOX_API] Error fetching teachers:', error);
+    res.status(500).json({ message: 'Failed to fetch sandbox teachers' });
+  }
+});
+
+// Endpoint parents sandbox 2025
+router.get('/parents', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const sandboxParents = [
+      {
+        id: 1, firstName: 'Albertine', lastName: 'Nkomo',
+        email: 'albertine.nkomo@test.educafric.com',
+        phone: '+237677234567', childrenIds: [1],
+        children: ['Marie Nkomo'], status: 'Actif',
+        notifications: { sms: true, whatsapp: true, email: true },
+        lastActivity: '2025-09-07'
+      },
+      {
+        id: 2, firstName: 'Maurice', lastName: 'Atangana', 
+        email: 'maurice.atangana@test.educafric.com',
+        phone: '+237677234568', childrenIds: [2],
+        children: ['Paul Atangana'], status: 'Actif',
+        notifications: { sms: true, whatsapp: false, email: true },
+        lastActivity: '2025-09-07'
+      },
+      {
+        id: 3, firstName: 'Pascaline', lastName: 'Mbida',
+        email: 'pascaline.mbida@test.educafric.com',
+        phone: '+237677234569', childrenIds: [3],
+        children: ['Sophie Mbida'], status: 'Actif',
+        notifications: { sms: true, whatsapp: true, email: true },
+        lastActivity: '2025-09-07'
+      }
+    ];
+    res.json(sandboxParents);
+  } catch (error: any) {
+    console.error('[SANDBOX_API] Error fetching parents:', error);
+    res.status(500).json({ message: 'Failed to fetch sandbox parents' });
+  }
+});
 
 export default router;
