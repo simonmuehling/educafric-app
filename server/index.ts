@@ -50,41 +50,39 @@ app.use(performanceMiddleware);
 app.use(cacheControlMiddleware);
 app.use(memoryCleanupMiddleware);
 
-// PWA CRITICAL ROUTES - MUST BE FIRST TO AVOID MIDDLEWARE INTERFERENCE
-
-// 🚫 CRITICAL: Fix Service Worker 500 error with proper path resolution
+// Memory optimization for service worker
 app.get('/sw.js', (req, res) => {
+  // Set aggressive no-cache headers to prevent memory buildup
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Service-Worker-Allowed', '/');
+  
   try {
-    const isDev = app.get("env") === "development";
-    const swPaths = [
-      isDev ? path.resolve('public/sw.js') : path.resolve('dist/public/sw.js'),
-      path.resolve('public/sw.js'), // Fallback
-      path.resolve('dist/sw.js'), // Alternative location
-    ];
-    
-    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
-    res.setHeader('Service-Worker-Allowed', '/');
-    
-    // Find the first existing service worker file
-    const validPath = swPaths.find(swPath => fs.existsSync(swPath));
-    
-    if (validPath) {
-      res.sendFile(validPath);
+    const swPath = path.resolve('public/sw.js');
+    if (fs.existsSync(swPath)) {
+      res.sendFile(swPath);
     } else {
-      // Provide a minimal working service worker instead of 404
+      // Minimal memory-efficient service worker
       const minimalSW = `
-        // Minimal service worker for PWA compatibility
+        const CACHE_NAME = 'educafric-minimal';
         self.addEventListener('install', () => self.skipWaiting());
         self.addEventListener('activate', () => self.clients.claim());
+        self.addEventListener('fetch', (e) => {
+          if (e.request.method === 'GET' && e.request.url.includes('.html')) {
+            e.respondWith(fetch(e.request).catch(() => caches.match('/')));
+          }
+        });
       `;
       res.send(minimalSW);
     }
   } catch (error) {
-    console.error('[SW] Service Worker error:', error);
-    res.status(500).send('Service Worker error');
+    res.status(500).send('// SW Error');
   }
 });
+
+// PWA CRITICAL ROUTES - Service worker route defined above for memory optimization
 
 // Fix manifest MIME type
 app.get('/manifest.json', (req, res) => {

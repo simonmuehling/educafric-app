@@ -1,106 +1,50 @@
-// Service Worker for Educafric PWA with Low-End Device Optimization
-const CACHE_NAME = 'educafric-v2.5-lowend-optimized';
+// Lightweight Service Worker for Educafric PWA - Memory Optimized
+const CACHE_NAME = 'educafric-v3-optimized';
 
-// Détection du type d'appareil pour cache adaptatif
-const isLowEndDevice = () => {
-  // Estimation basée sur les informations disponibles
-  const memory = navigator.deviceMemory || 0;
-  const connection = navigator.connection;
-  const hardwareConcurrency = navigator.hardwareConcurrency || 1;
-  
-  return memory <= 2 || 
-         hardwareConcurrency <= 4 || 
-         (connection && (connection.effectiveType === '2g' || connection.effectiveType === '3g'));
-};
-
-// Cache adaptatif selon l'appareil
-const urlsToCache = isLowEndDevice() ? [
-  // Cache minimal pour appareils bas de gamme
+// Minimal cache to reduce memory usage
+const urlsToCache = [
   '/',
   '/manifest.json',
   '/educafric-logo-128.png'
-] : [
-  // Cache complet pour appareils standards
-  '/',
-  '/manifest.json',
-  '/offline.html',
-  '/educafric-logo-128.png',
-  '/educafric-logo-512.png',
-  '/android-chrome-192x192.png',
-  '/android-chrome-512x512.png',
-  '/favicon.ico'
 ];
 
-// Limite de taille du cache selon l'appareil
-const MAX_CACHE_SIZE = isLowEndDevice() ? 5 : 20; // 5MB vs 20MB
-
-// Fonction de nettoyage automatique du cache
-const cleanupCache = async () => {
-  const cache = await caches.open(CACHE_NAME);
-  const requests = await cache.keys();
-  
-  // Pour appareils bas de gamme, garder seulement les fichiers essentiels
-  if (isLowEndDevice() && requests.length > 10) {
-    const toDelete = requests.slice(10); // Garder les 10 premiers
-    await Promise.all(toDelete.map(request => cache.delete(request)));
-    console.log(`[SW] Cache nettoyé: ${toDelete.length} fichiers supprimés`);
+// Simple device check (cached result to avoid repeated calculations)
+let isLowEnd = null;
+const checkDeviceOnce = () => {
+  if (isLowEnd === null) {
+    const memory = navigator.deviceMemory || 1;
+    isLowEnd = memory <= 2;
   }
+  return isLowEnd;
 };
 
-// Install event avec gestion adaptative
+// Lightweight install event
 self.addEventListener('install', (event) => {
-  const deviceType = isLowEndDevice() ? 'bas-gamme' : 'standard';
-  console.log(`[SW] Installation SW pour appareil ${deviceType}`);
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(async (cache) => {
-        console.log(`[SW] Cache ouvert - Mode: ${deviceType}`);
-        
-        // Nettoyage préventif pour appareils bas de gamme
-        if (isLowEndDevice()) {
-          await cleanupCache();
-        }
-        
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        console.log('[SW] Installation terminée');
-        self.skipWaiting();
-      })
-      .catch((error) => {
-        console.warn('[SW] Erreur installation:', error);
-        // Installation minimale en cas d'erreur
-        return caches.open(CACHE_NAME).then(cache => {
-          return cache.addAll(['/']);
-        });
+      .then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
+      .catch(() => {
+        // Minimal fallback cache on error
+        return caches.open(CACHE_NAME).then(cache => cache.addAll(['/']));
       })
   );
 });
 
-// Activate event avec nettoyage intelligent
+// Lightweight activate event
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activation service worker');
-  
   event.waitUntil(
-    Promise.all([
-      // Supprimer les anciens caches
-      caches.keys().then((cacheNames) => {
+    caches.keys()
+      .then(cacheNames => {
         return Promise.all(
-          cacheNames.map((cacheName) => {
+          cacheNames.map(cacheName => {
             if (cacheName !== CACHE_NAME) {
-              console.log('[SW] Suppression ancien cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
-      }),
-      // Nettoyage adaptatif pour appareils bas de gamme
-      isLowEndDevice() ? cleanupCache() : Promise.resolve()
-    ]).then(() => {
-      console.log('[SW] Activation terminée');
-      return self.clients.claim();
-    })
+      })
+      .then(() => self.clients.claim())
   );
 });
 
