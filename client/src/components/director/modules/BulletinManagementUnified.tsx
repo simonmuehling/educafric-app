@@ -280,7 +280,7 @@ export default function BulletinManagementUnified() {
   };
 
   // Gestion de la sélection d'élève
-  const handleStudentSelection = (studentId: string) => {
+  const handleStudentSelection = async (studentId: string) => {
     setSelectedStudentId(studentId);
     
     if (studentId) {
@@ -296,7 +296,86 @@ export default function BulletinManagementUnified() {
           studentNumber: selectedStudent.studentNumber || selectedStudent.matricule || '',
           studentPhoto: selectedStudent.photoUrl || '',
         }));
+        
+        // 🎯 IMPORTATION AUTOMATIQUE dès qu'on a élève + classe + trimestre
+        if (selectedClassId && formData.term) {
+          await triggerAutoImport(studentId, selectedClassId, formData.term);
+        }
       }
+    }
+  };
+
+  // Fonction d'importation automatique déclenchée à la sélection
+  const triggerAutoImport = async (studentId: string, classId: string, term: string) => {
+    try {
+      console.log('[AUTO_IMPORT] 🎯 Déclenchement importation pour:', { studentId, classId, term });
+      
+      // Mapper le trimestre vers le format API
+      const termMapping = {
+        'Premier Trimestre': 'T1',
+        'Deuxième Trimestre': 'T2', 
+        'Troisième Trimestre': 'T3'
+      };
+      
+      const apiTerm = termMapping[term as keyof typeof termMapping] || 'T1';
+      
+      // Appeler l'API d'importation
+      const response = await fetch('/api/bulletins/import-grades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId,
+          classId,
+          term: apiTerm,
+          academicYear: formData.academicYear
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[AUTO_IMPORT] ✅ Importation réussie:', data);
+        
+        if (data.success && data.data.termAverage) {
+          // Pré-remplir la moyenne calculée automatiquement
+          setFormData(prev => ({
+            ...prev,
+            generalAverage: data.data.termAverage
+          }));
+          
+          toast({
+            title: "🎯 Notes importées automatiquement",
+            description: `${term}: Moyenne calculée ${data.data.termAverage}/20 selon la classe ${classId}`,
+          });
+        } else {
+          toast({
+            title: "ℹ️ Saisie manuelle requise",
+            description: "Aucune note trouvée pour cette combinaison élève/classe/trimestre",
+          });
+        }
+      } else {
+        console.log('[AUTO_IMPORT] ⚠️ Pas de notes disponibles');
+        toast({
+          title: "📝 Saisie manuelle",
+          description: "Aucune note importée - Veuillez saisir manuellement",
+        });
+      }
+    } catch (error) {
+      console.error('[AUTO_IMPORT] ❌ Erreur:', error);
+      toast({
+        title: "⚠️ Erreur d'importation",
+        description: "Problème lors de l'importation automatique",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Gestion du changement de trimestre
+  const handleTermSelection = async (term: string) => {
+    setFormData(prev => ({ ...prev, term }));
+    
+    // Si on a déjà sélectionné un élève et une classe, relancer l'importation
+    if (selectedStudentId && selectedClassId) {
+      await triggerAutoImport(selectedStudentId, selectedClassId, term);
     }
   };
 
@@ -1465,7 +1544,7 @@ export default function BulletinManagementUnified() {
                     <Label>Trimestre</Label>
                     <Select
                       value={formData.term}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, term: value }))}
+                      onValueChange={handleTermSelection}
                     >
                       <SelectTrigger>
                         <SelectValue />
