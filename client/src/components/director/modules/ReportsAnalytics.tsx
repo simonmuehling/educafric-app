@@ -437,7 +437,7 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
       const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 15;
+      const margin = 20; // Increased margin for better readability
       let yPosition = margin;
 
       // Header - République du Cameroun - Enhanced
@@ -518,27 +518,27 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
       pdf.text(`TAUX DE RÉUSSITE: ${Math.round(70 + Math.random() * 25)}%`, margin + 80, yPosition);
       yPosition += 8;
 
-      // Enhanced Table headers
+      // Enhanced Table headers with improved column widths
       const headers = ['N°', 'Nom & Prénom', 'Matricule', 'Moy/20', 'Rang', 'Conduite', 'Français', 'Maths', 'Anglais', 'Observations'];
-      const colWidths = [12, 35, 20, 15, 12, 15, 15, 15, 15, 36];
+      const colWidths = [15, 45, 25, 18, 15, 18, 18, 18, 18, 50]; // Wider columns for better readability
       let xPos = margin;
 
-      pdf.setFontSize(10);
+      pdf.setFontSize(11); // Increased font size for better readability
       pdf.setFont('helvetica', 'bold');
       
-      // Draw header row
+      // Draw header row with more height
       pdf.setFillColor(230, 230, 230);
-      pdf.rect(margin, yPosition, pageWidth - 2*margin, 8, 'F');
+      pdf.rect(margin, yPosition, pageWidth - 2*margin, 10, 'F'); // Increased height
       
       for (let i = 0; i < headers.length; i++) {
-        pdf.text(headers[i], xPos + colWidths[i]/2, yPosition + 5, { align: 'center' });
+        pdf.text(headers[i], xPos + colWidths[i]/2, yPosition + 6, { align: 'center' });
         xPos += colWidths[i];
       }
-      yPosition += 8;
+      yPosition += 10;
 
-      // Student data
+      // Student data with improved font size
       pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(9);
+      pdf.setFontSize(10); // Increased from 9 to 10 for better readability
       
       filteredStudents.forEach((student: any, index: number) => {
         if (yPosition > 250) { // New page if needed
@@ -547,21 +547,21 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
         }
         
         xPos = margin;
-        const rowY = yPosition + 6;
+        const rowY = yPosition + 7; // Increased row height
         
-        // Alternating row colors
+        // Alternating row colors with better height
         if (index % 2 === 0) {
           pdf.setFillColor(248, 248, 248);
-          pdf.rect(margin, yPosition, pageWidth - 2*margin, 6, 'F');
+          pdf.rect(margin, yPosition, pageWidth - 2*margin, 8, 'F'); // Increased height
         }
         
         // Student number
         pdf.text(`${index + 1}`, xPos + colWidths[0]/2, rowY, { align: 'center' });
         xPos += colWidths[0];
         
-        // Student name
+        // Student name - no truncation with wider column
         const studentName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
-        pdf.text(studentName.substring(0, 20), xPos + 1, rowY);
+        pdf.text(studentName.substring(0, 30), xPos + 2, rowY); // Increased character limit and padding
         xPos += colWidths[1];
         
         // Matricule
@@ -600,12 +600,12 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
         pdf.text(englishGrade, xPos + colWidths[8]/2, rowY, { align: 'center' });
         xPos += colWidths[8];
         
-        // Observations détaillées
+        // Observations détaillées - no truncation with wider column
         const observations = ['Excellent travail', 'Très bon élève', 'Peut mieux faire', 'À encourager', 'Travail régulier', 'Doit fournir plus d\'efforts'];
         const observation = observations[Math.floor(Math.random() * observations.length)];
-        pdf.text(observation.substring(0, 18), xPos + 1, rowY);
+        pdf.text(observation, xPos + 2, rowY); // No truncation, full text with padding
         
-        yPosition += 6;
+        yPosition += 8; // Increased row spacing
       });
 
       // Enhanced Summary with statistics
@@ -643,46 +643,17 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
       yPosition += 5;
       pdf.setFont('helvetica', 'normal');
       pdf.text('Classe globalement sérieuse. Bon niveau général en Français et Mathématiques.', margin + 5, yPosition);
-      yPosition += 4;
+      yPosition += 5; // Better spacing
       pdf.text('Efforts à fournir en Anglais. Comportement exemplaire de la majorité des élèves.', margin + 5, yPosition);
       
-      // New page if needed for signatures
-      if (yPosition > 230) {
-        pdf.addPage();
-        yPosition = margin + 20;
-      } else {
-        yPosition += 20;
-      }
+      // Enhanced footer without signatures - just system info
+      yPosition += 25; // More space before footer
       
-      // Enhanced Footer with signatures and validation
+      // Footer info - simplified without signatures
       pdf.setDrawColor(0, 0, 0);
       pdf.setLineWidth(0.5);
       pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
-      
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(11);
-      pdf.text('SIGNATURES ET VALIDATION', margin, yPosition);
       yPosition += 15;
-      
-      // Signature boxes
-      const signatureWidth = 60;
-      const signatureHeight = 30;
-      
-      // Directeur signature
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(10);
-      pdf.text('Le Directeur', margin + 20, yPosition);
-      pdf.rect(margin, yPosition + 5, signatureWidth, signatureHeight);
-      pdf.text('Date: ___________', margin + 5, yPosition + signatureHeight + 10);
-      
-      // Professeur Principal signature  
-      pdf.text('Le Professeur Principal', pageWidth - margin - signatureWidth + 5, yPosition);
-      pdf.rect(pageWidth - margin - signatureWidth, yPosition + 5, signatureWidth, signatureHeight);
-      pdf.text('Date: ___________', pageWidth - margin - signatureWidth + 5, yPosition + signatureHeight + 10);
-      
-      // Footer info
-      yPosition += signatureHeight + 20;
       pdf.setFontSize(8);
       pdf.setFont('helvetica', 'italic');
       pdf.text(`Document généré par EDUCAFRIC le ${new Date().toLocaleString('fr-FR')}`, pageWidth / 2, yPosition, { align: 'center' });
