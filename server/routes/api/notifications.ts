@@ -69,6 +69,117 @@ router.delete('/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Send attendance notification to parent and student
+router.post('/attendance', async (req: Request, res: Response) => {
+  try {
+    const { studentId, studentName, status, date, className, message, parentEmail, parentPhone, timestamp } = req.body;
+    
+    console.log('[ATTENDANCE_NOTIFICATION] Processing notification for:', { studentName, status, className });
+
+    // Create notification for the student (if they have an account)
+    if (studentId) {
+      try {
+        await storage.createNotification({
+          userId: studentId,
+          title: status === 'absent' ? 'Absence enregistrée' : 'Retard enregistré',
+          message: message,
+          type: 'attendance',
+          priority: 'medium',
+          metadata: {
+            status,
+            date,
+            className,
+            timestamp
+          }
+        });
+        console.log('[ATTENDANCE_NOTIFICATION] ✅ Student notification created');
+      } catch (error) {
+        console.error('[ATTENDANCE_NOTIFICATION] ❌ Failed to create student notification:', error);
+      }
+    }
+
+    // Send notification to parent via SMS/Email (if contact info available)
+    let parentNotified = false;
+    if (parentPhone || parentEmail) {
+      try {
+        // Send via SMS if phone number is available
+        if (parentPhone) {
+          const smsResponse = await fetch('/api/sms/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: parentPhone,
+              message: `EDUCAFRIC: ${message}. Classe: ${className}. Date: ${date}`,
+              type: 'attendance_notification'
+            }),
+          });
+          
+          if (smsResponse.ok) {
+            parentNotified = true;
+            console.log('[ATTENDANCE_NOTIFICATION] ✅ SMS sent to parent:', parentPhone);
+          } else {
+            console.log('[ATTENDANCE_NOTIFICATION] ⚠️ SMS failed, trying email...');
+          }
+        }
+
+        // Send via email if SMS failed or no phone
+        if (!parentNotified && parentEmail) {
+          const emailResponse = await fetch('/api/email/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: parentEmail,
+              subject: `EDUCAFRIC: ${status === 'absent' ? 'Absence' : 'Retard'} - ${studentName}`,
+              text: `${message}\n\nClasse: ${className}\nDate: ${date}\n\nCordialement,\nL'équipe EDUCAFRIC`,
+              html: `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                  <h2 style="color: #2563eb;">EDUCAFRIC - Notification de présence</h2>
+                  <p><strong>${message}</strong></p>
+                  <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>Élève:</strong> ${studentName}</p>
+                    <p><strong>Classe:</strong> ${className}</p>
+                    <p><strong>Date:</strong> ${date}</p>
+                    <p><strong>Statut:</strong> ${status === 'absent' ? 'Absent(e)' : 'En retard'}</p>
+                  </div>
+                  <p>Cordialement,<br>L'équipe EDUCAFRIC</p>
+                </div>
+              `,
+              type: 'attendance_notification'
+            }),
+          });
+          
+          if (emailResponse.ok) {
+            parentNotified = true;
+            console.log('[ATTENDANCE_NOTIFICATION] ✅ Email sent to parent:', parentEmail);
+          }
+        }
+      } catch (error) {
+        console.error('[ATTENDANCE_NOTIFICATION] ❌ Error sending parent notification:', error);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Attendance notification processed',
+      studentNotified: !!studentId,
+      parentNotified,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error: any) {
+    console.error('[ATTENDANCE_NOTIFICATION] Error processing attendance notification:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to process attendance notification',
+      error: error.message 
+    });
+  }
+});
+
 // Create a new notification
 router.post('/', async (req: Request, res: Response) => {
   try {

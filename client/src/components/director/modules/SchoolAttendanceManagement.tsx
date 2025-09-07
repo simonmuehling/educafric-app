@@ -164,7 +164,7 @@ const SchoolAttendanceManagement = () => {
       value: absentCount.toString(),
       icon: <XCircle className="w-5 h-5" />,
       trend: { value: 1, isPositive: false },
-      gradient: 'pink' as const
+      gradient: 'red' as const
     },
     {
       title: t.lateArrivals,
@@ -183,6 +183,7 @@ const SchoolAttendanceManagement = () => {
   ];
 
   const handleMarkAttendance = (studentId: number, status: string) => {
+    const student = students.find((s: any) => s.id === studentId);
     const attendanceRecord = {
       studentId,
       classId: parseInt(selectedClass),
@@ -193,7 +194,62 @@ const SchoolAttendanceManagement = () => {
       timestamp: new Date()
     };
 
+    // Send notification to parent and student if status is absent or late
+    if (status === 'absent' || status === 'late') {
+      sendAttendanceNotification(student, status);
+    }
+
     markAttendanceMutation.mutate(attendanceRecord);
+  };
+
+  // Function to send attendance notifications
+  const sendAttendanceNotification = async (student: any, status: string) => {
+    try {
+      const notificationData = {
+        studentId: student.id,
+        studentName: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        status: status,
+        date: selectedDate,
+        className: classes.find((c: any) => c.id.toString() === selectedClass)?.name,
+        message: status === 'absent' 
+          ? `${student.firstName || 'Votre enfant'} est marqué(e) absent(e) aujourd'hui`
+          : `${student.firstName || 'Votre enfant'} est arrivé(e) en retard aujourd'hui`,
+        parentEmail: student.parentEmail,
+        parentPhone: student.parentPhone,
+        timestamp: new Date()
+      };
+
+      // Send notification via API
+      const response = await fetch('/api/notifications/attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(notificationData),
+      });
+
+      if (response.ok) {
+        toast({
+          title: language === 'fr' ? '📱 Notification envoyée' : '📱 Notification Sent',
+          description: language === 'fr' 
+            ? `Parent et élève notifiés pour ${status === 'absent' ? 'absence' : 'retard'}`
+            : `Parent and student notified for ${status}`
+        });
+      } else {
+        console.warn('Failed to send notification:', await response.text());
+        toast({
+          title: language === 'fr' ? '⚠️ Notification partiellement envoyée' : '⚠️ Notification Partially Sent',
+          description: language === 'fr' 
+            ? 'Présence marquée mais notification peut avoir échoué'
+            : 'Attendance marked but notification may have failed',
+          variant: 'default'
+        });
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      // Don't show error toast to avoid spamming, just log it
+    }
   };
 
   const getStatusColor = (status: string) => {
