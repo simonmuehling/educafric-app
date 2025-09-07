@@ -407,19 +407,26 @@ export default function BulletinManagementUnified() {
         body: JSON.stringify(bulletinData)
       });
 
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
         toast({
-          title: "Succès",
+          title: "✅ Succès",
           description: "Bulletin modulable créé avec succès",
         });
         
-        // Générer et ouvrir le PDF
-        const pdfUrl = `/api/bulletins/bulletins/${result.id}/pdf`;
-        window.open(pdfUrl, '_blank');
+        // Utiliser l'URL de téléchargement fournie par le serveur
+        if (result.downloadUrl) {
+          window.open(result.downloadUrl, '_blank');
+        } else if (result.bulletinId) {
+          // Fallback avec l'ID du bulletin
+          window.open(`/api/bulletins/${result.bulletinId}/download-pdf`, '_blank');
+        }
         
         // Recharger les bulletins
         await loadPendingBulletins();
+      } else {
+        throw new Error(result.message || 'Erreur lors de la création du bulletin');
       }
     } catch (error) {
       console.error('Erreur création bulletin:', error);
@@ -835,14 +842,57 @@ export default function BulletinManagementUnified() {
               </CardContent>
             </Card>
 
-            {/* Informations École Auto-chargées */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <School className="mr-2 h-5 w-5 text-blue-600" />
-                  Informations École (Auto-chargées)
-                </CardTitle>
-              </CardHeader>
+            {/* En-tête Officiel Cameroun */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-red-200 bg-red-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-red-800">
+                    🇨🇲 En-tête Officiel Cameroun
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Délégation Régionale</Label>
+                    <Select
+                      value={formData.regionalDelegation}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, regionalDelegation: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DU CENTRE">DU CENTRE</SelectItem>
+                        <SelectItem value="DU LITTORAL">DU LITTORAL</SelectItem>
+                        <SelectItem value="DE L'OUEST">DE L'OUEST</SelectItem>
+                        <SelectItem value="DU NORD">DU NORD</SelectItem>
+                        <SelectItem value="DE L'ADAMAOUA">DE L'ADAMAOUA</SelectItem>
+                        <SelectItem value="DE L'EST">DE L'EST</SelectItem>
+                        <SelectItem value="DU SUD">DU SUD</SelectItem>
+                        <SelectItem value="DU SUD-OUEST">DU SUD-OUEST</SelectItem>
+                        <SelectItem value="DU NORD-OUEST">DU NORD-OUEST</SelectItem>
+                        <SelectItem value="DE L'EXTRÊME-NORD">DE L'EXTRÊME-NORD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Délégation Départementale</Label>
+                    <Input 
+                      value={formData.departmentalDelegation}
+                      onChange={(e) => setFormData(prev => ({ ...prev, departmentalDelegation: e.target.value }))}
+                      placeholder="Ex: DU MFOUNDI"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Informations École */}
+              <Card className="border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-blue-800">
+                    <School className="mr-2 h-5 w-5" />
+                    Informations École
+                  </CardTitle>
+                </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label>Nom de l'École</Label>
@@ -862,6 +912,7 @@ export default function BulletinManagementUnified() {
                 </div>
               </CardContent>
             </Card>
+            </div>
 
             {/* Informations Élève */}
             {selectedStudentId && (
