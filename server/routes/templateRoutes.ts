@@ -97,6 +97,109 @@ router.get('/bulletin/preview', (req, res) => {
   res.send(htmlTemplate);
 });
 
+// Route POST pour prévisualiser le bulletin avec données personnalisées en temps réel
+router.post('/bulletin/preview-custom', (req, res) => {
+  try {
+    const { schoolData, studentData, academicData, grades, evaluations, language = 'fr', termSpecificData } = req.body;
+
+    console.log('[BULLETIN_PREVIEW_CUSTOM] 📋 Generating preview with custom data');
+    console.log('[BULLETIN_PREVIEW_CUSTOM] Term:', academicData?.term, 'Student:', studentData?.firstName, studentData?.lastName);
+
+    // Construire les données du bulletin à partir des données du formulaire
+    const bulletinData: BulletinTemplateData = {
+      schoolInfo: {
+        schoolName: schoolData?.name || "École Non Configurée",
+        address: schoolData?.address || "Adresse non renseignée",
+        city: "Ville",
+        phoneNumber: schoolData?.phone || "Téléphone non renseigné",
+        email: schoolData?.email || "email@non-renseigne.com",
+        directorName: schoolData?.director || "Directeur non renseigné",
+        academicYear: academicData?.academicYear || "2024-2025",
+        regionalDelegation: schoolData?.regionalDelegation || "DU CENTRE",
+        departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI"
+      },
+      student: {
+        firstName: studentData?.firstName || "Prénom",
+        lastName: studentData?.lastName || "Nom",
+        birthDate: studentData?.birthDate || "Date non renseignée",
+        birthPlace: studentData?.birthPlace || "Lieu non renseigné",
+        gender: studentData?.gender || "Non précisé",
+        className: academicData?.className || "Classe non précisée",
+        studentNumber: studentData?.studentNumber || "Numéro étudiant",
+        photo: studentData?.photo
+      },
+      period: `${academicData?.term || 'Trimestre'} ${academicData?.academicYear || '2024-2025'}`,
+      subjects: [
+        // Matières générales
+        ...(grades?.general?.map((subject: any) => ({
+          name: subject.name,
+          grade: subject.grade,
+          maxGrade: 20,
+          coefficient: subject.coefficient || 1,
+          comments: subject.comments || "Pas de commentaire",
+          teacherName: subject.teacherName || "Enseignant"
+        })) || []),
+        // Matières professionnelles
+        ...(grades?.professional?.map((subject: any) => ({
+          name: subject.name,
+          grade: subject.grade,
+          maxGrade: 20,
+          coefficient: subject.coefficient || 1,
+          comments: subject.comments || "Pas de commentaire",
+          teacherName: subject.teacherName || "Enseignant"
+        })) || []),
+        // Autres matières
+        ...(grades?.others?.map((subject: any) => ({
+          name: subject.name,
+          grade: subject.grade,
+          maxGrade: 20,
+          coefficient: subject.coefficient || 1,
+          comments: subject.comments || "Pas de commentaire",
+          teacherName: subject.teacherName || "Enseignant"
+        })) || [])
+      ],
+      generalAverage: evaluations?.generalAverage || termSpecificData?.generalAverage || 0,
+      classRank: evaluations?.classRank || termSpecificData?.classRank || 1,
+      totalStudents: evaluations?.totalStudents || termSpecificData?.totalStudents || academicData?.enrollment || 30,
+      conduct: evaluations?.conductAppreciation || termSpecificData?.conductAppreciation || "Bien",
+      conductGrade: 16, // Note par défaut pour la conduite
+      absences: 0, // À implémenter plus tard
+      teacherComments: evaluations?.generalAppreciation || termSpecificData?.generalAppreciation || "En cours de saisie...",
+      directorComments: termSpecificData?.nextTermAdvice || "Commentaire du directeur en cours...",
+      verificationCode: `EDU2024-${studentData?.lastName?.substr(0,3)?.toUpperCase() || 'XXX'}-PREV-${Date.now().toString().substr(-6)}`,
+      // Informations spécifiques au trimestre
+      termType: termSpecificData?.termType,
+      evaluationPeriod: termSpecificData?.evaluationPeriod,
+      finalDecision: termSpecificData?.finalDecision,
+      isPromoted: termSpecificData?.isPromoted,
+      canPromote: termSpecificData?.canPromote
+    };
+
+    // Ajouter des matières d'exemple si aucune n'est fournie
+    if (!bulletinData.subjects.length) {
+      bulletinData.subjects = [
+        { name: "Mathématiques", grade: 0, maxGrade: 20, coefficient: 4, comments: "À saisir", teacherName: "Enseignant" },
+        { name: "Français", grade: 0, maxGrade: 20, coefficient: 4, comments: "À saisir", teacherName: "Enseignant" },
+        { name: "Anglais", grade: 0, maxGrade: 20, coefficient: 3, comments: "À saisir", teacherName: "Enseignant" }
+      ];
+    }
+
+    const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(bulletinData, language);
+    
+    console.log('[BULLETIN_PREVIEW_CUSTOM] ✅ Custom preview generated successfully');
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(htmlTemplate);
+
+  } catch (error) {
+    console.error('[BULLETIN_PREVIEW_CUSTOM] ❌ Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate custom preview', 
+      details: error instanceof Error ? error.message : 'Erreur inconnue'
+    });
+  }
+});
+
 // Route pour prévisualiser un template de rapport
 router.get('/report/preview', (req, res) => {
   const language = req.query.language as 'fr' | 'en' || 'fr';
