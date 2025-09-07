@@ -697,6 +697,29 @@ export default function BulletinManagementUnified() {
       };
 
       console.log('[PREVIEW_BULLETIN] 📋 Sending preview data:', previewData);
+      console.log('[PREVIEW_BULLETIN] 🔍 Notes importées disponibles:', importedGrades);
+      console.log('[PREVIEW_BULLETIN] 📚 Notes générales à envoyer:', previewData.grades.general);
+      
+      // Vérification critique : s'assurer que les notes sont bien présentes
+      if (!importedGrades) {
+        console.error('[PREVIEW_BULLETIN] ❌ PROBLÈME: Pas de notes importées disponibles');
+        toast({
+          title: "⚠️ Notes manquantes",
+          description: "Impossible de générer l'aperçu car les notes de l'élève ne sont pas importées. Veuillez d'abord sélectionner un élève et attendre l'importation automatique.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!previewData.grades.general || previewData.grades.general.length === 0) {
+        console.error('[PREVIEW_BULLETIN] ❌ PROBLÈME: Aucune note générale dans les données d\'aperçu');
+        toast({
+          title: "⚠️ Données incomplètes",
+          description: "Impossible de générer l'aperçu car aucune note n'a été trouvée pour cet élève.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Créer un formulaire pour POST vers l'aperçu
       const form = document.createElement('form');
@@ -891,6 +914,15 @@ export default function BulletinManagementUnified() {
       };
 
       console.log('[BULLETIN_CREATE] Données du bulletin:', bulletinData);
+      console.log('[BULLETIN_CREATE] 🔍 Notes importées utilisées:', importedGrades);
+      console.log('[BULLETIN_CREATE] 📚 Notes générales envoyées:', bulletinData.grades.general);
+      
+      // Vérification critique : s'assurer que les notes sont bien présentes
+      if (!importedGrades) {
+        console.error('[BULLETIN_CREATE] ⚠️ ATTENTION: Création sans notes importées - mode manuel');
+      } else {
+        console.log('[BULLETIN_CREATE] ✅ Utilisation des notes importées avec moyenne:', importedGrades.termAverage);
+      }
 
       const response = await fetch('/api/bulletins/create', {
         method: 'POST',
