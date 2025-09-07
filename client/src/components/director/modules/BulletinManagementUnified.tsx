@@ -636,6 +636,74 @@ export default function BulletinManagementUnified() {
       
       console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId, 'trimestre:', formData.term);
 
+      // 🎯 IMPORTATION AUTOMATIQUE DES NOTES selon la classe
+      console.log('[BULLETIN_AUTO_IMPORT] Démarrage importation automatique...');
+      
+      try {
+        // Mapper le trimestre vers le format API
+        const termMapping = {
+          'Premier Trimestre': 'T1',
+          'Deuxième Trimestre': 'T2', 
+          'Troisième Trimestre': 'T3'
+        };
+        
+        const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+        
+        // Appeler la nouvelle route d'importation automatique
+        const importResponse = await fetch('/api/bulletins/create-with-import', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            studentId: selectedStudentId,
+            classId: selectedClassId,
+            term: apiTerm,
+            academicYear: formData.academicYear,
+            language: formData.language || 'fr'
+          }),
+        });
+
+        if (importResponse.ok) {
+          const importData = await importResponse.json();
+          console.log('[BULLETIN_AUTO_IMPORT] ✅ Import réussi:', importData);
+          
+          // Pré-remplir le formulaire avec les données importées
+          if (importData.success && importData.data) {
+            const { calculatedData, importedGrades } = importData.data;
+            
+            // Mettre à jour la moyenne générale calculée automatiquement
+            if (calculatedData.termAverages[apiTerm]) {
+              setFormData(prev => ({
+                ...prev,
+                generalAverage: calculatedData.termAverages[apiTerm]
+              }));
+              
+              console.log('[BULLETIN_AUTO_IMPORT] ✅ Moyenne automatique:', calculatedData.termAverages[apiTerm]);
+            }
+            
+            // Afficher un message de succès avec les détails
+            toast({
+              title: "🎯 Importation automatique réussie",
+              description: `Notes importées pour ${formData.term}. Moyenne calculée: ${calculatedData.termAverages[apiTerm] || 'N/A'}/20`,
+            });
+          }
+        } else {
+          console.log('[BULLETIN_AUTO_IMPORT] ⚠️ Pas de notes à importer pour cette classe/trimestre');
+          toast({
+            title: "ℹ️ Saisie manuelle requise",
+            description: "Aucune note trouvée pour cette classe. Veuillez saisir manuellement.",
+          });
+        }
+      } catch (importError) {
+        console.error('[BULLETIN_AUTO_IMPORT] ❌ Erreur importation:', importError);
+        toast({
+          title: "⚠️ Importation partielle",
+          description: "Notes non trouvées - Saisie manuelle nécessaire",
+          variant: "destructive",
+        });
+      }
+
       // Logique spécifique par trimestre
       const getTermSpecificData = () => {
         const baseData = {
