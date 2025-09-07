@@ -754,78 +754,26 @@ export default function BulletinManagementUnified() {
       
       console.log('[BULLETIN_CREATE] Création du bulletin pour élève:', selectedStudentId, 'classe:', selectedClassId, 'trimestre:', formData.term);
 
-      // 🎯 IMPORTATION AUTOMATIQUE DES NOTES selon la classe
-      console.log('[BULLETIN_AUTO_IMPORT] Démarrage importation automatique...');
-      
-      try {
-        // Mapper le trimestre vers le format API
-        const termMapping = {
-          'Premier Trimestre': 'T1',
-          'Deuxième Trimestre': 'T2', 
-          'Troisième Trimestre': 'T3'
-        };
-        
-        const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
-        
-        // Appeler la nouvelle route d'importation automatique
-        const importResponse = await fetch('/api/bulletins/create-with-import', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            studentId: selectedStudentId,
-            classId: selectedClassId,
-            term: apiTerm,
-            academicYear: formData.academicYear,
-            language: formData.language || 'fr'
-          }),
-        });
-
-        if (importResponse.ok) {
-          const importData = await importResponse.json();
-          console.log('[BULLETIN_AUTO_IMPORT] ✅ Import réussi:', importData);
-          
-          // Pré-remplir le formulaire avec les données importées
-          if (importData.success && importData.data) {
-            const { calculatedData, importedGrades } = importData.data;
-            
-            // Mettre à jour la moyenne générale calculée automatiquement
-            if (calculatedData.termAverages[apiTerm]) {
-              setFormData(prev => ({
-                ...prev,
-                generalAverage: calculatedData.termAverages[apiTerm]
-              }));
-              
-              console.log('[BULLETIN_AUTO_IMPORT] ✅ Moyenne automatique:', calculatedData.termAverages[apiTerm]);
-            }
-            
-            // Afficher un message de succès avec les détails
-            toast({
-              title: "🎯 Importation automatique réussie",
-              description: `Notes importées pour ${formData.term}. Moyenne calculée: ${calculatedData.termAverages[apiTerm] || 'N/A'}/20`,
-            });
-          }
-        } else {
-          console.log('[BULLETIN_AUTO_IMPORT] ⚠️ Pas de notes à importer pour cette classe/trimestre');
-          toast({
-            title: "ℹ️ Saisie manuelle requise",
-            description: "Aucune note trouvée pour cette classe. Veuillez saisir manuellement.",
-          });
-        }
-      } catch (importError) {
-        console.error('[BULLETIN_AUTO_IMPORT] ❌ Erreur importation:', importError);
+      // Les données sont déjà importées automatiquement via importedGrades
+      if (importedGrades) {
+        console.log('[BULLETIN_CREATE] Utilisation des notes importées:', importedGrades);
         toast({
-          title: "⚠️ Importation partielle",
-          description: "Notes non trouvées - Saisie manuelle nécessaire",
-          variant: "destructive",
+          title: "🎯 Utilisation des notes importées",
+          description: `Création avec moyenne ${importedGrades.termAverage}/20 - ${Object.keys(importedGrades.termGrades).length} matières`,
+        });
+      } else {
+        console.log('[BULLETIN_CREATE] Mode saisie manuelle');
+        toast({
+          title: "📝 Mode saisie manuelle", 
+          description: "Création du bulletin avec les données saisies manuellement",
         });
       }
 
       // Logique spécifique par trimestre
       const getTermSpecificData = () => {
         const baseData = {
-          generalAverage: formData.generalAverage,
+          // Utiliser la moyenne importée automatiquement si disponible
+          generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
           classRank: formData.classRank,
           totalStudents: formData.totalStudents,
           workAppreciation: formData.workAppreciation,
@@ -911,7 +859,29 @@ export default function BulletinManagementUnified() {
           term: formData.term,
           enrollment: formData.enrollment
         },
-        grades: {
+        grades: importedGrades ? {
+          // Utiliser les notes importées automatiquement
+          general: Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => ({
+            name: subject === 'MATH' ? 'Mathématiques' :
+                  subject === 'PHYS' ? 'Physique' :
+                  subject === 'CHIM' ? 'Chimie' :
+                  subject === 'BIO' ? 'Biologie' :
+                  subject === 'FRANC' ? 'Français' :
+                  subject === 'ANG' ? 'Anglais' :
+                  subject === 'HIST' ? 'Histoire' :
+                  subject === 'GEO' ? 'Géographie' : subject,
+            t1Grade: grades.CC || 0,
+            t2Grade: grades.EXAM || 0,
+            coefficient: 2,
+            average: ((grades.CC + grades.EXAM) / 2) || 0,
+            teacherComment: grades.CC >= 18 ? 'Excellent travail' :
+                           grades.CC >= 15 ? 'Très bien' :
+                           grades.CC >= 12 ? 'Bien' :
+                           grades.CC >= 10 ? 'Assez bien' : 'Doit faire des efforts'
+          })),
+          professional: formData.subjectsProfessional,
+          others: formData.subjectsOthers
+        } : {
           general: formData.subjectsGeneral,
           professional: formData.subjectsProfessional,
           others: formData.subjectsOthers
