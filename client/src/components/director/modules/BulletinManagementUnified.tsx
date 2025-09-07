@@ -1356,10 +1356,11 @@ export default function BulletinManagementUnified() {
           schoolName: formData.schoolName,
           date: new Date().toLocaleDateString('fr-FR')
         },
-        language: formData.language,
-        
-        // ✅ AJOUT STRUCTURE SUBJECTS POUR LE TEMPLATE DE CRÉATION AUSSI
-        subjects: importedGrades && Object.keys(importedGrades.termGrades).length > 0 ? 
+        language: formData.language
+      };
+
+      // ✅ AJOUT STRUCTURE SUBJECTS POUR LE TEMPLATE DE CRÉATION AUSSI
+      const subjects = importedGrades && Object.keys(importedGrades.termGrades).length > 0 ? 
           Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => {
             const currentGrade = parseFloat(((grades.CC + grades.EXAM) / 2).toFixed(2));
             const subjectName = subject === 'MATH' ? 'Mathématiques' :
@@ -1440,9 +1441,12 @@ export default function BulletinManagementUnified() {
             } else {
               return subject;
             }
-          }),
-        
-        // 🎯 DONNÉES ADDITIONNELLES POUR L'API DE CRÉATION
+          }) : [];
+
+      // ✅ AJOUTER SUBJECTS AU BULLETIN DATA
+      (bulletinData as any).subjects = subjects;
+      // 🎯 DONNÉES ADDITIONNELLES POUR L'API DE CRÉATION
+      Object.assign(bulletinData, {
         studentId: parseInt(selectedStudentId),
         classId: parseInt(selectedClassId),
         termSpecificData: termSpecificData,
@@ -1532,7 +1536,7 @@ export default function BulletinManagementUnified() {
             "Continuer sur cette lancée. Félicitations pour ces bons résultats." : 
             "Doit redoubler pour mieux consolider les acquis."
         })
-      };
+      });
 
       console.log('[BULLETIN_CREATE] ✅ Données préparées avec structure identique à l\'aperçu:', bulletinData);
       console.log('[BULLETIN_CREATE] 🔍 Notes importées:', importedGrades ? '✅ Oui' : '❌ Non');
