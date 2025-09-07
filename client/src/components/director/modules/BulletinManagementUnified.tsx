@@ -91,6 +91,7 @@ export default function BulletinManagementUnified() {
   const [approvedBulletins, setApprovedBulletins] = useState<BulletinFromTeacher[]>([]);
   const [sentBulletins, setSentBulletins] = useState<BulletinFromTeacher[]>([]);
   const [myBulletins, setMyBulletins] = useState<BulletinFromTeacher[]>([]);
+  const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
 
   // État pour le formulaire modulable
   const [formData, setFormData] = useState({
@@ -543,7 +544,10 @@ export default function BulletinManagementUnified() {
       preview: 'Aperçu',
       loading: 'Chargement...',
       error: 'Erreur',
-      success: 'Succès'
+      success: 'Succès',
+      selectAll: 'Sélectionner tous',
+      bulkSign: 'Signer et Envoyer la Sélection',
+      selected: 'sélectionnés'
     },
     en: {
       title: 'EDUCAFRIC Bulletin Management - Unified Module',
@@ -575,11 +579,145 @@ export default function BulletinManagementUnified() {
       preview: 'Preview',
       loading: 'Loading...',
       error: 'Error',
-      success: 'Success'
+      success: 'Success',
+      selectAll: 'Select All',
+      bulkSign: 'Sign and Send Selection',
+      selected: 'selected'
     }
   };
 
   const t = text[language];
+
+  // Composant pour afficher une liste de bulletins avec sélection
+  const BulletinListWithSelection = ({ 
+    bulletins, 
+    showActions = true, 
+    actionType = 'approve', 
+    selectedBulletins = [], 
+    onToggleSelection 
+  }: { 
+    bulletins: BulletinFromTeacher[], 
+    showActions?: boolean,
+    actionType?: 'approve' | 'send' | 'view',
+    selectedBulletins?: number[],
+    onToggleSelection?: (id: number) => void
+  }) => (
+    <div className="space-y-3">
+      {bulletins.length === 0 ? (
+        <Card className="p-6 text-center text-gray-500">
+          {t.noData}
+        </Card>
+      ) : (
+        bulletins.map((bulletin) => (
+          <Card key={bulletin.id} className={`p-4 transition-all ${
+            selectedBulletins.includes(bulletin.id) 
+              ? 'ring-2 ring-blue-500 bg-blue-50' 
+              : 'hover:shadow-md'
+          }`}>
+            <div className="flex items-center justify-between">
+              {/* Checkbox pour sélection */}
+              {onToggleSelection && actionType === 'send' && (
+                <div className="mr-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedBulletins.includes(bulletin.id)}
+                    onChange={() => onToggleSelection(bulletin.id)}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                </div>
+              )}
+              
+              <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">{t.student}</Label>
+                  <p className="text-sm">{bulletin.studentName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">{t.class}</Label>
+                  <p className="text-sm">{bulletin.className}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">{t.teacher}</Label>
+                  <p className="text-sm">{bulletin.teacherName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">{t.average}</Label>
+                  <p className="text-sm">{bulletin.generalAverage.toFixed(1)}/20</p>
+                </div>
+              </div>
+              
+              {showActions && (
+                <div className="flex items-center space-x-2 ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => viewBulletinDetails(bulletin.id)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    {t.viewDetails}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadBulletinPdf(bulletin.id)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    {t.downloadPdf}
+                  </Button>
+                  
+                  {actionType === 'approve' && bulletin.status === 'submitted' && (
+                    <Button
+                      onClick={() => approveBulletin(bulletin.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                      size="sm"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-1" />
+                      {t.approve}
+                    </Button>
+                  )}
+                  
+                  {actionType === 'send' && bulletin.status === 'approved' && (
+                    <Button
+                      onClick={() => signAndSendBulletins([bulletin.id])}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Envoi...
+                        </>
+                      ) : (
+                        <>
+                          <Signature className="w-4 h-4 mr-1" />
+                          {t.signAndSend}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
+                  {actionType === 'view' && (
+                    <Badge 
+                      variant={bulletin.status === 'sent' ? 'default' : 'secondary'}
+                      className="ml-2"
+                    >
+                      {bulletin.status === 'sent' ? '📧 Envoyé' : 
+                       bulletin.status === 'approved' ? '✅ Approuvé' : 
+                       bulletin.status === 'submitted' ? '⏳ Soumis' : 
+                       '📝 Brouillon'}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
+        ))
+      )}
+    </div>
+  );
 
   // Composant pour afficher une liste de bulletins
   const BulletinList = ({ bulletins, showActions = true, actionType = 'approve' }: { 
@@ -836,27 +974,76 @@ export default function BulletinManagementUnified() {
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
                   Bulletins Approuvés ({approvedBulletins.length})
+                  {selectedBulletins.length > 0 && (
+                    <Badge className="ml-2 bg-blue-100 text-blue-800">
+                      {selectedBulletins.length} {t.selected}
+                    </Badge>
+                  )}
                 </div>
                 {approvedBulletins.length > 0 && (
                   <div className="flex items-center space-x-2">
                     <Button
-                      onClick={() => signAndSendBulletins(approvedBulletins.map(b => b.id))}
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={loading}
+                      variant="outline"
+                      onClick={selectAllApprovedBulletins}
+                      size="sm"
                     >
-                      <Signature className="w-4 h-4 mr-1" />
-                      Signer et Envoyer Tous ({approvedBulletins.length})
+                      <UserCheck className="w-4 h-4 mr-1" />
+                      {t.selectAll}
                     </Button>
+                    
+                    {selectedBulletins.length > 0 && (
+                      <Button
+                        onClick={() => signAndSendBulletins(selectedBulletins)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Envoi...
+                          </>
+                        ) : (
+                          <>
+                            <Signature className="w-4 h-4 mr-1" />
+                            {t.bulkSign} ({selectedBulletins.length})
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    
+                    <Button
+                      onClick={() => signAndSendBulletins(approvedBulletins.map(b => b.id))}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={loading || approvedBulletins.length === 0}
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Envoi...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-1" />
+                          Signer et Envoyer Tous ({approvedBulletins.length})
+                        </>
+                      )}
+                    </Button>
+                    
                     <div className="text-sm text-gray-600 flex items-center">
                       <Shield className="w-4 h-4 mr-1" />
-                      Signature numérique + Notifications multi-canaux
+                      Signature numérique + Notifications
                     </div>
                   </div>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <BulletinList bulletins={approvedBulletins} actionType="send" />
+              <BulletinListWithSelection 
+                bulletins={approvedBulletins} 
+                actionType="send" 
+                selectedBulletins={selectedBulletins}
+                onToggleSelection={toggleBulletinSelection}
+              />
             </CardContent>
           </Card>
         </TabsContent>
