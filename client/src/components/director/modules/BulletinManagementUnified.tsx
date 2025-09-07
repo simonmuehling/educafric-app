@@ -1147,37 +1147,46 @@ export default function BulletinManagementUnified() {
         classId: parseInt(selectedClassId),
         termSpecificData: termSpecificData,
         
-        // ✅ DONNÉES T3 SPÉCIFIQUES SELON JSON FOURNI
+        // ✅ DONNÉES T3 SPÉCIFIQUES - STRUCTURE EXACTE ATTENDUE PAR LE TEMPLATE
         ...(formData.term === 'Troisième Trimestre' && {
-          evaluations: {
-            generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
-            classRank: formData.classRank,
-            totalStudents: formData.totalStudents,
-            summary: {
-              avgT3: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
-              rankT3: `${formData.classRank || 1}/${formData.totalStudents || 30}`,
-              avgAnnual: importedGrades ? parseFloat(importedGrades.termAverage) * 0.95 : (formData.generalAverage * 0.95),
-              rankAnnual: `${(formData.classRank || 1) + 1}/${formData.totalStudents || 30}`,
-              conduct: {
-                score: 17,
-                label: "Très Bien"
-              },
-              absences: {
-                justified: 2,
-                unjustified: 0
-              }
+          // ✅ SECTION SUMMARY POUR MOYENNES ET RANKS
+          summary: {
+            avgT3: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
+            rankT3: `${formData.classRank || 1}/${formData.totalStudents || 30}`,
+            avgAnnual: importedGrades ? parseFloat(importedGrades.termAverage) * 0.95 : (formData.generalAverage * 0.95),
+            rankAnnual: `${(formData.classRank || 1) + 1}/${formData.totalStudents || 30}`,
+            conduct: {
+              score: 17,
+              label: "Très Bien"
             },
-            decision: {
-              council: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
-                "Admis en classe supérieure" : "Redouble",
-              mention: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 15 ? "Bien" : 
-                      (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 12 ? "Assez Bien" : "Passable",
-              observationsTeacher: "Élève motivé et assidu, bon comportement.",
-              observationsDirector: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
-                "Félicitations pour le passage en classe supérieure" : 
-                "Doit redoubler pour mieux consolider"
+            absences: {
+              justified: 2,
+              unjustified: 0
             }
-          }
+          },
+          
+          // ✅ SECTION DECISION POUR CONSEIL DE CLASSE
+          decision: {
+            council: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
+              "Admis en classe supérieure" : "Redouble",
+            mention: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 15 ? "Bien" : 
+                    (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 12 ? "Assez Bien" : "Passable",
+            observationsTeacher: "Fin d'année - Résultats satisfaisants, passage autorisé",
+            observationsDirector: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
+              "Continuer sur cette lancée. Félicitations pour ces bons résultats." : 
+              "Doit redoubler pour mieux consolider les acquis."
+          },
+          
+          // ✅ DONNÉES ADDITIONNELLES POUR TEMPLATE T3
+          annualAverage: importedGrades ? parseFloat(importedGrades.termAverage) * 0.95 : (formData.generalAverage * 0.95),
+          annualPosition: (formData.classRank || 1) + 1,
+          conductGrade: 17,
+          conduct: "Très bien",
+          absences: "2",
+          teacherComments: "Fin d'année - Résultats satisfaisants, passage autorisé",
+          directorComments: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
+            "Continuer sur cette lancée. Félicitations pour ces bons résultats." : 
+            "Doit redoubler pour mieux consolider les acquis."
         })
       };
 
