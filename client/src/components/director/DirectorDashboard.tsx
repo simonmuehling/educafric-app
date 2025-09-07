@@ -12,7 +12,6 @@ import {
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
 import NotificationCenter from '@/components/shared/NotificationCenter';
-import BulletinApprovalNew from '@/components/director/modules/BulletinApprovalNew';
 import EducationalContentApproval from '@/components/director/modules/EducationalContentApproval';
 
 // Import Premium components
@@ -393,13 +392,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     },
 
     {
-      id: 'bulletin-validation',
-      label: t.bulletins,
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-indigo-500',
-      component: <BulletinApprovalNew />
-    },
-    {
       id: 'content-approval',
       label: language === 'fr' ? 'Contenu Pédagogique' : 'Educational Content',
       icon: <BookOpen className="w-6 h-6" />,
@@ -462,13 +454,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       color: 'bg-emerald-500',
       component: createDynamicModule('bulletin-management')
     },
-    {
-      id: 'modular-bulletins',
-      label: language === 'fr' ? 'Bulletins Modulables (Ancien)' : 'Modular Bulletins (Legacy)',
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-gray-400',
-      component: createDynamicModule('modular-bulletin-generator')
-    }
   ];
 
   return (
