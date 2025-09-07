@@ -353,6 +353,52 @@ export default function BulletinManagementUnified() {
     }
   };
 
+  // Voir les détails d'un bulletin
+  const viewBulletinDetails = async (bulletinId: number) => {
+    try {
+      const response = await fetch(`/api/bulletins/${bulletinId}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Ouvrir le bulletin en mode détail/aperçu
+        const detailUrl = `/api/bulletins/${bulletinId}/view`;
+        window.open(detailUrl, '_blank');
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les détails du bulletin",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Erreur affichage détails:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'affichage des détails",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Télécharger le PDF d'un bulletin
+  const downloadBulletinPdf = async (bulletinId: number) => {
+    try {
+      const downloadUrl = `/api/bulletins/${bulletinId}/download-pdf`;
+      window.open(downloadUrl, '_blank');
+      
+      toast({
+        title: "📥 Téléchargement",
+        description: "Le téléchargement du bulletin PDF a été lancé",
+      });
+    } catch (error) {
+      console.error('Erreur téléchargement PDF:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du téléchargement du PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Prévisualiser un bulletin
   const previewBulletin = async () => {
     try {
@@ -574,10 +620,20 @@ export default function BulletinManagementUnified() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {}}
+                    onClick={() => viewBulletinDetails(bulletin.id)}
                   >
                     <Eye className="w-4 h-4 mr-1" />
                     {t.viewDetails}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadBulletinPdf(bulletin.id)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    {t.downloadPdf}
                   </Button>
                   
                   {actionType === 'approve' && bulletin.status === 'submitted' && (
@@ -598,9 +654,30 @@ export default function BulletinManagementUnified() {
                       size="sm"
                       disabled={loading}
                     >
-                      <Signature className="w-4 h-4 mr-1" />
-                      {t.signAndSend}
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Envoi...
+                        </>
+                      ) : (
+                        <>
+                          <Signature className="w-4 h-4 mr-1" />
+                          {t.signAndSend}
+                        </>
+                      )}
                     </Button>
+                  )}
+                  
+                  {actionType === 'view' && (
+                    <Badge 
+                      variant={bulletin.status === 'sent' ? 'default' : 'secondary'}
+                      className="ml-2"
+                    >
+                      {bulletin.status === 'sent' ? '📧 Envoyé' : 
+                       bulletin.status === 'approved' ? '✅ Approuvé' : 
+                       bulletin.status === 'submitted' ? '⏳ Soumis' : 
+                       '📝 Brouillon'}
+                    </Badge>
                   )}
                   
                   <Button
