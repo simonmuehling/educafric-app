@@ -70,6 +70,29 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
     photo: null as File | null
   });
 
+  // Fetch classes data for dropdown
+  const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
+    queryKey: ['/api/director/classes'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[STUDENT_MANAGEMENT] 🔍 Fetching classes for student assignment...');
+      const response = await fetch('/api/director/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[STUDENT_MANAGEMENT] ❌ Failed to fetch classes:', response.status);
+        throw new Error('Failed to fetch classes');
+      }
+      const data = await response.json();
+      console.log('[STUDENT_MANAGEMENT] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const availableClasses = classesResponse?.classes || [];
+
   // Fetch students data from PostgreSQL API
   const { data: studentsData, isLoading } = useQuery({
     queryKey: ['/api/director/students'],
@@ -633,22 +656,53 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
               </div>
               
               <div>
-                <Label className="text-sm font-medium">Classe (optionnelle)</Label>
-                <Select 
-                  value={studentForm.className} 
-                  onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choisir une classe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6ème A">6ème A</SelectItem>
-                    <SelectItem value="6ème B">6ème B</SelectItem>
-                    <SelectItem value="5ème A">5ème A</SelectItem>
-                    <SelectItem value="4ème A">4ème A</SelectItem>
-                    <SelectItem value="3ème A">3ème A</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>🏫 {language === 'fr' ? 'Classe (optionnelle)' : 'Class (optional)'}</span>
+                  {isLoadingClasses && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                </Label>
+                {isLoadingClasses ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                  </div>
+                ) : availableClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                    {language === 'fr' ? 
+                      '⚠️ Aucune classe disponible - Créez d\'abord des classes dans "Gestion des Classes"' : 
+                      '⚠️ No classes available - Create classes first in "Class Management"'}
+                  </div>
+                ) : (
+                  <Select 
+                    value={studentForm.className} 
+                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">
+                        {language === 'fr' ? 'Aucune classe (à assigner plus tard)' : 'No class (assign later)'}
+                      </SelectItem>
+                      {availableClasses.map((classItem: any) => (
+                        <SelectItem key={classItem.id} value={classItem.name}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{classItem.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {classItem.level}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              ({classItem.subjects?.length || 0} {language === 'fr' ? 'matières' : 'subjects'})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Sélectionnez la classe de cet élève parmi celles créées dans votre école' : 
+                    'Select this student\'s class from those created in your school'}
+                </p>
               </div>
               <div>
                 <Label className="text-sm font-medium">{text.form.parentName}</Label>
@@ -784,21 +838,53 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
                 />
               </div>
               <div>
-                <Label className="text-sm font-medium">{text.form.className}</Label>
-                <Select 
-                  value={studentForm.className} 
-                  onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6ème A">6ème A</SelectItem>
-                    <SelectItem value="6ème B">6ème B</SelectItem>
-                    <SelectItem value="5ème A">5ème A</SelectItem>
-                    <SelectItem value="4ème A">4ème A</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <span>🏫 {text.form.className}</span>
+                  {isLoadingClasses && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                </Label>
+                {isLoadingClasses ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                    {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                  </div>
+                ) : availableClasses.length === 0 ? (
+                  <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                    {language === 'fr' ? 
+                      '⚠️ Aucune classe disponible - Créez d\'abord des classes dans "Gestion des Classes"' : 
+                      '⚠️ No classes available - Create classes first in "Class Management"'}
+                  </div>
+                ) : (
+                  <Select 
+                    value={studentForm.className} 
+                    onValueChange={(value) => setStudentForm(prev => ({ ...prev, className: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">
+                        {language === 'fr' ? 'Aucune classe (à assigner plus tard)' : 'No class (assign later)'}
+                      </SelectItem>
+                      {availableClasses.map((classItem: any) => (
+                        <SelectItem key={classItem.id} value={classItem.name}>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{classItem.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {classItem.level}
+                            </Badge>
+                            <span className="text-xs text-gray-500">
+                              ({classItem.subjects?.length || 0} {language === 'fr' ? 'matières' : 'subjects'})
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'fr' ? 
+                    'Modifiez la classe de cet élève parmi celles créées dans votre école' : 
+                    'Modify this student\'s class from those created in your school'}
+                </p>
               </div>
               <div className="flex gap-2 pt-4">
                 <Button 
