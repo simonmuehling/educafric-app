@@ -1634,6 +1634,178 @@ const ClassManagement: React.FC = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Modal de vue de classe détaillée */}
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                {language === 'fr' ? 'Détails de la Classe' : 'Class Details'}: {selectedClass?.name}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedClass && (
+              <div className="space-y-6">
+                {/* Informations générales */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <School className="w-4 h-4" />
+                      {language === 'fr' ? 'Informations Générales' : 'General Information'}
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Nom' : 'Name'}:</span>
+                        <span className="font-medium">{selectedClass.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Niveau' : 'Level'}:</span>
+                        <span className="font-medium">{selectedClass.level}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Salle' : 'Room'}:</span>
+                        <span className="font-medium">{selectedClass.room || language === 'fr' ? 'Non assignée' : 'Not assigned'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Statut' : 'Status'}:</span>
+                        <Badge className={getStatusBadge(selectedClass.status)}>
+                          {t.status[selectedClass.status as keyof typeof t.status]}
+                        </Badge>
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {language === 'fr' ? 'Effectifs' : 'Enrollment'}
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Élèves inscrits' : 'Enrolled Students'}:</span>
+                        <span className={`font-bold ${getCapacityColor(selectedClass.currentStudents, selectedClass.capacity)}`}>
+                          {selectedClass.currentStudents}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Capacité max' : 'Max Capacity'}:</span>
+                        <span className="font-medium">{selectedClass.capacity}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">{language === 'fr' ? 'Places libres' : 'Available Spots'}:</span>
+                        <span className="font-medium text-green-600">
+                          {Math.max(0, selectedClass.capacity - selectedClass.currentStudents)}
+                        </span>
+                      </div>
+                      <div className="mt-4">
+                        <div className="w-full bg-gray-200 rounded-full h-3">
+                          <div 
+                            className={`h-3 rounded-full ${
+                              (selectedClass.currentStudents / selectedClass.capacity) > 0.9 
+                                ? 'bg-red-500' 
+                                : (selectedClass.currentStudents / selectedClass.capacity) > 0.7 
+                                ? 'bg-yellow-500' 
+                                : 'bg-green-500'
+                            }`}
+                            style={{ 
+                              width: `${Math.min(100, (selectedClass.currentStudents / selectedClass.capacity) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {language === 'fr' ? 'Taux d\'occupation' : 'Occupancy Rate'}: {Math.round((selectedClass.currentStudents / selectedClass.capacity) * 100)}%
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Enseignant responsable */}
+                <Card className="p-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4" />
+                    {language === 'fr' ? 'Enseignant Responsable' : 'Class Teacher'}
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <GraduationCap className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{selectedClass.teacher || language === 'fr' ? 'Non assigné' : 'Not assigned'}</div>
+                      <div className="text-sm text-gray-500">
+                        {language === 'fr' ? 'Enseignant principal' : 'Main Teacher'}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Matières enseignées */}
+                {selectedClass.subjects && selectedClass.subjects.length > 0 && (
+                  <Card className="p-4">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      {language === 'fr' ? 'Matières Enseignées' : 'Subjects Taught'}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {selectedClass.subjects.map((subject: any, index: number) => (
+                        <div key={index} className="p-3 bg-gray-50 rounded-lg border">
+                          <div className="font-medium text-sm">{subject.name}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {language === 'fr' ? 'Coef' : 'Coeff'}: {subject.coefficient || 1} • 
+                            {subject.hoursPerWeek || 2}h/{language === 'fr' ? 'sem' : 'week'}
+                          </div>
+                          <Badge variant="outline" className="mt-2 text-xs">
+                            {subject.category === 'general' ? (language === 'fr' ? 'Générale' : 'General') :
+                             subject.category === 'professional' ? (language === 'fr' ? 'Professionnelle' : 'Professional') :
+                             subject.category === 'arts' ? (language === 'fr' ? 'Arts' : 'Arts') : 
+                             (language === 'fr' ? 'Sport' : 'Sports')}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Statistiques rapides */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="p-4 text-center">
+                    <div className="text-2xl font-bold text-blue-600">{selectedClass.currentStudents || 0}</div>
+                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Élèves' : 'Students'}</div>
+                  </Card>
+                  <Card className="p-4 text-center">
+                    <div className="text-2xl font-bold text-green-600">{selectedClass.subjects?.length || 0}</div>
+                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Matières' : 'Subjects'}</div>
+                  </Card>
+                  <Card className="p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{selectedClass.capacity || 0}</div>
+                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Capacité' : 'Capacity'}</div>
+                  </Card>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => handleEditClass(selectedClass)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      {language === 'fr' ? 'Modifier' : 'Edit'}
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsViewModalOpen(false)}
+                  >
+                    {language === 'fr' ? 'Fermer' : 'Close'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
