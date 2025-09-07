@@ -3,6 +3,7 @@ import express from 'express';
 import { modularTemplateGenerator, BulletinTemplateData, ReportTemplateData } from '../services/modularTemplateGenerator';
 import { PDFGenerator } from '../services/pdfGenerator';
 import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
+import { PdfLibBulletinGenerator } from '../services/pdfLibBulletinGenerator';
 
 const router = express.Router();
 
@@ -180,9 +181,9 @@ router.post('/bulletin/preview-custom', async (req, res) => {
       }
     };
 
-    // ✅ UTILISER LE GÉNÉRATEUR PDF SIMPLE ET FONCTIONNEL
-    console.log('[BULLETIN_SIMPLE] 🔧 Utilisation générateur simple fonctionnel');
-    const pdfBuffer = await SimpleBulletinGenerator.generateSimpleBulletin();
+    // ✅ UTILISER PDF-LIB POUR BULLETINS PROPRES ET LISIBLES
+    console.log('[BULLETIN_PDF_LIB] 🎯 Utilisation pdf-lib pour bulletin professionnel');
+    const pdfBuffer = await PdfLibBulletinGenerator.generateCleanBulletin();
     
     console.log('[BULLETIN_PREVIEW_MODERN] ✅ Modern template preview generated successfully');
     
