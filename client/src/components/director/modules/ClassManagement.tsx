@@ -41,6 +41,7 @@ const ClassManagement: React.FC = () => {
   const [isRoomManagementOpen, setIsRoomManagementOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [newRoomName, setNewRoomName] = useState('');
+  const [isImportingRooms, setIsImportingRooms] = useState(false);
   
   // État pour la gestion des matières
   const [showSubjectSection, setShowSubjectSection] = useState(false);
@@ -490,6 +491,143 @@ const ClassManagement: React.FC = () => {
     
     console.log('[CLASS_MANAGEMENT] 🏢 Adding new room:', newRoomName);
     addRoomMutation.mutate({ name: newRoomName, capacity: 30 });
+  };
+
+  // Import rooms from CSV
+  const importRoomsMutation = useMutation({
+    mutationFn: async (roomsData: Array<{name: string, capacity: number}>) => {
+      console.log('[CLASS_MANAGEMENT] 📥 Importing rooms:', roomsData.length, 'rooms');
+      const response = await fetch('/api/director/rooms/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ rooms: roomsData })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to import rooms');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      refetchRooms(); // Refresh rooms list
+      toast({
+        title: language === 'fr' ? 'Import réussi' : 'Import successful',
+        description: language === 'fr' ? 
+          `${data.imported || 0} salles importées avec succès.` : 
+          `${data.imported || 0} rooms imported successfully.`
+      });
+      setIsImportingRooms(false);
+    },
+    onError: (error) => {
+      console.error('[CLASS_MANAGEMENT] ❌ Import error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur d\'import' : 'Import error',
+        description: language === 'fr' ? 'Impossible d\'importer les salles.' : 'Failed to import rooms.',
+        variant: 'destructive'
+      });
+      setIsImportingRooms(false);
+    }
+  });
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast({
+        title: language === 'fr' ? 'Format invalide' : 'Invalid format',
+        description: language === 'fr' ? 'Veuillez sélectionner un fichier CSV.' : 'Please select a CSV file.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsImportingRooms(true);
+    
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          throw new Error('CSV file must contain at least a header and one data row');
+        }
+        
+        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+        
+        // Validate headers
+        if (!headers.includes('nom') && !headers.includes('name')) {
+          throw new Error('CSV must contain a "nom" or "name" column');
+        }
+        
+        const nameIndex = headers.findIndex(h => h.includes('nom') || h.includes('name'));
+        const capacityIndex = headers.findIndex(h => h.includes('capacité') || h.includes('capacity') || h.includes('capacite'));
+        
+        const roomsData = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim());
+          
+          if (values.length < nameIndex + 1) continue;
+          
+          const name = values[nameIndex];
+          const capacity = capacityIndex >= 0 && values[capacityIndex] 
+            ? parseInt(values[capacityIndex]) || 30 
+            : 30;
+            
+          if (name) {
+            roomsData.push({ name, capacity });
+          }
+        }
+        
+        if (roomsData.length === 0) {
+          throw new Error('No valid room data found in CSV');
+        }
+        
+        console.log('[CLASS_MANAGEMENT] 📋 Parsed CSV data:', roomsData);
+        importRoomsMutation.mutate(roomsData);
+        
+      } catch (error) {
+        console.error('[CLASS_MANAGEMENT] ❌ CSV parsing error:', error);
+        toast({
+          title: language === 'fr' ? 'Erreur de fichier' : 'File error',
+          description: language === 'fr' ? 'Impossible de lire le fichier CSV.' : 'Unable to read CSV file.',
+          variant: 'destructive'
+        });
+        setIsImportingRooms(false);
+      }
+    };
+    
+    reader.readAsText(file);
+    // Clear the input
+    event.target.value = '';
+  };
+
+  const downloadRoomsTemplate = () => {
+    const csvContent = [
+      'nom,capacité',
+      'Salle 101,30',
+      'Salle 102,25', 
+      'Laboratoire,20',
+      'Salle Informatique,24'
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `modele_salles_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: language === 'fr' ? 'Modèle téléchargé' : 'Template downloaded',
+      description: language === 'fr' ? 'Fichier modèle CSV des salles téléchargé' : 'Room CSV template file downloaded',
+    });
   };
 
   const handleCreateClass = () => {
