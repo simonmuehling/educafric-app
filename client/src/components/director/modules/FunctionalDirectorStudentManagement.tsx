@@ -272,7 +272,7 @@ const FunctionalDirectorStudentManagement: React.FC = () => {
       phone: '',
       className: student.className,
       level: student.level,
-      age: student.age.toString(),
+      age: student.age ? student.age.toString() : '',
       gender: '',
       dateOfBirth: '', // Sera rempli avec les données existantes si disponible
       placeOfBirth: '', // Sera rempli avec les données existantes si disponible
