@@ -3019,7 +3019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             t1: 14,
             t2: 16,
             t3: 18,
-            avgAnnual: 16,
+            avgAnnual: 16.0,
             teacherName: "M. Ndongo",
             comments: "Très Bien"
           },
@@ -3034,13 +3034,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
             comments: "Bien"
           },
           {
-            name: "Anglais",
+            name: "Histoire-Géographie",
+            coefficient: 3,
+            t1: 11,
+            t2: 12,
+            t3: 14,
+            avgAnnual: 12.3,
+            teacherName: "M. Ebogo",
+            comments: "Assez Bien"
+          },
+          {
+            name: "Sciences",
             coefficient: 4,
+            t1: 15,
+            t2: 14,
+            t3: 17,
+            avgAnnual: 15.3,
+            teacherName: "Mme Fouda",
+            comments: "Bien"
+          },
+          {
+            name: "Anglais",
+            coefficient: 2,
             t1: 13,
             t2: 14,
-            t3: 16,
-            avgAnnual: 14.3,
-            teacherName: "Mr. Smith",
+            t3: 15,
+            avgAnnual: 14.0,
+            teacherName: "M. Johnson",
             comments: "Bien"
           }
         ],
@@ -3054,9 +3074,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         directorComments: "Encouragements pour l'année prochaine.",
         verificationCode: "EDU2025-KAM-3T",
         summary: {
-          avgT3: 16.2,
+          avgT3: 15.8,
           rankT3: "2/45",
-          avgAnnual: 15.4,
+          avgAnnual: 14.9,
           rankAnnual: "3/45",
           conduct: {
             score: 17,
@@ -3070,8 +3090,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         decision: {
           council: "Admis en 5ème",
           mention: "Bien",
-          observationsTeacher: "Très bon trimestre, régulier et sérieux.",
-          observationsDirector: "Encouragements pour l'année prochaine."
+          observationsTeacher: "Élève motivé et assidu, bon comportement.",
+          observationsDirector: "Félicitations pour le passage en classe supérieure."
         },
         signatures: {
           homeroomTeacher: "Mme Diallo Fatou Marie",
