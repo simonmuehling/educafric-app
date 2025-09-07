@@ -453,14 +453,14 @@ const FamilyConnections: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold">
-                            {connection.childName.charAt(0)}
+                            {connection.childName?.charAt(0) || '?'}
                           </div>
                           {connection.isOnline && (
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-medium">{connection.childName}</p>
+                          <p className="font-medium">{connection.childName || 'Nom inconnu'}</p>
                           <div className="flex items-center gap-2">
                             <Badge 
                               variant={connection.connectionStatus === 'active' ? 'default' : 'secondary'}
