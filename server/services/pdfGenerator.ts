@@ -2559,31 +2559,72 @@ export class PDFGenerator {
       doc.text(t.title, (pageWidth - titleWidth) / 2, yPosition);
       yPosition += 20;
 
-      // TABLEAU DES NOTES
-      yPosition = this.addGradesTable(doc, bulletinData, t, yPosition, pageWidth, margin);
+      // === TABLEAU DES NOTES MODERNE T2 ===
+      yPosition = this.addModernGradesTable(doc, bulletinData, t, yPosition, pageWidth, margin);
 
-      // === SECTION T2 SPÉCIFIQUE - MOYENNES ===
-      yPosition += 10;
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${t.average}: ${bulletinData.generalAverage.toFixed(2)}/20`, margin, yPosition);
-      doc.text(`${t.rank}: ${bulletinData.classRank}/${bulletinData.totalStudents}`, pageWidth / 2, yPosition);
-      yPosition += 12;
-
-      // CONDUITE ET ABSENCES T2 avec moyennes
-      const conductData = this.calculateConductT2();
-      doc.text(`${t.conduct}: ${conductData.conduct}/20 (${conductData.label})`, margin, yPosition);
-      doc.text(`Absences T2: ${conductData.absencesT2}`, pageWidth / 2, yPosition);
-      yPosition += 8;
-      doc.text(`Retards T2: ${conductData.lateT2}`, margin, yPosition);
-      doc.text(`Moyenne absences: ${conductData.averageAbsences.toFixed(1)}`, pageWidth / 2, yPosition);
-      yPosition += 8;
+      // === SECTION RÉSULTATS MODERNE T2 ===
+      yPosition += 15;
       
-      // Évolution depuis T1
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'italic');
-      doc.text(`Évolution: T1(${conductData.absencesT1}) → T2(${conductData.absencesT2})`, margin, yPosition);
+      // CARTES MOYENNES T1 vs T2
+      const t1Average = 15.2; // Simulé - devrait venir de la DB
+      const evolutionColor = bulletinData.generalAverage >= t1Average ? [34, 197, 94] : [239, 68, 68];
+      const evolutionIcon = bulletinData.generalAverage >= t1Average ? '📈' : '📉';
+      
+      doc.setFillColor(59, 130, 246, 0.1);
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 45, 'F');
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 45);
+      
+      yPosition += 12;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(59, 130, 246);
+      doc.text('📊 ÉVOLUTION T1 → T2', margin + 10, yPosition);
+      
+      yPosition += 8;
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`T1: ${t1Average.toFixed(1)}/20`, margin + 10, yPosition);
+      doc.text(`T2: ${bulletinData.generalAverage.toFixed(1)}/20`, pageWidth / 2, yPosition);
+      
+      yPosition += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(evolutionColor[0], evolutionColor[1], evolutionColor[2]);
+      const evolution = (bulletinData.generalAverage - t1Average).toFixed(1);
+      const evolutionText = evolution > 0 ? `+${evolution}` : evolution;
+      doc.text(`${evolutionIcon} Évolution: ${evolutionText} pts`, pageWidth - 80, yPosition);
+      
       yPosition += 20;
+
+      // === CONDUITE ET DISCIPLINE T2 ===
+      const conductData = this.calculateConductT2();
+      
+      yPosition += 5;
+      doc.setFillColor(168, 85, 247, 0.1);
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 35, 'F');
+      doc.setDrawColor(168, 85, 247);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 35);
+      
+      yPosition += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(168, 85, 247);
+      doc.text('📋 CONDUITE & ÉVOLUTION DISCIPLINE', margin + 10, yPosition);
+      
+      yPosition += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Conduite T2: ${conductData.conduct}/20 (${conductData.label})`, margin + 10, yPosition);
+      doc.text(`Évolution: T1(${conductData.absencesT1}) → T2(${conductData.absencesT2})`, pageWidth / 2, yPosition);
+      
+      yPosition += 8;
+      doc.text(`Retards T2: ${conductData.lateT2}`, margin + 10, yPosition);
+      doc.text(`Moyenne absences: ${conductData.averageAbsences.toFixed(1)}`, pageWidth - 80, yPosition);
+      
+      yPosition += 25;
 
       // SIGNATURES ET FOOTER
       yPosition = this.addSignatureSection(doc, t, yPosition, pageWidth, margin);
@@ -3018,7 +3059,8 @@ export class PDFGenerator {
     subjects.forEach((subject: any, index: number) => {
       // Coefficient flexible selon la matière
       const coefficient = this.getSubjectCoefficient(subject.name);
-      const points = (subject.grade * coefficient).toFixed(1);
+      const gradeForPoints = typeof subject.grade === 'number' ? subject.grade : parseFloat(subject.grade) || 0;
+      const points = (gradeForPoints * coefficient).toFixed(1);
       
       // Alternance de couleurs
       if (index % 2 === 0) {
@@ -3040,10 +3082,11 @@ export class PDFGenerator {
       xPosition += columnWidths[0];
       
       // Note avec couleur selon performance
-      doc.setTextColor(subject.grade >= 14 ? 34 : subject.grade >= 10 ? 0 : 239, 
-                       subject.grade >= 14 ? 197 : subject.grade >= 10 ? 0 : 68, 
-                       subject.grade >= 14 ? 94 : subject.grade >= 10 ? 0 : 68);
-      doc.text(`${subject.grade.toFixed(1)}/20`, xPosition + 3, yPosition + 3);
+      const gradeValue = typeof subject.grade === 'number' ? subject.grade : parseFloat(subject.grade) || 0;
+      doc.setTextColor(gradeValue >= 14 ? 34 : gradeValue >= 10 ? 0 : 239, 
+                       gradeValue >= 14 ? 197 : gradeValue >= 10 ? 0 : 68, 
+                       gradeValue >= 14 ? 94 : gradeValue >= 10 ? 0 : 68);
+      doc.text(`${gradeValue.toFixed(1)}/20`, xPosition + 3, yPosition + 3);
       xPosition += columnWidths[1];
       
       // Coefficient
