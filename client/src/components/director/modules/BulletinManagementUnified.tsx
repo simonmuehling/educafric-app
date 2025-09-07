@@ -35,7 +35,8 @@ import {
   Shield,
   QrCode,
   Signature,
-  Phone
+  Phone,
+  Calendar
 } from 'lucide-react';
 
 interface Subject {
@@ -1250,6 +1251,61 @@ export default function BulletinManagementUnified() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Période Académique */}
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center text-green-800">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Période Académique
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Trimestre</Label>
+                    <Select
+                      value={formData.term}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, term: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Premier Trimestre">1er Trimestre</SelectItem>
+                        <SelectItem value="Deuxième Trimestre">2ème Trimestre</SelectItem>
+                        <SelectItem value="Troisième Trimestre">3ème Trimestre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Année Académique</Label>
+                    <Select
+                      value={formData.academicYear}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, academicYear: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2024-2025">2024-2025</SelectItem>
+                        <SelectItem value="2025-2026">2025-2026</SelectItem>
+                        <SelectItem value="2023-2024">2023-2024</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="mt-2 p-3 bg-white rounded-md border">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    <span className="font-medium">Bulletin pour: </span>
+                    <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-md font-medium">
+                      {formData.term} {formData.academicYear}
+                    </span>
                   </div>
                 </div>
               </CardContent>
