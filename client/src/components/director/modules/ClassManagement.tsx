@@ -295,16 +295,26 @@ const ClassManagement: React.FC = () => {
   };
 
   // Fetch classes data
-  const { data: classesData = [], isLoading } = useQuery({
-    queryKey: ['/api/classes'],
+  const { data: classesResponse = {}, isLoading } = useQuery({
+    queryKey: ['/api/director/classes'],
     queryFn: async () => {
-      const response = await fetch('/api/classes', {
+      console.log('[CLASS_MANAGEMENT] 🔍 Fetching classes for director...');
+      const response = await fetch('/api/director/classes', {
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to fetch classes');
-      return response.json();
-    }
+      if (!response.ok) {
+        console.error('[CLASS_MANAGEMENT] ❌ Failed to fetch classes:', response.status);
+        throw new Error('Failed to fetch classes');
+      }
+      const data = await response.json();
+      console.log('[CLASS_MANAGEMENT] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
   });
+
+  const classesData = classesResponse?.classes || [];
 
   // Filter classes based on search and level selection
   const filteredClasses = (Array.isArray(classesData) ? classesData : []).filter((classItem: any) => {
@@ -371,6 +381,7 @@ const ClassManagement: React.FC = () => {
   // Create class mutation
   const createClassMutation = useMutation({
     mutationFn: async (classData: any) => {
+      console.log('[CLASS_MANAGEMENT] 🚀 Creating class:', classData.name);
       const response = await fetch('/api/classes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -378,10 +389,14 @@ const ClassManagement: React.FC = () => {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to create class');
-      return response.json();
+      const result = await response.json();
+      console.log('[CLASS_MANAGEMENT] ✅ Class created successfully:', result);
+      return result;
     },
     onSuccess: () => {
+      // Invalider les deux caches pour être sûr
       queryClient.invalidateQueries({ queryKey: ['/api/classes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/director/classes'] });
       toast({
         title: language === 'fr' ? 'Classe créée' : 'Class created',
         description: language === 'fr' ? 'La classe a été créée avec succès.' : 'Class has been created successfully.'
