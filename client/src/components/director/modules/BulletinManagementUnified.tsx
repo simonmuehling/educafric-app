@@ -1550,18 +1550,45 @@ export default function BulletinManagementUnified() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Trimestre</Label>
+                    <Label className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Période d'évaluation
+                    </Label>
                     <Select
                       value={formData.term}
                       onValueChange={handleTermSelection}
                     >
-                      <SelectTrigger>
-                        <SelectValue />
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder="🗓️ Choisir la période d'évaluation" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Premier Trimestre">1er Trimestre</SelectItem>
-                        <SelectItem value="Deuxième Trimestre">2ème Trimestre</SelectItem>
-                        <SelectItem value="Troisième Trimestre">3ème Trimestre</SelectItem>
+                        <SelectItem value="Premier Trimestre" className="py-3">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                            <div>
+                              <span className="font-medium">1er Trimestre</span>
+                              <p className="text-xs text-gray-500">Sept - Déc • Début d'année</p>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Deuxième Trimestre" className="py-3">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+                            <div>
+                              <span className="font-medium">2ème Trimestre</span>
+                              <p className="text-xs text-gray-500">Jan - Mars • Milieu d'année</p>
+                            </div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Troisième Trimestre" className="py-3">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                            <div>
+                              <span className="font-medium">3ème Trimestre</span>
+                              <p className="text-xs text-gray-500">Avr - Juin • Décision finale</p>
+                            </div>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1590,28 +1617,46 @@ export default function BulletinManagementUnified() {
                       {formData.term} {formData.academicYear}
                     </span>
                   </div>
-                  {/* Informations spécifiques au trimestre */}
-                  {formData.term === 'Troisième Trimestre' && (
-                    <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded-md">
-                      <div className="flex items-center text-sm text-orange-800">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <span className="font-medium">Trimestre Final:</span>
-                        <span className="ml-2">Ce bulletin détermine le passage en classe supérieure</span>
+                  {/* Informations contextuelles au trimestre sélectionné */}
+                  {formData.term && (
+                    <div className={`mt-3 p-3 rounded-lg border-2 ${
+                      formData.term === 'Premier Trimestre' ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300' :
+                      formData.term === 'Deuxième Trimestre' ? 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-300' :
+                      'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300'
+                    }`}>
+                      <div className={`flex items-center text-sm font-medium ${
+                        formData.term === 'Premier Trimestre' ? 'text-blue-800' :
+                        formData.term === 'Deuxième Trimestre' ? 'text-purple-800' :
+                        'text-orange-800'
+                      }`}>
+                        {formData.term === 'Premier Trimestre' && (
+                          <>
+                            <BookOpen className="w-5 h-5 mr-2" />
+                            <span className="text-lg font-bold">1er Trimestre - Début d'année</span>
+                          </>
+                        )}
+                        {formData.term === 'Deuxième Trimestre' && (
+                          <>
+                            <Clock className="w-5 h-5 mr-2" />
+                            <span className="text-lg font-bold">2ème Trimestre - Milieu d'année</span>
+                          </>
+                        )}
+                        {formData.term === 'Troisième Trimestre' && (
+                          <>
+                            <AlertCircle className="w-5 h-5 mr-2" />
+                            <span className="text-lg font-bold">3ème Trimestre - Évaluation Finale</span>
+                          </>
+                        )}
                       </div>
-                    </div>
-                  )}
-                  {formData.term === 'Premier Trimestre' && (
-                    <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                      <div className="text-sm text-blue-800">
-                        <span className="font-medium">1er Trimestre:</span> Évaluation de début d'année - Adaptation en cours
-                      </div>
-                    </div>
-                  )}
-                  {formData.term === 'Deuxième Trimestre' && (
-                    <div className="mt-3 p-2 bg-purple-50 border border-purple-200 rounded-md">
-                      <div className="text-sm text-purple-800">
-                        <span className="font-medium">2ème Trimestre:</span> Évaluation de milieu d'année - Préparation finale
-                      </div>
+                      <p className={`mt-2 text-sm ${
+                        formData.term === 'Premier Trimestre' ? 'text-blue-700' :
+                        formData.term === 'Deuxième Trimestre' ? 'text-purple-700' :
+                        'text-orange-700'
+                      }`}>
+                        {formData.term === 'Premier Trimestre' && '🌱 Période d\'adaptation et d\'observation - Identification des forces et axes d\'amélioration'}
+                        {formData.term === 'Deuxième Trimestre' && '📈 Consolidation des acquis - Évaluation des progrès et préparation finale'}
+                        {formData.term === 'Troisième Trimestre' && '🏆 Décision de passage - Ce bulletin détermine l\'admission en classe supérieure'}
+                      </p>
                     </div>
                   )}
                 </div>
