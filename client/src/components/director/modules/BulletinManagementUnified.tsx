@@ -1441,7 +1441,7 @@ export default function BulletinManagementUnified() {
             } else {
               return subject;
             }
-          }) : [];
+          });
 
       // ✅ AJOUTER SUBJECTS AU BULLETIN DATA
       (bulletinData as any).subjects = subjects;
