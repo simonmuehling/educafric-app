@@ -651,7 +651,7 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Télécharger le PDF d'un bulletin - vraie logique
+  // ✅ Télécharger le PDF d'un bulletin avec gestion BLOB correcte (selon guidance utilisateur)
   const downloadBulletinPdf = async (bulletinId: number) => {
     try {
       console.log('[BULLETIN_DOWNLOAD] Téléchargement du PDF pour bulletin:', bulletinId);
@@ -851,7 +851,7 @@ export default function BulletinManagementUnified() {
       input.value = JSON.stringify(previewData);
       form.appendChild(input);
 
-      // Utilisation de fetch avec POST
+      // ✅ UTILISER FETCH AVEC BLOB pour gérer les PDFs correctement (selon guidance utilisateur)
       const response = await fetch('/api/templates/bulletin/preview-custom', {
         method: 'POST',
         headers: {
@@ -861,19 +861,35 @@ export default function BulletinManagementUnified() {
       });
 
       if (response.ok) {
-        const htmlContent = await response.text();
+        // ✅ VÉRIFIER SI LA RÉPONSE EST UN PDF OU HTML
+        const contentType = response.headers.get('content-type');
         
-        // Ouvrir dans une nouvelle fenêtre
-        const previewWindow = window.open('', '_blank');
-        if (previewWindow) {
-          previewWindow.document.write(htmlContent);
-          previewWindow.document.close();
-        }
+        if (contentType && contentType.includes('application/pdf')) {
+          // ✅ TRAITER COMME PDF AVEC BLOB (selon guidance utilisateur)
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank'); // opens the PDF viewer in a new tab
+          
+          toast({
+            title: "📋 Aperçu PDF généré",
+            description: "L'aperçu PDF avec vos données a été ouvert",
+          });
+        } else {
+          // ✅ TRAITER COMME HTML (template preview)
+          const htmlContent = await response.text();
+          
+          // Ouvrir dans une nouvelle fenêtre
+          const previewWindow = window.open('', '_blank');
+          if (previewWindow) {
+            previewWindow.document.write(htmlContent);
+            previewWindow.document.close();
+          }
 
-        toast({
-          title: "📋 Aperçu généré",
-          description: "L'aperçu avec vos données actuelles a été ouvert",
-        });
+          toast({
+            title: "📋 Aperçu généré",
+            description: "L'aperçu avec vos données actuelles a été ouvert",
+          });
+        }
       } else {
         throw new Error(`Erreur serveur: ${response.status}`);
       }
