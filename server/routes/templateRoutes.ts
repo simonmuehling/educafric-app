@@ -119,7 +119,9 @@ router.post('/bulletin/preview-custom', async (req, res) => {
         directorName: schoolData?.director || "Dr. Ngozi Adichie Emmanuel",
         academicYear: academicData?.academicYear || "2024-2025",
         regionalDelegation: schoolData?.regionalDelegation || "DU CENTRE",
-        departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI"
+        departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI",
+        // ✅ AJOUTER UN LOGO PAR DÉFAUT ÉDUCATIF
+        logo: schoolData?.logo || "https://ui-avatars.com/api/?name=EDUCAFRIC&size=60&background=1e40af&color=ffffff&format=png&bold=true"
       },
       student: {
         firstName: studentData?.firstName || "Amina",
@@ -129,7 +131,10 @@ router.post('/bulletin/preview-custom', async (req, res) => {
         gender: studentData?.gender === 'M' ? 'Masculin' : 'Féminin',
         className: academicData?.className || "3ème A",
         studentNumber: studentData?.studentNumber || "CEA-2024-0157",
-        photo: studentData?.photo
+        // ✅ UTILISER LA VRAIE PHOTO OU URL PAR DÉFAUT ÉDUCATIVE
+        photo: studentData?.photo || (studentData?.firstName ? 
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.firstName + ' ' + studentData.lastName)}&size=100&background=2563eb&color=ffffff&format=png` : 
+          undefined)
       },
       period: academicData?.term || "1er Trimestre 2024-2025",
       subjects: [

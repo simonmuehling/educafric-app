@@ -91,7 +91,19 @@ export interface ReportTemplateData {
 }
 
 export class ModularTemplateGenerator {
-  
+
+  // ✅ FONCTION POUR DÉTERMINER LE TRIMESTRE DEPUIS LA PÉRIODE
+  private getCurrentTermFromPeriod(period: string): string {
+    if (period.includes('1er') || period.includes('Premier') || period.includes('T1')) {
+      return 'T1';
+    } else if (period.includes('2ème') || period.includes('Deuxième') || period.includes('Second') || period.includes('T2')) {
+      return 'T2';
+    } else if (period.includes('3ème') || period.includes('Troisième') || period.includes('T3')) {
+      return 'T3';
+    }
+    return 'T1'; // Default
+  }
+
   // Génération de l'en-tête officiel camerounais avec informations de l'école
   private generateEducafricHeader(schoolInfo: SchoolInfo, documentType: string, language: 'fr' | 'en' = 'fr'): string {
     const titles = {
@@ -465,6 +477,29 @@ export class ModularTemplateGenerator {
           justify-content: center;
           font-size: 7px;
         }
+
+        .qr-code-section {
+          text-align: center;
+          padding: 5px;
+        }
+
+        .qr-code-img {
+          max-width: 80px;
+          max-height: 80px;
+          border: 1px solid #000;
+        }
+
+        .student-info-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 15px;
+        }
+
+        .student-info-right {
+          flex: 1;
+          font-size: 9px;
+        }
         
         .document-footer {
           text-align: center;
@@ -484,10 +519,14 @@ export class ModularTemplateGenerator {
     `;
   }
 
-  // Génération de bulletin modulable
+  // Génération de bulletin modulable avec gestion correcte des trimestres
   generateBulletinTemplate(data: BulletinTemplateData, language: 'fr' | 'en' = 'fr'): string {
     const header = this.generateEducafricHeader(data.schoolInfo, 'bulletin', language);
     const styles = this.getCommonStyles();
+    
+    // ✅ DÉTERMINER LE TRIMESTRE ACTUEL depuis la période
+    const currentTerm = this.getCurrentTermFromPeriod(data.period);
+    console.log('[TEMPLATE] 🎯 Trimestre détecté:', currentTerm, 'depuis période:', data.period);
     
     const labels = {
       fr: {
@@ -602,41 +641,30 @@ export class ModularTemplateGenerator {
               <thead>
                 <tr>
                   <th>Matière</th>
-                  <th>T1/20</th>
-                  <th>T2/20</th>
-                  <th>T3/20</th>
+                  <th>Note/20</th>
                   <th>Coef</th>
-                  <th>Total</th>
-                  <th>Position</th>
-                  <th>Average Mark</th>
-                  <th>Remark</th>
-                  <th>Teacher's Name</th>
+                  <th>Points</th>
+                  <th>Enseignant</th>
+                  <th>Appréciation</th>
                 </tr>
               </thead>
               <tbody>
                 ${data.subjects.map(subject => {
-                  // Support pour les deux formats (ancien et nouveau)
-                  const t1 = subject.t1Grade !== undefined ? subject.t1Grade : (subject.grade || 0);
-                  const t2 = subject.t2Grade !== undefined ? subject.t2Grade : (subject.grade || 0);
-                  const t3 = subject.t3Grade !== undefined ? subject.t3Grade : (subject.grade || 0);
-                  const total = subject.total !== undefined ? subject.total : (t3 * subject.coefficient);
-                  const position = subject.position || 1;
-                  const averageMark = subject.averageMark !== undefined ? subject.averageMark : subject.grade || 0;
-                  const remark = subject.remark || subject.comments || '';
+                  // ✅ UTILISER SEULEMENT LA NOTE DU TRIMESTRE SÉLECTIONNÉ
+                  const gradeValue = subject.grade || 0;
+                  const coefficient = subject.coefficient || 1;
+                  const points = (gradeValue * coefficient).toFixed(1);
+                  const remark = subject.comments || '';
                   const teacherName = subject.teacherName || 'Non assigné';
                   
                   return `
                     <tr>
                       <td style="text-align: left; font-weight: bold;">${subject.name}</td>
-                      <td>${t1.toFixed(2)}</td>
-                      <td>${t2.toFixed(2)}</td>
-                      <td>${t3.toFixed(2)}</td>
-                      <td>${subject.coefficient}</td>
-                      <td>${total.toFixed(2)}</td>
-                      <td>${position}</td>
-                      <td>${averageMark.toFixed(2)}</td>
-                      <td style="text-align: left; font-size: 6px;">${remark}</td>
+                      <td>${gradeValue}</td>
+                      <td>${coefficient}</td>
+                      <td>${points}</td>
                       <td style="text-align: left; font-size: 7px;">${teacherName}</td>
+                      <td style="text-align: left; font-size: 6px;">${remark}</td>
                     </tr>
                   `;
                 }).join('')}
@@ -706,9 +734,9 @@ export class ModularTemplateGenerator {
               <p><strong>Code de vérification: ${data.verificationCode}</strong></p>
             </div>
             <div class="verification-right">
-              <div class="qr-placeholder">
-                <p><strong>Vérifier:</strong></p>
-                <p>educafric.com<br>test-b</p>
+              <div class="qr-code-section">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(`https://www.educafric.com/verify?code=${data.verificationCode}`)}" alt="QR Code" class="qr-code-img" />
+                <p style="font-size: 7px; margin-top: 3px;"><strong>Vérifier:<br>educafric.com</strong></p>
               </div>
             </div>
           </div>
