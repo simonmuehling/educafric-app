@@ -67,6 +67,7 @@ import BulkManagement from "@/pages/BulkManagement";
 import ProfileFeatures from "@/pages/ProfileFeatures";
 import ModernFormDemo from "@/pages/ModernFormDemo";
 import UnauthorizedPage from "@/pages/UnauthorizedPage";
+import Verify from "@/pages/Verify";
 // PWA Install Prompt déjà importé dans les composants PWA
 import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
@@ -370,6 +371,7 @@ function Router() {
       <Route path="/demo" component={Demo} />
       <Route path="/subscription-success" component={SubscriptionSuccess} />
       <Route path="/geolocation-pricing" component={GeolocationPricing} />
+      <Route path="/verify" component={Verify} />
       
       <Route path="/geolocation">
         <ProtectedRoute>

@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   User, Mail, Phone, Calendar, MapPin, Building, 
   Award, Users, GraduationCap, Edit, Save, X, School,
-  BarChart3, Clock, TrendingUp, Star, Shield
+  BarChart3, Clock, TrendingUp, Star, Shield, Camera, Upload
 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface DirectorProfile {
   id: number;
@@ -29,6 +30,8 @@ interface DirectorProfile {
   experience: number;
   bio: string;
   languages: string[];
+  profileImage?: string;
+  profileImageUrl?: string;
   totalTeachers: number;
   totalStudents: number;
   totalClasses: number;
