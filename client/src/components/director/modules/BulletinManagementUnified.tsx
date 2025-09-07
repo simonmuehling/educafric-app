@@ -1906,39 +1906,68 @@ export default function BulletinManagementUnified() {
               </Card>
             )}
 
-            {/* Actions de création */}
+            {/* Actions de création contextuelles */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium">Créer le Bulletin</h3>
-                    <p className="text-sm text-gray-600">
-                      Générer un bulletin modulable avec les données sélectionnées
-                    </p>
+                    {selectedStudentId ? (
+                      <>
+                        <h3 className="text-lg font-medium">
+                          Bulletin de {students.find(s => s.id.toString() === selectedStudentId)?.name || 'Élève'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          📚 Classe: {classes.find(c => c.id.toString() === selectedClassId)?.name || 'Non sélectionnée'} 
+                          • 📅 Trimestre: {formData.term || 'Non sélectionné'}
+                          {importedGrades && (
+                            <span className="ml-2 text-green-600 font-medium">
+                              • ✅ Notes importées ({Object.keys(importedGrades.termGrades).length} matières)
+                            </span>
+                          )}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-lg font-medium text-gray-400">Créer le Bulletin</h3>
+                        <p className="text-sm text-gray-500">
+                          Veuillez d'abord sélectionner un élève, une classe et un trimestre
+                        </p>
+                      </>
+                    )}
                   </div>
                   <div className="flex items-center space-x-3">
                     <Button 
                       variant="outline" 
-                      disabled={!selectedStudentId}
+                      disabled={!selectedStudentId || !selectedClassId || !formData.term}
                       onClick={previewBulletin}
+                      className={selectedStudentId && selectedClassId && formData.term ? "border-blue-300 text-blue-700 hover:bg-blue-50" : ""}
                     >
                       <Eye className="w-4 h-4 mr-1" />
-                      {t.preview}
+                      {selectedStudentId && selectedClassId && formData.term 
+                        ? `Aperçu - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
+                        : "Aperçu"
+                      }
                     </Button>
                     <Button 
-                      className="bg-blue-600 hover:bg-blue-700"
-                      disabled={!selectedStudentId || loading}
+                      className={selectedStudentId && selectedClassId && formData.term 
+                        ? "bg-green-600 hover:bg-green-700" 
+                        : "bg-gray-400"
+                      }
+                      disabled={!selectedStudentId || !selectedClassId || !formData.term || loading}
                       onClick={createModularBulletin}
                     >
                       {loading ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          {t.loading}
+                          Génération...
                         </>
                       ) : (
                         <>
                           <FileText className="w-4 h-4 mr-1" />
-                          {t.createBulletin}
+                          {selectedStudentId && selectedClassId && formData.term 
+                            ? `Créer Bulletin - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
+                            : "Créer le bulletin"
+                          }
                         </>
                       )}
                     </Button>
