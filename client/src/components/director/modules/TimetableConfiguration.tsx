@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useStableCallback } from '@/hooks/useStableCallback';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Clock, Calendar, Users, School, Plus, Upload, Edit3, Trash2, Save, TrendingUp, FileText, RefreshCw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Calendar, Users, School, Plus, Upload, Edit3, Trash2, Save, TrendingUp, FileText, RefreshCw, BookOpen } from 'lucide-react';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import { useToast } from '@/hooks/use-toast';
 import { TimetableCreation } from '@/components/timetable/TimetableCreation';
@@ -22,6 +25,7 @@ interface TimetableEntry {
 
 const TimetableConfiguration: React.FC = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [timetables, setTimetables] = useState<TimetableEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +39,78 @@ const TimetableConfiguration: React.FC = () => {
     teacher: '',
     room: ''
   });
+
+  // Fetch classes data for dropdown
+  const { data: classesResponse = {}, isLoading: isLoadingClasses } = useQuery({
+    queryKey: ['/api/director/classes'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TIMETABLE_CONFIG] 🔍 Fetching classes for timetable configuration...');
+      const response = await fetch('/api/director/classes', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TIMETABLE_CONFIG] ❌ Failed to fetch classes:', response.status);
+        throw new Error('Failed to fetch classes');
+      }
+      const data = await response.json();
+      console.log('[TIMETABLE_CONFIG] ✅ Classes fetched:', data?.classes?.length || 0, 'classes');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  // Fetch teachers data for dropdown
+  const { data: teachersResponse = {}, isLoading: isLoadingTeachers } = useQuery({
+    queryKey: ['/api/director/teachers'],
+    enabled: !!user,
+    queryFn: async () => {
+      console.log('[TIMETABLE_CONFIG] 🔍 Fetching teachers for timetable configuration...');
+      const response = await fetch('/api/director/teachers', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TIMETABLE_CONFIG] ❌ Failed to fetch teachers:', response.status);
+        throw new Error('Failed to fetch teachers');
+      }
+      const data = await response.json();
+      console.log('[TIMETABLE_CONFIG] ✅ Teachers fetched:', data?.teachers?.length || 0, 'teachers');
+      return data;
+    },
+    retry: 2,
+    retryDelay: 1000
+  });
+
+  const availableClasses = classesResponse?.classes || [];
+  const availableTeachers = teachersResponse?.teachers || [];
+
+  // Function to get subjects from selected class
+  const getAvailableSubjects = () => {
+    if (!formData.className) {
+      return []; // No subjects if no class selected
+    }
+    
+    const selectedClass = availableClasses.find((c: any) => c.name === formData.className);
+    if (selectedClass?.subjects) {
+      return selectedClass.subjects.map((subject: any) => subject.name);
+    }
+    
+    // Fallback subjects if no subjects found in class
+    return ['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais'];
+  };
+
+  // Function to get teachers for selected class
+  const getAvailableTeachersForClass = () => {
+    if (!formData.className) {
+      return availableTeachers; // All teachers if no class selected
+    }
+    
+    // Filter teachers who teach the selected class
+    return availableTeachers.filter((teacher: any) => 
+      teacher.classes && teacher.classes.includes(formData.className)
+    );
+  };
 
   const days = [
     { value: 'Lundi', label: language === 'fr' ? 'Lundi' : 'Monday' },
@@ -359,18 +435,235 @@ const TimetableConfiguration: React.FC = () => {
           />
         </Card>
 
-        {/* Advanced Timetable Creation Form */}
+        {/* Advanced Timetable Creation Form - Enhanced with Real Data */}
         {showCreateForm && (
-          <TimetableCreation 
-            onSlotCreated={(slot) => {
-              console.log('[TIMETABLE_CONFIG] Nouveau créneau créé:', slot);
-              fetchTimetables(); // Refresh the list
-              setShowCreateForm(false); // Close the form
-            }}
-            onBulkOperation={(operation, slots) => {
-              console.log('[TIMETABLE_CONFIG] Opération en lot:', operation, slots);
-            }}
-          />
+          <Card className="bg-white/90 backdrop-blur-md shadow-xl border border-white/30">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center">
+                <Plus className="w-6 h-6 mr-2" />
+                {language === 'fr' ? 'Configuration du Créneau' : 'Timeslot Configuration'}
+              </CardTitle>
+              <p className="text-blue-100">
+                {language === 'fr' ? 'Créer un nouveau créneau avec les données réelles de votre école' : 'Create a new timeslot with real school data'}
+              </p>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Class Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <School className="w-4 h-4" />
+                    {language === 'fr' ? 'Classe' : 'Class'}
+                    {isLoadingClasses && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                  </label>
+                  {isLoadingClasses ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                      {language === 'fr' ? 'Chargement des classes...' : 'Loading classes...'}
+                    </div>
+                  ) : availableClasses.length === 0 ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                      {language === 'fr' ? 
+                        '⚠️ Aucune classe disponible - Créez d\'abord des classes dans "Gestion des Classes"' : 
+                        '⚠️ No classes available - Create classes first in "Class Management"'}
+                    </div>
+                  ) : (
+                    <Select 
+                      value={formData.className} 
+                      onValueChange={(value) => setFormData(prev => ({ 
+                        ...prev, 
+                        className: value,
+                        subject: '', // Clear subject when class changes
+                        teacher: '' // Clear teacher when class changes
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'fr' ? 'Choisir une classe' : 'Choose a class'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableClasses.map((classItem: any) => (
+                          <SelectItem key={classItem.id} value={classItem.name}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{classItem.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {classItem.level}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Day Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {language === 'fr' ? 'Jour' : 'Day'}
+                  </label>
+                  <Select value={formData.day} onValueChange={(value) => setFormData(prev => ({ ...prev, day: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === 'fr' ? 'Choisir un jour' : 'Choose a day'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {days.map((day) => (
+                        <SelectItem key={day.value} value={day.value}>
+                          {day.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Time Slot */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    {language === 'fr' ? 'Horaire' : 'Time Slot'}
+                  </label>
+                  <Select value={formData.timeSlot} onValueChange={(value) => setFormData(prev => ({ ...prev, timeSlot: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={language === 'fr' ? 'Choisir un horaire' : 'Choose time slot'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timeSlots.map((slot) => (
+                        <SelectItem key={slot} value={slot}>
+                          {slot}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Subject Selection - Based on Class */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    {language === 'fr' ? 'Matière' : 'Subject'}
+                    <Badge variant="outline" className="text-xs">
+                      {language === 'fr' ? 'Basé sur la classe' : 'Based on class'}
+                    </Badge>
+                  </label>
+                  {!formData.className ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                      {language === 'fr' ? 
+                        '⬆️ Sélectionnez d\'abord une classe pour voir les matières' : 
+                        '⬆️ Select a class first to see subjects'}
+                    </div>
+                  ) : getAvailableSubjects().length === 0 ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                      {language === 'fr' ? 
+                        '⚠️ Aucune matière configurée pour cette classe' : 
+                        '⚠️ No subjects configured for this class'}
+                    </div>
+                  ) : (
+                    <Select value={formData.subject} onValueChange={(value) => setFormData(prev => ({ ...prev, subject: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'fr' ? 'Choisir une matière' : 'Choose a subject'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableSubjects().map((subject) => (
+                          <SelectItem key={subject} value={subject}>
+                            📚 {subject}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Teacher Selection - Based on Class */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    {language === 'fr' ? 'Enseignant' : 'Teacher'}
+                    {isLoadingTeachers && <div className="w-3 h-3 border border-gray-300 border-t-blue-600 rounded-full animate-spin" />}
+                    <Badge variant="outline" className="text-xs">
+                      {language === 'fr' ? 'Filtré par classe' : 'Filtered by class'}
+                    </Badge>
+                  </label>
+                  {isLoadingTeachers ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-gray-500">
+                      {language === 'fr' ? 'Chargement des enseignants...' : 'Loading teachers...'}
+                    </div>
+                  ) : getAvailableTeachersForClass().length === 0 ? (
+                    <div className="w-full p-3 border rounded text-center text-sm text-yellow-600 bg-yellow-50">
+                      {language === 'fr' ? 
+                        formData.className 
+                          ? `⚠️ Aucun enseignant assigné à la classe "${formData.className}"` 
+                          : '⚠️ Aucun enseignant disponible'
+                        : 
+                        formData.className
+                          ? `⚠️ No teachers assigned to class "${formData.className}"`
+                          : '⚠️ No teachers available'}
+                    </div>
+                  ) : (
+                    <Select value={formData.teacher} onValueChange={(value) => setFormData(prev => ({ ...prev, teacher: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={language === 'fr' ? 'Choisir un enseignant' : 'Choose a teacher'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableTeachersForClass().map((teacher: any) => (
+                          <SelectItem key={teacher.id} value={teacher.name}>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">👨‍🏫 {teacher.name}</span>
+                              {teacher.teachingSubjects && (
+                                <span className="text-xs text-gray-500">
+                                  ({teacher.teachingSubjects.slice(0, 2).join(', ')})
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* Room */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <School className="w-4 h-4" />
+                    {language === 'fr' ? 'Salle' : 'Room'}
+                  </label>
+                  <Input
+                    value={formData.room}
+                    onChange={(e) => setFormData(prev => ({ ...prev, room: e.target.value }))}
+                    placeholder={language === 'fr' ? 'Ex: Salle A101' : 'Ex: Room A101'}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={!formData.className || !formData.day || !formData.timeSlot || !formData.subject || !formData.teacher}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {language === 'fr' ? 'Créer le Créneau' : 'Create Timeslot'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setFormData({
+                      className: '',
+                      day: '',
+                      timeSlot: '',
+                      subject: '',
+                      teacher: '',
+                      room: ''
+                    });
+                  }}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {language === 'fr' ? 'Annuler' : 'Cancel'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Vue Grille de l'Emploi du Temps - Style École Moderne */}
