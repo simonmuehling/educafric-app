@@ -36,7 +36,8 @@ import {
   QrCode,
   Signature,
   Phone,
-  Calendar
+  Calendar,
+  Star
 } from 'lucide-react';
 
 interface Subject {
