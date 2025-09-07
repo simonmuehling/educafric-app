@@ -2501,8 +2501,17 @@ export class PDFGenerator {
       yPosition += 25;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
-      await this.addMobileOptimizedQRCode(doc, documentData);
+      // SIGNATURES ET FOOTER SIMPLES
+      yPosition += 20;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Le Professeur Principal', margin, yPosition);
+      doc.text('Le Directeur', pageWidth - 100, yPosition);
+      
+      yPosition += 20;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Mme Diallo Fatou Marie', margin, yPosition);
+      doc.text('Directeur non renseigné', pageWidth - 100, yPosition);
       
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
@@ -2639,8 +2648,17 @@ export class PDFGenerator {
       yPosition += 25;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
-      await this.addMobileOptimizedQRCode(doc, documentData);
+      // SIGNATURES ET FOOTER SIMPLES
+      yPosition += 20;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Le Professeur Principal', margin, yPosition);
+      doc.text('Le Directeur', pageWidth - 100, yPosition);
+      
+      yPosition += 20;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Mme Diallo Fatou Marie', margin, yPosition);
+      doc.text('Directeur non renseigné', pageWidth - 100, yPosition);
       
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
@@ -2792,8 +2810,17 @@ export class PDFGenerator {
       yPosition += 15;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
-      await this.addMobileOptimizedQRCode(doc, documentData);
+      // SIGNATURES ET FOOTER SIMPLES
+      yPosition += 20;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Le Professeur Principal', margin, yPosition);
+      doc.text('Le Directeur', pageWidth - 100, yPosition);
+      
+      yPosition += 20;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Mme Diallo Fatou Marie', margin, yPosition);
+      doc.text('Directeur non renseigné', pageWidth - 100, yPosition);
       
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
