@@ -2395,46 +2395,98 @@ export class PDFGenerator {
       const margin = 15;
       let yPosition = margin;
       
-      // EN-TÊTE
-      yPosition = await this.addCompactSchoolHeader(doc, {
+      // === EN-TÊTE MODERNE INSPIRÉ GEGOK12 ===
+      yPosition = await this.addModernSchoolHeader(doc, {
         schoolName: bulletinData.schoolBranding.schoolName,
-        boitePostale: realSchoolData.address || 'B.P. 1234 Yaoundé',
-        studentName: bulletinData.student.name,
-        studentPhoto: bulletinData.student.photo,
-        studentClass: bulletinData.student.class,
-        studentMatricule: bulletinData.student.matricule,
-        studentBirthDate: bulletinData.student.dateOfBirth,
-        studentGender: bulletinData.student.gender,
-        studentBirthPlace: bulletinData.student.placeOfBirth,
+        address: realSchoolData.address || 'B.P. 1234 Yaoundé',
+        student: bulletinData.student,
         period: 'Premier Trimestre ' + bulletinData.academicYear,
+        academicYear: bulletinData.academicYear,
         language: 'fr'
       }, yPosition);
 
-      // TITRE
+      // === TITRE AVEC DESIGN MODERNE ===
+      doc.setFillColor(220, 38, 127); // Rose Educafric
+      doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 25, 'F');
+      
+      doc.setTextColor(255, 255, 255); // Blanc
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       const titleWidth = doc.getTextWidth(t.title);
-      doc.text(t.title, (pageWidth - titleWidth) / 2, yPosition);
-      yPosition += 20;
+      doc.text(t.title, (pageWidth - titleWidth) / 2, yPosition + 10);
+      
+      doc.setTextColor(0, 0, 0); // Reset noir
+      yPosition += 30;
 
-      // TABLEAU DES NOTES
-      yPosition = this.addGradesTable(doc, bulletinData, t, yPosition, pageWidth, margin);
+      // === TABLEAU DES NOTES MODERNE ===
+      yPosition = this.addModernGradesTable(doc, bulletinData, t, yPosition, pageWidth, margin);
 
-      // === SECTION T1 SPÉCIFIQUE ===
+      // === SECTION RÉSULTATS MODERNE ===
+      yPosition += 15;
+      
+      // CARTE MOYENNES ET RANG
+      doc.setFillColor(34, 197, 94, 0.1); // Vert très clair  
+      doc.rect(margin, yPosition, (pageWidth - 2 * margin) / 2 - 5, 35, 'F');
+      doc.setDrawColor(34, 197, 94);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPosition, (pageWidth - 2 * margin) / 2 - 5, 35);
+      
       yPosition += 10;
-      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${t.average}: ${bulletinData.generalAverage.toFixed(2)}/20`, margin, yPosition);
-      doc.text(`${t.rank}: ${bulletinData.classRank}/${bulletinData.totalStudents}`, pageWidth / 2, yPosition);
-      yPosition += 12;
-
-      // CONDUITE ET ABSENCES T1
-      const conductData = this.calculateConductT1();
-      doc.text(`${t.conduct}: ${conductData.conduct}/20 (${conductData.label})`, margin, yPosition);
-      doc.text(`Absences: ${conductData.absences}`, pageWidth / 2, yPosition);
+      doc.setFontSize(14);
+      doc.setTextColor(34, 197, 94);
+      doc.text(`${bulletinData.generalAverage.toFixed(2)}/20`, margin + 10, yPosition);
+      
       yPosition += 8;
-      doc.text(`Retards: ${conductData.late}`, margin, yPosition);
-      yPosition += 20;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Moyenne générale', margin + 10, yPosition);
+      
+      // CARTE RANG
+      const cardX = pageWidth / 2 + 5;
+      doc.setFillColor(59, 130, 246, 0.1); // Bleu très clair
+      doc.rect(cardX, yPosition - 18, (pageWidth - 2 * margin) / 2 - 5, 35, 'F');
+      doc.setDrawColor(59, 130, 246);
+      doc.rect(cardX, yPosition - 18, (pageWidth - 2 * margin) / 2 - 5, 35);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(59, 130, 246);
+      doc.text(`${bulletinData.classRank}/${bulletinData.totalStudents}`, cardX + 10, yPosition - 8);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Classement', cardX + 10, yPosition);
+      
+      yPosition += 25;
+
+      // === CONDUITE ET DISCIPLINE T1 ===
+      const conductData = this.calculateConductT1();
+      
+      yPosition += 10;
+      doc.setFillColor(168, 85, 247, 0.1); // Violet très clair
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 25, 'F');
+      doc.setDrawColor(168, 85, 247);
+      doc.setLineWidth(0.5);
+      doc.rect(margin, yPosition, pageWidth - 2 * margin, 25);
+      
+      yPosition += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(168, 85, 247);
+      doc.text('📋 CONDUITE & DISCIPLINE', margin + 10, yPosition);
+      
+      yPosition += 10;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Conduite: ${conductData.conduct}/20 (${conductData.label})`, margin + 10, yPosition);
+      doc.text(`Absences: ${conductData.absences}`, pageWidth / 2, yPosition);
+      doc.text(`Retards: ${conductData.late}`, pageWidth - 80, yPosition);
+      
+      yPosition += 25;
 
       // SIGNATURES ET FOOTER
       yPosition = this.addSignatureSection(doc, t, yPosition, pageWidth, margin);
@@ -2917,6 +2969,228 @@ export class PDFGenerator {
       totalLateYear,
       averageAbsencesYear
     };
+  }
+
+  // ✅ TABLEAU DES NOTES MODERNE INSPIRÉ GEGOK12
+  private static addModernGradesTable(doc: any, bulletinData: any, t: any, startY: number, pageWidth: number, margin: number): number {
+    let yPosition = startY + 10;
+    
+    // === TITRE DE SECTION ===
+    doc.setFillColor(59, 130, 246); // Bleu
+    doc.rect(margin, yPosition - 5, pageWidth - 2 * margin, 20, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('📊 DÉTAIL DES NOTES PAR MATIÈRE', margin + 10, yPosition + 8);
+    
+    yPosition += 25;
+    doc.setTextColor(0, 0, 0);
+    
+    // === EN-TÊTE DU TABLEAU MODERNE ===
+    const headers = ['Matière', 'Note', 'Coef', 'Points', 'Appréciation'];
+    const columnWidths = [60, 25, 20, 25, 60]; // Largeurs flexibles
+    let xPosition = margin;
+    
+    // Fond gris pour en-tête
+    doc.setFillColor(248, 250, 252);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 15, 'F');
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 15);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(75, 85, 99);
+    
+    yPosition += 10;
+    for (let i = 0; i < headers.length; i++) {
+      doc.text(headers[i], xPosition + 3, yPosition);
+      xPosition += columnWidths[i];
+    }
+    yPosition += 8;
+    
+    // === LIGNES DE DONNÉES AVEC COEFFICIENTS ===
+    const subjects = bulletinData.subjects || [];
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    
+    subjects.forEach((subject: any, index: number) => {
+      // Coefficient flexible selon la matière
+      const coefficient = this.getSubjectCoefficient(subject.name);
+      const points = (subject.grade * coefficient).toFixed(1);
+      
+      // Alternance de couleurs
+      if (index % 2 === 0) {
+        doc.setFillColor(252, 252, 252);
+        doc.rect(margin, yPosition - 3, pageWidth - 2 * margin, 12, 'F');
+      }
+      
+      // Bordures subtiles
+      doc.setDrawColor(240, 240, 240);
+      doc.setLineWidth(0.3);
+      doc.rect(margin, yPosition - 3, pageWidth - 2 * margin, 12);
+      
+      // Données
+      xPosition = margin;
+      doc.setTextColor(0, 0, 0);
+      
+      // Matière
+      doc.text(subject.name, xPosition + 3, yPosition + 3);
+      xPosition += columnWidths[0];
+      
+      // Note avec couleur selon performance
+      doc.setTextColor(subject.grade >= 14 ? 34 : subject.grade >= 10 ? 0 : 239, 
+                       subject.grade >= 14 ? 197 : subject.grade >= 10 ? 0 : 68, 
+                       subject.grade >= 14 ? 94 : subject.grade >= 10 ? 0 : 68);
+      doc.text(`${subject.grade.toFixed(1)}/20`, xPosition + 3, yPosition + 3);
+      xPosition += columnWidths[1];
+      
+      // Coefficient
+      doc.setTextColor(0, 0, 0);
+      doc.text(coefficient.toString(), xPosition + 8, yPosition + 3);
+      xPosition += columnWidths[2];
+      
+      // Points
+      doc.setTextColor(59, 130, 246);
+      doc.text(points, xPosition + 3, yPosition + 3);
+      xPosition += columnWidths[3];
+      
+      // Appréciation
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(7);
+      doc.text(subject.comment, xPosition + 3, yPosition + 3);
+      
+      yPosition += 12;
+      doc.setFontSize(8);
+    });
+    
+    console.log('[MODERN_TABLE] ✅ Tableau moderne avec coefficients créé');
+    return yPosition + 10;
+  }
+
+  // ✅ SYSTÈME DE COEFFICIENTS FLEXIBLES INSPIRÉ GEGOK12
+  private static getSubjectCoefficient(subjectName: string): number {
+    const coefficients: { [key: string]: number } = {
+      // Matières fondamentales - coef élevé
+      'Mathématiques': 4,
+      'Français': 4,
+      'Anglais': 3,
+      
+      // Sciences - coef moyen-élevé
+      'Sciences Physiques': 3,
+      'Sciences Naturelles': 3,
+      'Chimie': 3,
+      'Biologie': 3,
+      
+      // Sciences humaines - coef moyen
+      'Histoire-Géo': 2,
+      'Histoire': 2,
+      'Géographie': 2,
+      'Instruction Civique': 2,
+      
+      // Matières pratiques - coef standard
+      'EPS': 1,
+      'Arts': 1,
+      'Dessin': 1,
+      'Musique': 1,
+      'Travaux Pratiques': 1,
+      
+      // Par défaut
+      'default': 2
+    };
+    
+    return coefficients[subjectName] || coefficients['default'];
+  }
+
+  // ✅ EN-TÊTE MODERNE INSPIRÉ DE GEGOK12
+  private static async addModernSchoolHeader(doc: any, headerData: any, startY: number): Promise<number> {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPosition = startY;
+    
+    // === SECTION ÉCOLE ===
+    doc.setFillColor(248, 250, 252); // Gris très clair
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 35, 'F');
+    doc.setDrawColor(220, 38, 127);
+    doc.setLineWidth(0.8);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 35);
+    
+    yPosition += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(220, 38, 127);
+    doc.text(headerData.schoolName.toUpperCase(), margin + 10, yPosition);
+    
+    yPosition += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(headerData.address, margin + 10, yPosition);
+    
+    // Année académique à droite
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(220, 38, 127);
+    const yearText = `ANNÉE ACADÉMIQUE ${headerData.academicYear}`;
+    const yearWidth = doc.getTextWidth(yearText);
+    doc.text(yearText, pageWidth - margin - yearWidth - 10, yPosition - 8);
+    
+    yPosition += 25;
+    
+    // === SECTION ÉLÈVE MODERNE ===
+    yPosition += 10;
+    doc.setFillColor(252, 165, 165); // Rose très clair
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 45, 'F');
+    doc.setDrawColor(220, 38, 127);
+    doc.setLineWidth(0.5);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 45);
+    
+    yPosition += 10;
+    
+    // Nom de l'élève
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`ÉLÈVE: ${headerData.student.name.toUpperCase()}`, margin + 10, yPosition);
+    
+    // Matricule à droite
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    const matriculeText = `Matricule: ${headerData.student.matricule}`;
+    const matriculeWidth = doc.getTextWidth(matriculeText);
+    doc.text(matriculeText, pageWidth - margin - matriculeWidth - 10, yPosition);
+    
+    yPosition += 12;
+    
+    // Ligne 2: Classe et Date de naissance
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text(`Classe: ${headerData.student.class}`, margin + 10, yPosition);
+    doc.text(`Né(e) le: ${headerData.student.dateOfBirth}`, margin + 80, yPosition);
+    
+    // Sexe à droite
+    const genderText = `Sexe: ${headerData.student.gender}`;
+    const genderWidth = doc.getTextWidth(genderText);
+    doc.text(genderText, pageWidth - margin - genderWidth - 10, yPosition);
+    
+    yPosition += 10;
+    
+    // Ligne 3: Lieu de naissance et Période
+    doc.text(`Lieu: ${headerData.student.placeOfBirth}`, margin + 10, yPosition);
+    
+    // Période centré
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(220, 38, 127);
+    const periodText = headerData.period.toUpperCase();
+    const periodWidth = doc.getTextWidth(periodText);
+    doc.text(periodText, (pageWidth - periodWidth) / 2, yPosition);
+    
+    doc.setTextColor(0, 0, 0); // Reset
+    yPosition += 25;
+    
+    console.log('[MODERN_HEADER] ✅ En-tête moderne GegoK12 créé');
+    return yPosition;
   }
 
   private static getConductLabel(conduct: number, language: string = 'fr'): string {
