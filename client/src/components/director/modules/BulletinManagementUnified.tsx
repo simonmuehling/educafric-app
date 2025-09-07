@@ -583,7 +583,8 @@ export default function BulletinManagementUnified() {
       // Construire la même logique que createModularBulletin mais pour l'aperçu
       const getTermSpecificData = () => {
         const baseData = {
-          generalAverage: formData.generalAverage,
+          // Utiliser la moyenne importée automatiquement si disponible
+          generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
           classRank: formData.classRank,
           totalStudents: formData.totalStudents,
           workAppreciation: formData.workAppreciation,
@@ -663,7 +664,29 @@ export default function BulletinManagementUnified() {
           term: formData.term,
           enrollment: formData.enrollment
         },
-        grades: {
+        grades: importedGrades ? {
+          // Convertir les notes importées automatiquement au format attendu
+          general: Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => ({
+            name: subject === 'MATH' ? 'Mathématiques' :
+                  subject === 'PHYS' ? 'Physique' :
+                  subject === 'CHIM' ? 'Chimie' :
+                  subject === 'BIO' ? 'Biologie' :
+                  subject === 'FRANC' ? 'Français' :
+                  subject === 'ANG' ? 'Anglais' :
+                  subject === 'HIST' ? 'Histoire' :
+                  subject === 'GEO' ? 'Géographie' : subject,
+            t1Grade: grades.CC || 0,
+            t2Grade: grades.EXAM || 0,
+            coefficient: 2,
+            average: ((grades.CC + grades.EXAM) / 2) || 0,
+            teacherComment: grades.CC >= 18 ? 'Excellent travail' :
+                           grades.CC >= 15 ? 'Très bien' :
+                           grades.CC >= 12 ? 'Bien' :
+                           grades.CC >= 10 ? 'Assez bien' : 'Doit faire des efforts'
+          })),
+          professional: formData.subjectsProfessional,
+          others: formData.subjectsOthers
+        } : {
           general: formData.subjectsGeneral,
           professional: formData.subjectsProfessional,
           others: formData.subjectsOthers
