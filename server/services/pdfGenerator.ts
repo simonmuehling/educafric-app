@@ -2501,7 +2501,7 @@ export class PDFGenerator {
       yPosition += 25;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addSignatureSection(doc, t, yPosition, pageWidth, margin);
+      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
       await this.addMobileOptimizedQRCode(doc, documentData);
       
       doc.setFontSize(8);
@@ -2639,7 +2639,7 @@ export class PDFGenerator {
       yPosition += 25;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addSignatureSection(doc, t, yPosition, pageWidth, margin);
+      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
       await this.addMobileOptimizedQRCode(doc, documentData);
       
       doc.setFontSize(8);
@@ -2792,7 +2792,7 @@ export class PDFGenerator {
       yPosition += 15;
 
       // SIGNATURES ET FOOTER
-      yPosition = this.addSignatureSection(doc, t, yPosition, pageWidth, margin);
+      yPosition = this.addModernSignatureSection(doc, t, yPosition, pageWidth, margin);
       await this.addMobileOptimizedQRCode(doc, documentData);
       
       doc.setFontSize(8);
