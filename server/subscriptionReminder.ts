@@ -188,11 +188,10 @@ The EDUCAFRIC Team
       
       // Envoyer SMS si numéro disponible
       if (user.phone) {
-        await notificationService.sendSmartNotification({
-          type: 'sms',
-          recipient: user,
-          template: 'SUBSCRIPTION_REMINDER',
-          data: { 
+        await notificationService.sendSmartNotification(
+          user,
+          'SUBSCRIPTION_REMINDER',
+          {
             userId: user.id, 
             phone: user.phone,
             message: messages[lang].sms,
@@ -200,9 +199,8 @@ The EDUCAFRIC Team
             subscriptionPlan: user.subscriptionPlan,
             subscriptionEnd: user.subscriptionEnd
           },
-          priority: 'medium',
-          language: lang as 'en' | 'fr'
-        });
+          'medium'
+        );
         console.log(`[SUBSCRIPTION_REMINDER] SMS sent to ${user.firstName} ${user.lastName} (${user.phone})`);
       }
 
@@ -212,11 +210,10 @@ The EDUCAFRIC Team
         // Pour l'instant, on utilise le template goodbye mais on peut créer un template spécifique
         console.log(`[SUBSCRIPTION_REMINDER] Sending email reminder to ${user.email}`);
         
-        await notificationService.sendSmartNotification({
-          type: 'email',
-          recipient: user,
-          template: 'SUBSCRIPTION_REMINDER',
-          data: {
+        await notificationService.sendSmartNotification(
+          user,
+          'SUBSCRIPTION_REMINDER',
+          {
             userId: user.id,
             subscriptionPlan: user.subscriptionPlan,
             subscriptionEnd: user.subscriptionEnd,
@@ -224,9 +221,8 @@ The EDUCAFRIC Team
             emailSubject: messages[lang].emailSubject,
             emailBody: messages[lang].emailBody
           },
-          priority: 'medium',
-          language: lang as 'en' | 'fr'
-        });
+          'medium'
+        );
         console.log(`[SUBSCRIPTION_REMINDER] Email sent to ${user.firstName} ${user.lastName} (${user.email})`);
       }
 

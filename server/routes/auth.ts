@@ -108,17 +108,27 @@ passport.deserializeUser(async (id: string | number, done) => {
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
       if (isNaN(userId as number)) {
-        console.log('[AUTH_DEBUG] Invalid user ID format:', id);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[AUTH_DEBUG] Invalid user ID format:', id);
+        }
         return done(null, false);
       }
       
-      console.log('[AUTH_DEBUG] Attempting to deserialize user ID:', userId);
+      // Only log in development to prevent performance issues
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[AUTH_DEBUG] Attempting to deserialize user ID:', userId);
+      }
+      
       const user = await storage.getUserById(userId as number);
       if (user) {
-        console.log('[AUTH_DEBUG] User successfully deserialized:', user.email);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[AUTH_DEBUG] User successfully deserialized:', user.email);
+        }
         return done(null, user);
       } else {
-        console.log('[AUTH_DEBUG] User not found in database for ID:', userId);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[AUTH_DEBUG] User not found in database for ID:', userId);
+        }
         return done(null, false);
       }
     } catch (dbError) {
@@ -195,13 +205,15 @@ router.post('/login', (req, res, next) => {
         return res.status(500).json({ message: 'Failed to create session' });
       }
       
-      // Debug session creation
-      console.log('[AUTH_DEBUG] User logged in, session ID:', req.sessionID);
-      console.log('[AUTH_DEBUG] Session after login:', {
-        authenticated: req.isAuthenticated(),
-        userId: req.user?.id,
-        userRole: req.user?.role
-      });
+      // Debug session creation (development only)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[AUTH_DEBUG] User logged in, session ID:', req.sessionID);
+        console.log('[AUTH_DEBUG] Session after login:', {
+          authenticated: req.isAuthenticated(),
+          userId: req.user?.id,
+          userRole: req.user?.role
+        });
+      }
       
       // Force session save
       req.session.save(async (saveErr) => {
