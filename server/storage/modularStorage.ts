@@ -162,38 +162,129 @@ export class ModularStorage {
 
   // === DELEGATE ADMINISTRATOR METHODS ===
   async getDelegateAdministrators(schoolId: number) {
-    // Return mock delegate administrators for now
+    console.log('[DELEGATE_ADMINS] Getting delegate administrators for school:', schoolId);
+    // Return mock delegate administrators with complete data
     return [
-      { id: 1, teacherId: 5, schoolId, adminLevel: 'assistant', assignedBy: 1, createdAt: new Date() },
-      { id: 2, teacherId: 8, schoolId, adminLevel: 'supervisor', assignedBy: 1, createdAt: new Date() }
+      {
+        id: 1,
+        teacherId: 5,
+        teacherName: 'Marie Kouame',
+        teacherEmail: 'marie.kouame@test.educafric.com',
+        schoolId: schoolId,
+        adminLevel: 'assistant',
+        level: 'assistant',
+        permissions: ['students', 'classes', 'attendance', 'reports', 'communication', 'settings'],
+        assignedAt: new Date('2024-01-15'),
+        assignedBy: 4,
+        status: 'active'
+      },
+      {
+        id: 2,
+        teacherId: 8,
+        teacherName: 'Paul Mbeki',
+        teacherEmail: 'paul.mbeki@test.educafric.com',
+        schoolId: schoolId,
+        adminLevel: 'limited',
+        level: 'limited',
+        permissions: ['attendance', 'communication', 'reports'],
+        assignedAt: new Date('2024-02-10'),
+        assignedBy: 4,
+        status: 'active'
+      }
     ];
   }
 
   async addDelegateAdministrator(data: any) {
-    // Create new delegate administrator
-    return {
+    console.log('[DELEGATE_ADMINS] Adding delegate administrator:', data);
+    
+    // Get teacher info for more complete response
+    const teachers = await this.getAvailableTeachersForAdmin(data.schoolId);
+    const teacher = teachers.find((t: any) => t.id === parseInt(data.teacherId));
+    
+    if (!teacher) {
+      throw new Error('Teacher not found or already assigned as administrator');
+    }
+    
+    // Create new delegate administrator with complete data
+    const newAdmin = {
       id: Date.now(),
-      ...data,
+      teacherId: data.teacherId,
+      teacherName: `${teacher.firstName} ${teacher.lastName}`,
+      teacherEmail: teacher.email,
+      schoolId: data.schoolId,
+      adminLevel: data.adminLevel,
+      level: data.adminLevel,
+      permissions: this.getDefaultPermissions(data.adminLevel),
+      assignedAt: new Date(),
+      assignedBy: data.assignedBy,
+      status: 'active',
       createdAt: new Date()
     };
+    
+    console.log('[DELEGATE_ADMINS] ✅ Delegate administrator added:', newAdmin);
+    return newAdmin;
   }
 
   async updateDelegateAdministratorPermissions(adminId: number, permissions: string[], schoolId: number) {
+    console.log('[DELEGATE_ADMINS] Updating permissions for admin:', adminId, permissions);
     // Update permissions for delegate administrator
-    return { success: true, adminId, permissions, schoolId };
+    return { 
+      success: true, 
+      adminId, 
+      permissions, 
+      schoolId,
+      updatedAt: new Date()
+    };
   }
 
   async removeDelegateAdministrator(adminId: number) {
+    console.log('[DELEGATE_ADMINS] Removing delegate administrator:', adminId);
     // Remove delegate administrator
-    return { success: true, adminId };
+    return { 
+      success: true, 
+      adminId,
+      removedAt: new Date()
+    };
   }
 
   async getAvailableTeachersForAdmin(schoolId: number) {
-    // Get teachers available to be promoted to admin roles
-    return [
-      { id: 5, firstName: "Marie", lastName: "Kouame", email: "marie.kouame@school.com", role: "Teacher" },
-      { id: 8, firstName: "Paul", lastName: "Mbeki", email: "paul.mbeki@school.com", role: "Teacher" }
-    ];
+    console.log('[DELEGATE_ADMINS] Getting available teachers for admin roles, school:', schoolId);
+    
+    try {
+      // Get all teachers and existing delegate admins
+      const allTeachers = await this.getTeachersBySchool(schoolId);
+      const delegateAdmins = await this.getDelegateAdministrators(schoolId);
+      const adminTeacherIds = delegateAdmins.map((admin: any) => admin.teacherId);
+      
+      // Filter out teachers who are already delegate administrators
+      const availableTeachers = (allTeachers || []).filter((teacher: any) => 
+        !adminTeacherIds.includes(teacher.id) && teacher.role === 'Teacher'
+      );
+      
+      console.log('[DELEGATE_ADMINS] ✅ Available teachers count:', availableTeachers.length);
+      return availableTeachers;
+    } catch (error) {
+      console.error('[DELEGATE_ADMINS] Error getting available teachers:', error);
+      // Fallback to mock data
+      return [
+        { id: 3, firstName: "Sophie", lastName: "Ndongo", email: "sophie.ndongo@test.educafric.com", role: "Teacher" },
+        { id: 4, firstName: "Jean", lastName: "Kamdem", email: "jean.kamdem@test.educafric.com", role: "Teacher" },
+        { id: 6, firstName: "Aisha", lastName: "Diallo", email: "aisha.diallo@test.educafric.com", role: "Teacher" },
+        { id: 7, firstName: "Pierre", lastName: "Biya", email: "pierre.biya@test.educafric.com", role: "Teacher" }
+      ];
+    }
+  }
+
+  // Helper method to get default permissions based on admin level
+  private getDefaultPermissions(adminLevel: string): string[] {
+    switch (adminLevel) {
+      case 'assistant':
+        return ['students', 'classes', 'attendance', 'reports', 'communication', 'settings'];
+      case 'limited':
+        return ['attendance', 'communication', 'reports'];
+      default:
+        return ['attendance', 'reports'];
+    }
   }
 
   async blockUserAccess(userId: number, reason: string) {

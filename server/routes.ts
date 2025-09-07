@@ -2559,6 +2559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/parent', checkSubscriptionFeature('parent_premium'), parentRouter);
   app.use('/api/admin', adminRoutes);
   app.use('/api/director', adminRoutes); // Map director to admin routes
+  app.use('/api/permissions', adminRoutes); // Map permissions to admin routes
 
   // Register existing route modules
   // 🔥 PREMIUM RESTRICTED: GPS tracking and geolocation (premium schools only)

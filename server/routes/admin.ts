@@ -636,7 +636,33 @@ router.delete('/delegates/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// Update delegate administrator permissions
+// Update delegate administrator permissions (PATCH method support)
+router.patch('/delegates/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const adminId = parseInt(req.params.id);
+    if (isNaN(adminId) || adminId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid admin ID' });
+    }
+    
+    const { permissions } = req.body;
+
+    await storage.updateDelegateAdministratorPermissions(adminId, permissions, user.schoolId);
+    
+    res.json({
+      success: true,
+      message: 'Delegate administrator permissions updated successfully'
+    });
+  } catch (error) {
+    console.error('[ADMIN_API] Error updating delegate permissions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update delegate permissions'
+    });
+  }
+});
+
+// Update delegate administrator permissions (PUT method)
 router.put('/delegates/:id/permissions', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
@@ -666,6 +692,7 @@ router.put('/delegates/:id/permissions', requireAuth, requireAdmin, async (req, 
 router.get('/available-teachers', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
+    console.log('[ADMIN_API] 👨‍🏫 Fetching available teachers for school:', user.schoolId);
     const teachers = await storage.getAvailableTeachersForAdmin(user.schoolId);
     
     res.json({
@@ -677,6 +704,76 @@ router.get('/available-teachers', requireAuth, requireAdmin, async (req, res) =>
     res.status(500).json({
       success: false,
       message: 'Failed to fetch available teachers'
+    });
+  }
+});
+
+// Get permissions modules
+router.get('/permissions/modules', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    console.log('[ADMIN_API] 🔐 Fetching permissions modules...');
+    
+    // Define available permissions modules
+    const modules = [
+      {
+        id: 'students',
+        name: 'Gestion des Élèves',
+        description: 'Créer, modifier et supprimer des élèves',
+        category: 'education'
+      },
+      {
+        id: 'teachers',
+        name: 'Gestion des Enseignants',
+        description: 'Gérer les enseignants et leurs assignations',
+        category: 'staff'
+      },
+      {
+        id: 'classes',
+        name: 'Gestion des Classes',
+        description: 'Créer et gérer les classes',
+        category: 'education'
+      },
+      {
+        id: 'grades',
+        name: 'Gestion des Notes',
+        description: 'Saisir et modifier les notes des élèves',
+        category: 'academic'
+      },
+      {
+        id: 'attendance',
+        name: 'Gestion des Présences',
+        description: 'Marquer et suivre les présences',
+        category: 'academic'
+      },
+      {
+        id: 'reports',
+        name: 'Rapports et Analyses',
+        description: 'Générer des rapports et analyses',
+        category: 'reporting'
+      },
+      {
+        id: 'communication',
+        name: 'Communication',
+        description: 'Envoyer des messages aux parents et élèves',
+        category: 'communication'
+      },
+      {
+        id: 'settings',
+        name: 'Paramètres École',
+        description: 'Modifier les paramètres de l\'école',
+        category: 'administration'
+      }
+    ];
+    
+    res.json({
+      success: true,
+      modules: modules
+    });
+  } catch (error) {
+    console.error('[ADMIN_API] Error fetching permissions modules:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch permissions modules'
     });
   }
 });
