@@ -100,101 +100,88 @@ router.get('/bulletin/preview', (req, res) => {
   res.send(htmlTemplate);
 });
 
-// ✅ Route POST pour prévisualiser le bulletin avec les NOUVEAUX TEMPLATES MODERNISÉS
+// ✅ Route POST pour prévisualiser le bulletin avec le TEMPLATE MODULAIRE (format officiel camerounais)
 router.post('/bulletin/preview-custom', async (req, res) => {
   try {
     const { schoolData, studentData, academicData, grades, evaluations, language = 'fr', termSpecificData } = req.body;
 
-    console.log('[BULLETIN_PREVIEW_MODERN] 🎯 Generating preview with MODERN TEMPLATES');
-    console.log('[BULLETIN_PREVIEW_MODERN] Term:', academicData?.term, 'Student:', studentData?.firstName, studentData?.lastName);
+    console.log('[BULLETIN_PREVIEW_TEMPLATE] 🎯 Generating preview with MODULAR TEMPLATE SYSTEM');
+    console.log('[BULLETIN_PREVIEW_TEMPLATE] Term:', academicData?.term, 'Student:', studentData?.firstName, studentData?.lastName);
 
-    // ✅ CONSTRUIRE LES MÉTADONNÉES AVEC NOTES RÉELLES (importées + saisies manuellement)
-    const bulletinMetadata = {
-      studentData: {
-        fullName: `${studentData?.firstName || 'Jean'} ${studentData?.lastName || 'Kamga'}`,
-        firstName: studentData?.firstName || 'Jean',
-        lastName: studentData?.lastName || 'Kamga', 
-        studentNumber: studentData?.studentNumber || '1',
-        birthDate: studentData?.birthDate || 'Date non renseignée',
-        birthPlace: studentData?.birthPlace || 'Yaoundé, Cameroun',
-        gender: studentData?.gender || 'M',
-        className: academicData?.className || '6ème A',
-        photo: studentData?.photo
-      },
-      schoolData: {
-        name: schoolData?.name || "École Saint-Joseph",
+    // ✅ CONSTRUIRE LES DONNÉES POUR LE TEMPLATE MODULAIRE (format exact du PDF montré par l'utilisateur)
+    const templateData: BulletinTemplateData = {
+      schoolInfo: {
+        schoolName: schoolData?.name || "Collège Excellence Africaine - Yaoundé",
         address: schoolData?.address || "B.P. 1234 Yaoundé",
-        phone: schoolData?.phone || '+237657004011', 
-        email: schoolData?.email || 'contact@saint-joseph.cm',
-        director: schoolData?.director || 'Directeur non renseigné',
-        city: schoolData?.city || 'Douala, Cameroun',
+        city: schoolData?.city || "Yaoundé",
+        phoneNumber: schoolData?.phone || "+237 222 345 678",
+        email: schoolData?.email || "info@ecole-excellence.com",
+        directorName: schoolData?.director || "Dr. Ngozi Adichie Emmanuel",
+        academicYear: academicData?.academicYear || "2024-2025",
         regionalDelegation: schoolData?.regionalDelegation || "DU CENTRE",
         departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI"
       },
-      grades: {
-        // ✅ UTILISER LES NOTES RÉELLES DU FORMULAIRE (saisies manuellement OU importées)
-        subjects: [
-          // Matières générales avec notes du formulaire
-          ...(grades?.general?.map((subject: any) => ({
-            subjectName: subject.name,
-            note: parseFloat(subject.grade) || 0,
-            coefficient: parseInt(subject.coefficient) || 1,
-            appreciation: subject.comments || 'En cours',
-            teacherName: subject.teacherName || 'Enseignant'
-          })) || []),
-          // Matières professionnelles 
-          ...(grades?.professional?.map((subject: any) => ({
-            subjectName: subject.name,
-            note: parseFloat(subject.grade) || 0,
-            coefficient: parseInt(subject.coefficient) || 1,
-            appreciation: subject.comments || 'En cours',
-            teacherName: subject.teacherName || 'Enseignant'
-          })) || []),
-          // Autres matières
-          ...(grades?.others?.map((subject: any) => ({
-            subjectName: subject.name,
-            note: parseFloat(subject.grade) || 0,
-            coefficient: parseInt(subject.coefficient) || 1,
-            appreciation: subject.comments || 'En cours',
-            teacherName: subject.teacherName || 'Enseignant'
-          })) || []),
-          // ✅ MATIÈRES PAR DÉFAUT SI AUCUNE DONNÉE (avec coefficients africains)
-          ...((!grades?.general?.length && !grades?.professional?.length && !grades?.others?.length) ? [
-            { subjectName: 'Mathématiques', note: 16.5, coefficient: 4, appreciation: 'Très bien', teacherName: 'M. Kouassi' },
-            { subjectName: 'Physique', note: 15.0, coefficient: 3, appreciation: 'Bien', teacherName: 'Mme Diallo' },
-            { subjectName: 'Chimie', note: 14.5, coefficient: 3, appreciation: 'Assez bien', teacherName: 'M. Traoré' },
-            { subjectName: 'Français', note: 15.5, coefficient: 4, appreciation: 'Bien', teacherName: 'M. Nkomo' },
-            { subjectName: 'Anglais', note: 14.0, coefficient: 3, appreciation: 'Assez bien', teacherName: 'Mrs Johnson' },
-            { subjectName: 'Histoire', note: 16.0, coefficient: 2, appreciation: 'Très bien', teacherName: 'M. Ouédraogo' },
-            { subjectName: 'Géographie', note: 15.0, coefficient: 2, appreciation: 'Bien', teacherName: 'Mme Bamba' }
-          ] : [])
-        ],
-        generalAverage: parseFloat(evaluations?.generalAverage) || parseFloat(termSpecificData?.generalAverage) || 15.43,
-        classRank: parseInt(evaluations?.classRank) || parseInt(termSpecificData?.classRank) || 3,
-        totalStudents: parseInt(evaluations?.totalStudents) || parseInt(termSpecificData?.totalStudents) || parseInt(academicData?.enrollment) || 42
+      student: {
+        firstName: studentData?.firstName || "Amina",
+        lastName: studentData?.lastName || "Kouakou",
+        birthDate: studentData?.birthDate || "15 Mars 2010",
+        birthPlace: studentData?.birthPlace || "Abidjan, Côte d'Ivoire",
+        gender: studentData?.gender === 'M' ? 'Masculin' : 'Féminin',
+        className: academicData?.className || "3ème A",
+        studentNumber: studentData?.studentNumber || "CEA-2024-0157",
+        photo: studentData?.photo
       },
-      academicData: {
-        term: academicData?.term || 'Premier Trimestre',
-        academicYear: academicData?.academicYear || '2024-2025',
-        className: academicData?.className || '6ème A',
-        enrollment: parseInt(academicData?.enrollment) || 42
-      }
+      period: academicData?.term || "1er Trimestre 2024-2025",
+      subjects: [
+        // ✅ UTILISER LES NOTES RÉELLES DU FORMULAIRE (importées automatiquement OU saisies manuellement)
+        ...(grades?.general?.map((subject: any) => ({
+          name: subject.name,
+          grade: parseFloat(subject.grade) || parseFloat(subject.average) || 0,
+          maxGrade: 20,
+          coefficient: parseInt(subject.coefficient) || 1,
+          comments: subject.comments || subject.teacherComment || (parseFloat(subject.grade) >= 16 ? 'Excellent' :
+                                                                   parseFloat(subject.grade) >= 14 ? 'Très bien' :
+                                                                   parseFloat(subject.grade) >= 12 ? 'Bien' :
+                                                                   parseFloat(subject.grade) >= 10 ? 'Assez bien' : 'Doit améliorer'),
+          teacherName: subject.teacherName || 'Enseignant'
+        })) || []),
+        // ✅ MATIÈRES PAR DÉFAUT SI AUCUNE DONNÉE (avec notes réalistes africaines)
+        ...((!grades?.general?.length && !grades?.professional?.length && !grades?.others?.length) ? [
+          { name: 'Mathématiques', grade: 16.5, maxGrade: 20, coefficient: 4, comments: 'Excellent', teacherName: 'M. Koné Joseph Augustin' },
+          { name: 'Français', grade: 14, maxGrade: 20, coefficient: 4, comments: 'Assez bien', teacherName: 'Mme Diallo Fatou Marie' },
+          { name: 'Anglais', grade: 15.5, maxGrade: 20, coefficient: 3, comments: 'Bien', teacherName: 'M. Smith John Patrick' },
+          { name: 'Histoire-Géo', grade: 13.5, maxGrade: 20, coefficient: 3, comments: 'Assez bien', teacherName: 'M. Ouédraogo Paul Vincent' },
+          { name: 'Sciences Physiques', grade: 17, maxGrade: 20, coefficient: 3, comments: 'Excellent', teacherName: 'Mme Camara Aïcha Binta' },
+          { name: 'Sciences Naturelles', grade: 16, maxGrade: 20, coefficient: 3, comments: 'Très bien', teacherName: 'M. Traoré Ibrahim Moussa' },
+          { name: 'EPS', grade: 18, maxGrade: 20, coefficient: 1, comments: 'Excellent', teacherName: 'M. Bamba Sekou Amadou' },
+          { name: 'Arts', grade: 15, maxGrade: 20, coefficient: 1, comments: 'Bien', teacherName: 'Mme Sow Mariam Aminata' }
+        ] : [])
+      ],
+      generalAverage: parseFloat(evaluations?.generalAverage) || parseFloat(termSpecificData?.generalAverage) || 15.43,
+      classRank: parseInt(evaluations?.classRank) || parseInt(termSpecificData?.classRank) || 3,
+      totalStudents: parseInt(evaluations?.totalStudents) || parseInt(termSpecificData?.totalStudents) || parseInt(academicData?.enrollment) || 42,
+      conduct: "Très bien",
+      conductGrade: 18,
+      absences: 2,
+      teacherComments: evaluations?.generalAppreciation || termSpecificData?.generalAppreciation || "Élève sérieux et appliqué avec un bon niveau général.",
+      directorComments: "Continuer sur cette lancée. Félicitations pour ces bons résultats.",
+      verificationCode: `EDU2024-${studentData?.firstName?.substr(0,2)?.toUpperCase() || 'AMK'}-${academicData?.term?.charAt(0) || 'T1'}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
     };
 
-    // ✅ UTILISER PDF-LIB POUR BULLETINS PROPRES ET LISIBLES
-    console.log('[BULLETIN_PDF_LIB] 🎯 Utilisation pdf-lib pour bulletin professionnel');
-    const pdfBuffer = await PdfLibBulletinGenerator.generateCleanBulletin();
+    // ✅ UTILISER LE SYSTÈME DE TEMPLATE MODULAIRE pour générer l'HTML (format exact du PDF de l'utilisateur)
+    console.log('[BULLETIN_TEMPLATE] 🎯 Utilisation modularTemplateGenerator pour format officiel');
+    const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(templateData, language);
     
-    console.log('[BULLETIN_PREVIEW_MODERN] ✅ Modern template preview generated successfully');
+    console.log('[BULLETIN_PREVIEW_TEMPLATE] ✅ Beautiful template preview generated successfully');
     
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="Apercu-Bulletin-${bulletinMetadata.studentData.fullName.replace(/\s+/g, '_')}.pdf"`);
-    res.send(pdfBuffer);
+    // Retourner l'HTML directement pour affichage dans le navigateur
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(htmlTemplate);
 
   } catch (error) {
-    console.error('[BULLETIN_PREVIEW_MODERN] ❌ Error:', error);
+    console.error('[BULLETIN_PREVIEW_TEMPLATE] ❌ Error:', error);
     res.status(500).json({ 
-      error: 'Failed to generate modern preview', 
+      error: 'Failed to generate template preview', 
       details: error instanceof Error ? error.message : 'Erreur inconnue'
     });
   }

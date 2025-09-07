@@ -191,7 +191,10 @@ export default function BulletinManagementUnified() {
         coefficient: coefficients[subjectCode] || 1,
         total: averageGrade * (coefficients[subjectCode] || 1),
         position: 1,
-        average: averageGrade,
+        averageMark: averageGrade,
+        remark: averageGrade >= 16 ? 'Très bien' : 
+                averageGrade >= 14 ? 'Bien' : 
+                averageGrade >= 12 ? 'Assez bien' : 'À améliorer',
         comments: averageGrade >= 16 ? 'Très bien' : 
                  averageGrade >= 14 ? 'Bien' : 
                  averageGrade >= 12 ? 'Assez bien' : 'À améliorer',
