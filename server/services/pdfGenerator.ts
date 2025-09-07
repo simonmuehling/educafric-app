@@ -2348,13 +2348,25 @@ export class PDFGenerator {
     
     console.log(`[BULLETIN_ROUTER] 🎯 Choix du template pour le trimestre: ${term}`);
     
-    // Choisir le bon template selon le trimestre
-    switch (term) {
+    // Choisir le bon template selon le trimestre - Support français ET codes
+    let templateChoice = term;
+    
+    // Mapper les noms français vers les codes
+    if (term === 'Premier Trimestre') templateChoice = 'T1';
+    if (term === 'Deuxième Trimestre') templateChoice = 'T2'; 
+    if (term === 'Troisième Trimestre') templateChoice = 'T3';
+    
+    console.log(`[BULLETIN_ROUTER] 🔄 Mapping: "${term}" → "${templateChoice}"`);
+    
+    switch (templateChoice) {
       case 'T1':
+        console.log('[BULLETIN_ROUTER] 📝 Using T1 template');
         return this.generateBulletinT1(bulletinMetadata);
       case 'T2':
+        console.log('[BULLETIN_ROUTER] 📊 Using T2 template with evolution');
         return this.generateBulletinT2(bulletinMetadata);
       case 'T3':
+        console.log('[BULLETIN_ROUTER] 🏆 Using T3 template with annual totals');
         return this.generateBulletinT3(bulletinMetadata);
       default:
         console.warn(`[BULLETIN_ROUTER] ⚠️ Trimestre inconnu: ${term}, utilisation T1`);

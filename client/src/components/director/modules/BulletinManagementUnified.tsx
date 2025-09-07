@@ -1376,7 +1376,7 @@ export default function BulletinManagementUnified() {
                   <FileText className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white">📊 Bulletins GegoK12</h1>
+                  <h1 className="text-3xl font-bold text-white">📊 Gestion des Bulletins</h1>
                   <p className="text-blue-100 mt-1">
                     Système professionnel de génération de bulletins • Design moderne • Coefficients flexibles
                   </p>
@@ -1398,7 +1398,7 @@ export default function BulletinManagementUnified() {
             <div className="mt-4 flex items-center space-x-6 text-sm text-blue-100">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4" />
-                <span>Templates T1, T2, T3 modernisés</span>
+                <span>3 templates spécialisés par trimestre</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Star className="h-4 w-4" />
