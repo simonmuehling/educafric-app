@@ -98,6 +98,7 @@ export default function BulletinManagementUnified() {
   // État pour les notes importées automatiquement
   const [importedGrades, setImportedGrades] = useState<any>(null);
   const [showImportedGrades, setShowImportedGrades] = useState<boolean>(false);
+  const [showManualGradeEntry, setShowManualGradeEntry] = useState<boolean>(false);
 
   // État pour le formulaire modulable
   const [formData, setFormData] = useState({
@@ -161,6 +162,95 @@ export default function BulletinManagementUnified() {
         ? [] // Désélectionner tous si tous sont sélectionnés
         : allApprovedIds // Sélectionner tous
     );
+  };
+
+  // ✅ FONCTION POUR INTÉGRER LES NOTES IMPORTÉES DANS LE BULLETIN
+  const integrateImportedGradesToBulletin = () => {
+    if (!importedGrades || !importedGrades.termGrades) {
+      toast({
+        title: "❌ Erreur",
+        description: "Aucune note importée à intégrer",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const gradesToIntegrate = importedGrades.termGrades;
+    const coefficients = importedGrades.coefficients || {};
+    
+    // Convertir les notes importées en format matières compatible avec le type Subject
+    const convertedSubjects = Object.entries(gradesToIntegrate).map(([subjectCode, grades]: [string, any]) => {
+      const subjectName = getSubjectDisplayName(subjectCode);
+      const averageGrade = calculateSubjectAverage(grades);
+      
+      return {
+        name: subjectName,
+        t1Grade: formData.term === 'Premier Trimestre' ? averageGrade : 0,
+        t2Grade: formData.term === 'Deuxième Trimestre' ? averageGrade : 0,
+        t3Grade: formData.term === 'Troisième Trimestre' ? averageGrade : 0,
+        coefficient: coefficients[subjectCode] || 1,
+        total: averageGrade * (coefficients[subjectCode] || 1),
+        position: 1,
+        average: averageGrade,
+        comments: averageGrade >= 16 ? 'Très bien' : 
+                 averageGrade >= 14 ? 'Bien' : 
+                 averageGrade >= 12 ? 'Assez bien' : 'À améliorer',
+        teacherName: 'Enseignant'
+      } as Subject;
+    });
+
+    // Répartir les matières par catégorie
+    const generalSubjects = convertedSubjects.filter(s => 
+      ['Mathématiques', 'Français', 'Anglais', 'Histoire', 'Géographie'].includes(s.name)
+    );
+    
+    const professionalSubjects = convertedSubjects.filter(s => 
+      ['Physique', 'Chimie', 'Biologie', 'Sciences'].includes(s.name)
+    );
+    
+    const otherSubjects = convertedSubjects.filter(s => 
+      !generalSubjects.includes(s) && !professionalSubjects.includes(s)
+    );
+
+    // Mettre à jour le formulaire
+    setFormData(prev => ({
+      ...prev,
+      subjectsGeneral: generalSubjects,
+      subjectsProfessional: professionalSubjects, 
+      subjectsOthers: otherSubjects,
+      generalAverage: importedGrades.termAverage || prev.generalAverage
+    }));
+
+    toast({
+      title: "✅ Notes intégrées",
+      description: `${convertedSubjects.length} matières intégrées au bulletin`,
+      duration: 3000
+    });
+
+    setShowImportedGrades(false);
+  };
+
+  // Helper functions
+  const getSubjectDisplayName = (code: string): string => {
+    const mapping: Record<string, string> = {
+      'MATH': 'Mathématiques',
+      'PHY': 'Physique', 
+      'CHIM': 'Chimie',
+      'BIO': 'Biologie',
+      'FRANC': 'Français',
+      'ANG': 'Anglais',
+      'HIST': 'Histoire',
+      'GEO': 'Géographie',
+      'EPS': 'EPS'
+    };
+    return mapping[code] || code;
+  };
+
+  const calculateSubjectAverage = (grades: any): number => {
+    if (grades.CC && grades.EXAM) {
+      return (grades.CC * 0.4 + grades.EXAM * 0.6);
+    }
+    return grades.CC || grades.EXAM || 0;
   };
 
   // Charger les données initiales
@@ -1975,14 +2065,23 @@ export default function BulletinManagementUnified() {
                     <div className="text-sm text-gray-600">
                       <span className="font-medium">✅ Importation réussie</span> - Les notes sont prêtes à être utilisées pour le bulletin
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowImportedGrades(false)}
-                      className="text-gray-600 hover:text-gray-700"
-                    >
-                      Masquer
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => integrateImportedGradesToBulletin()}
+                        className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                        size="sm"
+                      >
+                        ✅ Intégrer au Bulletin
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowImportedGrades(false)}
+                        className="text-gray-600 hover:text-gray-700 text-xs"
+                      >
+                        Masquer
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

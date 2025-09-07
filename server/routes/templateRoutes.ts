@@ -106,7 +106,7 @@ router.post('/bulletin/preview-custom', async (req, res) => {
     console.log('[BULLETIN_PREVIEW_MODERN] 🎯 Generating preview with MODERN TEMPLATES');
     console.log('[BULLETIN_PREVIEW_MODERN] Term:', academicData?.term, 'Student:', studentData?.firstName, studentData?.lastName);
 
-    // ✅ CONSTRUIRE LES MÉTADONNÉES POUR LES NOUVEAUX TEMPLATES
+    // ✅ CONSTRUIRE LES MÉTADONNÉES AVEC NOTES RÉELLES (importées + saisies manuellement)
     const bulletinMetadata = {
       studentData: {
         fullName: `${studentData?.firstName || 'Jean'} ${studentData?.lastName || 'Kamga'}`,
@@ -130,26 +130,52 @@ router.post('/bulletin/preview-custom', async (req, res) => {
         departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI"
       },
       grades: {
-        // ✅ COEFFICIENTS FLEXIBLES AFRICAINS
+        // ✅ UTILISER LES NOTES RÉELLES DU FORMULAIRE (saisies manuellement OU importées)
         subjects: [
-          { subjectName: 'Mathématiques', note: 16.5, coefficient: 4, appreciation: 'Très bien', teacherName: 'M. Kouassi' },
-          { subjectName: 'Physique', note: 15.0, coefficient: 3, appreciation: 'Bien', teacherName: 'Mme Diallo' },
-          { subjectName: 'Chimie', note: 14.5, coefficient: 3, appreciation: 'Assez bien', teacherName: 'M. Traoré' },
-          { subjectName: 'Biologie', note: 17.0, coefficient: 3, appreciation: 'Très bien', teacherName: 'Mme Sow' },
-          { subjectName: 'Français', note: 15.5, coefficient: 4, appreciation: 'Bien', teacherName: 'M. Nkomo' },
-          { subjectName: 'Anglais', note: 14.0, coefficient: 3, appreciation: 'Assez bien', teacherName: 'Mrs Johnson' },
-          { subjectName: 'Histoire', note: 16.0, coefficient: 2, appreciation: 'Très bien', teacherName: 'M. Ouédraogo' },
-          { subjectName: 'Géographie', note: 15.0, coefficient: 2, appreciation: 'Bien', teacherName: 'Mme Bamba' }
+          // Matières générales avec notes du formulaire
+          ...(grades?.general?.map((subject: any) => ({
+            subjectName: subject.name,
+            note: parseFloat(subject.grade) || 0,
+            coefficient: parseInt(subject.coefficient) || 1,
+            appreciation: subject.comments || 'En cours',
+            teacherName: subject.teacherName || 'Enseignant'
+          })) || []),
+          // Matières professionnelles 
+          ...(grades?.professional?.map((subject: any) => ({
+            subjectName: subject.name,
+            note: parseFloat(subject.grade) || 0,
+            coefficient: parseInt(subject.coefficient) || 1,
+            appreciation: subject.comments || 'En cours',
+            teacherName: subject.teacherName || 'Enseignant'
+          })) || []),
+          // Autres matières
+          ...(grades?.others?.map((subject: any) => ({
+            subjectName: subject.name,
+            note: parseFloat(subject.grade) || 0,
+            coefficient: parseInt(subject.coefficient) || 1,
+            appreciation: subject.comments || 'En cours',
+            teacherName: subject.teacherName || 'Enseignant'
+          })) || []),
+          // ✅ MATIÈRES PAR DÉFAUT SI AUCUNE DONNÉE (avec coefficients africains)
+          ...((!grades?.general?.length && !grades?.professional?.length && !grades?.others?.length) ? [
+            { subjectName: 'Mathématiques', note: 16.5, coefficient: 4, appreciation: 'Très bien', teacherName: 'M. Kouassi' },
+            { subjectName: 'Physique', note: 15.0, coefficient: 3, appreciation: 'Bien', teacherName: 'Mme Diallo' },
+            { subjectName: 'Chimie', note: 14.5, coefficient: 3, appreciation: 'Assez bien', teacherName: 'M. Traoré' },
+            { subjectName: 'Français', note: 15.5, coefficient: 4, appreciation: 'Bien', teacherName: 'M. Nkomo' },
+            { subjectName: 'Anglais', note: 14.0, coefficient: 3, appreciation: 'Assez bien', teacherName: 'Mrs Johnson' },
+            { subjectName: 'Histoire', note: 16.0, coefficient: 2, appreciation: 'Très bien', teacherName: 'M. Ouédraogo' },
+            { subjectName: 'Géographie', note: 15.0, coefficient: 2, appreciation: 'Bien', teacherName: 'Mme Bamba' }
+          ] : [])
         ],
-        generalAverage: evaluations?.generalAverage || 15.43,
-        classRank: evaluations?.classRank || 3,
-        totalStudents: evaluations?.totalStudents || 42
+        generalAverage: parseFloat(evaluations?.generalAverage) || parseFloat(termSpecificData?.generalAverage) || 15.43,
+        classRank: parseInt(evaluations?.classRank) || parseInt(termSpecificData?.classRank) || 3,
+        totalStudents: parseInt(evaluations?.totalStudents) || parseInt(termSpecificData?.totalStudents) || parseInt(academicData?.enrollment) || 42
       },
       academicData: {
         term: academicData?.term || 'Premier Trimestre',
         academicYear: academicData?.academicYear || '2024-2025',
         className: academicData?.className || '6ème A',
-        enrollment: academicData?.enrollment || 42
+        enrollment: parseInt(academicData?.enrollment) || 42
       }
     };
 
