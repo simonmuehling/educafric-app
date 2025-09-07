@@ -979,7 +979,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For now, simulate successful import. In production, save to database
       console.log('[ROOMS_API] ✅ Rooms imported successfully:', validRooms.length, 'valid rooms');
       
-      const response = {
+      const response: any = {
         success: true,
         imported: validRooms.length,
         total: rooms.length,
