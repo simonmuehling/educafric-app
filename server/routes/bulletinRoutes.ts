@@ -328,7 +328,7 @@ router.post('/create', requireAuth, async (req, res) => {
       classId: parseInt(classId),
       schoolId,
       teacherId: user.id,
-      term: term || 'Premier Trimestre',
+      term: academicData?.term || term || 'Premier Trimestre',
       academicYear: academicYear || '2024-2025',
       status: 'draft',
       generalAverage: evaluations?.generalAverage || 0,
@@ -1518,7 +1518,7 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
         studentNumber: studentData?.matricule || "EDU-2025-001",
         photo: studentData?.photo || "https://ui-avatars.com/api/?name=Jean%20Kamga&size=100&background=2563eb&color=ffffff&format=png"
       },
-      period: bulletinData.term || "Premier Trimestre",
+      period: bulletinData.metadata?.academicData?.term || bulletinData.term || "Premier Trimestre",
       subjects: (grades?.general || []).map((subject: any) => ({
         name: subject.name,
         coefficient: subject.coefficient || 2,
