@@ -283,28 +283,51 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Gestion de la sélection d'élève
+  // Gestion de la sélection d'élève - AMÉLIORATION POUR CHARGEMENT AUTOMATIQUE COMPLET
   const handleStudentSelection = async (studentId: string) => {
     setSelectedStudentId(studentId);
     
     if (studentId) {
       const selectedStudent = students.find(s => s.id.toString() === studentId);
       if (selectedStudent) {
-        setFormData(prev => ({
-          ...prev,
-          studentFirstName: selectedStudent.firstName || '',
-          studentLastName: selectedStudent.lastName || '',
-          studentBirthDate: selectedStudent.birthDate || '',
-          studentBirthPlace: selectedStudent.birthPlace || '',
-          studentGender: selectedStudent.gender || '',
-          studentNumber: selectedStudent.studentNumber || selectedStudent.matricule || '',
-          studentPhoto: selectedStudent.photoUrl || '',
-        }));
+        console.log('[STUDENT_SELECTION] 🎯 Élève sélectionné:', selectedStudent);
+        
+        // ✅ CHARGEMENT AUTOMATIQUE COMPLET DES INFORMATIONS ÉLÈVE
+        const updatedData = {
+          ...formData,
+          // Informations personnelles complètes
+          studentFirstName: selectedStudent.firstName || selectedStudent.name?.split(' ')[0] || '',
+          studentLastName: selectedStudent.lastName || selectedStudent.name?.split(' ').slice(1).join(' ') || '',
+          studentBirthDate: selectedStudent.birthDate || selectedStudent.dateOfBirth || '',
+          studentBirthPlace: selectedStudent.birthPlace || selectedStudent.placeOfBirth || 'Yaoundé, Cameroun',
+          studentGender: selectedStudent.gender || 'M',
+          studentNumber: selectedStudent.studentNumber || selectedStudent.matricule || selectedStudent.id || '',
+          
+          // ✅ PHOTO AUTOMATIQUE depuis le profil existant
+          studentPhoto: selectedStudent.photoUrl || selectedStudent.profileImage || selectedStudent.avatar || '',
+          
+          // Informations académiques
+          totalStudents: selectedStudent.classSize || students.length || 0
+        };
+        
+        setFormData(updatedData);
+        
+        console.log('[STUDENT_SELECTION] ✅ Informations pré-remplies:', {
+          nom: updatedData.studentFirstName + ' ' + updatedData.studentLastName,
+          matricule: updatedData.studentNumber,
+          photo: updatedData.studentPhoto ? '✅ Photo chargée' : '❌ Pas de photo'
+        });
         
         // 🎯 IMPORTATION AUTOMATIQUE dès qu'on a élève + classe + trimestre
         if (selectedClassId && formData.term) {
           await triggerAutoImport(studentId, selectedClassId, formData.term);
         }
+        
+        // Notification de succès
+        toast({
+          title: "✅ Élève sélectionné",
+          description: `Informations automatiquement chargées pour ${updatedData.studentFirstName} ${updatedData.studentLastName}`,
+        });
       }
     }
   };
@@ -354,7 +377,8 @@ export default function BulletinManagementUnified() {
           
           toast({
             title: "✅ Notes trouvées",
-            description: `🎯 Notes importées automatiquement - ${term}: Moyenne calculée ${data.data.termAverage || 'N/A'}/20 selon la classe ${classId}`,
+            description: `🎯 ${term} - Moyenne calculée: ${data.data.termAverage || 'N/A'}/20 avec ${Object.keys(data.data.termGrades || {}).length} matières`,
+            duration: 5000,
           });
         } else {
           setImportedGrades(null);
@@ -1790,7 +1814,10 @@ export default function BulletinManagementUnified() {
                           {importedGrades.termAverage}/20
                         </Badge>
                         <span className="text-sm text-gray-500">
-                          Trimestre {importedGrades.term}
+                          {importedGrades.term === 'T1' ? 'Premier Trimestre' :
+                           importedGrades.term === 'T2' ? 'Deuxième Trimestre' :
+                           importedGrades.term === 'T3' ? 'Troisième Trimestre' :
+                           `Trimestre ${importedGrades.term}`}
                         </span>
                       </div>
                     </div>
@@ -1902,24 +1929,45 @@ export default function BulletinManagementUnified() {
                     />
                   </div>
                   <div>
-                    <Label>Photo Élève (optionnel)</Label>
+                    <Label className="flex items-center space-x-2">
+                      <Camera className="h-4 w-4" />
+                      <span>Photo Élève {formData.studentPhoto ? '(Chargée automatiquement)' : '(Optionnel)'}</span>
+                    </Label>
                     <div className="mt-2 space-y-3">
-                      {formData.studentPhoto && (
+                      {formData.studentPhoto ? (
                         <div className="flex items-center space-x-3">
-                          <img 
-                            src={formData.studentPhoto} 
-                            alt="Photo élève" 
-                            className="w-16 h-20 object-cover border border-gray-300 rounded"
-                          />
-                          <Button
-                            onClick={() => setFormData(prev => ({ ...prev, studentPhoto: '' }))}
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Supprimer
-                          </Button>
+                          <div className="relative">
+                            <img 
+                              src={formData.studentPhoto} 
+                              alt="Photo élève" 
+                              className="w-16 h-20 object-cover border border-gray-300 rounded shadow-sm"
+                              onError={(e) => {
+                                console.log('[PHOTO_ERROR] Impossible de charger:', formData.studentPhoto);
+                                e.currentTarget.src = '/api/placeholder-student.png';
+                              }}
+                            />
+                            <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
+                              ✓
+                            </div>
+                          </div>
+                          <div className="flex flex-col space-y-2">
+                            <Button
+                              onClick={() => setFormData(prev => ({ ...prev, studentPhoto: '' }))}
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Supprimer
+                            </Button>
+                            <span className="text-xs text-green-600 font-medium">✅ Photo du profil chargée</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                          <Camera className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                          <p className="text-sm text-gray-500 mb-2">Aucune photo de profil trouvée</p>
+                          <p className="text-xs text-gray-400">Vous pouvez en ajouter une ci-dessous</p>
                         </div>
                       )}
                       
