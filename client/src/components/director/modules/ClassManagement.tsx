@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building } from 'lucide-react';
+import { School, UserPlus, Search, Download, Filter, MoreHorizontal, Users, BookOpen, TrendingUp, Calendar, Plus, Edit, Trash2, Eye, Upload, ChevronDown, ChevronUp, Building, GraduationCap, Star } from 'lucide-react';
+import { CAMEROON_CURRICULUM_TEMPLATES, getSubjectTemplateByLevel } from '@/data/subjectTemplates';
 import MobileActionsOverlay from '@/components/mobile/MobileActionsOverlay';
 import ImportModal from '../ImportModal';
 
@@ -25,7 +26,14 @@ const ClassManagement: React.FC = () => {
     capacity: '',
     teacherId: '',
     teacherName: '',
-    room: ''
+    room: '',
+    subjects: [] as Array<{
+      name: string;
+      coefficient: number;
+      category: 'general' | 'professional' | 'arts' | 'sports';
+      hoursPerWeek: number;
+      isRequired: boolean;
+    }>
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -34,8 +42,100 @@ const ClassManagement: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState<any>(null);
   const [newRoomName, setNewRoomName] = useState('');
   
+  // État pour la gestion des matières
+  const [showSubjectSection, setShowSubjectSection] = useState(false);
+  const [newSubject, setNewSubject] = useState({
+    name: '',
+    coefficient: 1,
+    category: 'general' as 'general' | 'professional' | 'arts' | 'sports',
+    hoursPerWeek: 2,
+    isRequired: true
+  });
+  
   // Ref for triggering dialogs from quick actions
   const createClassTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // Charger template de matières selon le niveau
+  const loadSubjectTemplate = () => {
+    if (!newClass.level) {
+      toast({
+        title: "Niveau requis",
+        description: "Veuillez d'abord sélectionner un niveau",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    let levelKey = newClass.level.toLowerCase();
+    if (levelKey === '6ème') levelKey = '6eme';
+    if (levelKey === '3ème') levelKey = '3eme';
+    if (levelKey.includes('terminale')) {
+      levelKey = 'terminale-c'; // Par défaut, peut être étendu
+    }
+
+    const template = getSubjectTemplateByLevel(levelKey);
+    if (template) {
+      setNewClass(prev => ({
+        ...prev,
+        subjects: template.subjects.map(subject => ({
+          name: subject.name,
+          coefficient: subject.coefficient,
+          category: subject.category,
+          hoursPerWeek: subject.hoursPerWeek,
+          isRequired: subject.isRequired
+        }))
+      }));
+      
+      toast({
+        title: "✅ Template chargé",
+        description: `${template.subjects.length} matières ajoutées pour ${template.levelName}`,
+      });
+    } else {
+      toast({
+        title: "Template non trouvé",
+        description: "Pas de template disponible pour ce niveau",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Ajouter une matière
+  const addSubject = () => {
+    if (!newSubject.name.trim()) {
+      toast({
+        title: "Nom requis",
+        description: "Veuillez saisir le nom de la matière",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setNewClass(prev => ({
+      ...prev,
+      subjects: [...prev.subjects, { ...newSubject }]
+    }));
+
+    setNewSubject({
+      name: '',
+      coefficient: 1,
+      category: 'general',
+      hoursPerWeek: 2,
+      isRequired: true
+    });
+
+    toast({
+      title: "✅ Matière ajoutée",
+      description: `${newSubject.name} (coeff. ${newSubject.coefficient})`,
+    });
+  };
+
+  // Supprimer une matière
+  const removeSubject = (index: number) => {
+    setNewClass(prev => ({
+      ...prev,
+      subjects: prev.subjects.filter((_, i) => i !== index)
+    }));
+  };
 
   const text = {
     fr: {
@@ -64,7 +164,15 @@ const ClassManagement: React.FC = () => {
         teacher: 'Enseignant principal',
         room: 'Salle',
         selectTeacher: 'Sélectionner un enseignant',
-        selectLevel: 'Sélectionner un niveau'
+        selectLevel: 'Sélectionner un niveau',
+        subjects: 'Matières et Coefficients',
+        addSubject: 'Ajouter Matière',
+        subjectName: 'Nom de la matière',
+        coefficient: 'Coefficient',
+        category: 'Catégorie',
+        hoursPerWeek: 'Heures/semaine',
+        required: 'Obligatoire',
+        loadTemplate: 'Charger Template Niveau'
       },
       table: {
         name: 'Nom Classe',
@@ -123,7 +231,15 @@ const ClassManagement: React.FC = () => {
         teacher: 'Main teacher',
         room: 'Room',
         selectTeacher: 'Select a teacher',
-        selectLevel: 'Select a level'
+        selectLevel: 'Select a level',
+        subjects: 'Subjects and Coefficients',
+        addSubject: 'Add Subject',
+        subjectName: 'Subject name',
+        coefficient: 'Coefficient',
+        category: 'Category',
+        hoursPerWeek: 'Hours/week',
+        required: 'Required',
+        loadTemplate: 'Load Level Template'
       },
       table: {
         name: 'Class Name',
@@ -270,7 +386,7 @@ const ClassManagement: React.FC = () => {
         title: language === 'fr' ? 'Classe créée' : 'Class created',
         description: language === 'fr' ? 'La classe a été créée avec succès.' : 'Class has been created successfully.'
       });
-      setNewClass({ name: '', level: '', capacity: '', teacherId: '', teacherName: '', room: '' });
+      setNewClass({ name: '', level: '', capacity: '', teacherId: '', teacherName: '', room: '', subjects: [] });
     }
   });
 
@@ -504,6 +620,121 @@ const ClassManagement: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* Section Matières et Coefficients */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-lg font-medium flex items-center">
+                        <GraduationCap className="w-5 h-5 mr-2 text-blue-600" />
+                        {String(t?.form?.subjects) || "Matières et Coefficients"}
+                      </Label>
+                      <Button
+                        type="button"
+                        onClick={loadSubjectTemplate}
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        disabled={!newClass.level}
+                      >
+                        <Star className="w-4 h-4 mr-1" />
+                        {String(t?.form?.loadTemplate) || "Charger Template"}
+                      </Button>
+                    </div>
+                    
+                    {/* Liste des matières existantes */}
+                    {newClass.subjects.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        <div className="text-sm text-gray-600">
+                          {newClass.subjects.length} matière{newClass.subjects.length > 1 ? 's' : ''} configurée{newClass.subjects.length > 1 ? 's' : ''}
+                        </div>
+                        <div className="max-h-40 overflow-y-auto space-y-1">
+                          {newClass.subjects.map((subject, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                              <div className="flex-1">
+                                <span className="font-medium text-sm">{subject.name}</span>
+                                <div className="text-xs text-gray-500">
+                                  Coeff. {subject.coefficient} • {subject.hoursPerWeek}h/sem • {subject.category}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                onClick={() => removeSubject(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Formulaire ajout de matière */}
+                    <div className="border rounded-md p-3 bg-blue-50">
+                      <div className="text-sm font-medium mb-2 text-blue-800">
+                        {String(t?.form?.addSubject) || "Ajouter Matière"}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                          <Input
+                            placeholder={String(t?.form?.subjectName) || "Nom matière"}
+                            value={newSubject.name}
+                            onChange={(e) => setNewSubject(prev => ({ ...prev, name: e.target.value }))}
+                            className="bg-white text-sm"
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          <Input
+                            type="number"
+                            placeholder="Coeff"
+                            value={newSubject.coefficient}
+                            onChange={(e) => setNewSubject(prev => ({ ...prev, coefficient: parseInt(e.target.value) || 1 }))}
+                            className="bg-white text-sm"
+                            min="1"
+                            max="10"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="H/sem"
+                            value={newSubject.hoursPerWeek}
+                            onChange={(e) => setNewSubject(prev => ({ ...prev, hoursPerWeek: parseInt(e.target.value) || 1 }))}
+                            className="bg-white text-sm"
+                            min="1"
+                            max="15"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Select 
+                          value={newSubject.category} 
+                          onValueChange={(value: 'general' | 'professional' | 'arts' | 'sports') => 
+                            setNewSubject(prev => ({ ...prev, category: value }))
+                          }
+                        >
+                          <SelectTrigger className="bg-white text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">📚 Général</SelectItem>
+                            <SelectItem value="professional">🔧 Professionnel</SelectItem>
+                            <SelectItem value="arts">🎨 Arts</SelectItem>
+                            <SelectItem value="sports">⚽ Sports</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          onClick={addSubject}
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div>
                     <Label>{String(t?.form?.capacity) || "N/A"}</Label>
                     <Input
