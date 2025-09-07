@@ -116,9 +116,14 @@ export class PdfLibBulletinGenerator {
       drawText('Ce bulletin est authentifié par signature numérique EDUCAFRIC', 40, 30, { font: times, size: 8 });
       drawText('École Saint-Joseph - Douala, Cameroun - Tel: +237657004011', 40, 15, { font: times, size: 8 });
       
-      // 14) Retourner le PDF
-      const pdfBytes = await pdfDoc.save();
+      // 14) Retourner le PDF avec options optimisées pour lisibilité
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: false,
+        objectsPerTick: 50
+      });
       console.log('[PDF_LIB] ✅ Bulletin généré avec succès - taille:', pdfBytes.length, 'bytes');
+      console.log('[PDF_LIB] 🔍 PDF généré avec pdf-lib 1.7 - prêt pour affichage');
       
       return Buffer.from(pdfBytes);
       
