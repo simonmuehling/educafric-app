@@ -139,6 +139,24 @@ export default function BulletinManagementUnified() {
     language: 'fr' as 'fr' | 'en'
   });
 
+  // Gestion de la sélection multiple
+  const toggleBulletinSelection = (bulletinId: number) => {
+    setSelectedBulletins(prev => 
+      prev.includes(bulletinId) 
+        ? prev.filter(id => id !== bulletinId)
+        : [...prev, bulletinId]
+    );
+  };
+
+  const selectAllApprovedBulletins = () => {
+    const allApprovedIds = approvedBulletins.map(b => b.id);
+    setSelectedBulletins(prev => 
+      prev.length === allApprovedIds.length 
+        ? [] // Désélectionner tous si tous sont sélectionnés
+        : allApprovedIds // Sélectionner tous
+    );
+  };
+
   // Charger les données initiales
   useEffect(() => {
     loadInitialData();
