@@ -188,7 +188,7 @@ The EDUCAFRIC Team
       
       // Envoyer SMS si numéro disponible
       if (user.phone) {
-        await notificationService.sendNotification({
+        await notificationService.sendSmartNotification({
           type: 'sms',
           recipient: user,
           template: 'SUBSCRIPTION_REMINDER',
@@ -212,7 +212,7 @@ The EDUCAFRIC Team
         // Pour l'instant, on utilise le template goodbye mais on peut créer un template spécifique
         console.log(`[SUBSCRIPTION_REMINDER] Sending email reminder to ${user.email}`);
         
-        await notificationService.sendNotification({
+        await notificationService.sendSmartNotification({
           type: 'email',
           recipient: user,
           template: 'SUBSCRIPTION_REMINDER',
