@@ -22,7 +22,7 @@ export interface SchoolSubscription {
   status: 'freemium' | 'premium' | 'trial' | 'expired';
   startDate: Date;
   endDate?: Date;
-  paymentMethod?: 'stripe' | 'orange_money' | 'bank_transfer';
+  paymentMethod?: 'stripe' | 'orange_money' | 'mtn_money' | 'bank_transfer';
   lastPaymentDate?: Date;
   autoRenew: boolean;
 }

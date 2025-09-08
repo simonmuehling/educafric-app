@@ -198,7 +198,8 @@ export class PaymentNotificationService {
     try {
       const plan = subscriptionPlans.find(p => p.id === planId);
       const planName = plan?.name || planId;
-      const methodName = paymentMethod === 'orange_money' ? 'Orange Money' : 'Virement bancaire';
+      const methodName = paymentMethod === 'orange_money' ? 'Orange Money' : 
+                         paymentMethod === 'mtn_money' ? 'MTN Mobile Money' : 'Virement bancaire';
       
       await storage.createNotification(userId, {
         title: `📋 Instructions ${methodName}`,

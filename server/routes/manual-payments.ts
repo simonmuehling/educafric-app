@@ -1,6 +1,6 @@
 /**
  * ROUTES POUR PAIEMENTS MANUELS
- * Gestion des confirmations de paiements Orange Money et virements bancaires
+ * Gestion des confirmations de paiements Orange Money, MTN Mobile Money et virements bancaires
  */
 
 import { Router } from 'express';
@@ -28,7 +28,7 @@ router.post('/initiate', requireAuth, async (req, res) => {
     }
 
     // Valider la méthode de paiement
-    if (!['orange_money', 'bank_transfer'].includes(paymentMethod)) {
+    if (!['orange_money', 'mtn_money', 'bank_transfer'].includes(paymentMethod)) {
       return res.status(400).json({
         success: false,
         message: 'Méthode de paiement non supportée'
@@ -190,6 +190,23 @@ function getPaymentInstructions(paymentMethod: string, amount: number, planName:
       recipient: {
         name: 'ABANDA AKAK',
         number: '677 004 011'
+      },
+      followUp: 'Envoyez une capture d\'écran du SMS de confirmation à support@educafric.com'
+    };
+  } else if (paymentMethod === 'mtn_money') {
+    return {
+      title: 'Instructions MTN Mobile Money',
+      steps: [
+        'Composez *126# sur votre téléphone MTN',
+        'Sélectionnez 1 (Transfert d\'argent)',
+        'Sélectionnez 1 (Vers un numéro MTN)',
+        'Entrez le numéro: 672 128 559',
+        `Entrez le montant: ${amount.toLocaleString()} XAF`,
+        'Confirmez avec votre code PIN'
+      ],
+      recipient: {
+        name: 'ABANDA AKAK',
+        number: '672 128 559'
       },
       followUp: 'Envoyez une capture d\'écran du SMS de confirmation à support@educafric.com'
     };
