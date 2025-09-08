@@ -1884,11 +1884,16 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
       ORDER BY s.name_fr
     `);
     
-    console.log('[BULLETIN_CREATE_PDF] 📊 Notes réelles récupérées:', currentGrades.rows.length);
-    
     // Déterminer la colonne selon le trimestre
     const termColumn = bulletinData.term?.includes('T1') || bulletinData.term?.includes('Premier') ? 'first_evaluation' : 
                       bulletinData.term?.includes('T2') || bulletinData.term?.includes('Deuxième') ? 'second_evaluation' : 'third_evaluation';
+    
+    console.log('[BULLETIN_CREATE_PDF] 📊 Notes réelles récupérées:', currentGrades.rows.length);
+    console.log('[BULLETIN_CREATE_PDF] 🔍 Détail notes DB:', currentGrades.rows.map(r => ({
+      matiere: r.subject_name,
+      note: r[termColumn],
+      coef: r.coefficient
+    })));
     
     // Convertir en format attendu par le template
     const realGrades = {
@@ -1902,6 +1907,12 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
                                           parseFloat(row[termColumn]) >= 10 ? 'Assez bien' : 'Doit améliorer')
       }))
     };
+    
+    console.log('[BULLETIN_CREATE_PDF] 🔍 DONNÉES FORMATTÉES pour template:', realGrades.general.map(s => ({
+      nom: s.name,
+      note: s.grade,
+      coef: s.coefficient
+    })));
     
     // ✅ UTILISER LE MODULAR TEMPLATE GENERATOR (même logique que l'aperçu)
     const templateData: BulletinTemplateData = {
