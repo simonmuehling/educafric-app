@@ -1115,16 +1115,41 @@ export default function BulletinManagementUnified() {
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
-      // ✅ VALIDATION SIMPLE
-      const resolvedStudentId = selectedStudentId || formData.studentFirstName ? 
-        students.find(s => s.full_name === `${formData.studentFirstName} ${formData.studentLastName}`.trim())?.id?.toString() : 
-        null;
-      const resolvedClassId = selectedClassId || classes.find(c => c.name === formData.className)?.id?.toString();
+      // ✅ VALIDATION AMÉLIORÉE - Priorité aux sélections directes
+      console.log('[PREVIEW_DEBUG] 🔍 Validation avant aperçu:', {
+        selectedStudentId,
+        selectedClassId,
+        formDataStudent: `${formData.studentFirstName} ${formData.studentLastName}`,
+        formDataClass: formData.className
+      });
+      
+      // Priorité aux valeurs directement sélectionnées
+      let resolvedStudentId = selectedStudentId;
+      let resolvedClassId = selectedClassId;
+      
+      // Seulement si pas de sélection directe, essayer de résoudre par nom
+      if (!resolvedStudentId && formData.studentFirstName) {
+        const foundStudent = students.find(s => 
+          s.name === `${formData.studentFirstName} ${formData.studentLastName}`.trim() ||
+          s.full_name === `${formData.studentFirstName} ${formData.studentLastName}`.trim()
+        );
+        resolvedStudentId = foundStudent?.id?.toString();
+        console.log('[PREVIEW_DEBUG] 🔍 Résolution par nom élève:', foundStudent?.name);
+      }
+      
+      if (!resolvedClassId && formData.className) {
+        const foundClass = classes.find(c => c.name === formData.className);
+        resolvedClassId = foundClass?.id?.toString();
+        console.log('[PREVIEW_DEBUG] 🔍 Résolution par nom classe:', foundClass?.name);
+      }
+      
+      console.log('[PREVIEW_DEBUG] ✅ IDs résolus:', { resolvedStudentId, resolvedClassId });
       
       if (!resolvedStudentId || !resolvedClassId) {
+        console.warn('[PREVIEW_DEBUG] ❌ Validation échouée - IDs manquants');
         toast({
           title: "Attention", 
-          description: "Veuillez sélectionner une classe et un élève",
+          description: "Veuillez sélectionner une classe et un élève avant l'aperçu",
           variant: "destructive",
         });
         return;
