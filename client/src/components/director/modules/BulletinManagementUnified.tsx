@@ -868,30 +868,82 @@ export default function BulletinManagementUnified() {
       console.log('[MANUAL_GRADES] 💾 Sauvegarde des notes:', manualGrades);
       console.log('[MANUAL_GRADES] 🔍 Clés trouvées:', Object.keys(manualGrades));
       
-      // Convertir les notes en format pour l'API
+      // ✅ DEBUGGING COMPLET ET CONVERSION AMÉLIORÉE DES NOTES
       const gradesToSave = [];
       
+      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - manualGrades object:', manualGrades);
+      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Object.keys:', Object.keys(manualGrades));
+      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Object.entries:', Object.entries(manualGrades));
+      
       for (const [key, gradeData] of Object.entries(manualGrades)) {
-        const [studentId, subjectId, term] = key.split('_');
-        console.log('[MANUAL_GRADES] 🔍 Processing key:', key, 'studentId:', studentId, 'subjectId:', subjectId, 'term:', term, 'gradeData:', gradeData);
+        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Processing:', { key, gradeData });
         
-        // Vérification plus stricte des données
-        if (gradeData && gradeData.grade && gradeData.grade.toString().trim() !== '' && !isNaN(parseFloat(gradeData.grade)) && studentId && subjectId && term) {
-          const gradeToSave = {
-            studentId: parseInt(studentId),
-            classId: parseInt(manualGradeClass),
-            academicYear: '2024-2025',
-            term: term, // T1, T2, ou T3
-            subjectId: parseInt(subjectId),
-            grade: parseFloat(gradeData.grade),
-            coefficient: gradeData.coefficient || 1,
-            teacherComments: gradeData.comments || ''
-          };
-          console.log('[MANUAL_GRADES] ✅ Grade to save:', gradeToSave);
-          gradesToSave.push(gradeToSave);
-        } else {
-          console.log('[MANUAL_GRADES] ⚠️ Skipping invalid data:', {key, gradeData, studentId, subjectId, term});
+        const [studentId, subjectId, term] = key.split('_');
+        
+        // Debug chaque composant
+        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Parsed key:', { 
+          key, 
+          studentId, 
+          subjectId, 
+          term,
+          studentIdValid: !!studentId,
+          subjectIdValid: !!subjectId,
+          termValid: !!term
+        });
+        
+        // Debug gradeData
+        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Grade data:', {
+          gradeData,
+          hasGradeData: !!gradeData,
+          grade: gradeData?.grade,
+          gradeType: typeof gradeData?.grade,
+          gradeString: gradeData?.grade?.toString(),
+          gradeTrimmed: gradeData?.grade?.toString()?.trim(),
+          gradeNotEmpty: gradeData?.grade?.toString()?.trim() !== '',
+          gradeIsNumber: !isNaN(parseFloat(gradeData?.grade || ''))
+        });
+        
+        // ✅ VALIDATION SIMPLIFIÉE ET ROBUSTE
+        if (!studentId || !subjectId || !term) {
+          console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: IDs manquants', { studentId, subjectId, term });
+          continue;
         }
+        
+        if (!gradeData) {
+          console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: Pas de gradeData pour', key);
+          continue;
+        }
+        
+        const gradeValue = gradeData.grade;
+        if (gradeValue === undefined || gradeValue === null || gradeValue === '' || gradeValue === '0') {
+          console.log('[MANUAL_GRADES] ⚠️ IGNORÉ: Note vide pour', key, 'value:', gradeValue);
+          continue;
+        }
+        
+        const gradeNum = parseFloat(gradeValue);
+        if (isNaN(gradeNum)) {
+          console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: Note invalide pour', key, 'value:', gradeValue);
+          continue;
+        }
+        
+        if (gradeNum < 0 || gradeNum > 20) {
+          console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: Note hors limite pour', key, 'value:', gradeNum);
+          continue;
+        }
+        
+        const gradeToSave = {
+          studentId: parseInt(studentId),
+          classId: parseInt(manualGradeClass),
+          academicYear: '2024-2025',
+          term: term, // T1, T2, ou T3
+          subjectId: parseInt(subjectId),
+          grade: gradeNum,
+          coefficient: parseFloat(gradeData.coefficient) || 1,
+          teacherComments: gradeData.comments || ''
+        };
+        
+        console.log('[MANUAL_GRADES] ✅ VALIDE: Note préparée pour sauvegarde:', gradeToSave);
+        gradesToSave.push(gradeToSave);
       }
       
       if (gradesToSave.length === 0) {
@@ -903,22 +955,48 @@ export default function BulletinManagementUnified() {
         return;
       }
       
-      // Sauvegarder une par une
+      // ✅ SAUVEGARDE AVEC GESTION D'ERREURS DÉTAILLÉE
       let successCount = 0;
+      const errors = [];
+      
+      console.log('[MANUAL_GRADES] 💾 Début sauvegarde de', gradesToSave.length, 'notes');
       
       for (const gradeData of gradesToSave) {
-        const response = await fetch('/api/bulletins/import-grades', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(gradeData)
-        });
-        
-        if (response.ok) {
-          successCount++;
-        } else {
-          console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde note:', gradeData);
+        try {
+          console.log('[MANUAL_GRADES] 💾 Sauvegarde note:', gradeData);
+          
+          const response = await fetch('/api/bulletins/import-grades', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(gradeData)
+          });
+          
+          const responseData = await response.json();
+          console.log('[MANUAL_GRADES] 📡 Réponse API:', { 
+            status: response.status, 
+            ok: response.ok, 
+            data: responseData 
+          });
+          
+          if (response.ok && responseData.success) {
+            successCount++;
+            console.log('[MANUAL_GRADES] ✅ Note sauvegardée avec succès:', gradeData);
+          } else {
+            errors.push({ gradeData, error: responseData.message || 'Erreur inconnue' });
+            console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde note:', { gradeData, response: responseData });
+          }
+        } catch (fetchError) {
+          errors.push({ gradeData, error: fetchError.message });
+          console.error('[MANUAL_GRADES] ❌ Erreur réseau:', fetchError, 'pour note:', gradeData);
         }
       }
+      
+      console.log('[MANUAL_GRADES] 📊 RÉSULTATS:', { 
+        total: gradesToSave.length, 
+        succès: successCount, 
+        erreurs: errors.length 
+      });
       
       toast({
         title: "✅ Notes sauvegardées",
