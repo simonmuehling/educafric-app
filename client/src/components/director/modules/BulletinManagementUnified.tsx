@@ -1004,8 +1004,16 @@ export default function BulletinManagementUnified() {
             successCount++;
             console.log('[MANUAL_GRADES] ✅ Note sauvegardée avec succès:', gradeData);
           } else {
-            errors.push({ gradeData, error: responseData.message || 'Erreur inconnue' });
-            console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde note:', { gradeData, response: responseData });
+            // ✅ AFFICHER DÉTAILS D'ERREUR POUR DEBUG 400
+            const errorDetail = responseData?.errors?.join(', ') || responseData?.message || 'Erreur inconnue';
+            console.error('[MANUAL_GRADES] ❌ Erreur 400 détails:', {
+              gradeData, 
+              status: response.status,
+              errors: responseData?.errors,
+              message: responseData?.message,
+              fullResponse: responseData
+            });
+            errors.push({ gradeData, error: `[${response.status}] ${errorDetail}` });
           }
         } catch (fetchError) {
           errors.push({ gradeData, error: fetchError.message });
@@ -1074,6 +1082,15 @@ export default function BulletinManagementUnified() {
           academicYear: formData.academicYear
         });
         
+        // ✅ DEBUG - Vérifier pourquoi les paramètres sont undefined
+        console.log('[PREVIEW_BULLETIN] 🔍 Variables debug:', {
+          selectedStudentId,
+          selectedClassId, 
+          academicYear: formData.academicYear,
+          apiTerm,
+          formDataTerm: formData.term
+        });
+
         const getUrl = `/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
         console.log('[PREVIEW_BULLETIN] 📡 Appel GET pour récupérer notes:', getUrl);
         
