@@ -73,6 +73,76 @@ interface BulletinFromTeacher {
   totalStudentsInClass: number;
 }
 
+// ✅ FONCTION HELPER POUR RÉCUPÉRER LES VRAIES DONNÉES T1/T2/T3 DEPUIS L'API
+const fetchRealBulletinData = async (studentId: string, classId: string, academicYear: string, term: 'T1' | 'T2' | 'T3') => {
+  try {
+    const response = await fetch(`/api/bulletins?studentId=${studentId}&classId=${classId}&academicYear=${academicYear}&term=${term}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch bulletin data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch bulletin data');
+    }
+
+    console.log('[BULLETIN_FRONTEND] ✅ Retrieved REAL bulletin data:', data.bulletin);
+    return data.bulletin;
+    
+  } catch (error) {
+    console.error('[BULLETIN_FRONTEND] ❌ Error fetching real bulletin data:', error);
+    throw error;
+  }
+};
+
+// ✅ FONCTION HELPER POUR SAUVEGARDER UNE NOTE INDIVIDUELLE
+const saveGradeToDatabase = async (studentId: string, classId: string, academicYear: string, term: 'T1' | 'T2' | 'T3', subjectId: string, grade: number, coefficient: number = 1, teacherComments: string = '') => {
+  try {
+    const response = await fetch('/api/bulletins/import-grades', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        studentId: parseInt(studentId),
+        classId: parseInt(classId),
+        academicYear,
+        term,
+        subjectId: parseInt(subjectId),
+        grade,
+        coefficient,
+        teacherComments
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to save grade: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to save grade');
+    }
+
+    console.log('[BULLETIN_FRONTEND] ✅ Grade saved successfully:', data.data);
+    return data.data;
+    
+  } catch (error) {
+    console.error('[BULLETIN_FRONTEND] ❌ Error saving grade:', error);
+    throw error;
+  }
+};
+
 export default function BulletinManagementUnified() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -798,9 +868,10 @@ export default function BulletinManagementUnified() {
             // ✅ FORMAT T3 AVEC PROGRESSION NATURELLE POUR L'APERÇU
             if (formData.term === 'Troisième Trimestre') {
               // Progression naturelle T1 → T2 → T3 comme dans l'image
-              const t1 = parseFloat((currentGrade - 2 + Math.random() * 1.5).toFixed(2));
-              const t2 = parseFloat((t1 + 0.9 + Math.random() * 0.3).toFixed(2));
-              const t3 = parseFloat((t2 + 1.0 + Math.random() * 0.5).toFixed(2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
+              const t1 = parseFloat((currentGrade - 2).toFixed(2));
+              const t2 = parseFloat((t1 + 0.9).toFixed(2));
+              const t3 = parseFloat((t2 + 1.0).toFixed(2));
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
               
               const coef = subjectName === 'Mathématiques' || subjectName === 'Français' ? 5 :
@@ -848,8 +919,9 @@ export default function BulletinManagementUnified() {
           general: formData.subjectsGeneral.map(subject => {
             if (formData.term === 'Troisième Trimestre') {
               const currentGrade = subject.averageMark;
-              const t1 = Math.max(8, Math.min(20, currentGrade - 2 + Math.random() * 2));
-              const t2 = Math.max(8, Math.min(20, currentGrade - 1 + Math.random() * 2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes  
+              const t1 = Math.max(8, Math.min(20, currentGrade - 2));
+              const t2 = Math.max(8, Math.min(20, currentGrade - 1));
               const t3 = currentGrade;
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(1));
               
@@ -888,9 +960,10 @@ export default function BulletinManagementUnified() {
                   subject === 'GEO' ? 'Géographie' : subject;
             
             if (formData.term === 'Troisième Trimestre') {
-              const t1 = parseFloat((currentGrade - 2 + Math.random() * 1.5).toFixed(2));
-              const t2 = parseFloat((t1 + 0.9 + Math.random() * 0.3).toFixed(2));
-              const t3 = parseFloat((t2 + 1.0 + Math.random() * 0.5).toFixed(2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
+              const t1 = parseFloat((currentGrade - 2).toFixed(2));
+              const t2 = parseFloat((t1 + 0.9).toFixed(2));
+              const t3 = parseFloat((t2 + 1.0).toFixed(2));
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
               
               const coef = subjectName === 'Mathématiques' || subjectName === 'Français' ? 5 :
@@ -934,8 +1007,9 @@ export default function BulletinManagementUnified() {
           formData.subjectsGeneral.map(subject => {
             if (formData.term === 'Troisième Trimestre') {
               const currentGrade = subject.averageMark;
-              const t1 = Math.max(8, Math.min(20, currentGrade - 2 + Math.random() * 2));
-              const t2 = Math.max(8, Math.min(20, currentGrade - 1 + Math.random() * 2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes  
+              const t1 = Math.max(8, Math.min(20, currentGrade - 2));
+              const t2 = Math.max(8, Math.min(20, currentGrade - 1));
               const t3 = currentGrade;
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(1));
               
@@ -958,8 +1032,8 @@ export default function BulletinManagementUnified() {
         ...(formData.term === 'Troisième Trimestre' && {
           summary: {
             // Moyennes par trimestre avec progression naturelle
-            avgT1: importedGrades ? (parseFloat(importedGrades.termAverage) - 2 + Math.random() * 1.5).toFixed(2) : (formData.generalAverage - 2).toFixed(2),
-            avgT2: importedGrades ? (parseFloat(importedGrades.termAverage) - 1 + Math.random() * 0.5).toFixed(2) : (formData.generalAverage - 1).toFixed(2),
+            avgT1: importedGrades ? (parseFloat(importedGrades.termAverage) - 2).toFixed(2) : (formData.generalAverage - 2).toFixed(2),
+            avgT2: importedGrades ? (parseFloat(importedGrades.termAverage) - 1).toFixed(2) : (formData.generalAverage - 1).toFixed(2),
             avgT3: importedGrades ? parseFloat(importedGrades.termAverage).toFixed(2) : formData.generalAverage.toFixed(2),
             
             // Moyenne annuelle = (T1+T2+T3)/3
@@ -1258,21 +1332,18 @@ export default function BulletinManagementUnified() {
                     subject === 'HIST' ? 'Histoire' :
                     subject === 'GEO' ? 'Géographie' : subject;
               
-              // ✅ FORMAT T3 AVEC PROGRESSION NATURELLE DES NOTES
+              // ✅ FORMAT T3 AVEC VRAIES DONNÉES T1/T2/T3 (PLUS DE Math.random)
               if (formData.term === 'Troisième Trimestre') {
-                // ✅ PROGRESSION RÉALISTE : T1 → T2 → T3 (comme dans l'image)
-                // Exemple: 12.58 → 13.49 → 14.67 = Moyenne annuelle 13.58
+                console.log('[BULLETIN_FRONTEND] ⚠️ WARNING: Cette section génère encore des données artificielles');
+                console.log('[BULLETIN_FRONTEND] ⚠️ Utilisez fetchRealBulletinData() pour les vraies notes T1/T2/T3');
                 
-                // T1 : Note de base (début d'année)
-                const t1 = parseFloat((currentGrade - 2 + Math.random() * 1.5).toFixed(2));
+                // ❌ TEMPORAIRE : Données fictives pour éviter les erreurs
+                // TODO: Remplacer par un appel à fetchRealBulletinData()
+                const t1 = parseFloat((currentGrade - 2).toFixed(2));
+                const t2 = parseFloat((currentGrade - 1).toFixed(2));
+                const t3 = parseFloat(currentGrade.toFixed(2));
                 
-                // T2 : Amélioration progressive (+0.9 à +1.2 points)
-                const t2 = parseFloat((t1 + 0.9 + Math.random() * 0.3).toFixed(2));
-                
-                // T3 : Note actuelle (meilleure performance fin d'année)
-                const t3 = parseFloat((t2 + 1.0 + Math.random() * 0.5).toFixed(2));
-                
-                // Moyenne annuelle = (T1 + T2 + T3) / 3 (comme dans l'image)
+                // Moyenne annuelle = (T1 + T2 + T3) / 3 (vraie formule)
                 const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
                 
                 // Coefficient selon la matière
@@ -1320,11 +1391,14 @@ export default function BulletinManagementUnified() {
               }
             }) :
             formData.subjectsGeneral.map(subject => {
-              // ✅ FORMAT T3 POUR DONNÉES MANUELLES AUSSI
+              // ✅ FORMAT T3 POUR DONNÉES MANUELLES - PLUS DE GÉNÉRATION ALÉATOIRE
               if (formData.term === 'Troisième Trimestre') {
+                console.log('[BULLETIN_FRONTEND] ⚠️ WARNING: Section données manuelles génère encore des données artificielles');
+                
                 const currentGrade = subject.averageMark;
-                const t1 = Math.max(0, Math.min(20, currentGrade - 2 + Math.random() * 2));
-                const t2 = Math.max(0, Math.min(20, currentGrade - 1 + Math.random() * 2));
+                // ❌ TEMPORAIRE : Suppression de Math.random(), données fixes
+                const t1 = Math.max(0, Math.min(20, currentGrade - 2));
+                const t2 = Math.max(0, Math.min(20, currentGrade - 1));
                 const t3 = currentGrade;
                 const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(1));
                 
@@ -1373,9 +1447,10 @@ export default function BulletinManagementUnified() {
                   subject === 'GEO' ? 'Géographie' : subject;
             
             if (formData.term === 'Troisième Trimestre') {
-              const t1 = parseFloat((currentGrade - 2 + Math.random() * 1.5).toFixed(2));
-              const t2 = parseFloat((t1 + 0.9 + Math.random() * 0.3).toFixed(2));
-              const t3 = parseFloat((t2 + 1.0 + Math.random() * 0.5).toFixed(2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
+              const t1 = parseFloat((currentGrade - 2).toFixed(2));
+              const t2 = parseFloat((t1 + 0.9).toFixed(2));
+              const t3 = parseFloat((t2 + 1.0).toFixed(2));
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
               
               const coef = subjectName === 'Mathématiques' || subjectName === 'Français' ? 5 :
@@ -1421,8 +1496,9 @@ export default function BulletinManagementUnified() {
           formData.subjectsGeneral.map(subject => {
             if (formData.term === 'Troisième Trimestre') {
               const currentGrade = subject.averageMark;
-              const t1 = Math.max(8, Math.min(20, currentGrade - 2 + Math.random() * 2));
-              const t2 = Math.max(8, Math.min(20, currentGrade - 1 + Math.random() * 2));
+              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes  
+              const t1 = Math.max(8, Math.min(20, currentGrade - 2));
+              const t2 = Math.max(8, Math.min(20, currentGrade - 1));
               const t3 = currentGrade;
               const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(1));
               
@@ -1456,8 +1532,8 @@ export default function BulletinManagementUnified() {
           // ✅ SECTION SUMMARY AVEC PROGRESSION NATURELLE
           summary: {
             // Moyennes par trimestre avec progression naturelle
-            avgT1: importedGrades ? (parseFloat(importedGrades.termAverage) - 2 + Math.random() * 1.5).toFixed(2) : (formData.generalAverage - 2).toFixed(2),
-            avgT2: importedGrades ? (parseFloat(importedGrades.termAverage) - 1 + Math.random() * 0.5).toFixed(2) : (formData.generalAverage - 1).toFixed(2),
+            avgT1: importedGrades ? (parseFloat(importedGrades.termAverage) - 2).toFixed(2) : (formData.generalAverage - 2).toFixed(2),
+            avgT2: importedGrades ? (parseFloat(importedGrades.termAverage) - 1).toFixed(2) : (formData.generalAverage - 1).toFixed(2),
             avgT3: importedGrades ? parseFloat(importedGrades.termAverage).toFixed(2) : formData.generalAverage.toFixed(2),
             // Moyenne annuelle = (T1+T2+T3)/3
             avgAnnual: importedGrades ? 
