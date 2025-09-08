@@ -1158,36 +1158,14 @@ export default function BulletinManagementUnified() {
             setImportedGrades(convertedData);
             console.log('[PREVIEW_BULLETIN] ✅ Notes importées depuis DB pour aperçu:', convertedData);
             
-            // ✅ CORRECTIF: Continuer directement l'aperçu avec les données récupérées
-            setPreviewData({
-              ...formData,
-              subjectsGeneral: bulletinData.data.subjects.map((subject: any) => ({
-                name: subject.name,
-                t1Grade: subject.grade,
-                t2Grade: 0,
-                t3Grade: 0,
-                coefficient: subject.coef,
-                total: subject.points,
-                position: 1,
-                averageMark: subject.grade,
-                remark: 'Satisfaisant',
-                teacherName: subject.teacherName || 'Professeur',
-                comments: subject.comments || ''
-              })),
-              generalAverage: parseFloat(bulletinData.data.termAverage || '0'),
-              classRank: 1,
-              totalStudents: students.length || 25
-            });
-            
-            setShowPreview(true);
-            
+            // ✅ CORRECTIF: Continuer avec la logique d'aperçu existante
             toast({
-              title: "✅ Aperçu généré",
+              title: "✅ Notes récupérées",
               description: `${bulletinData.data.subjects.length} matières trouvées - Moyenne: ${bulletinData.data.termAverage}/20`,
-              duration: 3000,
+              duration: 2000,
             });
             
-            return; // ✅ IMPORTANT: Sortir de la fonction car l'aperçu est prêt
+            // ✅ Laisser la logique existante continuer (pas de return prématuré)
           }
         } else {
           console.warn('[PREVIEW_BULLETIN] ⚠️ Response pas OK:', response.status, response.statusText);
@@ -1245,37 +1223,15 @@ export default function BulletinManagementUnified() {
           const totalCoef = manualSubjects.reduce((sum, s) => sum + s.coef, 0);
           const termAverage = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0';
           
-          // ✅ GÉNÉRER L'APERÇU DIRECTEMENT AVEC LES DONNÉES MANUELLES
-          setPreviewData({
-            ...formData,
-            subjectsGeneral: manualSubjects.map((subject: any) => ({
-              name: subject.name,
-              t1Grade: subject.grade,
-              t2Grade: 0,
-              t3Grade: 0,
-              coefficient: subject.coef,
-              total: subject.points,
-              position: 1,
-              averageMark: subject.grade,
-              remark: 'Satisfaisant',
-              teacherName: subject.teacherName,
-              comments: subject.comments
-            })),
-            generalAverage: parseFloat(termAverage),
-            classRank: 1,
-            totalStudents: students.length || 25
-          });
-          
-          setShowPreview(true);
-          
+          // ✅ Toast pour données manuelles disponibles
           toast({
-            title: "✅ Aperçu généré (données manuelles)",
+            title: "✅ Données manuelles détectées",
             description: `${manualSubjects.length} matières - Moyenne: ${termAverage}/20`,
-            duration: 3000,
+            duration: 2000,
           });
           
-          console.log('[PREVIEW_BULLETIN] ✅ Aperçu généré avec données manuelles:', manualSubjects.length, 'matières');
-          return; // ✅ Aperçu prêt
+          console.log('[PREVIEW_BULLETIN] ✅ Données manuelles disponibles:', manualSubjects.length, 'matières');
+          // ✅ Laisser la logique existante continuer
         }
       }
 
