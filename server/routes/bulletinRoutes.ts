@@ -1862,8 +1862,46 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
     console.log('[BULLETIN_CREATE_PDF] 🎯 Génération avec template modulaire pour:', bulletinData.metadata.studentData?.fullName);
     console.log('[BULLETIN_CREATE_PDF] 📊 Trimestre détecté:', bulletinData.term);
     
-    // ✅ CONSTRUIRE LES DONNÉES EXACTEMENT COMME L'APERÇU
-    const { schoolData, studentData, academicData, grades } = bulletinData.metadata;
+    // ✅ RÉCUPÉRER LES VRAIES NOTES DEPUIS LA BASE DE DONNÉES (pas les métadonnées en cache)
+    const { schoolData, studentData, academicData } = bulletinData.metadata;
+    
+    // ✅ RÉCUPÉRER LES VRAIES NOTES ACTUELLES DEPUIS LA DB
+    const currentGrades = await db.execute(sql`
+      SELECT 
+        tgs.subject_id,
+        s.name_fr as subject_name,
+        s.coefficient,
+        tgs.first_evaluation,
+        tgs.second_evaluation,
+        tgs.third_evaluation,
+        tgs.subject_comments
+      FROM teacher_grade_submissions tgs
+      JOIN subjects s ON s.id = tgs.subject_id
+      WHERE tgs.student_id = ${parseInt(studentData.id || studentData.studentId || '1')}
+        AND tgs.class_id = ${parseInt(academicData.classId || '1')}
+        AND tgs.academic_year = ${academicData.academicYear || '2024-2025'}
+        AND tgs.school_id = ${user.schoolId || 1}
+      ORDER BY s.name_fr
+    `);
+    
+    console.log('[BULLETIN_CREATE_PDF] 📊 Notes réelles récupérées:', currentGrades.rows.length);
+    
+    // Déterminer la colonne selon le trimestre
+    const termColumn = bulletinData.term?.includes('T1') || bulletinData.term?.includes('Premier') ? 'first_evaluation' : 
+                      bulletinData.term?.includes('T2') || bulletinData.term?.includes('Deuxième') ? 'second_evaluation' : 'third_evaluation';
+    
+    // Convertir en format attendu par le template
+    const realGrades = {
+      general: currentGrades.rows.map((row: any) => ({
+        name: row.subject_name,
+        grade: parseFloat(row[termColumn]) || 0,
+        coefficient: parseFloat(row.coefficient) || 1,
+        comments: row.subject_comments || (parseFloat(row[termColumn]) >= 16 ? 'Excellent' :
+                                          parseFloat(row[termColumn]) >= 14 ? 'Très bien' :
+                                          parseFloat(row[termColumn]) >= 12 ? 'Bien' :
+                                          parseFloat(row[termColumn]) >= 10 ? 'Assez bien' : 'Doit améliorer')
+      }))
+    };
     
     // ✅ UTILISER LE MODULAR TEMPLATE GENERATOR (même logique que l'aperçu)
     const templateData: BulletinTemplateData = {
@@ -1904,15 +1942,13 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
         })()
       },
       period: bulletinData.metadata?.academicData?.term || bulletinData.term || "Premier Trimestre",
-      subjects: (grades?.general || []).map((subject: any) => ({
+      subjects: (realGrades?.general || []).map((subject: any) => ({
         name: subject.name,
-        coefficient: subject.coefficient || 2,
-        t1: subject.t1 || subject.grade || 0,
-        t2: subject.t2 || subject.grade || 0,
-        t3: subject.t3 || subject.grade || 0,
-        avgAnnual: subject.avgAnnual || subject.average || subject.grade || 0,
-        teacherName: subject.teacherName || "Prof.",
-        comments: subject.teacherComment || subject.comments || "Bien"
+        grade: subject.grade,
+        maxGrade: 20,
+        coefficient: subject.coefficient,
+        comments: subject.comments,
+        teacherName: "Enseignant"
       })),
       generalAverage: bulletinData.generalAverage || 12,
       classRank: bulletinData.classRank || 1,
