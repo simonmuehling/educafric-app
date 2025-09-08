@@ -35,6 +35,8 @@ const requireAuth = (req: any, res: any, next: any) => {
   next();
 };
 
+
+
 // Route d'import/update des notes T1/T2/T3 - utilise les vraies colonnes de la DB
 router.post('/import-grades', requireAuth, async (req, res) => {
   try {
