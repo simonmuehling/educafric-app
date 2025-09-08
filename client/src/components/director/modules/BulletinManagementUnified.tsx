@@ -832,11 +832,11 @@ export default function BulletinManagementUnified() {
       for (const [key, gradeData] of Object.entries(manualGrades)) {
         const [studentId, subjectId, term] = key.split('_');
         
-        if (gradeData && gradeData.grade !== null && gradeData.grade !== undefined && gradeData.grade !== '') {
+        if (gradeData && gradeData.grade !== null && gradeData.grade !== undefined && gradeData.grade !== '' && !isNaN(parseFloat(gradeData.grade))) {
           gradesToSave.push({
             studentId: parseInt(studentId),
             classId: parseInt(manualGradeClass),
-            academicYear: '2023-2024',
+            academicYear: '2024-2025',
             term: term, // T1, T2, ou T3
             subjectId: parseInt(subjectId),
             grade: parseFloat(gradeData.grade),
