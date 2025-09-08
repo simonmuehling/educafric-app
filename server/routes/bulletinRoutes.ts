@@ -1883,7 +1883,7 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
         academicYear: academicData?.academicYear || "2024-2025",
         regionalDelegation: schoolData?.regionalDelegation || "DU LITTORAL",
         departmentalDelegation: schoolData?.departmentalDelegation || "DU WOURI",
-        logo: schoolData?.logo || "https://ui-avatars.com/api/?name=CSJ&size=60&background=1e40af&color=ffffff&format=png&bold=true"
+        logo: schoolData?.logo || "/images/schools/lycee-bilingue-yaounde-logo.svg"
       },
       student: {
         firstName: studentData?.firstName || "Jean",
@@ -1893,7 +1893,21 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
         gender: studentData?.gender || "Masculin",
         className: academicData?.className || "6ème A",
         studentNumber: studentData?.matricule || "EDU-2025-001",
-        photo: studentData?.photo || "https://ui-avatars.com/api/?name=Jean%20Kamga&size=100&background=2563eb&color=ffffff&format=png"
+        photo: (() => {
+          // ✅ CAS SPÉCIAL : Marie Fosso avec sa vraie photo
+          if ((studentData?.firstName === 'Marie' && studentData?.lastName === 'Fosso') || 
+              (bulletinData.metadata?.studentData?.firstName === 'Marie' && bulletinData.metadata?.studentData?.lastName === 'Fosso')) {
+            return "/images/students/marie-fosso-profile.svg";
+          }
+          // ✅ Photo fournie explicitement  
+          if (studentData?.photo) {
+            return studentData.photo;
+          }
+          // ✅ Avatar généré pour autres étudiants
+          const firstName = studentData?.firstName || bulletinData.metadata?.studentData?.firstName || "Jean";
+          const lastName = studentData?.lastName || bulletinData.metadata?.studentData?.lastName || "Kamga";
+          return `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&size=100&background=2563eb&color=ffffff&format=png`;
+        })()
       },
       period: bulletinData.metadata?.academicData?.term || bulletinData.term || "Premier Trimestre",
       subjects: (grades?.general || []).map((subject: any) => ({

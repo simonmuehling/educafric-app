@@ -120,8 +120,8 @@ router.post('/bulletin/preview-custom', async (req, res) => {
         academicYear: academicData?.academicYear || "2024-2025",
         regionalDelegation: schoolData?.regionalDelegation || "DU CENTRE",
         departmentalDelegation: schoolData?.departmentalDelegation || "DU MFOUNDI",
-        // ✅ AJOUTER UN LOGO PAR DÉFAUT ÉDUCATIF
-        logo: schoolData?.logo || "https://ui-avatars.com/api/?name=EDUCAFRIC&size=60&background=1e40af&color=ffffff&format=png&bold=true"
+        // ✅ UTILISER LE VRAI LOGO DE L'ÉCOLE LOCALE
+        logo: schoolData?.logo || "/images/schools/lycee-bilingue-yaounde-logo.svg"
       },
       student: {
         firstName: studentData?.firstName || "Amina",
@@ -131,10 +131,22 @@ router.post('/bulletin/preview-custom', async (req, res) => {
         gender: studentData?.gender === 'M' ? 'Masculin' : 'Féminin',
         className: academicData?.className || "3ème A",
         studentNumber: studentData?.studentNumber || "CEA-2024-0157",
-        // ✅ UTILISER LA VRAIE PHOTO OU URL PAR DÉFAUT ÉDUCATIVE
-        photo: studentData?.photo || (studentData?.firstName ? 
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.firstName + ' ' + studentData.lastName)}&size=100&background=2563eb&color=ffffff&format=png` : 
-          undefined)
+        // ✅ UTILISER LA VRAIE PHOTO DE MARIE FOSSO OU AVATARS GÉNÉRÉS
+        photo: (() => {
+          // ✅ CAS SPÉCIAL : Marie Fosso avec sa vraie photo
+          if (studentData?.firstName === 'Marie' && studentData?.lastName === 'Fosso') {
+            return "/images/students/marie-fosso-profile.svg";
+          }
+          // ✅ Photo fournie explicitement  
+          if (studentData?.photo) {
+            return studentData.photo;
+          }
+          // ✅ Avatar généré pour autres étudiants
+          if (studentData?.firstName && studentData?.lastName) {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData.firstName + ' ' + studentData.lastName)}&size=100&background=2563eb&color=ffffff&format=png`;
+          }
+          return undefined;
+        })()
       },
       period: academicData?.term || "1er Trimestre 2024-2025",
       subjects: [
