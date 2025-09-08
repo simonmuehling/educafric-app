@@ -3059,7 +3059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/uploads', uploadsRoutes);
   
   // ✅ Route simple pour les bulletins pending (sans paramètres requis)
-  app.get('/api/bulletins/pending', authenticateUser, async (req, res) => {
+  app.get('/api/bulletins/pending', requireAuth, async (req, res) => {
     try {
       console.log('[BULLETIN_PENDING] Liste des bulletins en attente');
       res.json({ success: true, bulletins: [] }); // Retour simple pour éviter l'erreur 400
