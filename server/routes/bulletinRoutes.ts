@@ -77,17 +77,20 @@ router.post('/import-grades', requireAuth, async (req, res) => {
       RETURNING *;
     `;
 
-    const result = await db.execute(sql.raw(upsertQuery, [
-      user.id, 
-      parseInt(studentId), 
-      parseInt(subjectId), 
-      parseInt(classId), 
-      schoolId, 
-      academicYear, 
-      Number(grade), 
-      Number(coefficient || 1), 
-      teacherComments || null
-    ]));
+    const result = await db.execute(sql`
+      INSERT INTO teacher_grade_submissions 
+        (teacher_id, student_id, subject_id, class_id, school_id, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments, updated_at)
+      VALUES 
+        (${user.id}, ${parseInt(studentId)}, ${parseInt(subjectId)}, ${parseInt(classId)}, ${schoolId}, ${academicYear}, ${Number(grade)}, ${Number(coefficient || 1)}, ${teacherComments || null}, NOW())
+      ON CONFLICT (student_id, subject_id, class_id, school_id, academic_year)
+      DO UPDATE SET
+        ${sql.raw(gradeColumn)} = EXCLUDED.${sql.raw(gradeColumn)},
+        teacher_id = EXCLUDED.teacher_id,
+        coefficient = EXCLUDED.coefficient,
+        subject_comments = EXCLUDED.subject_comments,
+        updated_at = NOW()
+      RETURNING *;
+    `);
 
     // Récupérer l'enregistrement mis à jour pour vérification
     const updatedRecord = await db.select().from(teacherGradeSubmissions)
