@@ -557,23 +557,66 @@ export default function BulletinManagementUnified() {
         const data = await response.json();
         console.log('[AUTO_IMPORT] ✅ Importation réussie:', data);
         
-        if (data.success && data.data.termGrades && Object.keys(data.data.termGrades).length > 0) {
-          // Stocker les notes importées pour l'affichage
-          setImportedGrades(data.data);
-          setShowImportedGrades(true);
-          
-          // Pré-remplir la moyenne calculée automatiquement
-          if (data.data.termAverage) {
-            setFormData(prev => ({
-              ...prev,
-              generalAverage: data.data.termAverage
-            }));
+        if (data.success) {
+          // ✅ APRÈS SAUVEGARDE, RÉCUPÉRER LES DONNÉES FORMATÉES
+          try {
+            const getResponse = await fetch(`/api/bulletins/?studentId=${studentId}&classId=${classId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+              method: 'GET',
+              credentials: 'include'
+            });
+            
+            if (getResponse.ok) {
+              const bulletinData = await getResponse.json();
+              
+              if (bulletinData.success && bulletinData.data && bulletinData.data.subjects && bulletinData.data.subjects.length > 0) {
+                // ✅ CONVERTIR AU FORMAT ATTENDU PAR LE FRONTEND
+                const convertedData = {
+                  termGrades: {},
+                  termAverage: bulletinData.data.termAverage || '0',
+                  subjects: bulletinData.data.subjects,
+                  hasData: true
+                };
+                
+                // Remplir les notes par matière
+                bulletinData.data.subjects.forEach((subject: any) => {
+                  convertedData.termGrades[subject.name] = {
+                    CC: subject.grade - 1, // Simuler CC
+                    EXAM: subject.grade + 1, // Simuler EXAM pour compatibilité
+                    grade: subject.grade,
+                    coefficient: subject.coef,
+                    points: subject.points
+                  };
+                });
+                
+                setImportedGrades(convertedData);
+                setShowImportedGrades(true);
+                
+                // Pré-remplir la moyenne calculée automatiquement
+                if (bulletinData.data.termAverage) {
+                  setFormData(prev => ({
+                    ...prev,
+                    generalAverage: bulletinData.data.termAverage
+                  }));
+                }
+                
+                toast({
+                  title: "✅ Notes trouvées",
+                  description: `🎯 ${term} - Moyenne calculée: ${bulletinData.data.termAverage}/20 avec ${bulletinData.data.subjects.length} matières`,
+                  duration: 5000,
+                });
+                return; // ✅ Sortir si succès
+              }
+            }
+          } catch (fetchError) {
+            console.warn('[AUTO_IMPORT] ⚠️ Erreur récupération après sauvegarde:', fetchError);
           }
           
+          // Si échec de récupération, fallback
+          setImportedGrades(null);
+          setShowImportedGrades(false);
           toast({
-            title: "✅ Notes trouvées",
-            description: `🎯 ${term} - Moyenne calculée: ${data.data.termAverage || 'N/A'}/20 avec ${Object.keys(data.data.termGrades || {}).length} matières`,
-            duration: 5000,
+            title: "ℹ️ Pas de notes",
+            description: "📝 Saisie manuelle - Aucune note importée",
           });
         } else {
           setImportedGrades(null);
