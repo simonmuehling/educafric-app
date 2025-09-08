@@ -1053,7 +1053,7 @@ export default function BulletinManagementUnified() {
           academicYear: formData.academicYear
         });
         
-        const response = await fetch(`/api/bulletins/get-bulletin?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+        const response = await fetch(`/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
           method: 'GET',
           credentials: 'include'
         });
