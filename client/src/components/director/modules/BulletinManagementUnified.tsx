@@ -2450,12 +2450,20 @@ export default function BulletinManagementUnified() {
                               <thead>
                                 <tr className="bg-gray-50">
                                   <th className="border border-gray-200 p-2 text-left">Élève</th>
-                                  {classSubjects.map((subject) => (
-                                    <th key={subject.id} className="border border-gray-200 p-2 text-center min-w-[120px]">
-                                      {subject.name_fr}
-                                      <div className="text-xs text-gray-500">Coef. {subject.coefficient}</div>
-                                    </th>
-                                  ))}
+                                  {classSubjects.map((subject) => {
+                                    const teacher = classTeachers.find(t => t.id === subject.teacher_id);
+                                    return (
+                                      <th key={subject.id} className="border border-gray-200 p-2 text-center min-w-[120px]">
+                                        {subject.name_fr}
+                                        <div className="text-xs text-gray-500">Coef. {subject.coefficient}</div>
+                                        {teacher && (
+                                          <div className="text-xs text-blue-600 font-medium mt-1">
+                                            Prof. {teacher.name}
+                                          </div>
+                                        )}
+                                      </th>
+                                    );
+                                  })}
                                 </tr>
                               </thead>
                               <tbody>
@@ -2702,7 +2710,7 @@ export default function BulletinManagementUnified() {
                       <SelectContent>
                         {students.map((student) => (
                           <SelectItem key={student.id} value={student.id.toString()}>
-                            {student.firstName} {student.lastName}
+                            {student.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
