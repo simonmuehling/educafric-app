@@ -91,10 +91,45 @@ router.get('/', requireAuth, async (req, res) => {
     console.log('[BULLETIN_GET] 🔍 TOUTES les notes trouvées pour cet étudiant:', allGrades.rows.length);
     console.log('[BULLETIN_GET] 🔍 Détail des notes:', allGrades.rows.map(r => ({
       subject: r.subject_name, 
+      subjectId: r.subject_id,
       t1: r.first_evaluation, 
       t2: r.second_evaluation, 
       t3: r.third_evaluation
     })));
+    
+    // ✅ VÉRIFIER LES NOTES SANS JOINTURE POUR DIAGNOSTIC
+    const gradesWithoutJoin = await db.execute(sql`
+      SELECT 
+        tgs.student_id,
+        tgs.subject_id,
+        tgs.first_evaluation,
+        tgs.second_evaluation,
+        tgs.third_evaluation,
+        tgs.academic_year,
+        tgs.class_id,
+        tgs.school_id
+      FROM teacher_grade_submissions tgs
+      WHERE tgs.student_id = ${parseInt(studentId as string)}
+        AND tgs.class_id = ${parseInt(classId as string)}
+        AND tgs.academic_year = ${academicYear}
+        AND tgs.school_id = ${schoolId}
+      ORDER BY tgs.subject_id
+    `);
+    
+    console.log('[BULLETIN_GET] 🔍 NOTES SANS JOINTURE (toutes sauvegardées):', gradesWithoutJoin.rows.length);
+    console.log('[BULLETIN_GET] 🔍 SubjectIds trouvés:', gradesWithoutJoin.rows.map(r => ({
+      subjectId: r.subject_id,
+      t1: r.first_evaluation
+    })));
+    
+    // ✅ VÉRIFIER QUELS SUBJECTS EXISTENT
+    const availableSubjects = await db.execute(sql`
+      SELECT id, name_fr, coefficient
+      FROM subjects
+      WHERE id IN (${sql.join(gradesWithoutJoin.rows.map(r => r.subject_id), sql`, `)})
+    `);
+    
+    console.log('[BULLETIN_GET] 🔍 MATIÈRES DISPONIBLES pour ces IDs:', availableSubjects.rows);
 
     // Récupérer les notes depuis la BD
     const grades = await db.execute(sql`
