@@ -1115,12 +1115,12 @@ export default function BulletinManagementUnified() {
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
-      // ✅ Tolérer les variables réinitialisées et utiliser les données du formulaire
+      // ✅ RÉCUPÉRATION UNIFIÉE DES IDS - ÉLIMINER LA DUPLICATION
       const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
-      const studentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
-      const classId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
+      const resolvedStudentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
+      const resolvedClassId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
       
-      if (!studentId || !classId) {
+      if (!resolvedStudentId || !resolvedClassId) {
         toast({
           title: "Attention",
           description: "Veuillez sélectionner une classe et un élève",
@@ -1129,7 +1129,12 @@ export default function BulletinManagementUnified() {
         return;
       }
 
-      console.log('[PREVIEW_BULLETIN] 🔍 Generating preview with current form data');
+      console.log('[PREVIEW_BULLETIN] 🎯 APERÇU UNIFIÉ - IDs résolus:', {
+        resolvedStudentId,
+        resolvedClassId,
+        studentName: fullStudentName,
+        className: formData.className
+      });
 
       // ✅ RÉCUPÉRATION AUTOMATIQUE DES NOTES DEPUIS LA BASE DE DONNÉES
       try {
@@ -1142,30 +1147,13 @@ export default function BulletinManagementUnified() {
         const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
         
         console.log('[PREVIEW_BULLETIN] 🔍 Récupération des notes DB:', {
-          studentId: selectedStudentId,
-          classId: selectedClassId,
+          studentId: resolvedStudentId,
+          classId: resolvedClassId,
           term: apiTerm,
           academicYear: formData.academicYear
         });
-        
-        // ✅ SOLUTION - Utiliser les données du formulaire au lieu des variables réinitialisées
-        const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
-        const studentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
-        const classId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
-        
-        console.log('[PREVIEW_BULLETIN] 🔍 Variables debug:', {
-          selectedStudentId,
-          selectedClassId, 
-          studentIdResolved: studentId,
-          classIdResolved: classId,
-          studentName: fullStudentName,
-          className: formData.className,
-          academicYear: formData.academicYear,
-          apiTerm,
-          formDataTerm: formData.term
-        });
 
-        const getUrl = `/api/bulletins/?studentId=${studentId}&classId=${classId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
+        const getUrl = `/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
         console.log('[PREVIEW_BULLETIN] 📡 Appel GET pour récupérer notes:', getUrl);
         
         const response = await fetch(getUrl, {
