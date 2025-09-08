@@ -3218,36 +3218,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ Route de test pour vérifier l'intégration DB (temporaire)
-  app.get('/api/bulletins/test', async (req, res) => {
-    try {
-      console.log('[BULLETIN_TEST] Test intégration base de données');
-      
-      const testData = await db.execute(sql`
-        SELECT 
-          b.id, b.status, b.term, b.academic_year,
-          b.general_average, b.teacher_comments
-        FROM bulletins b
-        ORDER BY b.id DESC
-        LIMIT 5
-      `);
-      
-      res.json({
-        success: true,
-        message: 'Intégration DB fonctionnelle',
-        bulletins: testData.rows,
-        count: testData.rows.length
-      });
-      
-    } catch (error) {
-      console.error('[BULLETIN_TEST] ❌ Erreur:', error);
-      res.json({
-        success: false,
-        message: 'Erreur intégration DB',
-        error: error.message
-      });
-    }
-  });
   
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/templates', templateRoutes);
