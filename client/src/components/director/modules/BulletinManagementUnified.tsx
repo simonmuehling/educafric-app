@@ -2684,8 +2684,8 @@ export default function BulletinManagementUnified() {
                       )}
                     </Button>
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   <div className="space-y-6">
                     {/* Tabs pour les trimestres */}
                     <Tabs defaultValue="T1" className="w-full">
@@ -2770,6 +2770,76 @@ export default function BulletinManagementUnified() {
                     </Tabs>
                   </div>
                 </CardContent>
+                {/* ✅ WORKFLOW UNIFIÉ : CONTINUER APRÈS SAISIE DES NOTES */}
+                {Object.keys(manualGrades).length > 0 && (
+                  <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center space-x-2 text-sm font-medium text-blue-700">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <span>Notes saisies !</span>
+                        <span className="mx-2">→</span>
+                        <span>Créer les bulletins maintenant :</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 mb-4">
+                      Cliquez sur un élève pour voir l'aperçu de son bulletin et le créer :
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {classStudents.map((student) => (
+                        <div key={student.id} className="flex items-center justify-between bg-white rounded-lg border p-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{student.name}</div>
+                              <div className="text-sm text-gray-500">Matricule: {student.matricule || 'Non défini'}</div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                // Sélectionner automatiquement cet élève et classe pour l'aperçu
+                                setSelectedStudentId(student.id.toString());
+                                setSelectedClassId(manualGradeClass);
+                                setFormData(prev => ({ ...prev, term: '1' }));
+                                previewBulletin();
+                              }}
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              Aperçu T1
+                            </Button>
+                            
+                            <Button 
+                              size="sm"
+                              onClick={() => {
+                                // Sélectionner automatiquement cet élève et classe pour la création
+                                setSelectedStudentId(student.id.toString());
+                                setSelectedClassId(manualGradeClass);
+                                setFormData(prev => ({ ...prev, term: '1' }));
+                                createModularBulletin();
+                              }}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              Créer Bulletin T1
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-3 text-xs text-blue-600 bg-blue-50/50 rounded p-2">
+                      ⚡ <strong>Workflow accéléré :</strong> Cliquez directement "Aperçu" ou "Créer Bulletin" pour chaque élève !
+                    </div>
+                  </div>
+                )}
               </Card>
             )}
 
