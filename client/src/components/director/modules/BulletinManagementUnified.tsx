@@ -958,6 +958,59 @@ export default function BulletinManagementUnified() {
 
       console.log('[PREVIEW_BULLETIN] 🔍 Generating preview with current form data');
 
+      // ✅ RÉCUPÉRATION AUTOMATIQUE DES NOTES DEPUIS LA BASE DE DONNÉES
+      try {
+        const termMapping = {
+          'Premier Trimestre': 'T1',
+          'Deuxième Trimestre': 'T2', 
+          'Troisième Trimestre': 'T3'
+        };
+        
+        const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+        
+        console.log('[PREVIEW_BULLETIN] 🔍 Récupération des notes DB:', {
+          studentId: selectedStudentId,
+          classId: selectedClassId,
+          term: apiTerm,
+          academicYear: formData.academicYear
+        });
+        
+        const response = await fetch(`/api/bulletins/get-bulletin?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const bulletinData = await response.json();
+          console.log('[PREVIEW_BULLETIN] ✅ Données récupérées depuis DB:', bulletinData);
+          
+          if (bulletinData.success && bulletinData.data && bulletinData.data.subjects && bulletinData.data.subjects.length > 0) {
+            // Convertir en format attendu par l'aperçu
+            const convertedData = {
+              termGrades: {},
+              termAverage: bulletinData.data.termAverage || '0',
+              subjects: bulletinData.data.subjects
+            };
+            
+            // Remplir les notes par matière
+            bulletinData.data.subjects.forEach((subject: any) => {
+              convertedData.termGrades[subject.name] = {
+                grade: subject.grade,
+                coefficient: subject.coef,
+                points: subject.points
+              };
+            });
+            
+            setImportedGrades(convertedData);
+            console.log('[PREVIEW_BULLETIN] ✅ Notes importées depuis DB pour aperçu:', convertedData);
+          }
+        } else {
+          console.warn('[PREVIEW_BULLETIN] ⚠️ Aucune note trouvée en DB pour cet élève/trimestre');
+        }
+      } catch (dbError) {
+        console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
+      }
+
       // Construire la même logique que createModularBulletin mais pour l'aperçu
       const getTermSpecificData = () => {
         const baseData = {
