@@ -580,7 +580,7 @@ export class ModularTemplateGenerator {
         total: 'sur',
         conduct: 'Conduite',
         absences: 'Absences',
-        teacherComments: 'Observations du Professeur Principal',
+        teacherComments: 'Appréciations des enseignants',
         directorComments: 'Observations du Directeur',
         signatures: 'SIGNATURES',
         teacher: 'Professeur Principal',

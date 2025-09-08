@@ -6,7 +6,7 @@ import { PDFGenerator } from '../services/pdfGenerator';
 import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
 import { PdfLibBulletinGenerator } from '../services/pdfLibBulletinGenerator';
 import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
-import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from '../../shared/schema';
+import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, subjects, users } from '../../shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { 
   importStudentGradesFromDB, 
@@ -65,47 +65,51 @@ router.get('/', requireAuth, async (req, res) => {
     
     console.log('[BULLETIN_GET] 🔍 Term column déterminé:', termColumn);
     
-    // ✅ D'ABORD : Vérifier toutes les notes existantes pour cet étudiant
+    // ✅ D'ABORD : Vérifier toutes les notes existantes pour cet étudiant AVEC VRAIES DONNÉES
     const allGrades = await db.execute(sql`
       SELECT 
         tgs.student_id,
         tgs.subject_id,
-        s.name_fr as subject_name,
-        s.coefficient,
+        COALESCE(s.name, 'Matière ' || tgs.subject_id) as subject_name,
+        COALESCE(tgs.coefficient, 1) as coefficient,
         tgs.first_evaluation,
         tgs.second_evaluation,
         tgs.third_evaluation,
         tgs.subject_comments,
         tgs.academic_year,
         tgs.class_id,
-        tgs.school_id
+        tgs.school_id,
+        COALESCE(u.name, 'Enseignant ' || tgs.teacher_id) as teacher_name
       FROM teacher_grade_submissions tgs
-      JOIN subjects s ON s.id = tgs.subject_id
+      LEFT JOIN subjects s ON s.id = tgs.subject_id
+      LEFT JOIN users u ON u.id = tgs.teacher_id
       WHERE tgs.student_id = ${parseInt(studentId as string)}
         AND tgs.class_id = ${parseInt(classId as string)}
         AND tgs.academic_year = ${academicYear}
         AND tgs.school_id = ${schoolId}
-      ORDER BY s.name_fr
+      ORDER BY COALESCE(s.name, 'Matière ' || tgs.subject_id)
     `);
     
     console.log('[BULLETIN_GET] ✅ Notes avec matières trouvées:', allGrades.rows.length);
 
-    // Récupérer les notes depuis la BD
+    // ✅ Récupérer les notes AVEC VRAIES DONNÉES depuis la BD
     const grades = await db.execute(sql`
       SELECT 
         tgs.subject_id,
-        s.name_fr as subject_name,
-        s.coefficient,
+        COALESCE(s.name, 'Matière ' || tgs.subject_id) as subject_name,
+        COALESCE(tgs.coefficient, 1) as coefficient,
         tgs.${sql.raw(termColumn)} as grade,
-        tgs.subject_comments
+        tgs.subject_comments,
+        COALESCE(u.name, 'Enseignant ' || tgs.teacher_id) as teacher_name
       FROM teacher_grade_submissions tgs
-      JOIN subjects s ON s.id = tgs.subject_id
+      LEFT JOIN subjects s ON s.id = tgs.subject_id
+      LEFT JOIN users u ON u.id = tgs.teacher_id
       WHERE tgs.student_id = ${parseInt(studentId as string)}
         AND tgs.class_id = ${parseInt(classId as string)}
         AND tgs.academic_year = ${academicYear}
         AND tgs.school_id = ${schoolId}
         AND tgs.${sql.raw(termColumn)} IS NOT NULL
-      ORDER BY s.name_fr
+      ORDER BY COALESCE(s.name, 'Matière ' || tgs.subject_id)
     `);
 
     console.log('[BULLETIN_GET] ✅ Notes trouvées:', grades.rows.length);
@@ -118,14 +122,15 @@ router.get('/', requireAuth, async (req, res) => {
       });
     }
 
-    // Formater les données pour l'aperçu
+    // ✅ Formater les données avec VRAIES INFORMATIONS pour l'aperçu
     const subjects = grades.rows.map((row: any) => ({
       id: row.subject_id,
       name: row.subject_name,
       grade: parseFloat(row.grade),
       coef: parseInt(row.coefficient),
       points: parseFloat(row.grade) * parseInt(row.coefficient),
-      comments: row.subject_comments || ''
+      comments: row.subject_comments || '',
+      teacherName: row.teacher_name
     }));
 
     // Calculer la moyenne
@@ -152,6 +157,124 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // Route d'import/update des notes T1/T2/T3 - utilise les vraies colonnes de la DB
+// ✅ ROUTE POUR RÉCUPÉRER LES APPRÉCIATIONS DES ENSEIGNANTS
+router.get('/teacher-appreciations/:studentId/:classId/:academicYear/:term', requireAuth, async (req, res) => {
+  try {
+    const { studentId, classId, academicYear, term } = req.params;
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+
+    console.log('[TEACHER_APPRECIATIONS] 📡 Récupération appréciations:', { studentId, classId, academicYear, term });
+
+    // Récupérer toutes les appréciations des enseignants pour cet élève
+    const appreciations = await db.select({
+      subjectId: teacherGradeSubmissions.subjectId,
+      subjectName: subjects.name,
+      teacherId: teacherGradeSubmissions.teacherId,
+      teacherName: users.name,
+      subjectComments: teacherGradeSubmissions.subjectComments,
+      coefficient: teacherGradeSubmissions.coefficient
+    })
+    .from(teacherGradeSubmissions)
+    .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+    .leftJoin(users, eq(teacherGradeSubmissions.teacherId, users.id))
+    .where(and(
+      eq(teacherGradeSubmissions.studentId, parseInt(studentId)),
+      eq(teacherGradeSubmissions.classId, parseInt(classId)),
+      eq(teacherGradeSubmissions.academicYear, academicYear),
+      eq(teacherGradeSubmissions.schoolId, schoolId)
+    ));
+
+    console.log('[TEACHER_APPRECIATIONS] ✅ Appréciations trouvées:', appreciations.length);
+
+    res.json({
+      success: true,
+      data: appreciations.map(appreciation => ({
+        subjectId: appreciation.subjectId,
+        subjectName: appreciation.subjectName || `Matière ${appreciation.subjectId}`,
+        teacherId: appreciation.teacherId,
+        teacherName: appreciation.teacherName || `Enseignant ${appreciation.teacherId}`,
+        comments: appreciation.subjectComments || '',
+        coefficient: appreciation.coefficient || 1
+      }))
+    });
+
+  } catch (error: any) {
+    console.error('[TEACHER_APPRECIATIONS] ❌ Erreur:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch teacher appreciations',
+      error: error.message 
+    });
+  }
+});
+
+// ✅ ROUTE POUR RÉCUPÉRER LES INFORMATIONS COMPLÈTES DE L'ÉCOLE
+router.get('/school-info/:schoolId', requireAuth, async (req, res) => {
+  try {
+    const { schoolId } = req.params;
+    const user = req.user as any;
+    const resolvedSchoolId = parseInt(schoolId) || user.schoolId || 1;
+
+    console.log('[SCHOOL_INFO] 📡 Récupération informations école:', { schoolId: resolvedSchoolId });
+
+    // Récupérer les informations complètes de l'école
+    const schoolInfo = await db.execute(sql`
+      SELECT 
+        s.id,
+        s.name,
+        s.address,
+        s.phone,
+        s.email,
+        s.logo_url,
+        s.regionale_ministerielle,
+        s.delegation_departementale,
+        s.boite_postale,
+        s.arrondissement,
+        s.academic_year,
+        s.current_term
+      FROM schools s
+      WHERE s.id = ${resolvedSchoolId}
+    `);
+
+    if (schoolInfo.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'School not found' 
+      });
+    }
+
+    const school = schoolInfo.rows[0];
+    console.log('[SCHOOL_INFO] ✅ École trouvée:', school.name);
+
+    res.json({
+      success: true,
+      data: {
+        id: school.id,
+        name: school.name,
+        address: school.address,
+        phone: school.phone,
+        email: school.email,
+        logoUrl: school.logo_url,
+        regionalDelegation: school.regionale_ministerielle,
+        departmentalDelegation: school.delegation_departementale,
+        postalBox: school.boite_postale,
+        district: school.arrondissement,
+        academicYear: school.academic_year,
+        currentTerm: school.current_term
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[SCHOOL_INFO] ❌ Erreur:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch school information',
+      error: error.message 
+    });
+  }
+});
+
 router.post('/import-grades', requireAuth, async (req, res) => {
   try {
     const { studentId, classId, academicYear, term, subjectId, grade, coefficient, teacherComments } = req.body;
