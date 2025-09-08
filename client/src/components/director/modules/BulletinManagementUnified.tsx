@@ -1205,19 +1205,38 @@ export default function BulletinManagementUnified() {
         console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
       }
 
-      // ✅ VÉRIFIER DONNÉES MANUELLES EN SECOND RECOURS
-      const hasManualData = Object.keys(manualGrades).length > 0;
-      const hasImportedData = importedGrades && (importedGrades.hasData || (importedGrades.subjects && importedGrades.subjects.length > 0));
+      // ✅ VÉRIFIER DONNÉES DIRECTEMENT DEPUIS LA RÉPONSE API - PAS DE setState ASYNCHRONE
+      let currentImportedData = null;
+      let hasImportedData = false;
       
-      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES FINAL:', {
+      // ✅ SOLUTION: Récupérer les données depuis la réponse API directement
+      try {
+        const recentResponse = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (recentResponse.ok) {
+          const recentData = await recentResponse.json();
+          if (recentData.success && recentData.data && recentData.data.subjects && recentData.data.subjects.length > 0) {
+            currentImportedData = recentData.data;
+            hasImportedData = true;
+          }
+        }
+      } catch (error) {
+        console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur vérification données récentes:', error);
+      }
+      
+      const hasManualData = Object.keys(manualGrades).length > 0;
+      
+      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES FINAL (DIRECT):', {
         manualGrades: Object.keys(manualGrades).length,
-        importedGrades: hasImportedData ? (importedGrades.subjects?.length || 0) : 0,
+        importedData: hasImportedData ? currentImportedData?.subjects?.length || 0 : 0,
         hasManualData,
-        hasImportedData,
-        importedGradesHasData: importedGrades?.hasData
+        hasImportedData
       });
 
-      // ✅ UTILISER DONNÉES MANUELLES SI PAS D'IMPORT
+      // ✅ UTILISER DONNÉES MANUELLES SI PAS D'IMPORT DIRECT
       if (!hasImportedData && hasManualData) {
         console.log('[PREVIEW_BULLETIN] 🔄 Utilisation données manuelles à défaut d\'import');
         
@@ -1277,6 +1296,12 @@ export default function BulletinManagementUnified() {
         });
         return;
       }
+      
+      // ✅ GÉNÉRATION APERÇU AVEC DONNÉES DIRECTES
+      console.log('[PREVIEW_BULLETIN] 🚀 Génération aperçu avec données confirmées:', {
+        sourceData: hasImportedData ? 'Base de données' : 'Notes manuelles',
+        dataCount: hasImportedData ? currentImportedData?.subjects?.length : Object.keys(manualGrades).length
+      });
 
       // Construire la même logique que createModularBulletin mais pour l'aperçu
       const getTermSpecificData = () => {
