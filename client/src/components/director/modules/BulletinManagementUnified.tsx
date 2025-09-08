@@ -1003,6 +1003,7 @@ export default function BulletinManagementUnified() {
           if (response.ok && responseData.success) {
             successCount++;
             console.log('[MANUAL_GRADES] ✅ Note sauvegardée avec succès:', gradeData);
+            console.log('[MANUAL_GRADES] 📊 DB Response:', responseData);
           } else {
             // ✅ AFFICHER DÉTAILS D'ERREUR POUR DEBUG 400
             const errorDetail = responseData?.errors?.join(', ') || responseData?.message || 'Erreur inconnue';
@@ -1035,7 +1036,18 @@ export default function BulletinManagementUnified() {
       // ✅ AUTO-REFRESH des données après sauvegarde pour éviter double-clic
       if (successCount > 0 && manualGradeClass) {
         console.log('[MANUAL_GRADES] 🔄 Auto-refresh données après sauvegarde');
+        
+        // ✅ ATTENDRE QUE LA BD SE SYNCHRONISE (100ms)
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         await loadClassData(manualGradeClass);
+        
+        // ✅ FORCER VIDER LE CACHE pour éviter données obsolètes
+        setImportedGrades(null);
+        console.log('[MANUAL_GRADES] 🗑️ Cache vidé - données prêtes pour aperçu immédiat');
+        
+        // ✅ FORCER RE-RENDER du composant avec nouvelles données
+        setManualGrades(prev => ({...prev}));
       }
       
     } catch (error) {
@@ -1123,6 +1135,7 @@ export default function BulletinManagementUnified() {
         if (response.ok) {
           const bulletinData = await response.json();
           console.log('[PREVIEW_BULLETIN] ✅ Données récupérées depuis DB:', bulletinData);
+          console.log('[PREVIEW_BULLETIN] 🔍 Détail notes:', JSON.stringify(bulletinData.data?.subjects, null, 2));
           
           if (bulletinData.success && bulletinData.data && bulletinData.data.subjects && bulletinData.data.subjects.length > 0) {
             // Convertir en format attendu par l'aperçu
@@ -1154,6 +1167,9 @@ export default function BulletinManagementUnified() {
       // ✅ PROTECTION UI - Vérifier qu'on a des notes avant de continuer
       if (!importedGrades || !importedGrades.subjects || importedGrades.subjects.length === 0) {
         console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible (ni importées, ni manuelles)');
+        console.log('[PREVIEW_BULLETIN] 🔍 manualGrades état:', Object.keys(manualGrades).length, 'notes');
+        console.log('[PREVIEW_BULLETIN] 🔍 importedGrades état:', importedGrades ? 'données présentes' : 'null');
+        
         toast({
           title: "⚠️ Aucune note disponible",
           description: "Veuillez d'abord saisir et sauvegarder des notes pour ce trimestre",
