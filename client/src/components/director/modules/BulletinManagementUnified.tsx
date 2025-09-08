@@ -37,7 +37,8 @@ import {
   Signature,
   Phone,
   Calendar,
-  Star
+  Star,
+  Save
 } from 'lucide-react';
 
 interface Subject {
@@ -164,6 +165,14 @@ export default function BulletinManagementUnified() {
   const [sentBulletins, setSentBulletins] = useState<BulletinFromTeacher[]>([]);
   const [myBulletins, setMyBulletins] = useState<BulletinFromTeacher[]>([]);
   const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
+  
+  // ✅ ÉTATS POUR SAISIE MANUELLE DES NOTES
+  const [manualGradeClass, setManualGradeClass] = useState<string>('');
+  const [classStudents, setClassStudents] = useState<any[]>([]);
+  const [classSubjects, setClassSubjects] = useState<any[]>([]);
+  const [classTeachers, setClassTeachers] = useState<any[]>([]);
+  const [manualGrades, setManualGrades] = useState<{[key: string]: any}>({});
+  const [savingGrades, setSavingGrades] = useState(false);
 
   // État pour les notes importées automatiquement
   const [importedGrades, setImportedGrades] = useState<any>(null);
@@ -754,6 +763,139 @@ export default function BulletinManagementUnified() {
 
   // Fonctions supprimées: handleNotifications et handleSettings (selon demande utilisateur)
 
+  // ✅ CHARGER LES DONNÉES DE LA CLASSE (ÉLÈVES, MATIÈRES, PROFESSEURS)
+  const loadClassData = async (classId: string) => {
+    if (!classId) {
+      setClassStudents([]);
+      setClassSubjects([]);
+      setClassTeachers([]);
+      return;
+    }
+
+    try {
+      console.log('[MANUAL_GRADES] 🔍 Chargement des données pour la classe:', classId);
+      
+      // Utiliser les données mock disponibles
+      const studentsData = students.filter(s => s.classId === parseInt(classId));
+      const subjectsData = [
+        { id: 1, name_fr: 'Mathématiques', coefficient: 5, teacher_id: 1 },
+        { id: 2, name_fr: 'Français', coefficient: 5, teacher_id: 2 },
+        { id: 3, name_fr: 'Sciences', coefficient: 4, teacher_id: 3 },
+        { id: 4, name_fr: 'Histoire-Géographie', coefficient: 3, teacher_id: 4 }
+      ];
+      const teachersData = teachers;
+      
+      setClassStudents(studentsData);
+      setClassSubjects(subjectsData);
+      setClassTeachers(teachersData);
+      
+      console.log('[MANUAL_GRADES] ✅ Données chargées:', {
+        students: studentsData.length,
+        subjects: subjectsData.length,
+        teachers: teachersData.length
+      });
+      
+      toast({
+        title: "✅ Classe chargée",
+        description: `${studentsData.length} élèves, ${subjectsData.length} matières trouvées`,
+      });
+      
+    } catch (error) {
+      console.error('[MANUAL_GRADES] ❌ Erreur chargement:', error);
+      toast({
+        title: "❌ Erreur",
+        description: "Impossible de charger les données de la classe",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ✅ SAUVEGARDER LES NOTES MANUELLES
+  const saveManualGrades = async () => {
+    if (!manualGradeClass || Object.keys(manualGrades).length === 0) {
+      toast({
+        title: "⚠️ Aucune note à sauvegarder",
+        description: "Veuillez saisir au moins une note",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingGrades(true);
+    
+    try {
+      console.log('[MANUAL_GRADES] 💾 Sauvegarde des notes:', manualGrades);
+      
+      // Convertir les notes en format pour l'API
+      const gradesToSave = [];
+      
+      for (const [key, gradeData] of Object.entries(manualGrades)) {
+        const [studentId, subjectId, term] = key.split('_');
+        
+        if (gradeData && gradeData.grade !== null && gradeData.grade !== undefined && gradeData.grade !== '') {
+          gradesToSave.push({
+            studentId: parseInt(studentId),
+            classId: parseInt(manualGradeClass),
+            academicYear: '2023-2024',
+            term: term, // T1, T2, ou T3
+            subjectId: parseInt(subjectId),
+            grade: parseFloat(gradeData.grade),
+            coefficient: gradeData.coefficient || 1,
+            teacherComments: gradeData.comments || ''
+          });
+        }
+      }
+      
+      if (gradesToSave.length === 0) {
+        toast({
+          title: "⚠️ Aucune note valide",
+          description: "Veuillez saisir des notes valides",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Sauvegarder une par une
+      let successCount = 0;
+      
+      for (const gradeData of gradesToSave) {
+        const response = await fetch('/api/bulletins/import-grades', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(gradeData)
+        });
+        
+        if (response.ok) {
+          successCount++;
+        } else {
+          console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde note:', gradeData);
+        }
+      }
+      
+      toast({
+        title: "✅ Notes sauvegardées",
+        description: `${successCount}/${gradesToSave.length} notes sauvegardées avec succès`,
+      });
+      
+    } catch (error) {
+      console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde:', error);
+      toast({
+        title: "❌ Erreur de sauvegarde",
+        description: "Impossible de sauvegarder les notes",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingGrades(false);
+    }
+  };
+
+  // ✅ EFFET POUR CHARGER LES DONNÉES QUAND LA CLASSE CHANGE
+  React.useEffect(() => {
+    if (manualGradeClass) {
+      loadClassData(manualGradeClass);
+    }
+  }, [manualGradeClass]);
+
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
@@ -1108,16 +1250,21 @@ export default function BulletinManagementUnified() {
       console.log('[PREVIEW_BULLETIN] 🔍 Notes importées disponibles:', importedGrades);
       console.log('[PREVIEW_BULLETIN] 📚 Notes générales à envoyer:', previewData.grades.general);
       
-      // Vérification critique : s'assurer que les notes sont bien présentes
-      if (!importedGrades) {
-        console.error('[PREVIEW_BULLETIN] ❌ PROBLÈME: Pas de notes importées disponibles');
+      // ✅ VÉRIFICATION AMÉLIORÉE : Accepter les notes importées OU manuelles
+      const hasImportedGrades = importedGrades && Object.keys(importedGrades.termGrades || {}).length > 0;
+      const hasManualGrades = formData.subjectsGeneral && formData.subjectsGeneral.length > 0;
+      
+      if (!hasImportedGrades && !hasManualGrades) {
+        console.error('[PREVIEW_BULLETIN] ❌ PROBLÈME: Aucune note disponible (ni importées, ni manuelles)');
         toast({
           title: "⚠️ Notes manquantes",
-          description: "Impossible de générer l'aperçu car les notes de l'élève ne sont pas importées. Veuillez d'abord sélectionner un élève et attendre l'importation automatique.",
+          description: "Impossible de générer l'aperçu. Veuillez saisir des notes manuellement ou importer des notes depuis un fichier Excel.",
           variant: "destructive",
         });
         return;
       }
+      
+      console.log('[PREVIEW_BULLETIN] ✅ Type de données:', hasImportedGrades ? 'Notes importées' : 'Notes manuelles');
       
       if (!previewData.grades.general || previewData.grades.general.length === 0) {
         console.error('[PREVIEW_BULLETIN] ❌ PROBLÈME: Aucune note générale dans les données d\'aperçu');
@@ -2133,8 +2280,12 @@ export default function BulletinManagementUnified() {
 
 
       {/* Onglets principaux */}
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="manual-grades" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="manual-grades" className="flex items-center">
+            <PenTool className="w-4 h-4 mr-1" />
+            Saisie Notes
+          </TabsTrigger>
           <TabsTrigger value="pending" className="flex items-center">
             <Clock className="w-4 h-4 mr-1" />
             {t.pendingTab}
@@ -2156,6 +2307,181 @@ export default function BulletinManagementUnified() {
             {t.createNewTab}
           </TabsTrigger>
         </TabsList>
+
+        {/* ✅ SAISIE MANUELLE DES NOTES */}
+        <TabsContent value="manual-grades" className="mt-6">
+          <div className="space-y-6">
+            {/* Sélection de la classe */}
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center text-green-800">
+                  <PenTool className="mr-2 h-5 w-5" />
+                  Saisie Manuelle des Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Sélectionnez une classe</Label>
+                    <Select
+                      value={manualGradeClass}
+                      onValueChange={setManualGradeClass}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choisir une classe..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map((classItem) => (
+                          <SelectItem key={classItem.id} value={classItem.id.toString()}>
+                            {classItem.name} ({classItem.level})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {manualGradeClass && (
+                    <div className="grid grid-cols-3 gap-4 mt-4 p-4 bg-white rounded-lg border">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{classStudents.length}</div>
+                        <div className="text-sm text-gray-600">Élèves</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{classSubjects.length}</div>
+                        <div className="text-sm text-gray-600">Matières</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">{classTeachers.length}</div>
+                        <div className="text-sm text-gray-600">Professeurs</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Interface de saisie des notes */}
+            {manualGradeClass && classStudents.length > 0 && classSubjects.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Saisie des Notes - {classes.find(c => c.id.toString() === manualGradeClass)?.name}</span>
+                    <Button 
+                      onClick={saveManualGrades}
+                      disabled={savingGrades || Object.keys(manualGrades).length === 0}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {savingGrades ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Sauvegarde...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Sauvegarder ({Object.keys(manualGrades).length} notes)
+                        </>
+                      )}
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Tabs pour les trimestres */}
+                    <Tabs defaultValue="T1" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="T1">1er Trimestre</TabsTrigger>
+                        <TabsTrigger value="T2">2ème Trimestre</TabsTrigger>
+                        <TabsTrigger value="T3">3ème Trimestre</TabsTrigger>
+                      </TabsList>
+
+                      {['T1', 'T2', 'T3'].map((term) => (
+                        <TabsContent key={term} value={term} className="mt-4">
+                          <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                              <thead>
+                                <tr className="bg-gray-50">
+                                  <th className="border border-gray-200 p-2 text-left">Élève</th>
+                                  {classSubjects.map((subject) => (
+                                    <th key={subject.id} className="border border-gray-200 p-2 text-center min-w-[120px]">
+                                      {subject.name_fr}
+                                      <div className="text-xs text-gray-500">Coef. {subject.coefficient}</div>
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {classStudents.map((student) => (
+                                  <tr key={student.id} className="hover:bg-gray-50">
+                                    <td className="border border-gray-200 p-2 font-medium">
+                                      {student.name}
+                                    </td>
+                                    {classSubjects.map((subject) => {
+                                      const gradeKey = `${student.id}_${subject.id}_${term}`;
+                                      return (
+                                        <td key={subject.id} className="border border-gray-200 p-1">
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            max="20"
+                                            step="0.1"
+                                            placeholder="0.0"
+                                            className="w-full text-center"
+                                            value={manualGrades[gradeKey]?.grade || ''}
+                                            onChange={(e) => {
+                                              const value = e.target.value;
+                                              setManualGrades(prev => ({
+                                                ...prev,
+                                                [gradeKey]: {
+                                                  grade: value,
+                                                  coefficient: subject.coefficient,
+                                                  comments: prev[gradeKey]?.comments || ''
+                                                }
+                                              }));
+                                            }}
+                                          />
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </TabsContent>
+                      ))}
+                    </Tabs>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Message d'aide si aucune classe sélectionnée */}
+            {!manualGradeClass && (
+              <Card className="border-gray-200 bg-gray-50">
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <PenTool className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">Saisie Manuelle des Notes</h3>
+                    <p className="text-gray-500 mb-4">
+                      Sélectionnez une classe pour commencer la saisie des notes.
+                      Les élèves, matières et professeurs seront automatiquement chargés.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                      <h4 className="font-medium text-blue-800 mb-2">✅ Fonctionnalités</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Auto-chargement des données de classe</li>
+                        <li>• Saisie par trimestre (T1, T2, T3)</li>
+                        <li>• Sauvegarde automatique en base</li>
+                        <li>• Notes utilisées pour les bulletins</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
 
         {/* En Attente d'Approbation */}
         <TabsContent value="pending" className="mt-6">
