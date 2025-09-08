@@ -44,6 +44,40 @@ class PWAConnectionManager {
   private maxQueueSize = 50; // Sera ajusté selon l'appareil
 
   private listeners: Array<(state: ConnectionState) => void> = [];
+  
+  // Event handler references for proper cleanup
+  private handleFallbackOffline = (event: any) => {
+    console.log('[PWA_CONNECTION] 🔄 Mode fallback hors ligne activé');
+    this.state.quality = 'offline';
+    this.state.isConnected = false;
+    this.notifyListeners();
+  };
+  
+  private handleFallbackOnline = (event: any) => {
+    console.log('[PWA_CONNECTION] ✅ Mode fallback en ligne restauré');
+    this.state.isConnected = true;
+    this.performHealthCheck();
+  };
+  
+  private handleOnline = () => {
+    console.log('[PWA_CONNECTION] 🌐 Connexion internet rétablie');
+    this.state.isOnline = true;
+    this.handleConnectionRestore();
+  };
+  
+  private handleOffline = () => {
+    console.log('[PWA_CONNECTION] 📶 Connexion internet perdue');
+    this.state.isOnline = false;
+    this.state.quality = 'offline';
+    this.notifyListeners();
+  };
+  
+  private handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      console.log('[PWA_CONNECTION] 👀 Application visible - vérification connexion');
+      this.checkConnection();
+    }
+  };
 
   constructor() {
     // Only initialize if not already initialized to prevent memory leaks
@@ -63,18 +97,8 @@ class PWAConnectionManager {
    */
   private setupFallbackIntegration() {
     // Écouter les événements de fallback
-    window.addEventListener('connection-fallback-offline', (event: any) => {
-      console.log('[PWA_CONNECTION] 🔄 Mode fallback hors ligne activé');
-      this.state.quality = 'offline';
-      this.state.isConnected = false;
-      this.notifyListeners();
-    });
-
-    window.addEventListener('connection-fallback-online', (event: any) => {
-      console.log('[PWA_CONNECTION] ✅ Mode fallback en ligne restauré');
-      this.state.isConnected = true;
-      this.performHealthCheck(); // Vérifier immédiatement
-    });
+    window.addEventListener('connection-fallback-offline', this.handleFallbackOffline);
+    window.addEventListener('connection-fallback-online', this.handleFallbackOnline);
   }
 
   /**
@@ -103,26 +127,11 @@ class PWAConnectionManager {
    */
   private initializeConnectionMonitoring() {
     // Surveillance du statut en ligne/hors ligne
-    window.addEventListener('online', () => {
-      console.log('[PWA_CONNECTION] 🌐 Connexion internet rétablie');
-      this.state.isOnline = true;
-      this.handleConnectionRestore();
-    });
-
-    window.addEventListener('offline', () => {
-      console.log('[PWA_CONNECTION] 📶 Connexion internet perdue');
-      this.state.isOnline = false;
-      this.state.quality = 'offline';
-      this.notifyListeners();
-    });
+    window.addEventListener('online', this.handleOnline);
+    window.addEventListener('offline', this.handleOffline);
 
     // Surveillance de la visibilité de la page
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        console.log('[PWA_CONNECTION] 👀 Application visible - vérification connexion');
-        this.checkConnection();
-      }
-    });
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
     // Surveillance des erreurs de fetch
     this.interceptFetchErrors();
@@ -519,11 +528,12 @@ class PWAConnectionManager {
   }
 
   /**
-   * Nettoie les ressources
+   * Nettoie les ressources - MEMORY LEAK FIX
    */
   public destroy() {
     console.log('[PWA_CONNECTION] 🧹 Cleaning up resources...');
     
+    // Clean up intervals and timeouts
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
       this.pingInterval = null;
@@ -539,13 +549,26 @@ class PWAConnectionManager {
       this.batteryCheckInterval = null;
     }
 
+    // CRITICAL: Remove all event listeners to prevent memory leaks
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('connection-fallback-offline', this.handleFallbackOffline);
+      window.removeEventListener('connection-fallback-online', this.handleFallbackOnline);
+      window.removeEventListener('online', this.handleOnline);
+      window.removeEventListener('offline', this.handleOffline);
+      
+      // Clear global initialization flag
+      delete (window as any).__pwa_connection_initialized;
+    }
+    
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    // Clean up arrays
     this.listeners = [];
     this.notificationQueue = [];
     
-    // Clear global initialization flag
-    if (typeof window !== 'undefined') {
-      delete (window as any).__pwa_connection_initialized;
-    }
+    console.log('[PWA_CONNECTION] ✅ All resources cleaned up successfully');
   }
 }
 
