@@ -1115,333 +1115,178 @@ export default function BulletinManagementUnified() {
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
-      // ✅ RÉCUPÉRATION UNIFIÉE DES IDS - ÉLIMINER LA DUPLICATION
-      const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
-      const resolvedStudentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
-      const resolvedClassId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
+      // ✅ VALIDATION SIMPLE
+      const resolvedStudentId = selectedStudentId || formData.studentFirstName ? 
+        students.find(s => s.full_name === `${formData.studentFirstName} ${formData.studentLastName}`.trim())?.id?.toString() : 
+        null;
+      const resolvedClassId = selectedClassId || classes.find(c => c.name === formData.className)?.id?.toString();
       
       if (!resolvedStudentId || !resolvedClassId) {
         toast({
-          title: "Attention",
+          title: "Attention", 
           description: "Veuillez sélectionner une classe et un élève",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('[PREVIEW_BULLETIN] 🎯 APERÇU UNIFIÉ - IDs résolus:', {
-        resolvedStudentId,
-        resolvedClassId,
-        studentName: fullStudentName,
-        className: formData.className
+      // ✅ RÉCUPÉRATION DIRECTE DES DONNÉES SANS COMPLEXITÉ
+      const termMapping = { 'Premier Trimestre': 'T1', 'Deuxième Trimestre': 'T2', 'Troisième Trimestre': 'T3' };
+      const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      
+      console.log('[PREVIEW_SIMPLE] 🎯 Génération aperçu direct:', {
+        studentId: resolvedStudentId,
+        classId: resolvedClassId,
+        term: apiTerm
       });
 
-      // ✅ RÉCUPÉRATION AUTOMATIQUE DES NOTES DEPUIS LA BASE DE DONNÉES
+      // ✅ UNE SEULE RÉCUPÉRATION DE DONNÉES
+      let previewData = null;
       try {
-        const termMapping = {
-          'Premier Trimestre': 'T1',
-          'Deuxième Trimestre': 'T2', 
-          'Troisième Trimestre': 'T3'
-        };
-        
-        const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
-        
-        console.log('[PREVIEW_BULLETIN] 🔍 Récupération des notes DB:', {
-          studentId: resolvedStudentId,
-          classId: resolvedClassId,
-          term: apiTerm,
-          academicYear: formData.academicYear
-        });
-
-        const getUrl = `/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
-        console.log('[PREVIEW_BULLETIN] 📡 Appel GET pour récupérer notes:', getUrl);
-        
-        const response = await fetch(getUrl, {
+        const response = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
           method: 'GET',
           credentials: 'include'
         });
-        
-        console.log('[PREVIEW_BULLETIN] 📡 Statut GET response:', response.status, response.statusText);
         
         if (response.ok) {
-          const bulletinData = await response.json();
-          console.log('[PREVIEW_BULLETIN] ✅ Données récupérées depuis DB:', bulletinData);
-          console.log('[PREVIEW_BULLETIN] 🔍 Détail notes:', JSON.stringify(bulletinData.data?.subjects, null, 2));
-          
-          if (bulletinData.success && bulletinData.data && bulletinData.data.subjects && bulletinData.data.subjects.length > 0) {
-            // ✅ CORRECTIF: Format correct pour l'aperçu
-            const convertedData = {
-              termGrades: {},
-              termAverage: bulletinData.data.termAverage || '0',
-              subjects: bulletinData.data.subjects,
-              hasData: true // ✅ AJOUT: Indicateur explicite de présence de données
-            };
-            
-            // Remplir les notes par matière
-            bulletinData.data.subjects.forEach((subject: any) => {
-              convertedData.termGrades[subject.name] = {
-                grade: subject.grade,
-                coefficient: subject.coef,
-                points: subject.points
-              };
-            });
-            
-            setImportedGrades(convertedData);
-            console.log('[PREVIEW_BULLETIN] ✅ Notes importées depuis DB pour aperçu:', convertedData);
-            
-            // ✅ CORRECTIF: Continuer avec la logique d'aperçu existante
-            toast({
-              title: "✅ Notes récupérées",
-              description: `${bulletinData.data.subjects.length} matières trouvées - Moyenne: ${bulletinData.data.termAverage}/20`,
-              duration: 2000,
-            });
-            
-            // ✅ Laisser la logique existante continuer (pas de return prématuré)
-          }
-        } else {
-          console.warn('[PREVIEW_BULLETIN] ⚠️ Response pas OK:', response.status, response.statusText);
-        }
-      } catch (dbError) {
-        console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
-      }
-
-      // ✅ VÉRIFIER DONNÉES DIRECTEMENT DEPUIS LA RÉPONSE API - PAS DE setState ASYNCHRONE
-      let currentImportedData = null;
-      let hasImportedData = false;
-      
-      // ✅ SOLUTION: Récupérer les données depuis la réponse API directement
-      const termMapping = {
-        'Premier Trimestre': 'T1',
-        'Deuxième Trimestre': 'T2', 
-        'Troisième Trimestre': 'T3'
-      };
-      const currentApiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
-      
-      try {
-        const recentResponse = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${currentApiTerm}`, {
-          method: 'GET',
-          credentials: 'include'
-        });
-        
-        if (recentResponse.ok) {
-          const recentData = await recentResponse.json();
-          if (recentData.success && recentData.data && recentData.data.subjects && recentData.data.subjects.length > 0) {
-            currentImportedData = recentData.data;
-            hasImportedData = true;
+          const data = await response.json();
+          if (data.success && data.data?.subjects?.length > 0) {
+            previewData = data.data;
+            console.log('[PREVIEW_SIMPLE] ✅ Données trouvées:', previewData.subjects.length, 'matières');
           }
         }
       } catch (error) {
-        console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur vérification données récentes:', error);
+        console.warn('[PREVIEW_SIMPLE] ⚠️ Erreur récupération:', error);
       }
-      
-      const hasManualData = Object.keys(manualGrades).length > 0;
-      
-      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES FINAL (DIRECT):', {
-        manualGrades: Object.keys(manualGrades).length,
-        importedData: hasImportedData ? currentImportedData?.subjects?.length || 0 : 0,
-        hasManualData,
-        hasImportedData
-      });
 
-      // ✅ UTILISER DONNÉES MANUELLES SI PAS D'IMPORT DIRECT
-      if (!hasImportedData && hasManualData) {
-        console.log('[PREVIEW_BULLETIN] 🔄 Utilisation données manuelles à défaut d\'import');
+      // ✅ FALLBACK VERS DONNÉES MANUELLES SI NÉCESSAIRE
+      if (!previewData && Object.keys(manualGrades).length > 0) {
+        console.log('[PREVIEW_SIMPLE] 🔄 Utilisation données manuelles');
         
-        // Convertir manualGrades en format aperçu
+        // Convertir rapidement les données manuelles
         const manualSubjects = [];
-        const subjectMap = {};
-        
-        // Regrouper par matière
-        Object.keys(manualGrades).forEach(key => {
-          const grade = manualGrades[key];
-          if (grade.grade && grade.grade > 0) {
-            const parts = key.split('_');
-            const studentId = parts[0];
-            const subjectId = parts[1];
-            const term = parts[2];
-            
-            // Trouver la matière correspondante
+        Object.entries(manualGrades).forEach(([key, grade]) => {
+          if (grade.grade && parseFloat(grade.grade) > 0) {
+            const [studentId, subjectId, term] = key.split('_');
             const subject = classSubjects.find(s => s.id.toString() === subjectId);
-            if (subject) {
+            if (subject && studentId === resolvedStudentId && term === apiTerm) {
               manualSubjects.push({
                 name: subject.name_fr,
                 grade: parseFloat(grade.grade),
-                coef: subject.coefficient,
-                points: parseFloat(grade.grade) * subject.coefficient,
-                teacherName: classTeachers.find(t => t.id === subject.teacher_id)?.name || 'Professeur',
-                comments: grade.comments || ''
+                coef: subject.coefficient || 1
               });
             }
           }
         });
         
         if (manualSubjects.length > 0) {
-          const totalPoints = manualSubjects.reduce((sum, s) => sum + s.points, 0);
+          const totalPoints = manualSubjects.reduce((sum, s) => sum + (s.grade * s.coef), 0);
           const totalCoef = manualSubjects.reduce((sum, s) => sum + s.coef, 0);
-          const termAverage = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0';
-          
-          // ✅ Toast pour données manuelles disponibles
-          toast({
-            title: "✅ Données manuelles détectées",
-            description: `${manualSubjects.length} matières - Moyenne: ${termAverage}/20`,
-            duration: 2000,
-          });
-          
-          console.log('[PREVIEW_BULLETIN] ✅ Données manuelles disponibles:', manualSubjects.length, 'matières');
-          // ✅ Laisser la logique existante continuer
+          previewData = {
+            subjects: manualSubjects,
+            termAverage: totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0'
+          };
         }
       }
 
-      // ✅ DERNIÈRE VÉRIFICATION: Aucune donnée disponible
-      if (!hasImportedData && !hasManualData) {
-        console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible après toutes vérifications');
-        
+      // ✅ VÉRIFICATION FINALE SIMPLE
+      if (!previewData || !previewData.subjects || previewData.subjects.length === 0) {
         toast({
           title: "⚠️ Notes manquantes",
-          description: "Impossible de générer l'aperçu. Veuillez saisir des notes manuellement ou importer des notes depuis un fichier Excel.",
+          description: "Aucune note disponible pour cet élève/trimestre. Veuillez saisir des notes d'abord.",
           variant: "destructive",
         });
         return;
       }
-      
-      // ✅ GÉNÉRATION APERÇU AVEC DONNÉES DIRECTES
-      console.log('[PREVIEW_BULLETIN] 🚀 Génération aperçu avec données confirmées:', {
-        sourceData: hasImportedData ? 'Base de données' : 'Notes manuelles',
-        dataCount: hasImportedData ? currentImportedData?.subjects?.length : Object.keys(manualGrades).length
+
+      // ✅ GÉNÉRATION IMMÉDIATE DE L'APERÇU
+      console.log('[PREVIEW_SIMPLE] 🚀 Génération aperçu avec:', previewData.subjects.length, 'matières');
+
+      // Préparer les données pour l'aperçu - utiliser previewData.subjects
+      const previewSubjects = previewData.subjects.map((subject: any) => ({
+        name: subject.name,
+        grade: subject.grade,
+        coef: subject.coef || 1,
+        points: (subject.grade || 0) * (subject.coef || 1),
+        teacherName: subject.teacherName || 'Professeur',
+        comments: subject.comments || ''
+      }));
+
+      toast({
+        title: "✅ Aperçu généré",
+        description: `${previewSubjects.length} matières - Moyenne: ${previewData.termAverage}/20`,
+        duration: 2000,
       });
 
-      // Construire la même logique que createModularBulletin mais pour l'aperçu
-      const getTermSpecificData = () => {
-        const baseData = {
-          // Utiliser la moyenne importée automatiquement si disponible
-          generalAverage: importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage,
-          classRank: formData.classRank,
-          totalStudents: formData.totalStudents,
-          workAppreciation: formData.workAppreciation,
-          conductAppreciation: formData.conductAppreciation,
-          generalAppreciation: formData.generalAppreciation
-        };
-
-        switch (formData.term) {
-          case 'Premier Trimestre':
-            return {
-              ...baseData,
-              termType: 'first',
-              evaluationPeriod: 'Évaluation du 1er trimestre',
-              nextTermAdvice: 'Conseils pour le 2ème trimestre',
-              canPromote: false,
-              generalAppreciation: baseData.generalAppreciation || 'Début d\'année scolaire - Adaptation en cours'
-            };
-          
-          case 'Deuxième Trimestre':
-            return {
-              ...baseData,
-              termType: 'second',
-              evaluationPeriod: 'Évaluation du 2ème trimestre',
-              nextTermAdvice: 'Préparation pour l\'évaluation finale',
-              canPromote: false,
-              generalAppreciation: baseData.generalAppreciation || 'Milieu d\'année - Évaluation des progrès'
-            };
-          
-          case 'Troisième Trimestre':
-            const averageThreshold = 10;
-            const isPromoted = baseData.generalAverage >= averageThreshold;
-            
-            return {
-              ...baseData,
-              termType: 'third',
-              evaluationPeriod: 'Évaluation finale de l\'année',
-              nextTermAdvice: isPromoted ? 'Admis en classe supérieure' : 'Doit reprendre la classe',
-              canPromote: true,
-              isPromoted: isPromoted,
-              finalDecision: isPromoted ? 'ADMIS' : 'REDOUBLE',
-              generalAppreciation: baseData.generalAppreciation || 
-                (isPromoted 
-                  ? 'Fin d\'année - Résultats satisfaisants, passage autorisé' 
-                  : 'Fin d\'année - Résultats insuffisants, reprise nécessaire')
-            };
-          
-          default:
-            return baseData;
-        }
-      };
-
-      const termSpecificData = getTermSpecificData();
-
-      // Préparer les données exactes du formulaire pour l'aperçu
-      const previewData = {
+      // ✅ GÉNÉRATION SIMPLE DE L'APERÇU AVEC DONNÉES RÉCUPÉRÉES
+      const simplePreviewData = {
         schoolData: {
-          name: formData.schoolName,
-          address: formData.schoolAddress,
-          phone: formData.schoolPhone,
-          email: formData.schoolEmail,
-          director: formData.directorName,
-          regionalDelegation: formData.regionalDelegation,
-          departmentalDelegation: formData.departmentalDelegation
+          name: formData.schoolName || "École Test",
+          address: formData.schoolAddress || "Yaoundé, Cameroun",
+          phone: formData.schoolPhone || "+237 XXX XX XX XX",
+          email: formData.schoolEmail || "contact@ecole.cm",
+          director: formData.directorName || "Directeur",
+          regionalDelegation: formData.regionalDelegation || "DU CENTRE",
+          departmentalDelegation: formData.departmentalDelegation || "DU MFOUNDI"
         },
         studentData: {
-          firstName: formData.studentFirstName,
-          lastName: formData.studentLastName,
-          birthDate: formData.studentBirthDate,
-          birthPlace: formData.studentBirthPlace,
-          gender: formData.studentGender,
-          studentNumber: formData.studentNumber,
-          photo: formData.studentPhoto
+          firstName: formData.studentFirstName || "Prénom",
+          lastName: formData.studentLastName || "Nom",
+          birthDate: formData.studentBirthDate || "01/01/2010",
+          birthPlace: formData.studentBirthPlace || "Yaoundé",
+          gender: formData.studentGender || "M",
+          studentNumber: formData.studentNumber || "001",
+          photo: formData.studentPhoto || ""
         },
         academicData: {
-          className: formData.className,
-          academicYear: formData.academicYear,
-          term: formData.term,
-          enrollment: formData.enrollment
+          className: formData.className || "6ème A",
+          academicYear: formData.academicYear || "2024-2025",
+          term: formData.term || "Premier Trimestre",
+          enrollment: formData.enrollment || "1"
         },
-        grades: importedGrades ? {
-          // ✅ CONVERTIR AU FORMAT T3 SI NÉCESSAIRE POUR L'APERÇU AUSSI
-          general: Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => {
-            const currentGrade = parseFloat(((grades.CC + grades.EXAM) / 2).toFixed(2));
-            const subjectName = subject === 'MATH' ? 'Mathématiques' :
-                  subject === 'PHYS' ? 'Physique' :
-                  subject === 'CHIM' ? 'Chimie' :
-                  subject === 'BIO' ? 'Biologie' :
-                  subject === 'FRANC' ? 'Français' :
-                  subject === 'ANG' ? 'Anglais' :
-                  subject === 'HIST' ? 'Histoire' :
-                  subject === 'GEO' ? 'Géographie' : subject;
-            
-            // ✅ FORMAT T3 AVEC PROGRESSION NATURELLE POUR L'APERÇU
-            if (formData.term === 'Troisième Trimestre') {
-              // Progression naturelle T1 → T2 → T3 comme dans l'image
-              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
-              const t1 = parseFloat((currentGrade - 2).toFixed(2));
-              const t2 = parseFloat((t1 + 0.9).toFixed(2));
-              const t3 = parseFloat((t2 + 1.0).toFixed(2));
-              const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
-              
-              const coef = subjectName === 'Mathématiques' || subjectName === 'Français' ? 5 :
-                          subjectName === 'Physique' || subjectName === 'Sciences' ? 4 :
-                          subjectName === 'Histoire' || subjectName === 'Géographie' ? 3 : 2;
-              
-              const teacherName = subjectName === 'Mathématiques' ? 'M. Ndongo' :
-                                subjectName === 'Français' ? 'Mme Tchoumba' :
-                                subjectName === 'Physique' ? 'M. Bekono' :
-                                subjectName === 'Sciences' ? 'Mme Fouda' :
-                                subjectName === 'Anglais' ? 'M. Johnson' :
-                                subjectName === 'Histoire' ? 'M. Ebogo' :
-                                subjectName === 'Géographie' ? 'Mme Mvondo' : 'Prof.';
-              
-              return {
-                name: subjectName,
-                coefficient: coef,
-                t1: t1,
-                t2: t2,
-                t3: t3,
-                avgAnnual: avgAnnual,
-                teacherName: teacherName,
-                comments: avgAnnual >= 18 ? 'Excellent' :
-                         avgAnnual >= 15 ? 'Très Bien' :
-                         avgAnnual >= 12 ? 'Bien' :
-                         avgAnnual >= 10 ? 'Assez Bien' : 'Doit faire des efforts'
-              };
-            } else {
+        grades: {
+          general: previewSubjects
+        },
+        termSpecificData: {
+          generalAverage: parseFloat(previewData.termAverage),
+          classRank: formData.classRank || 1,
+          totalStudents: formData.totalStudents || 30,
+          workAppreciation: formData.workAppreciation || "Satisfaisant",
+          conductAppreciation: formData.conductAppreciation || "Très bien",
+          generalAppreciation: formData.generalAppreciation || "Bon travail"
+        },
+        subjects: previewSubjects
+      };
+
+      // ✅ ENVOYER L'APERÇU DIRECTEMENT
+      console.log('[PREVIEW_SIMPLE] 📡 Envoi données aperçu:', simplePreviewData);
+
+      const response = await fetch('/api/templates/bulletin/preview-custom', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(simplePreviewData)
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        console.log('[PREVIEW_SIMPLE] ✅ Aperçu ouvert avec succès');
+      } else {
+        throw new Error(`Erreur serveur: ${response.status}`);
+      }
+
+    } catch (error) {
+      console.error('[PREVIEW_SIMPLE] ❌ Erreur:', error);
+      toast({
+        title: "❌ Erreur d'aperçu",
+        description: "Impossible de générer l'aperçu. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    }
+  };
               return {
                 name: subjectName,
                 t1Grade: grades.CC || 0,
