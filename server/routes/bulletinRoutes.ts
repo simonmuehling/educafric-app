@@ -1992,7 +1992,7 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
     const currentGrades = await db.execute(sql`
       SELECT 
         tgs.subject_id,
-        s.name_fr as subject_name,
+        s.name as subject_name,
         s.coefficient,
         tgs.first_evaluation,
         tgs.second_evaluation,
@@ -2004,7 +2004,7 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
         AND tgs.class_id = ${parseInt(academicData.classId || '1')}
         AND tgs.academic_year = ${academicData.academicYear || '2024-2025'}
         AND tgs.school_id = ${user.schoolId || 1}
-      ORDER BY s.name_fr
+      ORDER BY s.name
     `);
     
     // Déterminer la colonne selon le trimestre
