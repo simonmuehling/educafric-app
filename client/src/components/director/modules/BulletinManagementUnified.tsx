@@ -3040,10 +3040,10 @@ export default function BulletinManagementUnified() {
                               variant="outline" 
                               size="sm"
                               onClick={async () => {
-                                // ✅ CORRECTIF SYNCHRONISATION: Préparer TOUTES les données directement
-                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation aperçu SYNCHRONE pour:', student.name);
+                                // ✅ CORRECTIF: Sauvegarder AVANT aperçu pour inclure toutes les notes
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Aperçu avec sauvegarde préalable pour:', student.name);
                                 
-                                // ✅ TOUTES les données préparées en local d'abord
+                                // ✅ PRÉPARATION DES DONNÉES
                                 const studentData = {
                                   id: student.id.toString(),
                                   firstName: student.name.split(' ')[0] || '',
@@ -3057,13 +3057,7 @@ export default function BulletinManagementUnified() {
                                   name: classes.find(c => c.id.toString() === manualGradeClass)?.name || ''
                                 };
                                 
-                                // ✅ Appel DIRECT avec les données préparées
-                                console.log('[UNIFIED_WORKFLOW] 📞 Appel previewBulletin avec données:', {
-                                  student: studentData,
-                                  class: classData
-                                });
-                                
-                                // ✅ MISE À JOUR SYNCHRONE DE TOUS LES ÉTATS
+                                // ✅ MISE À JOUR DES ÉTATS
                                 setSelectedStudentId(studentData.id);
                                 setSelectedClassId(classData.id);
                                 setFormData(prev => ({
@@ -3075,11 +3069,20 @@ export default function BulletinManagementUnified() {
                                   studentNumber: studentData.matricule
                                 }));
                                 
-                                // ✅ APPEL IMMÉDIAT avec timeout plus long pour garantir la synchronisation
+                                // ✅ SAUVEGARDER D'ABORD LES NOTES MANUELLES
+                                if (Object.keys(manualGrades).length > 0) {
+                                  console.log('[UNIFIED_WORKFLOW] 💾 Sauvegarde notes manuelles avant aperçu...');
+                                  await saveManualGrades();
+                                  
+                                  // Attendre un peu pour que la sauvegarde soit complète
+                                  await new Promise(resolve => setTimeout(resolve, 500));
+                                }
+                                
+                                // ✅ PUIS GÉNÉRER L'APERÇU AVEC LES DONNÉES À JOUR
                                 setTimeout(() => {
-                                  console.log('[UNIFIED_WORKFLOW] 🚀 Exécution previewBulletin après sync complète');
+                                  console.log('[UNIFIED_WORKFLOW] 🚀 Génération aperçu avec toutes les notes à jour');
                                   previewBulletin();
-                                }, 250); // Augmenté à 250ms pour assurer la sync
+                                }, 100);
                               }}
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
@@ -3090,10 +3093,10 @@ export default function BulletinManagementUnified() {
                             <Button 
                               size="sm"
                               onClick={async () => {
-                                // ✅ CORRECTIF SYNCHRONISATION: Préparer TOUTES les données directement
-                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation création SYNCHRONE pour:', student.name);
+                                // ✅ CORRECTIF: Sauvegarder AVANT création pour inclure toutes les notes
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Création avec sauvegarde préalable pour:', student.name);
                                 
-                                // ✅ TOUTES les données préparées en local d'abord
+                                // ✅ PRÉPARATION DES DONNÉES
                                 const studentData = {
                                   id: student.id.toString(),
                                   firstName: student.name.split(' ')[0] || '',
@@ -3107,13 +3110,7 @@ export default function BulletinManagementUnified() {
                                   name: classes.find(c => c.id.toString() === manualGradeClass)?.name || ''
                                 };
                                 
-                                // ✅ Appel DIRECT avec les données préparées
-                                console.log('[UNIFIED_WORKFLOW] 📞 Appel createModularBulletin avec données:', {
-                                  student: studentData,
-                                  class: classData
-                                });
-                                
-                                // ✅ MISE À JOUR SYNCHRONE DE TOUS LES ÉTATS
+                                // ✅ MISE À JOUR DES ÉTATS
                                 setSelectedStudentId(studentData.id);
                                 setSelectedClassId(classData.id);
                                 setFormData(prev => ({
@@ -3125,11 +3122,20 @@ export default function BulletinManagementUnified() {
                                   studentNumber: studentData.matricule
                                 }));
                                 
-                                // ✅ APPEL IMMÉDIAT avec timeout plus long pour garantir la synchronisation
+                                // ✅ SAUVEGARDER D'ABORD LES NOTES MANUELLES
+                                if (Object.keys(manualGrades).length > 0) {
+                                  console.log('[UNIFIED_WORKFLOW] 💾 Sauvegarde notes manuelles avant création...');
+                                  await saveManualGrades();
+                                  
+                                  // Attendre un peu pour que la sauvegarde soit complète
+                                  await new Promise(resolve => setTimeout(resolve, 500));
+                                }
+                                
+                                // ✅ PUIS CRÉER LE BULLETIN AVEC LES DONNÉES À JOUR
                                 setTimeout(() => {
-                                  console.log('[UNIFIED_WORKFLOW] 🚀 Exécution createModularBulletin après sync complète');
+                                  console.log('[UNIFIED_WORKFLOW] 🚀 Création bulletin avec toutes les notes à jour');
                                   createModularBulletin();
-                                }, 250); // Augmenté à 250ms pour assurer la sync
+                                }, 100);
                               }}
                               className="bg-green-600 hover:bg-green-700"
                             >
