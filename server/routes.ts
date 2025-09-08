@@ -3088,13 +3088,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/uploads', uploadsRoutes);
   
-  // ✅ Route simple pour les bulletins pending (sans paramètres requis)
+  // ✅ Route pour les bulletins pending - CONNECTÉE À LA VRAIE BD
   app.get('/api/bulletins/pending', requireAuth, async (req, res) => {
     try {
-      console.log('[BULLETIN_PENDING] Liste des bulletins en attente');
-      res.json({ success: true, bulletins: [] }); // Retour simple pour éviter l'erreur 400
+      const user = req.user as any;
+      const schoolId = user.schoolId || 1;
+      
+      console.log('[BULLETIN_PENDING] Récupération bulletins en attente pour école:', schoolId);
+      
+      // Récupérer tous les bulletins avec leurs informations d'élèves et classes
+      const pendingBulletins = await storage.executeQuery(`
+        SELECT 
+          b.id,
+          b.student_id,
+          b.class_id,
+          b.term,
+          b.academic_year,
+          b.status,
+          b.general_average,
+          b.class_rank,
+          b.total_students_in_class,
+          b.teacher_comments,
+          b.submitted_at,
+          b.approved_at,
+          b.sent_at,
+          u.first_name || ' ' || u.last_name as student_name,
+          c.name as class_name,
+          t.first_name || ' ' || t.last_name as teacher_name
+        FROM bulletins b
+        JOIN users u ON u.id = b.student_id
+        JOIN classes c ON c.id = b.class_id
+        LEFT JOIN users t ON t.id = b.teacher_id
+        WHERE b.school_id = $1
+        ORDER BY b.created_at DESC
+      `, [schoolId]);
+      
+      // Formater les données pour le frontend
+      const formattedBulletins = pendingBulletins.map((bulletin: any) => ({
+        id: bulletin.id,
+        studentId: bulletin.student_id,
+        studentName: bulletin.student_name,
+        className: bulletin.class_name,
+        teacherName: bulletin.teacher_name || 'Non assigné',
+        period: bulletin.term,
+        academicYear: bulletin.academic_year,
+        status: bulletin.status, // draft, submitted, approved, sent
+        submittedAt: bulletin.submitted_at,
+        approvedAt: bulletin.approved_at,
+        sentAt: bulletin.sent_at,
+        subjects: [], // Sera rempli séparément si nécessaire
+        teacherComments: bulletin.teacher_comments || '',
+        generalAverage: parseFloat(bulletin.general_average) || 0,
+        classRank: bulletin.class_rank || 0,
+        totalStudentsInClass: bulletin.total_students_in_class || 0
+      }));
+      
+      console.log('[BULLETIN_PENDING] ✅ Bulletins trouvés:', formattedBulletins.length);
+      
+      res.json({ 
+        success: true, 
+        bulletins: formattedBulletins,
+        total: formattedBulletins.length
+      });
+      
     } catch (error) {
-      res.status(500).json({ success: false, message: 'Erreur serveur' });
+      console.error('[BULLETIN_PENDING] ❌ Erreur:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur lors de la récupération des bulletins',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // ✅ Route pour approuver/publier un bulletin
+  app.post('/api/bulletins/bulletins/:bulletinId/publish', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const { bulletinId } = req.params;
+      const user = req.user as any;
+      
+      console.log('[BULLETIN_PUBLISH] Approbation bulletin:', bulletinId, 'par user:', user.id);
+      
+      // Vérifier que le bulletin existe
+      const bulletinExists = await storage.executeQuery(`
+        SELECT id, status, student_id FROM bulletins WHERE id = $1 AND school_id = $2
+      `, [parseInt(bulletinId), user.schoolId || 1]);
+      
+      if (bulletinExists.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Bulletin non trouvé'
+        });
+      }
+      
+      const bulletin = bulletinExists[0];
+      
+      // Mettre à jour le statut vers 'approved'
+      await storage.executeQuery(`
+        UPDATE bulletins 
+        SET 
+          status = 'approved',
+          approved_at = NOW(),
+          approved_by = $1,
+          updated_at = NOW()
+        WHERE id = $2
+      `, [user.id, parseInt(bulletinId)]);
+      
+      console.log('[BULLETIN_PUBLISH] ✅ Bulletin approuvé:', bulletinId);
+      
+      res.json({
+        success: true,
+        message: 'Bulletin approuvé avec succès',
+        bulletin: {
+          id: bulletin.id,
+          status: 'approved',
+          approvedAt: new Date().toISOString(),
+          approvedBy: user.id
+        }
+      });
+      
+    } catch (error) {
+      console.error('[BULLETIN_PUBLISH] ❌ Erreur:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de l\'approbation du bulletin',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
   
