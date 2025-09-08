@@ -16,6 +16,14 @@ import {
   type StudentBulletinData 
 } from '../services/cameroonGradingService';
 import { modularTemplateGenerator, type BulletinTemplateData } from '../services/modularTemplateGenerator';
+import { 
+  computeWeightedAverage, 
+  computeClassRank, 
+  validateTermRequirements, 
+  computeClassStatistics,
+  determineCouncilDecision,
+  type SubjectRow 
+} from '../utils/grades';
 
 const router = Router();
 
@@ -172,90 +180,165 @@ router.post('/create-with-import', requireAuth, async (req, res) => {
   }
 });
 
-// Get all bulletins - simplified with storage layer
+// Get bulletin data with real T1/T2/T3 grades - NO MORE MOCK DATA
 router.get('/', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
     const schoolId = user.schoolId || 1;
+
+    const { studentId, classId, academicYear, term } = req.query as any;
+    if (!studentId || !classId || !academicYear || !term) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required parameters: studentId, classId, academicYear, term' 
+      });
+    }
     
-    console.log('[BULLETINS_GET] Fetching bulletins for school:', schoolId);
-    
-    // Get bulletins from storage or return demo data for now
-    const bulletinsList = [
-      {
-        id: 1,
-        studentId: 1,
-        studentName: 'Marie Kouam',
-        classId: 1,
-        className: 'Terminale C',
-        teacherId: 2,
-        teacherName: 'Prof. Ndongo',
-        term: 'Premier Trimestre',
-        academicYear: '2024-2025',
-        status: 'submitted',
-        generalAverage: 15.5,
-        classRank: 3,
-        totalStudentsInClass: 35,
-        submittedAt: '2024-11-15T10:00:00Z',
-        approvedAt: null,
-        sentAt: null,
-        teacherComments: 'Élève sérieuse avec un bon niveau général',
-        directorComments: null,
-        createdAt: '2024-11-10T08:00:00Z'
-      },
-      {
-        id: 2,
-        studentId: 2, 
-        studentName: 'Paul Mballa',
-        classId: 1,
-        className: 'Terminale C',
-        teacherId: 2,
-        teacherName: 'Prof. Ndongo',
-        term: 'Premier Trimestre',
-        academicYear: '2024-2025',
-        status: 'approved',
-        generalAverage: 12.8,
-        classRank: 12,
-        totalStudentsInClass: 35,
-        submittedAt: '2024-11-14T10:00:00Z',
-        approvedAt: '2024-11-16T14:30:00Z',
-        sentAt: null,
-        teacherComments: 'Élève capable mais doit fournir plus d\'efforts',
-        directorComments: 'Continuer les efforts',
-        createdAt: '2024-11-12T09:00:00Z'
-      },
-      {
-        id: 3,
-        studentId: 3,
-        studentName: 'Fatima Bello', 
-        classId: 2,
-        className: '3ème A',
-        teacherId: 3,
-        teacherName: 'Mme Diallo',
-        term: 'Premier Trimestre',
-        academicYear: '2024-2025',
-        status: 'sent',
-        generalAverage: 16.2,
-        classRank: 2,
-        totalStudentsInClass: 28,
-        submittedAt: '2024-11-13T11:00:00Z',
-        approvedAt: '2024-11-15T16:00:00Z', 
-        sentAt: '2024-11-16T10:00:00Z',
-        teacherComments: 'Excellente élève, très motivée',
-        directorComments: 'Félicitations pour ces excellents résultats',
-        createdAt: '2024-11-11T10:30:00Z'
+    if (!['T1', 'T2', 'T3'].includes(term)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'term must be T1, T2, or T3' 
+      });
+    }
+
+    console.log('[BULLETINS_GET] ✅ Fetching REAL grades for:', {
+      studentId, classId, academicYear, term, schoolId
+    });
+
+    // 1) Get subjects and their coefficients for this class
+    const subjectsResult = await db.select({
+      id: sql`subjects.id`,
+      name: sql`subjects.name`,
+      coefficient: sql`COALESCE(tgs.coefficient, 1)`,
+    }).from(sql`subjects`)
+    .leftJoin(sql`teacher_grade_submissions AS tgs`, 
+      sql`tgs.subject_id = subjects.id AND tgs.class_id = ${classId} AND tgs.school_id = ${schoolId} AND tgs.student_id = ${studentId} AND tgs.academic_year = ${academicYear}`)
+    .where(sql`subjects.school_id = ${schoolId}`)
+    .orderBy(sql`subjects.name`);
+
+    // 2) Get real T1/T2/T3 grades for this student
+    const gradesResult = await db.select({
+      subjectId: teacherGradeSubmissions.subjectId,
+      t1: teacherGradeSubmissions.firstEvaluation,
+      t2: teacherGradeSubmissions.secondEvaluation,
+      t3: teacherGradeSubmissions.thirdEvaluation,
+      coefficient: teacherGradeSubmissions.coefficient,
+      remark: teacherGradeSubmissions.subjectComments
+    }).from(teacherGradeSubmissions)
+    .where(and(
+      eq(teacherGradeSubmissions.studentId, parseInt(studentId)),
+      eq(teacherGradeSubmissions.classId, parseInt(classId)),
+      eq(teacherGradeSubmissions.schoolId, schoolId),
+      eq(teacherGradeSubmissions.academicYear, academicYear)
+    ));
+
+    // Create lookup map for grades by subject
+    const gradesBySubject: Record<number, any> = {};
+    gradesResult.forEach(g => {
+      gradesBySubject[g.subjectId] = g;
+    });
+
+    // 3) Build subject rows with REAL data
+    const subjectRows: SubjectRow[] = subjectsResult.map((subject: any) => {
+      const grades = gradesBySubject[subject.id] || {};
+      return {
+        name: subject.name,
+        coef: Number(subject.coefficient || 1),
+        t1: grades.t1 ? Number(grades.t1) : null,
+        t2: grades.t2 ? Number(grades.t2) : null,
+        t3: grades.t3 ? Number(grades.t3) : null,
+        remark: grades.remark || null
+      };
+    });
+
+    // 4) Validate term requirements
+    const validation = validateTermRequirements(subjectRows, term);
+    if (!validation.valid) {
+      console.log('[BULLETINS_GET] ⚠️ Missing grades for subjects:', validation.missingSubjects);
+      // Don't block - just warn in logs for now
+    }
+
+    // 5) Calculate weighted average based on term
+    const generalAverage = computeWeightedAverage(subjectRows, term === 'T1' ? 'T1' : term === 'T2' ? 'T2' : 'ANNUAL');
+
+    // 6) Calculate class rank by comparing to other students
+    const classmatesResult = await db.selectDistinct({
+      studentId: teacherGradeSubmissions.studentId
+    }).from(teacherGradeSubmissions)
+    .where(and(
+      eq(teacherGradeSubmissions.classId, parseInt(classId)),
+      eq(teacherGradeSubmissions.schoolId, schoolId),
+      eq(teacherGradeSubmissions.academicYear, academicYear)
+    ));
+
+    // Calculate averages for all students in class
+    const allClassAverages: number[] = [];
+    for (const classmate of classmatesResult) {
+      const classmateGrades = await db.select({
+        subjectId: teacherGradeSubmissions.subjectId,
+        t1: teacherGradeSubmissions.firstEvaluation,
+        t2: teacherGradeSubmissions.secondEvaluation,
+        t3: teacherGradeSubmissions.thirdEvaluation,
+        coefficient: teacherGradeSubmissions.coefficient
+      }).from(teacherGradeSubmissions)
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, classmate.studentId),
+        eq(teacherGradeSubmissions.classId, parseInt(classId)),
+        eq(teacherGradeSubmissions.schoolId, schoolId),
+        eq(teacherGradeSubmissions.academicYear, academicYear)
+      ));
+
+      const classmateSubjects: SubjectRow[] = classmateGrades.map(g => ({
+        name: '',
+        coef: Number(g.coefficient || 1),
+        t1: g.t1 ? Number(g.t1) : null,
+        t2: g.t2 ? Number(g.t2) : null,
+        t3: g.t3 ? Number(g.t3) : null
+      }));
+
+      const classmateAvg = computeWeightedAverage(classmateSubjects, term === 'T1' ? 'T1' : term === 'T2' ? 'T2' : 'ANNUAL');
+      if (classmateAvg !== null) {
+        allClassAverages.push(classmateAvg);
       }
-    ];
-    
-    console.log('[BULLETINS_GET] Found', bulletinsList.length, 'bulletins');
+    }
+
+    const classRank = computeClassRank(generalAverage, allClassAverages);
+    const classStats = computeClassStatistics(allClassAverages);
+
+    // 7) For T3, add council decision
+    let councilDecision = null;
+    if (term === 'T3' && generalAverage !== null) {
+      councilDecision = determineCouncilDecision(generalAverage);
+    }
+
+    console.log('[BULLETINS_GET] ✅ Calculated real bulletin data:', {
+      subjectsCount: subjectRows.length,
+      generalAverage,
+      classRank,
+      totalStudents: allClassAverages.length,
+      hasCouncilDecision: !!councilDecision
+    });
     
     res.json({
       success: true,
-      bulletins: bulletinsList
+      bulletin: {
+        studentId: Number(studentId),
+        classId: Number(classId),
+        academicYear,
+        term,
+        generalAverage,
+        classRank,
+        totalStudentsInClass: allClassAverages.length,
+        subjects: subjectRows,
+        classStatistics: classStats,
+        councilDecision,
+        validation
+      }
     });
+
   } catch (error) {
-    console.error('[BULLETINS_GET] Error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch bulletins' });
+    console.error('[BULLETINS_GET] ❌ Error fetching real bulletin data:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch bulletin data', error: error.message });
   }
 });
 
