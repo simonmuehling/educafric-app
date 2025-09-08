@@ -2967,12 +2967,28 @@ export default function BulletinManagementUnified() {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => {
-                                // Sélectionner automatiquement cet élève et classe pour l'aperçu
+                              onClick={async () => {
+                                // ✅ CORRECTIF: Préparer correctement les données avant aperçu
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation aperçu pour:', student.name);
+                                
+                                // Définir les données de base
                                 setSelectedStudentId(student.id.toString());
                                 setSelectedClassId(manualGradeClass);
-                                setFormData(prev => ({ ...prev, term: '1' }));
-                                previewBulletin();
+                                
+                                // ✅ CORRECTIF: Utiliser le bon format de trimestre
+                                setFormData(prev => ({
+                                  ...prev,
+                                  term: 'Premier Trimestre',
+                                  studentFirstName: student.name.split(' ')[0] || '',
+                                  studentLastName: student.name.split(' ').slice(1).join(' ') || '',
+                                  className: classes.find(c => c.id.toString() === manualGradeClass)?.name || '',
+                                  studentNumber: student.matricule || ''
+                                }));
+                                
+                                // Attendre que les états soient mis à jour avant l'aperçu
+                                setTimeout(() => {
+                                  previewBulletin();
+                                }, 100);
                               }}
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
@@ -2982,12 +2998,28 @@ export default function BulletinManagementUnified() {
                             
                             <Button 
                               size="sm"
-                              onClick={() => {
-                                // Sélectionner automatiquement cet élève et classe pour la création
+                              onClick={async () => {
+                                // ✅ CORRECTIF: Préparer correctement les données avant création
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation création pour:', student.name);
+                                
+                                // Définir les données de base
                                 setSelectedStudentId(student.id.toString());
                                 setSelectedClassId(manualGradeClass);
-                                setFormData(prev => ({ ...prev, term: '1' }));
-                                createModularBulletin();
+                                
+                                // ✅ CORRECTIF: Utiliser le bon format de trimestre  
+                                setFormData(prev => ({
+                                  ...prev,
+                                  term: 'Premier Trimestre',
+                                  studentFirstName: student.name.split(' ')[0] || '',
+                                  studentLastName: student.name.split(' ').slice(1).join(' ') || '',
+                                  className: classes.find(c => c.id.toString() === manualGradeClass)?.name || '',
+                                  studentNumber: student.matricule || ''
+                                }));
+                                
+                                // Attendre que les états soient mis à jour avant la création
+                                setTimeout(() => {
+                                  createModularBulletin();
+                                }, 100);
                               }}
                               className="bg-green-600 hover:bg-green-700"
                             >
