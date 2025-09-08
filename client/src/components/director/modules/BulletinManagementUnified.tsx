@@ -1210,8 +1210,15 @@ export default function BulletinManagementUnified() {
       let hasImportedData = false;
       
       // ✅ SOLUTION: Récupérer les données depuis la réponse API directement
+      const termMapping = {
+        'Premier Trimestre': 'T1',
+        'Deuxième Trimestre': 'T2', 
+        'Troisième Trimestre': 'T3'
+      };
+      const currentApiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      
       try {
-        const recentResponse = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+        const recentResponse = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${currentApiTerm}`, {
           method: 'GET',
           credentials: 'include'
         });
