@@ -1164,11 +1164,52 @@ export default function BulletinManagementUnified() {
         console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
       }
 
+      // ✅ VÉRIFIER DONNÉES MANUELLES SI PAS D'IMPORT
+      const hasManualData = Object.keys(manualGrades).length > 0;
+      const hasImportedData = importedGrades && importedGrades.subjects && importedGrades.subjects.length > 0;
+      
+      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES:', {
+        manualGrades: Object.keys(manualGrades).length,
+        importedGrades: hasImportedData ? importedGrades.subjects.length : 0,
+        hasManualData,
+        hasImportedData
+      });
+
+      // ✅ UTILISER DONNÉES MANUELLES SI PAS D'IMPORT
+      if (!hasImportedData && hasManualData) {
+        console.log('[PREVIEW_BULLETIN] 🔄 Utilisation données manuelles à défaut d\'import');
+        
+        // Créer un objet importedGrades depuis manualGrades pour l'aperçu
+        const manualSubjects = Object.keys(manualGrades)
+          .filter(key => manualGrades[key].grade != null && manualGrades[key].grade > 0)
+          .map(key => {
+            const grade = manualGrades[key];
+            return {
+              name: grade.subjectName || 'Matière',
+              grade: parseFloat(grade.grade),
+              coef: grade.coefficient || 1,
+              points: parseFloat(grade.grade) * (grade.coefficient || 1)
+            };
+          });
+          
+        if (manualSubjects.length > 0) {
+          const totalPoints = manualSubjects.reduce((sum, s) => sum + s.points, 0);
+          const totalCoef = manualSubjects.reduce((sum, s) => sum + s.coef, 0);
+          const termAverage = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0';
+          
+          setImportedGrades({
+            subjects: manualSubjects,
+            termAverage: parseFloat(termAverage),
+            termGrades: {}
+          });
+          
+          console.log('[PREVIEW_BULLETIN] ✅ Données manuelles converties pour aperçu:', manualSubjects.length, 'matières');
+        }
+      }
+
       // ✅ PROTECTION UI - Vérifier qu'on a des notes avant de continuer
-      if (!importedGrades || !importedGrades.subjects || importedGrades.subjects.length === 0) {
+      if (!hasImportedData && !hasManualData) {
         console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible (ni importées, ni manuelles)');
-        console.log('[PREVIEW_BULLETIN] 🔍 manualGrades état:', Object.keys(manualGrades).length, 'notes');
-        console.log('[PREVIEW_BULLETIN] 🔍 importedGrades état:', importedGrades ? 'données présentes' : 'null');
         
         toast({
           title: "⚠️ Aucune note disponible",
