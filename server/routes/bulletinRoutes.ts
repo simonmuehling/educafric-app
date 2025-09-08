@@ -51,37 +51,53 @@ router.post('/import-grades', requireAuth, async (req, res) => {
       });
     }
 
-    // ✅ VALIDATION COMPLÈTE DES DONNÉES AVANT SAUVEGARDE
-    if (!studentId || !subjectId || !grade) {
-      console.log('[BULLETIN_IMPORT] ❌ Missing required data:', { studentId, subjectId, grade, term });
+    // ✅ VALIDATION DÉTAILLÉE AVEC MESSAGES D'ERREUR EXPLICITES
+    const errors: string[] = [];
+    
+    if (!studentId) errors.push('studentId is required');
+    if (!classId) errors.push('classId is required');
+    if (!academicYear) errors.push('academicYear is required');
+    if (!subjectId) errors.push('subjectId is required');
+    if (!term) errors.push('term is required');
+    if (term !== 'T1' && term !== 'T2' && term !== 'T3') {
+      errors.push(`term must be T1|T2|T3, received: ${term}`);
+    }
+    if (grade == null || grade === '') errors.push('grade is required');
+    
+    if (errors.length > 0) {
+      console.log('[BULLETIN_IMPORT] ❌ Validation errors:', errors);
       return res.status(400).json({ 
         success: false, 
-        message: 'Missing required fields: studentId, subjectId, grade' 
+        message: 'Bad Request - Validation failed', 
+        errors 
       });
     }
 
     // Convertir et valider les nombres
     const studentIdNum = parseInt(studentId);
     const subjectIdNum = parseInt(subjectId);
+    const classIdNum = parseInt(classId);
     const gradeNum = parseFloat(grade);
     const coefficientNum = parseFloat(coefficient) || 1;
 
-    if (isNaN(studentIdNum) || isNaN(subjectIdNum) || isNaN(gradeNum)) {
-      console.log('[BULLETIN_IMPORT] ❌ Invalid number conversion:', { 
-        studentId: studentIdNum, 
-        subjectId: subjectIdNum, 
-        grade: gradeNum 
-      });
+    if (isNaN(studentIdNum)) errors.push(`studentId must be a number, received: ${studentId}`);
+    if (isNaN(subjectIdNum)) errors.push(`subjectId must be a number, received: ${subjectId}`);
+    if (isNaN(classIdNum)) errors.push(`classId must be a number, received: ${classId}`);
+    if (isNaN(gradeNum)) errors.push(`grade must be a number, received: ${grade}`);
+    
+    if (errors.length > 0) {
+      console.log('[BULLETIN_IMPORT] ❌ Number conversion errors:', errors);
       return res.status(400).json({ 
         success: false, 
-        message: 'Invalid numeric values provided' 
+        message: 'Invalid numeric values provided', 
+        errors 
       });
     }
 
     if (gradeNum < 0 || gradeNum > 20) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Grade must be between 0 and 20' 
+        message: `Grade must be between 0 and 20, received: ${gradeNum}` 
       });
     }
 

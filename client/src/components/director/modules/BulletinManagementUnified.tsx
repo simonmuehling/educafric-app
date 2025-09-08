@@ -939,13 +939,13 @@ export default function BulletinManagementUnified() {
         }
         
         const gradeToSave = {
-          studentId: parseInt(studentId),
+          studentId: studentIdNum,
           classId: parseInt(manualGradeClass),
           academicYear: '2024-2025',
-          term: term, // T1, T2, ou T3
-          subjectId: parseInt(subjectId),
+          term: term, // Déjà en format T1, T2, T3
+          subjectId: subjectIdNum,
           grade: gradeNum,
-          coefficient: parseFloat(gradeData.coefficient) || 1,
+          coefficient: coefficientNum,
           teacherComments: gradeData.comments || ''
         };
         
@@ -972,9 +972,13 @@ export default function BulletinManagementUnified() {
         try {
           console.log('[MANUAL_GRADES] 💾 Sauvegarde note:', gradeData);
           
+          console.log('[MANUAL_GRADES] 📡 Envoi requête API:', gradeData);
+          
           const response = await fetch('/api/bulletins/import-grades', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json'
+            },
             credentials: 'include',
             body: JSON.stringify(gradeData)
           });
