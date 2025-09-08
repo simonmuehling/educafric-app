@@ -865,8 +865,15 @@ export default function BulletinManagementUnified() {
     setSavingGrades(true);
     
     try {
-      console.log('[MANUAL_GRADES] 💾 Sauvegarde des notes:', manualGrades);
+      console.log('[MANUAL_GRADES] 💾 DÉBUT SAUVEGARDE');
+      console.log('[MANUAL_GRADES] 🔍 manualGradeClass:', manualGradeClass);
+      console.log('[MANUAL_GRADES] 💾 Données manualGrades complètes:', manualGrades);
+      console.log('[MANUAL_GRADES] 🔍 Nombre total d\'entrées:', Object.keys(manualGrades).length);
       console.log('[MANUAL_GRADES] 🔍 Clés trouvées:', Object.keys(manualGrades));
+      
+      // ✅ ÉCHANTILLON DES PREMIÈRES ENTRÉES POUR DEBUG
+      const entries = Object.entries(manualGrades);
+      console.log('[MANUAL_GRADES] 🔍 Premières 3 entrées:', entries.slice(0, 3));
       
       // ✅ DEBUGGING COMPLET ET CONVERSION AMÉLIORÉE DES NOTES
       const gradesToSave = [];
@@ -2617,6 +2624,15 @@ export default function BulletinManagementUnified() {
                                             value={manualGrades[gradeKey]?.grade || ''}
                                             onChange={(e) => {
                                               const value = e.target.value;
+                                              console.log('[MANUAL_GRADES] 🔍 SAISIE:', {
+                                                gradeKey,
+                                                studentId: student.id,
+                                                subjectId: subject.id,
+                                                term,
+                                                value,
+                                                studentName: student.name,
+                                                subjectName: subject.name_fr
+                                              });
                                               setManualGrades(prev => ({
                                                 ...prev,
                                                 [gradeKey]: {
