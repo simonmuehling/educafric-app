@@ -1021,13 +1021,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isSandboxUser) {
         console.log('[DIRECTOR_CLASSES_API] Sandbox user detected - using mock data');
         // Return mock classes data for sandbox/demo users
+        // ✅ CLASSES SANDBOX COMPLÈTES : PRIMAIRE → SECONDAIRE → LYCÉE
         classes = [
-          { id: 1, name: '6ème A', level: '6ème', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
-          { id: 2, name: '6ème B', level: '6ème', capacity: 30, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
-          { id: 3, name: '5ème A', level: '5ème', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
-          { id: 4, name: '5ème B', level: '5ème', capacity: 28, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
-          { id: 5, name: '4ème A', level: '4ème', capacity: 32, studentCount: 30, schoolId: user.schoolId || 1, isActive: true },
-          { id: 6, name: '3ème A', level: '3ème', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true }
+          // === PRIMAIRE ===
+          { id: 1, name: 'CP1 A', level: 'CP1', capacity: 25, studentCount: 22, schoolId: user.schoolId || 1, isActive: true },
+          { id: 2, name: 'CP2 B', level: 'CP2', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true },
+          { id: 3, name: 'CE1 A', level: 'CE1', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
+          { id: 4, name: 'CE2 B', level: 'CE2', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
+          { id: 5, name: 'CM1 A', level: 'CM1', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
+          { id: 6, name: 'CM2 B', level: 'CM2', capacity: 30, studentCount: 29, schoolId: user.schoolId || 1, isActive: true },
+          
+          // === COLLÈGE ===
+          { id: 7, name: '6ème A', level: '6ème', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
+          { id: 8, name: '6ème B', level: '6ème', capacity: 30, studentCount: 25, schoolId: user.schoolId || 1, isActive: true },
+          { id: 9, name: '5ème A', level: '5ème', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
+          { id: 10, name: '5ème B', level: '5ème', capacity: 28, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
+          { id: 11, name: '4ème A', level: '4ème', capacity: 32, studentCount: 30, schoolId: user.schoolId || 1, isActive: true },
+          { id: 12, name: '3ème A', level: '3ème', capacity: 25, studentCount: 24, schoolId: user.schoolId || 1, isActive: true },
+          
+          // === LYCÉE ===
+          { id: 13, name: '2nde A', level: '2nde', capacity: 35, studentCount: 32, schoolId: user.schoolId || 1, isActive: true },
+          { id: 14, name: '2nde C', level: '2nde', capacity: 35, studentCount: 31, schoolId: user.schoolId || 1, isActive: true },
+          { id: 15, name: '1ère S', level: '1ère', capacity: 30, studentCount: 28, schoolId: user.schoolId || 1, isActive: true },
+          { id: 16, name: '1ère L', level: '1ère', capacity: 28, studentCount: 26, schoolId: user.schoolId || 1, isActive: true },
+          { id: 17, name: 'Tle C', level: 'Tle', capacity: 30, studentCount: 27, schoolId: user.schoolId || 1, isActive: true },
+          { id: 18, name: 'Tle D', level: 'Tle', capacity: 28, studentCount: 25, schoolId: user.schoolId || 1, isActive: true }
         ];
       } else {
         console.log('[DIRECTOR_CLASSES_API] Real user detected - using database data');
@@ -1087,18 +1105,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { classId } = req.query;
       console.log('[DIRECTOR_STUDENTS_API] GET /api/director/students for user:', user.id, 'classId:', classId);
       
-      // Mock students data
+      // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
       const allStudents = [
-        { id: 1, firstName: 'Jean', lastName: 'Kamga', classId: 1, className: '6ème A', email: 'jean.kamga@test.educafric.com', isActive: true },
-        { id: 2, firstName: 'Marie', lastName: 'Nkomo', classId: 1, className: '6ème A', email: 'marie.nkomo@test.educafric.com', isActive: true },
-        { id: 3, firstName: 'Paul', lastName: 'Mbarga', classId: 1, className: '6ème A', email: 'paul.mbarga@test.educafric.com', isActive: true },
-        { id: 4, firstName: 'Sophie', lastName: 'Biyaga', classId: 2, className: '6ème B', email: 'sophie.biyaga@test.educafric.com', isActive: true },
-        { id: 5, firstName: 'André', lastName: 'Fouda', classId: 2, className: '6ème B', email: 'andre.fouda@test.educafric.com', isActive: true },
-        { id: 6, firstName: 'Claire', lastName: 'Abena', classId: 3, className: '5ème A', email: 'claire.abena@test.educafric.com', isActive: true },
-        { id: 7, firstName: 'Nicolas', lastName: 'Njoya', classId: 3, className: '5ème A', email: 'nicolas.njoya@test.educafric.com', isActive: true },
-        { id: 8, firstName: 'Diane', lastName: 'Mvondo', classId: 4, className: '5ème B', email: 'diane.mvondo@test.educafric.com', isActive: true },
-        { id: 9, firstName: 'Eric', lastName: 'Tchounke', classId: 5, className: '4ème A', email: 'eric.tchounke@test.educafric.com', isActive: true },
-        { id: 10, firstName: 'Sylvie', lastName: 'Owona', classId: 6, className: '3ème A', email: 'sylvie.owona@test.educafric.com', isActive: true }
+        // === ÉLÈVES CP1 A (Class ID: 1) ===
+        { id: 1, name: 'Marie Fosso', firstName: 'Marie', lastName: 'Fosso', classId: 1, className: 'CP1 A', email: 'marie.fosso@test.educafric.com', isActive: true },
+        { id: 2, name: 'Jean Tchouta', firstName: 'Jean', lastName: 'Tchouta', classId: 1, className: 'CP1 A', email: 'jean.tchouta@test.educafric.com', isActive: true },
+        { id: 3, name: 'Aminata Ndiaye', firstName: 'Aminata', lastName: 'Ndiaye', classId: 1, className: 'CP1 A', email: 'aminata.ndiaye@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES CP2 B (Class ID: 2) ===
+        { id: 4, name: 'Paul Mbarga', firstName: 'Paul', lastName: 'Mbarga', classId: 2, className: 'CP2 B', email: 'paul.mbarga@test.educafric.com', isActive: true },
+        { id: 5, name: 'Fatou Diallo', firstName: 'Fatou', lastName: 'Diallo', classId: 2, className: 'CP2 B', email: 'fatou.diallo@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES CE1 A (Class ID: 3) ===
+        { id: 6, name: 'Joseph Mvondo', firstName: 'Joseph', lastName: 'Mvondo', classId: 3, className: 'CE1 A', email: 'joseph.mvondo@test.educafric.com', isActive: true },
+        { id: 7, name: 'Grace Abong', firstName: 'Grace', lastName: 'Abong', classId: 3, className: 'CE1 A', email: 'grace.abong@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES CE2 B (Class ID: 4) ===
+        { id: 8, name: 'Samuel Eyenga', firstName: 'Samuel', lastName: 'Eyenga', classId: 4, className: 'CE2 B', email: 'samuel.eyenga@test.educafric.com', isActive: true },
+        { id: 9, name: 'Raissa Mekongo', firstName: 'Raissa', lastName: 'Mekongo', classId: 4, className: 'CE2 B', email: 'raissa.mekongo@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES CM1 A (Class ID: 5) ===
+        { id: 10, name: 'David Ntamack', firstName: 'David', lastName: 'Ntamack', classId: 5, className: 'CM1 A', email: 'david.ntamack@test.educafric.com', isActive: true },
+        { id: 11, name: 'Olive Bilong', firstName: 'Olive', lastName: 'Bilong', classId: 5, className: 'CM1 A', email: 'olive.bilong@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES CM2 B (Class ID: 6) ===
+        { id: 12, name: 'Thierry Ondoa', firstName: 'Thierry', lastName: 'Ondoa', classId: 6, className: 'CM2 B', email: 'thierry.ondoa@test.educafric.com', isActive: true },
+        { id: 13, name: 'Nadège Eto\'o', firstName: 'Nadège', lastName: 'Eto\'o', classId: 6, className: 'CM2 B', email: 'nadege.etoo@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 6ème A (Class ID: 7) ===
+        { id: 14, name: 'Jean Kamga', firstName: 'Jean', lastName: 'Kamga', classId: 7, className: '6ème A', email: 'jean.kamga@test.educafric.com', isActive: true },
+        { id: 15, name: 'Marie Nkomo', firstName: 'Marie', lastName: 'Nkomo', classId: 7, className: '6ème A', email: 'marie.nkomo@test.educafric.com', isActive: true },
+        { id: 16, name: 'Armel Tagne', firstName: 'Armel', lastName: 'Tagne', classId: 7, className: '6ème A', email: 'armel.tagne@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 6ème B (Class ID: 8) ===
+        { id: 17, name: 'Sophie Biyaga', firstName: 'Sophie', lastName: 'Biyaga', classId: 8, className: '6ème B', email: 'sophie.biyaga@test.educafric.com', isActive: true },
+        { id: 18, name: 'André Fouda', firstName: 'André', lastName: 'Fouda', classId: 8, className: '6ème B', email: 'andre.fouda@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 5ème A (Class ID: 9) ===
+        { id: 19, name: 'Claire Abena', firstName: 'Claire', lastName: 'Abena', classId: 9, className: '5ème A', email: 'claire.abena@test.educafric.com', isActive: true },
+        { id: 20, name: 'Nicolas Njoya', firstName: 'Nicolas', lastName: 'Njoya', classId: 9, className: '5ème A', email: 'nicolas.njoya@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 5ème B (Class ID: 10) ===
+        { id: 21, name: 'Diane Mvondo', firstName: 'Diane', lastName: 'Mvondo', classId: 10, className: '5ème B', email: 'diane.mvondo@test.educafric.com', isActive: true },
+        { id: 22, name: 'Fabrice Amougou', firstName: 'Fabrice', lastName: 'Amougou', classId: 10, className: '5ème B', email: 'fabrice.amougou@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 4ème A (Class ID: 11) ===
+        { id: 23, name: 'Eric Tchounke', firstName: 'Eric', lastName: 'Tchounke', classId: 11, className: '4ème A', email: 'eric.tchounke@test.educafric.com', isActive: true },
+        { id: 24, name: 'Vanessa Ngo Bisse', firstName: 'Vanessa', lastName: 'Ngo Bisse', classId: 11, className: '4ème A', email: 'vanessa.ngobisse@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 3ème A (Class ID: 12) ===
+        { id: 25, name: 'Sylvie Owona', firstName: 'Sylvie', lastName: 'Owona', classId: 12, className: '3ème A', email: 'sylvie.owona@test.educafric.com', isActive: true },
+        { id: 26, name: 'Kevin Nana', firstName: 'Kevin', lastName: 'Nana', classId: 12, className: '3ème A', email: 'kevin.nana@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 2nde A (Class ID: 13) ===
+        { id: 27, name: 'Marlène Bella', firstName: 'Marlène', lastName: 'Bella', classId: 13, className: '2nde A', email: 'marlene.bella@test.educafric.com', isActive: true },
+        { id: 28, name: 'Yves Ondoua', firstName: 'Yves', lastName: 'Ondoua', classId: 13, className: '2nde A', email: 'yves.ondoua@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 2nde C (Class ID: 14) ===
+        { id: 29, name: 'Laure Mengue', firstName: 'Laure', lastName: 'Mengue', classId: 14, className: '2nde C', email: 'laure.mengue@test.educafric.com', isActive: true },
+        { id: 30, name: 'Boris Ebogo', firstName: 'Boris', lastName: 'Ebogo', classId: 14, className: '2nde C', email: 'boris.ebogo@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 1ère S (Class ID: 15) ===
+        { id: 31, name: 'Jessica Mba', firstName: 'Jessica', lastName: 'Mba', classId: 15, className: '1ère S', email: 'jessica.mba@test.educafric.com', isActive: true },
+        { id: 32, name: 'Rodrigue Onana', firstName: 'Rodrigue', lastName: 'Onana', classId: 15, className: '1ère S', email: 'rodrigue.onana@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES 1ère L (Class ID: 16) ===
+        { id: 33, name: 'Ingrid Zebaze', firstName: 'Ingrid', lastName: 'Zebaze', classId: 16, className: '1ère L', email: 'ingrid.zebaze@test.educafric.com', isActive: true },
+        { id: 34, name: 'Patrick Mfou', firstName: 'Patrick', lastName: 'Mfou', classId: 16, className: '1ère L', email: 'patrick.mfou@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES Tle C (Class ID: 17) ===
+        { id: 35, name: 'Estelle Djoumessi', firstName: 'Estelle', lastName: 'Djoumessi', classId: 17, className: 'Tle C', email: 'estelle.djoumessi@test.educafric.com', isActive: true },
+        { id: 36, name: 'Hermann Koa', firstName: 'Hermann', lastName: 'Koa', classId: 17, className: 'Tle C', email: 'hermann.koa@test.educafric.com', isActive: true },
+        
+        // === ÉLÈVES Tle D (Class ID: 18) ===
+        { id: 37, name: 'Chantal Mimboe', firstName: 'Chantal', lastName: 'Mimboe', classId: 18, className: 'Tle D', email: 'chantal.mimboe@test.educafric.com', isActive: true },
+        { id: 38, name: 'William Fokou', firstName: 'William', lastName: 'Fokou', classId: 18, className: 'Tle D', email: 'william.fokou@test.educafric.com', isActive: true }
       ];
       
       // Filter by class if provided
