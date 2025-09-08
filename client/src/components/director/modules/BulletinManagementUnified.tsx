@@ -3040,27 +3040,46 @@ export default function BulletinManagementUnified() {
                               variant="outline" 
                               size="sm"
                               onClick={async () => {
-                                // ✅ CORRECTIF: Préparer correctement les données avant aperçu
-                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation aperçu pour:', student.name);
+                                // ✅ CORRECTIF SYNCHRONISATION: Préparer TOUTES les données directement
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation aperçu SYNCHRONE pour:', student.name);
                                 
-                                // Définir les données de base
-                                setSelectedStudentId(student.id.toString());
-                                setSelectedClassId(manualGradeClass);
+                                // ✅ TOUTES les données préparées en local d'abord
+                                const studentData = {
+                                  id: student.id.toString(),
+                                  firstName: student.name.split(' ')[0] || '',
+                                  lastName: student.name.split(' ').slice(1).join(' ') || '',
+                                  matricule: student.matricule || '',
+                                  name: student.name
+                                };
                                 
-                                // ✅ CORRECTIF: Utiliser le bon format de trimestre
+                                const classData = {
+                                  id: manualGradeClass,
+                                  name: classes.find(c => c.id.toString() === manualGradeClass)?.name || ''
+                                };
+                                
+                                // ✅ Appel DIRECT avec les données préparées
+                                console.log('[UNIFIED_WORKFLOW] 📞 Appel previewBulletin avec données:', {
+                                  student: studentData,
+                                  class: classData
+                                });
+                                
+                                // ✅ MISE À JOUR SYNCHRONE DE TOUS LES ÉTATS
+                                setSelectedStudentId(studentData.id);
+                                setSelectedClassId(classData.id);
                                 setFormData(prev => ({
                                   ...prev,
                                   term: 'Premier Trimestre',
-                                  studentFirstName: student.name.split(' ')[0] || '',
-                                  studentLastName: student.name.split(' ').slice(1).join(' ') || '',
-                                  className: classes.find(c => c.id.toString() === manualGradeClass)?.name || '',
-                                  studentNumber: student.matricule || ''
+                                  studentFirstName: studentData.firstName,
+                                  studentLastName: studentData.lastName,
+                                  className: classData.name,
+                                  studentNumber: studentData.matricule
                                 }));
                                 
-                                // Attendre que les états soient mis à jour avant l'aperçu
+                                // ✅ APPEL IMMÉDIAT avec timeout plus long pour garantir la synchronisation
                                 setTimeout(() => {
+                                  console.log('[UNIFIED_WORKFLOW] 🚀 Exécution previewBulletin après sync complète');
                                   previewBulletin();
-                                }, 100);
+                                }, 250); // Augmenté à 250ms pour assurer la sync
                               }}
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
@@ -3071,27 +3090,46 @@ export default function BulletinManagementUnified() {
                             <Button 
                               size="sm"
                               onClick={async () => {
-                                // ✅ CORRECTIF: Préparer correctement les données avant création
-                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation création pour:', student.name);
+                                // ✅ CORRECTIF SYNCHRONISATION: Préparer TOUTES les données directement
+                                console.log('[UNIFIED_WORKFLOW] 🎯 Préparation création SYNCHRONE pour:', student.name);
                                 
-                                // Définir les données de base
-                                setSelectedStudentId(student.id.toString());
-                                setSelectedClassId(manualGradeClass);
+                                // ✅ TOUTES les données préparées en local d'abord
+                                const studentData = {
+                                  id: student.id.toString(),
+                                  firstName: student.name.split(' ')[0] || '',
+                                  lastName: student.name.split(' ').slice(1).join(' ') || '',
+                                  matricule: student.matricule || '',
+                                  name: student.name
+                                };
                                 
-                                // ✅ CORRECTIF: Utiliser le bon format de trimestre  
+                                const classData = {
+                                  id: manualGradeClass,
+                                  name: classes.find(c => c.id.toString() === manualGradeClass)?.name || ''
+                                };
+                                
+                                // ✅ Appel DIRECT avec les données préparées
+                                console.log('[UNIFIED_WORKFLOW] 📞 Appel createModularBulletin avec données:', {
+                                  student: studentData,
+                                  class: classData
+                                });
+                                
+                                // ✅ MISE À JOUR SYNCHRONE DE TOUS LES ÉTATS
+                                setSelectedStudentId(studentData.id);
+                                setSelectedClassId(classData.id);
                                 setFormData(prev => ({
                                   ...prev,
                                   term: 'Premier Trimestre',
-                                  studentFirstName: student.name.split(' ')[0] || '',
-                                  studentLastName: student.name.split(' ').slice(1).join(' ') || '',
-                                  className: classes.find(c => c.id.toString() === manualGradeClass)?.name || '',
-                                  studentNumber: student.matricule || ''
+                                  studentFirstName: studentData.firstName,
+                                  studentLastName: studentData.lastName,
+                                  className: classData.name,
+                                  studentNumber: studentData.matricule
                                 }));
                                 
-                                // Attendre que les états soient mis à jour avant la création
+                                // ✅ APPEL IMMÉDIAT avec timeout plus long pour garantir la synchronisation
                                 setTimeout(() => {
+                                  console.log('[UNIFIED_WORKFLOW] 🚀 Exécution createModularBulletin après sync complète');
                                   createModularBulletin();
-                                }, 100);
+                                }, 250); // Augmenté à 250ms pour assurer la sync
                               }}
                               className="bg-green-600 hover:bg-green-700"
                             >
