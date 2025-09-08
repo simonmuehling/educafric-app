@@ -2601,30 +2601,10 @@ export default function BulletinManagementUnified() {
 
       {/* Onglets principaux */}
       <Tabs defaultValue="manual-grades" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="manual-grades" className="flex items-center">
-            <PenTool className="w-4 h-4 mr-1" />
-            Saisie Notes
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="flex items-center">
-            <Clock className="w-4 h-4 mr-1" />
-            {t.pendingTab}
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="flex items-center">
-            <CheckCircle className="w-4 h-4 mr-1" />
-            {t.approvedTab}
-          </TabsTrigger>
-          <TabsTrigger value="sent" className="flex items-center">
-            <Send className="w-4 h-4 mr-1" />
-            {t.sentTab}
-          </TabsTrigger>
-          <TabsTrigger value="my-bulletins" className="flex items-center">
-            <Archive className="w-4 h-4 mr-1" />
-            {t.myBulletinsTab}
-          </TabsTrigger>
-          <TabsTrigger value="create-new" className="flex items-center">
-            <Plus className="w-4 h-4 mr-1" />
-            {t.createNewTab}
+        <TabsList className="grid w-full grid-cols-1">
+          <TabsTrigger value="manual-grades" className="flex items-center justify-center w-full bg-green-100 border-green-300 text-green-800 font-semibold">
+            <PenTool className="w-5 h-5 mr-2" />
+            🎯 Interface Unifiée : Saisie → Aperçu → Création de Bulletins
           </TabsTrigger>
         </TabsList>
 
@@ -3468,42 +3448,71 @@ export default function BulletinManagementUnified() {
                       </>
                     )}
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Button 
-                      variant="outline" 
-                      disabled={!selectedStudentId || !selectedClassId || !formData.term}
-                      onClick={previewBulletin}
-                      className={selectedStudentId && selectedClassId && formData.term ? "border-blue-300 text-blue-700 hover:bg-blue-50" : ""}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      {selectedStudentId && selectedClassId && formData.term 
-                        ? `Aperçu - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
-                        : "Aperçu"
-                      }
-                    </Button>
-                    <Button 
-                      className={selectedStudentId && selectedClassId && formData.term 
-                        ? "bg-green-600 hover:bg-green-700" 
-                        : "bg-gray-400"
-                      }
-                      disabled={!selectedStudentId || !selectedClassId || !formData.term || loading}
-                      onClick={createModularBulletin}
-                    >
-                      {loading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Génération...
-                        </>
-                      ) : (
-                        <>
-                          <FileText className="w-4 h-4 mr-1" />
-                          {selectedStudentId && selectedClassId && formData.term 
-                            ? `Créer Bulletin - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
-                            : "Créer le bulletin"
-                          }
-                        </>
-                      )}
-                    </Button>
+                  {/* ✅ WORKFLOW UNIFIÉ : APERÇU ET CRÉATION DANS LA MÊME INTERFACE */}
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center space-x-2 text-sm text-green-700">
+                        <div className="flex items-center space-x-1">
+                          <span className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                          <span>Saisie Notes</span>
+                        </div>
+                        <span>→</span>
+                        <div className="flex items-center space-x-1">
+                          <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                          <span>Aperçu</span>
+                        </div>
+                        <span>→</span>
+                        <div className="flex items-center space-x-1">
+                          <span className="w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                          <span>Création</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Button 
+                        variant="outline" 
+                        disabled={!selectedStudentId || !selectedClassId || !formData.term}
+                        onClick={previewBulletin}
+                        className={selectedStudentId && selectedClassId && formData.term 
+                          ? "border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold" 
+                          : ""}
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        {selectedStudentId && selectedClassId && formData.term 
+                          ? `📋 Aperçu Bulletin - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
+                          : "📋 Aperçu Bulletin"
+                        }
+                      </Button>
+                      
+                      <Button 
+                        className={selectedStudentId && selectedClassId && formData.term 
+                          ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg" 
+                          : "bg-gray-400"
+                        }
+                        disabled={!selectedStudentId || !selectedClassId || !formData.term || loading}
+                        onClick={createModularBulletin}
+                      >
+                        {loading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            ⚡ Génération en cours...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="w-4 h-4 mr-1" />
+                            {selectedStudentId && selectedClassId && formData.term 
+                              ? `🎯 Créer & Enregistrer - ${students.find(s => s.id.toString() === selectedStudentId)?.name?.split(' ')[0] || 'Élève'} (T${formData.term})`
+                              : "🎯 Créer & Enregistrer le Bulletin"
+                            }
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="mt-3 text-xs text-gray-600 bg-white/50 rounded p-2">
+                      <strong>✨ Nouveau workflow unifié :</strong> Plus besoin de changer d'onglet ! Saisissez les notes → Cliquez Aperçu → Puis Créer & Enregistrer directement.
+                    </div>
                   </div>
                 </div>
               </CardContent>
