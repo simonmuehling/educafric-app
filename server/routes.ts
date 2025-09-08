@@ -31,8 +31,9 @@ import adminRoutes from "./routes/admin";
 
 // Import database and schema
 import { storage } from "./storage.js";
+import { db } from "./db.js";
 import { users, schools, classes, subjects, grades } from "../shared/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 // Import validation schemas to prevent security issues
 import { 
@@ -3097,7 +3098,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[BULLETIN_PENDING] Récupération bulletins en attente pour école:', schoolId);
       
       // Récupérer tous les bulletins avec leurs informations d'élèves et classes
-      const pendingBulletins = await storage.executeQuery(`
+      const pendingBulletins = await db.execute(sql`
         SELECT 
           b.id,
           b.student_id,
@@ -3119,12 +3120,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         JOIN users u ON u.id = b.student_id
         JOIN classes c ON c.id = b.class_id
         LEFT JOIN users t ON t.id = b.teacher_id
-        WHERE b.school_id = $1
+        WHERE b.school_id = ${schoolId}
         ORDER BY b.created_at DESC
-      `, [schoolId]);
+      `);
       
       // Formater les données pour le frontend
-      const formattedBulletins = pendingBulletins.map((bulletin: any) => ({
+      const formattedBulletins = pendingBulletins.rows.map((bulletin: any) => ({
         id: bulletin.id,
         studentId: bulletin.student_id,
         studentName: bulletin.student_name,
@@ -3170,29 +3171,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[BULLETIN_PUBLISH] Approbation bulletin:', bulletinId, 'par user:', user.id);
       
       // Vérifier que le bulletin existe
-      const bulletinExists = await storage.executeQuery(`
-        SELECT id, status, student_id FROM bulletins WHERE id = $1 AND school_id = $2
-      `, [parseInt(bulletinId), user.schoolId || 1]);
+      const bulletinExists = await db.execute(sql`
+        SELECT id, status, student_id FROM bulletins WHERE id = ${parseInt(bulletinId)} AND school_id = ${user.schoolId || 1}
+      `);
       
-      if (bulletinExists.length === 0) {
+      if (bulletinExists.rows.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Bulletin non trouvé'
         });
       }
       
-      const bulletin = bulletinExists[0];
+      const bulletin = bulletinExists.rows[0];
       
       // Mettre à jour le statut vers 'approved'
-      await storage.executeQuery(`
+      await db.execute(sql`
         UPDATE bulletins 
         SET 
           status = 'approved',
           approved_at = NOW(),
-          approved_by = $1,
+          approved_by = ${user.id},
           updated_at = NOW()
-        WHERE id = $2
-      `, [user.id, parseInt(bulletinId)]);
+        WHERE id = ${parseInt(bulletinId)}
+      `);
       
       console.log('[BULLETIN_PUBLISH] ✅ Bulletin approuvé:', bulletinId);
       
@@ -3213,6 +3214,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: 'Erreur lors de l\'approbation du bulletin',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // ✅ Route de test pour vérifier l'intégration DB (temporaire)
+  app.get('/api/bulletins/test', async (req, res) => {
+    try {
+      console.log('[BULLETIN_TEST] Test intégration base de données');
+      
+      const testData = await db.execute(sql`
+        SELECT 
+          b.id, b.status, b.term, b.academic_year,
+          b.general_average, b.teacher_comments
+        FROM bulletins b
+        ORDER BY b.id DESC
+        LIMIT 5
+      `);
+      
+      res.json({
+        success: true,
+        message: 'Intégration DB fonctionnelle',
+        bulletins: testData.rows,
+        count: testData.rows.length
+      });
+      
+    } catch (error) {
+      console.error('[BULLETIN_TEST] ❌ Erreur:', error);
+      res.json({
+        success: false,
+        message: 'Erreur intégration DB',
+        error: error.message
       });
     }
   });
