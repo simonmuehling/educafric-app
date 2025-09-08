@@ -1054,7 +1054,12 @@ export default function BulletinManagementUnified() {
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
-      if (!selectedStudentId || !selectedClassId) {
+      // ✅ Tolérer les variables réinitialisées et utiliser les données du formulaire
+      const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
+      const studentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
+      const classId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
+      
+      if (!studentId || !classId) {
         toast({
           title: "Attention",
           description: "Veuillez sélectionner une classe et un élève",
@@ -1082,16 +1087,24 @@ export default function BulletinManagementUnified() {
           academicYear: formData.academicYear
         });
         
-        // ✅ DEBUG - Vérifier pourquoi les paramètres sont undefined
+        // ✅ SOLUTION - Utiliser les données du formulaire au lieu des variables réinitialisées
+        const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
+        const studentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
+        const classId = selectedClassId || (classes.find(c => c.name === formData.className)?.id?.toString());
+        
         console.log('[PREVIEW_BULLETIN] 🔍 Variables debug:', {
           selectedStudentId,
           selectedClassId, 
+          studentIdResolved: studentId,
+          classIdResolved: classId,
+          studentName: fullStudentName,
+          className: formData.className,
           academicYear: formData.academicYear,
           apiTerm,
           formDataTerm: formData.term
         });
 
-        const getUrl = `/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
+        const getUrl = `/api/bulletins/?studentId=${studentId}&classId=${classId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
         console.log('[PREVIEW_BULLETIN] 📡 Appel GET pour récupérer notes:', getUrl);
         
         const response = await fetch(getUrl, {
