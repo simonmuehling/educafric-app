@@ -360,19 +360,29 @@ export default function BulletinManagementUnified() {
       }
 
       // Charger classes, enseignants
-      const [classesRes, teachersRes] = await Promise.all([
+      // ✅ CHARGEMENT UNIFIÉ : Classes, Professeurs et Tous les Élèves
+      const [classesRes, teachersRes, allStudentsRes] = await Promise.all([
         fetch('/api/director/classes'),
-        fetch('/api/director/teachers')
+        fetch('/api/director/teachers'),
+        fetch('/api/director/students')
       ]);
 
       if (classesRes.ok) {
         const classesData = await classesRes.json();
+        console.log('[DATA_LOAD] ✅ Classes:', classesData.classes?.length, classesData.classes?.map(c => c.name));
         setClasses(classesData.classes || []);
       }
 
       if (teachersRes.ok) {
         const teachersData = await teachersRes.json();
+        console.log('[DATA_LOAD] ✅ Professeurs:', teachersData.teachers?.length, teachersData.teachers?.map(t => t.name));
         setTeachers(teachersData.teachers || []);
+      }
+
+      if (allStudentsRes.ok) {
+        const allStudentsData = await allStudentsRes.json();
+        console.log('[DATA_LOAD] ✅ Tous les élèves:', allStudentsData.students?.length, allStudentsData.students?.map(s => `${s.name} (Classe ${s.classId})`));
+        setStudents(allStudentsData.students || []);
       }
 
     } catch (error) {
@@ -382,17 +392,29 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Charger les élèves d'une classe
+  // ✅ CHARGER LES ÉLÈVES D'UNE CLASSE SPÉCIFIQUE
   const loadStudentsByClass = async (classId: string) => {
     try {
+      console.log('[STUDENT_LOAD] 🔍 Chargement élèves pour classe:', classId);
       const response = await fetch(`/api/director/students?classId=${classId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('[STUDENT_LOAD] ✅ Élèves de la classe:', data.students?.length, data.students?.map(s => s.name));
         setStudents(data.students || []);
+      } else {
+        console.warn('[STUDENT_LOAD] ⚠️ Erreur réponse API:', response.status);
       }
     } catch (error) {
-      console.error('Erreur chargement élèves:', error);
+      console.error('[STUDENT_LOAD] ❌ Erreur chargement élèves:', error);
     }
+  };
+
+  // ✅ OBTENIR LES ÉLÈVES D'UNE CLASSE À PARTIR DES DONNÉES LOCALES
+  const getStudentsForClass = (classId: string) => {
+    if (!classId) return [];
+    const classStudents = students.filter(s => s.classId === parseInt(classId));
+    console.log('[STUDENT_FILTER] 🎯 Élèves filtrés pour classe', classId, ':', classStudents.map(s => s.name));
+    return classStudents;
   };
 
   // Charger les bulletins avec vraie logique workflow
@@ -763,7 +785,7 @@ export default function BulletinManagementUnified() {
 
   // Fonctions supprimées: handleNotifications et handleSettings (selon demande utilisateur)
 
-  // ✅ CHARGER LES DONNÉES DE LA CLASSE (ÉLÈVES, MATIÈRES, PROFESSEURS) - VERSION SANDBOX
+  // ✅ CHARGER LES DONNÉES DE LA CLASSE - VERSION OPTIMISÉE
   const loadClassData = async (classId: string) => {
     if (!classId) {
       setClassStudents([]);
@@ -775,24 +797,20 @@ export default function BulletinManagementUnified() {
     try {
       console.log('[MANUAL_GRADES] 🔍 Chargement des données pour la classe:', classId);
       
-      // ✅ Charger les données via les APIs sandbox
-      const [studentsResponse, teachersResponse] = await Promise.all([
-        fetch(`/api/director/students?classId=${classId}`),
-        fetch('/api/director/teachers')
-      ]);
-      
+      // ✅ Utiliser les données déjà chargées + API pour les élèves spécifiques
+      const studentsResponse = await fetch(`/api/director/students?classId=${classId}`);
       let studentsData = [];
-      let teachersData = [];
       
       if (studentsResponse.ok) {
         const studentsResult = await studentsResponse.json();
         studentsData = studentsResult.students || [];
+      } else {
+        // Fallback: utiliser les données locales filtrées
+        studentsData = getStudentsForClass(classId);
       }
       
-      if (teachersResponse.ok) {
-        const teachersResult = await teachersResponse.json();
-        teachersData = teachersResult.teachers || [];
-      }
+      // ✅ Utiliser les professeurs déjà chargés globalement
+      const teachersData = teachers;
       
       // ✅ Matières sandbox réalistes
       const subjectsData = [
@@ -808,17 +826,18 @@ export default function BulletinManagementUnified() {
       setClassSubjects(subjectsData);
       setClassTeachers(teachersData);
       
-      console.log('[MANUAL_GRADES] ✅ Données sandbox chargées:', {
+      console.log('[MANUAL_GRADES] ✅ Données complètes chargées:', {
         classId,
+        className: classes.find(c => c.id.toString() === classId)?.name,
         students: studentsData.length,
         subjects: subjectsData.length,
         teachers: teachersData.length,
-        studentsData: studentsData.map(s => s.name),
-        teachersData: teachersData.map(t => t.name)
+        studentNames: studentsData.map(s => s.name),
+        teacherNames: teachersData.map(t => t.name)
       });
       
       toast({
-        title: "✅ Classe chargée",
+        title: "✅ Classe complètement chargée",
         description: `${studentsData.length} élèves, ${subjectsData.length} matières, ${teachersData.length} professeurs`,
       });
       
