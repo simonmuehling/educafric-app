@@ -95,8 +95,8 @@ const fetchRealBulletinData = async (studentId: string, classId: string, academi
       throw new Error(data.message || 'Failed to fetch bulletin data');
     }
 
-    console.log('[BULLETIN_FRONTEND] ✅ Retrieved REAL bulletin data:', data.bulletin);
-    return data.bulletin;
+    console.log('[BULLETIN_FRONTEND] ✅ Retrieved REAL bulletin data:', data.data);
+    return data.data;
     
   } catch (error) {
     console.error('[BULLETIN_FRONTEND] ❌ Error fetching real bulletin data:', error);
