@@ -34,6 +34,17 @@ import { storage } from "./storage.js";
 import { users, schools, classes, subjects, grades } from "../shared/schema.js";
 import { eq, and } from "drizzle-orm";
 
+// Import validation schemas to prevent security issues
+import { 
+  roomCreationSchema, 
+  roomUpdateSchema, 
+  roomsBulkUpdateSchema, 
+  messageCreationSchema, 
+  userSettingsUpdateSchema,
+  roomIdParamSchema,
+  paginationQuerySchema
+} from "../shared/validationSchemas.js";
+
 // Import existing route modules
 import geolocationRoutes from "./routes/geolocation";
 import enhancedGeolocationRoutes from "./routes/enhancedGeolocation";
@@ -878,26 +889,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add a new room
+  // Add a new room - WITH ZOD VALIDATION
   app.post("/api/director/rooms", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      const { name, capacity } = req.body;
       
-      console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, capacity });
-      
-      if (!name || !capacity) {
+      // SECURITY FIX: Validate request body with Zod schema
+      const validationResult = roomCreationSchema.safeParse(req.body);
+      if (!validationResult.success) {
         return res.status(400).json({ 
           success: false, 
-          message: 'Name and capacity are required' 
+          message: 'Invalid room data',
+          errors: validationResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
         });
       }
+      
+      const { name, capacity } = validationResult.data;
+      console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, capacity });
 
       // For now, return success with mock ID. In production, save to database
       const newRoom = {
         id: Math.floor(Math.random() * 1000) + 100,
         name,
-        capacity: parseInt(capacity),
+        capacity,
         schoolId: user.schoolId || 1,
         isOccupied: false,
         createdAt: new Date().toISOString()
@@ -911,10 +925,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete a room
+  // Delete a room - WITH PARAMETER VALIDATION
   app.delete("/api/director/rooms/:roomId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
-      const { roomId } = req.params;
+      // SECURITY FIX: Validate roomId parameter
+      const paramValidation = roomIdParamSchema.safeParse(req.params);
+      if (!paramValidation.success) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid room ID',
+          errors: paramValidation.error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
+        });
+      }
+      
+      const { roomId } = paramValidation.data;
       console.log('[ROOMS_API] DELETE /api/director/rooms/' + roomId);
       
       // In production, delete from database and check if room is not occupied
@@ -1657,11 +1681,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/student/messages", requireAuth, async (req, res) => {
     try {
-      const { to, toRole, subject, message, priority = 'normal' } = req.body;
-      
-      if (!to || !subject || !message) {
-        return res.status(400).json({ message: 'Recipient, subject, and message are required' });
+      // SECURITY FIX: Validate message data with Zod schema
+      const validationResult = messageCreationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Invalid message data',
+          errors: validationResult.error.errors.map(err => `${err.path.join('.')}: ${err.message}`)
+        });
       }
+      
+      const { to, toRole, subject, message, priority } = validationResult.data;
       
       const newMessage = {
         id: Date.now(),
