@@ -991,6 +991,8 @@ export default function BulletinManagementUnified() {
             body: JSON.stringify(gradeData)
           });
           
+          console.log('[MANUAL_GRADES] 📡 Statut réponse:', response.status, response.statusText);
+          
           const responseData = await response.json();
           console.log('[MANUAL_GRADES] 📡 Réponse API:', { 
             status: response.status, 
@@ -1072,10 +1074,15 @@ export default function BulletinManagementUnified() {
           academicYear: formData.academicYear
         });
         
-        const response = await fetch(`/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+        const getUrl = `/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`;
+        console.log('[PREVIEW_BULLETIN] 📡 Appel GET pour récupérer notes:', getUrl);
+        
+        const response = await fetch(getUrl, {
           method: 'GET',
           credentials: 'include'
         });
+        
+        console.log('[PREVIEW_BULLETIN] 📡 Statut GET response:', response.status, response.statusText);
         
         if (response.ok) {
           const bulletinData = await response.json();
