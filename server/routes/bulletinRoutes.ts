@@ -35,70 +35,187 @@ const requireAuth = (req: any, res: any, next: any) => {
   next();
 };
 
-// Route d'importation automatique des notes selon la classe
+// Route d'import/update des notes T1/T2/T3 - utilise les vraies colonnes de la DB
 router.post('/import-grades', requireAuth, async (req, res) => {
   try {
-    const { studentId, classId, term, academicYear } = req.body;
+    const { studentId, classId, academicYear, term, subjectId, grade, coefficient, teacherComments } = req.body;
     const user = req.user as any;
     const schoolId = user.schoolId || 1;
 
-    console.log('[BULLETIN_IMPORT] Importation automatique pour:', {
-      studentId, classId, term, academicYear, schoolId
+    if (!['T1', 'T2', 'T3'].includes(term)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'term must be T1, T2, or T3' 
+      });
+    }
+
+    console.log('[BULLETIN_IMPORT] ✅ Saving REAL grade:', {
+      studentId, classId, academicYear, term, subjectId, grade, schoolId
     });
 
-    // Importer les notes depuis la base de données
-    const termGrades = await importStudentGradesFromDB(
-      parseInt(studentId),
+    // Déterminer quelle colonne mettre à jour selon le trimestre
+    const gradeColumn = term === 'T1' ? 'first_evaluation' : 
+                       term === 'T2' ? 'second_evaluation' : 
+                       'third_evaluation';
+
+    // UPSERT - Une seule ligne par (étudiant, matière, classe, année académique)
+    // Met à jour seulement la colonne du trimestre concerné
+    const upsertQuery = `
+      INSERT INTO teacher_grade_submissions 
+        (teacher_id, student_id, subject_id, class_id, school_id, academic_year, ${gradeColumn}, coefficient, subject_comments, updated_at)
+      VALUES 
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+      ON CONFLICT (student_id, subject_id, class_id, school_id, academic_year)
+      DO UPDATE SET
+        ${gradeColumn} = EXCLUDED.${gradeColumn},
+        teacher_id = EXCLUDED.teacher_id,
+        coefficient = EXCLUDED.coefficient,
+        subject_comments = EXCLUDED.subject_comments,
+        updated_at = NOW()
+      RETURNING *;
+    `;
+
+    const result = await db.execute(sql.raw(upsertQuery, [
+      user.id, 
+      parseInt(studentId), 
+      parseInt(subjectId), 
       parseInt(classId), 
+      schoolId, 
+      academicYear, 
+      Number(grade), 
+      Number(coefficient || 1), 
+      teacherComments || null
+    ]));
+
+    // Récupérer l'enregistrement mis à jour pour vérification
+    const updatedRecord = await db.select().from(teacherGradeSubmissions)
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, parseInt(studentId)),
+        eq(teacherGradeSubmissions.subjectId, parseInt(subjectId)),
+        eq(teacherGradeSubmissions.classId, parseInt(classId)),
+        eq(teacherGradeSubmissions.schoolId, schoolId),
+        eq(teacherGradeSubmissions.academicYear, academicYear)
+      ));
+
+    console.log('[BULLETIN_IMPORT] ✅ Grade saved successfully:', {
       term,
-      academicYear,
-      db
-    );
-
-    // Récupérer les coefficients de la classe (simulé pour le moment)
-    const defaultCoefficients = {
-      'MATH': 5,
-      'PHY': 4, 
-      'CHI': 3,
-      'FRA': 4,
-      'ANG': 3,
-      'HIS': 2,
-      'GEO': 2,
-      'EPS': 1
-    };
-
-    // Calculer la moyenne du trimestre
-    const termAverage = calculateTermAverage(
-      termGrades,
-      defaultCoefficients,
-      DEFAULT_CONFIG.componentWeights,
-      DEFAULT_CONFIG.SCALE
-    );
-
-    console.log('[BULLETIN_IMPORT] Notes importées:', termGrades);
-    console.log('[BULLETIN_IMPORT] Moyenne calculée:', termAverage);
+      grade,
+      column: gradeColumn,
+      t1: updatedRecord[0]?.firstEvaluation,
+      t2: updatedRecord[0]?.secondEvaluation,
+      t3: updatedRecord[0]?.thirdEvaluation
+    });
 
     res.json({
       success: true,
       data: {
-        termGrades,
-        termAverage,
-        coefficients: defaultCoefficients,
         studentId: parseInt(studentId),
-        classId: parseInt(classId),
+        subjectId: parseInt(subjectId),
         term,
-        academicYear
+        grade: Number(grade),
+        savedTo: gradeColumn,
+        fullRecord: {
+          t1: updatedRecord[0]?.firstEvaluation,
+          t2: updatedRecord[0]?.secondEvaluation,
+          t3: updatedRecord[0]?.thirdEvaluation,
+          coefficient: updatedRecord[0]?.coefficient,
+          comments: updatedRecord[0]?.subjectComments
+        }
       },
-      message: term === 'T1' ? 'Notes du 1er trimestre importées' : 
-               term === 'T2' ? 'Notes du 2ème trimestre importées' :
-               'Notes du 3ème trimestre importées'
+      message: `Note ${term} enregistrée avec succès dans ${gradeColumn}`
     });
 
   } catch (error) {
-    console.error('[BULLETIN_IMPORT] Erreur:', error);
+    console.error('[BULLETIN_IMPORT] ❌ Error saving grade:', error);
     res.status(500).json({
       success: false,
-      message: 'Erreur lors de l\'importation des notes',
+      message: 'Erreur lors de l\'enregistrement de la note',
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    });
+  }
+});
+
+// Route pour importer en masse les notes d'un élève pour un trimestre
+router.post('/import-bulk-grades', requireAuth, async (req, res) => {
+  try {
+    const { studentId, classId, academicYear, term, grades } = req.body;
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+
+    if (!['T1', 'T2', 'T3'].includes(term)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'term must be T1, T2, or T3' 
+      });
+    }
+
+    if (!Array.isArray(grades)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'grades must be an array' 
+      });
+    }
+
+    console.log('[BULLETIN_BULK_IMPORT] ✅ Saving bulk grades for:', {
+      studentId, classId, academicYear, term, count: grades.length
+    });
+
+    const results = [];
+    const gradeColumn = term === 'T1' ? 'first_evaluation' : 
+                       term === 'T2' ? 'second_evaluation' : 
+                       'third_evaluation';
+
+    // Process chaque note individuellement pour éviter les conflits
+    for (const gradeData of grades) {
+      const { subjectId, grade, coefficient, teacherComments } = gradeData;
+
+      const upsertQuery = `
+        INSERT INTO teacher_grade_submissions 
+          (teacher_id, student_id, subject_id, class_id, school_id, academic_year, ${gradeColumn}, coefficient, subject_comments, updated_at)
+        VALUES 
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+        ON CONFLICT (student_id, subject_id, class_id, school_id, academic_year)
+        DO UPDATE SET
+          ${gradeColumn} = EXCLUDED.${gradeColumn},
+          teacher_id = EXCLUDED.teacher_id,
+          coefficient = EXCLUDED.coefficient,
+          subject_comments = EXCLUDED.subject_comments,
+          updated_at = NOW();
+      `;
+
+      await db.execute(sql.raw(upsertQuery, [
+        user.id, 
+        parseInt(studentId), 
+        parseInt(subjectId), 
+        parseInt(classId), 
+        schoolId, 
+        academicYear, 
+        Number(grade), 
+        Number(coefficient || 1), 
+        teacherComments || null
+      ]));
+
+      results.push({ subjectId, grade, term, saved: true });
+    }
+
+    console.log('[BULLETIN_BULK_IMPORT] ✅ All grades saved successfully');
+
+    res.json({
+      success: true,
+      data: {
+        studentId: parseInt(studentId),
+        term,
+        gradesProcessed: results.length,
+        results
+      },
+      message: `${results.length} notes ${term} enregistrées avec succès`
+    });
+
+  } catch (error) {
+    console.error('[BULLETIN_BULK_IMPORT] ❌ Error saving bulk grades:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'enregistrement en masse',
       error: error instanceof Error ? error.message : 'Erreur inconnue'
     });
   }
