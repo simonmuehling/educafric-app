@@ -217,9 +217,9 @@ router.post('/import-grades', requireAuth, async (req, res) => {
 
     const result = await db.execute(sql`
       INSERT INTO teacher_grade_submissions 
-        (teacher_id, student_id, subject_id, class_id, school_id, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments, updated_at)
+        (teacher_id, student_id, subject_id, class_id, school_id, term, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments, updated_at)
       VALUES 
-        (${user.id}, ${studentIdNum}, ${subjectIdNum}, ${parseInt(classId)}, ${schoolId}, ${academicYear}, ${gradeNum}, ${coefficientNum}, ${teacherComments || null}, NOW())
+        (${user.id}, ${studentIdNum}, ${subjectIdNum}, ${parseInt(classId)}, ${schoolId}, ${term}, ${academicYear}, ${gradeNum}, ${coefficientNum}, ${teacherComments || null}, NOW())
       ON CONFLICT (student_id, subject_id, class_id, school_id, academic_year)
       DO UPDATE SET
         ${sql.raw(gradeColumn)} = EXCLUDED.${sql.raw(gradeColumn)},
@@ -328,9 +328,9 @@ router.post('/import-bulk-grades', requireAuth, async (req, res) => {
 
       await db.execute(sql`
         INSERT INTO teacher_grade_submissions 
-          (teacher_id, student_id, subject_id, class_id, school_id, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments, updated_at)
+          (teacher_id, student_id, subject_id, class_id, school_id, term, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments, updated_at)
         VALUES 
-          (${user.id}, ${parseInt(studentId)}, ${parseInt(subjectId)}, ${parseInt(classId)}, ${schoolId}, ${academicYear}, ${Number(grade)}, ${Number(coefficient || 1)}, ${teacherComments || null}, NOW())
+          (${user.id}, ${parseInt(studentId)}, ${parseInt(subjectId)}, ${parseInt(classId)}, ${schoolId}, ${term}, ${academicYear}, ${Number(grade)}, ${Number(coefficient || 1)}, ${teacherComments || null}, NOW())
         ON CONFLICT (student_id, subject_id, class_id, school_id, academic_year)
         DO UPDATE SET
           ${sql.raw(gradeColumn)} = EXCLUDED.${sql.raw(gradeColumn)},
