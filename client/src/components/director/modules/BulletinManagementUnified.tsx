@@ -1031,6 +1031,12 @@ export default function BulletinManagementUnified() {
         title: "✅ Notes sauvegardées",
         description: `${successCount}/${gradesToSave.length} notes sauvegardées avec succès`,
       });
+
+      // ✅ AUTO-REFRESH des données après sauvegarde pour éviter double-clic
+      if (successCount > 0 && manualGradeClass) {
+        console.log('[MANUAL_GRADES] 🔄 Auto-refresh données après sauvegarde');
+        await loadClassData(manualGradeClass);
+      }
       
     } catch (error) {
       console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde:', error);
@@ -2051,9 +2057,12 @@ export default function BulletinManagementUnified() {
         // Recharger les bulletins pour voir le nouveau bulletin dans la liste
         await loadPendingBulletins();
         
-        // Réinitialiser le formulaire
-        setSelectedStudentId('');
-        setSelectedClassId('');
+        // ✅ NE PAS réinitialiser les IDs pour permettre l'aperçu immédiat
+        // setSelectedStudentId('');
+        // setSelectedClassId('');
+        console.log('[BULLETIN_CREATE] ✅ Conserving selectedStudentId et selectedClassId pour aperçu:', {
+          selectedStudentId, selectedClassId
+        });
         
       } else {
         throw new Error(result.error || result.message || 'Erreur lors de la création du bulletin');
