@@ -45,7 +45,7 @@ const app = express();
 
 // Performance optimizations
 app.use(compressionMiddleware);
-app.use(timeoutMiddleware(300000)); // 5 minutes timeout (au lieu de 15 secondes)
+app.use(timeoutMiddleware(30000)); // 30 seconds timeout - prevents memory buildup and hangs
 app.use(performanceMiddleware);
 app.use(cacheControlMiddleware);
 app.use(memoryCleanupMiddleware);
