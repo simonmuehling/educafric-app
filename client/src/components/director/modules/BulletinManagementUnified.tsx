@@ -2660,6 +2660,170 @@ export default function BulletinManagementUnified() {
               </CardContent>
             </Card>
 
+            {/* ✅ CONFIGURATION EN-TÊTE DU BULLETIN */}
+            {manualGradeClass && (
+              <Card className="border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-blue-800">
+                    <Settings className="mr-2 h-5 w-5" />
+                    Configuration En-tête des Bulletins
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Informations École */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <School className="w-4 h-4 mr-2 text-blue-600" />
+                        Informations de l'École
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Nom de l'École</Label>
+                          <Input 
+                            value={formData.schoolName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, schoolName: e.target.value }))}
+                            placeholder="Lycée Bilingue de Yaoundé"
+                          />
+                        </div>
+                        <div>
+                          <Label>Nom du Directeur</Label>
+                          <Input 
+                            value={formData.directorName}
+                            onChange={(e) => setFormData(prev => ({ ...prev, directorName: e.target.value }))}
+                            placeholder="M. Jean EMMANUEL"
+                          />
+                        </div>
+                        <div>
+                          <Label>Adresse de l'École</Label>
+                          <Input 
+                            value={formData.schoolAddress}
+                            onChange={(e) => setFormData(prev => ({ ...prev, schoolAddress: e.target.value }))}
+                            placeholder="Quartier Essos, Yaoundé, Cameroun"
+                          />
+                        </div>
+                        <div>
+                          <Label>Téléphone</Label>
+                          <Input 
+                            value={formData.schoolPhone}
+                            onChange={(e) => setFormData(prev => ({ ...prev, schoolPhone: e.target.value }))}
+                            placeholder="+237 222 20 34 56"
+                          />
+                        </div>
+                        <div>
+                          <Label>Email</Label>
+                          <Input 
+                            value={formData.schoolEmail}
+                            onChange={(e) => setFormData(prev => ({ ...prev, schoolEmail: e.target.value }))}
+                            placeholder="contact@lyceebilingueyaounde.cm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Informations Académiques */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-green-600" />
+                        Informations Académiques
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label>Année Académique</Label>
+                          <Input 
+                            value={formData.academicYear}
+                            onChange={(e) => setFormData(prev => ({ ...prev, academicYear: e.target.value }))}
+                            placeholder="2024-2025"
+                          />
+                        </div>
+                        <div>
+                          <Label>Trimestre</Label>
+                          <Select
+                            value={formData.term}
+                            onValueChange={(value) => setFormData(prev => ({ ...prev, term: value }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner le trimestre" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Premier Trimestre">Premier Trimestre</SelectItem>
+                              <SelectItem value="Deuxième Trimestre">Deuxième Trimestre</SelectItem>
+                              <SelectItem value="Troisième Trimestre">Troisième Trimestre</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label>Classe</Label>
+                          <Input 
+                            value={formData.className || classes.find(c => c.id.toString() === manualGradeClass)?.name || ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, className: e.target.value }))}
+                            placeholder="CP1 A"
+                            disabled
+                            className="bg-gray-100"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Informations Officielles Cameroun */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <Shield className="w-4 h-4 mr-2 text-purple-600" />
+                        Informations Officielles (Cameroun)
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Délégation Régionale</Label>
+                          <Input 
+                            value={formData.regionalDelegation}
+                            onChange={(e) => setFormData(prev => ({ ...prev, regionalDelegation: e.target.value }))}
+                            placeholder="DU CENTRE"
+                          />
+                        </div>
+                        <div>
+                          <Label>Délégation Départementale</Label>
+                          <Input 
+                            value={formData.departmentalDelegation}
+                            onChange={(e) => setFormData(prev => ({ ...prev, departmentalDelegation: e.target.value }))}
+                            placeholder="DU MFOUNDI"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Auto-remplissage */}
+                    <div className="bg-white rounded-lg border p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-medium text-gray-900 mb-1">Auto-remplissage des Données</h5>
+                          <p className="text-sm text-gray-600">Charger automatiquement les informations depuis la base de données</p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          onClick={() => {
+                            // Auto-remplir avec les données de l'école sélectionnée
+                            setFormData(prev => ({
+                              ...prev,
+                              schoolName: 'Lycée Bilingue de Yaoundé',
+                              schoolAddress: 'Quartier Essos, Yaoundé, Cameroun',
+                              schoolPhone: '+237 222 20 34 56',
+                              schoolEmail: 'contact@lyceebilingueyaounde.cm',
+                              directorName: 'M. Jean EMMANUEL',
+                              className: classes.find(c => c.id.toString() === manualGradeClass)?.name || ''
+                            }));
+                          }}
+                          className="flex items-center"
+                        >
+                          <Star className="w-4 h-4 mr-1" />
+                          Auto-remplir
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Interface de saisie des notes */}
             {manualGradeClass && classStudents.length > 0 && classSubjects.length > 0 && (
               <Card>
