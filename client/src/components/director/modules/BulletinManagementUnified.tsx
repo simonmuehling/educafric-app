@@ -928,8 +928,16 @@ export default function BulletinManagementUnified() {
         }
         
         const gradeNum = parseFloat(gradeValue);
+        const studentIdNum = parseInt(studentId);
+        const subjectIdNum = parseInt(subjectId);
+        
         if (isNaN(gradeNum)) {
           console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: Note invalide pour', key, 'value:', gradeValue);
+          continue;
+        }
+        
+        if (isNaN(studentIdNum) || isNaN(subjectIdNum)) {
+          console.warn('[MANUAL_GRADES] ⚠️ PROBLÈME: IDs invalides pour', key, { studentId: studentIdNum, subjectId: subjectIdNum });
           continue;
         }
         
@@ -945,7 +953,7 @@ export default function BulletinManagementUnified() {
           term: term, // Déjà en format T1, T2, T3
           subjectId: subjectIdNum,
           grade: gradeNum,
-          coefficient: coefficientNum,
+          coefficient: parseFloat(gradeData.coefficient) || 1,
           teacherComments: gradeData.comments || ''
         };
         
