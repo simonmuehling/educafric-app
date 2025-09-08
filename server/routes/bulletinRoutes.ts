@@ -27,6 +27,14 @@ import {
 
 const router = Router();
 
+// Authentication middleware
+const requireAuth = (req: any, res: any, next: any) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+  next();
+};
+
 // ✅ ROUTE GET MANQUANTE - Pour récupérer les notes d'un élève/classe/année/trimestre
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -73,9 +81,9 @@ router.get('/', requireAuth, async (req, res) => {
       ORDER BY s.name_fr
     `);
 
-    console.log('[BULLETIN_GET] ✅ Notes trouvées:', grades.length);
+    console.log('[BULLETIN_GET] ✅ Notes trouvées:', grades.rows.length);
 
-    if (grades.length === 0) {
+    if (grades.rows.length === 0) {
       return res.json({ 
         success: true, 
         message: 'No grades found for this student/term',
@@ -84,7 +92,7 @@ router.get('/', requireAuth, async (req, res) => {
     }
 
     // Formater les données pour l'aperçu
-    const subjects = grades.map((row: any) => ({
+    const subjects = grades.rows.map((row: any) => ({
       id: row.subject_id,
       name: row.subject_name,
       grade: parseFloat(row.grade),
@@ -115,16 +123,6 @@ router.get('/', requireAuth, async (req, res) => {
     });
   }
 });
-
-// Authentication middleware
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  next();
-};
-
-
 
 // Route d'import/update des notes T1/T2/T3 - utilise les vraies colonnes de la DB
 router.post('/import-grades', requireAuth, async (req, res) => {

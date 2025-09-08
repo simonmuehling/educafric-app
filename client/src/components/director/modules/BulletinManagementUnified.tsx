@@ -1115,6 +1115,17 @@ export default function BulletinManagementUnified() {
         console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
       }
 
+      // ✅ PROTECTION UI - Vérifier qu'on a des notes avant de continuer
+      if (!importedGrades || !importedGrades.subjects || importedGrades.subjects.length === 0) {
+        console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible (ni importées, ni manuelles)');
+        toast({
+          title: "⚠️ Aucune note disponible",
+          description: "Veuillez d'abord saisir et sauvegarder des notes pour ce trimestre",
+          variant: "destructive",
+        });
+        return; // ✅ RETURN au lieu de throw - protection UI
+      }
+
       // Construire la même logique que createModularBulletin mais pour l'aperçu
       const getTermSpecificData = () => {
         const baseData = {
