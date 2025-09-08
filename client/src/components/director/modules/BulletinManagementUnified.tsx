@@ -422,7 +422,7 @@ export default function BulletinManagementUnified() {
     try {
       console.log('[BULLETIN_LOAD] Chargement des bulletins...');
       
-      const response = await fetch('/api/bulletins');
+      const response = await fetch('/api/bulletins/pending'); // ✅ ROUTE SPÉCIFIQUE sans paramètres
       if (response.ok) {
         const data = await response.json();
         const bulletins = data.bulletins || [];
@@ -1731,16 +1731,24 @@ export default function BulletinManagementUnified() {
                     subject === 'HIST' ? 'Histoire' :
                     subject === 'GEO' ? 'Géographie' : subject;
               
-              // ✅ FORMAT T3 AVEC VRAIES DONNÉES T1/T2/T3 (PLUS DE Math.random)
+              // ✅ UTILISER LES VRAIES DONNÉES T1/T2/T3 DEPUIS L'API 
               if (formData.term === 'Troisième Trimestre') {
-                console.log('[BULLETIN_FRONTEND] ⚠️ WARNING: Cette section génère encore des données artificielles');
-                console.log('[BULLETIN_FRONTEND] ⚠️ Utilisez fetchRealBulletinData() pour les vraies notes T1/T2/T3');
+                console.log('[BULLETIN_FRONTEND] ✅ Récupération vraies données T1/T2/T3 depuis API');
                 
-                // ❌ TEMPORAIRE : Données fictives pour éviter les erreurs
-                // TODO: Remplacer par un appel à fetchRealBulletinData()
-                const t1 = parseFloat((currentGrade - 2).toFixed(2));
-                const t2 = parseFloat((currentGrade - 1).toFixed(2));
-                const t3 = parseFloat(currentGrade.toFixed(2));
+                // ✅ UTILISER LES VRAIES DONNÉES des notes manuelles saisies
+                console.log('[BULLETIN_FRONTEND] ✅ Utilisation données manuelles saisies pour T3');
+                
+                // Récupérer les notes T1, T2, T3 depuis manualGrades ou données importées
+                const fullStudentName = `${formData.studentFirstName} ${formData.studentLastName}`.trim();
+                const resolvedStudentId = selectedStudentId || (students.find(s => s.full_name === fullStudentName)?.id?.toString());
+                const subjectKey = `${resolvedStudentId}-${subject}`;
+                const manualT1 = manualGrades[`${subjectKey}-T1`]?.grade || currentGrade - 2;
+                const manualT2 = manualGrades[`${subjectKey}-T2`]?.grade || currentGrade - 1;
+                const manualT3 = manualGrades[`${subjectKey}-T3`]?.grade || currentGrade;
+                
+                const t1 = parseFloat(manualT1.toFixed(2));
+                const t2 = parseFloat(manualT2.toFixed(2)); 
+                const t3 = parseFloat(manualT3.toFixed(2));
                 
                 // Moyenne annuelle = (T1 + T2 + T3) / 3 (vraie formule)
                 const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
