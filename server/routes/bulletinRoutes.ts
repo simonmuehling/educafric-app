@@ -70,7 +70,7 @@ router.get('/', requireAuth, async (req, res) => {
       SELECT 
         tgs.student_id,
         tgs.subject_id,
-        COALESCE(s.name, 'Matière ' || tgs.subject_id) as subject_name,
+        COALESCE(s.name_fr, 'Matière ' || tgs.subject_id) as subject_name,
         COALESCE(tgs.coefficient, 1) as coefficient,
         tgs.first_evaluation,
         tgs.second_evaluation,
@@ -79,7 +79,7 @@ router.get('/', requireAuth, async (req, res) => {
         tgs.academic_year,
         tgs.class_id,
         tgs.school_id,
-        COALESCE(u.name, 'Enseignant ' || tgs.teacher_id) as teacher_name
+        COALESCE(CONCAT(u.first_name, ' ', u.last_name), 'Enseignant ' || tgs.teacher_id) as teacher_name
       FROM teacher_grade_submissions tgs
       LEFT JOIN subjects s ON s.id = tgs.subject_id
       LEFT JOIN users u ON u.id = tgs.teacher_id
@@ -87,7 +87,7 @@ router.get('/', requireAuth, async (req, res) => {
         AND tgs.class_id = ${parseInt(classId as string)}
         AND tgs.academic_year = ${academicYear}
         AND tgs.school_id = ${schoolId}
-      ORDER BY COALESCE(s.name, 'Matière ' || tgs.subject_id)
+      ORDER BY COALESCE(s.name_fr, 'Matière ' || tgs.subject_id)
     `);
     
     console.log('[BULLETIN_GET] ✅ Notes avec matières trouvées:', allGrades.rows.length);
@@ -96,11 +96,11 @@ router.get('/', requireAuth, async (req, res) => {
     const grades = await db.execute(sql`
       SELECT 
         tgs.subject_id,
-        COALESCE(s.name, 'Matière ' || tgs.subject_id) as subject_name,
+        COALESCE(s.name_fr, 'Matière ' || tgs.subject_id) as subject_name,
         COALESCE(tgs.coefficient, 1) as coefficient,
         tgs.${sql.raw(termColumn)} as grade,
         tgs.subject_comments,
-        COALESCE(u.name, 'Enseignant ' || tgs.teacher_id) as teacher_name
+        COALESCE(CONCAT(u.first_name, ' ', u.last_name), 'Enseignant ' || tgs.teacher_id) as teacher_name
       FROM teacher_grade_submissions tgs
       LEFT JOIN subjects s ON s.id = tgs.subject_id
       LEFT JOIN users u ON u.id = tgs.teacher_id
@@ -109,7 +109,7 @@ router.get('/', requireAuth, async (req, res) => {
         AND tgs.academic_year = ${academicYear}
         AND tgs.school_id = ${schoolId}
         AND tgs.${sql.raw(termColumn)} IS NOT NULL
-      ORDER BY COALESCE(s.name, 'Matière ' || tgs.subject_id)
+      ORDER BY COALESCE(s.name_fr, 'Matière ' || tgs.subject_id)
     `);
 
     console.log('[BULLETIN_GET] ✅ Notes trouvées:', grades.rows.length);
@@ -169,9 +169,9 @@ router.get('/teacher-appreciations/:studentId/:classId/:academicYear/:term', req
     // Récupérer toutes les appréciations des enseignants pour cet élève
     const appreciations = await db.select({
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.name,
+      subjectName: subjects.name_fr,
       teacherId: teacherGradeSubmissions.teacherId,
-      teacherName: users.name,
+      teacherName: sql<string>`CONCAT(${users.first_name}, ' ', ${users.last_name})`,
       subjectComments: teacherGradeSubmissions.subjectComments,
       coefficient: teacherGradeSubmissions.coefficient
     })
@@ -1127,7 +1127,7 @@ router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
         grade: parseFloat(grade.grade) || parseFloat(grade.note) || 0,
         maxGrade: 20,
         coefficient: grade.coefficient || 1,
-        comments: grade.comments || grade.appreciation || 'Bon travail',
+        comments: grade.comments || grade.appreciation || '',
         teacherName: grade.teacherName || 'Enseignant'
       })) || [],
       generalAverage: bulletinMetadata.generalAverage || 0,
@@ -1137,7 +1137,7 @@ router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
       conductGrade: 18,
       absences: 2,
       teacherComments: bulletinMetadata.teacherComments || "Élève sérieux et appliqué.",
-      directorComments: bulletinMetadata.directorComments || "Continuer sur cette lancée.",
+      directorComments: bulletinMetadata.directorComments || "",
       verificationCode: `EDU2024-${bulletinId}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
     };
 

@@ -89,7 +89,7 @@ router.get('/bulletin/preview', (req, res) => {
     conduct: "Très bien",
     conductGrade: 18,
     absences: 2,
-    teacherComments: "Bon travail général. Peut améliorer en mathématiques.",
+    teacherComments: "",
     directorComments: "Résultats corrects. Encourager les efforts en sciences.",
     verificationCode: "EDU2024-AMK-T1-4ZFYJM"
   };
@@ -181,7 +181,7 @@ router.post('/bulletin/preview-custom', async (req, res) => {
       conductGrade: 18,
       absences: 2,
       teacherComments: evaluations?.generalAppreciation || termSpecificData?.generalAppreciation || "Élève sérieux et appliqué avec un bon niveau général.",
-      directorComments: "Continuer sur cette lancée. Félicitations pour ces bons résultats.",
+      directorComments: "",
       verificationCode: `EDU2024-${studentData?.firstName?.substr(0,2)?.toUpperCase() || 'AMK'}-${academicData?.term?.charAt(0) || 'T1'}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
     };
 
