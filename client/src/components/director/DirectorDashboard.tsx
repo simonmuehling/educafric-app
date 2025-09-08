@@ -449,7 +449,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     },
     {
       id: 'bulletin-management',
-      label: language === 'fr' ? 'Gestion Bulletins Unifiée' : 'Unified Bulletin Management',
+      label: language === 'fr' ? 'Bulletins' : 'Bulletins',
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('bulletin-management')
