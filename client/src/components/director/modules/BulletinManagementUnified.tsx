@@ -763,7 +763,7 @@ export default function BulletinManagementUnified() {
 
   // Fonctions supprimées: handleNotifications et handleSettings (selon demande utilisateur)
 
-  // ✅ CHARGER LES DONNÉES DE LA CLASSE (ÉLÈVES, MATIÈRES, PROFESSEURS)
+  // ✅ CHARGER LES DONNÉES DE LA CLASSE (ÉLÈVES, MATIÈRES, PROFESSEURS) - VERSION SANDBOX
   const loadClassData = async (classId: string) => {
     if (!classId) {
       setClassStudents([]);
@@ -775,29 +775,51 @@ export default function BulletinManagementUnified() {
     try {
       console.log('[MANUAL_GRADES] 🔍 Chargement des données pour la classe:', classId);
       
-      // Utiliser les données mock disponibles
-      const studentsData = students.filter(s => s.classId === parseInt(classId));
+      // ✅ Charger les données via les APIs sandbox
+      const [studentsResponse, teachersResponse] = await Promise.all([
+        fetch(`/api/director/students?classId=${classId}`),
+        fetch('/api/director/teachers')
+      ]);
+      
+      let studentsData = [];
+      let teachersData = [];
+      
+      if (studentsResponse.ok) {
+        const studentsResult = await studentsResponse.json();
+        studentsData = studentsResult.students || [];
+      }
+      
+      if (teachersResponse.ok) {
+        const teachersResult = await teachersResponse.json();
+        teachersData = teachersResult.teachers || [];
+      }
+      
+      // ✅ Matières sandbox réalistes
       const subjectsData = [
         { id: 1, name_fr: 'Mathématiques', coefficient: 5, teacher_id: 1 },
         { id: 2, name_fr: 'Français', coefficient: 5, teacher_id: 2 },
-        { id: 3, name_fr: 'Sciences', coefficient: 4, teacher_id: 3 },
-        { id: 4, name_fr: 'Histoire-Géographie', coefficient: 3, teacher_id: 4 }
+        { id: 3, name_fr: 'Anglais', coefficient: 4, teacher_id: 3 },
+        { id: 4, name_fr: 'Sciences Physiques', coefficient: 4, teacher_id: 4 },
+        { id: 5, name_fr: 'Histoire-Géographie', coefficient: 3, teacher_id: 5 },
+        { id: 6, name_fr: 'Éducation Civique', coefficient: 2, teacher_id: 6 }
       ];
-      const teachersData = teachers;
       
       setClassStudents(studentsData);
       setClassSubjects(subjectsData);
       setClassTeachers(teachersData);
       
-      console.log('[MANUAL_GRADES] ✅ Données chargées:', {
+      console.log('[MANUAL_GRADES] ✅ Données sandbox chargées:', {
+        classId,
         students: studentsData.length,
         subjects: subjectsData.length,
-        teachers: teachersData.length
+        teachers: teachersData.length,
+        studentsData: studentsData.map(s => s.name),
+        teachersData: teachersData.map(t => t.name)
       });
       
       toast({
         title: "✅ Classe chargée",
-        description: `${studentsData.length} élèves, ${subjectsData.length} matières trouvées`,
+        description: `${studentsData.length} élèves, ${subjectsData.length} matières, ${teachersData.length} professeurs`,
       });
       
     } catch (error) {
