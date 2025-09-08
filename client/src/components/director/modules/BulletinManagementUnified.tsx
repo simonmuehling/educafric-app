@@ -825,15 +825,18 @@ export default function BulletinManagementUnified() {
     
     try {
       console.log('[MANUAL_GRADES] 💾 Sauvegarde des notes:', manualGrades);
+      console.log('[MANUAL_GRADES] 🔍 Clés trouvées:', Object.keys(manualGrades));
       
       // Convertir les notes en format pour l'API
       const gradesToSave = [];
       
       for (const [key, gradeData] of Object.entries(manualGrades)) {
         const [studentId, subjectId, term] = key.split('_');
+        console.log('[MANUAL_GRADES] 🔍 Processing key:', key, 'studentId:', studentId, 'subjectId:', subjectId, 'term:', term, 'gradeData:', gradeData);
         
-        if (gradeData && gradeData.grade !== null && gradeData.grade !== undefined && gradeData.grade !== '' && !isNaN(parseFloat(gradeData.grade))) {
-          gradesToSave.push({
+        // Vérification plus stricte des données
+        if (gradeData && gradeData.grade && gradeData.grade.toString().trim() !== '' && !isNaN(parseFloat(gradeData.grade)) && studentId && subjectId && term) {
+          const gradeToSave = {
             studentId: parseInt(studentId),
             classId: parseInt(manualGradeClass),
             academicYear: '2024-2025',
@@ -842,7 +845,11 @@ export default function BulletinManagementUnified() {
             grade: parseFloat(gradeData.grade),
             coefficient: gradeData.coefficient || 1,
             teacherComments: gradeData.comments || ''
-          });
+          };
+          console.log('[MANUAL_GRADES] ✅ Grade to save:', gradeToSave);
+          gradesToSave.push(gradeToSave);
+        } else {
+          console.log('[MANUAL_GRADES] ⚠️ Skipping invalid data:', {key, gradeData, studentId, subjectId, term});
         }
       }
       
