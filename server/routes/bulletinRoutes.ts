@@ -62,6 +62,39 @@ router.get('/', requireAuth, async (req, res) => {
     // Déterminer la colonne selon le trimestre
     const termColumn = term === 'T1' ? 'first_evaluation' : 
                       term === 'T2' ? 'second_evaluation' : 'third_evaluation';
+    
+    console.log('[BULLETIN_GET] 🔍 Term column déterminé:', termColumn);
+    
+    // ✅ D'ABORD : Vérifier toutes les notes existantes pour cet étudiant
+    const allGrades = await db.execute(sql`
+      SELECT 
+        tgs.student_id,
+        tgs.subject_id,
+        s.name_fr as subject_name,
+        s.coefficient,
+        tgs.first_evaluation,
+        tgs.second_evaluation,
+        tgs.third_evaluation,
+        tgs.subject_comments,
+        tgs.academic_year,
+        tgs.class_id,
+        tgs.school_id
+      FROM teacher_grade_submissions tgs
+      JOIN subjects s ON s.id = tgs.subject_id
+      WHERE tgs.student_id = ${parseInt(studentId as string)}
+        AND tgs.class_id = ${parseInt(classId as string)}
+        AND tgs.academic_year = ${academicYear}
+        AND tgs.school_id = ${schoolId}
+      ORDER BY s.name_fr
+    `);
+    
+    console.log('[BULLETIN_GET] 🔍 TOUTES les notes trouvées pour cet étudiant:', allGrades.rows.length);
+    console.log('[BULLETIN_GET] 🔍 Détail des notes:', allGrades.rows.map(r => ({
+      subject: r.subject_name, 
+      t1: r.first_evaluation, 
+      t2: r.second_evaluation, 
+      t3: r.third_evaluation
+    })));
 
     // Récupérer les notes depuis la BD
     const grades = await db.execute(sql`
