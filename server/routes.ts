@@ -3218,6 +3218,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ Route de test temporaire pour saisie sans authentification
+  app.post('/api/test/bulletins/import-grades', async (req, res) => {
+    try {
+      const { studentId, classId, academicYear, term, subjectId, grade, coefficient, teacherComments } = req.body;
+      const schoolId = 1; // Test avec école par défaut
+
+      console.log('[TEST_GRADE_IMPORT] Saisie note test:', { studentId, classId, term, subjectId, grade });
+
+      if (!['T1', 'T2', 'T3'].includes(term)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'term must be T1, T2, or T3' 
+        });
+      }
+
+      const studentIdNum = parseInt(studentId);
+      const subjectIdNum = parseInt(subjectId);
+      const classIdNum = parseInt(classId);
+      const gradeNum = parseFloat(grade);
+      const coefficientNum = parseFloat(coefficient) || 1;
+
+      // Déterminer quelle colonne mettre à jour selon le trimestre
+      const gradeColumn = term === 'T1' ? 'first_evaluation' : 
+                         term === 'T2' ? 'second_evaluation' : 'third_evaluation';
+
+      // Vérifier si l'enregistrement existe déjà
+      const existingRecord = await db.execute(sql`
+        SELECT id FROM teacher_grade_submissions 
+        WHERE student_id = ${studentIdNum} 
+          AND subject_id = ${subjectIdNum} 
+          AND class_id = ${classIdNum}
+          AND academic_year = ${academicYear}
+          AND term = ${term}
+      `);
+
+      if (existingRecord.rows.length > 0) {
+        // Mettre à jour l'enregistrement existant
+        await db.execute(sql`
+          UPDATE teacher_grade_submissions 
+          SET ${sql.raw(gradeColumn)} = ${gradeNum}, 
+              coefficient = ${coefficientNum},
+              subject_comments = ${teacherComments || ''},
+              updated_at = NOW()
+          WHERE id = ${existingRecord.rows[0].id}
+        `);
+        
+        console.log('[TEST_GRADE_IMPORT] ✅ Note mise à jour:', existingRecord.rows[0].id);
+      } else {
+        // Créer nouvel enregistrement
+        const insertData = {
+          teacher_id: 1,
+          student_id: studentIdNum,
+          subject_id: subjectIdNum,
+          class_id: classIdNum,
+          school_id: schoolId,
+          term: term,
+          academic_year: academicYear,
+          coefficient: coefficientNum,
+          subject_comments: teacherComments || ''
+        };
+
+        const insertQuery = `
+          INSERT INTO teacher_grade_submissions 
+          (teacher_id, student_id, subject_id, class_id, school_id, term, academic_year, ${gradeColumn}, coefficient, subject_comments)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          RETURNING id
+        `;
+
+        const newRecord = await db.execute(sql`
+          INSERT INTO teacher_grade_submissions 
+          (teacher_id, student_id, subject_id, class_id, school_id, term, academic_year, ${sql.raw(gradeColumn)}, coefficient, subject_comments)
+          VALUES (1, ${studentIdNum}, ${subjectIdNum}, ${classIdNum}, ${schoolId}, ${term}, ${academicYear}, ${gradeNum}, ${coefficientNum}, ${teacherComments || ''})
+          RETURNING id
+        `);
+
+        console.log('[TEST_GRADE_IMPORT] ✅ Nouvelle note créée:', newRecord.rows[0].id);
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Note sauvegardée avec succès',
+        data: { studentId: studentIdNum, subjectId: subjectIdNum, grade: gradeNum, term }
+      });
+
+    } catch (error) {
+      console.error('[TEST_GRADE_IMPORT] ❌ Erreur:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur lors de la sauvegarde',
+        error: error.message 
+      });
+    }
+  });
+
+  // ✅ Route de test pour récupérer les données d'un bulletin
+  app.get('/api/test/bulletins', async (req, res) => {
+    try {
+      const { studentId, classId, academicYear, term } = req.query;
+      
+      console.log('[TEST_BULLETIN_GET] Récupération:', { studentId, classId, academicYear, term });
+
+      if (!['T1', 'T2', 'T3'].includes(term as string)) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'term must be T1, T2, or T3' 
+        });
+      }
+
+      const termColumn = term === 'T1' ? 'first_evaluation' : 
+                        term === 'T2' ? 'second_evaluation' : 'third_evaluation';
+
+      const grades = await db.execute(sql`
+        SELECT 
+          tgs.subject_id,
+          s.name_fr as subject_name,
+          s.coefficient,
+          tgs.${sql.raw(termColumn)} as grade,
+          tgs.subject_comments
+        FROM teacher_grade_submissions tgs
+        JOIN subjects s ON s.id = tgs.subject_id
+        WHERE tgs.student_id = ${parseInt(studentId as string)}
+          AND tgs.class_id = ${parseInt(classId as string)}
+          AND tgs.academic_year = ${academicYear}
+          AND tgs.${sql.raw(termColumn)} IS NOT NULL
+        ORDER BY s.name_fr
+      `);
+
+      const subjects = grades.rows.map((row: any) => ({
+        id: row.subject_id,
+        name: row.subject_name,
+        grade: parseFloat(row.grade),
+        coef: parseInt(row.coefficient),
+        points: parseFloat(row.grade) * parseInt(row.coefficient),
+        comments: row.subject_comments || ''
+      }));
+
+      const totalPoints = subjects.reduce((sum: number, s: any) => sum + s.points, 0);
+      const totalCoef = subjects.reduce((sum: number, s: any) => sum + s.coef, 0);
+      const termAverage = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0';
+
+      res.json({
+        success: true,
+        data: {
+          subjects,
+          termAverage: parseFloat(termAverage),
+          totalPoints,
+          totalCoef
+        }
+      });
+
+    } catch (error) {
+      console.error('[TEST_BULLETIN_GET] ❌ Erreur:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur récupération bulletin',
+        error: error.message 
+      });
+    }
+  });
+
   
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/templates', templateRoutes);
