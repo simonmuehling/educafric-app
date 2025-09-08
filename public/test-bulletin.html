@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 Test Saisie Bulletin Educafric</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { 
+      max-width: 1200px; margin: 0 auto; 
+      background: white; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    .header { 
+      background: linear-gradient(90deg, #ff7b25, #ff6b35);
+      color: white; padding: 30px; text-align: center;
+    }
+    .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+    .header p { font-size: 1.2rem; opacity: 0.9; }
+    .content { padding: 40px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .section { 
+      background: #f8faff; border-radius: 12px; padding: 25px;
+      border-left: 4px solid #ff6b35;
+    }
+    .section h3 { color: #2d3748; margin-bottom: 20px; font-size: 1.3rem; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px; }
+    input, select, textarea { 
+      width: 100%; padding: 12px; border: 2px solid #e2e8f0; 
+      border-radius: 8px; font-size: 16px; transition: all 0.3s;
+    }
+    input:focus, select:focus, textarea:focus { 
+      border-color: #ff6b35; outline: none; box-shadow: 0 0 0 3px rgba(255,107,53,0.1);
+    }
+    .btn { 
+      background: linear-gradient(90deg, #ff6b35, #ff7b25); 
+      color: white; padding: 14px 28px; border: none; border-radius: 8px; 
+      font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+      margin-right: 10px; margin-bottom: 10px;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,53,0.3); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .results { 
+      background: #f0fff4; border: 2px solid #68d391; border-radius: 12px; 
+      padding: 25px; margin-top: 25px; 
+    }
+    .results h4 { color: #2f855a; margin-bottom: 15px; }
+    .grade-item { 
+      background: white; padding: 15px; border-radius: 8px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .grade-info { flex: 1; }
+    .grade-score { 
+      background: #ff6b35; color: white; padding: 8px 16px; 
+      border-radius: 25px; font-weight: bold; font-size: 18px;
+    }
+    .average { 
+      text-align: center; background: #667eea; color: white; 
+      padding: 20px; border-radius: 12px; margin-top: 15px;
+    }
+    .average h5 { font-size: 1.1rem; margin-bottom: 5px; }
+    .average .score { font-size: 2.2rem; font-weight: bold; }
+    .status { padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+    .status.success { background: #f0fff4; border: 1px solid #68d391; color: #2f855a; }
+    .status.error { background: #fed7d7; border: 1px solid #fc8181; color: #c53030; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎓 Test Système Bulletin</h1>
+      <p>Saisie et récupération des notes - Educafric Platform</p>
+    </div>
+
+    <div class="content">
+      <div id="status" style="display: none;"></div>
+
+      <div class="grid">
+        <!-- Saisie des notes -->
+        <div class="section">
+          <h3>📝 Saisie Note</h3>
+          <form id="gradeForm">
+            <div class="form-group">
+              <label for="studentId">ID Étudiant:</label>
+              <input type="number" id="studentId" value="2" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="classId">ID Classe:</label>
+              <input type="number" id="classId" value="4" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="term">Trimestre:</label>
+              <select id="term" required>
+                <option value="T1">Trimestre 1</option>
+                <option value="T2">Trimestre 2</option>
+                <option value="T3">Trimestre 3</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="subjectId">Matière:</label>
+              <select id="subjectId" required>
+                <option value="1">Mathématiques</option>
+                <option value="2">Français</option>
+                <option value="3">Sciences</option>
+                <option value="4">Histoire-Géographie</option>
+                <option value="5">Anglais</option>
+                <option value="6">Sciences Physiques</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="grade">Note (/20):</label>
+              <input type="number" id="grade" min="0" max="20" step="0.5" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="coefficient">Coefficient:</label>
+              <input type="number" id="coefficient" min="1" max="10" value="2" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="comments">Commentaires:</label>
+              <textarea id="comments" rows="3" placeholder="Commentaires de l'enseignant..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn">💾 Sauvegarder Note</button>
+          </form>
+        </div>
+
+        <!-- Consultation bulletin -->
+        <div class="section">
+          <h3>📊 Consultation Bulletin</h3>
+          <form id="bulletinForm">
+            <div class="form-group">
+              <label for="viewStudentId">ID Étudiant:</label>
+              <input type="number" id="viewStudentId" value="2" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="viewClassId">ID Classe:</label>
+              <input type="number" id="viewClassId" value="4" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="viewTerm">Trimestre:</label>
+              <select id="viewTerm" required>
+                <option value="T1">Trimestre 1</option>
+                <option value="T2">Trimestre 2</option>
+                <option value="T3">Trimestre 3</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="academicYear">Année Scolaire:</label>
+              <input type="text" id="academicYear" value="2024-2025" required>
+            </div>
+            
+            <button type="submit" class="btn">📋 Récupérer Bulletin</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Zone des résultats -->
+      <div id="bulletinResults" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // Fonction pour afficher le statut
+    function showStatus(message, type = 'success') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.className = `status ${type}`;
+      statusDiv.textContent = message;
+      statusDiv.style.display = 'block';
+      setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+    }
+
+    // Gestion du formulaire de saisie
+    document.getElementById('gradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        studentId: parseInt(document.getElementById('studentId').value),
+        classId: parseInt(document.getElementById('classId').value),
+        academicYear: document.getElementById('academicYear').value || '2024-2025',
+        term: document.getElementById('term').value,
+        subjectId: parseInt(document.getElementById('subjectId').value),
+        grade: parseFloat(document.getElementById('grade').value),
+        coefficient: parseInt(document.getElementById('coefficient').value),
+        teacherComments: document.getElementById('comments').value
+      };
+
+      try {
+        const response = await fetch('/api/test/bulletins/import-grades', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          showStatus(`✅ Note sauvegardée: ${formData.grade}/20 en ${document.getElementById('subjectId').selectedOptions[0].text}`, 'success');
+          document.getElementById('gradeForm').reset();
+          document.getElementById('studentId').value = formData.studentId;
+          document.getElementById('classId').value = formData.classId;
+        } else {
+          showStatus(`❌ Erreur: ${result.message}`, 'error');
+        }
+      } catch (error) {
+        showStatus(`❌ Erreur réseau: ${error.message}`, 'error');
+      }
+    });
+
+    // Gestion du formulaire de consultation
+    document.getElementById('bulletinForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const studentId = document.getElementById('viewStudentId').value;
+      const classId = document.getElementById('viewClassId').value;
+      const term = document.getElementById('viewTerm').value;
+      const academicYear = document.getElementById('academicYear').value;
+
+      try {
+        const response = await fetch(`/api/test/bulletins?studentId=${studentId}&classId=${classId}&academicYear=${academicYear}&term=${term}`);
+        const result = await response.json();
+        
+        if (result.success && result.data.subjects.length > 0) {
+          displayBulletin(result.data);
+          showStatus(`✅ Bulletin récupéré: ${result.data.subjects.length} matières`, 'success');
+        } else {
+          showStatus(`❌ Aucune note trouvée pour cet élève/trimestre`, 'error');
+          document.getElementById('bulletinResults').style.display = 'none';
+        }
+      } catch (error) {
+        showStatus(`❌ Erreur: ${error.message}`, 'error');
+      }
+    });
+
+    // Affichage du bulletin
+    function displayBulletin(data) {
+      const resultsDiv = document.getElementById('bulletinResults');
+      
+      let html = '<div class="results"><h4>📋 Bulletin Récupéré</h4>';
+      
+      data.subjects.forEach(subject => {
+        html += `
+          <div class="grade-item">
+            <div class="grade-info">
+              <strong>${subject.name}</strong>
+              <br><small>Coefficient ${subject.coef} • ${subject.points} points</small>
+              ${subject.comments ? `<br><em>"${subject.comments}"</em>` : ''}
+            </div>
+            <div class="grade-score">${subject.grade}/20</div>
+          </div>
+        `;
+      });
+      
+      html += `
+        <div class="average">
+          <h5>Moyenne Générale</h5>
+          <div class="score">${data.termAverage}/20</div>
+          <small>${data.totalPoints} points sur ${data.totalCoef} coefficients</small>
+        </div>
+      </div>`;
+      
+      resultsDiv.innerHTML = html;
+      resultsDiv.style.display = 'block';
+    }
+
+    // Initialisation - charger le bulletin par défaut
+    window.addEventListener('load', () => {
+      document.getElementById('bulletinForm').dispatchEvent(new Event('submit'));
+    });
+  </script>
+</body>
+</html>
