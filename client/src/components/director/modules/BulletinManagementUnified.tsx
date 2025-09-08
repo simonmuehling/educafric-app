@@ -1138,11 +1138,12 @@ export default function BulletinManagementUnified() {
           console.log('[PREVIEW_BULLETIN] 🔍 Détail notes:', JSON.stringify(bulletinData.data?.subjects, null, 2));
           
           if (bulletinData.success && bulletinData.data && bulletinData.data.subjects && bulletinData.data.subjects.length > 0) {
-            // Convertir en format attendu par l'aperçu
+            // ✅ CORRECTIF: Format correct pour l'aperçu
             const convertedData = {
               termGrades: {},
               termAverage: bulletinData.data.termAverage || '0',
-              subjects: bulletinData.data.subjects
+              subjects: bulletinData.data.subjects,
+              hasData: true // ✅ AJOUT: Indicateur explicite de présence de données
             };
             
             // Remplir les notes par matière
@@ -1156,67 +1157,138 @@ export default function BulletinManagementUnified() {
             
             setImportedGrades(convertedData);
             console.log('[PREVIEW_BULLETIN] ✅ Notes importées depuis DB pour aperçu:', convertedData);
+            
+            // ✅ CORRECTIF: Continuer directement l'aperçu avec les données récupérées
+            setPreviewData({
+              ...formData,
+              subjectsGeneral: bulletinData.data.subjects.map((subject: any) => ({
+                name: subject.name,
+                t1Grade: subject.grade,
+                t2Grade: 0,
+                t3Grade: 0,
+                coefficient: subject.coef,
+                total: subject.points,
+                position: 1,
+                averageMark: subject.grade,
+                remark: 'Satisfaisant',
+                teacherName: subject.teacherName || 'Professeur',
+                comments: subject.comments || ''
+              })),
+              generalAverage: parseFloat(bulletinData.data.termAverage || '0'),
+              classRank: 1,
+              totalStudents: students.length || 25
+            });
+            
+            setShowPreview(true);
+            
+            toast({
+              title: "✅ Aperçu généré",
+              description: `${bulletinData.data.subjects.length} matières trouvées - Moyenne: ${bulletinData.data.termAverage}/20`,
+              duration: 3000,
+            });
+            
+            return; // ✅ IMPORTANT: Sortir de la fonction car l'aperçu est prêt
           }
         } else {
-          console.warn('[PREVIEW_BULLETIN] ⚠️ Aucune note trouvée en DB pour cet élève/trimestre');
+          console.warn('[PREVIEW_BULLETIN] ⚠️ Response pas OK:', response.status, response.statusText);
         }
       } catch (dbError) {
         console.warn('[PREVIEW_BULLETIN] ⚠️ Erreur récupération DB:', dbError);
       }
 
-      // ✅ VÉRIFIER DONNÉES MANUELLES SI PAS D'IMPORT
+      // ✅ VÉRIFIER DONNÉES MANUELLES EN SECOND RECOURS
       const hasManualData = Object.keys(manualGrades).length > 0;
-      const hasImportedData = importedGrades && importedGrades.subjects && importedGrades.subjects.length > 0;
+      const hasImportedData = importedGrades && (importedGrades.hasData || (importedGrades.subjects && importedGrades.subjects.length > 0));
       
-      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES:', {
+      console.log('[PREVIEW_BULLETIN] 🔍 ÉTAT DES DONNÉES FINAL:', {
         manualGrades: Object.keys(manualGrades).length,
-        importedGrades: hasImportedData ? importedGrades.subjects.length : 0,
+        importedGrades: hasImportedData ? (importedGrades.subjects?.length || 0) : 0,
         hasManualData,
-        hasImportedData
+        hasImportedData,
+        importedGradesHasData: importedGrades?.hasData
       });
 
       // ✅ UTILISER DONNÉES MANUELLES SI PAS D'IMPORT
       if (!hasImportedData && hasManualData) {
         console.log('[PREVIEW_BULLETIN] 🔄 Utilisation données manuelles à défaut d\'import');
         
-        // Créer un objet importedGrades depuis manualGrades pour l'aperçu
-        const manualSubjects = Object.keys(manualGrades)
-          .filter(key => manualGrades[key].grade != null && manualGrades[key].grade > 0)
-          .map(key => {
-            const grade = manualGrades[key];
-            return {
-              name: grade.subjectName || 'Matière',
-              grade: parseFloat(grade.grade),
-              coef: grade.coefficient || 1,
-              points: parseFloat(grade.grade) * (grade.coefficient || 1)
-            };
-          });
-          
+        // Convertir manualGrades en format aperçu
+        const manualSubjects = [];
+        const subjectMap = {};
+        
+        // Regrouper par matière
+        Object.keys(manualGrades).forEach(key => {
+          const grade = manualGrades[key];
+          if (grade.grade && grade.grade > 0) {
+            const parts = key.split('_');
+            const studentId = parts[0];
+            const subjectId = parts[1];
+            const term = parts[2];
+            
+            // Trouver la matière correspondante
+            const subject = classSubjects.find(s => s.id.toString() === subjectId);
+            if (subject) {
+              manualSubjects.push({
+                name: subject.name_fr,
+                grade: parseFloat(grade.grade),
+                coef: subject.coefficient,
+                points: parseFloat(grade.grade) * subject.coefficient,
+                teacherName: classTeachers.find(t => t.id === subject.teacher_id)?.name || 'Professeur',
+                comments: grade.comments || ''
+              });
+            }
+          }
+        });
+        
         if (manualSubjects.length > 0) {
           const totalPoints = manualSubjects.reduce((sum, s) => sum + s.points, 0);
           const totalCoef = manualSubjects.reduce((sum, s) => sum + s.coef, 0);
           const termAverage = totalCoef > 0 ? (totalPoints / totalCoef).toFixed(2) : '0';
           
-          setImportedGrades({
-            subjects: manualSubjects,
-            termAverage: parseFloat(termAverage),
-            termGrades: {}
+          // ✅ GÉNÉRER L'APERÇU DIRECTEMENT AVEC LES DONNÉES MANUELLES
+          setPreviewData({
+            ...formData,
+            subjectsGeneral: manualSubjects.map((subject: any) => ({
+              name: subject.name,
+              t1Grade: subject.grade,
+              t2Grade: 0,
+              t3Grade: 0,
+              coefficient: subject.coef,
+              total: subject.points,
+              position: 1,
+              averageMark: subject.grade,
+              remark: 'Satisfaisant',
+              teacherName: subject.teacherName,
+              comments: subject.comments
+            })),
+            generalAverage: parseFloat(termAverage),
+            classRank: 1,
+            totalStudents: students.length || 25
           });
           
-          console.log('[PREVIEW_BULLETIN] ✅ Données manuelles converties pour aperçu:', manualSubjects.length, 'matières');
+          setShowPreview(true);
+          
+          toast({
+            title: "✅ Aperçu généré (données manuelles)",
+            description: `${manualSubjects.length} matières - Moyenne: ${termAverage}/20`,
+            duration: 3000,
+          });
+          
+          console.log('[PREVIEW_BULLETIN] ✅ Aperçu généré avec données manuelles:', manualSubjects.length, 'matières');
+          return; // ✅ Aperçu prêt
         }
       }
 
-      // ✅ PROTECTION UI - Vérifier qu'on a des notes avant de continuer
+      // ✅ DERNIÈRE VÉRIFICATION: Aucune donnée disponible
       if (!hasImportedData && !hasManualData) {
-        console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible (ni importées, ni manuelles)');
+        console.warn('[PREVIEW_BULLETIN] ❌ Aucune note disponible après toutes vérifications');
         
         toast({
-          title: "⚠️ Aucune note disponible",
-          description: "Veuillez d'abord saisir et sauvegarder des notes pour ce trimestre",
+          title: "⚠️ Notes manquantes",
+          description: "Impossible de générer l'aperçu. Veuillez saisir des notes manuellement ou importer des notes depuis un fichier Excel.",
           variant: "destructive",
         });
-        return; // ✅ RETURN au lieu de throw - protection UI
+        return;
       }
 
       // Construire la même logique que createModularBulletin mais pour l'aperçu
