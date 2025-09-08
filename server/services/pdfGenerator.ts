@@ -598,7 +598,7 @@ export class PDFGenerator {
         doc.text('15.5', 100, yPosition);
         doc.text('20', 120, yPosition);
         doc.text('77.5%', 140, yPosition);
-        doc.text('Bon travail', 160, yPosition);
+        doc.text('', 160, yPosition);
         yPosition += 5;
         
         if (yPosition > 270) {
@@ -2972,7 +2972,7 @@ export class PDFGenerator {
       classRank: academicData.classRank || 1,
       totalStudents: academicData.totalStudents || 30,
       teacherComments: academicData.teacherComments || 'Élève sérieux(se).',
-      directorComments: academicData.directorComments || 'Bon travail, continuez !',
+      directorComments: academicData.directorComments || '',
       verificationCode: 'EDU2024-' + (studentData.fullName?.substring(0,3).toUpperCase() || 'STU') + '-' + (academicData.term || 'T1') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
       schoolBranding: {
         schoolName: schoolData.name || 'École Educafric',
