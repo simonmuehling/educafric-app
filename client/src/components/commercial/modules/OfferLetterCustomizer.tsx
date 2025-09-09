@@ -190,13 +190,17 @@ Educafric.com by Afro Metaverse
                                                                                        INFO@AFROMETAVERSE.ONLINE
 
 
-                                                                                           [CACHET OFFICIEL]
-                                                                                         ══════════════════
-                                                                                         EDUCAFRIC.COM
-                                                                                      by Afro Metaverse
-                                                                                      RC/YAE/2023/B/1361
-                                                                                      NIU:M032318079876K
-                                                                                         ══════════════════`;
+                                                                                              ●●●●●●●●●●●●●●●●●●●●
+                                                                                          ●●●  EDUCAFRIC.COM  ●●●
+                                                                                        ●●●                      ●●●
+                                                                                      ●●●    by Afro Metaverse    ●●●
+                                                                                     ●●●                            ●●●
+                                                                                    ●●●           ab                ●●●
+                                                                                     ●●●                            ●●●
+                                                                                      ●●●  RC/YAE/2023/B/1361  ●●●
+                                                                                        ●●●                      ●●●
+                                                                                          ●●●  NIU:M032318079876K ●●●
+                                                                                              ●●●●●●●●●●●●●●●●●●●●`;
   };
 
   const text = {
