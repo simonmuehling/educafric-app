@@ -9,14 +9,14 @@ import { storage } from '../storage';
 import { z } from 'zod';
 
 // Unified connection types
-export type ConnectionType = 'student-parent' | 'teacher-student' | 'family' | 'partnership';
+export type ConnectionType = 'student-parent' | 'teacher-student' | 'teacher-school' | 'family' | 'partnership';
 
 // Unified message schema - replaces all duplicated schemas
 export const unifiedMessageSchema = z.object({
   connectionId: z.number(),
   message: z.string().min(1, 'Message cannot be empty'),
   messageType: z.enum(['text', 'homework', 'grade', 'attendance', 'emergency', 'general']).default('text'),
-  connectionType: z.enum(['student-parent', 'teacher-student', 'family', 'partnership']),
+  connectionType: z.enum(['student-parent', 'teacher-student', 'teacher-school', 'family', 'partnership']),
   
   // Optional features for different connection types
   parentCcEnabled: z.boolean().optional(),
@@ -47,7 +47,7 @@ export const unifiedMessageSchema = z.object({
 
 export const markMessageReadSchema = z.object({
   messageId: z.number(),
-  connectionType: z.enum(['student-parent', 'teacher-student', 'family', 'partnership'])
+  connectionType: z.enum(['student-parent', 'teacher-student', 'teacher-school', 'family', 'partnership'])
 });
 
 export class UnifiedMessagingController {
