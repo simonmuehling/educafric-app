@@ -1112,6 +1112,20 @@ export default function BulletinManagementUnified() {
     }
   }, [manualGradeClass]);
 
+  // ✅ FONCTION POUR ADAPTER LES BOUTONS AU TRIMESTRE
+  const getTermDisplayText = (term: string) => {
+    switch (term) {
+      case 'Premier Trimestre':
+        return { short: 'T1', full: '1er Trimestre' };
+      case 'Deuxième Trimestre':
+        return { short: 'T2', full: '2ème Trimestre' };
+      case 'Troisième Trimestre':
+        return { short: 'T3', full: '3ème Trimestre' };
+      default:
+        return { short: 'T1', full: '1er Trimestre' };
+    }
+  };
+
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
@@ -2680,7 +2694,7 @@ export default function BulletinManagementUnified() {
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              Aperçu T1
+                              Aperçu {getTermDisplayText(formData.term).short}
                             </Button>
                             
                             <Button 
@@ -2733,7 +2747,7 @@ export default function BulletinManagementUnified() {
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <FileText className="w-4 h-4 mr-1" />
-                              Créer Bulletin T1
+                              Créer Bulletin {getTermDisplayText(formData.term).short}
                             </Button>
                           </div>
                         </div>
