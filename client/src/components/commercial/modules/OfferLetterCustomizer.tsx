@@ -270,7 +270,7 @@ const OfferLetterCustomizer: React.FC = () => {
             const dataURL = canvas.toDataURL('image/png');
             
             // Add image to PDF (positioned under signature)
-            doc.addImage(dataURL, 'PNG', 20, yPosition + 15, 25, 25);
+            doc.addImage(dataURL, 'PNG', 20, yPosition + 15, 32, 32);
             
             // Add footer contacts
             doc.setFontSize(8);
