@@ -63,11 +63,7 @@ export default function FunctionalTeacherAttendanceSecure() {
         headers['Idempotency-Key'] = idempotencyKey;
       }
       
-      return await apiRequest('/api/teacher/attendance', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(data)
-      });
+      return await apiRequest('POST', '/api/teacher/attendance', data);
     },
     onSuccess: (response) => {
       toast({
