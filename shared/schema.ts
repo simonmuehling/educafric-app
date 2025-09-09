@@ -449,3 +449,25 @@ export const signatures = pgTable("signatures", {
 
 export type InsertSignature = typeof signatures.$inferInsert;
 export type Signature = typeof signatures.$inferSelect;
+
+// Offer Letter Templates Table
+export const offerLetterTemplates = pgTable("offer_letter_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  templateName: text("template_name").notNull(),
+  commercialPhone: text("commercial_phone").notNull(),
+  recipientTitle: text("recipient_title").notNull(),
+  schoolName: text("school_name").notNull(),
+  schoolAddress: text("school_address").notNull(),
+  salutation: text("salutation").notNull(),
+  signatureName: text("signature_name").notNull(),
+  signatureFunction: text("signature_function").notNull(),
+  customFields: jsonb("custom_fields"), // For email, secondaryPhone, department
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const insertOfferLetterTemplateSchema = createInsertSchema(offerLetterTemplates);
+export type InsertOfferLetterTemplate = z.infer<typeof insertOfferLetterTemplateSchema>;
+export type OfferLetterTemplate = typeof offerLetterTemplates.$inferSelect;
