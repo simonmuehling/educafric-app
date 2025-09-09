@@ -47,9 +47,26 @@ const FunctionalTeacherAttendance: React.FC = () => {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch teacher classes');
-      return response.json();
+      const result = await response.json();
+      // Handle both array and object response structures
+      return Array.isArray(result) ? result : (result?.schoolsWithClasses?.flatMap((school: any) => school.classes) || []);
     },
     enabled: !!user
+  });
+
+  // Fetch students for selected class
+  const { data: classStudents = [], isLoading: studentsLoading } = useQuery<any[]>({
+    queryKey: ['/api/teacher/students', attendanceForm.classId],
+    queryFn: async () => {
+      if (!attendanceForm.classId) return [];
+      const response = await fetch(`/api/teacher/students?classId=${attendanceForm.classId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch class students');
+      const result = await response.json();
+      return Array.isArray(result) ? result : (result?.students || []);
+    },
+    enabled: !!user && !!attendanceForm.classId
   });
 
   // Fetch teacher attendance data from PostgreSQL API
@@ -96,7 +113,7 @@ const FunctionalTeacherAttendance: React.FC = () => {
   });
 
   const handleMarkAttendance = () => {
-    if (attendanceForm.classId && attendanceForm.date && attendanceForm.subject) {
+    if (attendanceForm.classId && attendanceForm.date && attendanceForm.subject && attendanceForm.students.length > 0) {
       markAttendanceMutation.mutate({
         classId: parseInt(attendanceForm.classId),
         date: attendanceForm.date,
@@ -105,6 +122,31 @@ const FunctionalTeacherAttendance: React.FC = () => {
         notes: attendanceForm.notes
       });
     }
+  };
+
+  // Update students list when class changes
+  React.useEffect(() => {
+    if (classStudents.length > 0) {
+      const studentsWithStatus = classStudents.map((student: any) => ({
+        id: student.id,
+        name: student.name || student.firstName + ' ' + student.lastName,
+        status: 'present' // Default to present
+      }));
+      setAttendanceForm(prev => ({ ...prev, students: studentsWithStatus }));
+    } else {
+      setAttendanceForm(prev => ({ ...prev, students: [] }));
+    }
+  }, [classStudents]);
+
+  const toggleStudentStatus = (studentId: number) => {
+    setAttendanceForm(prev => ({
+      ...prev,
+      students: prev.students.map(student => 
+        student.id === studentId 
+          ? { ...student, status: student.status === 'present' ? 'absent' : 'present' }
+          : student
+      )
+    }));
   };
 
   const text = {
@@ -397,19 +439,69 @@ const FunctionalTeacherAttendance: React.FC = () => {
                       className="w-full border rounded-md px-3 py-2"
                     />
                   </div>
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-sm text-gray-600 mb-2">Info:</p>
-                    <p className="text-xs text-gray-500">
-                      La liste des élèves sera automatiquement chargée pour la classe sélectionnée.
-                    </p>
-                  </div>
+                  {/* Liste des élèves pour marquer les présences */}
+                  {attendanceForm.classId && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-medium text-gray-700">Élèves de la classe:</p>
+                        {studentsLoading && (
+                          <div className="text-xs text-blue-600">Chargement des élèves...</div>
+                        )}
+                      </div>
+                      
+                      {attendanceForm.students.length > 0 ? (
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {attendanceForm.students.map((student) => (
+                            <div 
+                              key={student.id}
+                              className={`flex items-center justify-between p-2 rounded border cursor-pointer transition-colors ${
+                                student.status === 'present' 
+                                  ? 'bg-green-50 border-green-200' 
+                                  : 'bg-red-50 border-red-200'
+                              }`}
+                              onClick={() => toggleStudentStatus(student.id)}
+                            >
+                              <span className="text-sm font-medium">{student.name}</span>
+                              <div className="flex items-center">
+                                {student.status === 'present' ? (
+                                  <div className="flex items-center text-green-600">
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    <span className="text-xs">Présent</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center text-red-600">
+                                    <XCircle className="w-4 h-4 mr-1" />
+                                    <span className="text-xs">Absent</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : attendanceForm.classId && !studentsLoading ? (
+                        <p className="text-xs text-gray-500">Aucun élève trouvé dans cette classe.</p>
+                      ) : !studentsLoading ? (
+                        <p className="text-xs text-gray-500">Sélectionnez une classe pour voir les élèves.</p>
+                      ) : null}
+                      
+                      {attendanceForm.students.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-gray-200">
+                          <div className="flex justify-between text-xs text-gray-600">
+                            <span>Présents: {attendanceForm.students.filter(s => s.status === 'present').length}</span>
+                            <span>Absents: {attendanceForm.students.filter(s => s.status === 'absent').length}</span>
+                            <span>Total: {attendanceForm.students.length}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex gap-2 pt-4">
                     <Button 
                       onClick={handleMarkAttendance}
-                      disabled={markAttendanceMutation.isPending || !attendanceForm.classId || !attendanceForm.date || !attendanceForm.subject}
+                      disabled={markAttendanceMutation.isPending || !attendanceForm.classId || !attendanceForm.date || !attendanceForm.subject || attendanceForm.students.length === 0}
                       className="flex-1 bg-green-600 hover:bg-green-700"
                     >
-                      {markAttendanceMutation.isPending ? 'Enregistrement...' : 'Marquer Présences'}
+                      {markAttendanceMutation.isPending ? 'Enregistrement...' : `Marquer Présences (${attendanceForm.students.length} élèves)`}
                     </Button>
                     <Button 
                       onClick={() => setIsMarkAttendanceOpen(false)}
