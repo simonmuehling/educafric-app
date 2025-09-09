@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Calendar, Clock, MapPin, Users, BookOpen, 
-  Plus, Edit, Trash2, Download, Filter, TrendingUp, Eye
+  Plus, Edit, Trash2, Download, Filter, TrendingUp, Eye, LogOut, School
 } from 'lucide-react';
 
 interface TimetableSlot {
@@ -42,13 +42,21 @@ interface Subject {
   color: string;
 }
 
+interface School {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+}
+
 const TimetableView: React.FC = () => {
   const { language } = useLanguage();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
   const [selectedWeek, setSelectedWeek] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedSchool, setSelectedSchool] = useState<string>('all');
   const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
   const [editingSlot, setEditingSlot] = useState<TimetableSlot | null>(null);
   const [slotForm, setSlotForm] = useState({
@@ -60,12 +68,36 @@ const TimetableView: React.FC = () => {
     classroom: ''
   });
 
-  // Fetch timetable from API
+  // Fetch schools where teacher teaches
+  const { data: schoolsData = [], isLoading: schoolsLoading } = useQuery<School[]>({
+    queryKey: ['/api/teacher/schools'],
+    queryFn: async () => {
+      console.log('[TIMETABLE_VIEW] 🔍 Fetching teacher schools...');
+      const response = await fetch('/api/teacher/schools', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error('[TIMETABLE_VIEW] ❌ Failed to fetch schools');
+        throw new Error('Failed to fetch schools');
+      }
+      const data = await response.json();
+      console.log('[TIMETABLE_VIEW] ✅ Schools loaded:', data.length);
+      return data.success ? data.schools : [];
+    },
+    enabled: !!user,
+    retry: 2
+  });
+
+  // Fetch timetable from API (filtered by school if selected)
   const { data: timetableData = [], isLoading: timetableLoading } = useQuery<TimetableSlot[]>({
-    queryKey: ['/api/teacher/timetable', selectedWeek],
+    queryKey: ['/api/teacher/timetable', selectedWeek, selectedSchool],
     queryFn: async () => {
       console.log('[TIMETABLE_VIEW] 🔍 Fetching timetable...');
-      const response = await fetch(`/api/teacher/timetable?week=${selectedWeek}`, {
+      const params = new URLSearchParams({ week: selectedWeek });
+      if (selectedSchool !== 'all') {
+        params.append('schoolId', selectedSchool);
+      }
+      const response = await fetch(`/api/teacher/timetable?${params}`, {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -176,10 +208,14 @@ const TimetableView: React.FC = () => {
   const text = {
     fr: {
       title: 'Emploi du Temps',
-      subtitle: 'Consultez et gérez votre emploi du temps',
+      subtitle: 'Consultez et gérez vos emplois du temps dans toutes vos écoles',
       loading: 'Chargement de l\'emploi du temps...',
       noData: 'Aucun cours programmé',
       weekSelector: 'Semaine du',
+      schoolSelector: 'École',
+      allSchools: 'Toutes les écoles',
+      logout: 'Déconnexion',
+      logoutConfirm: 'Êtes-vous sûr de vouloir vous déconnecter ?',
       stats: {
         totalClasses: 'Cours Totaux',
         hoursPerWeek: 'Heures/Semaine',
@@ -215,10 +251,14 @@ const TimetableView: React.FC = () => {
     },
     en: {
       title: 'Timetable',
-      subtitle: 'View and manage your timetable',
+      subtitle: 'View and manage your timetables across all your schools',
       loading: 'Loading timetable...',
       noData: 'No classes scheduled',
       weekSelector: 'Week of',
+      schoolSelector: 'School',
+      allSchools: 'All schools',
+      logout: 'Logout',
+      logoutConfirm: 'Are you sure you want to logout?',
       stats: {
         totalClasses: 'Total Classes',
         hoursPerWeek: 'Hours/Week',
@@ -324,7 +364,25 @@ const TimetableView: React.FC = () => {
     return colors[index];
   };
 
-  if (timetableLoading || classesLoading || subjectsLoading) {
+  const handleLogout = async () => {
+    if (confirm(t.logoutConfirm)) {
+      try {
+        await logout();
+        toast({
+          title: language === 'fr' ? 'Déconnexion réussie' : 'Logout Successful',
+          description: language === 'fr' ? 'Vous avez été déconnecté avec succès.' : 'You have been logged out successfully.'
+        });
+      } catch (error) {
+        toast({
+          title: language === 'fr' ? 'Erreur de déconnexion' : 'Logout Error',
+          description: language === 'fr' ? 'Impossible de se déconnecter.' : 'Failed to logout.',
+          variant: 'destructive'
+        });
+      }
+    }
+  };
+
+  if (timetableLoading || classesLoading || subjectsLoading || schoolsLoading) {
     return (
       <div className="p-8 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -336,18 +394,39 @@ const TimetableView: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t.title || ''}</h1>
           <p className="text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Sélection école */}
+          <div className="flex items-center gap-2">
+            <School className="w-4 h-4 text-gray-500" />
+            <Select value={selectedSchool} onValueChange={setSelectedSchool}>
+              <SelectTrigger className="w-auto min-w-[180px]">
+                <SelectValue placeholder={t.schoolSelector} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.allSchools}</SelectItem>
+                {(Array.isArray(schoolsData) ? schoolsData : []).map(school => (
+                  <SelectItem key={school.id} value={school.id.toString()}>
+                    {school.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Sélection semaine */}
           <Input
             type="week"
             value={selectedWeek.substring(0, 10)}
             onChange={(e) => setSelectedWeek(e?.target?.value)}
             className="w-auto"
           />
+          
+          {/* Boutons d'action */}
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
             {t?.actions?.export}
@@ -358,6 +437,16 @@ const TimetableView: React.FC = () => {
           >
             <Plus className="w-4 h-4 mr-2" />
             {t?.actions?.addSlot}
+          </Button>
+          
+          {/* Bouton déconnexion */}
+          <Button 
+            onClick={handleLogout}
+            variant="outline"
+            className="text-red-600 border-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            {t.logout}
           </Button>
         </div>
       </div>
