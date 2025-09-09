@@ -617,8 +617,8 @@ export class ModularTemplateGenerator {
         .subjects-table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 6px;
-          font-size: 7px;
+          margin-bottom: 4px;
+          font-size: 6px;
         }
         
         .subjects-table th,
@@ -841,7 +841,7 @@ export class ModularTemplateGenerator {
               <thead>
                 <tr>
                   <th>Matière</th>
-                  ${currentTerm === 'T3' ? '<th>T1</th><th>T2</th><th>T3</th><th>Moy.Ann</th>' : '<th>Note/20</th>'}
+                  <th>Note/20</th>
                   <th>Coef</th>
                   <th>Points</th>
                   <th>Enseignant</th>
@@ -855,21 +855,15 @@ export class ModularTemplateGenerator {
                   const teacherName = subject.teacherName || subject.teacher || 'Non assigné';
                   const remark = subject.comments || subject.remark || '';
                   
-                  if (currentTerm === 'T3' && (subject.t1 !== undefined || subject.t2 !== undefined || subject.t3 !== undefined)) {
-                    // FORMAT T3 AVEC MOYENNES ANNUELLES
-                    const t1 = subject.t1 || 0;
-                    const t2 = subject.t2 || 0;
-                    const t3 = subject.t3 || subject.grade || 0;
-                    const avgAnnual = subject.avgAnnual || ((t1 + t2 + t3) / 3);
-                    const points = (avgAnnual * coefficient).toFixed(1);
+                  if (currentTerm === 'T3') {
+                    // FORMAT T3 - SEULEMENT LES NOTES T3
+                    const t3Grade = subject.t3 || subject.grade || 0;
+                    const points = (t3Grade * coefficient).toFixed(1);
                     
                     return `
                       <tr>
                         <td style="text-align: left; font-weight: bold;">${subject.name}</td>
-                        <td>${t1.toFixed(1)}</td>
-                        <td>${t2.toFixed(1)}</td>
-                        <td>${t3.toFixed(1)}</td>
-                        <td><strong>${avgAnnual.toFixed(1)}</strong></td>
+                        <td>${t3Grade.toFixed(1)}</td>
                         <td>${coefficient}</td>
                         <td>${points}</td>
                         <td style="text-align: left; font-size: 7px;">${teacherName}</td>
