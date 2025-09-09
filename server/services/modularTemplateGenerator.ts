@@ -143,8 +143,8 @@ export class ModularTemplateGenerator {
     return 'T1'; // Default
   }
 
-  // Génération de l'en-tête officiel camerounais avec informations de l'école
-  private generateEducafricHeader(schoolInfo: SchoolInfo, documentType: string, language: 'fr' | 'en' = 'fr'): string {
+  // Génération de l'en-tête optimisé avec informations élève à droite
+  private generateEducafricHeader(schoolInfo: SchoolInfo, documentType: string, language: 'fr' | 'en' = 'fr', studentData?: any): string {
     const titles = {
       fr: {
         bulletin: 'BULLETIN DE NOTES',
@@ -170,38 +170,77 @@ export class ModularTemplateGenerator {
     const titleText = titles[currentLang][documentType as keyof typeof titles[typeof currentLang]] || documentType.toUpperCase();
     
     return `
-      <div class="educafric-header">
-        <div class="official-header">
-          <div class="cameroon-header">
-            <div class="official-left">
-              <p class="republic"><strong>RÉPUBLIQUE DU CAMEROUN</strong></p>
-              <p class="motto"><em>Paix - Travail - Patrie</em></p>
-              <p class="ministry"><strong>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</strong></p>
-              <p class="delegation"><strong>DÉLÉGATION RÉGIONALE ${schoolInfo.regionalDelegation}</strong></p>
-              <p class="delegation"><strong>DÉLÉGATION DÉPARTEMENTALE ${schoolInfo.departmentalDelegation}</strong></p>
+      <div class="educafric-header-compact">
+        <div class="header-main-layout">
+          <!-- SECTION GAUCHE: Infos officielles + École -->
+          <div class="header-left-section">
+            <div class="official-compact">
+              <p class="republic-compact"><strong>RÉPUBLIQUE DU CAMEROUN</strong></p>
+              <p class="motto-compact"><em>Paix - Travail - Patrie</em></p>
+              <p class="ministry-compact"><strong>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</strong></p>
+              <p class="delegation-compact"><strong>DÉLÉGATION RÉGIONALE ${schoolInfo.regionalDelegation}</strong></p>
+              <p class="delegation-compact"><strong>DÉLÉGATION DÉPARTEMENTALE ${schoolInfo.departmentalDelegation}</strong></p>
             </div>
-            <div class="logos-section">
-              <div class="logo-placeholder">
-                ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-img" />` : '<div class="logo-box">LOGO<br>ÉCOLE</div>'}
+            
+            <div class="school-compact">
+              <h2 class="school-name-compact">${schoolInfo.schoolName}</h2>
+              <p class="school-contact-compact">Tél: ${schoolInfo.phoneNumber} • ${schoolInfo.address}</p>
+              <h3 class="document-title-compact">${titleText}</h3>
+              <p class="academic-period-compact">${language === 'fr' ? 'Année Scolaire' : 'Academic Year'}: ${schoolInfo.academicYear}</p>
+            </div>
+          </div>
+          
+          <!-- SECTION DROITE: Photo + Infos élève -->
+          ${studentData ? `
+          <div class="header-right-section">
+            <div class="student-card-compact">
+              <div class="student-photo-section">
+                ${studentData.photo ? 
+                  `<img src="${studentData.photo}" alt="Photo élève" class="student-photo-compact" />` : 
+                  '<div class="photo-placeholder-compact">PHOTO<br>ÉLÈVE</div>'
+                }
+              </div>
+              
+              <div class="student-details-compact">
+                <h4 class="student-name-compact">${studentData.firstName} ${studentData.lastName}</h4>
+                <div class="student-info-grid">
+                  <div class="info-item-compact">
+                    <span class="label-compact">Né(e) le:</span>
+                    <span class="value-compact">${studentData.birthDate}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="label-compact">À:</span>
+                    <span class="value-compact">${studentData.birthPlace}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="label-compact">Classe:</span>
+                    <span class="value-compact">${studentData.className}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="label-compact">Matricule:</span>
+                    <span class="value-compact">${studentData.studentNumber}</span>
+                  </div>
+                  <div class="info-item-compact">
+                    <span class="label-compact">Sexe:</span>
+                    <span class="value-compact">${studentData.gender}</span>
+                  </div>
+                  ${studentData.isRepeater ? `
+                  <div class="info-item-compact">
+                    <span class="label-compact" style="color: #dc2626;">Redoublant:</span>
+                    <span class="value-compact" style="color: #dc2626; font-weight: bold;">OUI</span>
+                  </div>
+                  ` : ''}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <div class="school-info-section">
-          <div class="school-details">
-            <h2 class="school-name">${schoolInfo.schoolName}</h2>
-            <p class="school-contact">Tél: ${schoolInfo.phoneNumber}</p>
-            <p class="school-address">${schoolInfo.address}</p>
+          ` : `
+          <div class="header-right-section">
+            <div class="logo-section-compact">
+              ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-compact" />` : '<div class="logo-box-compact">LOGO<br>ÉCOLE</div>'}
+            </div>
           </div>
-        </div>
-        
-        <div class="document-title-section">
-          <h2 class="document-title">${titleText}</h2>
-        </div>
-        
-        <div class="period-section">
-          <p class="academic-period">${language === 'fr' ? 'Période' : 'Period'}: ${schoolInfo.academicYear}</p>
+          `}
         </div>
       </div>
     `;
@@ -218,8 +257,8 @@ export class ModularTemplateGenerator {
         
         body {
           font-family: Arial, sans-serif;
-          font-size: 10px;
-          line-height: 1.2;
+          font-size: 9px;
+          line-height: 1.1;
           margin: 0;
           padding: 0;
           color: #000;
@@ -233,80 +272,196 @@ export class ModularTemplateGenerator {
           background: white;
         }
         
-        .educafric-header {
+        /* NOUVEAU LAYOUT COMPACT OPTIMISÉ A4 */
+        .educafric-header-compact {
           border-bottom: 2px solid #000;
-          padding-bottom: 10px;
-          margin-bottom: 15px;
-        }
-        
-        .official-header {
+          padding-bottom: 8px;
           margin-bottom: 10px;
         }
         
-        .cameroon-header {
+        .header-main-layout {
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          margin-bottom: 10px;
+          gap: 15px;
         }
         
-        .official-left {
+        .header-left-section {
+          flex: 2;
+          max-width: 60%;
+        }
+        
+        .header-right-section {
           flex: 1;
+          max-width: 38%;
         }
         
-        .republic {
-          font-size: 12px;
+        /* SECTION OFFICIELLE COMPACTE */
+        .official-compact {
+          margin-bottom: 8px;
+        }
+        
+        .republic-compact {
+          font-size: 11px;
           font-weight: bold;
-          margin: 0 0 2px 0;
-          text-align: left;
+          margin: 0 0 1px 0;
+          line-height: 1.1;
         }
         
-        .motto {
-          font-size: 10px;
-          margin: 0 0 5px 0;
-          text-align: left;
+        .motto-compact {
+          font-size: 9px;
+          margin: 0 0 3px 0;
+          line-height: 1.1;
         }
         
-        .ministry {
-          font-size: 10px;
-          font-weight: bold;
-          margin: 0 0 2px 0;
-          text-align: left;
-        }
-        
-        .delegation {
+        .ministry-compact {
           font-size: 9px;
           font-weight: bold;
           margin: 0 0 1px 0;
-          text-align: left;
+          line-height: 1.1;
         }
         
-        .logos-section {
-          display: flex;
-          gap: 15px;
-          align-items: center;
+        .delegation-compact {
+          font-size: 8px;
+          font-weight: bold;
+          margin: 0 0 1px 0;
+          line-height: 1.1;
         }
         
-        .logo-placeholder {
+        /* ÉCOLE COMPACTE */
+        .school-compact {
+          margin-top: 5px;
+        }
+        
+        .school-name-compact {
+          font-size: 13px;
+          font-weight: bold;
+          margin: 0 0 2px 0;
+          color: #1e40af;
+          line-height: 1.2;
+        }
+        
+        .school-contact-compact {
+          font-size: 8px;
+          margin: 0 0 3px 0;
+          line-height: 1.1;
+        }
+        
+        .document-title-compact {
+          font-size: 14px;
+          font-weight: bold;
+          margin: 5px 0 2px 0;
           text-align: center;
+          color: #1e40af;
+          background: linear-gradient(135deg, #f0f9ff, #dbeafe);
+          padding: 4px 8px;
+          border-radius: 4px;
+          border: 1px solid #3b82f6;
         }
         
-        .school-logo-img {
-          max-height: 50px;
-          max-width: 60px;
+        .academic-period-compact {
+          font-size: 9px;
+          margin: 2px 0 0 0;
+          text-align: center;
+          font-weight: bold;
+        }
+        
+        /* CARTE ÉLÈVE COMPACTE */
+        .student-card-compact {
+          border: 2px solid #1e40af;
+          border-radius: 8px;
+          padding: 8px;
+          background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+        
+        .student-photo-section {
+          text-align: center;
+          margin-bottom: 6px;
+        }
+        
+        .student-photo-compact {
+          width: 70px;
+          height: 90px;
+          object-fit: cover;
+          border: 2px solid #374151;
+          border-radius: 4px;
+        }
+        
+        .photo-placeholder-compact {
+          width: 70px;
+          height: 90px;
+          border: 2px solid #374151;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f3f4f6;
+          font-size: 8px;
+          font-weight: bold;
+          text-align: center;
+          line-height: 1.1;
+          color: #6b7280;
+          margin: 0 auto;
+        }
+        
+        .student-name-compact {
+          font-size: 12px;
+          font-weight: bold;
+          margin: 0 0 5px 0;
+          text-align: center;
+          color: #1e40af;
+          line-height: 1.2;
+        }
+        
+        .student-info-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2px;
+        }
+        
+        .info-item-compact {
+          display: flex;
+          justify-content: space-between;
+          font-size: 7px;
+          line-height: 1.3;
+          padding: 1px 0;
+        }
+        
+        .label-compact {
+          font-weight: bold;
+          color: #374151;
+        }
+        
+        .value-compact {
+          color: #1f2937;
+          text-align: right;
+        }
+        
+        /* LOGO SECTION */
+        .logo-section-compact {
+          text-align: center;
+          padding: 20px;
+        }
+        
+        .school-logo-compact {
+          max-height: 80px;
+          max-width: 100px;
           border: 1px solid #000;
         }
         
-        .logo-box {
-          width: 60px;
-          height: 50px;
+        .logo-box-compact {
+          width: 80px;
+          height: 60px;
           border: 1px solid #000;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 8px;
+          font-weight: bold;
           text-align: center;
           line-height: 1.1;
+          color: #6b7280;
+          margin: 0 auto;
         }
         
         .school-info-section {
@@ -560,7 +715,7 @@ export class ModularTemplateGenerator {
 
   // Génération de bulletin modulable avec gestion correcte des trimestres
   generateBulletinTemplate(data: BulletinTemplateData, language: 'fr' | 'en' = 'fr'): string {
-    const header = this.generateEducafricHeader(data.schoolInfo, 'bulletin', language);
+    const header = this.generateEducafricHeader(data.schoolInfo, 'bulletin', language, data.student);
     const styles = this.getCommonStyles();
     
     // ✅ DÉTERMINER LE TRIMESTRE ACTUEL depuis la période
@@ -631,43 +786,10 @@ export class ModularTemplateGenerator {
         <div class="document-container">
           ${header}
           
-          <div class="student-header-section">
-            <div class="student-info-left">
-              <div class="info-row">
-                <span class="info-label">Élève:</span>
-                <span class="info-value">${data.student.firstName} ${data.student.lastName}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Classe:</span>
-                <span class="info-value">${data.student.className}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Matricule:</span>
-                <span class="info-value">${data.student.studentNumber}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Né(e) le:</span>
-                <span class="info-value">${data.student.birthDate}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Sexe:</span>
-                <span class="info-value">${data.student.gender}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Lieu de naissance:</span>
-                <span class="info-value">${data.student.birthPlace}</span>
-              </div>
-            </div>
-            <div class="student-photo-section">
-              ${data.student.photo ? 
-                `<img src="${data.student.photo}" alt="Photo élève" class="student-photo" />` : 
-                '<div class="photo-placeholder">PHOTO</div>'
-              }
-            </div>
-          </div>
+          <!-- INFORMATIONS ÉLÈVE DÉJÀ INTÉGRÉES DANS L'EN-TÊTE COMPACT -->
           
-          <div class="period-info">
-            <p><strong>Période: ${data.period}</strong></p>
+          <div class="period-info-compact">
+            <p style="text-align: center; font-weight: bold; color: #1e40af; margin: 5px 0; padding: 5px; background: #f0f9ff; border-radius: 4px; font-size: 11px;">${data.period}</p>
           </div>
 
           <div class="content-section">
