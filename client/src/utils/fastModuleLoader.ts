@@ -149,6 +149,7 @@ class FastModuleLoader {
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
+      'teacher-absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       
       // Additional Teacher module aliases
       'FunctionalMyClasses': () => import('@/components/teacher/modules/FunctionalMyClasses'),
@@ -338,7 +339,7 @@ class FastModuleLoader {
       'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance',
       
       // Teacher modules
-      'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-content', 'teacher-reports', 'teacher-communications',
+      'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-content', 'teacher-reports', 'teacher-communications', 'teacher-absence-declaration',
       
       // Freelancer modules
       'freelancer-students', 'sessions', 'schedule', 'resources', 'freelancer-communications',

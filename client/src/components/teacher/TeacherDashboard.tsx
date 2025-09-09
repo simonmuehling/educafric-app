@@ -193,6 +193,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       content: 'Contenu Pédagogique',
       reports: 'Bulletins',
       communications: 'Communications',
+      absenceDeclaration: 'Déclarer Absence',
       profile: 'Profil',
       multirole: 'Multi-Rôles',
       notifications: 'Notifications',
@@ -209,6 +210,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       content: 'Educational Content',
       reports: 'Report Cards',
       communications: 'Communications',
+      absenceDeclaration: 'Declare Absence',
       profile: 'Profile',
       notifications: 'Notifications',
       multirole: 'Multi-Roles',
@@ -274,6 +276,13 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-red-500',
       component: createDynamicModule('teacher-communications')
+    },
+    {
+      id: 'absence-declaration',
+      label: t.absenceDeclaration,
+      icon: <UserX className="w-6 h-6" />,
+      color: 'bg-orange-600',
+      component: createDynamicModule('teacher-absence-declaration')
     },
 
     {
