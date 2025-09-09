@@ -228,13 +228,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       component: createDynamicModule('teacher-grades')
     },
     {
-      id: 'mobile-grades',
-      label: '📱 Saisie Mobile',
-      icon: <BarChart3 className="w-6 h-6" />,
-      color: 'bg-blue-600',
-      component: createDynamicModule('mobile-grades')
-    },
-    {
       id: 'assignments',
       label: t.assignments,
       icon: <FileText className="w-6 h-6" />,

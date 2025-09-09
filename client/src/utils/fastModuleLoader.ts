@@ -160,8 +160,6 @@ class FastModuleLoader {
       'ReportCards': () => import('@/components/teacher/modules/ReportCardManagement'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
-      'MobileGradeInput': () => import('@/components/teacher/modules/MobileGradeInput'),
-      'mobile-grades': () => import('@/components/teacher/modules/MobileGradeInput'), // Alias pour interface mobile
       
       // =============================================
       // 🎓 FREELANCER MODULES - SEPARATE SECTION
