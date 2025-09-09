@@ -107,18 +107,27 @@ const ReportCardManagement: React.FC = () => {
   // Fetch teacher classes and students
   const { data: teacherClasses } = useQuery({
     queryKey: ['/api/teacher/classes'],
-    queryFn: () => apiRequest('GET', '/api/teacher/classes')
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/teacher/classes');
+      return await response.json();
+    }
   });
 
   const { data: classStudents } = useQuery({
     queryKey: ['/api/teacher/students', selectedClass],
-    queryFn: () => apiRequest('GET', `/api/teacher/students?classId=${selectedClass}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/teacher/students?classId=${selectedClass}`);
+      return await response.json();
+    },
     enabled: !!selectedClass
   });
 
   const { data: studentAttendance } = useQuery({
     queryKey: ['/api/teacher/student-attendance', selectedStudent, selectedPeriod],
-    queryFn: () => apiRequest('GET', `/api/teacher/student-attendance?studentId=${selectedStudent}&period=${selectedPeriod}`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/teacher/student-attendance?studentId=${selectedStudent}&period=${selectedPeriod}`);
+      return await response.json();
+    },
     enabled: !!selectedStudent && !!selectedPeriod
   });
 
@@ -160,7 +169,10 @@ const ReportCardManagement: React.FC = () => {
   // Fetch existing bulletins
   const { data: bulletins, isLoading } = useQuery({
     queryKey: ['/api/bulletins', selectedClass, selectedPeriod],
-    queryFn: () => apiRequest('GET', `/api/bulletins?classId=${selectedClass}&term=${selectedPeriod}`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/bulletins?classId=${selectedClass}&term=${selectedPeriod}`);
+      return await response.json();
+    }
   });
 
   // Add new grade row
@@ -252,8 +264,10 @@ const ReportCardManagement: React.FC = () => {
 
   // Mutations for bulletin operations
   const saveBulletinMutation = useMutation({
-    mutationFn: (data: { bulletinData: BulletinData; action: 'save' | 'submit' | 'publish' }) =>
-      apiRequest('POST', '/api/bulletins/create', data),
+    mutationFn: async (data: { bulletinData: BulletinData; action: 'save' | 'submit' | 'publish' }) => {
+      const response = await apiRequest('POST', '/api/bulletins/create', data);
+      return await response.json();
+    },
     onSuccess: (_, variables) => {
       toast({
         title: variables.action === 'save' ? 'Brouillon sauvegardé' : 
