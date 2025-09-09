@@ -57,7 +57,7 @@ self.addEventListener('fetch', (event) => {
   
   // 🚫 CRITICAL: Filter non-web protocols to prevent cache errors
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    console.log('[SW] Ignoring non-web protocol:', url.protocol);
+    // Silently ignore non-web protocols (chrome-extension, etc.) without logging
     return;
   }
   

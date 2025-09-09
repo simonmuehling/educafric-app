@@ -26,7 +26,8 @@ export const assetOptimizationMiddleware = (req: Request, res: Response, next: N
     
     // Add resource hints for better loading performance
     if (req.url.includes('main') || req.url.includes('vendor') || req.url.includes('index')) {
-      res.setHeader('Link', '</api/preload-hints>; rel=preload; as=script');
+      // Note: Preload hints removed as /api/preload-hints endpoint doesn't exist
+      res.setHeader('X-Critical-Resource', 'true');
     }
   }
 

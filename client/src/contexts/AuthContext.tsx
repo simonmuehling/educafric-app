@@ -69,11 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Immediate navigation to dashboard (no delay)
       setLocation('/dashboard');
     } catch (error: any) {
-      console.error('Login error:', {
-        message: error.message || 'Unknown login error',
-        stack: error.stack,
-        response: error.response?.data || 'No response data'
-      });
+      // Better error logging - avoid "[object Object]" display
+      console.error('Login error:', error.message || error.toString() || 'Unknown login error');
+      if (import.meta.env.DEV && error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
       throw error;
     } finally {
       setIsLoading(false);
