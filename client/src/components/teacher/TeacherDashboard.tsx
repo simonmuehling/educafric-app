@@ -102,17 +102,36 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     forceLoadCriticalModules();
   }, [preloadModule]);
   
-  // ULTRA-FAST module component creator - Fixed hook violation
+  // ULTRA-FAST module component creator - Fixed hook violation with DEBUG
   const createDynamicModule = React.useCallback((moduleName: string, fallbackComponent?: React.ReactNode) => {
+    console.log(`[TEACHER_DASHBOARD] 🔍 DEBUG: Attempting to load module "${moduleName}"`);
+    
     const ModuleComponent = getModule(moduleName);
+    console.log(`[TEACHER_DASHBOARD] 🔍 DEBUG: getModule("${moduleName}") returned:`, ModuleComponent);
     
     if (ModuleComponent) {
       const isCritical = ['grades', 'classes', 'assignments', 'attendance', 'communications'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
         console.log(`[TEACHER_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
+      console.log(`[TEACHER_DASHBOARD] ✅ Successfully creating component for "${moduleName}"`);
       return React.createElement(ModuleComponent);
     }
+    
+    console.log(`[TEACHER_DASHBOARD] ❌ Module "${moduleName}" not found in cache, showing fallback`);
+    
+    // Try to load module immediately if not in cache
+    preloadModule(moduleName).then((loadedComponent) => {
+      if (loadedComponent) {
+        console.log(`[TEACHER_DASHBOARD] ✅ Module "${moduleName}" loaded successfully, triggering re-render`);
+        // Force re-render by updating state
+        setCurrentActiveModule(prev => prev === moduleName ? moduleName + '_reload' : prev);
+      } else {
+        console.error(`[TEACHER_DASHBOARD] ❌ Failed to load module "${moduleName}"`);
+      }
+    }).catch((error) => {
+      console.error(`[TEACHER_DASHBOARD] ❌ Error loading module "${moduleName}":`, error);
+    });
     
     return fallbackComponent || (
       <div className="flex items-center justify-center h-64">
@@ -121,10 +140,11 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
           <p className="mt-2 text-blue-600">
             {apiDataPreloaded ? (language === 'fr' ? '⚡ Finalisation...' : '⚡ Finalizing...') : (language === 'fr' ? 'Chargement...' : 'Loading...')}
           </p>
+          <p className="mt-1 text-xs text-gray-500">Module: {moduleName}</p>
         </div>
       </div>
     );
-  }, [getModule, apiDataPreloaded, language]);
+  }, [getModule, apiDataPreloaded, language, preloadModule]);
 
   // Preload non-critical modules on demand
   React.useEffect(() => {
