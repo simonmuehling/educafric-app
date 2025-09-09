@@ -1219,23 +1219,40 @@ export default function BulletinManagementUnified() {
         term: apiTerm
       });
 
-      // ✅ UNE SEULE RÉCUPÉRATION DE DONNÉES
+      // ✅ RÉCUPÉRATION DE DONNÉES AVEC RETRY POUR T3
       let previewData = null;
-      try {
-        const response = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
-          method: 'GET',
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data?.subjects?.length > 0) {
-            previewData = data.data;
-            console.log('[PREVIEW_SIMPLE] ✅ Données trouvées:', previewData.subjects.length, 'matières');
+      let retryCount = 0;
+      const maxRetries = formData.term === 'Troisième Trimestre' ? 2 : 1;
+      
+      while (!previewData && retryCount < maxRetries) {
+        try {
+          console.log(`[PREVIEW_FETCH] 🔄 Tentative ${retryCount + 1}/${maxRetries} pour ${apiTerm}`);
+          
+          const response = await fetch(`/api/bulletins/?studentId=${resolvedStudentId}&classId=${resolvedClassId}&academicYear=${formData.academicYear}&term=${apiTerm}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data?.subjects?.length > 0) {
+              previewData = data.data;
+              console.log('[PREVIEW_SIMPLE] ✅ Données trouvées:', previewData.subjects.length, 'matières');
+              break;
+            }
           }
+          
+          // Si pas de données et qu'on est en T3, retry après délai
+          if (!previewData && formData.term === 'Troisième Trimestre' && retryCount < maxRetries - 1) {
+            console.log('[PREVIEW_T3] ⏱️ Attente supplémentaire pour synchronisation...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+        } catch (error) {
+          console.warn('[PREVIEW_SIMPLE] ⚠️ Erreur récupération:', error);
         }
-      } catch (error) {
-        console.warn('[PREVIEW_SIMPLE] ⚠️ Erreur récupération:', error);
+        
+        retryCount++;
       }
 
       // ✅ FALLBACK VERS DONNÉES MANUELLES SI NÉCESSAIRE
