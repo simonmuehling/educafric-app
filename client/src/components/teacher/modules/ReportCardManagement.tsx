@@ -44,8 +44,6 @@ interface BulletinData {
   period: string;
   academicYear: string;
   grades: BulletinGrade[];
-  generalComment: string;
-  recommendations: string;
   conduct: string;
   attendanceRate: number;
   absences: number;
@@ -70,8 +68,6 @@ const ReportCardManagement: React.FC = () => {
     period: 'trimestre1',
     academicYear: '2024-2025',
     grades: [],
-    generalComment: '',
-    recommendations: '',
     conduct: 'good',
     attendanceRate: 95,
     absences: 0,
@@ -244,8 +240,6 @@ const ReportCardManagement: React.FC = () => {
       period: selectedPeriod,
       academicYear: '2024-2025',
       grades: [],
-      generalComment: '',
-      recommendations: '',
       conduct: 'good',
       attendanceRate: 95,
       absences: 0,
@@ -480,45 +474,6 @@ const ReportCardManagement: React.FC = () => {
             )}
           </div>
 
-          {/* Comments and Assessment */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <Label>{t.generalComment}</Label>
-              <Textarea
-                value={bulletinData.generalComment}
-                onChange={(e) => {
-                  const text = e?.target?.value || '';
-                  if (text.length <= 250) {
-                    setBulletinData(prev => ({ ...prev, generalComment: text }));
-                  }
-                }}
-                rows={4}
-                placeholder="Appréciation générale sur l'élève..."
-                className={bulletinData.generalComment.length > 200 ? 'border-orange-300 focus:border-orange-500' : ''}
-              />
-              <p className={`text-xs mt-1 ${bulletinData.generalComment.length > 200 ? 'text-orange-600' : 'text-gray-500'}`}>
-                {bulletinData.generalComment.length}/250 {t.charLimit}
-              </p>
-            </div>
-            <div>
-              <Label>{t.recommendations}</Label>
-              <Textarea
-                value={bulletinData.recommendations}
-                onChange={(e) => {
-                  const text = e?.target?.value || '';
-                  if (text.length <= 200) {
-                    setBulletinData(prev => ({ ...prev, recommendations: text }));
-                  }
-                }}
-                rows={4}
-                placeholder="Conseils et recommandations..."
-                className={bulletinData.recommendations.length > 150 ? 'border-orange-300 focus:border-orange-500' : ''}
-              />
-              <p className={`text-xs mt-1 ${bulletinData.recommendations.length > 150 ? 'text-orange-600' : 'text-gray-500'}`}>
-                {bulletinData.recommendations.length}/200 {t.charLimit}
-              </p>
-            </div>
-          </div>
 
           {/* Conduct and Attendance */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -892,23 +847,6 @@ const ReportCardManagement: React.FC = () => {
                 </div>
               )}
 
-              {/* Comments */}
-              {(bulletinData.generalComment || bulletinData.recommendations) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {bulletinData.generalComment && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Appréciation générale:</h4>
-                      <p className="text-sm bg-gray-50 p-3 rounded">{bulletinData.generalComment}</p>
-                    </div>
-                  )}
-                  {bulletinData.recommendations && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Recommandations:</h4>
-                      <p className="text-sm bg-gray-50 p-3 rounded">{bulletinData.recommendations}</p>
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Attendance Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
