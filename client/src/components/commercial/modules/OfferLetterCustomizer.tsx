@@ -139,6 +139,45 @@ const OfferLetterCustomizer: React.FC = () => {
     setSelectedTemplate('');
   };
 
+  const saveTemplate = async () => {
+    if (!currentTemplate.templateName.trim()) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez entrer un nom pour le modèle',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const templateToSave = {
+        ...currentTemplate,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+
+      // Sauvegarder dans localStorage (en attendant l'API backend)
+      const savedTemplates = JSON.parse(localStorage.getItem('educafric_offer_templates') || '[]');
+      savedTemplates.push(templateToSave);
+      localStorage.setItem('educafric_offer_templates', JSON.stringify(savedTemplates));
+
+      toast({
+        title: 'Modèle sauvegardé',
+        description: `Le modèle "${currentTemplate.templateName}" a été sauvegardé avec succès`,
+      });
+
+      // Actualiser la liste des modèles
+      setTemplates(savedTemplates);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder le modèle',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const generatePDF = async () => {
     try {
       // Import jsPDF dynamically to avoid SSR issues
@@ -684,10 +723,14 @@ Educafric.com by Afro Metaverse
               </div>
               <div className="bg-gray-50 p-6 rounded border">
                 <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                  {generatePreview().split('[CACHET OFFICIEL EDUCAFRIC]').map((part, index) => (
-                    <span key={index}>
-                      {part}
-                      {index === 0 && (
+                  {(() => {
+                    const parts = generatePreview().split('[CACHET OFFICIEL EDUCAFRIC]');
+                    return (
+                      <div>
+                        {/* Première partie du document */}
+                        <div>{parts[0]}</div>
+                        
+                        {/* Cachet officiel */}
                         <div className="flex justify-start mt-2 mb-4">
                           <img 
                             src="/images/cachet-educafric.png" 
@@ -695,15 +738,16 @@ Educafric.com by Afro Metaverse
                             className="w-32 h-32 opacity-80"
                           />
                         </div>
-                      )}
-                      {index === 1 && (
-                        <div className="text-xs mt-4 text-gray-600">
-                          {part}
-                        </div>
-                      )}
-                      {index === 0 && part}
-                    </span>
-                  ))}
+                        
+                        {/* Contacts en bas de page */}
+                        {parts[1] && (
+                          <div className="text-xs mt-4 text-gray-600">
+                            {parts[1]}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
