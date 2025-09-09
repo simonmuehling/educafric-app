@@ -98,9 +98,6 @@ export class PdfLibBulletinGenerator {
       drawText('Conduite: Très bien', 40, summaryY - 20, { font: times, size: 10 });
       drawText('Absences: 0', 200, summaryY - 20, { font: times, size: 10 });
       
-      // 11) Observations - Dynamiques depuis la base de données
-      drawText(`Appréciations des enseignants: ${data?.teacherComments || 'À renseigner par les enseignants'}`, 40, summaryY - 50, { font: times, size: 10 });
-      drawText(`Observations du Directeur: ${data?.directorComments || 'À renseigner par le directeur'}`, 40, summaryY - 70, { font: times, size: 10 });
       
       // 12) Signatures
       drawText('Le Professeur Principal', 40, summaryY - 110, { font: timesBold, size: 10 });

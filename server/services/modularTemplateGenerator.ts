@@ -60,8 +60,6 @@ export interface BulletinTemplateData {
   conduct: string;
   conductGrade: number; // Note de conduite sur 20
   absences: number;
-  teacherComments: string;
-  directorComments: string;
   verificationCode?: string; // Code de vérification unique
   // Nouvelles données performance académique
   firstTermAverage?: number;
@@ -580,8 +578,6 @@ export class ModularTemplateGenerator {
         total: 'sur',
         conduct: 'Conduite',
         absences: 'Absences',
-        teacherComments: 'Appréciations des enseignants',
-        directorComments: 'Observations du Directeur',
         signatures: 'SIGNATURES',
         teacher: 'Professeur Principal',
         director: 'Directeur'
@@ -605,8 +601,6 @@ export class ModularTemplateGenerator {
         total: 'out of',
         conduct: 'Conduct',
         absences: 'Absences',
-        teacherComments: 'Class Teacher Comments',
-        directorComments: 'Director Comments',
         signatures: 'SIGNATURES',
         teacher: 'Class Teacher',
         director: 'Director'
@@ -769,24 +763,8 @@ export class ModularTemplateGenerator {
                   <span class="info-label"><strong>Mention:</strong></span>
                   <span class="info-value"><strong>${data.decision.mention || 'Passable'}</strong></span>
                 </div>
-                <div class="info-row">
-                  <span class="info-label">Observations Professeur Principal:</span>
-                  <span class="info-value">${data.decision.observationsTeacher || data.teacherComments}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Observations Directeur:</span>
-                  <span class="info-value">${data.decision.observationsDirector || data.directorComments}</span>
-                </div>
               </div>
             ` : `
-              <div class="info-row">
-                <span class="info-label">${t.teacherComments}:</span>
-                <span class="info-value">${data.teacherComments}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">${t.directorComments}:</span>
-                <span class="info-value">${data.directorComments}</span>
-              </div>
             `}
           </div>
 
