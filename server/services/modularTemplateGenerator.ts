@@ -617,22 +617,28 @@ export class ModularTemplateGenerator {
         .subjects-table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 4px;
-          font-size: 6px;
+          margin-bottom: 2px;
+          font-size: 5px;
         }
         
         .subjects-table th,
         .subjects-table td {
           border: 1px solid #000;
-          padding: 2px 1px;
+          padding: 1px 0.5px;
           text-align: center;
-          line-height: 1.1;
+          line-height: 1.0;
+          vertical-align: middle;
         }
         
         .subjects-table th {
           background: white;
           font-weight: bold;
-          font-size: 7px;
+          font-size: 6px;
+          height: 12px;
+        }
+        
+        .subjects-table td {
+          height: 10px;
         }
         
         .summary-section {
