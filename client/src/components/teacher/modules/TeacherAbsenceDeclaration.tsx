@@ -41,30 +41,20 @@ const TeacherAbsenceDeclaration: React.FC = () => {
 
   const [selectedTab, setSelectedTab] = useState<'declare' | 'history'>('declare');
 
-  // Mock data for demonstration - would come from API in real implementation
-  const myAbsences = [
-    {
-      id: 1,
-      reason: 'Rendez-vous médical',
-      startDate: '2025-08-10',
-      endDate: '2025-08-10',
-      status: 'approved',
-      submittedAt: '2025-08-09T15:30:00Z',
-      substitute: 'Paul Martin'
-    },
-    {
-      id: 2,
-      reason: 'Formation pédagogique',
-      startDate: '2025-08-15',
-      endDate: '2025-08-16',
-      status: 'pending',
-      submittedAt: '2025-08-14T09:15:00Z',
-      substitute: 'En recherche'
-    }
-  ];
+  // Fetch absences history from API
+  const { data: absencesData } = useQuery({
+    queryKey: ['/api/teacher/absences'],
+    enabled: selectedTab === 'history'
+  });
 
-  // Available classes for teacher (would come from API)
-  const teacherClasses = ['6ème A', '5ème B', '4ème C', 'Terminale A'];
+  const myAbsences = absencesData?.absences || [];
+
+  // Fetch teacher classes from API
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/teacher/classes'],
+  });
+
+  const teacherClasses = classesData?.classes?.map((cls: any) => cls.name) || ['6ème A', '5ème B', '4ème C', 'Terminale A'];
 
   // Submit absence declaration
   const declareAbsenceMutation = useMutation({
