@@ -260,7 +260,7 @@ export class ModularTemplateGenerator {
       <style>
         @page {
           size: A4;
-          margin: 10mm;
+          margin: 8mm;
         }
         
         body {
@@ -923,26 +923,36 @@ export class ModularTemplateGenerator {
             ${currentTerm === 'T3' ? `
               <!-- BULLETIN T3 - FORMAT OFFICIEL AFRICAIN DE FIN D'ANNÉE -->
               <div class="annual-summary-section">
-                <h2 style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 12px; text-align: center; margin: 20px 0; border-radius: 8px; font-size: 16px;">📋 BILAN ANNUEL ${data.schoolInfo.academicYear}</h2>
+                <h2 style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 6px; text-align: center; margin: 8px 0; border-radius: 6px; font-size: 11px;">📋 BILAN ANNUEL ${data.schoolInfo.academicYear}</h2>
                 
-                <div class="annual-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0;">
+                <div class="annual-stats" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 6px 0; padding: 6px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
                   <div class="annual-averages">
-                    <h4 style="color: #1e40af; margin-bottom: 8px; font-size: 13px;">🎯 MOYENNES TRIMESTRIELLES</h4>
-                    <div style="font-size: 12px; line-height: 1.6;">
-                      <p><strong>1er Trimestre:</strong> ${data.firstTermAverage || '—'}/20</p>
-                      <p><strong>2ème Trimestre:</strong> ${data.secondTermAverage || '—'}/20</p>
-                      <p><strong>3ème Trimestre:</strong> ${data.thirdTermAverage || data.generalAverage}/20</p>
-                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">📊 <strong>MOYENNE ANNUELLE: ${data.annualAverage || data.generalAverage}/20</strong></p>
+                    <h4 style="color: #1e40af; margin-bottom: 3px; font-size: 8px;">🎯 MOYENNES</h4>
+                    <div style="font-size: 7px; line-height: 1.3;">
+                      <p><strong>T1:</strong> ${data.firstTermAverage || (data.subjects.reduce((sum, s) => sum + (s.t1 || 0), 0) / data.subjects.length).toFixed(1) || '—'}/20</p>
+                      <p><strong>T2:</strong> ${data.secondTermAverage || (data.subjects.reduce((sum, s) => sum + (s.t2 || 0), 0) / data.subjects.length).toFixed(1) || '—'}/20</p>
+                      <p><strong>T3:</strong> ${data.thirdTermAverage || data.generalAverage}/20</p>
+                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 2px;"><strong>ANNUELLE: ${data.annualAverage || (((data.firstTermAverage || 0) + (data.secondTermAverage || 0) + (data.thirdTermAverage || data.generalAverage)) / 3).toFixed(1)}/20</strong></p>
                     </div>
                   </div>
                   
                   <div class="annual-positions">
-                    <h4 style="color: #1e40af; margin-bottom: 8px; font-size: 13px;">🏆 CLASSEMENTS & ÉVOLUTION</h4>
-                    <div style="font-size: 12px; line-height: 1.6;">
-                      <p><strong>Rang T1:</strong> ${data.firstTermRank || '—'}/${data.totalStudents}</p>
-                      <p><strong>Rang T2:</strong> ${data.secondTermRank || '—'}/${data.totalStudents}</p>
-                      <p><strong>Rang T3:</strong> ${data.classRank}/${data.totalStudents}</p>
-                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">🎖️ <strong>RANG ANNUEL: ${data.annualPosition || data.classRank}/${data.totalStudents}</strong></p>
+                    <h4 style="color: #1e40af; margin-bottom: 3px; font-size: 8px;">🏆 RANGS</h4>
+                    <div style="font-size: 7px; line-height: 1.3;">
+                      <p><strong>T1:</strong> ${data.firstTermRank || '—'}/${data.totalStudents}</p>
+                      <p><strong>T2:</strong> ${data.secondTermRank || '—'}/${data.totalStudents}</p>
+                      <p><strong>T3:</strong> ${data.classRank}/${data.totalStudents}</p>
+                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 2px;"><strong>ANNUEL: ${data.annualPosition || data.classRank}/${data.totalStudents}</strong></p>
+                    </div>
+                  </div>
+                  
+                  <div class="annual-progression">
+                    <h4 style="color: #1e40af; margin-bottom: 3px; font-size: 8px;">📈 ÉVOLUTION</h4>
+                    <div style="font-size: 7px; line-height: 1.3;">
+                      <p><strong>T1→T2:</strong> ${((data.secondTermAverage || 0) > (data.firstTermAverage || 0)) ? '📈 +' + ((data.secondTermAverage || 0) - (data.firstTermAverage || 0)).toFixed(1) : ((data.secondTermAverage || 0) < (data.firstTermAverage || 0)) ? '📉 ' + ((data.secondTermAverage || 0) - (data.firstTermAverage || 0)).toFixed(1) : '➡️ Stable'}</p>
+                      <p><strong>T2→T3:</strong> ${((data.generalAverage || 0) > (data.secondTermAverage || 0)) ? '📈 +' + ((data.generalAverage || 0) - (data.secondTermAverage || 0)).toFixed(1) : ((data.generalAverage || 0) < (data.secondTermAverage || 0)) ? '📉 ' + ((data.generalAverage || 0) - (data.secondTermAverage || 0)).toFixed(1) : '➡️ Stable'}</p>
+                      <p><strong>Bilan:</strong> ${((data.generalAverage || 0) > (data.firstTermAverage || 0)) ? '🟢 Positif' : ((data.generalAverage || 0) < (data.firstTermAverage || 0)) ? '🟡 Améliorer' : '🔵 Constant'}</p>
+                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 2px; margin-top: 2px;"><strong>Pts T3: ${((data.generalAverage || 0) * data.subjects.reduce((sum, s) => sum + (s.coefficient || 1), 0)).toFixed(1)}</strong></p>
                     </div>
                   </div>
                 </div>
