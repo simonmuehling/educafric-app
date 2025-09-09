@@ -78,6 +78,22 @@ const ReportCardManagement: React.FC = () => {
     lateArrivals: 0
   });
 
+  // DONNÉES T3 SPÉCIFIQUES POUR ENSEIGNANTS
+  const [t3Data, setT3Data] = useState({
+    councilDecision: 'ADMIS(E) EN CLASSE SUPÉRIEURE',
+    councilMention: 'PASSABLE',
+    councilOrientation: 'Filière générale recommandée',
+    councilDate: new Date().toISOString().split('T')[0],
+    teacherObservations: '',
+    conductGrade: 18,
+    participation: 'Active et constructive',
+    assiduity: 'Excellente',
+    absencesT1: 0,
+    absencesT2: 0,
+    absencesT3: 2,
+    behaviorComments: ''
+  });
+
   // Available subjects
   const subjects = [
     'Mathématiques',
@@ -577,6 +593,205 @@ const ReportCardManagement: React.FC = () => {
           </div>
         </div>
       </ModernCard>
+
+      {/* SECTION T3 SPÉCIFIQUE POUR ENSEIGNANTS */}
+      {selectedPeriod === 'trimestre3' && (
+        <div className="space-y-6">
+          <ModernCard>
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Award className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-amber-800">⚖️ Décision du Conseil de Classe</h3>
+                  <p className="text-sm text-amber-700">
+                    Informations pour la décision de passage en classe supérieure
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Décision du Conseil</Label>
+                  <Select
+                    value={t3Data.councilDecision}
+                    onValueChange={(value) => setT3Data(prev => ({ ...prev, councilDecision: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIS(E) EN CLASSE SUPÉRIEURE">✅ Admis(e) en classe supérieure</SelectItem>
+                      <SelectItem value="REDOUBLE EN CLASSE ACTUELLE">🔄 Redouble en classe actuelle</SelectItem>
+                      <SelectItem value="ADMIS(E) AVEC RÉSERVES">⚠️ Admis(e) avec réserves</SelectItem>
+                      <SelectItem value="CONSEIL DE RATTRAPAGE">📝 Conseil de rattrapage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Mention</Label>
+                  <Select
+                    value={t3Data.councilMention}
+                    onValueChange={(value) => setT3Data(prev => ({ ...prev, councilMention: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TRÈS BIEN">🏆 Très Bien (16-20)</SelectItem>
+                      <SelectItem value="BIEN">🥈 Bien (14-16)</SelectItem>
+                      <SelectItem value="ASSEZ BIEN">🥉 Assez Bien (12-14)</SelectItem>
+                      <SelectItem value="PASSABLE">📋 Passable (10-12)</SelectItem>
+                      <SelectItem value="INSUFFISANT">❌ Insuffisant (&lt;10)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <Label>Orientation Conseillée</Label>
+                  <Input 
+                    value={t3Data.councilOrientation}
+                    onChange={(e) => setT3Data(prev => ({ ...prev, councilOrientation: e.target.value }))}
+                    placeholder="Filière générale recommandée"
+                  />
+                </div>
+                <div>
+                  <Label>Date du Conseil</Label>
+                  <Input 
+                    type="date"
+                    value={t3Data.councilDate}
+                    onChange={(e) => setT3Data(prev => ({ ...prev, councilDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label>Observations du Professeur Principal</Label>
+                <Textarea 
+                  value={t3Data.teacherObservations}
+                  onChange={(e) => setT3Data(prev => ({ ...prev, teacherObservations: e.target.value }))}
+                  placeholder="Observations sur le travail et les résultats de l'élève..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          </ModernCard>
+
+          <ModernCard>
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-sky-100 rounded-lg">
+                  <Users className="w-6 h-6 text-sky-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-sky-800">👤 Bilan Comportemental Annuel</h3>
+                  <p className="text-sm text-sky-700">
+                    Évaluation du comportement et de l'assiduité de l'élève
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Note de Conduite /20</Label>
+                  <Input 
+                    type="number"
+                    min="0"
+                    max="20"
+                    value={t3Data.conductGrade}
+                    onChange={(e) => setT3Data(prev => ({ ...prev, conductGrade: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+                <div>
+                  <Label>Participation</Label>
+                  <Select
+                    value={t3Data.participation}
+                    onValueChange={(value) => setT3Data(prev => ({ ...prev, participation: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active et constructive">🌟 Active et constructive</SelectItem>
+                      <SelectItem value="Bonne participation">👍 Bonne participation</SelectItem>
+                      <SelectItem value="Participation modérée">📈 Participation modérée</SelectItem>
+                      <SelectItem value="Participation faible">📉 Participation faible</SelectItem>
+                      <SelectItem value="Très passive">😴 Très passive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Assiduité</Label>
+                  <Select
+                    value={t3Data.assiduity}
+                    onValueChange={(value) => setT3Data(prev => ({ ...prev, assiduity: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Excellente">⭐ Excellente</SelectItem>
+                      <SelectItem value="Très bonne">✅ Très bonne</SelectItem>
+                      <SelectItem value="Bonne">👌 Bonne</SelectItem>
+                      <SelectItem value="À améliorer">⚠️ À améliorer</SelectItem>
+                      <SelectItem value="Insuffisante">❌ Insuffisante</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <Label>Absences par Trimestre</Label>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">T1 (heures)</Label>
+                    <Input 
+                      type="number"
+                      min="0"
+                      value={t3Data.absencesT1}
+                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT1: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">T2 (heures)</Label>
+                    <Input 
+                      type="number"
+                      min="0"
+                      value={t3Data.absencesT2}
+                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT2: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">T3 (heures)</Label>
+                    <Input 
+                      type="number"
+                      min="0"
+                      value={t3Data.absencesT3}
+                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT3: parseInt(e.target.value) || 0 }))}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Total annuel: {t3Data.absencesT1 + t3Data.absencesT2 + t3Data.absencesT3} heures
+                </p>
+              </div>
+
+              <div className="mt-4">
+                <Label>Commentaires sur le Comportement</Label>
+                <Textarea 
+                  value={t3Data.behaviorComments}
+                  onChange={(e) => setT3Data(prev => ({ ...prev, behaviorComments: e.target.value }))}
+                  placeholder="Observations sur le comportement général de l'élève..."
+                  rows={2}
+                />
+              </div>
+            </div>
+          </ModernCard>
+        </div>
+      )}
 
       {/* Existing Bulletins List */}
       {Array.isArray(bulletins) && (Array.isArray(bulletins) ? bulletins.length : 0) > 0 && (
