@@ -139,6 +139,136 @@ const OfferLetterCustomizer: React.FC = () => {
     setSelectedTemplate('');
   };
 
+  const generatePDF = async () => {
+    try {
+      // Import jsPDF dynamically to avoid SSR issues
+      const { jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF();
+      
+      // Add company header
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Educafric.com by Afro Metaverse', 20, 30);
+      
+      // Add contact info
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('info@educafric.com / info@afrometaverse.online', 20, 40);
+      doc.text(currentTemplate.commercialPhone, 20, 45);
+      doc.text('educafric.com', 20, 50);
+      doc.text('RC/YAE/2023/B/1361', 20, 55);
+      doc.text('NIU:M032318079876K', 20, 60);
+      
+      // Add recipient info
+      doc.text('À', 20, 80);
+      doc.text(currentTemplate.recipientTitle, 20, 85);
+      doc.text(currentTemplate.schoolName, 20, 90);
+      doc.text(currentTemplate.schoolAddress, 20, 95);
+      
+      // Add subject
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('OBJET : OFFRE DE SOLUTION NUMÉRIQUE DE GESTION SCOLAIRE –', 20, 110);
+      doc.text('APPLICATION EDUCAFRIC', 20, 115);
+      
+      // Add salutation
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(currentTemplate.salutation.toUpperCase(), 20, 130);
+      
+      // Add main content
+      const content = [
+        'Dans le cadre de notre mission d\'accompagnement des établissements scolaires vers la modernisation',
+        'et la digitalisation de leurs services, nous avons l\'honneur de vous présenter EducaFric, une application',
+        'scolaire innovante et adaptée au contexte africain.',
+        '',
+        'Cet outil numérique offre plusieurs avantages :',
+        '',
+        '- Gestion académique : suivi des élèves, enseignants, emplois du temps et calendrier scolaire ;',
+        '- Bulletins automatisés : édition sécurisée et conforme ;',
+        '- Suivi disciplinaire : gestion des absences, retards et comportements ;',
+        '- Communication instantanée : envoi de SMS et notifications aux parents ;',
+        '- Gestion financière : suivi et règlement des frais de scolarité avec reçus automatiques.',
+        '',
+        'Nous serions honorés de pouvoir organiser une démonstration gratuite et de vous accompagner dans',
+        'l\'implémentation de cette solution moderne au sein de votre établissement.',
+        '',
+        `Dans l'attente de votre retour favorable, nous vous prions d'agréer, ${currentTemplate.recipientTitle.toLowerCase()},`,
+        'l\'expression de notre parfaite considération.'
+      ];
+      
+      let yPosition = 145;
+      content.forEach(line => {
+        if (yPosition > 270) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        doc.text(line, 20, yPosition);
+        yPosition += 5;
+      });
+      
+      // Add signature
+      yPosition += 20;
+      doc.text(currentTemplate.signatureName, 20, yPosition);
+      doc.text(currentTemplate.signatureFunction, 20, yPosition + 5);
+      doc.text('Educafric.com by Afro Metaverse', 20, yPosition + 10);
+      
+      // Add footer contacts
+      doc.setFontSize(8);
+      doc.text('+237 656 200 472     INFO@EDUCAFRIC.COM     INFO@AFROMETAVERSE.ONLINE', 20, 280);
+      
+      // Save the PDF
+      const fileName = `Offre_${currentTemplate.schoolName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      toast({
+        title: 'PDF généré',
+        description: 'La lettre d\'offre a été téléchargée avec succès',
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de générer le PDF',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const shareDocument = async () => {
+    try {
+      const shareData = {
+        title: 'Lettre d\'offre Educafric',
+        text: `Offre de solution numérique pour ${currentTemplate.schoolName}`,
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({
+          title: 'Document partagé',
+          description: 'La lettre d\'offre a été partagée avec succès',
+        });
+      } else {
+        // Fallback: Copy to clipboard
+        const letterContent = generatePreview();
+        await navigator.clipboard.writeText(letterContent);
+        toast({
+          title: 'Copié dans le presse-papiers',
+          description: 'Le contenu de la lettre a été copié. Vous pouvez le coller ailleurs.',
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing document:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de partager le document',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const generatePreview = () => {
     return `Educafric.com by Afro Metaverse
 info@educafric.com / info@afrometaverse.online
@@ -529,11 +659,21 @@ Educafric.com by Afro Metaverse
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">Aperçu de la lettre d'offre</h2>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={generatePDF}
+                    className="hover:bg-blue-50"
+                  >
                     <Download className="w-4 h-4 mr-1" />
                     PDF
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={shareDocument}
+                    className="hover:bg-green-50"
+                  >
                     <Share2 className="w-4 h-4 mr-1" />
                     Partager
                   </Button>
