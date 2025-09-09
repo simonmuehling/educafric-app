@@ -166,8 +166,7 @@ const OfferLetterCustomizer: React.FC = () => {
         description: `Le modèle "${currentTemplate.templateName}" a été sauvegardé avec succès`,
       });
 
-      // Actualiser la liste des modèles
-      setTemplates(savedTemplates);
+      // Templates seront rechargés au prochain rendu
     } catch (error) {
       console.error('Error saving template:', error);
       toast({
@@ -283,8 +282,8 @@ const OfferLetterCustomizer: React.FC = () => {
           ctx?.drawImage(stampImg, 0, 0);
           const dataURL = canvas.toDataURL('image/png');
           
-          // Add image to PDF (positioned under signature)
-          doc.addImage(dataURL, 'PNG', 20, yPosition + 15, 32, 32);
+          // Add image to PDF (positioned to the right of signature)
+          doc.addImage(dataURL, 'PNG', 120, yPosition - 25, 64, 64);
           
           finalizePDF(true);
         } catch (error) {
@@ -774,11 +773,11 @@ Educafric.com by Afro Metaverse
                         <div>{parts[0]}</div>
                         
                         {/* Cachet officiel */}
-                        <div className="flex justify-start mt-2 mb-4">
+                        <div className="flex justify-end mt-2 mb-4" style={{marginTop: '-120px'}}>
                           <img 
                             src="/images/cachet-educafric.png" 
                             alt="Cachet Officiel Educafric" 
-                            className="w-32 h-32 opacity-80"
+                            className="w-64 h-64 opacity-80"
                           />
                         </div>
                         
