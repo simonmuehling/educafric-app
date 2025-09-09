@@ -610,8 +610,8 @@ export class ModularTemplateGenerator {
         
         .period-info {
           text-align: center;
-          margin-bottom: 15px;
-          font-size: 10px;
+          margin-bottom: 5px;
+          font-size: 8px;
         }
         
         .subjects-table {
@@ -680,11 +680,11 @@ export class ModularTemplateGenerator {
         }
         
         .footer-section {
-          margin-top: 20px;
+          margin-top: 8px;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 20px;
-          font-size: 9px;
+          gap: 10px;
+          font-size: 7px;
         }
         
         .signature-box {
