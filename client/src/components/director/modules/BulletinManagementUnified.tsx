@@ -1166,11 +1166,24 @@ export default function BulletinManagementUnified() {
         formDataClass: formData.className
       });
       
-      // Priorité aux valeurs directement sélectionnées
+      // ✅ RÉSOLUTION INTELLIGENTE - PRIORITÉ AUX NOTES MANUELLES ACTIVES
       let resolvedStudentId = selectedStudentId;
       let resolvedClassId = selectedClassId;
       
-      // Seulement si pas de sélection directe, essayer de résoudre par nom
+      // Si pas de sélection directe, utiliser les données du contexte de saisie manuelle
+      if (!resolvedStudentId && manualGradeClass) {
+        resolvedClassId = manualGradeClass;
+        console.log('[PREVIEW_DEBUG] 🔍 Classe récupérée du contexte de saisie:', manualGradeClass);
+        
+        // Pour l'élève, prendre le premier élève de la classe sélectionnée
+        const classStudents = students.filter(s => s.classId?.toString() === manualGradeClass);
+        if (classStudents.length > 0) {
+          resolvedStudentId = classStudents[0].id?.toString();
+          console.log('[PREVIEW_DEBUG] 🔍 Premier élève de la classe sélectionné:', classStudents[0].name);
+        }
+      }
+      
+      // Fallback par nom si toujours pas trouvé
       if (!resolvedStudentId && formData.studentFirstName) {
         const foundStudent = students.find(s => 
           s.name === `${formData.studentFirstName} ${formData.studentLastName}`.trim() ||
