@@ -402,9 +402,9 @@ const FunctionalTeacherAttendance: React.FC = () => {
                         data-testid="select-assigned-class"
                       >
                         <option value="">Sélectionner une classe</option>
-                        {Array.isArray(teacherClasses) && (Array.isArray(teacherClasses) ? teacherClasses : []).map((classe) => (
+                        {Array.isArray(teacherClasses) && teacherClasses.map((classe) => (
                           <option key={classe.id} value={classe.id}>
-                            {classe.name || ''} - {classe.subject || 'Matière'} ({classe.students || 0} élèves)
+                            {classe.name || classe.className || ''} - {classe.subject || 'Matière'} ({classe.studentCount || classe.students || 0} élèves)
                           </option>
                         ))}
                       </select>
