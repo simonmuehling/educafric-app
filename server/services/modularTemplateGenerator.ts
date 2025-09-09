@@ -252,7 +252,7 @@ export class ModularTemplateGenerator {
       <style>
         @page {
           size: A4;
-          margin: 15mm;
+          margin: 10mm;
         }
         
         body {
@@ -505,7 +505,7 @@ export class ModularTemplateGenerator {
         }
         
         .content-section {
-          margin: 15px 0;
+          margin: 8px 0;
         }
         
         .info-grid {
@@ -576,15 +576,16 @@ export class ModularTemplateGenerator {
         .subjects-table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 15px;
-          font-size: 8px;
+          margin-bottom: 6px;
+          font-size: 7px;
         }
         
         .subjects-table th,
         .subjects-table td {
           border: 1px solid #000;
-          padding: 3px;
+          padding: 2px 1px;
           text-align: center;
+          line-height: 1.1;
         }
         
         .subjects-table th {
@@ -595,8 +596,9 @@ export class ModularTemplateGenerator {
         
         .summary-section {
           text-align: center;
-          margin: 10px 0;
-          font-size: 10px;
+          margin: 6px 0;
+          font-size: 9px;
+          padding: 4px;
         }
         
         .data-table {
