@@ -44,6 +44,7 @@ interface BulletinData {
   period: string;
   academicYear: string;
   grades: BulletinGrade[];
+  appreciation: string;
   conduct: string;
   attendanceRate: number;
   absences: number;
@@ -68,6 +69,7 @@ const ReportCardManagement: React.FC = () => {
     period: 'trimestre1',
     academicYear: '2024-2025',
     grades: [],
+    appreciation: '',
     conduct: 'good',
     attendanceRate: 95,
     absences: 0,
@@ -240,6 +242,7 @@ const ReportCardManagement: React.FC = () => {
       period: selectedPeriod,
       academicYear: '2024-2025',
       grades: [],
+      appreciation: '',
       conduct: 'good',
       attendanceRate: 95,
       absences: 0,
@@ -474,6 +477,25 @@ const ReportCardManagement: React.FC = () => {
             )}
           </div>
 
+          {/* Appréciation du Professeur */}
+          <div className="mb-6">
+            <Label>Appréciation du Professeur</Label>
+            <Textarea
+              value={bulletinData.appreciation}
+              onChange={(e) => {
+                const text = e?.target?.value || '';
+                if (text.length <= 300) {
+                  setBulletinData(prev => ({ ...prev, appreciation: text }));
+                }
+              }}
+              rows={4}
+              placeholder="Appréciation générale sur le travail et le comportement de l'élève..."
+              className={bulletinData.appreciation.length > 250 ? 'border-orange-300 focus:border-orange-500' : ''}
+            />
+            <p className={`text-xs mt-1 ${bulletinData.appreciation.length > 250 ? 'text-orange-600' : 'text-gray-500'}`}>
+              {bulletinData.appreciation.length}/300 caractères
+            </p>
+          </div>
 
           {/* Conduct and Attendance */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -847,6 +869,13 @@ const ReportCardManagement: React.FC = () => {
                 </div>
               )}
 
+              {/* Appréciation du Professeur */}
+              {bulletinData.appreciation && (
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-2">Appréciation du Professeur:</h4>
+                  <p className="text-sm bg-gray-50 p-3 rounded">{bulletinData.appreciation}</p>
+                </div>
+              )}
 
               {/* Attendance Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
