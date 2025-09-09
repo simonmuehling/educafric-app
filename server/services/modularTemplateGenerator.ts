@@ -260,13 +260,13 @@ export class ModularTemplateGenerator {
       <style>
         @page {
           size: A4;
-          margin: 8mm;
+          margin: 5mm;
         }
         
         body {
           font-family: Arial, sans-serif;
-          font-size: 9px;
-          line-height: 1.1;
+          font-size: 8px;
+          line-height: 1.0;
           margin: 0;
           padding: 0;
           color: #000;
@@ -546,7 +546,7 @@ export class ModularTemplateGenerator {
         }
         
         .content-section {
-          margin: 8px 0;
+          margin: 4px 0;
         }
         
         .info-grid {
@@ -643,9 +643,9 @@ export class ModularTemplateGenerator {
         
         .summary-section {
           text-align: center;
-          margin: 6px 0;
-          font-size: 9px;
-          padding: 4px;
+          margin: 3px 0;
+          font-size: 8px;
+          padding: 2px;
         }
         
         .data-table {
@@ -872,8 +872,8 @@ export class ModularTemplateGenerator {
                         <td>${t3Grade.toFixed(1)}</td>
                         <td>${coefficient}</td>
                         <td>${points}</td>
-                        <td style="text-align: left; font-size: 7px;">${teacherName}</td>
-                        <td style="text-align: left; font-size: 6px;">${remark}</td>
+                        <td style="text-align: left; font-size: 5px;">${teacherName}</td>
+                        <td style="text-align: left; font-size: 4px;">${remark}</td>
                       </tr>
                     `;
                   } else {
@@ -887,8 +887,8 @@ export class ModularTemplateGenerator {
                         <td>${gradeValue}</td>
                         <td>${coefficient}</td>
                         <td>${points}</td>
-                        <td style="text-align: left; font-size: 7px;">${teacherName}</td>
-                        <td style="text-align: left; font-size: 6px;">${remark}</td>
+                        <td style="text-align: left; font-size: 5px;">${teacherName}</td>
+                        <td style="text-align: left; font-size: 4px;">${remark}</td>
                       </tr>
                     `;
                   }
