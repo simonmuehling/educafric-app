@@ -55,6 +55,7 @@ class FastModuleLoader {
       'schools': () => import('@/components/commercial/modules/FunctionalCommercialSchools'),
       'leads': () => import('@/components/commercial/modules/FunctionalCommercialLeads'),
       'contacts': () => import('@/components/commercial/modules/ContactsManagement'),
+      'offer-letters': () => import('@/components/commercial/modules/OfferLetterCustomizer'),
       
       // MISSING COMMERCIAL MODULES - FIXING WARNINGS  
       'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),

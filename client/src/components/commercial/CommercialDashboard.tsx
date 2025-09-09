@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, Users, CreditCard, FileText, BarChart3, Phone, 
   Building2, Calendar, DollarSign, Target, UserCheck, Archive,
-  MessageSquare, Settings, HelpCircle, User, Activity
+  MessageSquare, Settings, HelpCircle, User, Activity, Mail
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { useFastModules } from '@/utils/fastModuleLoader';
@@ -37,7 +37,8 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
         '/api/commercial/schools',
         '/api/commercial/contacts',
         '/api/commercial/statistics',
-        '/api/commercial/documents'
+        '/api/commercial/documents',
+        '/api/commercial/offer-templates'
       ];
       
       const promises = apiEndpoints.map(async (endpoint) => {
@@ -102,7 +103,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
 
   // FORCE IMMEDIATE preload of critical slow modules - Commercial specific
   React.useEffect(() => {
-    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp'];
+    const criticalModules = ['commercial-schools', 'commercial-contacts', 'commercial-documents', 'commercial-statistics', 'commercial-whatsapp', 'offer-letters'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[COMMERCIAL_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -152,6 +153,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       reports: 'Rapports',
       appointments: 'Rendez-vous',
       whatsapp: 'WhatsApp Business',
+      offerLetters: 'Lettres d\'Offres',
       settings: 'Paramètres',
       help: 'Aide'
     },
@@ -168,6 +170,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       reports: 'Reports',
       appointments: 'Calls & Appointments',
       whatsapp: 'WhatsApp Business',
+      offerLetters: 'Offer Letters',
       settings: 'Settings',
       help: 'Help'
     }
@@ -238,6 +241,13 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       icon: <MessageSquare className="w-6 h-6" />,
       color: 'bg-green-600',
       component: createDynamicModule('commercial-whatsapp')
+    },
+    {
+      id: 'offer-letters',
+      label: t.offerLetters,
+      icon: <Mail className="w-6 h-6" />,
+      color: 'bg-yellow-500',
+      component: createDynamicModule('offer-letters')
     },
     {
       id: 'activity',

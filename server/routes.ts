@@ -1433,6 +1433,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // COMMERCIAL API ROUTES - Offer Letter Templates
+  app.get("/api/commercial/offer-templates", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[COMMERCIAL_API] GET /api/commercial/offer-templates for user:', user.id);
+      
+      // Simulation de modèles sauvegardés
+      const templates = [
+        {
+          id: 1,
+          templateName: 'Modèle École Privée',
+          commercialPhone: '+237 656 200 472',
+          recipientTitle: 'Monsieur/Madame le/la Directeur(trice)',
+          schoolName: 'Lycée Bilingue Excellence',
+          schoolAddress: 'B.P. 1234, Quartier Bastos, Yaoundé',
+          salutation: 'Monsieur/Madame le/la Directeur(trice),',
+          signatureName: 'Jean-Paul Kamga',
+          signatureFunction: 'Directeur Commercial',
+          isDefault: true,
+          createdAt: '2024-01-15T10:00:00Z',
+          updatedAt: '2024-01-15T10:00:00Z'
+        },
+        {
+          id: 2,
+          templateName: 'Modèle École Publique',
+          commercialPhone: '+237 677 123 456',
+          recipientTitle: 'Monsieur le Principal',
+          schoolName: 'Lycée de Yaoundé',
+          schoolAddress: 'B.P. 5678, Centre-ville, Yaoundé',
+          salutation: 'Monsieur le Principal,',
+          signatureName: 'Marie Nkomo',
+          signatureFunction: 'Responsable Développement',
+          isDefault: false,
+          createdAt: '2024-01-20T14:30:00Z',
+          updatedAt: '2024-01-20T14:30:00Z'
+        }
+      ];
+      
+      res.json(templates);
+    } catch (error) {
+      console.error('[COMMERCIAL_API] Error fetching offer templates:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch offer templates' });
+    }
+  });
+
+  app.post("/api/commercial/offer-templates", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const templateData = req.body;
+      console.log('[COMMERCIAL_API] POST /api/commercial/offer-templates for user:', user.id);
+      
+      // Simulation de sauvegarde
+      const savedTemplate = {
+        id: Date.now(),
+        ...templateData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.json({ success: true, template: savedTemplate });
+    } catch (error) {
+      console.error('[COMMERCIAL_API] Error saving offer template:', error);
+      res.status(500).json({ success: false, message: 'Failed to save offer template' });
+    }
+  });
+
+  app.put("/api/commercial/offer-templates", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const templateData = req.body;
+      console.log('[COMMERCIAL_API] PUT /api/commercial/offer-templates for user:', user.id);
+      
+      // Simulation de mise à jour
+      const updatedTemplate = {
+        ...templateData,
+        updatedAt: new Date().toISOString()
+      };
+      
+      res.json({ success: true, template: updatedTemplate });
+    } catch (error) {
+      console.error('[COMMERCIAL_API] Error updating offer template:', error);
+      res.status(500).json({ success: false, message: 'Failed to update offer template' });
+    }
+  });
+
+  app.delete("/api/commercial/offer-templates/:id", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const templateId = req.params.id;
+      console.log('[COMMERCIAL_API] DELETE /api/commercial/offer-templates for user:', user.id, 'template:', templateId);
+      
+      // Simulation de suppression
+      res.json({ success: true, message: 'Template deleted successfully' });
+    } catch (error) {
+      console.error('[COMMERCIAL_API] Error deleting offer template:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete offer template' });
+    }
+  });
+
   // Nouvelle route pour se déconnecter d'une école
   app.post("/api/teacher/disconnect-school", requireAuth, async (req, res) => {
     try {
