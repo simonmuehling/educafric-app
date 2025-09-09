@@ -221,6 +221,23 @@ export default function BulletinManagementUnified() {
     // Informations système
     verificationCode: '',
     
+    // DONNÉES CONSEIL DE CLASSE T3
+    councilDecision: 'ADMIS(E) EN CLASSE SUPÉRIEURE',
+    councilMention: 'PASSABLE',
+    councilOrientation: 'Filière générale recommandée',
+    councilDate: new Date().toISOString().split('T')[0],
+    councilObservationsTeacher: '',
+    councilObservationsDirector: '',
+    
+    // BILAN COMPORTEMENTAL ANNUEL
+    conductGrade: 18,
+    participation: 'Active et constructive',
+    assiduity: 'Excellente',
+    absencesT1: 0,
+    absencesT2: 0,
+    absencesT3: 2,
+    behaviorComments: '',
+    
     // Language
     language: 'fr' as 'fr' | 'en'
   });
@@ -1791,35 +1808,27 @@ export default function BulletinManagementUnified() {
               ((parseFloat(importedGrades.termAverage) - 2 + parseFloat(importedGrades.termAverage) - 1 + parseFloat(importedGrades.termAverage)) / 3).toFixed(2) :
               ((formData.generalAverage - 2 + formData.generalAverage - 1 + formData.generalAverage) / 3).toFixed(2),
             
-            council: (importedGrades ? 
-              ((parseFloat(importedGrades.termAverage) - 2 + parseFloat(importedGrades.termAverage) - 1 + parseFloat(importedGrades.termAverage)) / 3) :
-              ((formData.generalAverage - 2 + formData.generalAverage - 1 + formData.generalAverage) / 3)
-            ) >= 10 ? "Promoted" : "Repeat",
-            
-            mention: (importedGrades ? 
-              ((parseFloat(importedGrades.termAverage) - 2 + parseFloat(importedGrades.termAverage) - 1 + parseFloat(importedGrades.termAverage)) / 3) :
-              ((formData.generalAverage - 2 + formData.generalAverage - 1 + formData.generalAverage) / 3)
-            ) >= 15 ? "Good" : 
-            (importedGrades ? 
-              ((parseFloat(importedGrades.termAverage) - 2 + parseFloat(importedGrades.termAverage) - 1 + parseFloat(importedGrades.termAverage)) / 3) :
-              ((formData.generalAverage - 2 + formData.generalAverage - 1 + formData.generalAverage) / 3)
-            ) >= 12 ? "Satisfactory" : "Pass",
-            
-            appreciation: (importedGrades ? 
-              ((parseFloat(importedGrades.termAverage) - 2 + parseFloat(importedGrades.termAverage) - 1 + parseFloat(importedGrades.termAverage)) / 3) :
-              ((formData.generalAverage - 2 + formData.generalAverage - 1 + formData.generalAverage) / 3)
-            ) >= 15 ? "Good" : "Satisfactory",
-            
-            observationsTeacher: "Fin d'année - Résultats satisfaisants, passage autorisé",
-            observationsDirector: "Continuer sur cette lancée. Félicitations pour ces bons résultats."
+            council: formData.councilDecision,
+            mention: formData.councilMention,
+            orientation: formData.councilOrientation,
+            councilDate: new Date(formData.councilDate).toLocaleDateString('fr-FR', { 
+              day: '2-digit', 
+              month: 'long', 
+              year: 'numeric' 
+            }),
+            observationsTeacher: formData.councilObservationsTeacher || "Fin d'année - Résultats satisfaisants, passage autorisé",
+            observationsDirector: formData.councilObservationsDirector || "Continuer sur cette lancée. Félicitations pour ces bons résultats."
           },
           
           // ✅ DONNÉES ADDITIONNELLES POUR TEMPLATE T3
           annualAverage: importedGrades ? parseFloat(importedGrades.termAverage) * 0.95 : (formData.generalAverage * 0.95),
           annualPosition: (formData.classRank || 1) + 1,
-          conductGrade: 17,
-          conduct: "Très bien",
-          absences: "2",
+          conductGrade: formData.conductGrade,
+          conduct: formData.conductAppreciation,
+          absences: formData.absencesT3.toString(),
+          participation: formData.participation,
+          assiduity: formData.assiduity,
+          totalAbsences: formData.absencesT1 + formData.absencesT2 + formData.absencesT3,
           teacherComments: "Fin d'année - Résultats satisfaisants, passage autorisé",
           directorComments: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
             "Continuer sur cette lancée. Félicitations pour ces bons résultats." : 
@@ -3235,6 +3244,202 @@ export default function BulletinManagementUnified() {
               </CardContent>
             </Card>
             </div>
+
+            {/* SECTION T3 SPÉCIFIQUE - CONSEIL DE CLASSE ET COMPORTEMENT */}
+            {formData.term === 'Troisième Trimestre' && (
+              <div className="space-y-6">
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-amber-800">
+                      ⚖️ Décision du Conseil de Classe
+                    </CardTitle>
+                    <p className="text-sm text-amber-700">
+                      Informations officielles pour la décision de passage en classe supérieure
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Décision du Conseil</Label>
+                        <Select
+                          value={formData.councilDecision}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, councilDecision: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ADMIS(E) EN CLASSE SUPÉRIEURE">✅ Admis(e) en classe supérieure</SelectItem>
+                            <SelectItem value="REDOUBLE EN CLASSE ACTUELLE">🔄 Redouble en classe actuelle</SelectItem>
+                            <SelectItem value="ADMIS(E) AVEC RÉSERVES">⚠️ Admis(e) avec réserves</SelectItem>
+                            <SelectItem value="CONSEIL DE RATTRAPAGE">📝 Conseil de rattrapage</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Mention</Label>
+                        <Select
+                          value={formData.councilMention}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, councilMention: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="TRÈS BIEN">🏆 Très Bien (16-20)</SelectItem>
+                            <SelectItem value="BIEN">🥈 Bien (14-16)</SelectItem>
+                            <SelectItem value="ASSEZ BIEN">🥉 Assez Bien (12-14)</SelectItem>
+                            <SelectItem value="PASSABLE">📋 Passable (10-12)</SelectItem>
+                            <SelectItem value="INSUFFISANT">❌ Insuffisant (&lt;10)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Orientation Conseillée</Label>
+                        <Input 
+                          value={formData.councilOrientation}
+                          onChange={(e) => setFormData(prev => ({ ...prev, councilOrientation: e.target.value }))}
+                          placeholder="Filière générale recommandée"
+                        />
+                      </div>
+                      <div>
+                        <Label>Date du Conseil</Label>
+                        <Input 
+                          type="date"
+                          value={formData.councilDate}
+                          onChange={(e) => setFormData(prev => ({ ...prev, councilDate: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Observations du Professeur Principal</Label>
+                      <Textarea 
+                        value={formData.councilObservationsTeacher}
+                        onChange={(e) => setFormData(prev => ({ ...prev, councilObservationsTeacher: e.target.value }))}
+                        placeholder="Observations sur le travail et les résultats de l'élève..."
+                        rows={2}
+                      />
+                    </div>
+                    <div>
+                      <Label>Observations du Directeur</Label>
+                      <Textarea 
+                        value={formData.councilObservationsDirector}
+                        onChange={(e) => setFormData(prev => ({ ...prev, councilObservationsDirector: e.target.value }))}
+                        placeholder="Avis de la direction sur la progression de l'élève..."
+                        rows={2}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-sky-200 bg-sky-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-sky-800">
+                      👤 Bilan Comportemental Annuel
+                    </CardTitle>
+                    <p className="text-sm text-sky-700">
+                      Évaluation du comportement et de l'assiduité de l'élève sur l'année
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label>Note de Conduite /20</Label>
+                        <Input 
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={formData.conductGrade}
+                          onChange={(e) => setFormData(prev => ({ ...prev, conductGrade: parseInt(e.target.value) || 0 }))}
+                        />
+                      </div>
+                      <div>
+                        <Label>Participation</Label>
+                        <Select
+                          value={formData.participation}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, participation: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active et constructive">🌟 Active et constructive</SelectItem>
+                            <SelectItem value="Bonne participation">👍 Bonne participation</SelectItem>
+                            <SelectItem value="Participation modérée">📈 Participation modérée</SelectItem>
+                            <SelectItem value="Participation faible">📉 Participation faible</SelectItem>
+                            <SelectItem value="Très passive">😴 Très passive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Assiduité</Label>
+                        <Select
+                          value={formData.assiduity}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, assiduity: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Excellente">⭐ Excellente</SelectItem>
+                            <SelectItem value="Très bonne">✅ Très bonne</SelectItem>
+                            <SelectItem value="Bonne">👌 Bonne</SelectItem>
+                            <SelectItem value="À améliorer">⚠️ À améliorer</SelectItem>
+                            <SelectItem value="Insuffisante">❌ Insuffisante</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Absences par Trimestre</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-xs text-gray-500">T1 (heures)</Label>
+                          <Input 
+                            type="number"
+                            min="0"
+                            value={formData.absencesT1}
+                            onChange={(e) => setFormData(prev => ({ ...prev, absencesT1: parseInt(e.target.value) || 0 }))}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-500">T2 (heures)</Label>
+                          <Input 
+                            type="number"
+                            min="0"
+                            value={formData.absencesT2}
+                            onChange={(e) => setFormData(prev => ({ ...prev, absencesT2: parseInt(e.target.value) || 0 }))}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-500">T3 (heures)</Label>
+                          <Input 
+                            type="number"
+                            min="0"
+                            value={formData.absencesT3}
+                            onChange={(e) => setFormData(prev => ({ ...prev, absencesT3: parseInt(e.target.value) || 0 }))}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Total annuel: {formData.absencesT1 + formData.absencesT2 + formData.absencesT3} heures
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Commentaires sur le Comportement</Label>
+                      <Textarea 
+                        value={formData.behaviorComments}
+                        onChange={(e) => setFormData(prev => ({ ...prev, behaviorComments: e.target.value }))}
+                        placeholder="Observations sur le comportement général de l'élève..."
+                        rows={2}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Notes Importées Automatiquement */}
             {showImportedGrades && importedGrades && (
