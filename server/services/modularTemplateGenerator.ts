@@ -171,7 +171,7 @@ export class ModularTemplateGenerator {
     
     return `
       <div class="educafric-header-compact">
-        <div class="header-main-layout">
+        <div class="header-three-column-layout">
           <!-- SECTION GAUCHE: Infos officielles + École -->
           <div class="header-left-section">
             <div class="official-compact">
@@ -184,10 +184,18 @@ export class ModularTemplateGenerator {
             
             <div class="school-compact">
               <h2 class="school-name-compact">${schoolInfo.schoolName}</h2>
-              <p class="school-contact-compact">Tél: ${schoolInfo.phoneNumber} • ${schoolInfo.address}</p>
-              <h3 class="document-title-compact">${titleText}</h3>
-              <p class="academic-period-compact">${language === 'fr' ? 'Année Scolaire' : 'Academic Year'}: ${schoolInfo.academicYear}</p>
+              <p class="school-contact-compact">Tél: ${schoolInfo.phoneNumber}</p>
+              <p class="school-contact-compact">${schoolInfo.address}</p>
             </div>
+          </div>
+          
+          <!-- SECTION CENTRE: Logo École -->
+          <div class="header-center-section">
+            <div class="logo-center-container">
+              ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-center" />` : '<div class="logo-box-center">LOGO<br>ÉCOLE</div>'}
+            </div>
+            <h3 class="document-title-center">${titleText}</h3>
+            <p class="academic-period-center">${language === 'fr' ? 'Année Scolaire' : 'Academic Year'}: ${schoolInfo.academicYear}</p>
           </div>
           
           <!-- SECTION DROITE: Photo + Infos élève -->
@@ -236,8 +244,8 @@ export class ModularTemplateGenerator {
           </div>
           ` : `
           <div class="header-right-section">
-            <div class="logo-section-compact">
-              ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-compact" />` : '<div class="logo-box-compact">LOGO<br>ÉCOLE</div>'}
+            <div class="placeholder-section">
+              <!-- Section pour maintenir l'équilibre visuel -->
             </div>
           </div>
           `}
@@ -279,21 +287,25 @@ export class ModularTemplateGenerator {
           margin-bottom: 10px;
         }
         
-        .header-main-layout {
-          display: flex;
-          justify-content: space-between;
+        .header-three-column-layout {
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
+          gap: 10px;
           align-items: flex-start;
-          gap: 15px;
         }
         
         .header-left-section {
-          flex: 2;
-          max-width: 60%;
+          justify-self: start;
+        }
+        
+        .header-center-section {
+          justify-self: center;
+          text-align: center;
+          min-width: 120px;
         }
         
         .header-right-section {
-          flex: 1;
-          max-width: 38%;
+          justify-self: end;
         }
         
         /* SECTION OFFICIELLE COMPACTE */
@@ -347,23 +359,52 @@ export class ModularTemplateGenerator {
           line-height: 1.1;
         }
         
-        .document-title-compact {
-          font-size: 14px;
-          font-weight: bold;
-          margin: 5px 0 2px 0;
-          text-align: center;
-          color: #1e40af;
-          background: linear-gradient(135deg, #f0f9ff, #dbeafe);
-          padding: 4px 8px;
-          border-radius: 4px;
-          border: 1px solid #3b82f6;
+        /* SECTION CENTRE - LOGO ET TITRE */
+        .logo-center-container {
+          margin-bottom: 5px;
         }
         
-        .academic-period-compact {
-          font-size: 9px;
-          margin: 2px 0 0 0;
-          text-align: center;
+        .school-logo-center {
+          max-height: 60px;
+          max-width: 80px;
+          border: 1px solid #000;
+          margin: 0 auto;
+          display: block;
+        }
+        
+        .logo-box-center {
+          width: 80px;
+          height: 60px;
+          border: 1px solid #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f3f4f6;
+          font-size: 8px;
           font-weight: bold;
+          text-align: center;
+          line-height: 1.1;
+          color: #6b7280;
+          margin: 0 auto;
+        }
+        
+        .document-title-center {
+          font-size: 12px;
+          font-weight: bold;
+          margin: 5px 0 2px 0;
+          color: #1e40af;
+          background: linear-gradient(135deg, #f0f9ff, #dbeafe);
+          padding: 3px 6px;
+          border-radius: 4px;
+          border: 1px solid #3b82f6;
+          white-space: nowrap;
+        }
+        
+        .academic-period-center {
+          font-size: 8px;
+          margin: 2px 0 0 0;
+          font-weight: bold;
+          color: #374151;
         }
         
         /* CARTE ÉLÈVE COMPACTE */
