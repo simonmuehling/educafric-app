@@ -77,6 +77,13 @@ export interface BulletinTemplateData {
   highestAvg?: number;
   lowestAvg?: number;
   councilDecision?: string;
+  // Nouveaux champs T3 spécifiques
+  firstTermRank?: number;
+  secondTermRank?: number;
+  annualAbsences?: number;
+  firstTermAbsences?: number;
+  secondTermAbsences?: number;
+  participation?: string;
   // ✅ NOUVEAUX CHAMPS T3 SELON JSON FOURNI
   summary?: {
     avgT3?: number;
@@ -95,6 +102,8 @@ export interface BulletinTemplateData {
   decision?: {
     council?: string; // "Admis en 5ème" ou "Redouble"
     mention?: string; // "Bien", "Très Bien", etc.
+    orientation?: string; // Orientation suggérée
+    councilDate?: string; // Date du conseil de classe
     observationsTeacher?: string;
     observationsDirector?: string;
   };
@@ -752,19 +761,93 @@ export class ModularTemplateGenerator {
           </div>
 
           <div class="content-section">
-            ${currentTerm === 'T3' && data.decision ? `
-              <h3>DÉCISION DU CONSEIL DE CLASSE</h3>
-              <div class="decision-section">
-                <div class="info-row">
-                  <span class="info-label"><strong>Décision:</strong></span>
-                  <span class="info-value"><strong style="color: ${data.decision.council?.includes('Admis') ? '#2563eb' : '#dc2626'};">${data.decision.council || 'À déterminer'}</strong></span>
+            ${currentTerm === 'T3' ? `
+              <!-- BULLETIN T3 - FORMAT OFFICIEL AFRICAIN DE FIN D'ANNÉE -->
+              <div class="annual-summary-section">
+                <h2 style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 12px; text-align: center; margin: 20px 0; border-radius: 8px; font-size: 16px;">📋 BILAN ANNUEL ${data.schoolInfo.academicYear}</h2>
+                
+                <div class="annual-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0;">
+                  <div class="annual-averages">
+                    <h4 style="color: #1e40af; margin-bottom: 8px; font-size: 13px;">🎯 MOYENNES TRIMESTRIELLES</h4>
+                    <div style="font-size: 12px; line-height: 1.6;">
+                      <p><strong>1er Trimestre:</strong> ${data.firstTermAverage || '—'}/20</p>
+                      <p><strong>2ème Trimestre:</strong> ${data.secondTermAverage || '—'}/20</p>
+                      <p><strong>3ème Trimestre:</strong> ${data.thirdTermAverage || data.generalAverage}/20</p>
+                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">📊 <strong>MOYENNE ANNUELLE: ${data.annualAverage || data.generalAverage}/20</strong></p>
+                    </div>
+                  </div>
+                  
+                  <div class="annual-positions">
+                    <h4 style="color: #1e40af; margin-bottom: 8px; font-size: 13px;">🏆 CLASSEMENTS & ÉVOLUTION</h4>
+                    <div style="font-size: 12px; line-height: 1.6;">
+                      <p><strong>Rang T1:</strong> ${data.firstTermRank || '—'}/${data.totalStudents}</p>
+                      <p><strong>Rang T2:</strong> ${data.secondTermRank || '—'}/${data.totalStudents}</p>
+                      <p><strong>Rang T3:</strong> ${data.classRank}/${data.totalStudents}</p>
+                      <p style="color: #1e40af; font-weight: bold; border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px;">🎖️ <strong>RANG ANNUEL: ${data.annualPosition || data.classRank}/${data.totalStudents}</strong></p>
+                    </div>
+                  </div>
                 </div>
-                <div class="info-row">
-                  <span class="info-label"><strong>Mention:</strong></span>
-                  <span class="info-value"><strong>${data.decision.mention || 'Passable'}</strong></span>
+              </div>
+              
+              <!-- DÉCISION OFFICIELLE DU CONSEIL DE CLASSE -->
+              <div class="council-decision" style="margin: 20px 0; padding: 20px; background: linear-gradient(135deg, #fef3c7, #fbbf24); border-radius: 12px; border: 3px solid #f59e0b;">
+                <h2 style="text-align: center; color: #92400e; margin-bottom: 15px; font-size: 16px; text-transform: uppercase; letter-spacing: 1px;">⚖️ DÉCISION DU CONSEIL DE CLASSE</h2>
+                
+                <div class="decision-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                  <div class="decision-left">
+                    <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
+                      <span style="font-weight: bold; color: #92400e;">📋 Décision:</span><br>
+                      <span style="font-size: 14px; font-weight: bold; color: ${data.decision?.council?.includes('Admis') || data.decision?.council?.includes('ADMIS') ? '#059669' : '#dc2626'};">
+                        ${data.decision?.council || 'ADMIS(E) EN CLASSE SUPÉRIEURE'}
+                      </span>
+                    </div>
+                    
+                    <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
+                      <span style="font-weight: bold; color: #92400e;">🏅 Mention:</span><br>
+                      <span style="font-size: 13px; font-weight: bold; color: #1e40af;">${data.decision?.mention || (data.generalAverage >= 16 ? 'TRÈS BIEN' : data.generalAverage >= 14 ? 'BIEN' : data.generalAverage >= 12 ? 'ASSEZ BIEN' : 'PASSABLE')}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="decision-right">
+                    <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
+                      <span style="font-weight: bold; color: #92400e;">🎯 Orientation:</span><br>
+                      <span style="font-size: 12px;">${data.decision?.orientation || 'Filière générale recommandée'}</span>
+                    </div>
+                    
+                    <div class="decision-item" style="padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
+                      <span style="font-weight: bold; color: #92400e;">📅 Date du Conseil:</span><br>
+                      <span style="font-size: 12px;">${data.decision?.councilDate || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="council-summary" style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 6px; border: 1px solid #f59e0b;">
+                  <p style="font-size: 11px; margin: 0; color: #92400e; line-height: 1.4;">
+                    <strong>📋 PROCÈS-VERBAL:</strong> Réuni le ${data.decision?.councilDate || new Date().toLocaleDateString('fr-FR')}, le conseil de classe a examiné les résultats de l'élève et a pris la décision ci-dessus après délibération collégiale.
+                  </p>
+                </div>
+              </div>
+              
+              <!-- BILAN COMPORTEMENTAL ANNUEL -->
+              <div class="behavior-annual" style="margin: 15px 0; padding: 15px; background: #f0f9ff; border-radius: 8px; border: 2px solid #0ea5e9;">
+                <h3 style="color: #0c4a6e; margin-bottom: 10px; font-size: 14px;">👤 BILAN COMPORTEMENTAL ANNUEL</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; font-size: 12px;">
+                  <div><strong>Conduite générale:</strong><br>${data.conduct || 'Très Bien'} (${data.conductGrade}/20)</div>
+                  <div><strong>Assiduité:</strong><br>${(data.absences || 0) <= 5 ? 'Excellente' : (data.absences || 0) <= 15 ? 'Bonne' : 'À améliorer'}</div>
+                  <div><strong>Participation:</strong><br>${data.participation || 'Active et constructive'}</div>
+                </div>
+                <div style="margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 4px;">
+                  <strong>📊 Total absences annuelles:</strong> ${data.annualAbsences || (data.absences * 3) || 0} heures 
+                  (T1: ${data.firstTermAbsences || Math.floor((data.absences || 0) * 0.3)} • T2: ${data.secondTermAbsences || Math.floor((data.absences || 0) * 0.3)} • T3: ${data.absences || 0})
                 </div>
               </div>
             ` : `
+              <!-- BULLETIN T1/T2 - FORMAT STANDARD -->
+              <div class="standard-section">
+                <div class="info-row" style="text-align: center; padding: 10px; background: #f8fafc; border-radius: 6px;">
+                  <p style="font-size: 13px; color: #475569; margin: 0;">📊 Bulletin de contrôle trimestriel - Évaluation intermédiaire</p>
+                </div>
+              </div>
             `}
           </div>
 
@@ -772,21 +855,54 @@ export class ModularTemplateGenerator {
             <!-- Sections PROCÈS-VERBAL et DÉCISION DE LA DIRECTION supprimées -->
           </div>
 
+          <!-- SIGNATURES OFFICIELLES RENFORCÉES POUR T3 -->
           <div class="footer-section">
-            <div class="signature-box">
-              <strong>Le Professeur Principal</strong><br>
-              <div style="height: 40px;"></div>
-              <div style="border-top: 1px solid #000; padding-top: 5px;">
-                <strong>${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
+            ${currentTerm === 'T3' ? `
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; padding: 15px; background: #fafafa; border-radius: 8px; border: 2px solid #e5e7eb;">
+                <div class="signature-box" style="text-align: center; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                  <strong style="color: #374151;">📝 Le Professeur Principal</strong><br>
+                  <div style="height: 35px; border-bottom: 1px solid #d1d5db; margin: 8px 0;"></div>
+                  <strong style="font-size: 11px;">${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
+                  <div style="font-size: 9px; color: #6b7280; margin-top: 4px;">Visa et signature</div>
+                </div>
+                
+                <div class="signature-box" style="text-align: center; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                  <strong style="color: #374151;">🏛️ Le Directeur</strong><br>
+                  <div style="height: 35px; border-bottom: 1px solid #d1d5db; margin: 8px 0;"></div>
+                  <strong style="font-size: 11px;">${data.signatures?.director || data.schoolInfo.directorName}</strong>
+                  <div style="font-size: 9px; color: #6b7280; margin-top: 4px;">Cachet et signature</div>
+                </div>
+                
+                <div class="signature-box" style="text-align: center; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
+                  <strong style="color: #374151;">👨‍👩‍👧‍👦 Le Parent/Tuteur</strong><br>
+                  <div style="height: 35px; border-bottom: 1px solid #d1d5db; margin: 8px 0;"></div>
+                  <strong style="font-size: 11px;">_________________</strong>
+                  <div style="font-size: 9px; color: #6b7280; margin-top: 4px;">Pris connaissance</div>
+                </div>
               </div>
-            </div>
-            <div class="signature-box">
-              <strong>Le Directeur</strong><br>
-              <div style="height: 40px;"></div>
-              <div style="border-top: 1px solid #000; padding-top: 5px;">
-                <strong>${data.signatures?.director || data.schoolInfo.directorName}</strong>
+              
+              <div style="text-align: center; margin-top: 15px; padding: 10px; background: linear-gradient(135deg, #fef3c7, #fbbf24); border-radius: 6px; border: 1px solid #f59e0b;">
+                <p style="font-size: 10px; color: #92400e; margin: 0; font-weight: bold;">🏛️ VALIDÉ PAR LE CONSEIL DE CLASSE • ⚖️ DÉCISION OFFICIELLE • 📋 DOCUMENT AUTHENTIFIÉ</p>
+                <p style="font-size: 9px; color: #92400e; margin: 2px 0 0 0;">Ce bulletin de fin d'année a valeur officielle pour l'inscription dans l'établissement de niveau supérieur</p>
               </div>
-            </div>
+            ` : `
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="signature-box" style="text-align: center; padding: 15px;">
+                  <strong>Le Professeur Principal</strong><br>
+                  <div style="height: 40px;"></div>
+                  <div style="border-top: 1px solid #000; padding-top: 5px;">
+                    <strong>${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
+                  </div>
+                </div>
+                <div class="signature-box" style="text-align: center; padding: 15px;">
+                  <strong>Le Directeur</strong><br>
+                  <div style="height: 40px;"></div>
+                  <div style="border-top: 1px solid #000; padding-top: 5px;">
+                    <strong>${data.signatures?.director || data.schoolInfo.directorName}</strong>
+                  </div>
+                </div>
+              </div>
+            `}
           </div>
 
           ${data.verificationCode ? `
