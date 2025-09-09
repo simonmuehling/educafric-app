@@ -175,14 +175,28 @@ l'implémentation de cette solution moderne au sein de votre établissement.
 Dans l'attente de votre retour favorable, nous vous prions d'agréer, ${currentTemplate.recipientTitle.toLowerCase()},
 l'expression de notre parfaite considération.
 
+
+
+
 ${currentTemplate.signatureName}
 ${currentTemplate.signatureFunction}
 Educafric.com by Afro Metaverse
 
-+237 656 200 472
-INFO@EDUCAFRIC.COM
-SIMON.ABANDA@AFROMETAVERSE.ONLINE
-INFO@AFROMETAVERSE.ONLINE`;
+
+                                                                                            +237 656 200 472
+
+                                                                                           INFO@EDUCAFRIC.COM
+
+                                                                                       INFO@AFROMETAVERSE.ONLINE
+
+
+                                                                                           [CACHET OFFICIEL]
+                                                                                         ══════════════════
+                                                                                         EDUCAFRIC.COM
+                                                                                      by Afro Metaverse
+                                                                                      RC/YAE/2023/B/1361
+                                                                                      NIU:M032318079876K
+                                                                                         ══════════════════`;
   };
 
   const text = {
