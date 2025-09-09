@@ -2858,6 +2858,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true, message: 'Commercial leads endpoint', data: [] });
   });
 
+  // Add missing commercial endpoints
+  app.get('/api/commercial/contacts', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'Commercial contacts endpoint', 
+      data: [
+        { id: 1, name: 'Jean Mbaku', email: 'jean.mbaku@school.cm', phone: '+237 677 123 456', school: 'Lycée Bilingue de Yaoundé', status: 'active' },
+        { id: 2, name: 'Marie Atangana', email: 'marie.atangana@education.gov.cm', phone: '+237 699 876 543', school: 'Collège de Douala', status: 'pending' },
+        { id: 3, name: 'Paul Mvondo', email: 'paul.mvondo@private-school.cm', phone: '+237 655 789 012', school: 'École Privée Excellence', status: 'active' }
+      ] 
+    });
+  });
+
+  app.get('/api/commercial/appointments', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'Commercial appointments endpoint', 
+      data: [
+        { id: 1, title: 'Présentation EDUCAFRIC - Lycée Central', date: '2024-09-15', time: '14:00', contact: 'M. Nguema', school: 'Lycée Central de Yaoundé', status: 'confirmed' },
+        { id: 2, title: 'Démo Système - Collège Moderne', date: '2024-09-18', time: '10:30', contact: 'Mme. Essomba', school: 'Collège Moderne de Douala', status: 'pending' },
+        { id: 3, title: 'Formation Équipe - École Bilingue', date: '2024-09-20', time: '09:00', contact: 'M. Fouda', school: 'École Bilingue Excellence', status: 'confirmed' }
+      ] 
+    });
+  });
+
+  app.get('/api/commercial/schools', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'Commercial schools endpoint', 
+      data: [
+        { id: 1, name: 'Lycée Bilingue de Yaoundé', type: 'public', city: 'Yaoundé', students: 1200, status: 'prospect', lastContact: '2024-09-10' },
+        { id: 2, name: 'Collège Moderne de Douala', type: 'private', city: 'Douala', students: 850, status: 'client', lastContact: '2024-09-08' },
+        { id: 3, name: 'École Privée Excellence', type: 'private', city: 'Bafoussam', students: 600, status: 'client', lastContact: '2024-09-12' },
+        { id: 4, name: 'Lycée Technique de Garoua', type: 'technical', city: 'Garoua', students: 950, status: 'prospect', lastContact: '2024-09-05' }
+      ] 
+    });
+  });
+
+  app.get('/api/commercial/statistics', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), (req, res) => {
+    res.json({ 
+      success: true, 
+      message: 'Commercial statistics endpoint', 
+      data: {
+        totalProspects: 25,
+        activeClients: 12,
+        monthlyRevenue: 2850000, // CFA francs
+        conversionRate: 48,
+        appointmentsThisWeek: 8,
+        contactsThisMonth: 45,
+        schoolsUnderContract: 12,
+        averageDealSize: 125000,
+        topRegions: [
+          { name: 'Centre', schools: 8, revenue: 1200000 },
+          { name: 'Littoral', schools: 6, revenue: 950000 },
+          { name: 'Ouest', schools: 4, revenue: 700000 }
+        ]
+      } 
+    });
+  });
+
   // Commercial activity tracking endpoints
   app.get('/api/commercial/activities', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
     try {
