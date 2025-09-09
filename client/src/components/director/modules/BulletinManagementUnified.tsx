@@ -649,11 +649,28 @@ export default function BulletinManagementUnified() {
 
   // Gestion du changement de trimestre
   const handleTermSelection = async (term: string) => {
+    console.log('[TERM_SELECTION] 🎯 Sélection trimestre:', term);
     setFormData(prev => ({ ...prev, term }));
     
-    // Si on a déjà sélectionné un élève et une classe, relancer l'importation
+    // ✅ FORCER SYNCHRONISATION IMMÉDIATE
     if (selectedStudentId && selectedClassId) {
-      await triggerAutoImport(selectedStudentId, selectedClassId, term);
+      console.log('[TERM_SELECTION] 🔄 Lancement import automatique...');
+      setLoading(true);
+      
+      try {
+        await triggerAutoImport(selectedStudentId, selectedClassId, term);
+        console.log('[TERM_SELECTION] ✅ Import terminé - prêt pour aperçu');
+        
+        // ✅ NOTIFICATION UTILISATEUR
+        toast({
+          title: "✅ Trimestre sélectionné",
+          description: `Données ${term} chargées - Aperçu disponible`,
+        });
+      } catch (error) {
+        console.error('[TERM_SELECTION] ❌ Erreur import:', error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -1129,10 +1146,22 @@ export default function BulletinManagementUnified() {
   // Prévisualiser un bulletin avec données en temps réel
   const previewBulletin = async () => {
     try {
+      // ✅ VALIDATION CRITIQUE DU TRIMESTRE
+      if (!formData.term) {
+        console.warn('[PREVIEW_DEBUG] ❌ Aucun trimestre sélectionné');
+        toast({
+          title: "Trimestre requis", 
+          description: "Veuillez d'abord sélectionner un trimestre (T1, T2 ou T3)",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // ✅ VALIDATION AMÉLIORÉE - Priorité aux sélections directes
       console.log('[PREVIEW_DEBUG] 🔍 Validation avant aperçu:', {
         selectedStudentId,
         selectedClassId,
+        selectedTerm: formData.term,
         formDataStudent: `${formData.studentFirstName} ${formData.studentLastName}`,
         formDataClass: formData.className
       });
@@ -1167,6 +1196,17 @@ export default function BulletinManagementUnified() {
           variant: "destructive",
         });
         return;
+      }
+
+      // ✅ VÉRIFICATION SYNCHRONISATION T3 SPÉCIFIQUE
+      if (formData.term === 'Troisième Trimestre') {
+        console.log('[PREVIEW_T3] 🎯 Vérification synchronisation T3...');
+        
+        // Forcer un délai minimal pour s'assurer que l'import est terminé
+        if (!loading) {
+          console.log('[PREVIEW_T3] ⏱️ Délai sécurisé pour synchronisation T3');
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
 
       // ✅ RÉCUPÉRATION DIRECTE DES DONNÉES SANS COMPLEXITÉ
