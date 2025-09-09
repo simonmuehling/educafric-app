@@ -190,17 +190,8 @@ Educafric.com by Afro Metaverse
                                                                                        INFO@AFROMETAVERSE.ONLINE
 
 
-                                                                                              ●●●●●●●●●●●●●●●●●●●●
-                                                                                          ●●●  EDUCAFRIC.COM  ●●●
-                                                                                        ●●●                      ●●●
-                                                                                      ●●●    by Afro Metaverse    ●●●
-                                                                                     ●●●                            ●●●
-                                                                                    ●●●           ab                ●●●
-                                                                                     ●●●                            ●●●
-                                                                                      ●●●  RC/YAE/2023/B/1361  ●●●
-                                                                                        ●●●                      ●●●
-                                                                                          ●●●  NIU:M032318079876K ●●●
-                                                                                              ●●●●●●●●●●●●●●●●●●●●`;
+                                                                                       
+                                                                                    [CACHET OFFICIEL EDUCAFRIC]`;
   };
 
   const text = {
@@ -556,9 +547,22 @@ Educafric.com by Afro Metaverse
                 </div>
               </div>
               <div className="bg-gray-50 p-6 rounded border">
-                <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                  {generatePreview()}
-                </pre>
+                <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                  {generatePreview().split('[CACHET OFFICIEL EDUCAFRIC]').map((part, index) => (
+                    <span key={index}>
+                      {part}
+                      {index === 0 && (
+                        <div className="flex justify-end mt-4">
+                          <img 
+                            src="/images/cachet-educafric.png" 
+                            alt="Cachet Officiel Educafric" 
+                            className="w-24 h-24 opacity-80"
+                          />
+                        </div>
+                      )}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
