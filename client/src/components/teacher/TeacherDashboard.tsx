@@ -232,7 +232,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: '📱 Saisie Mobile',
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: createDynamicModule('MobileGradeInput')
+      component: createDynamicModule('mobile-grades')
     },
     {
       id: 'assignments',
