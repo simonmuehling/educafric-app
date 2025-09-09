@@ -182,16 +182,12 @@ ${currentTemplate.signatureName}
 ${currentTemplate.signatureFunction}
 Educafric.com by Afro Metaverse
 
-
-                                                                                            +237 656 200 472
-
-                                                                                           INFO@EDUCAFRIC.COM
-
-                                                                                       INFO@AFROMETAVERSE.ONLINE
+[CACHET OFFICIEL EDUCAFRIC]
 
 
-                                                                                       
-                                                                                    [CACHET OFFICIEL EDUCAFRIC]`;
+
+
++237 656 200 472                    INFO@EDUCAFRIC.COM                    INFO@AFROMETAVERSE.ONLINE`;
   };
 
   const text = {
@@ -552,14 +548,20 @@ Educafric.com by Afro Metaverse
                     <span key={index}>
                       {part}
                       {index === 0 && (
-                        <div className="flex justify-end mt-4">
+                        <div className="flex justify-start mt-2 mb-4">
                           <img 
                             src="/images/cachet-educafric.png" 
                             alt="Cachet Officiel Educafric" 
-                            className="w-24 h-24 opacity-80"
+                            className="w-32 h-32 opacity-80"
                           />
                         </div>
                       )}
+                      {index === 1 && (
+                        <div className="text-xs mt-4 text-gray-600">
+                          {part}
+                        </div>
+                      )}
+                      {index === 0 && part}
                     </span>
                   ))}
                 </div>
