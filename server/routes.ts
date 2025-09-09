@@ -1372,33 +1372,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log('[TEACHER_API] GET /api/teacher/classes for user:', user.id);
       
-      const classes = [
+      // Grouper par école avec les classes assignées
+      const schoolsWithClasses = [
         {
-          id: 1,
-          name: '6ème A',
-          level: '6ème',
-          section: 'A',
-          studentCount: 28,
-          subject: 'Mathématiques',
-          room: 'Salle 12',
-          schedule: 'Lun-Mer-Ven 08:00-10:00'
+          schoolId: 1,
+          schoolName: 'Lycée de Yaoundé',
+          schoolAddress: 'Bastos, Yaoundé',
+          schoolPhone: '+237222123456',
+          isConnected: true,
+          assignmentDate: '2024-09-01',
+          classes: [
+            {
+              id: 1,
+              name: '6ème A',
+              level: '6ème',
+              section: 'A',
+              studentCount: 28,
+              subject: 'Mathématiques',
+              room: 'Salle 12',
+              schedule: 'Lun-Mer-Ven 08:00-10:00'
+            },
+            {
+              id: 2,
+              name: '5ème B',
+              level: '5ème',
+              section: 'B', 
+              studentCount: 25,
+              subject: 'Mathématiques',
+              room: 'Salle 15',
+              schedule: 'Mar-Jeu 10:00-12:00'
+            }
+          ]
         },
         {
-          id: 2,
-          name: '5ème B',
-          level: '5ème',
-          section: 'B', 
-          studentCount: 25,
-          subject: 'Mathématiques',
-          room: 'Salle 15',
-          schedule: 'Mar-Jeu 10:00-12:00'
+          schoolId: 2,
+          schoolName: 'Collège Bilingue de Douala',
+          schoolAddress: 'Akwa, Douala',
+          schoolPhone: '+237233987654',
+          isConnected: true,
+          assignmentDate: '2024-08-15',
+          classes: [
+            {
+              id: 3,
+              name: '4ème C',
+              level: '4ème',
+              section: 'C',
+              studentCount: 22,
+              subject: 'Physique',
+              room: 'Labo 1',
+              schedule: 'Mar-Jeu 14:00-16:00'
+            }
+          ]
         }
       ];
       
-      res.json({ success: true, classes });
+      res.json({ success: true, schoolsWithClasses });
     } catch (error) {
       console.error('[TEACHER_API] Error fetching classes:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch classes' });
+    }
+  });
+
+  // Nouvelle route pour se déconnecter d'une école
+  app.post("/api/teacher/disconnect-school", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { schoolId, reason } = req.body;
+      console.log('[TEACHER_API] POST /api/teacher/disconnect-school for user:', user.id, 'school:', schoolId);
+      
+      // Ici on implémentera la logique de déconnexion de l'école
+      // Pour l'instant, simulation réussie
+      
+      res.json({ 
+        success: true, 
+        message: 'Déconnexion de l\'école réussie',
+        disconnectedSchool: {
+          schoolId,
+          reason,
+          disconnectionDate: new Date().toISOString()
+        }
+      });
+    } catch (error) {
+      console.error('[TEACHER_API] Error disconnecting from school:', error);
+      res.status(500).json({ success: false, message: 'Failed to disconnect from school' });
     }
   });
 
