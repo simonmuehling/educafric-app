@@ -253,72 +253,61 @@ const OfferLetterCustomizer: React.FC = () => {
       doc.text(currentTemplate.signatureFunction, 20, yPosition + 5);
       doc.text('Educafric.com by Afro Metaverse', 20, yPosition + 10);
       
-      // Add stamp image
-      try {
-        // Load and add the stamp image
-        const stampImg = new Image();
-        stampImg.crossOrigin = 'anonymous';
-        
-        await new Promise((resolve, reject) => {
-          stampImg.onload = () => {
-            // Convert image to base64 and add to PDF
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = stampImg.width;
-            canvas.height = stampImg.height;
-            ctx?.drawImage(stampImg, 0, 0);
-            const dataURL = canvas.toDataURL('image/png');
-            
-            // Add image to PDF (positioned under signature)
-            doc.addImage(dataURL, 'PNG', 20, yPosition + 15, 32, 32);
-            
-            // Add footer contacts
-            doc.setFontSize(8);
-            doc.text('+237 656 200 472     INFO@EDUCAFRIC.COM     INFO@AFROMETAVERSE.ONLINE', 20, 280);
-            
-            // Save the PDF
-            const fileName = `Offre_${currentTemplate.schoolName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-            
-            toast({
-              title: 'PDF généré',
-              description: 'La lettre d\'offre a été téléchargée avec succès',
-            });
-            
-            resolve(true);
-          };
-          stampImg.onerror = () => {
-            // Fallback: save PDF without stamp
-            doc.setFontSize(8);
-            doc.text('+237 656 200 472     INFO@EDUCAFRIC.COM     INFO@AFROMETAVERSE.ONLINE', 20, 280);
-            
-            const fileName = `Offre_${currentTemplate.schoolName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-            
-            toast({
-              title: 'PDF généré',
-              description: 'La lettre d\'offre a été téléchargée (sans cachet)',
-            });
-            
-            reject();
-          };
-        });
-        
-        stampImg.src = '/images/cachet-educafric.png';
-      } catch (error) {
-        console.warn('Could not load stamp image:', error);
-        // Fallback: save PDF without stamp
+      // Function to finalize PDF
+      const finalizePDF = (withStamp = false) => {
+        // Add footer contacts
         doc.setFontSize(8);
         doc.text('+237 656 200 472     INFO@EDUCAFRIC.COM     INFO@AFROMETAVERSE.ONLINE', 20, 280);
         
+        // Save the PDF
         const fileName = `Offre_${currentTemplate.schoolName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
         doc.save(fileName);
         
         toast({
           title: 'PDF généré',
-          description: 'La lettre d\'offre a été téléchargée (sans cachet)',
+          description: withStamp ? 'La lettre d\'offre a été téléchargée avec succès' : 'La lettre d\'offre a été téléchargée (sans cachet)',
         });
-      }
+      };
+      
+      // Try to add stamp image
+      const stampImg = new Image();
+      stampImg.crossOrigin = 'anonymous';
+      
+      stampImg.onload = () => {
+        try {
+          // Convert image to base64 and add to PDF
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = stampImg.width;
+          canvas.height = stampImg.height;
+          ctx?.drawImage(stampImg, 0, 0);
+          const dataURL = canvas.toDataURL('image/png');
+          
+          // Add image to PDF (positioned under signature)
+          doc.addImage(dataURL, 'PNG', 20, yPosition + 15, 32, 32);
+          
+          finalizePDF(true);
+        } catch (error) {
+          console.warn('Error processing stamp image:', error);
+          finalizePDF(false);
+        }
+      };
+      
+      stampImg.onerror = () => {
+        console.warn('Failed to load stamp image');
+        finalizePDF(false);
+      };
+      
+      // Set timeout fallback
+      setTimeout(() => {
+        if (!stampImg.complete) {
+          console.warn('Stamp image loading timeout');
+          finalizePDF(false);
+        }
+      }, 3000);
+      
+      stampImg.src = '/images/cachet-educafric.png';
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast({
