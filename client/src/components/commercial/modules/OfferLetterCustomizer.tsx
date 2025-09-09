@@ -198,25 +198,37 @@ const OfferLetterCustomizer: React.FC = () => {
       doc.text('RC/YAE/2023/B/1361', 20, 55);
       doc.text('NIU:M032318079876K', 20, 60);
       
-      // Add recipient info
-      doc.text('À', 20, 80);
-      doc.text(currentTemplate.recipientTitle, 20, 85);
+      // Add recipient info based on language
+      const toLabel = language === 'fr' ? 'À' : 'To';
+      const recipientTitle = language === 'fr' 
+        ? currentTemplate.recipientTitle 
+        : currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director');
+      doc.text(toLabel, 20, 80);
+      doc.text(recipientTitle, 20, 85);
       doc.text(currentTemplate.schoolName, 20, 90);
       doc.text(currentTemplate.schoolAddress, 20, 95);
       
-      // Add subject
+      // Add subject based on language
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('OBJET : OFFRE DE SOLUTION NUMÉRIQUE DE GESTION SCOLAIRE –', 20, 110);
-      doc.text('APPLICATION EDUCAFRIC', 20, 115);
+      if (language === 'fr') {
+        doc.text('OBJET : OFFRE DE SOLUTION NUMÉRIQUE DE GESTION SCOLAIRE –', 20, 110);
+        doc.text('APPLICATION EDUCAFRIC', 20, 115);
+      } else {
+        doc.text('SUBJECT: DIGITAL SCHOOL MANAGEMENT SOLUTION OFFER –', 20, 110);
+        doc.text('EDUCAFRIC APPLICATION', 20, 115);
+      }
       
       // Add salutation
       doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
-      doc.text(currentTemplate.salutation.toUpperCase(), 20, 130);
+      const salutationText = language === 'fr' 
+        ? currentTemplate.salutation.toUpperCase()
+        : currentTemplate.salutation.replace('Monsieur/Madame le/la Directeur(trice),', 'DEAR MR./MRS. PRINCIPAL/DIRECTOR,').toUpperCase();
+      doc.text(salutationText, 20, 130);
       
-      // Add main content
-      const content = [
+      // Add main content based on language
+      const contentFR = [
         'Dans le cadre de notre mission d\'accompagnement des établissements scolaires vers la modernisation',
         'et la digitalisation de leurs services, nous avons l\'honneur de vous présenter EducaFric, une application',
         'scolaire innovante et adaptée au contexte africain.',
@@ -235,6 +247,28 @@ const OfferLetterCustomizer: React.FC = () => {
         `Dans l'attente de votre retour favorable, nous vous prions d'agréer, ${currentTemplate.recipientTitle.toLowerCase()},`,
         'l\'expression de notre parfaite considération.'
       ];
+
+      const contentEN = [
+        'As part of our mission to support educational institutions towards modernization and digitalization',
+        'of their services, we have the honor to present EducaFric, an innovative school application',
+        'adapted to the African context.',
+        '',
+        'This digital tool offers several advantages:',
+        '',
+        '- Academic management: tracking of students, teachers, schedules and school calendar;',
+        '- Automated report cards: secure and compliant edition;',
+        '- Disciplinary monitoring: management of absences, tardiness and behavior;',
+        '- Instant communication: SMS and notifications to parents;',
+        '- Financial management: tracking and payment of school fees with automatic receipts.',
+        '',
+        'We would be honored to organize a free demonstration and support you in the implementation',
+        'of this modern solution within your institution.',
+        '',
+        `Looking forward to your favorable response, we remain, ${currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director').toLowerCase()},`,
+        'yours sincerely.'
+      ];
+
+      const content = language === 'fr' ? contentFR : contentEN;
       
       let yPosition = 145;
       content.forEach(line => {
@@ -351,7 +385,7 @@ const OfferLetterCustomizer: React.FC = () => {
   };
 
   const generatePreview = () => {
-    return `Educafric.com by Afro Metaverse
+    const contentFR = `Educafric.com by Afro Metaverse
 info@educafric.com / info@afrometaverse.online
 ${currentTemplate.commercialPhone}
 educafric.com
@@ -399,6 +433,57 @@ Educafric.com by Afro Metaverse
 
 
 +237 656 200 472                    INFO@EDUCAFRIC.COM                    INFO@AFROMETAVERSE.ONLINE`;
+
+    const contentEN = `Educafric.com by Afro Metaverse
+info@educafric.com / info@afrometaverse.online
+${currentTemplate.commercialPhone}
+educafric.com
+RC/YAE/2023/B/1361
+NIU:M032318079876K
+
+To
+${currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director')}
+${currentTemplate.schoolName}
+${currentTemplate.schoolAddress}
+
+SUBJECT: DIGITAL SCHOOL MANAGEMENT SOLUTION OFFER –
+                    EDUCAFRIC APPLICATION
+
+${currentTemplate.salutation.replace('Monsieur/Madame le/la Directeur(trice),', 'DEAR MR./MRS. PRINCIPAL/DIRECTOR,').toUpperCase()}
+
+As part of our mission to support educational institutions towards modernization and digitalization 
+of their services, we have the honor to present EducaFric, an innovative school application 
+adapted to the African context.
+
+This digital tool offers several advantages:
+
+- Academic management: tracking of students, teachers, schedules and school calendar;
+- Automated report cards: secure and compliant edition;
+- Disciplinary monitoring: management of absences, tardiness and behavior;
+- Instant communication: SMS and notifications to parents;
+- Financial management: tracking and payment of school fees with automatic receipts.
+
+We would be honored to organize a free demonstration and support you in the implementation 
+of this modern solution within your institution.
+
+Looking forward to your favorable response, we remain, ${currentTemplate.recipientTitle.replace('Monsieur/Madame le/la Directeur(trice)', 'Mr./Mrs. Principal/Director').toLowerCase()},
+yours sincerely.
+
+
+
+
+${currentTemplate.signatureName}
+${currentTemplate.signatureFunction}
+Educafric.com by Afro Metaverse
+
+[CACHET OFFICIEL EDUCAFRIC]
+
+
+
+
++237 656 200 472                    INFO@EDUCAFRIC.COM                    INFO@AFROMETAVERSE.ONLINE`;
+
+    return language === 'fr' ? contentFR : contentEN;
   };
 
   const text = {
@@ -427,23 +512,23 @@ Educafric.com by Afro Metaverse
     },
     en: {
       title: 'Offer Letter Customization',
-      subtitle: 'Create and manage your personalized letter templates',
-      templateName: 'Template name',
-      commercialPhone: 'Commercial phone',
-      recipientDetails: 'Recipient details',
-      recipientTitle: 'Recipient title',
-      schoolName: 'School name',
-      schoolAddress: 'School address',
+      subtitle: 'Create and manage your customized letter templates',
+      templateName: 'Template Name',
+      commercialPhone: 'Commercial Phone',
+      recipientDetails: 'Recipient Details',
+      recipientTitle: 'Recipient Title',
+      schoolName: 'School Name',
+      schoolAddress: 'School Address',
       salutation: 'Salutation',
       signature: 'Signature',
-      signatureName: 'Name and surname',
-      signatureFunction: 'Function',
-      saveTemplate: 'Save template',
-      loadTemplate: 'Load template',
+      signatureName: 'Full Name',
+      signatureFunction: 'Position/Function',
+      saveTemplate: 'Save Template',
+      loadTemplate: 'Load Template',
       preview: 'Preview',
-      newTemplate: 'New template',
+      newTemplate: 'New Template',
       deleteTemplate: 'Delete',
-      setDefault: 'Set as default',
+      setDefault: 'Set as Default',
       templateNamePlaceholder: 'Ex: Private School Template',
       phonePlaceholder: '+237 6XX XXX XXX',
       selectTemplate: 'Select a template'
