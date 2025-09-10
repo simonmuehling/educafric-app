@@ -2246,33 +2246,33 @@ export default function BulletinManagementUnified() {
       <div className="p-6 max-w-7xl mx-auto">
         {/* EN-TÊTE MODERNE INSPIRÉ GEGOK12 */}
         <div className="mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 shadow-xl">
+          <div className="rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
-                  <FileText className="h-8 w-8 text-white" />
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <FileText className="h-8 w-8 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white">📊 Gestion des Bulletins</h1>
-                  <p className="text-blue-100 mt-1">
+                  <h1 className="text-3xl font-bold text-gray-800">📊 Gestion des Bulletins</h1>
+                  <p className="text-gray-600 mt-1">
                     Système professionnel de génération de bulletins • Design moderne • Coefficients flexibles
                   </p>
                 </div>
               </div>
               <div className="hidden md:flex items-center space-x-4">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-white">{myBulletins.length}</div>
-                  <div className="text-xs text-blue-100">Bulletins créés</div>
+                <div className="bg-blue-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{myBulletins.length}</div>
+                  <div className="text-xs text-gray-600">Bulletins créés</div>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-white">{pendingBulletins.length}</div>
-                  <div className="text-xs text-blue-100">En attente</div>
+                <div className="bg-blue-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{pendingBulletins.length}</div>
+                  <div className="text-xs text-gray-600">En attente</div>
                 </div>
               </div>
             </div>
             
             {/* BARRE DE STATUT MODERNE */}
-            <div className="mt-4 flex items-center space-x-6 text-sm text-blue-100">
+            <div className="mt-4 flex items-center space-x-6 text-sm text-gray-600">
               <div className="flex items-center space-x-2">
                 <CheckCircle className="h-4 w-4" />
                 <span>3 templates spécialisés par trimestre</span>
