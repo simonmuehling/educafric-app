@@ -59,7 +59,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
   // Submit absence declaration
   const declareAbsenceMutation = useMutation({
     mutationFn: async (absenceData: AbsenceDeclaration) => {
-      const response = await fetch('/api/teacher/absence/declare', {
+      const response = await fetch('/api/teacher/absence/declare-ERROR-TEST', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' 
