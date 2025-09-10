@@ -219,15 +219,15 @@ const FindParentsModule: React.FC = () => {
         studentId: user.id,
         studentName: `${user.firstName} ${user.lastName}`,
         studentEmail: user.email,
-        schoolName: user.schoolName || 'École Inconnue',
-        className: user.class || 'Classe Inconnue',
+        schoolName: 'École Saint-Joseph Yaoundé',
+        className: '3ème A',
         timestamp: new Date().toISOString(),
         connectUrl: `https://educafric.com/parent-connect/${user.id}`,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // +7 jours
       };
       
       // Créer le lien magique
-      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&school=${encodeURIComponent(user.schoolName || 'École')}&class=${encodeURIComponent(user.class || 'Classe')}`;
+      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&school=${encodeURIComponent('École Saint-Joseph Yaoundé')}&class=${encodeURIComponent('3ème A')}`;
       setMagicLink(magicUrl);
       
       // Générer le QR code avec les vraies données
