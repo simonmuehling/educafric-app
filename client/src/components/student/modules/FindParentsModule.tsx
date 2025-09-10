@@ -1,12 +1,10 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-
-// Importation dynamique du composant Firebase
-const FirebaseParentConnection = React.lazy(() => import('./FirebaseParentConnection'));
+import QRCode from 'qrcode';
 import {
   Card,
   CardContent,
@@ -42,7 +40,11 @@ import {
   Search,
   Send,
   Phone,
-  Mail
+  Mail,
+  Download,
+  Copy,
+  Share,
+  Loader2
 } from 'lucide-react';
 
 interface ParentConnection {
@@ -73,6 +75,10 @@ const FindParentsModule: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('connections');
   const [qrCode, setQrCode] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [magicLink, setMagicLink] = useState<string>('');
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
   const [parentRequest, setParentRequest] = useState<ParentRequest>({
     parentEmail: '',
     parentPhone: '',
@@ -92,14 +98,14 @@ const FindParentsModule: React.FC = () => {
       subtitle: 'Connect with your parents on EDUCAFRIC',
       tabs: {
         connections: 'My Parents',
-        qrCode: '🔥 Firebase',
+        qrCode: '📱 Quick Connect',
         search: 'Search Parent'
       },
       noParents: 'No parents connected',
       noParentsDesc: 'Ask your parents to join you on EDUCAFRIC to follow your education',
-      generateQR: '🔥 Firebase Connection',
-      shareQR: 'Share smart connection',
-      qrInstructions: 'New Firebase technology to connect your parents instantly',
+      generateQR: '📱 Generate Magic Link',
+      shareQR: 'Share quick connection',
+      qrInstructions: 'Generate a magic link or QR code to connect your parents instantly',
       searchParent: 'Search for a parent',
       searchMethod: 'Search method',
       searchByEmail: 'By email',
@@ -146,14 +152,14 @@ const FindParentsModule: React.FC = () => {
       subtitle: 'Connectez-vous avec vos parents sur EDUCAFRIC',
       tabs: {
         connections: 'Mes Parents',
-        qrCode: '🔥 Firebase',
+        qrCode: '📱 Connexion Rapide',
         search: 'Rechercher Parent'
       },
       noParents: 'Aucun parent connecté',
       noParentsDesc: 'Demandez à vos parents de vous rejoindre sur EDUCAFRIC pour suivre votre scolarité',
-      generateQR: '🔥 Connexion Firebase',
-      shareQR: 'Partager la connexion intelligente',
-      qrInstructions: 'Nouvelle technologie Firebase pour connecter vos parents instantanément',
+      generateQR: '📱 Générer Lien Magique',
+      shareQR: 'Partager la connexion rapide',
+      qrInstructions: 'Générez un lien magique ou code QR pour connecter vos parents instantanément',
       searchParent: 'Rechercher un parent',
       searchMethod: 'Méthode de recherche',
       searchByEmail: 'Par email',
@@ -198,6 +204,106 @@ const FindParentsModule: React.FC = () => {
   };
 
   const t = text[language];
+
+  // 🔧 FONCTION GÉNÉRATION QR CODE AUTHENTIQUE
+  const generateQRCode = async () => {
+    if (!user) return;
+    
+    setIsGeneratingQR(true);
+    try {
+      console.log('[QR_GENERATOR] 📱 Generating QR code for student:', user.id);
+      
+      // Créer les données de connexion
+      const connectionData = {
+        type: 'EDUCAFRIC_STUDENT_CONNECT',
+        studentId: user.id,
+        studentName: `${user.firstName} ${user.lastName}`,
+        studentEmail: user.email,
+        schoolName: user.schoolName || 'École Inconnue',
+        className: user.class || 'Classe Inconnue',
+        timestamp: new Date().toISOString(),
+        connectUrl: `https://educafric.com/parent-connect/${user.id}`,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // +7 jours
+      };
+      
+      // Créer le lien magique
+      const magicUrl = `https://educafric.com/parent-connect/${user.id}?name=${encodeURIComponent(user.firstName + ' ' + user.lastName)}&school=${encodeURIComponent(user.schoolName || 'École')}&class=${encodeURIComponent(user.class || 'Classe')}`;
+      setMagicLink(magicUrl);
+      
+      // Générer le QR code avec les vraies données
+      const qrString = JSON.stringify(connectionData);
+      const qrDataURL = await QRCode.toDataURL(qrString, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#1f2937', // Couleur foncée
+          light: '#ffffff' // Couleur claire
+        },
+        errorCorrectionLevel: 'M'
+      });
+      
+      setQrDataUrl(qrDataURL);
+      console.log('[QR_GENERATOR] ✅ QR code generated successfully');
+      
+      toast({
+        title: language === 'fr' ? '✅ Code QR généré !' : '✅ QR Code generated!',
+        description: language === 'fr' ? 
+          'Montrez ce code à vos parents pour qu\'ils se connectent' : 
+          'Show this code to your parents to connect'
+      });
+    } catch (error) {
+      console.error('[QR_GENERATOR] ❌ Error generating QR code:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 
+          'Impossible de générer le code QR' : 
+          'Failed to generate QR code',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // 💾 FONCTION TÉLÉCHARGEMENT QR CODE
+  const downloadQRCode = () => {
+    if (!qrDataUrl) return;
+    
+    const link = document.createElement('a');
+    link.download = `EDUCAFRIC_QR_${user?.firstName}_${user?.lastName}.png`;
+    link.href = qrDataUrl;
+    link.click();
+    
+    toast({
+      title: language === 'fr' ? '📱 QR Code téléchargé' : '📱 QR Code downloaded',
+      description: language === 'fr' ? 
+        'Le code QR a été sauvegardé' : 
+        'QR code has been saved'
+    });
+  };
+
+  // 📋 FONCTION COPIER LIEN
+  const copyMagicLink = async () => {
+    if (!magicLink) return;
+    
+    try {
+      await navigator.clipboard.writeText(magicLink);
+      toast({
+        title: language === 'fr' ? '📋 Lien copié' : '📋 Link copied',
+        description: language === 'fr' ? 
+          'Le lien magique a été copié dans le presse-papier' : 
+          'Magic link copied to clipboard'
+      });
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 
+          'Impossible de copier le lien' : 
+          'Failed to copy link',
+        variant: 'destructive'
+      });
+    }
+  };
 
   // Fetch parent connections
   const { data: parentConnections = [], isLoading: connectionsLoading, refetch: refetchConnections } = useQuery<ParentConnection[]>({
@@ -521,24 +627,119 @@ const FindParentsModule: React.FC = () => {
           )}
         </TabsContent>
 
-        {/* Firebase Smart Connection Tab */}
+        {/* Quick Connect Tab - QR Code & Magic Link */}
         <TabsContent value="qrCode" className="space-y-4">
-          <Suspense fallback={
-            <Card>
-              <CardContent className="p-8 text-center">
-                <div className="animate-pulse">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <QrCode className="w-5 h-5" />
+                {t.generateQR}
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                {t.qrInstructions}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!qrDataUrl ? (
+                // Bouton pour générer le QR code
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <QrCode className="h-10 w-10 text-white" />
                   </div>
-                  <p className="text-gray-600">
-                    {language === 'fr' ? 'Chargement Firebase...' : 'Loading Firebase...'}
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    {language === 'fr' ? 'Générer votre code de connexion' : 'Generate your connection code'}
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {language === 'fr' ? 
+                      'Créez un code QR ou un lien magique pour que vos parents se connectent facilement' :
+                      'Create a QR code or magic link for your parents to connect easily'
+                    }
                   </p>
+                  <Button 
+                    onClick={generateQRCode}
+                    disabled={isGeneratingQR}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  >
+                    {isGeneratingQR ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {language === 'fr' ? 'Génération...' : 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="mr-2 h-4 w-4" />
+                        {t.generateQR}
+                      </>
+                    )}
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          }>
-            <FirebaseParentConnection studentId={user?.id} />
-          </Suspense>
+              ) : (
+                // Affichage du QR code généré
+                <div className="space-y-6">
+                  {/* QR Code Display */}
+                  <div className="text-center">
+                    <div className="bg-white p-6 rounded-lg border-2 border-gray-200 inline-block shadow-lg">
+                      <img 
+                        src={qrDataUrl} 
+                        alt="QR Code de connexion"
+                        className="w-64 h-64 mx-auto"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-600 mt-4">
+                      {language === 'fr' ? 
+                        'Montrez ce code QR à vos parents ou envoyez-leur le lien' :
+                        'Show this QR code to your parents or send them the link'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Magic Link */}
+                  {magicLink && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        🔗 {language === 'fr' ? 'Lien Magique' : 'Magic Link'}
+                      </h4>
+                      <div className="bg-white border rounded p-3 text-xs font-mono break-all text-gray-700">
+                        {magicLink}
+                      </div>
+                      <Button 
+                        onClick={copyMagicLink}
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-3 w-full"
+                      >
+                        <Copy className="mr-2 h-4 w-4" />
+                        {language === 'fr' ? 'Copier le lien' : 'Copy link'}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={downloadQRCode}
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      {language === 'fr' ? 'Télécharger QR' : 'Download QR'}
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setQrDataUrl('');
+                        setMagicLink('');
+                      }}
+                      variant="outline" 
+                      className="flex-1"
+                    >
+                      <QrCode className="mr-2 h-4 w-4" />
+                      {language === 'fr' ? 'Nouveau code' : 'New code'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Search Parent Tab */}
