@@ -611,6 +611,30 @@ const Subscribe: React.FC = () => {
                       ← {t('payment.subscription.backToPaymentMethods')}
                     </Button>
                   </div>
+                  {/* ⚠️ NOTIFICATION IMPORTANTE - CRÉER PROFIL AVANT PAIEMENT */}
+                  <Alert className="mb-6 border-amber-200 bg-amber-50 dark:bg-amber-900/20">
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-200">
+                      <div className="space-y-2">
+                        <div className="font-semibold text-lg">
+                          ⚠️ Important : Créez votre profil AVANT le paiement
+                        </div>
+                        <div className="text-sm">
+                          <strong>Pour faciliter l'activation rapide de votre abonnement :</strong>
+                          <ol className="list-decimal list-inside mt-2 space-y-1">
+                            <li>📝 <strong>Créez d'abord votre profil complet</strong> sur EDUCAFRIC</li>
+                            <li>💳 Ensuite effectuez votre transfert d'argent ou virement bancaire</li>
+                            <li>📧 Envoyez la preuve de paiement avec vos informations de profil</li>
+                          </ol>
+                          <div className="mt-3 p-2 bg-amber-100 dark:bg-amber-900/30 rounded text-xs">
+                            💡 <strong>Pourquoi ?</strong> Un profil complet nous permet d'activer votre abonnement 
+                            automatiquement et rapidement dès réception de votre paiement.
+                          </div>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+
                   <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
                     <div className="text-center">
                       <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
