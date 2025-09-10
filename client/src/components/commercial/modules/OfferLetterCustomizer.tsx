@@ -551,17 +551,17 @@ Educafric.com by Afro Metaverse
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t.title}</h1>
-          <p className="text-gray-600 mt-1">{t.subtitle}</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800">{t.title}</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">{t.subtitle}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <Button
             variant="outline"
             onClick={() => setIsPreviewOpen(true)}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <Eye className="w-4 h-4" />
             {t.preview}
@@ -569,7 +569,7 @@ Educafric.com by Afro Metaverse
           <Button
             onClick={() => saveTemplateMutation.mutate(currentTemplate)}
             disabled={saveTemplateMutation.isPending || !currentTemplate.templateName}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <Save className="w-4 h-4" />
             {t.saveTemplate}
@@ -577,7 +577,7 @@ Educafric.com by Afro Metaverse
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Template Management */}
         <div className="lg:col-span-1">
           <Card>
@@ -612,11 +612,11 @@ Educafric.com by Afro Metaverse
                 </Select>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   onClick={resetForm}
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   {t.newTemplate}
@@ -631,6 +631,7 @@ Educafric.com by Afro Metaverse
                       setSelectedTemplate('');
                       resetForm();
                     }}
+                    className="w-full sm:w-auto"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
