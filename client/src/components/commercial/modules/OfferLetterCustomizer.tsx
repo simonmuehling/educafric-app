@@ -818,19 +818,19 @@ Educafric.com by Afro Metaverse
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Mobile Optimized */}
       {isPreviewOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Aperçu de la lettre d'offre</h2>
-                <div className="flex gap-2">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">Aperçu de la lettre d'offre</h2>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={generatePDF}
-                    className="hover:bg-blue-50"
+                    className="hover:bg-blue-50 w-full sm:w-auto"
                   >
                     <Download className="w-4 h-4 mr-1" />
                     PDF
@@ -839,12 +839,12 @@ Educafric.com by Afro Metaverse
                     variant="outline" 
                     size="sm"
                     onClick={shareDocument}
-                    className="hover:bg-green-50"
+                    className="hover:bg-green-50 w-full sm:w-auto"
                   >
                     <Share2 className="w-4 h-4 mr-1" />
                     Partager
                   </Button>
-                  <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsPreviewOpen(false)} className="w-full sm:w-auto">
                     Fermer
                   </Button>
                 </div>
