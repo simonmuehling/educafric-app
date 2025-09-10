@@ -220,32 +220,32 @@ const BulletinVerification = () => {
       {/* Comment ça marche */}
       <ModernCard className="p-6 bg-gradient-to-r from-blue-50 to-green-50">
         <h3 className="text-xl font-semibold mb-4 text-gray-900">{t.howItWorks}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          <div className="flex items-start gap-3 p-4 bg-white rounded-lg border">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 p-3 sm:p-4 bg-white rounded-lg border">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
               1
             </div>
             <div>
-              <div className="font-medium text-gray-900">{t.step1}</div>
-              <div className="text-sm text-gray-600 mt-1">{t.scanInstructions}</div>
+              <div className="font-medium text-gray-900 text-sm sm:text-base">{t.step1}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1">{t.scanInstructions}</div>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-white rounded-lg border">
+          <div className="flex items-start gap-3 p-3 sm:p-4 bg-white rounded-lg border">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">
               2
             </div>
             <div>
-              <div className="font-medium text-gray-900">{t.step2}</div>
-              <div className="text-sm text-gray-600 mt-1">{t.manualInstructions}</div>
+              <div className="font-medium text-gray-900 text-sm sm:text-base">{t.step2}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1">{t.manualInstructions}</div>
             </div>
           </div>
-          <div className="flex items-start gap-3 p-4 bg-white rounded-lg border">
+          <div className="flex items-start gap-3 p-3 sm:p-4 bg-white rounded-lg border">
             <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">
               3
             </div>
             <div>
-              <div className="font-medium text-gray-900">{t.step3}</div>
-              <div className="text-sm text-gray-600 mt-1">{t.secureVerification}</div>
+              <div className="font-medium text-gray-900 text-sm sm:text-base">{t.step3}</div>
+              <div className="text-xs sm:text-sm text-gray-600 mt-1">{t.secureVerification}</div>
             </div>
           </div>
         </div>
@@ -272,11 +272,11 @@ const BulletinVerification = () => {
                 />
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   onClick={openCameraScanner}
                   variant="outline"
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                 >
                   <Smartphone className="w-4 h-4 mr-2" />
                   {t.openCamera}
@@ -284,7 +284,7 @@ const BulletinVerification = () => {
                 <Button
                   onClick={handleQRScan}
                   disabled={!qrCode.trim() || verifyBulletinMutation.isPending}
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                 >
                   <QrCode className="w-4 h-4 mr-2" />
                   {verifyBulletinMutation.isPending ? t.loading : t.scanQR}
@@ -327,7 +327,7 @@ const BulletinVerification = () => {
       ) : (
         /* Résultats de vérification */
         <ModernCard className="p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               {verificationResult.success ? (
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
@@ -335,22 +335,22 @@ const BulletinVerification = () => {
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               )}
               <div>
-                <h3 className="text-xl font-semibold">
+                <h3 className="text-lg sm:text-xl font-semibold">
                   {verificationResult.success ? t.verificationSuccess : t.verificationFailed}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   {verificationResult.success ? t.authenticDocument : t.invalidDocument}
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               {verificationResult.success && (
-                <Badge variant="default" className="bg-green-600">
+                <Badge variant="default" className="bg-green-600 justify-center sm:justify-start">
                   <Verified className="w-4 h-4 mr-1" />
                   {t.schoolConfirmed}
                 </Badge>
               )}
-              <Button onClick={resetVerification} variant="outline">
+              <Button onClick={resetVerification} variant="outline" className="w-full sm:w-auto">
                 {t.newVerification}
               </Button>
             </div>
