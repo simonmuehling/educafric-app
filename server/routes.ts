@@ -1743,6 +1743,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== TEACHER COMMUNICATIONS/MESSAGES - UNIFIED SYSTEM =====
+  
   app.get("/api/teacher/communications", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
@@ -1775,6 +1777,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[TEACHER_API] Error fetching communications:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch communications' });
+    }
+  });
+
+  // ===== ROUTE MANQUANTE AJOUTÉE: /api/teacher/messages =====
+  app.get("/api/teacher/messages", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      console.log('[TEACHER_API] GET /api/teacher/messages for user:', user.id, '(UNIFIED ENDPOINT)');
+      
+      const messages = [
+        {
+          id: 1,
+          from: "Parent Kamga",
+          fromRole: "Parent",
+          to: "Mme Kouam", 
+          toRole: "Enseignant",
+          subject: "Question sur les devoirs",
+          message: "Bonjour, pourriez-vous m'expliquer l'exercice de mathématiques de Jean?",
+          type: "question",
+          status: "unread",
+          date: "2025-08-25T14:30:00Z",
+          direction: "received"
+        },
+        {
+          id: 2,
+          from: "Mme Kouam",
+          fromRole: "Enseignant",
+          to: "Parent Mballa",
+          toRole: "Parent", 
+          subject: "Félicitations pour les progrès",
+          message: "Votre enfant fait d'excellents progrès en français cette semaine.",
+          type: "information",
+          status: "sent",
+          date: "2025-08-25T10:15:00Z",
+          direction: "sent"
+        },
+        {
+          id: 3,
+          from: "Direction École",
+          fromRole: "Administration",
+          to: "Mme Kouam",
+          toRole: "Enseignant",
+          subject: "Réunion pédagogique",
+          message: "Réunion des enseignants prévue mardi 3 septembre à 16h00 en salle des professeurs.",
+          type: "administration",
+          status: "unread",
+          date: "2025-08-29T09:00:00Z",
+          direction: "received"
+        }
+      ];
+      
+      res.json({ success: true, messages, communications: messages });
+    } catch (error) {
+      console.error('[TEACHER_API] Error fetching messages:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch messages' });
     }
   });
 
