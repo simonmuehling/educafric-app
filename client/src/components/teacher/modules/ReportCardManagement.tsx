@@ -303,18 +303,18 @@ const ReportCardManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <FileText className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t.reportCardManagement}</h2>
-            <p className="text-gray-600">Créer et gérer les bulletins scolaires</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t.reportCardManagement}</h2>
+            <p className="text-sm sm:text-base text-gray-600">Créer et gérer les bulletins scolaires</p>
           </div>
         </div>
-        <Button onClick={() => setShowPreview(true)} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => setShowPreview(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
           <Eye className="w-4 h-4 mr-2" />
           {t.preview}
         </Button>
@@ -413,9 +413,9 @@ const ReportCardManagement: React.FC = () => {
 
           {/* Grades Section */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
               <h4 className="font-medium">{t.subjects}</h4>
-              <Button onClick={addGradeRow} size="sm" variant="outline">
+              <Button onClick={addGradeRow} size="sm" variant="outline" className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 {t.addGrade}
               </Button>
@@ -423,8 +423,8 @@ const ReportCardManagement: React.FC = () => {
 
             <div className="space-y-3">
               {(Array.isArray(bulletinData.grades) ? bulletinData.grades : []).map((grade, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border rounded-lg">
-                  <div>
+                <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 p-3 border rounded-lg">
+                  <div className="sm:col-span-2 lg:col-span-1">
                     <Label className="text-xs">Matière</Label>
                     <Select 
                       value={grade.subjectName} 
@@ -461,7 +461,7 @@ const ReportCardManagement: React.FC = () => {
                       onChange={(e) => updateGradeRow(index, 'coefficient', parseInt(e?.target?.value))}
                     />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="sm:col-span-2 lg:col-span-2">
                     <Label className="text-xs">{t.comment}</Label>
                     <Input
                       value={grade.comment}
@@ -474,6 +474,7 @@ const ReportCardManagement: React.FC = () => {
                       onClick={() => removeGradeRow(index)}
                       size="sm"
                       variant="destructive"
+                      className="w-full"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -560,22 +561,24 @@ const ReportCardManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-3">
-            <Button onClick={resetForm} variant="outline">
+          {/* Action Buttons - Mobile Optimized */}
+          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
+            <Button onClick={resetForm} variant="outline" className="w-full sm:w-auto">
+              <X className="w-4 h-4 mr-2" />
               {t.cancel}
             </Button>
             <Button 
               onClick={() => handleSaveBulletin('save')} 
               variant="outline"
               disabled={saveBulletinMutation.isPending}
+              className="w-full sm:w-auto"
             >
               <Save className="w-4 h-4 mr-2" />
               {t.save}
             </Button>
             <Button 
               onClick={() => handleSaveBulletin('submit')} 
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
               disabled={saveBulletinMutation.isPending}
             >
               <Send className="w-4 h-4 mr-2" />
