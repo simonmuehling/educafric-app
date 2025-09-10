@@ -1906,10 +1906,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { id: 3, name: 'Sarah Ngozi', phone: '+237657005555', parentPhone: '+237657006666', parentEmail: 'parent3@test.com' }
         ];
         
+        const parentNotifications: any[] = [];
+        
         // 3. NOTIFY PARENTS VIA SMS + EMAIL + PUSH
         console.log('[TEACHER_ABSENCE] 👨‍👩‍👧‍👦 Sending notifications to', affectedStudents.length, 'parents...');
-        
-        const parentNotifications = [];
         for (const student of affectedStudents) {
           // SMS to parents
           const smsMessage = `École Saint-Joseph: Le cours de ${absenceData.subject || 'Mathématiques'} de ${student.name} prévu le ${absenceData.startDate} sera modifié. Remplaçant en cours d'assignation. Plus d'infos sur l'app Educafric.`;
@@ -1942,8 +1942,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               await notificationService.sendSMS('TEACHER_ABSENCE', { 
                 message: notification.message,
-                studentName: notification.student 
-              }, 'fr', notification.to);
+                studentName: notification.student,
+                phone: notification.to
+              }, 'fr');
               console.log(`[TEACHER_ABSENCE] ✅ SMS sent to parent of ${notification.student}`);
             } catch (smsError) {
               console.error(`[TEACHER_ABSENCE] ❌ SMS failed for ${notification.student}:`, smsError);
