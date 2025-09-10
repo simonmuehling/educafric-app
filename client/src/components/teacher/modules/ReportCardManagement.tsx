@@ -306,7 +306,7 @@ const ReportCardManagement: React.FC = () => {
       {/* Header - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
+          <div className="p-2">
             <FileText className="w-6 h-6 text-blue-600" />
           </div>
           <div>
