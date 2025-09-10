@@ -143,6 +143,73 @@ export class ModularTemplateGenerator {
     return 'T1'; // Default
   }
 
+  // Fonction d'échappement HTML pour la sécurité
+  private escapeHtml(text: string): string {
+    const div = { innerHTML: '' } as any;
+    div.textContent = text;
+    return div.innerHTML || text.replace(/[&<>"']/g, (match: string) => {
+      const escapeChars: { [key: string]: string } = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;'
+      };
+      return escapeChars[match] || match;
+    });
+  }
+
+  // ✅ FONCTION DE SÉCURITÉ POUR VALIDER ET ASSAINIR LES URLs D'IMAGES
+  private sanitizeImageUrl(url: string): string {
+    if (!url || typeof url !== 'string') return '';
+    
+    // Nettoyer les espaces et caractères de contrôle
+    const cleanUrl = url.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    
+    // Rejeter les URLs malveillantes
+    if (
+      cleanUrl.includes('"') || 
+      cleanUrl.includes("'") || 
+      cleanUrl.includes('<') || 
+      cleanUrl.includes('>') ||
+      cleanUrl.toLowerCase().startsWith('javascript:') ||
+      cleanUrl.toLowerCase().startsWith('data:') ||
+      cleanUrl.toLowerCase().startsWith('vbscript:') ||
+      cleanUrl.toLowerCase().includes('onerror') ||
+      cleanUrl.toLowerCase().includes('onload') ||
+      cleanUrl.toLowerCase().includes('<script')
+    ) {
+      console.warn('[SECURITY] URL d\'image rejetée pour risque XSS:', cleanUrl.substring(0, 50));
+      return '';
+    }
+    
+    // Valider le format URL basique
+    try {
+      const urlObj = new URL(cleanUrl);
+      // Autoriser seulement HTTP/HTTPS
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        console.warn('[SECURITY] Protocole non autorisé dans URL image:', urlObj.protocol);
+        return '';
+      }
+      return cleanUrl;
+    } catch {
+      // Si ce n'est pas une URL valide, vérifier si c'est un chemin relatif sécurisé
+      if (cleanUrl.startsWith('/') || cleanUrl.startsWith('./') || !cleanUrl.includes(':')) {
+        return cleanUrl;
+      }
+      console.warn('[SECURITY] URL d\'image malformée:', cleanUrl.substring(0, 50));
+      return '';
+    }
+  }
+
+  // Fonction pour raccourcir les noms d'enseignants
+  private getTeacherInitials(teacherName: string): string {
+    if (!teacherName || teacherName === 'Non assigné') return 'N/A';
+    const parts = teacherName.split(' ');
+    if (parts.length === 1) return parts[0].substring(0, 8); // Limite à 8 caractères
+    return parts.map(part => part.charAt(0)).join('.'); // Initiales
+  }
+
   // Génération de l'en-tête optimisé avec informations élève à droite
   private generateEducafricHeader(schoolInfo: SchoolInfo, documentType: string, language: 'fr' | 'en' = 'fr', studentData?: any): string {
     const titles = {
@@ -178,24 +245,24 @@ export class ModularTemplateGenerator {
               <p class="republic-compact"><strong>RÉPUBLIQUE DU CAMEROUN</strong></p>
               <p class="motto-compact"><em>Paix - Travail - Patrie</em></p>
               <p class="ministry-compact"><strong>MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES</strong></p>
-              <p class="delegation-compact"><strong>DÉLÉGATION RÉGIONALE ${schoolInfo.regionalDelegation}</strong></p>
-              <p class="delegation-compact"><strong>DÉLÉGATION DÉPARTEMENTALE ${schoolInfo.departmentalDelegation}</strong></p>
+              <p class="delegation-compact"><strong>DÉLÉGATION RÉGIONALE ${this.escapeHtml(schoolInfo.regionalDelegation)}</strong></p>
+              <p class="delegation-compact"><strong>DÉLÉGATION DÉPARTEMENTALE ${this.escapeHtml(schoolInfo.departmentalDelegation)}</strong></p>
             </div>
             
             <div class="school-compact">
-              <h2 class="school-name-compact">${schoolInfo.schoolName}</h2>
-              <p class="school-contact-compact">Tél: ${schoolInfo.phoneNumber}</p>
-              <p class="school-contact-compact">${schoolInfo.address}</p>
+              <h2 class="school-name-compact">${this.escapeHtml(schoolInfo.schoolName)}</h2>
+              <p class="school-contact-compact">Tél: ${this.escapeHtml(schoolInfo.phoneNumber)}</p>
+              <p class="school-contact-compact">${this.escapeHtml(schoolInfo.address)}</p>
             </div>
           </div>
           
           <!-- SECTION CENTRE: Logo École -->
           <div class="header-center-section">
             <div class="logo-center-container">
-              ${schoolInfo.logo ? `<img src="${schoolInfo.logo}" alt="Logo École" class="school-logo-center" />` : '<div class="logo-box-center">LOGO<br>ÉCOLE</div>'}
+              ${schoolInfo.logo ? `<img src="${this.sanitizeImageUrl(schoolInfo.logo)}" alt="Logo École" class="school-logo-center" />` : '<div class="logo-box-center">LOGO<br>ÉCOLE</div>'}
             </div>
             <h3 class="document-title-center">${titleText}</h3>
-            <p class="academic-period-center">${language === 'fr' ? 'Année Scolaire' : 'Academic Year'}: ${schoolInfo.academicYear}</p>
+            <p class="academic-period-center">${language === 'fr' ? 'Année Scolaire' : 'Academic Year'}: ${this.escapeHtml(schoolInfo.academicYear)}</p>
           </div>
           
           <!-- SECTION DROITE: Photo + Infos élève -->
@@ -204,33 +271,33 @@ export class ModularTemplateGenerator {
             <div class="student-card-compact">
               <div class="student-photo-section">
                 ${studentData.photo ? 
-                  `<img src="${studentData.photo}" alt="Photo élève" class="student-photo-compact" />` : 
+                  `<img src="${this.sanitizeImageUrl(studentData.photo)}" alt="Photo élève" class="student-photo-compact" />` : 
                   '<div class="photo-placeholder-compact">PHOTO<br>ÉLÈVE</div>'
                 }
               </div>
               
               <div class="student-details-compact">
-                <h4 class="student-name-compact">${studentData.firstName} ${studentData.lastName}</h4>
+                <h4 class="student-name-compact">${this.escapeHtml(studentData.firstName)} ${this.escapeHtml(studentData.lastName)}</h4>
                 <div class="student-info-grid">
                   <div class="info-item-compact">
                     <span class="label-compact">Né(e) le:</span>
-                    <span class="value-compact">${studentData.birthDate}</span>
+                    <span class="value-compact">${this.escapeHtml(studentData.birthDate)}</span>
                   </div>
                   <div class="info-item-compact">
                     <span class="label-compact">À:</span>
-                    <span class="value-compact">${studentData.birthPlace}</span>
+                    <span class="value-compact">${this.escapeHtml(studentData.birthPlace)}</span>
                   </div>
                   <div class="info-item-compact">
                     <span class="label-compact">Classe:</span>
-                    <span class="value-compact">${studentData.className}</span>
+                    <span class="value-compact">${this.escapeHtml(studentData.className)}</span>
                   </div>
                   <div class="info-item-compact">
                     <span class="label-compact">Matricule:</span>
-                    <span class="value-compact">${studentData.studentNumber}</span>
+                    <span class="value-compact">${this.escapeHtml(studentData.studentNumber)}</span>
                   </div>
                   <div class="info-item-compact">
                     <span class="label-compact">Sexe:</span>
-                    <span class="value-compact">${studentData.gender}</span>
+                    <span class="value-compact">${this.escapeHtml(studentData.gender)}</span>
                   </div>
                   ${studentData.isRepeater ? `
                   <div class="info-item-compact">
@@ -260,12 +327,12 @@ export class ModularTemplateGenerator {
       <style>
         @page {
           size: A4;
-          margin: 5mm;
+          margin: 3mm;
         }
         
         body {
           font-family: Arial, sans-serif;
-          font-size: 8px;
+          font-size: 7px;
           line-height: 1.0;
           margin: 0;
           padding: 0;
@@ -282,15 +349,15 @@ export class ModularTemplateGenerator {
         
         /* NOUVEAU LAYOUT COMPACT OPTIMISÉ A4 */
         .educafric-header-compact {
-          border-bottom: 2px solid #000;
-          padding-bottom: 8px;
-          margin-bottom: 10px;
+          border-bottom: 1px solid #000;
+          padding-bottom: 2px;
+          margin-bottom: 3px;
         }
         
         .header-three-column-layout {
           display: grid;
           grid-template-columns: 1fr auto 1fr;
-          gap: 10px;
+          gap: 4px;
           align-items: flex-start;
         }
         
@@ -314,30 +381,30 @@ export class ModularTemplateGenerator {
         }
         
         .republic-compact {
-          font-size: 11px;
+          font-size: 8px;
           font-weight: bold;
-          margin: 0 0 1px 0;
-          line-height: 1.1;
+          margin: 0 0 0.5px 0;
+          line-height: 1.0;
         }
         
         .motto-compact {
-          font-size: 9px;
-          margin: 0 0 3px 0;
-          line-height: 1.1;
+          font-size: 7px;
+          margin: 0 0 1px 0;
+          line-height: 1.0;
         }
         
         .ministry-compact {
-          font-size: 9px;
+          font-size: 7px;
           font-weight: bold;
-          margin: 0 0 1px 0;
-          line-height: 1.1;
+          margin: 0 0 0.5px 0;
+          line-height: 1.0;
         }
         
         .delegation-compact {
-          font-size: 8px;
+          font-size: 6px;
           font-weight: bold;
-          margin: 0 0 1px 0;
-          line-height: 1.1;
+          margin: 0 0 0.5px 0;
+          line-height: 1.0;
         }
         
         /* ÉCOLE COMPACTE */
@@ -346,17 +413,17 @@ export class ModularTemplateGenerator {
         }
         
         .school-name-compact {
-          font-size: 13px;
+          font-size: 9px;
           font-weight: bold;
-          margin: 0 0 2px 0;
+          margin: 0 0 1px 0;
           color: #1e40af;
-          line-height: 1.2;
+          line-height: 1.0;
         }
         
         .school-contact-compact {
-          font-size: 8px;
-          margin: 0 0 3px 0;
-          line-height: 1.1;
+          font-size: 7px;
+          margin: 0 0 1px 0;
+          line-height: 1.0;
         }
         
         /* SECTION CENTRE - LOGO ET TITRE */
@@ -389,14 +456,14 @@ export class ModularTemplateGenerator {
         }
         
         .document-title-center {
-          font-size: 12px;
+          font-size: 8px;
           font-weight: bold;
-          margin: 5px 0 2px 0;
+          margin: 2px 0 1px 0;
           color: #1e40af;
           background: linear-gradient(135deg, #f0f9ff, #dbeafe);
-          padding: 3px 6px;
-          border-radius: 4px;
-          border: 1px solid #3b82f6;
+          padding: 1px 3px;
+          border-radius: 2px;
+          border: 0.5px solid #3b82f6;
           white-space: nowrap;
         }
         
@@ -409,9 +476,9 @@ export class ModularTemplateGenerator {
         
         /* CARTE ÉLÈVE COMPACTE */
         .student-card-compact {
-          border: 2px solid #1e40af;
-          border-radius: 8px;
-          padding: 8px;
+          border: 1px solid #1e40af;
+          border-radius: 3px;
+          padding: 3px;
           background: linear-gradient(135deg, #f8fafc, #f1f5f9);
         }
         
@@ -421,37 +488,37 @@ export class ModularTemplateGenerator {
         }
         
         .student-photo-compact {
-          width: 70px;
-          height: 90px;
+          width: 40px;
+          height: 50px;
           object-fit: cover;
-          border: 2px solid #374151;
-          border-radius: 4px;
+          border: 1px solid #374151;
+          border-radius: 2px;
         }
         
         .photo-placeholder-compact {
-          width: 70px;
-          height: 90px;
-          border: 2px solid #374151;
-          border-radius: 4px;
+          width: 40px;
+          height: 50px;
+          border: 1px solid #374151;
+          border-radius: 2px;
           display: flex;
           align-items: center;
           justify-content: center;
           background: #f3f4f6;
-          font-size: 8px;
+          font-size: 6px;
           font-weight: bold;
           text-align: center;
-          line-height: 1.1;
+          line-height: 1.0;
           color: #6b7280;
           margin: 0 auto;
         }
         
         .student-name-compact {
-          font-size: 12px;
+          font-size: 7px;
           font-weight: bold;
-          margin: 0 0 5px 0;
+          margin: 0 0 2px 0;
           text-align: center;
           color: #1e40af;
-          line-height: 1.2;
+          line-height: 0.9;
         }
         
         .student-info-grid {
@@ -463,9 +530,9 @@ export class ModularTemplateGenerator {
         .info-item-compact {
           display: flex;
           justify-content: space-between;
-          font-size: 7px;
-          line-height: 1.3;
-          padding: 1px 0;
+          font-size: 6px;
+          line-height: 1.0;
+          padding: 0.5px 0;
         }
         
         .label-compact {
@@ -618,33 +685,49 @@ export class ModularTemplateGenerator {
           width: 100%;
           border-collapse: collapse;
           margin-bottom: 2px;
-          font-size: 5px;
+          font-size: 7px;
         }
         
         .subjects-table th,
         .subjects-table td {
           border: 1px solid #000;
-          padding: 1px 0.5px;
+          padding: 1px 2px;
           text-align: center;
           line-height: 1.0;
           vertical-align: middle;
         }
         
         .subjects-table th {
-          background: white;
+          background: #f8f9fa;
           font-weight: bold;
-          font-size: 6px;
-          height: 12px;
+          font-size: 7px;
+          height: 8px;
         }
         
         .subjects-table td {
-          height: 10px;
+          height: 7px;
+          font-size: 7px;
+        }
+        
+        /* ✅ SÉCURITÉ CSS - Empêcher débordement colonnes enseignants */
+        .subjects-table td:nth-child(5) {
+          max-width: 45px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+        
+        .subjects-table td:nth-child(6) {
+          max-width: 50px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
         
         .summary-section {
           text-align: center;
-          margin: 3px 0;
-          font-size: 8px;
+          margin: 2px 0;
+          font-size: 7px;
           padding: 2px;
         }
         
@@ -680,17 +763,17 @@ export class ModularTemplateGenerator {
         }
         
         .footer-section {
-          margin-top: 8px;
+          margin-top: 3px;
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 4px;
           font-size: 7px;
         }
         
         .signature-box {
           text-align: center;
-          padding: 10px;
-          min-height: 80px;
+          padding: 3px;
+          min-height: 30px;
         }
         
         .verification-section {
@@ -838,20 +921,20 @@ export class ModularTemplateGenerator {
           <!-- INFORMATIONS ÉLÈVE DÉJÀ INTÉGRÉES DANS L'EN-TÊTE COMPACT -->
           
           <div class="period-info-compact">
-            <p style="text-align: center; font-weight: bold; color: #1e40af; margin: 5px 0; padding: 5px; background: #f0f9ff; border-radius: 4px; font-size: 11px;">${data.period}</p>
+            <p style="text-align: center; font-weight: bold; color: #1e40af; margin: 2px 0; padding: 2px; background: #f0f9ff; border-radius: 2px; font-size: 8px;">${this.escapeHtml(data.period)}</p>
           </div>
 
           <div class="content-section">
-            <h3>${t.subjects}</h3>
+            <h3 style="font-size: 8px; margin: 2px 0;">${t.subjects}</h3>
             <table class="subjects-table">
               <thead>
                 <tr>
-                  <th>Matière</th>
-                  <th>Note/20</th>
-                  <th>Coef</th>
-                  <th>Points</th>
-                  <th>Enseignant</th>
-                  <th>Appréciation</th>
+                  <th style="width: 25%;">Matière</th>
+                  <th style="width: 12%;">T3</th>
+                  <th style="width: 8%;">Coef</th>
+                  <th style="width: 10%;">Pts</th>
+                  <th style="width: 20%;">Prof</th>
+                  <th style="width: 25%;">Remark</th>
                 </tr>
               </thead>
               <tbody>
@@ -865,30 +948,34 @@ export class ModularTemplateGenerator {
                     // FORMAT T3 - SEULEMENT LES NOTES T3
                     const t3Grade = subject.t3 || subject.grade || 0;
                     const points = (t3Grade * coefficient).toFixed(1);
+                    const teacherInitials = this.getTeacherInitials(teacherName);
+                    const shortRemark = (remark.length > 12) ? remark.substring(0, 10) + '..' : remark;
                     
                     return `
                       <tr>
-                        <td style="text-align: left; font-weight: bold;">${subject.name}</td>
+                        <td style="text-align: left; font-weight: bold;">${this.escapeHtml(subject.name)}</td>
                         <td>${t3Grade.toFixed(1)}</td>
                         <td>${coefficient}</td>
                         <td>${points}</td>
-                        <td style="text-align: left; font-size: 5px;">${teacherName}</td>
-                        <td style="text-align: left; font-size: 4px;">${remark}</td>
+                        <td style="text-align: left;">${this.escapeHtml(teacherInitials)}</td>
+                        <td style="text-align: left;">${this.escapeHtml(shortRemark)}</td>
                       </tr>
                     `;
                   } else {
                     // FORMAT T1/T2 CLASSIQUE
                     const gradeValue = subject.grade || 0;
                     const points = (gradeValue * coefficient).toFixed(1);
+                    const teacherInitials = this.getTeacherInitials(teacherName);
+                    const shortRemark = (remark.length > 12) ? remark.substring(0, 10) + '..' : remark;
                     
                     return `
                       <tr>
-                        <td style="text-align: left; font-weight: bold;">${subject.name}</td>
+                        <td style="text-align: left; font-weight: bold;">${this.escapeHtml(subject.name)}</td>
                         <td>${gradeValue}</td>
                         <td>${coefficient}</td>
                         <td>${points}</td>
-                        <td style="text-align: left; font-size: 5px;">${teacherName}</td>
-                        <td style="text-align: left; font-size: 4px;">${remark}</td>
+                        <td style="text-align: left;">${this.escapeHtml(teacherInitials)}</td>
+                        <td style="text-align: left;">${this.escapeHtml(shortRemark)}</td>
                       </tr>
                     `;
                   }
@@ -929,7 +1016,7 @@ export class ModularTemplateGenerator {
             ${currentTerm === 'T3' ? `
               <!-- BULLETIN T3 - FORMAT OFFICIEL AFRICAIN DE FIN D'ANNÉE -->
               <div class="annual-summary-section">
-                <h2 style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 6px; text-align: center; margin: 8px 0; border-radius: 6px; font-size: 11px;">📋 BILAN ANNUEL ${data.schoolInfo.academicYear}</h2>
+                <h2 style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 6px; text-align: center; margin: 8px 0; border-radius: 6px; font-size: 11px;">📋 BILAN ANNUEL ${this.escapeHtml(data.schoolInfo.academicYear)}</h2>
                 
                 <div class="annual-stats" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 6px 0; padding: 6px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
                   <div class="annual-averages">
@@ -973,32 +1060,32 @@ export class ModularTemplateGenerator {
                     <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
                       <span style="font-weight: bold; color: #92400e;">📋 Décision:</span><br>
                       <span style="font-size: 14px; font-weight: bold; color: ${data.decision?.council?.includes('Admis') || data.decision?.council?.includes('ADMIS') ? '#059669' : '#dc2626'};">
-                        ${data.decision?.council || 'ADMIS(E) EN CLASSE SUPÉRIEURE'}
+                        ${this.escapeHtml(data.decision?.council || 'ADMIS(E) EN CLASSE SUPÉRIEURE')}
                       </span>
                     </div>
                     
                     <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
                       <span style="font-weight: bold; color: #92400e;">🏅 Mention:</span><br>
-                      <span style="font-size: 13px; font-weight: bold; color: #1e40af;">${data.decision?.mention || (data.generalAverage >= 16 ? 'TRÈS BIEN' : data.generalAverage >= 14 ? 'BIEN' : data.generalAverage >= 12 ? 'ASSEZ BIEN' : 'PASSABLE')}</span>
+                      <span style="font-size: 13px; font-weight: bold; color: #1e40af;">${this.escapeHtml(data.decision?.mention || (data.generalAverage >= 16 ? 'TRÈS BIEN' : data.generalAverage >= 14 ? 'BIEN' : data.generalAverage >= 12 ? 'ASSEZ BIEN' : 'PASSABLE'))}</span>
                     </div>
                   </div>
                   
                   <div class="decision-right">
                     <div class="decision-item" style="margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
                       <span style="font-weight: bold; color: #92400e;">🎯 Orientation:</span><br>
-                      <span style="font-size: 12px;">${data.decision?.orientation || 'Filière générale recommandée'}</span>
+                      <span style="font-size: 12px;">${this.escapeHtml(data.decision?.orientation || 'Filière générale recommandée')}</span>
                     </div>
                     
                     <div class="decision-item" style="padding: 8px; background: rgba(255,255,255,0.7); border-radius: 6px;">
                       <span style="font-weight: bold; color: #92400e;">📅 Date du Conseil:</span><br>
-                      <span style="font-size: 12px;">${data.decision?.councilDate || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                      <span style="font-size: 12px;">${this.escapeHtml(data.decision?.councilDate || new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }))}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div class="council-summary" style="text-align: center; padding: 10px; background: rgba(255,255,255,0.8); border-radius: 6px; border: 1px solid #f59e0b;">
                   <p style="font-size: 11px; margin: 0; color: #92400e; line-height: 1.4;">
-                    <strong>📋 PROCÈS-VERBAL:</strong> Réuni le ${data.decision?.councilDate || new Date().toLocaleDateString('fr-FR')}, le conseil de classe a examiné les résultats de l'élève et a pris la décision ci-dessus après délibération collégiale.
+                    <strong>📋 PROCÈS-VERBAL:</strong> Réuni le ${this.escapeHtml(data.decision?.councilDate || new Date().toLocaleDateString('fr-FR'))}, le conseil de classe a examiné les résultats de l'élève et a pris la décision ci-dessus après délibération collégiale.
                   </p>
                 </div>
               </div>
@@ -1007,9 +1094,9 @@ export class ModularTemplateGenerator {
               <div class="behavior-annual" style="margin: 15px 0; padding: 15px; background: #f0f9ff; border-radius: 8px; border: 2px solid #0ea5e9;">
                 <h3 style="color: #0c4a6e; margin-bottom: 10px; font-size: 14px;">👤 BILAN COMPORTEMENTAL ANNUEL</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; font-size: 12px;">
-                  <div><strong>Conduite générale:</strong><br>${data.conduct || 'Très Bien'} (${data.conductGrade}/20)</div>
+                  <div><strong>Conduite générale:</strong><br>${this.escapeHtml(data.conduct || 'Très Bien')} (${data.conductGrade}/20)</div>
                   <div><strong>Assiduité:</strong><br>${(data.absences || 0) <= 5 ? 'Excellente' : (data.absences || 0) <= 15 ? 'Bonne' : 'À améliorer'}</div>
-                  <div><strong>Participation:</strong><br>${data.participation || 'Active et constructive'}</div>
+                  <div><strong>Participation:</strong><br>${this.escapeHtml(data.participation || 'Active et constructive')}</div>
                 </div>
                 <div style="margin-top: 10px; padding: 8px; background: rgba(255,255,255,0.7); border-radius: 4px;">
                   <strong>📊 Total absences annuelles:</strong> ${data.annualAbsences || (data.absences * 3) || 0} heures 
@@ -1037,14 +1124,14 @@ export class ModularTemplateGenerator {
                 <div class="signature-box" style="text-align: center; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
                   <strong style="color: #374151;">📝 Le Professeur Principal</strong><br>
                   <div style="height: 35px; border-bottom: 1px solid #d1d5db; margin: 8px 0;"></div>
-                  <strong style="font-size: 11px;">${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
+                  <strong style="font-size: 11px;">${this.escapeHtml(data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie')}</strong>
                   <div style="font-size: 9px; color: #6b7280; margin-top: 4px;">Visa et signature</div>
                 </div>
                 
                 <div class="signature-box" style="text-align: center; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: white;">
                   <strong style="color: #374151;">🏛️ Le Directeur</strong><br>
                   <div style="height: 35px; border-bottom: 1px solid #d1d5db; margin: 8px 0;"></div>
-                  <strong style="font-size: 11px;">${data.signatures?.director || data.schoolInfo.directorName}</strong>
+                  <strong style="font-size: 11px;">${this.escapeHtml(data.signatures?.director || data.schoolInfo.directorName)}</strong>
                   <div style="font-size: 9px; color: #6b7280; margin-top: 4px;">Cachet et signature</div>
                 </div>
                 
@@ -1066,14 +1153,14 @@ export class ModularTemplateGenerator {
                   <strong>Le Professeur Principal</strong><br>
                   <div style="height: 40px;"></div>
                   <div style="border-top: 1px solid #000; padding-top: 5px;">
-                    <strong>${data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie'}</strong>
+                    <strong>${this.escapeHtml(data.signatures?.homeroomTeacher || 'Mme Diallo Fatou Marie')}</strong>
                   </div>
                 </div>
                 <div class="signature-box" style="text-align: center; padding: 15px;">
                   <strong>Le Directeur</strong><br>
                   <div style="height: 40px;"></div>
                   <div style="border-top: 1px solid #000; padding-top: 5px;">
-                    <strong>${data.signatures?.director || data.schoolInfo.directorName}</strong>
+                    <strong>${this.escapeHtml(data.signatures?.director || data.schoolInfo.directorName)}</strong>
                   </div>
                 </div>
               </div>
@@ -1083,10 +1170,10 @@ export class ModularTemplateGenerator {
           ${data.verificationCode ? `
           <div class="verification-section">
             <div class="verification-left">
-              <p><strong>Code: ${data.verificationCode}</strong></p>
+              <p><strong>Code: ${this.escapeHtml(data.verificationCode)}</strong></p>
               <p><strong>Authentification: www.educafric.com/verify</strong></p>
               <p>Ce bulletin est authentifié par signature numérique EDUCAFRIC</p>
-              <p><strong>Code de vérification: ${data.verificationCode}</strong></p>
+              <p><strong>Code de vérification: ${this.escapeHtml(data.verificationCode)}</strong></p>
             </div>
             <div class="verification-right">
               <div class="qr-code-section">
@@ -1098,7 +1185,7 @@ export class ModularTemplateGenerator {
           ` : ''}
 
           <div class="document-footer">
-            <p><strong>${data.schoolInfo.schoolName} - ${data.schoolInfo.address} - Tel: ${data.schoolInfo.phoneNumber}</strong></p>
+            <p><strong>${this.escapeHtml(data.schoolInfo.schoolName)} - ${this.escapeHtml(data.schoolInfo.address)} - Tel: ${this.escapeHtml(data.schoolInfo.phoneNumber)}</strong></p>
           </div>
         </div>
       </body>
@@ -1119,7 +1206,7 @@ export class ModularTemplateGenerator {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Rapport ${data.reportType} - ${data.schoolInfo.schoolName}</title>
+        <title>Rapport ${data.reportType} - ${this.escapeHtml(data.schoolInfo.schoolName)}</title>
         ${styles}
       </head>
       <body>
@@ -1127,7 +1214,7 @@ export class ModularTemplateGenerator {
           ${header}
           ${reportContent}
           <div class="document-footer">
-            <p>Rapport généré le ${data.generatedAt} par ${data.generatedBy}</p>
+            <p>Rapport généré le ${this.escapeHtml(data.generatedAt)} par ${this.escapeHtml(data.generatedBy)}</p>
           </div>
         </div>
       </body>
@@ -1187,11 +1274,11 @@ export class ModularTemplateGenerator {
         <div class="info-grid">
           <div class="info-row">
             <span class="info-label">${t.className}:</span>
-            <span class="info-value">${data.filters.className || 'Toutes'}</span>
+            <span class="info-value">${this.escapeHtml(data.filters.className || 'Toutes')}</span>
           </div>
           <div class="info-row">
             <span class="info-label">${t.period}:</span>
-            <span class="info-value">${data.filters.period || 'Toutes'}</span>
+            <span class="info-value">${this.escapeHtml(data.filters.period || 'Toutes')}</span>
           </div>
         </div>
       </div>
@@ -1229,7 +1316,7 @@ export class ModularTemplateGenerator {
             <tbody>
               ${data.data.students.map((student: any, index: number) => `
                 <tr>
-                  <td style="text-align: left;">${student.name}</td>
+                  <td style="text-align: left;">${this.escapeHtml(student.name)}</td>
                   <td>${student.average}/20</td>
                   <td>${index + 1}</td>
                   <td>${student.attendance}%</td>
