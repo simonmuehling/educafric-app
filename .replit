@@ -40,8 +40,16 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 44387
+externalPort = 3001
+
+[[ports]]
 localPort = 44875
 externalPort = 3000
+
+[[ports]]
+localPort = 45959
+externalPort = 3002
 
 [agent]
 integrations = ["javascript_object_storage:1.0.0", "javascript_database:1.0.0", "javascript_sendgrid:1.0.0", "javascript_log_in_with_replit:1.0.0"]

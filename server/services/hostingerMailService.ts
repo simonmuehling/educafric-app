@@ -21,31 +21,45 @@ interface EmailOptions {
 class HostingerMailService {
   private transporter: nodemailer.Transporter;
   private config: HostingerMailConfig;
+  private connectionVerified: boolean = false;
+  private lastConnectionCheck: number = 0;
+  private readonly CONNECTION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
-    // PERMANENT HOSTINGER SMTP CONFIGURATION - DO NOT CHANGE
+    // SECURE HOSTINGER SMTP CONFIGURATION FROM ENVIRONMENT
     this.config = {
-      host: 'smtp.hostinger.com',
-      port: 465,
-      secure: true, // SSL/TLS for port 465
+      host: process.env.HOSTINGER_SMTP_HOST || 'smtp.hostinger.com',
+      port: parseInt(process.env.HOSTINGER_SMTP_PORT || '465'),
+      secure: (process.env.HOSTINGER_SMTP_SECURE || 'true') === 'true',
       auth: {
-        user: 'no-reply@educafric.com',
-        pass: 'Douala12-educonnect12'
+        user: process.env.HOSTINGER_EMAIL || '',
+        pass: process.env.HOSTINGER_PASSWORD || ''
       }
     };
 
+    // Validate configuration
+    if (!this.config.auth.user || !this.config.auth.pass) {
+      console.error('[HOSTINGER_MAIL] ❌ Missing SMTP credentials in environment variables');
+      console.error('[HOSTINGER_MAIL] Required: HOSTINGER_EMAIL, HOSTINGER_PASSWORD');
+    }
+
     this.transporter = nodemailer.createTransport(this.config);
-    console.log('[HOSTINGER_MAIL] Service initialized');
+    console.log(`[HOSTINGER_MAIL] Service initialized with host: ${this.config.host}`);
   }
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // Test connection first
-      console.log('[HOSTINGER_MAIL] Testing SMTP connection...');
-      const connectionTest = await this.verifyConnection();
-      if (!connectionTest) {
-        console.error('[HOSTINGER_MAIL] ❌ SMTP connection failed');
-        return false;
+      // Optimized connection check - only verify if needed
+      const now = Date.now();
+      if (!this.connectionVerified || (now - this.lastConnectionCheck > this.CONNECTION_CACHE_TTL)) {
+        console.log('[HOSTINGER_MAIL] Verifying SMTP connection...');
+        const connectionTest = await this.verifyConnection();
+        if (!connectionTest) {
+          console.error('[HOSTINGER_MAIL] ❌ SMTP connection failed');
+          return false;
+        }
+        this.connectionVerified = true;
+        this.lastConnectionCheck = now;
       }
 
       const mailOptions = {
@@ -85,6 +99,12 @@ class HostingerMailService {
 
   async verifyConnection(): Promise<boolean> {
     try {
+      // Check if credentials are available
+      if (!this.config.auth.user || !this.config.auth.pass) {
+        console.error('[HOSTINGER_MAIL] ❌ Missing SMTP credentials');
+        return false;
+      }
+
       console.log('[HOSTINGER_MAIL] Verifying SMTP connection...');
       console.log(`[HOSTINGER_MAIL] Host: ${this.config.host}:${this.config.port}`);
       console.log(`[HOSTINGER_MAIL] User: ${this.config.auth.user}`);
@@ -92,6 +112,8 @@ class HostingerMailService {
       
       await this.transporter.verify();
       console.log('[HOSTINGER_MAIL] ✅ SMTP connection verified successfully');
+      this.connectionVerified = true;
+      this.lastConnectionCheck = Date.now();
       return true;
     } catch (error: any) {
       console.error('[HOSTINGER_MAIL] ❌ SMTP connection verification failed:', error);
@@ -101,6 +123,7 @@ class HostingerMailService {
         response: error.response,
         responseCode: error.responseCode
       });
+      this.connectionVerified = false;
       return false;
     }
   }
@@ -115,6 +138,105 @@ class HostingerMailService {
       html,
       text
     });
+  }
+
+  /**
+   * Send sandbox login alert email for any user role
+   */
+  async sendSandboxLoginAlert(sandboxData: {
+    name: string;
+    email: string;
+    role: string;
+    loginTime: string;
+    ip: string;
+    schoolId?: number;
+  }): Promise<boolean> {
+    try {
+      // Check if sandbox alerts are enabled
+      const alertsEnabled = (process.env.SANDBOX_ALERTS_ENABLED || 'true') === 'true';
+      if (!alertsEnabled) {
+        console.log(`[HOSTINGER_MAIL] Sandbox alerts disabled - skipping alert for ${sandboxData.name}`);
+        return true; // Return success but don't send
+      }
+
+      console.log(`[HOSTINGER_MAIL] Sending sandbox login alert for ${sandboxData.name} (${sandboxData.role})`);
+      
+      const success = await this.sendEmail({
+        to: 'simonpmuehling@gmail.com', // Email du destinataire pour les alertes
+        subject: `🎮 ALERTE: Connexion Sandbox - ${sandboxData.name} (${sandboxData.role})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #FF6B35; border-bottom: 2px solid #FF6B35; padding-bottom: 10px;">
+              🎮 Alerte Connexion Sandbox
+            </h2>
+            
+            <div style="background-color: #fff8f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FF6B35;">
+              <h3 style="color: #333; margin-top: 0;">Détails de la connexion :</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">👤 Nom :</td>
+                  <td style="padding: 8px 0; color: #333;">${sandboxData.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🎭 Rôle :</td>
+                  <td style="padding: 8px 0; color: #333; font-weight: bold;">${sandboxData.role}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">📧 Email :</td>
+                  <td style="padding: 8px 0; color: #333;">${sandboxData.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🕐 Heure :</td>
+                  <td style="padding: 8px 0; color: #333;">${sandboxData.loginTime}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🌐 IP :</td>
+                  <td style="padding: 8px 0; color: #333;">${sandboxData.ip}</td>
+                </tr>
+                ${sandboxData.schoolId ? `
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #555;">🏫 École ID :</td>
+                  <td style="padding: 8px 0; color: #333;">${sandboxData.schoolId}</td>
+                </tr>
+                ` : ''}
+              </table>
+            </div>
+            
+            <div style="background-color: #f0f4ff; padding: 15px; border-radius: 8px; border-left: 4px solid #FF6B35;">
+              <p style="margin: 0; color: #e65100;">
+                <strong>🎮 Mode Sandbox :</strong> Cette alerte est générée automatiquement à chaque connexion sur le mode démonstration d'EDUCAFRIC. L'utilisateur teste les fonctionnalités ${sandboxData.role.toLowerCase()}.
+              </p>
+            </div>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+            
+            <footer style="text-align: center; color: #666; font-size: 12px;">
+              <p>EDUCAFRIC Platform - Système d'Alertes Automatiques</p>
+              <p>📧 support: info@educafric.com | ☎️ +237 656 200 472</p>
+            </footer>
+          </div>
+        `,
+        text: `ALERTE CONNEXION SANDBOX
+
+Nom: ${sandboxData.name}
+Rôle: ${sandboxData.role}
+Email: ${sandboxData.email}  
+Heure: ${sandboxData.loginTime}
+IP: ${sandboxData.ip}
+${sandboxData.schoolId ? `École ID: ${sandboxData.schoolId}` : ''}
+
+Mode Sandbox: Cette alerte est générée automatiquement à chaque connexion sur le mode démonstration d'EDUCAFRIC.
+
+EDUCAFRIC Platform
+support: info@educafric.com | +237 656 200 472`
+      });
+
+      console.log(`[HOSTINGER_MAIL] Sandbox login alert sent: ${success ? '✅' : '❌'}`);
+      return success;
+    } catch (error) {
+      console.error('[HOSTINGER_MAIL] Error sending sandbox login alert:', error);
+      return false;
+    }
   }
 
   /**

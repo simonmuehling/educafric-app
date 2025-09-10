@@ -2,12 +2,38 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
+import rateLimit from 'express-rate-limit';
 import { storage } from '../storage';
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema } from '@shared/schemas';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 
 const router = Router();
+
+// Rate limiting for sandbox login to prevent email spam
+const sandboxLoginLimiter = rateLimit({
+  windowMs: parseInt(process.env.SANDBOX_RATE_LIMIT_WINDOW_MS || '300000'), // 5 minutes default
+  max: parseInt(process.env.SANDBOX_RATE_LIMIT_MAX_REQUESTS || '5'), // 5 requests per window
+  message: {
+    error: 'Too many sandbox login attempts',
+    message: 'Please wait before trying to login to sandbox again',
+    retryAfter: '5 minutes'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  handler: (req, res) => {
+    console.log(`[SANDBOX_RATE_LIMIT] Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Too many sandbox login attempts',
+      message: 'Please wait before trying to login to sandbox again',
+      retryAfter: '5 minutes'
+    });
+  },
+  skip: (req) => {
+    // Skip rate limiting if SANDBOX_ALERTS_ENABLED is false
+    return (process.env.SANDBOX_ALERTS_ENABLED || 'true') === 'false';
+  }
+});
 
 // Passport configuration
 passport.use(new LocalStrategy(
@@ -263,7 +289,7 @@ router.post('/login', (req, res, next) => {
 });
 
 // Sandbox login endpoint for demo users
-router.post('/sandbox-login', async (req, res) => {
+router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -323,25 +349,24 @@ router.post('/sandbox-login', async (req, res) => {
           return res.status(500).json({ message: 'Failed to save sandbox session' });
         }
         
-        // Send commercial login alert and track activity for sandbox commercial users too
-        if (user.role === 'Commercial') {
-          try {
-            // Send email alert
-            const { hostingerMailService } = await import('../services/hostingerMailService');
-            await hostingerMailService.sendCommercialLoginAlert({
-              name: user.name || user.email,
-              email: user.email,
-              loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
-              ip: req.ip || req.connection.remoteAddress || 'Unknown',
-              schoolId: user.schoolId
-            });
-            console.log(`[SANDBOX_COMMERCIAL] Alert sent for: ${user.email}`);
-            
-            // Track sandbox login activity (note: sandbox users don't persist to DB)
-            console.log(`[SANDBOX_COMMERCIAL] Login activity for: ${user.email} at ${new Date().toISOString()}`);
-          } catch (alertError) {
-            console.error('[SANDBOX_COMMERCIAL] Failed to send alert email:', alertError);
-          }
+        // Send sandbox login alert for all sandbox users (all roles)
+        try {
+          // Send email alert for any sandbox user
+          const { hostingerMailService } = await import('../services/hostingerMailService');
+          await hostingerMailService.sendSandboxLoginAlert({
+            name: user.name || user.email,
+            email: user.email,
+            role: user.role,
+            loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
+            ip: req.ip || req.connection.remoteAddress || 'Unknown',
+            schoolId: user.schoolId
+          });
+          console.log(`[SANDBOX_LOGIN] Alert sent for: ${user.email} (${user.role})`);
+          
+          // Track sandbox login activity (note: sandbox users don't persist to DB)
+          console.log(`[SANDBOX_LOGIN] Login activity for: ${user.email} (${user.role}) at ${new Date().toISOString()}`);
+        } catch (alertError) {
+          console.error('[SANDBOX_LOGIN] Failed to send alert email:', alertError);
         }
         
         res.json({ user: user });
