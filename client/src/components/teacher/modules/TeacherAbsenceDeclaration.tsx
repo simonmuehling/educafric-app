@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,14 +47,14 @@ const TeacherAbsenceDeclaration: React.FC = () => {
     enabled: selectedTab === 'history'
   });
 
-  const myAbsences = absencesData?.absences || [];
+  const myAbsences = (absencesData as any)?.absences || [];
 
   // Fetch teacher classes from API
   const { data: classesData } = useQuery({
     queryKey: ['/api/teacher/classes'],
   });
 
-  const teacherClasses = classesData?.classes?.map((cls: any) => cls.name) || ['6ème A', '5ème B', '4ème C', 'Terminale A'];
+  const teacherClasses = (classesData as any)?.classes?.map((cls: any) => cls.name) || ['6ème A', '5ème B', '4ème C', 'Terminale A'];
 
   // Submit absence declaration
   const declareAbsenceMutation = useMutation({
@@ -69,7 +69,7 @@ const TeacherAbsenceDeclaration: React.FC = () => {
           ...absenceData,
           teacherId: user?.id,
           teacherName: `${user?.firstName} ${user?.lastName}`,
-          subject: user?.subject || 'Matière non spécifiée'
+          subject: (user as any)?.subject || 'Matière non spécifiée'
         })
       });
 
