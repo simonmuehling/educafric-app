@@ -5014,6 +5014,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 29, title: "Demande d'Offres EDUCAFRIC - FR", description: "Document officiel de demande d'offre pour établissements", type: "commercial", url: "/documents/demande-offres-educafric-fr.pdf" },
         { id: 30, title: "Proposal Request EDUCAFRIC - EN", description: "Official proposal request document for institutions", type: "commercial", url: "/documents/proposal-request-educafric-en.pdf" },
         
+        // === CONTRATS DE PARTENARIAT OFFICIELS (Bilingue PDF) ===
+        { id: 32, title: "CONTRAT PARTENARIAT OFFICIEL EDUCAFRIC 2025 - FR", description: "Contrat de partenariat officiel actualisé 2025 - Version française", type: "commercial", url: "/documents/educafric-contrat-officiel-2025-actualise.html" },
+        { id: 33, title: "OFFICIAL PARTNERSHIP CONTRACT EDUCAFRIC 2025 - EN", description: "Official partnership contract updated 2025 - English version", type: "commercial", url: "/documents/educafric-official-contract-2025-updated-version-6-en.html" },
+        
         // === DOCUMENTS SYSTÈME (PDF uniquement) ===
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
         { id: 5, title: "Tarifs et Offres 2025", description: "Grille tarifaire détaillée", type: "commercial", url: null },
@@ -5049,6 +5053,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationFR();
       } else if (docId === 102) {
         pdfBuffer = await PDFGenerator.generateBulletinWorkflowDocumentationEN();
+      } else if (docId === 32) {
+        pdfBuffer = await PDFGenerator.generatePartnershipContractFR();
+      } else if (docId === 33) {
+        pdfBuffer = await PDFGenerator.generatePartnershipContractEN();
       } else if (docId <= 10) {
         pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
           id: docId.toString(), 
