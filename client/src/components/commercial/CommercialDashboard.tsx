@@ -11,7 +11,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import { useFastModules } from '@/utils/fastModuleLoader';
 import ActivitySummary from './modules/ActivitySummary';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
+// UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
 
 interface CommercialDashboardProps {
   activeModule?: string;

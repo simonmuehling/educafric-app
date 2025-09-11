@@ -10,8 +10,7 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: All modules loaded dynamically for ultra-fast loading
-import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
-import NotificationCenter from '@/components/shared/NotificationCenter';
+// SubscriptionStatusCard and NotificationCenter now loaded dynamically via fastModuleLoader
 
 interface StudentDashboardProps {
   activeModule?: string;

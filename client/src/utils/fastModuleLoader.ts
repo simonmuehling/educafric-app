@@ -31,10 +31,18 @@ class FastModuleLoader {
       'director-parent-requests': () => import('@/components/director/modules/ParentRequestsNew'),
       'parent-requests': () => import('@/components/director/modules/ParentRequestsNew'), // Add missing mapping
       'notifications': () => import('@/components/shared/NotificationCenter'),
+      'director.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
+      'student.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
+      'parent.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
+      'teacher.notifications': () => import('@/components/shared/NotificationCenter'), // Role-namespaced
       'school-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'delegated-administrators': () => import('@/components/director/modules/AdministratorManagementFunctional'),
       'reports': () => import('@/components/director/modules/ReportsAnalytics'),
       'help': () => import('@/components/help/HelpCenter'),
+      'director.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
+      'student.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
+      'parent.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
+      'teacher.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       'bulletin-management': () => import('@/components/director/modules/BulletinManagementUnified'),
@@ -85,12 +93,11 @@ class FastModuleLoader {
       'requests': () => import('@/components/parent/modules/ParentRequestManager'),
       'parent-timetable': () => import('@/components/parent/modules/ParentChildrenTimetable'),
       
-      // CRITICAL MISSING MAPPINGS CAUSING SLOW LOADING - FIXED!
-      'parent-communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // For "communication" module
-      'communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communications
-      'communication': () => import('@/components/parent/modules/FunctionalParentMessages'), // Alias pour communication
-      // 'messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // REMOVED - causing conflicts with student messages
-      'profile': () => import('@/components/parent/modules/FunctionalParentProfile'), // Alias pour profile
+      // PARENT-SPECIFIC MAPPINGS - ROLE-NAMESPACED TO PREVENT CONFLICTS
+      'parent-communications': () => import('@/components/parent/modules/FunctionalParentMessages'),
+      'parent.communications': () => import('@/components/parent/modules/FunctionalParentMessages'), // Role-namespaced
+      'parent.messages': () => import('@/components/parent/modules/FunctionalParentMessages'), // Role-namespaced
+      'parent.profile': () => import('@/components/parent/modules/FunctionalParentProfile'), // Role-namespaced
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
@@ -117,7 +124,8 @@ class FastModuleLoader {
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
-      'messages': () => import('@/components/student/modules/StudentCommunications'), // FOR STUDENTS: Messages École module
+      'student.messages': () => import('@/components/student/modules/StudentCommunications'), // Role-namespaced
+      'student.communications': () => import('@/components/student/modules/StudentCommunications'), // Role-namespaced
       'parentConnection': () => import('@/components/student/modules/FindParentsModule'),
       
       // Missing Student modules that were causing slow loading
@@ -127,6 +135,10 @@ class FastModuleLoader {
       'parent-profile': () => import('@/components/parent/modules/FunctionalParentProfile'),
       'student-geolocation': () => import('@/components/student/modules/StudentGeolocation'),
       'multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'),
+      'director.multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'), // Role-namespaced
+      'student.multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'), // Role-namespaced
+      'parent.multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'), // Role-namespaced
+      'teacher.multirole': () => import('@/components/shared/UniversalMultiRoleSwitch'), // Role-namespaced
       
       // Additional Student module aliases
       'StudentTimetable': () => import('@/components/student/modules/StudentTimetable'),
@@ -149,6 +161,8 @@ class FastModuleLoader {
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
+      'teacher.communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
+      'teacher.messages': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
       'teacher-absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       'absence-declaration': () => import('@/components/teacher/modules/TeacherAbsenceDeclaration'),
       
@@ -171,6 +185,8 @@ class FastModuleLoader {
       'schedule': () => import('@/components/freelancer/modules/FunctionalFreelancerSchedule'),
       'resources': () => import('@/components/freelancer/modules/FunctionalFreelancerResources'),
       'freelancer-communications': () => import('@/components/freelancer/modules/FreelancerCommunications'),
+      'freelancer.communications': () => import('@/components/freelancer/modules/FreelancerCommunications'), // Role-namespaced
+      'freelancer.messages': () => import('@/components/freelancer/modules/FreelancerCommunications'), // Role-namespaced
       
       // Additional Freelancer module aliases
       'FunctionalFreelancerStudents': () => import('@/components/freelancer/modules/FunctionalFreelancerStudents'),
@@ -199,6 +215,13 @@ class FastModuleLoader {
       'siteadmin-overview': () => import('@/components/shared/UnifiedProfileManager'),
       'siteadmin-settings': () => import('@/components/shared/UnifiedProfileManager'),
       
+      // ROLE-NAMESPACED SETTINGS - PREVENT CONFLICTS
+      'director.settings': () => import('@/components/director/modules/UnifiedSchoolSettings'),
+      'student.settings': () => import('@/components/student/modules/StudentSettings'),
+      'parent.settings': () => import('@/components/parent/modules/ParentSettings'),
+      'teacher.settings': () => import('@/components/teacher/modules/TeacherSettingsSimple'),
+      'freelancer.settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
+      'commercial.settings': () => import('@/components/shared/UnifiedProfileManager'),
       // Generic settings fallback (removed duplication)
       'settings': () => import('@/components/shared/UnifiedProfileManager') // Legacy compatibility for generic settings only
     };

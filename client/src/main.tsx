@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-import { setupConsoleFilter } from "./utils/consoleFilter";
+// setupConsoleFilter now loaded dynamically in App.tsx to prevent import conflicts
 import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
@@ -41,8 +41,7 @@ if ('serviceWorker' in navigator && isProduction) {
   console.log('[PWA] Service Worker registration disabled for development or localhost');
 }
 
-// Setup console filtering to reduce spam in development
-setupConsoleFilter();
+// Setup console filtering moved to App.tsx (dynamic import) to prevent import conflicts
 
 // Initialize fast module loading for instant performance (startup optimization only)
 // Moved critical module preloading to App.tsx useGlobalModulePreloader hook

@@ -16,9 +16,7 @@ import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
 // Dynamic components loaded via fastModuleLoader
-import NotificationCenter from '@/components/shared/NotificationCenter';
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
-import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+// NotificationCenter, UniversalMultiRoleSwitch, and SubscriptionStatusCard now loaded dynamically via fastModuleLoader
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ParentDashboardProps {

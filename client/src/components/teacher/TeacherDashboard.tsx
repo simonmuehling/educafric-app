@@ -10,9 +10,7 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
-import NotificationCenter from '@/components/shared/NotificationCenter';
-import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
+// NotificationCenter, SubscriptionStatusCard, and UniversalMultiRoleSwitch now loaded dynamically via fastModuleLoader
 import { TeacherMultiSchoolProvider } from '@/contexts/TeacherMultiSchoolContext';
 
 interface TeacherDashboardProps {

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import NotificationCenter from '@/components/shared/NotificationCenter';
+// NotificationCenter now loaded dynamically via fastModuleLoader
 import { 
   MapPin, 
   Shield, 

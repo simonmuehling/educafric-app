@@ -10,9 +10,7 @@ import {
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 import UnifiedProfileManager from '@/components/shared/UnifiedProfileManager';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
-import UniversalMultiRoleSwitch from '@/components/shared/UniversalMultiRoleSwitch';
-import NotificationCenter from '@/components/shared/NotificationCenter';
-import SubscriptionStatusCard from '@/components/shared/SubscriptionStatusCard';
+// UniversalMultiRoleSwitch, NotificationCenter, and SubscriptionStatusCard now loaded dynamically via fastModuleLoader
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';

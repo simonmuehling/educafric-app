@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
-import NotificationCenter from '@/components/shared/NotificationCenter';
-import EducationalContentApproval from '@/components/director/modules/EducationalContentApproval';
+// NotificationCenter and EducationalContentApproval now loaded dynamically via fastModuleLoader
 
 // Import Premium components
 import PremiumFeatureGate from '@/components/premium/PremiumFeatureGate';
