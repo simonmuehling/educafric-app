@@ -433,6 +433,70 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
           
           // Track sandbox login activity (note: sandbox users don't persist to DB)
           console.log(`[SANDBOX_LOGIN] Login activity for: ${user.email} (${user.role}) at ${new Date().toISOString()}`);
+          
+          // Send PWA notification to Carine specifically for Commercial sandbox users
+          if (user.role === 'Commercial') {
+            try {
+              // Try to find Carine by her possible emails
+              const carineEmails = [
+                'nguetsop.carine@educafric.com',
+                'carine.nguetsop@educafric.com', 
+                'carine@educafric.com',
+                'nguetsopcarine12@icloud.com'
+              ];
+              
+              let carineUser = null;
+              for (const email of carineEmails) {
+                try {
+                  carineUser = await storage.getUserByEmail(email);
+                  if (carineUser) {
+                    console.log(`[PWA_NOTIFICATION] 👤 Found Carine user: ${carineUser.email} (ID: ${carineUser.id})`);
+                    break;
+                  }
+                } catch (error) {
+                  // Continue to next email if this one fails
+                  continue;
+                }
+              }
+              
+              // Use Carine's ID if found, otherwise log warning and use fallback
+              let carineUserId;
+              if (carineUser) {
+                carineUserId = carineUser.id;
+              } else {
+                console.warn('[PWA_NOTIFICATION] ⚠️  Carine user not found, using fallback notification ID 999999');
+                carineUserId = 999999;
+              }
+              
+              const loginTime = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' });
+              const userIP = req.ip || req.connection.remoteAddress || 'Unknown';
+              const userName = user.name || user.email;
+              
+              const notification = await storage.createNotification(carineUserId, {
+                title: '🔔 Connexion Commercial SANDBOX EDUCAFRIC',
+                message: `${userName} (${user.email}) s'est connecté en mode sandbox le ${loginTime} depuis l'IP ${userIP}`,
+                type: 'commercial_login',
+                category: 'security',
+                priority: 'high',
+                actionRequired: false,
+                data: {
+                  commercialId: user.id,
+                  commercialEmail: user.email,
+                  commercialName: userName,
+                  loginTime: loginTime,
+                  ipAddress: userIP,
+                  userAgent: req.headers['user-agent'],
+                  schoolId: user.schoolId,
+                  sandboxMode: true
+                }
+              });
+              
+              const notificationId = notification?.id || 'unknown';
+              console.log(`[PWA_NOTIFICATION] 📱 Commercial SANDBOX login alert successfully created (ID: ${notificationId}) for recipient ${carineUserId} - Commercial: ${user.email}`);
+            } catch (pwaError) {
+              console.error('[PWA_NOTIFICATION] Failed to send PWA notification to Carine for sandbox commercial:', pwaError);
+            }
+          }
         } catch (alertError) {
           console.error('[SANDBOX_LOGIN] Failed to send alert email:', alertError);
         }
