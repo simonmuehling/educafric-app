@@ -312,25 +312,14 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Teacher" userId={user?.id || 0} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'multirole',
       label: t.multirole,
       icon: <Users className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: <UniversalMultiRoleSwitch 
-        currentUserRole="Teacher"
-        onRoleSwitch={(role) => {
-          console.log(`[TEACHER_DASHBOARD] 🔄 Role switch requested: ${role}`);
-          // Handle role switch logic here
-          if (role === 'Parent') {
-            window.location.href = '/parent';
-          } else if (role === 'Freelancer') {
-            window.location.href = '/freelancer';
-          }
-        }} 
-      />
+      component: createDynamicModule('multirole')
     },
     {
       id: 'help',

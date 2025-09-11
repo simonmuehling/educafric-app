@@ -296,7 +296,7 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Student" userId={user?.id || 0} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'geolocation',

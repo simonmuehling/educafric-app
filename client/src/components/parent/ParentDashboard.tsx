@@ -359,7 +359,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Parent" userId={user?.id || 0} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'requests',
@@ -380,17 +380,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: <UniversalMultiRoleSwitch 
-        currentUserRole="Parent"
-        onRoleSwitch={(role) => {
-          console.log(`[PARENT_DASHBOARD] 🔄 Role switch requested: ${role}`);
-          if (role === 'Teacher') {
-            window.location.href = '/teacher';
-          } else if (role === 'Student') {
-            window.location.href = '/student';
-          }
-        }} 
-      />
+      component: createDynamicModule('multirole')
     },
     {
       id: 'help',

@@ -395,14 +395,14 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       label: language === 'fr' ? 'Contenu Pédagogique' : 'Educational Content',
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-emerald-500',
-      component: <EducationalContentApproval />
+      component: createDynamicModule('content-approval')
     },
     {
       id: 'notifications',
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Director" userId={user?.id || 0} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'school-administrators',

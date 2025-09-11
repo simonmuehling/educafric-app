@@ -254,7 +254,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: language === 'fr' ? 'Mon Activité' : 'My Activity',
       icon: <Activity className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: <ActivitySummary />
+      component: createDynamicModule('activity-summary')
     },
     {
       id: 'settings',
@@ -268,17 +268,7 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: <UniversalMultiRoleSwitch 
-        currentUserRole="Commercial"
-        onRoleSwitch={(role) => {
-          console.log(`[COMMERCIAL_DASHBOARD] 🔄 Role switch requested: ${role}`);
-          if (role === 'Teacher') {
-            window.location.href = '/teacher';
-          } else if (role === 'Freelancer') {
-            window.location.href = '/freelancer';
-          }
-        }} 
-      />
+      component: createDynamicModule('multirole')
     },
     {
       id: 'help',

@@ -326,24 +326,14 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       label: t.notifications,
       icon: <Bell className="w-6 h-6" />,
       color: 'bg-blue-600',
-      component: <NotificationCenter userRole="Freelancer" userId={user?.id || 0} />
+      component: createDynamicModule('notifications')
     },
     {
       id: 'multirole',
       label: 'Multi-Rôles',
       icon: <User className="w-6 h-6" />,
       color: 'bg-purple-600',
-      component: <UniversalMultiRoleSwitch 
-        currentUserRole="Freelancer"
-        onRoleSwitch={(role) => {
-          console.log(`[FREELANCER_DASHBOARD] 🔄 Role switch requested: ${role}`);
-          if (role === 'Teacher') {
-            window.location.href = '/teacher';
-          } else if (role === 'Commercial') {
-            window.location.href = '/commercial';
-          }
-        }} 
-      />
+      component: createDynamicModule('multirole')
     },
     {
       id: 'help',
