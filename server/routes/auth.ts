@@ -250,17 +250,22 @@ router.post('/login', (req, res, next) => {
         
         // Send commercial login alert and track activity if user is Commercial role
         if (user.role === 'Commercial') {
+          // Exclude demo commercial from alerts (case-insensitive)
+          const isDemoCommercial = user.email.toLowerCase() === 'commercial.demo@test.educafric.com'.toLowerCase();
+          
           try {
-            // Send email alert
-            const { hostingerMailService } = await import('../services/hostingerMailService');
-            await hostingerMailService.sendCommercialLoginAlert({
-              name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-              email: user.email,
-              loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
-              ip: req.ip || req.connection.remoteAddress || 'Unknown',
-              schoolId: user.schoolId
-            });
-            console.log(`[COMMERCIAL_LOGIN] Alert sent for: ${user.email}`);
+            // Send email alert (skip for demo user)
+            if (!isDemoCommercial) {
+              const { hostingerMailService } = await import('../services/hostingerMailService');
+              await hostingerMailService.sendCommercialLoginAlert({
+                name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+                email: user.email,
+                loginTime: new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' }),
+                ip: req.ip || req.connection.remoteAddress || 'Unknown',
+                schoolId: user.schoolId
+              });
+              console.log(`[COMMERCIAL_LOGIN] Alert sent for: ${user.email}`);
+            }
             
             // Track login activity
             await storage.createCommercialActivity({
@@ -276,6 +281,69 @@ router.post('/login', (req, res, next) => {
               schoolId: user.schoolId
             });
             console.log(`[COMMERCIAL_ACTIVITY] Login activity tracked for: ${user.email}`);
+            
+            // Send PWA notification to Carine (skip for demo user)
+            if (!isDemoCommercial) {
+              try {
+                // Try to find Carine by her possible emails
+                const carineEmails = [
+                  'nguetsop.carine@educafric.com',
+                  'carine.nguetsop@educafric.com', 
+                  'carine@educafric.com',
+                  'nguetsopcarine12@icloud.com'
+                ];
+                
+                let carineUser = null;
+                for (const email of carineEmails) {
+                  try {
+                    carineUser = await storage.getUserByEmail(email);
+                    if (carineUser) {
+                      console.log(`[PWA_NOTIFICATION] 👤 Found Carine user: ${carineUser.email} (ID: ${carineUser.id})`);
+                      break;
+                    }
+                  } catch (error) {
+                    // Continue to next email if this one fails
+                    continue;
+                  }
+                }
+                
+                // Use Carine's ID if found, otherwise log warning and use fallback
+                let carineUserId;
+                if (carineUser) {
+                  carineUserId = carineUser.id;
+                } else {
+                  console.warn('[PWA_NOTIFICATION] ⚠️  Carine user not found, using fallback notification ID 999999');
+                  carineUserId = 999999;
+                }
+                
+                const loginTime = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' });
+                const userIP = req.ip || req.connection.remoteAddress || 'Unknown';
+                const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
+                
+                const notification = await storage.createNotification(carineUserId, {
+                  title: '🔔 Connexion Commercial EDUCAFRIC',
+                  message: `${userName} (${user.email}) s'est connecté le ${loginTime} depuis l'IP ${userIP}`,
+                  type: 'commercial_login',
+                  category: 'security',
+                  priority: 'high',
+                  actionRequired: false,
+                  data: {
+                    commercialId: user.id,
+                    commercialEmail: user.email,
+                    commercialName: userName,
+                    loginTime: loginTime,
+                    ipAddress: userIP,
+                    userAgent: req.headers['user-agent'],
+                    schoolId: user.schoolId
+                  }
+                });
+                
+                const notificationId = notification?.id || 'unknown';
+                console.log(`[PWA_NOTIFICATION] 📱 Commercial login alert successfully created (ID: ${notificationId}) for recipient ${carineUserId} - Commercial: ${user.email}`);
+              } catch (pwaError) {
+                console.error('[PWA_NOTIFICATION] Failed to send PWA notification to Carine:', pwaError);
+              }
+            }
           } catch (alertError) {
             console.error('[COMMERCIAL_LOGIN] Failed to send alert email or track activity:', alertError);
           }
