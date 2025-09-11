@@ -290,7 +290,8 @@ router.post('/login', (req, res, next) => {
                   'nguetsop.carine@educafric.com',
                   'carine.nguetsop@educafric.com', 
                   'carine@educafric.com',
-                  'nguetsopcarine12@icloud.com'
+                  'nguetsopcarine12@icloud.com',
+                  'nguetsop.carine@yahoo.fr'
                 ];
                 
                 let carineUser = null;
@@ -442,7 +443,8 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
                 'nguetsop.carine@educafric.com',
                 'carine.nguetsop@educafric.com', 
                 'carine@educafric.com',
-                'nguetsopcarine12@icloud.com'
+                'nguetsopcarine12@icloud.com',
+                'nguetsop.carine@yahoo.fr'
               ];
               
               let carineUser = null;
