@@ -7,6 +7,7 @@ import { users } from "../../shared/schemas/userSchema";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import type { IUserStorage } from "./interfaces";
+import type { InsertNotificationPreferences, NotificationPreferences } from "../../shared/schema";
 
 export class UserStorage implements IUserStorage {
   async createUser(user: any): Promise<any> {
@@ -235,6 +236,94 @@ export class UserStorage implements IUserStorage {
         uniqueDaysCount: 0,
         mostActiveDay: null
       };
+    }
+  }
+
+  // === NOTIFICATION PREFERENCES METHODS ===
+  async getNotificationPreferences(userId: number): Promise<any | null> {
+    try {
+      const { notificationPreferences } = await import("../../shared/schema");
+      const [preferences] = await db.select()
+        .from(notificationPreferences)
+        .where(eq(notificationPreferences.userId, userId))
+        .limit(1);
+      
+      // Return defaults if no preferences exist
+      if (!preferences) {
+        return {
+          userId,
+          pushNotifications: true,
+          emailNotifications: true,
+          smsNotifications: false,
+          phone: null,
+          autoOpen: true,
+          soundEnabled: true,
+          vibrationEnabled: true
+        };
+      }
+      
+      return preferences;
+    } catch (error) {
+      console.error(`[NOTIFICATION_PREFERENCES] Failed to get preferences for user ${userId}:`, error);
+      // Return defaults on error
+      return {
+        userId,
+        pushNotifications: true,
+        emailNotifications: true,
+        smsNotifications: false,
+        phone: null,
+        autoOpen: true,
+        soundEnabled: true,
+        vibrationEnabled: true
+      };
+    }
+  }
+
+  async upsertNotificationPreferences(
+    userId: number, 
+    preferences: Omit<InsertNotificationPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ): Promise<NotificationPreferences> {
+    try {
+      const { notificationPreferences } = await import("../../shared/schema");
+      
+      // TRUE ATOMIC UPSERT - Insert or update in one query
+      const [upserted] = await db.insert(notificationPreferences)
+        .values({
+          userId,
+          ...preferences
+        })
+        .onConflictDoUpdate({
+          target: notificationPreferences.userId,
+          set: preferences
+        })
+        .returning();
+        
+      return upserted;
+    } catch (error) {
+      console.error(`[NOTIFICATION_PREFERENCES] Failed to upsert preferences for user ${userId}:`, error);
+      throw new Error(`Failed to save notification preferences: ${error}`);
+    }
+  }
+
+  async createNotificationPreferences(data: {
+    userId: number;
+    pushNotifications?: boolean;
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    phone?: string;
+    autoOpen?: boolean;
+    soundEnabled?: boolean;
+    vibrationEnabled?: boolean;
+  }): Promise<any> {
+    try {
+      const { notificationPreferences } = await import("../../shared/schema");
+      const [created] = await db.insert(notificationPreferences)
+        .values(data)
+        .returning();
+      return created;
+    } catch (error) {
+      console.error(`[NOTIFICATION_PREFERENCES] Failed to create preferences:`, error);
+      throw new Error(`Failed to create notification preferences: ${error}`);
     }
   }
 }

@@ -8,6 +8,7 @@ import { StudentStorage } from "./studentStorage";
 import { PWAStorage } from "./pwaStorage";
 import { TimetableStorage } from "./timetableStorage";
 import { BulletinStorage } from "./bulletinStorage";
+import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 
 // Main storage class combining all modules
 export class ModularStorage {
@@ -62,6 +63,29 @@ export class ModularStorage {
   }
   async getUser(userId: number) { 
     return this.userStorage.getUser(userId); 
+  }
+
+  // === NOTIFICATION PREFERENCES METHODS ===
+  async getNotificationPreferences(userId: number): Promise<NotificationPreferences> { 
+    return this.userStorage.getNotificationPreferences(userId); 
+  }
+  async upsertNotificationPreferences(
+    userId: number, 
+    preferences: Omit<InsertNotificationPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
+  ): Promise<NotificationPreferences> { 
+    return this.userStorage.upsertNotificationPreferences(userId, preferences); 
+  }
+  async createNotificationPreferences(data: {
+    userId: number;
+    pushNotifications?: boolean;
+    emailNotifications?: boolean;
+    smsNotifications?: boolean;
+    phone?: string | null;
+    autoOpen?: boolean;
+    soundEnabled?: boolean;
+    vibrationEnabled?: boolean;
+  }): Promise<NotificationPreferences> { 
+    return this.userStorage.createNotificationPreferences(data); 
   }
 
   // === COMMERCIAL ACTIVITY METHODS ===

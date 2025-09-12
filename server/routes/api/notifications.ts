@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { storage } from '../../storage';
 import { requireAuth } from '../../middleware/auth';
+import { insertNotificationPreferencesSchema, type InsertNotificationPreferences, type NotificationPreferences } from '../../../shared/schema';
+import { z } from 'zod';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -319,6 +321,127 @@ router.post('/configure-fallback', requireAuth, async (req: AuthenticatedRequest
     res.status(500).json({
       success: false,
       message: 'Failed to configure notification fallback'
+    });
+  }
+});
+
+// GET notification preferences for authenticated user
+router.get('/preferences', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    console.log(`[NOTIFICATION_PREFERENCES] Getting preferences for user ${userId}`);
+    
+    const preferences = await storage.getNotificationPreferences(userId);
+    
+    console.log(`[NOTIFICATION_PREFERENCES] ✅ Retrieved preferences for user ${userId}:`, {
+      pushNotifications: preferences.pushNotifications,
+      emailNotifications: preferences.emailNotifications,
+      smsNotifications: preferences.smsNotifications,
+      autoOpen: preferences.autoOpen
+    });
+
+    res.json({
+      success: true,
+      data: preferences
+    });
+  } catch (error: any) {
+    console.error('[NOTIFICATION_PREFERENCES] ❌ Get preferences error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch notification preferences',
+      error: error.message 
+    });
+  }
+});
+
+// POST notification preferences for authenticated user
+router.post('/preferences', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    console.log(`[NOTIFICATION_PREFERENCES] Saving preferences for user ${userId}`);
+
+    // Handle both nested and flat formats for backward compatibility
+    let flatData: any = {};
+    
+    if (req.body.notificationSettings) {
+      // Frontend sends nested format: { notificationSettings: {...}, phone }
+      flatData = {
+        ...req.body.notificationSettings,
+        phone: req.body.phone || null
+      };
+    } else {
+      // API sends flat format: { pushNotifications, emailNotifications, ... }
+      flatData = req.body;
+    }
+
+    // Use a simple Zod schema that matches our interface exactly
+    const validationSchema = z.object({
+      pushNotifications: z.boolean().optional(),
+      emailNotifications: z.boolean().optional(),
+      smsNotifications: z.boolean().optional(),
+      phone: z.string().nullable().optional(),
+      autoOpen: z.boolean().optional(),
+      soundEnabled: z.boolean().optional(),
+      vibrationEnabled: z.boolean().optional()
+    }).refine(
+      (data) => !data.smsNotifications || !!data.phone, 
+      { 
+        path: ['phone'], 
+        message: 'Phone required when SMS notifications are enabled' 
+      }
+    );
+    
+    // Validate request body using Zod schema
+    const validatedData = validationSchema.parse(flatData);
+    
+    console.log(`[NOTIFICATION_PREFERENCES] Data validated successfully`);
+
+    // Upsert preferences using storage layer
+    const savedPreferences: NotificationPreferences = await storage.upsertNotificationPreferences(userId, validatedData);
+    
+    console.log(`[NOTIFICATION_PREFERENCES] ✅ Preferences saved successfully for user ${userId}:`, {
+      pushNotifications: savedPreferences.pushNotifications,
+      emailNotifications: savedPreferences.emailNotifications,
+      smsNotifications: savedPreferences.smsNotifications,
+      autoOpen: savedPreferences.autoOpen,
+      hasPhone: !!savedPreferences.phone // Log presence, not actual phone number
+    });
+
+    res.json({
+      success: true,
+      message: 'Notification preferences saved successfully',
+      data: savedPreferences
+    });
+
+  } catch (error: any) {
+    console.error('[NOTIFICATION_PREFERENCES] ❌ Save preferences error:', error.message);
+    
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request data',
+        errors: error.errors.map(e => ({
+          field: e.path.join('.'),
+          message: e.message
+        }))
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save notification preferences',
+      error: error.message
     });
   }
 });
