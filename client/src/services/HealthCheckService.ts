@@ -185,8 +185,10 @@ class HealthCheckService {
     }
     
     console.log(`[HEALTH_SERVICE] ⏰ Starting periodic checks every ${this.config.currentInterval/1000}s`);
+    console.log(`[HEALTH_SERVICE] 🔍 DEBUG: Previous intervalId:`, this.intervalId);
     
     this.intervalId = window.setInterval(() => {
+      console.log(`[HEALTH_SERVICE] 🔄 Interval fired - performing health check`);
       // SAFETY: Only check if page is visible and user is active
       const inactiveTime = Date.now() - this.lastActivityTime;
       if (!this.isVisible || inactiveTime > 600000) { // 10 min inactive
@@ -323,7 +325,7 @@ class HealthCheckService {
     
     // Reset to base interval on success
     this.config.currentInterval = this.config.baseInterval;
-    this.restartPeriodicChecks();
+    // Don't restart - let current interval continue
     
     // Update telemetry
     this.updateTelemetry(result);

@@ -449,10 +449,13 @@ class PWAConnectionManager {
    * Redémarre le ping périodique avec les nouveaux paramètres
    */
   private restartPeriodicPing() {
+    console.log('[PWA_CONNECTION] 🚫 restartPeriodicPing DISABLED - using HealthCheckService instead');
+    // SECURITY: All ping functionality disabled to prevent server overload
     if (this.pingInterval) {
       clearInterval(this.pingInterval);
+      this.pingInterval = null;
     }
-    this.startPeriodicPing();
+    return;
   }
 
   /**

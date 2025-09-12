@@ -176,37 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // TEST ENDPOINT: Force set session for debugging - Fixed implementation
-  app.post('/api/test/force-session', async (req, res) => {
-    try {
-      const { userId } = req.body;
-      
-      // Get user from database
-      const user = await storage.getUserById(userId);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      
-      // Force login via passport
-      req.login(user, (err) => {
-        if (err) {
-          console.error('[TEST_SESSION] Login error:', err);
-          return res.status(500).json({ error: 'Login failed', details: err.message });
-        }
-        
-        res.json({ 
-          success: true, 
-          message: 'Session forced - user logged in',
-          sessionID: req.sessionID,
-          userId: userId,
-          userEmail: user.email
-        });
-      });
-    } catch (error) {
-      console.error('[TEST_SESSION] Error:', error);
-      res.status(500).json({ error: 'Session creation failed' });
-    }
-  });
+  // SECURITY: Dangerous force-session endpoint REMOVED per architect security review
 
   app.post('/api/auth/force-logout', (req, res) => {
     req.logout((err) => {

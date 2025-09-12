@@ -195,15 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // DEV AUTO-LOGIN: Force authentication for Admin account in development  
-      if (import.meta.env.DEV && window.location.hostname === 'localhost') {
-        try {
-          await apiRequest('POST', '/api/test/force-session', { userId: 4 });
-          console.log('[DEV_AUTH] Auto-login successful for Admin account');
-        } catch (autoLoginError) {
-          console.warn('[DEV_AUTH] Auto-login failed:', autoLoginError);
-        }
-      }
+      // SECURITY: Dangerous auto-login removed per architect security review
 
       const response = await apiRequest('GET', '/api/auth/me');
       
