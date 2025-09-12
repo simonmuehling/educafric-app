@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Test Notifications Mobile - Educafric PWA</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .status { 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 10px 0; 
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background: rgba(34, 197, 94, 0.3); border: 2px solid #22c55e; }
+        .error { background: rgba(239, 68, 68, 0.3); border: 2px solid #ef4444; }
+        .info { background: rgba(59, 130, 246, 0.3); border: 2px solid #3b82f6; }
+        .warning { background: rgba(245, 158, 11, 0.3); border: 2px solid #f59e0b; }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .step {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4ecdc4;
+        }
+        .step.completed {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .step.failed {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .big-emoji {
+            font-size: 2em;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .install-prompt {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Test Notifications Mobile</h1>
+        <p>Testez les notifications PWA d'Educafric sur votre téléphone</p>
+        
+        <div id="status" class="status info">🔍 Vérification du système...</div>
+        
+        <!-- Installation PWA -->
+        <div id="install-section" class="install-prompt" style="display: none;">
+            <div class="big-emoji">📲</div>
+            <h3>Installer Educafric PWA</h3>
+            <p>Pour recevoir des notifications, installez l'application sur votre téléphone</p>
+            <button id="install-btn" class="btn">📱 Installer l'App</button>
+        </div>
+        
+        <!-- Étapes de test -->
+        <div class="step" id="step1">
+            <h3>📋 Étape 1: Vérifications préliminaires</h3>
+            <button onclick="checkSupport()" class="btn">🔍 Vérifier compatibilité</button>
+        </div>
+        
+        <div class="step" id="step2">
+            <h3>🔔 Étape 2: Permissions notifications</h3>
+            <button onclick="requestPermission()" class="btn" disabled>🔑 Demander permissions</button>
+        </div>
+        
+        <div class="step" id="step3">
+            <h3>🔗 Étape 3: Connexion utilisateur</h3>
+            <input type="email" id="email" placeholder="Votre email" style="width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 5px;">
+            <input type="password" id="password" placeholder="Mot de passe" style="width: 100%; padding: 10px; margin: 5px 0; border: none; border-radius: 5px;">
+            <button onclick="loginUser()" class="btn" disabled>🔐 Se connecter</button>
+        </div>
+        
+        <div class="step" id="step4">
+            <h3>📱 Étape 4: Test notifications</h3>
+            <button onclick="testLocalNotification()" class="btn" disabled>🧪 Test notification locale</button>
+            <button onclick="testServerNotification()" class="btn" disabled>📡 Test notification serveur</button>
+        </div>
+        
+        <!-- Log de débogage -->
+        <div class="log" id="debug-log">
+            <div style="color: #4ecdc4;">📊 Console de débogage initialisée...</div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let isLoggedIn = false;
+        let installPrompt = null;
+        
+        // Interface de log
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#4ecdc4',
+                success: '#22c55e', 
+                error: '#ef4444',
+                warning: '#f59e0b'
+            };
+            const logDiv = document.getElementById('debug-log');
+            logDiv.innerHTML += `<div style="color: ${colors[type]};">[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function markStepComplete(stepNum, success = true) {
+            const step = document.getElementById(`step${stepNum}`);
+            step.className = `step ${success ? 'completed' : 'failed'}`;
+        }
+        
+        function enableStep(stepNum) {
+            const step = document.getElementById(`step${stepNum}`);
+            const buttons = step.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = false);
+        }
+        
+        // Étape 1: Vérifier la compatibilité
+        async function checkSupport() {
+            log('🔍 Vérification de la compatibilité PWA...');
+            
+            let allSupported = true;
+            
+            // Service Worker
+            if ('serviceWorker' in navigator) {
+                log('✅ Service Worker supporté', 'success');
+            } else {
+                log('❌ Service Worker non supporté', 'error');
+                allSupported = false;
+            }
+            
+            // Notifications
+            if ('Notification' in window) {
+                log('✅ API Notifications disponible', 'success');
+            } else {
+                log('❌ API Notifications non disponible', 'error');
+                allSupported = false;
+            }
+            
+            // PWA Installation
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                log('✅ Push Notifications supportées', 'success');
+            } else {
+                log('⚠️ Push Notifications limitées', 'warning');
+            }
+            
+            // Enregistrer le Service Worker
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                log('✅ Service Worker enregistré', 'success');
+                
+                await navigator.serviceWorker.ready;
+                log('✅ Service Worker actif', 'success');
+            } catch (error) {
+                log(`❌ Erreur Service Worker: ${error.message}`, 'error');
+                allSupported = false;
+            }
+            
+            if (allSupported) {
+                markStepComplete(1, true);
+                enableStep(2);
+                updateStatus('✅ Système compatible !', 'success');
+            } else {
+                markStepComplete(1, false);
+                updateStatus('❌ Problèmes de compatibilité détectés', 'error');
+            }
+        }
+        
+        // Étape 2: Demander permissions
+        async function requestPermission() {
+            log('🔑 Demande des permissions de notification...');
+            
+            try {
+                const permission = await Notification.requestPermission();
+                
+                switch (permission) {
+                    case 'granted':
+                        log('✅ Permissions accordées !', 'success');
+                        markStepComplete(2, true);
+                        enableStep(3);
+                        updateStatus('✅ Permissions OK - Connectez-vous', 'success');
+                        break;
+                    case 'denied':
+                        log('❌ Permissions refusées', 'error');
+                        markStepComplete(2, false);
+                        updateStatus('❌ Permissions refusées - Activez dans réglages', 'error');
+                        break;
+                    default:
+                        log('⚠️ Permissions en attente', 'warning');
+                        updateStatus('⚠️ Veuillez accorder les permissions', 'warning');
+                }
+            } catch (error) {
+                log(`❌ Erreur permissions: ${error.message}`, 'error');
+                markStepComplete(2, false);
+            }
+        }
+        
+        // Étape 3: Se connecter
+        async function loginUser() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                log('⚠️ Veuillez entrer email et mot de passe', 'warning');
+                return;
+            }
+            
+            log(`🔐 Connexion avec ${email}...`);
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Connecté comme ${data.user.firstName} ${data.user.lastName} (${data.user.role})`, 'success');
+                    isLoggedIn = true;
+                    markStepComplete(3, true);
+                    enableStep(4);
+                    updateStatus('✅ Connecté - Testez les notifications !', 'success');
+                } else {
+                    const error = await response.json();
+                    log(`❌ Erreur connexion: ${error.message}`, 'error');
+                    markStepComplete(3, false);
+                }
+            } catch (error) {
+                log(`❌ Erreur réseau: ${error.message}`, 'error');
+                markStepComplete(3, false);
+            }
+        }
+        
+        // Étape 4a: Test notification locale
+        function testLocalNotification() {
+            log('🧪 Test notification locale...');
+            
+            if (Notification.permission !== 'granted') {
+                log('❌ Permissions pas accordées', 'error');
+                return;
+            }
+            
+            try {
+                const notification = new Notification('🧪 Test Local - Educafric', {
+                    body: 'Si vous voyez cette notification, les notifications locales fonctionnent !',
+                    icon: '/educafric-logo-128.png',
+                    requireInteraction: true,
+                    vibrate: [200, 100, 200]
+                });
+                
+                notification.onclick = () => {
+                    log('✅ Notification locale cliquée !', 'success');
+                    notification.close();
+                };
+                
+                log('✅ Notification locale envoyée !', 'success');
+                
+                // Test avec Service Worker aussi
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title: '🔧 Test Service Worker',
+                        options: {
+                            body: 'Test via Service Worker - Si vous voyez ceci, le SW fonctionne !',
+                            icon: '/educafric-logo-128.png',
+                            requireInteraction: true,
+                            vibrate: [200, 100, 200]
+                        }
+                    });
+                    log('✅ Test Service Worker envoyé !', 'success');
+                }
+                
+            } catch (error) {
+                log(`❌ Erreur notification locale: ${error.message}`, 'error');
+            }
+        }
+        
+        // Étape 4b: Test notification serveur
+        async function testServerNotification() {
+            if (!isLoggedIn) {
+                log('❌ Veuillez vous connecter d\'abord', 'error');
+                return;
+            }
+            
+            log('📡 Test notification serveur...');
+            
+            try {
+                // Créer notification côté serveur
+                const response = await fetch('/api/pwa/simulate-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: '📱 Notification Mobile Test',
+                        message: 'Test depuis le serveur Educafric - Notifications mobiles actives !',
+                        type: 'mobile_test'
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`✅ Notification serveur créée: ${result.notification.id}`, 'success');
+                    
+                    // Récupérer et afficher les notifications
+                    setTimeout(async () => {
+                        try {
+                            const notifResponse = await fetch('/api/pwa/notifications/missed', {
+                                credentials: 'include'
+                            });
+                            
+                            if (notifResponse.ok) {
+                                const notifications = await notifResponse.json();
+                                log(`📥 ${notifications.length} notifications récupérées`, 'success');
+                                
+                                // Afficher chaque notification
+                                notifications.forEach((notif, index) => {
+                                    setTimeout(() => {
+                                        if (Notification.permission === 'granted') {
+                                            const notification = new Notification(`📱 ${notif.title}`, {
+                                                body: `[SERVEUR] ${notif.message}`,
+                                                icon: '/educafric-logo-128.png',
+                                                requireInteraction: true,
+                                                vibrate: [200, 100, 200, 100, 200]
+                                            });
+                                            
+                                            notification.onclick = () => {
+                                                log('✅ Notification serveur cliquée !', 'success');
+                                                notification.close();
+                                            };
+                                            
+                                            log(`✅ Notification affichée: ${notif.title}`, 'success');
+                                        }
+                                    }, index * 1000);
+                                });
+                                
+                                updateStatus('🎉 Test complet ! Vérifiez vos notifications', 'success');
+                            }
+                        } catch (error) {
+                            log(`❌ Erreur récupération: ${error.message}`, 'error');
+                        }
+                    }, 1000);
+                    
+                } else {
+                    log(`❌ Erreur serveur: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Erreur test serveur: ${error.message}`, 'error');
+            }
+        }
+        
+        // Gestion installation PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            installPrompt = e;
+            document.getElementById('install-section').style.display = 'block';
+            log('📲 Installation PWA disponible', 'info');
+        });
+        
+        document.getElementById('install-btn').addEventListener('click', async () => {
+            if (installPrompt) {
+                installPrompt.prompt();
+                const choiceResult = await installPrompt.userChoice;
+                
+                if (choiceResult.outcome === 'accepted') {
+                    log('✅ PWA installée !', 'success');
+                    document.getElementById('install-section').style.display = 'none';
+                } else {
+                    log('❌ Installation PWA annulée', 'warning');
+                }
+                
+                installPrompt = null;
+            }
+        });
+        
+        // Auto-connexion pour comptes test
+        window.addEventListener('load', () => {
+            log('🚀 Page chargée - Prêt pour les tests !');
+            updateStatus('🚀 Commencez par vérifier la compatibilité', 'info');
+            
+            // Pré-remplir avec un compte test
+            document.getElementById('email').value = 'simon.admin@educafric.com';
+            document.getElementById('password').value = 'educ12-Baxster';
+        });
+    </script>
+</body>
+</html>
