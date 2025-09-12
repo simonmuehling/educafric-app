@@ -18,14 +18,43 @@ export const useNotificationPermissions = (): NotificationPermissions => {
   }, [supported]);
 
   const requestPermission = async (): Promise<NotificationPermission> => {
-    if (!supported) return 'denied';
+    if (!supported) {
+      console.error('[NOTIFICATION_PERMISSIONS] ❌ Notifications not supported');
+      return 'denied';
+    }
 
     try {
+      console.log('[NOTIFICATION_PERMISSIONS] 🔔 Requesting permission...');
+      
+      // Check if permission is already granted
+      if (Notification.permission === 'granted') {
+        console.log('[NOTIFICATION_PERMISSIONS] ✅ Permission already granted');
+        return 'granted';
+      }
+      
+      // For mobile browsers, ensure we have user gesture
+      const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) {
+        console.log('[NOTIFICATION_PERMISSIONS] 📱 Mobile device detected - requesting permission with user gesture');
+      }
+      
       const result = await Notification.requestPermission();
+      console.log('[NOTIFICATION_PERMISSIONS] 📋 Permission result:', result);
+      
       setPermission(result);
+      
+      // Show success/failure feedback
+      if (result === 'granted') {
+        console.log('[NOTIFICATION_PERMISSIONS] ✅ Permission granted successfully');
+      } else if (result === 'denied') {
+        console.log('[NOTIFICATION_PERMISSIONS] ❌ Permission denied by user');
+      } else {
+        console.log('[NOTIFICATION_PERMISSIONS] ⏳ Permission still pending');
+      }
+      
       return result;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      console.error('[NOTIFICATION_PERMISSIONS] ❌ Failed to request permission:', error);
       return 'denied';
     }
   };

@@ -5,9 +5,10 @@ import "./index.css";
 import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
-// Register Service Worker for PWA functionality - ENABLED FOR DEVELOPMENT
-// Enable in development for PWA notifications testing
-const enableSW = import.meta.env.VITE_ENABLE_SW !== 'false'; // Default to enabled
+// Register Service Worker for PWA functionality - FORCE ENABLED
+// Force enable Service Worker for PWA notifications
+const enableSW = true; // Always enabled for PWA functionality
+console.log('[PWA] 🔧 Service Worker force enabled for mobile compatibility');
 
 if ('serviceWorker' in navigator && enableSW) {
   window.addEventListener('load', async () => {
@@ -38,7 +39,7 @@ if ('serviceWorker' in navigator && enableSW) {
     }
   });
 } else {
-  console.log('[PWA] Service Worker registration disabled via VITE_ENABLE_SW=false');
+  console.log('[PWA] ❌ Service Worker not supported by this browser');
 }
 
 // Setup console filtering moved to App.tsx (dynamic import) to prevent import conflicts

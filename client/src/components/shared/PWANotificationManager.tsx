@@ -97,8 +97,9 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
   }, [permission, onNotificationPermissionChange]);
 
   const handleRequestPermission = async () => {
+    console.log('[PWA_MANAGER] 🔔 Requesting notification permission...');
     const result = await requestPermission();
-    console.log('Permission result:', result);
+    console.log('[PWA_MANAGER] 📱 Permission result:', result);
     
     // Track PWA subscription when permission is granted
     if (result === 'granted' && userId) {

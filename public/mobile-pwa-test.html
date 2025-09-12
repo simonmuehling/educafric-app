@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Test PWA Mobile - Educafric</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .status { 
+            padding: 15px; 
+            border-radius: 10px; 
+            margin: 10px 0; 
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background: rgba(34, 197, 94, 0.3); border: 2px solid #22c55e; }
+        .error { background: rgba(239, 68, 68, 0.3); border: 2px solid #ef4444; }
+        .info { background: rgba(59, 130, 246, 0.3); border: 2px solid #3b82f6; }
+        .warning { background: rgba(245, 158, 11, 0.3); border: 2px solid #f59e0b; }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 5px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .check-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .check-item.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+        }
+        .check-item.failed {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Test PWA Mobile</h1>
+        <p>Test spécialisé pour dispositifs mobiles</p>
+        
+        <div id="status" class="status info">🔍 Initialisation...</div>
+        
+        <!-- Contrôles mobiles -->
+        <div style="margin-top: 20px;">
+            <button onclick="runMobileTest()" class="btn">🧪 Test Complet Mobile</button>
+            <button onclick="testPermissions()" class="btn">🔑 Test Permissions</button>
+            <button onclick="testServiceWorker()" class="btn">🔧 Test Service Worker</button>
+            <button onclick="testNotificationDisplay()" class="btn">📱 Test Affichage</button>
+        </div>
+        
+        <!-- Diagnostics mobiles -->
+        <div id="diagnostics">
+            <h3>📋 Diagnostics</h3>
+            
+            <div class="check-item" id="check-sw">
+                <span>🔧 Service Worker</span>
+                <span id="check-sw-status">⏳</span>
+            </div>
+            
+            <div class="check-item" id="check-notifications">
+                <span>🔔 API Notifications</span>
+                <span id="check-notifications-status">⏳</span>
+            </div>
+            
+            <div class="check-item" id="check-permissions">
+                <span>🔑 Permissions</span>
+                <span id="check-permissions-status">⏳</span>
+            </div>
+            
+            <div class="check-item" id="check-backend">
+                <span>🌐 Backend</span>
+                <span id="check-backend-status">⏳</span>
+            </div>
+            
+            <div class="check-item" id="check-mobile">
+                <span>📱 Mobile Compat</span>
+                <span id="check-mobile-status">⏳</span>
+            </div>
+        </div>
+        
+        <!-- Log mobile optimisé -->
+        <div class="log" id="debug-log">
+            <div style="color: #4ecdc4;">📱 Test PWA Mobile initialisé...</div>
+        </div>
+    </div>
+
+    <script>
+        // Interface de log mobile
+        function log(message, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#4ecdc4',
+                success: '#22c55e', 
+                error: '#ef4444',
+                warning: '#f59e0b'
+            };
+            const logDiv = document.getElementById('debug-log');
+            logDiv.innerHTML += `<div style="color: ${colors[type]};">[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function updateCheck(checkId, status) {
+            const check = document.getElementById(checkId);
+            const statusSpan = document.getElementById(`${checkId}-status`);
+            
+            switch (status) {
+                case 'success':
+                    check.className = 'check-item success';
+                    statusSpan.textContent = '✅';
+                    break;
+                case 'failed':
+                    check.className = 'check-item failed';
+                    statusSpan.textContent = '❌';
+                    break;
+                case 'loading':
+                    statusSpan.textContent = '⏳';
+                    break;
+            }
+        }
+        
+        // Test complet mobile
+        async function runMobileTest() {
+            log('🚀 Début du test complet mobile PWA...');
+            updateStatus('🧪 Test en cours...', 'info');
+            
+            // Test 1: Détection mobile
+            updateCheck('check-mobile', 'loading');
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+            const isTouchDevice = 'ontouchstart' in window;
+            
+            log(`📱 Appareil mobile: ${isMobile ? 'OUI' : 'NON'}`);
+            log(`📱 Mode standalone: ${isStandalone ? 'OUI' : 'NON'}`);
+            log(`👆 Écran tactile: ${isTouchDevice ? 'OUI' : 'NON'}`);
+            
+            if (isMobile || isTouchDevice) {
+                updateCheck('check-mobile', 'success');
+                log('✅ Appareil mobile détecté', 'success');
+            } else {
+                updateCheck('check-mobile', 'failed');
+                log('⚠️ Pas d\'appareil mobile détecté', 'warning');
+            }
+            
+            // Test autres composants
+            await testServiceWorker();
+            await testNotifications();
+            await testPermissions();
+            await testBackend();
+            
+            updateStatus('🎉 Test mobile terminé !', 'success');
+        }
+        
+        // Test Service Worker
+        async function testServiceWorker() {
+            updateCheck('check-sw', 'loading');
+            log('🔧 Test Service Worker...');
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    let registration = await navigator.serviceWorker.getRegistration();
+                    if (!registration) {
+                        registration = await navigator.serviceWorker.register('/sw.js');
+                        log('✅ Service Worker enregistré', 'success');
+                    } else {
+                        log('✅ Service Worker déjà actif', 'success');
+                    }
+                    
+                    await navigator.serviceWorker.ready;
+                    
+                    // Test du contrôleur
+                    if (navigator.serviceWorker.controller) {
+                        log('✅ Service Worker contrôleur disponible', 'success');
+                        updateCheck('check-sw', 'success');
+                    } else {
+                        log('⚠️ Service Worker sans contrôleur (première visite)', 'warning');
+                        updateCheck('check-sw', 'success');
+                    }
+                } catch (error) {
+                    log(`❌ Erreur Service Worker: ${error.message}`, 'error');
+                    updateCheck('check-sw', 'failed');
+                }
+            } else {
+                log('❌ Service Worker non supporté', 'error');
+                updateCheck('check-sw', 'failed');
+            }
+        }
+        
+        // Test Notifications API
+        async function testNotifications() {
+            updateCheck('check-notifications', 'loading');
+            log('🔔 Test API Notifications...');
+            
+            if ('Notification' in window) {
+                log('✅ API Notifications supportée', 'success');
+                log(`📋 Permission actuelle: ${Notification.permission}`);
+                updateCheck('check-notifications', 'success');
+            } else {
+                log('❌ API Notifications non supportée', 'error');
+                updateCheck('check-notifications', 'failed');
+            }
+        }
+        
+        // Test permissions
+        async function testPermissions() {
+            updateCheck('check-permissions', 'loading');
+            log('🔑 Test permissions...');
+            
+            if ('Notification' in window) {
+                const permission = Notification.permission;
+                log(`📋 Permission: ${permission}`);
+                
+                if (permission === 'granted') {
+                    log('✅ Permissions accordées', 'success');
+                    updateCheck('check-permissions', 'success');
+                } else if (permission === 'denied') {
+                    log('❌ Permissions refusées', 'error');
+                    updateCheck('check-permissions', 'failed');
+                } else {
+                    log('⏳ Permissions en attente', 'warning');
+                    updateCheck('check-permissions', 'loading');
+                }
+            } else {
+                updateCheck('check-permissions', 'failed');
+            }
+        }
+        
+        // Test backend
+        async function testBackend() {
+            updateCheck('check-backend', 'loading');
+            log('🌐 Test backend...');
+            
+            try {
+                const response = await fetch('/api/pwa/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Backend accessible: ${data.status}`, 'success');
+                    updateCheck('check-backend', 'success');
+                } else {
+                    log(`❌ Erreur backend: ${response.status}`, 'error');
+                    updateCheck('check-backend', 'failed');
+                }
+            } catch (error) {
+                log(`❌ Erreur réseau: ${error.message}`, 'error');
+                updateCheck('check-backend', 'failed');
+            }
+        }
+        
+        // Test affichage notifications
+        async function testNotificationDisplay() {
+            log('📱 Test affichage notifications mobiles...');
+            
+            if (Notification.permission !== 'granted') {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    log('❌ Permissions refusées pour test affichage', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                // Test notification mobile optimisée
+                const notification = new Notification('📱 Test Mobile - Educafric', {
+                    body: 'Notification optimisée pour mobile - Auto-ouverture activée',
+                    icon: '/educafric-logo-128.png',
+                    requireInteraction: true,
+                    vibrate: [200, 100, 200],
+                    tag: 'mobile-test'
+                });
+                
+                notification.onclick = () => {
+                    log('✅ Notification mobile cliquée !', 'success');
+                    // Test auto-ouverture
+                    window.location.href = '/';
+                    notification.close();
+                };
+                
+                log('✅ Notification mobile affichée', 'success');
+                
+                // Auto-fermeture après 5 secondes
+                setTimeout(() => {
+                    notification.close();
+                    log('⏰ Notification fermée automatiquement', 'info');
+                }, 5000);
+                
+            } catch (error) {
+                log(`❌ Erreur affichage: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialisation
+        window.addEventListener('load', () => {
+            log('🚀 Test PWA Mobile chargé');
+            updateStatus('📱 Prêt pour tests mobiles', 'info');
+            
+            // Auto-diagnostic initial
+            setTimeout(async () => {
+                await testServiceWorker();
+                await testNotifications();
+                await testPermissions();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

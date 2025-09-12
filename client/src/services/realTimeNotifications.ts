@@ -238,8 +238,7 @@ class RealTimeNotifications {
         icon: notificationData.options.icon,
         tag: notificationData.options.tag,
         data: notificationData.options.data,
-        requireInteraction: notificationData.options.requireInteraction,
-        vibrate: notificationData.options.vibrate
+        requireInteraction: notificationData.options.requireInteraction
       });
       
       // Auto-open notification if configured
