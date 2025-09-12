@@ -305,7 +305,17 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const unreadCount = allNotifications.filter((n: Notification) => !n.isRead).length;
 
   const formatTimeAgo = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
+    // Validation de la date pour éviter "Invalid time value"
+    if (!dateString) {
+      return language === 'fr' ? 'Il y a quelques instants' : 'A few moments ago';
+    }
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return language === 'fr' ? 'Date inconnue' : 'Unknown date';
+    }
+    
+    return formatDistanceToNow(date, {
       addSuffix: true,
       locale: language === 'fr' ? fr : enUS
     });
