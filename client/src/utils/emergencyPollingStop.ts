@@ -116,10 +116,20 @@ export function getPollingStats() {
 
 // Initialize emergency stop immediately when this module loads
 if (typeof window !== 'undefined') {
-  // Wait a moment for all services to initialize, then stop them
+  // Immediate stop to prevent any polling from starting
+  emergencyStopAllPolling();
+  
+  // Also stop after brief delay to catch delayed initializations
   originalSetTimeout(() => {
     emergencyStopAllPolling();
-  }, 2000); // 2 second delay to catch initialization intervals
+    console.log('[EMERGENCY_STOP] 🔄 Secondary cleanup completed');
+  }, 1000); // 1 second delay
+  
+  // Final cleanup after more components may have loaded
+  originalSetTimeout(() => {
+    emergencyStopAllPolling();
+    console.log('[EMERGENCY_STOP] 🔄 Final cleanup completed');
+  }, 5000); // 5 seconds for complete initialization
 }
 
 export default { emergencyStopAllPolling, getPollingStats };

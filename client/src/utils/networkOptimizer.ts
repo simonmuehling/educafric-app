@@ -44,6 +44,9 @@ class NetworkOptimizer {
     console.log('[NETWORK_OPTIMIZER] 🚨 DISABLED: Replaced by HealthCheckService - no polling initialized');
     // PRODUCTION SAFE: All functionality moved to centralized HealthCheckService
     // No fetch patching, no connection monitoring, no intervals
+    
+    // Mark as fully disabled to prevent any activation
+    (window as any).__network_optimizer_disabled = true;
   }
 
   private patchFetch() {
@@ -130,6 +133,17 @@ class NetworkOptimizer {
   }
 
   private async measureConnectionQuality(): Promise<ConnectionQuality> {
+    console.log('[NETWORK_OPTIMIZER] 🚫 measureConnectionQuality DISABLED - no more direct API calls');
+    
+    // PRODUCTION SAFE: Return default quality without making API calls
+    // All network monitoring moved to HealthCheckService
+    return {
+      ping: 0,
+      quality: 'good' as ConnectionQuality['quality'],
+      recommendation: 'Network monitoring handled by HealthCheckService'
+    };
+    
+    /* OLD CODE DISABLED TO PREVENT DIRECT API CALLS
     const startTime = performance.now();
     
     try {
@@ -187,6 +201,7 @@ class NetworkOptimizer {
         recommendation: 'Network unreachable, enabling offline mode' 
       };
     }
+    */
   }
 
   private adaptToConnectionQuality(quality: ConnectionQuality) {
@@ -309,7 +324,14 @@ class NetworkOptimizer {
   }
 
   forceQualityTest(): Promise<ConnectionQuality> {
-    return this.measureConnectionQuality();
+    console.log('[NETWORK_OPTIMIZER] 🚫 forceQualityTest DISABLED - using HealthCheckService instead');
+    
+    // Return safe default without making API calls
+    return Promise.resolve({
+      ping: 0,
+      quality: 'good' as ConnectionQuality['quality'],
+      recommendation: 'Using centralized HealthCheckService monitoring'
+    });
   }
 }
 
@@ -349,6 +371,11 @@ export function useNetworkQuality(): { quality: ConnectionQuality | null; stats:
     console.log('[NETWORK_OPTIMIZER] 🎯 Starting singleton useNetworkQuality with 10-minute intervals');
     
     const checkQuality = async () => {
+      // DISABLED: All network monitoring moved to HealthCheckService
+      console.log('[NETWORK_OPTIMIZER] 🚫 checkQuality DISABLED - using HealthCheckService instead');
+      return;
+      
+      /* OLD CODE DISABLED TO PREVENT DIRECT API CALLS
       // OPTIMIZATION: Skip if page is hidden or already checking
       if (document.hidden || (window as any).__quality_check_in_progress) {
         return;
@@ -375,30 +402,21 @@ export function useNetworkQuality(): { quality: ConnectionQuality | null; stats:
       } finally {
         (window as any).__quality_check_in_progress = false;
       }
+      */
     };
 
-    // Initial check only if no cache exists
-    if (!(window as any).__networkQuality_cache) {
-      checkQuality();
-    } else {
-      setQuality((window as any).__networkQuality_cache.quality);
-      setStats((window as any).__networkQuality_cache.stats);
-    }
+    // DISABLED: No initial check - using HealthCheckService instead
+    console.log('[NETWORK_OPTIMIZER] 🚫 Initial quality check DISABLED');
+    
+    // Set safe defaults without API calls
+    setQuality({ quality: 'good', ping: 0, recommendation: 'Using centralized health monitoring' });
+    setStats({ averagePing: 0, successRate: 1, totalRequests: 0 });
 
-    // OPTIMIZED: Much longer intervals to prevent server overload
-    const interval = setInterval(checkQuality, 600000); // 10 minutes instead of 30 seconds
-
-    // Listen for network events (but don't trigger immediate checks)
-    const handleNetworkChange = () => {
-      // Debounce network change events
-      if (!(window as any).__network_change_debounce) {
-        (window as any).__network_change_debounce = true;
-        setTimeout(() => {
-          checkQuality();
-          (window as any).__network_change_debounce = false;
-        }, 5000); // 5-second debounce
-      }
-    };
+    // DISABLED: All intervals and network monitoring moved to HealthCheckService
+    console.log('[NETWORK_OPTIMIZER] 🚫 checkQuality intervals DISABLED - using HealthCheckService instead');
+    
+    // No setInterval, no checkQuality calls, no network event listeners
+    return;
 
     window.addEventListener('online', handleNetworkChange);
     window.addEventListener('offline', handleNetworkChange);

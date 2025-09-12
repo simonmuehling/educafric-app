@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { HealthCheckService } from '@/services/HealthCheckService';
 
 interface PWAIssue {
   type: 'permission_denied' | 'service_worker_failed' | 'network_unstable' | 'browser_unsupported';
@@ -194,8 +195,8 @@ const AutoPWARecovery: React.FC<AutoPWARecoveryProps> = ({ userId, onRecoveryCom
         }
       }
 
-      // 4. Vérifier qualité réseau
-      const connectionQuality = await checkNetworkQuality();
+      // 4. Vérifier qualité réseau via HealthCheckService
+      const connectionQuality = getNetworkQuality();
       if (connectionQuality === 'poor') {
         detectedIssues.push({
           type: 'network_unstable',
@@ -218,44 +219,17 @@ const AutoPWARecovery: React.FC<AutoPWARecoveryProps> = ({ userId, onRecoveryCom
     }
   };
 
-  // OPTIMIZED: Cache network quality checks and debounce to prevent excessive requests
-  const networkQualityCache = React.useRef<{ quality: 'good' | 'fair' | 'poor'; timestamp: number } | null>(null);
-  const isCheckingQuality = React.useRef(false);
+  // Use centralized HealthCheckService instead of direct API calls
+  const healthCheckService = HealthCheckService.getInstance();
   
-  const checkNetworkQuality = async (): Promise<'good' | 'fair' | 'poor'> => {
-    // OPTIMIZATION: Prevent concurrent quality checks
-    if (isCheckingQuality.current) {
-      return networkQualityCache.current?.quality || 'poor';
-    }
+  const getNetworkQuality = (): 'good' | 'fair' | 'poor' => {
+    const result = healthCheckService.getLastResult();
+    if (!result || !result.isHealthy) return 'poor';
     
-    // OPTIMIZATION: Use cached result if less than 10 minutes old
-    const now = Date.now();
-    if (networkQualityCache.current && (now - networkQualityCache.current.timestamp) < 600000) {
-      return networkQualityCache.current.quality;
-    }
-    
-    isCheckingQuality.current = true;
-    
-    try {
-      const start = Date.now();
-      await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
-      const latency = Date.now() - start;
-      
-      let quality: 'good' | 'fair' | 'poor';
-      if (latency < 300) quality = 'good';
-      else if (latency < 800) quality = 'fair';
-      else quality = 'poor';
-      
-      // Cache the result
-      networkQualityCache.current = { quality, timestamp: now };
-      return quality;
-    } catch {
-      const quality = 'poor';
-      networkQualityCache.current = { quality, timestamp: now };
-      return quality;
-    } finally {
-      isCheckingQuality.current = false;
-    }
+    const latency = result.responseTime;
+    if (latency < 300) return 'good';
+    else if (latency < 800) return 'fair';
+    else return 'poor';
   };
 
   const autoFixIssues = async () => {

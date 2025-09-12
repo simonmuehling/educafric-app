@@ -20,6 +20,7 @@ import { useNotificationPermissions } from '@/hooks/useNotificationPermissions';
 import PWANotificationManager from '@/components/shared/PWANotificationManager';
 import SmartPWAGuide from './SmartPWAGuide';
 import AutoPWARecovery from './AutoPWARecovery';
+import { HealthCheckService } from '@/services/HealthCheckService';
 
 interface EnhancedPWAManagerProps {
   userId?: number;
@@ -94,7 +95,7 @@ const EnhancedPWAManager: React.FC<EnhancedPWAManagerProps> = ({
       // Analyse complète des capacités de l'appareil
       const userAgent = navigator.userAgent.toLowerCase();
       const isLowEndDevice = detectLowEndDevice(userAgent);
-      const networkQuality = await checkNetworkQuality();
+      const networkQuality = getNetworkQuality();
       
       // Recommandation intelligente
       if (!supported || permission === 'denied') {
@@ -128,34 +129,17 @@ const EnhancedPWAManager: React.FC<EnhancedPWAManagerProps> = ({
     );
   };
 
-  // OPTIMIZED: Cache network quality checks to avoid redundant requests
-  const networkQualityCache = React.useRef<{ quality: 'good' | 'fair' | 'poor'; timestamp: number } | null>(null);
+  // Use centralized HealthCheckService instead of direct API calls
+  const healthCheckService = HealthCheckService.getInstance();
   
-  const checkNetworkQuality = async (): Promise<'good' | 'fair' | 'poor'> => {
-    // OPTIMIZATION: Use cached result if less than 5 minutes old
-    const now = Date.now();
-    if (networkQualityCache.current && (now - networkQualityCache.current.timestamp) < 300000) {
-      return networkQualityCache.current.quality;
-    }
+  const getNetworkQuality = (): 'good' | 'fair' | 'poor' => {
+    const result = healthCheckService.getLastResult();
+    if (!result || !result.isHealthy) return 'poor';
     
-    try {
-      const start = Date.now();
-      await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
-      const latency = Date.now() - start;
-      
-      let quality: 'good' | 'fair' | 'poor';
-      if (latency < 300) quality = 'good';
-      else if (latency < 800) quality = 'fair';
-      else quality = 'poor';
-      
-      // Cache the result
-      networkQualityCache.current = { quality, timestamp: now };
-      return quality;
-    } catch {
-      const quality = 'poor';
-      networkQualityCache.current = { quality, timestamp: now };
-      return quality;
-    }
+    const latency = result.responseTime;
+    if (latency < 300) return 'good';
+    else if (latency < 800) return 'fair';
+    else return 'poor';
   };
 
   const handleAutoSetup = async () => {

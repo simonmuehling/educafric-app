@@ -204,6 +204,10 @@ class ConnectionFallback {
     // OPTIMIZED: Much longer recovery intervals to prevent server overload
     const recoveryInterval = deviceDetector.shouldUseLowEndMode() ? 1800000 : 900000; // 30min vs 15min
 
+    // DISABLED: Auto-recovery intervals replaced by HealthCheckService
+    console.log('[CONNECTION_FALLBACK] 🚫 Auto-recovery intervals DISABLED - using HealthCheckService instead');
+    
+    /* OLD CODE DISABLED
     setInterval(async () => {
       // OPTIMIZATION: Only attempt recovery if page is visible and truly offline
       if (this.isOffline && this.reconnectAttempts < this.maxReconnectAttempts && this.isPageVisible) {
@@ -213,6 +217,7 @@ class ConnectionFallback {
         await this.performHeartbeat();
       }
     }, recoveryInterval);
+    */
     
     console.log('[CONNECTION_FALLBACK] 🔄 Auto-recovery setup with interval:', recoveryInterval / 60000, 'minutes');
   }
