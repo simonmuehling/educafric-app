@@ -89,6 +89,7 @@ import unifiedMessagingRoutes from "./routes/unified-messaging";
 import connectionsRoutes from "./routes/connections";
 import educationalContentRoutes from "./routes/api/educational-content";
 import vonageMessagesRouter from "./routes/vonage-messages";
+import fcmRoutes from "./routes/fcm";
 
 // Import connection tracking
 import { trackConnection, trackPageVisit } from "./middleware/connectionTrackingMiddleware";
@@ -5407,6 +5408,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/bulk-import', bulkImportRoutes);
   app.use('/api/partnerships', partnershipsRoutes);
   app.use('/api/educational-content', educationalContentRoutes);
+  
+  // FCM (Firebase Cloud Messaging) routes
+  app.use('/api/fcm', fcmRoutes);
   
   // Register missing routes
   app.use('/api/sandbox-data', sandboxDataRoutes);

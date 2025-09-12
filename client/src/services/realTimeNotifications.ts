@@ -1,4 +1,6 @@
-// Real-time PWA notifications service
+import { enableFCMNotifications, testFCMNotification } from './fcmNotifications';
+
+// Real-time PWA notifications service with FCM and polling fallback
 class RealTimeNotifications {
   private static instance: RealTimeNotifications;
   private isConnected = false;
@@ -6,6 +8,9 @@ class RealTimeNotifications {
   private maxReconnectAttempts = 5;
   private reconnectInterval = 5000;
   private userId: number | null = null;
+  private fcmEnabled = false;
+  private pollingInterval: NodeJS.Timeout | null = null;
+  private useFallback = false;
 
   private constructor() {}
 
@@ -19,13 +24,32 @@ class RealTimeNotifications {
   public async connect(userId: number) {
     this.userId = userId;
     
+    console.log('[REAL_TIME_NOTIFICATIONS] 🚀 Connecting for user:', userId);
+    
     // Set up message listener for auto-open navigation
     this.setupAutoOpenListener();
     
-    // Check for notifications every 10 seconds
-    this.startPolling();
+    // Step 1: Try to enable FCM first
+    const fcmResult = await this.tryEnableFCM(userId);
     
-    // Request notification permission if not granted
+    if (fcmResult.success) {
+      console.log('[REAL_TIME_NOTIFICATIONS] ✅ FCM enabled successfully, using FCM for notifications');
+      this.fcmEnabled = true;
+      this.useFallback = false;
+      
+      // Test FCM with a welcome notification
+      try {
+        await testFCMNotification(userId, '🎉 Notifications FCM activées', 'Vous recevez maintenant les notifications en temps réel via FCM!');
+      } catch (error) {
+        console.warn('[REAL_TIME_NOTIFICATIONS] ⚠️ FCM test failed, will fallback to polling:', error);
+        this.startPollingFallback();
+      }
+    } else {
+      console.warn('[REAL_TIME_NOTIFICATIONS] ⚠️ FCM setup failed, using polling fallback:', fcmResult.error);
+      this.startPollingFallback();
+    }
+    
+    // Always request notification permission if not granted
     if ('Notification' in window && Notification.permission === 'default') {
       await this.requestPermission();
     }
@@ -72,12 +96,53 @@ class RealTimeNotifications {
     }
   }
 
+  // Try to enable FCM first
+  private async tryEnableFCM(userId: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log('[REAL_TIME_NOTIFICATIONS] 🔥 Attempting to enable FCM...');
+      const result = await enableFCMNotifications(userId);
+      
+      if (result.success) {
+        console.log('[REAL_TIME_NOTIFICATIONS] ✅ FCM enabled successfully');
+        return { success: true };
+      } else {
+        console.warn('[REAL_TIME_NOTIFICATIONS] ⚠️ FCM setup failed:', result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (error: any) {
+      console.error('[REAL_TIME_NOTIFICATIONS] ❌ FCM setup error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Fallback to polling when FCM is not available
+  private startPollingFallback() {
+    console.log('[REAL_TIME_NOTIFICATIONS] 📡 Starting polling fallback...');
+    this.useFallback = true;
+    this.fcmEnabled = false;
+    
+    // Clear any existing interval
+    if (this.pollingInterval) {
+      clearTimeout(this.pollingInterval);
+    }
+    
+    this.startPolling();
+  }
+
   private async startPolling() {
     if (!this.userId) return;
+    
+    // Only poll if using fallback mode
+    if (!this.useFallback) {
+      console.log('[REAL_TIME_NOTIFICATIONS] 🚫 Skipping polling - FCM is enabled');
+      return;
+    }
+
+    console.log('[REAL_TIME_NOTIFICATIONS] 📡 Polling for notifications (fallback mode)...');
 
     try {
-      const response = await fetch(`/pwa/notifications/pending/${this.userId}`, {
-        credentials: 'include', // Include authentication cookies
+      const response = await fetch(`/api/notifications/pending/${this.userId}`, {
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
@@ -86,10 +151,10 @@ class RealTimeNotifications {
       
       if (response.ok) {
         const pendingNotifications = await response.json();
-        console.log(`[PWA_NOTIFICATIONS] 📬 Found ${pendingNotifications.length} pending notifications`);
+        console.log(`[REAL_TIME_NOTIFICATIONS] 📬 Found ${pendingNotifications.length} pending notifications (polling)`);
         
         for (const notification of pendingNotifications) {
-          console.log(`[PWA_NOTIFICATIONS] 📱 Processing notification: ${notification.title}`);
+          console.log(`[REAL_TIME_NOTIFICATIONS] 📱 Processing notification: ${notification.title}`);
           
           // Attempt to show notification
           const displaySuccess = await this.showPWANotification(notification);
@@ -97,7 +162,7 @@ class RealTimeNotifications {
           // Only mark as delivered if successfully displayed
           if (displaySuccess) {
             try {
-              const deliveredResponse = await fetch(`/pwa/notifications/${notification.id}/delivered`, { 
+              const deliveredResponse = await fetch(`/api/notifications/${notification.id}/delivered`, { 
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -107,38 +172,87 @@ class RealTimeNotifications {
               });
               
               if (deliveredResponse.ok) {
-                console.log(`[PWA_NOTIFICATIONS] ✅ Notification ${notification.id} marked as delivered`);
+                console.log(`[REAL_TIME_NOTIFICATIONS] ✅ Notification ${notification.id} marked as delivered`);
               } else {
-                console.error(`[PWA_NOTIFICATIONS] ❌ Failed to mark notification ${notification.id} as delivered`);
+                console.error(`[REAL_TIME_NOTIFICATIONS] ❌ Failed to mark notification ${notification.id} as delivered`);
               }
             } catch (error) {
-              console.error(`[PWA_NOTIFICATIONS] ❌ Error marking notification ${notification.id} as delivered:`, error);
+              console.error(`[REAL_TIME_NOTIFICATIONS] ❌ Error marking notification ${notification.id} as delivered:`, error);
             }
           } else {
-            console.warn(`[PWA_NOTIFICATIONS] ⚠️ Notification ${notification.id} display failed, not marking as delivered`);
+            console.warn(`[REAL_TIME_NOTIFICATIONS] ⚠️ Notification ${notification.id} display failed, not marking as delivered`);
           }
         }
+        
+        // Reset reconnect attempts on success
+        this.reconnectAttempts = 0;
       } else {
-        console.error(`[PWA_NOTIFICATIONS] ❌ Failed to fetch pending notifications: ${response.status}`);
+        console.error(`[REAL_TIME_NOTIFICATIONS] ❌ Failed to fetch pending notifications: ${response.status}`);
+        this.reconnectAttempts++;
       }
     } catch (error) {
-      console.error('[PWA_NOTIFICATIONS] ❌ Polling failed:', error);
+      console.error('[REAL_TIME_NOTIFICATIONS] ❌ Polling failed:', error);
       this.reconnectAttempts++;
-      
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        console.log(`[PWA_NOTIFICATIONS] 🔄 Retrying in ${this.reconnectInterval}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-      } else {
-        console.error('[PWA_NOTIFICATIONS] ❌ Max reconnection attempts reached');
-        return; // Stop polling
-      }
+    }
+    
+    // Handle reconnection logic
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error('[REAL_TIME_NOTIFICATIONS] ❌ Max reconnection attempts reached, stopping polling');
+      return;
+    }
+    
+    if (this.reconnectAttempts > 0) {
+      console.log(`[REAL_TIME_NOTIFICATIONS] 🔄 Will retry polling in ${this.reconnectInterval}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
     }
 
-    // Continue polling every 10 seconds
-    setTimeout(() => this.startPolling(), 10000);
+    // Continue polling every 10 seconds (or after reconnect delay)
+    const delay = this.reconnectAttempts > 0 ? this.reconnectInterval : 10000;
+    this.pollingInterval = setTimeout(() => this.startPolling(), delay);
+  }
+
+  // Public method to test FCM functionality
+  public async testFCM(): Promise<boolean> {
+    if (!this.userId) {
+      console.error('[REAL_TIME_NOTIFICATIONS] ❌ No user ID for FCM test');
+      return false;
+    }
+    
+    try {
+      console.log('[REAL_TIME_NOTIFICATIONS] 🧪 Testing FCM notification...');
+      await testFCMNotification(this.userId);
+      console.log('[REAL_TIME_NOTIFICATIONS] ✅ FCM test successful');
+      return true;
+    } catch (error) {
+      console.error('[REAL_TIME_NOTIFICATIONS] ❌ FCM test failed:', error);
+      return false;
+    }
+  }
+  
+  // Get current notification mode
+  public getNotificationMode(): 'fcm' | 'polling' | 'disabled' {
+    if (this.fcmEnabled && !this.useFallback) return 'fcm';
+    if (this.useFallback) return 'polling';
+    return 'disabled';
+  }
+  
+  // Disconnect and cleanup
+  public disconnect() {
+    console.log('[REAL_TIME_NOTIFICATIONS] 🔌 Disconnecting...');
+    
+    if (this.pollingInterval) {
+      clearTimeout(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+    
+    this.isConnected = false;
+    this.fcmEnabled = false;
+    this.useFallback = false;
+    this.userId = null;
+    this.reconnectAttempts = 0;
   }
 
   private async showPWANotification(notification: any): Promise<boolean> {
-    console.log('[PWA_NOTIFICATIONS] 📱 Attempting to show notification:', notification.title);
+    console.log('[REAL_TIME_NOTIFICATIONS] 📱 Attempting to show notification:', notification.title);
     
     // Check if notifications are supported and permissions granted
     if (!('Notification' in window)) {
@@ -187,7 +301,7 @@ class RealTimeNotifications {
     try {
       // Method 1: Try Service Worker controller
       if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        console.log('[PWA_NOTIFICATIONS] 🔧 Using Service Worker controller');
+        console.log('[REAL_TIME_NOTIFICATIONS] 🔧 Using Service Worker controller');
         
         // Set up listener for SW confirmation
         const confirmationPromise = new Promise((resolve) => {

@@ -1,5 +1,51 @@
-// Lightweight Service Worker for Educafric PWA - Memory Optimized
+// Lightweight Service Worker for Educafric PWA - Memory Optimized with FCM Support
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
+
 const CACHE_NAME = 'educafric-v3-optimized';
+
+// Firebase configuration for FCM
+const firebaseConfig = {
+  apiKey: "AIzaSyBl5dHJJdQU_PcHUOKjpIQpKX5I3WlSjDU",
+  authDomain: "smartwatch-tracker-e061f.firebaseapp.com", 
+  projectId: "smartwatch-tracker-e061f",
+  storageBucket: "smartwatch-tracker-e061f.appspot.com",
+  messagingSenderId: "1044457806644",
+  appId: "1:1044457806644:web:cfcc1b5d1bd9aa8a8c2a8b"
+};
+
+// Initialize Firebase in service worker
+let messaging = null;
+if (firebase) {
+  firebase.initializeApp(firebaseConfig);
+  messaging = firebase.messaging();
+  
+  // Handle background messages
+  messaging.onBackgroundMessage((payload) => {
+    console.log('[SW] 📱 Received background FCM message:', payload);
+    
+    const notificationTitle = payload.notification?.title || 'EDUCAFRIC';
+    const notificationOptions = {
+      body: payload.notification?.body || 'Nouvelle notification',
+      icon: '/educafric-logo-128.png',
+      badge: '/educafric-logo-128.png',
+      tag: payload.data?.tag || 'educafric-notification',
+      data: {
+        ...payload.data,
+        timestamp: Date.now(),
+        fcm: true
+      },
+      requireInteraction: payload.data?.priority === 'high',
+      actions: payload.data?.actionUrl ? [{
+        action: 'open',
+        title: payload.data?.actionText || 'Ouvrir',
+        icon: '/educafric-logo-128.png'
+      }] : undefined
+    };
+
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+}
 
 // Minimal cache to reduce memory usage
 const urlsToCache = [
@@ -367,6 +413,46 @@ self.addEventListener('message', (event) => {
         }
       });
   }
+});
+
+// Handle notification click events (FCM + standard notifications)
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] 📱 Notification clicked:', event.notification.data);
+  
+  event.notification.close();
+
+  // Handle FCM or standard notification data
+  const data = event.notification.data || {};
+  let targetUrl = data.actionUrl || data.url || '/';
+  
+  // For FCM notifications, check click_action
+  if (data.fcm && data.click_action) {
+    targetUrl = data.click_action;
+  }
+  
+  // Handle action button clicks
+  if (event.action === 'open' && data.actionUrl) {
+    targetUrl = data.actionUrl;
+  }
+
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then(function(clientList) {
+      // Check if there's already a window open
+      for (let client of clientList) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // If no existing window, open a new one
+      if (clients.openWindow) {
+        console.log('[SW] 🚀 Opening new window for FCM notification:', targetUrl);
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
 
 // Background sync optimisé pour appareils bas de gamme
