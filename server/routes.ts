@@ -186,9 +186,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.head('/api', (req, res) => {
-    // FINAL SOLUTION: Complete termination of HEAD /api with connection close
-    res.set('Connection', 'close');
-    res.status(404).end('Not Found');
+    // ULTIMATE SOLUTION: Immediate connection termination + process identification
+    const callerInfo = `${req.ip}|${req.get('User-Agent')}|${new Date().toISOString()}`;
+    
+    // Log final identification attempt
+    console.log(`[HEAD-ELIMINATION] 🛑 TERMINATED: ${callerInfo}`);
+    
+    // Immediate connection termination
+    req.socket.destroy();
+    return; // Prevent any response
   });
 
   // Add missing authentication API endpoints
