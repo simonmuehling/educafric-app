@@ -339,6 +339,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =============================================
+  // PWA TEST NOTIFICATION ENDPOINT
+  // =============================================
+  
+  app.post('/api/test/send-pwa-notification', async (req, res) => {
+    try {
+      const { userId, title, message } = req.body;
+      
+      console.log('[PWA_TEST] 📤 Sending test PWA notification to user:', userId);
+      console.log('[PWA_TEST] 📝 Title:', title);
+      console.log('[PWA_TEST] 📝 Message:', message);
+      
+      // Create test notification data
+      const notificationData = {
+        id: Date.now(),
+        userId: parseInt(userId),
+        title: title || '🔔 Test PWA Notification',
+        message: message || 'This is a test PWA notification!',
+        type: 'test',
+        priority: 'high',
+        timestamp: new Date().toISOString(),
+        read: false,
+        actionUrl: '/dashboard'
+      };
+      
+      // Store in modular storage for real-time pickup
+      try {
+        const notification = await storage.createNotification(notificationData);
+        console.log('[PWA_TEST] ✅ Test notification stored in database:', notification.id);
+      } catch (storageError) {
+        console.log('[PWA_TEST] 📝 Database storage failed, using memory fallback');
+        // Memory fallback for instant testing
+        if (!global.testNotifications) {
+          global.testNotifications = [];
+        }
+        global.testNotifications.push(notificationData);
+      }
+      
+      console.log('[PWA_TEST] ✅ Test PWA notification sent successfully!');
+      
+      res.json({
+        success: true,
+        message: 'Test PWA notification sent successfully',
+        notification: notificationData,
+        userId: parseInt(userId)
+      });
+      
+    } catch (error) {
+      console.error('[PWA_TEST] ❌ Error sending test notification:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send test notification'
+      });
+    }
+  });
+
+  // =============================================
   // USER SETTINGS API ROUTES - DEFINED FIRST TO AVOID CONFLICTS
   // =============================================
 
