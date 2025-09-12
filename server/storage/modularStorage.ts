@@ -432,15 +432,19 @@ export class ModularStorage {
   }
   
   // === NOTIFICATION METHODS ===
-  private notifications: any[] = [];
+  private notifications: any[] = []; // Restore for backward compatibility
   
   async getUserNotifications(userId: number, userRole?: string) {
-    // Return stored notifications for this user, or mock data if none exist
-    const userNotifications = this.notifications.filter(n => n.userId === userId);
+    // SIMPLE FIX: Use the notifications created earlier that are stored in memory!
+    const memoryNotifications = this.notifications.filter(n => n.userId === userId);
     
-    if (userNotifications.length > 0) {
-      console.log(`[STORAGE] ✅ Found ${userNotifications.length} real notifications for user ${userId}`);
-      return userNotifications;
+    console.log(`[STORAGE] 🔍 Memory contains ${this.notifications.length} total notifications`);
+    console.log(`[STORAGE] 🔍 Found ${memoryNotifications.length} notifications for user ${userId}`);
+    
+    if (memoryNotifications.length > 0) {
+      console.log(`[STORAGE] ✅ SUCCESS! Returning ${memoryNotifications.length} real notifications for user ${userId}`);
+      memoryNotifications.forEach(n => console.log(`[STORAGE] 📋 - ${n.title}`));
+      return memoryNotifications;
     }
     
     // Fallback to mock data
@@ -450,8 +454,12 @@ export class ModularStorage {
         id: 1,
         userId,
         title: 'Nouvelle note disponible',
-        content: 'Une nouvelle note est disponible pour votre enfant',
+        message: 'Une nouvelle note est disponible pour votre enfant',
         type: 'grade',
+        priority: 'normal',
+        timestamp: new Date().toISOString(),
+        actionUrl: "/",
+        actionText: "Voir",
         isRead: false,
         createdAt: new Date()
       },
@@ -459,8 +467,12 @@ export class ModularStorage {
         id: 2,
         userId,
         title: 'Absence signalée',
-        content: 'Votre enfant a été marqué absent aujourd\'hui',
-        type: 'attendance',
+        message: 'Votre enfant a été marqué absent aujourd\'hui',
+        type: 'attendance', 
+        priority: 'normal',
+        timestamp: new Date().toISOString(),
+        actionUrl: "/",
+        actionText: "Voir",
         isRead: false,
         createdAt: new Date()
       }
@@ -468,19 +480,52 @@ export class ModularStorage {
   }
   
   async createNotification(data: any) {
-    const newNotification = { 
-      id: Date.now(), 
-      ...data,
-      createdAt: new Date().toISOString(),
-      isRead: false,
-      isDelivered: false
-    };
-    
-    this.notifications.push(newNotification);
-    console.log(`[STORAGE] ✅ Created notification for user ${data.userId}: "${data.title}"`);
-    console.log(`[STORAGE] 📊 Total notifications stored: ${this.notifications.length}`);
-    
-    return newNotification;
+    try {
+      // Store in real database instead of memory
+      const db = await import('../db').then(m => m.db);
+      const { notifications } = await import('../../shared/schema');
+      
+      const notificationData = {
+        userId: data.userId,
+        title: data.title,
+        message: data.message,
+        type: data.type || 'general',
+        category: data.category || 'system',
+        data: data.metadata || null,
+        actionRequired: data.actionRequired || false,
+        actionUrl: data.actionUrl || null,
+        expiresAt: data.expiresAt || null
+      };
+      
+      const [newNotification] = await db.insert(notifications)
+        .values(notificationData)
+        .returning();
+        
+      console.log(`[STORAGE] ✅ Created notification in DATABASE for user ${data.userId}: "${data.title}"`);
+      console.log(`[STORAGE] 📊 Database notification ID: ${newNotification.id}`);
+      
+      return newNotification;
+    } catch (error) {
+      console.error('[STORAGE] ❌ Error creating notification in database:', error);
+      
+      // Fallback to memory storage if database fails
+      const newNotification = { 
+        id: Date.now(), 
+        ...data,
+        createdAt: new Date().toISOString(),
+        isRead: false,
+        isDelivered: false
+      };
+      
+      // Keep for backward compatibility during transition
+      if (!this.notifications) {
+        this.notifications = [];
+      }
+      this.notifications.push(newNotification);
+      console.log(`[STORAGE] ⚠️ Fallback: Created notification in MEMORY for user ${data.userId}`);
+      
+      return newNotification;
+    }
   }
   
   async markNotificationAsRead(notificationId: number) {
