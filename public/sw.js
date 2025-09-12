@@ -213,21 +213,40 @@ self.addEventListener('notificationclick', (event) => {
       event.waitUntil(
         clients.openWindow(event.notification.data.url || '/geolocation')
       );
+    } else if (event.action === 'view') {
+      event.waitUntil(
+        clients.openWindow(event.notification.data.url || '/')
+      );
     } else if (event.action === 'dismiss') {
       // Just close the notification
       return;
     }
   } else {
-    // Handle notification body click
-    const url = event.notification.data.url || '/';
+    // Handle notification body click - improved URL handling
+    const targetUrl = event.notification.data?.url || '/';
+    
     event.waitUntil(
-      clients.matchAll({ type: 'window' }).then((clientsArr) => {
-        const client = clientsArr.find(c => c.url === url && 'focus' in c);
+      clients.matchAll({ 
+        type: 'window',
+        includeUncontrolled: true 
+      }).then((clientsArr) => {
+        // Try to find existing window with target URL
+        const targetClient = clientsArr.find(client => {
+          try {
+            const clientUrl = new URL(client.url);
+            const target = new URL(targetUrl, clientUrl.origin);
+            return clientUrl.pathname === target.pathname;
+          } catch {
+            return false;
+          }
+        });
         
-        if (client) {
-          return client.focus();
+        if (targetClient) {
+          return targetClient.focus();
         } else {
-          return clients.openWindow(url);
+          // Open new window with target URL
+          const fullUrl = targetUrl.startsWith('/') ? targetUrl : `/${targetUrl}`;
+          return clients.openWindow(fullUrl);
         }
       })
     );
@@ -235,11 +254,13 @@ self.addEventListener('notificationclick', (event) => {
 
   // Send message to client about notification click
   event.waitUntil(
-    clients.matchAll().then((clientsArr) => {
+    clients.matchAll({ includeUncontrolled: true }).then((clientsArr) => {
       clientsArr.forEach(client => {
         client.postMessage({
           type: 'NOTIFICATION_CLICKED',
-          data: event.notification.data
+          data: event.notification.data,
+          action: event.action || 'body_click',
+          timestamp: Date.now()
         });
       });
     })
@@ -280,7 +301,47 @@ self.addEventListener('message', (event) => {
       timestamp: Date.now()
     };
 
-    self.registration.showNotification(title, notificationOptions);
+    // Show notification and send confirmation back to client
+    self.registration.showNotification(title, notificationOptions)
+      .then(() => {
+        console.log('[SW] ✅ Notification displayed successfully');
+        
+        // Send confirmation back to client
+        if (event.source) {
+          event.source.postMessage({
+            type: 'NOTIFICATION_SHOWN',
+            success: true,
+            tag: notificationOptions.tag,
+            timestamp: Date.now()
+          });
+        } else {
+          // Fallback: broadcast to all clients
+          clients.matchAll().then(clientList => {
+            clientList.forEach(client => {
+              client.postMessage({
+                type: 'NOTIFICATION_SHOWN',
+                success: true,
+                tag: notificationOptions.tag,
+                timestamp: Date.now()
+              });
+            });
+          });
+        }
+      })
+      .catch(error => {
+        console.error('[SW] ❌ Failed to show notification:', error);
+        
+        // Send error back to client
+        if (event.source) {
+          event.source.postMessage({
+            type: 'NOTIFICATION_ERROR',
+            success: false,
+            error: error.message,
+            tag: notificationOptions.tag,
+            timestamp: Date.now()
+          });
+        }
+      });
   }
 });
 

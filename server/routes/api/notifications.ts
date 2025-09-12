@@ -194,7 +194,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // Get pending notifications for a specific user (PWA polling endpoint)
-router.get('/pending/:userId', async (req: Request, res: Response) => {
+router.get('/pending/:userId', requireAuth, async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
