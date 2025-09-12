@@ -6,7 +6,7 @@ import { updateEmailPreferencesSchema, getDefaultEmailPreferences } from '@share
 const router = express.Router();
 
 // Get user's email preferences
-router.get('/api/email-preferences', async (req: any, res) => {
+router.get('/', async (req: any, res) => {
   try {
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
@@ -38,7 +38,7 @@ router.get('/api/email-preferences', async (req: any, res) => {
 });
 
 // Update user's email preferences
-router.patch('/api/email-preferences', async (req: any, res) => {
+router.patch('/', async (req: any, res) => {
   try {
     // Check if user is authenticated
     if (!req.user || !req.user.id) {
