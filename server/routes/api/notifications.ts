@@ -193,6 +193,66 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// Get pending notifications for a specific user (PWA polling endpoint)
+router.get('/pending/:userId', async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID required' });
+    }
+
+    const userIdNum = parseInt(userId, 10);
+    console.log(`[NOTIFICATIONS_API] Getting pending notifications for user ${userIdNum}`);
+    
+    // Get all notifications for user and filter for pending ones
+    const allNotifications = await storage.getUserNotifications(userIdNum);
+    const pendingNotifications = allNotifications.filter((n: any) => 
+      !n.isDelivered && !n.isRead
+    );
+    
+    // Transform notifications to match frontend expectations
+    const formattedNotifications = pendingNotifications.map((n: any) => ({
+      id: n.id,
+      title: n.title,
+      message: n.content || n.message,
+      type: n.type,
+      priority: n.priority || 'normal',
+      timestamp: n.createdAt,
+      actionUrl: n.metadata?.actionUrl || '/',
+      actionText: n.metadata?.actionText || 'Voir',
+      userId: n.userId
+    }));
+
+    console.log(`[NOTIFICATIONS_API] ✅ Found ${pendingNotifications.length} pending notifications for user ${userIdNum}`);
+    res.json(formattedNotifications);
+  } catch (error: any) {
+    console.error('[NOTIFICATIONS_API] Get pending notifications error:', error);
+    res.status(500).json({ message: 'Failed to fetch pending notifications' });
+  }
+});
+
+// Mark notification as delivered (PWA confirmation endpoint)
+router.post('/:id/delivered', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ message: 'Notification ID required' });
+    }
+
+    console.log(`[NOTIFICATIONS_API] Marking notification ${id} as delivered`);
+    
+    await storage.markNotificationAsDelivered(parseInt(id));
+    
+    console.log(`[NOTIFICATIONS_API] ✅ Notification ${id} marked as delivered`);
+    res.json({ success: true, message: 'Notification marked as delivered' });
+  } catch (error: any) {
+    console.error('[NOTIFICATIONS_API] Mark notification as delivered error:', error);
+    res.status(500).json({ message: 'Failed to mark notification as delivered' });
+  }
+});
+
 // Background sync endpoint for PWA
 router.post('/sync', async (req: Request, res: Response) => {
   try {

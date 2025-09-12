@@ -443,31 +443,61 @@ export class ModularStorage {
     ];
   }
   
-  async createNotification(userId: number, data: any) {
+  async createNotification(data: any) {
     const newNotification = { 
       id: Date.now(), 
-      userId,
-      ...data, 
+      ...data,
       createdAt: new Date().toISOString(),
-      isRead: false 
+      isRead: false,
+      isDelivered: false
     };
     
     this.notifications.push(newNotification);
-    console.log(`[STORAGE] ✅ Created notification for user ${userId}: "${data.title}"`);
+    console.log(`[STORAGE] ✅ Created notification for user ${data.userId}: "${data.title}"`);
     console.log(`[STORAGE] 📊 Total notifications stored: ${this.notifications.length}`);
     
     return newNotification;
   }
   
   async markNotificationAsRead(notificationId: number) {
+    // Find and update the notification
+    const notification = this.notifications.find(n => n.id === notificationId);
+    if (notification) {
+      notification.isRead = true;
+      notification.readAt = new Date().toISOString();
+      console.log(`[STORAGE] ✅ Notification ${notificationId} marked as read`);
+    }
+    return { success: true };
+  }
+  
+  async markNotificationAsDelivered(notificationId: number) {
+    // Find and update the notification
+    const notification = this.notifications.find(n => n.id === notificationId);
+    if (notification) {
+      notification.isDelivered = true;
+      notification.deliveredAt = new Date().toISOString();
+      console.log(`[STORAGE] ✅ Notification ${notificationId} marked as delivered`);
+    }
     return { success: true };
   }
   
   async markAllNotificationsAsRead(userId: number) {
+    const userNotifications = this.notifications.filter(n => n.userId === userId);
+    userNotifications.forEach(notification => {
+      notification.isRead = true;
+      notification.readAt = new Date().toISOString();
+    });
+    console.log(`[STORAGE] ✅ All notifications marked as read for user ${userId}`);
     return { success: true };
   }
   
   async deleteNotification(notificationId: number) {
+    const initialLength = this.notifications.length;
+    this.notifications = this.notifications.filter(n => n.id !== notificationId);
+    const deleted = initialLength > this.notifications.length;
+    if (deleted) {
+      console.log(`[STORAGE] ✅ Notification ${notificationId} deleted`);
+    }
     return { success: true };
   }
 
