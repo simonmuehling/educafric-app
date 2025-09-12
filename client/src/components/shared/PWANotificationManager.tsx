@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Bell, Check, X, Settings, Smartphone } from 'lucide-react';
+import { Bell, Check, X, Settings, Smartphone, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useNotificationPermissions } from '@/hooks/useNotificationPermissions';
 import notificationService from '@/services/notificationService';
 
@@ -22,6 +22,7 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
   const { permission, supported, requestPermission, showNotification } = useNotificationPermissions();
   const [isInitialized, setIsInitialized] = useState(false);
   const [testNotificationSent, setTestNotificationSent] = useState(false);
+  const [autoOpenEnabled, setAutoOpenEnabled] = useState(true);
 
   const text = {
     fr: {
@@ -38,6 +39,8 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
       testSent: 'Test envoyé avec succès',
       requestPermission: 'Demander l\'autorisation',
       settings: 'Paramètres',
+      autoOpen: 'Ouverture automatique',
+      autoOpenDesc: 'Ouvrir automatiquement les notifications importantes',
       description: 'Recevez des notifications importantes même quand l\'application est fermée',
       benefits: [
         'Alertes de sécurité en temps réel',
@@ -60,6 +63,8 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
       testSent: 'Test sent successfully',
       requestPermission: 'Request permission',
       settings: 'Settings',
+      autoOpen: 'Auto-open notifications',
+      autoOpenDesc: 'Automatically open important notifications',
       description: 'Receive important notifications even when the app is closed',
       benefits: [
         'Real-time security alerts',
@@ -76,6 +81,10 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
     const initializeService = async () => {
       const initialized = await notificationService.initialize();
       setIsInitialized(initialized);
+      
+      // Load auto-open preference
+      const autoOpen = localStorage.getItem('educafric-auto-open-notifications') !== 'false';
+      setAutoOpenEnabled(autoOpen);
     };
     
     initializeService();
@@ -155,6 +164,12 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
     }
   };
 
+  const handleAutoOpenToggle = (enabled: boolean) => {
+    setAutoOpenEnabled(enabled);
+    localStorage.setItem('educafric-auto-open-notifications', enabled.toString());
+    console.log(`[PWA_MANAGER] Auto-open notifications ${enabled ? 'enabled' : 'disabled'}`);
+  };
+
   const getPermissionColor = (perm: NotificationPermission) => {
     switch (perm) {
       case 'granted': return 'bg-green-100 text-green-800';
@@ -217,6 +232,42 @@ const PWANotificationManager: React.FC<PWANotificationManagerProps> = ({
             {isInitialized ? t.initialized : t.notInitialized}
           </Badge>
         </div>
+
+        {/* Auto-open toggle */}
+        {permission === 'granted' && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {autoOpenEnabled ? (
+                <ToggleRight className="w-4 h-4 text-green-500" />
+              ) : (
+                <ToggleLeft className="w-4 h-4 text-gray-400" />
+              )}
+              <div>
+                <span className="text-sm">{t.autoOpen}</span>
+                <p className="text-xs text-gray-500">{t.autoOpenDesc}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleAutoOpenToggle(!autoOpenEnabled)}
+              className={autoOpenEnabled ? 'bg-green-50 border-green-200' : ''}
+              data-testid="toggle-auto-open"
+            >
+              {autoOpenEnabled ? (
+                <>
+                  <Check className="w-3 h-3 mr-1" />
+                  ON
+                </>
+              ) : (
+                <>
+                  <X className="w-3 h-3 mr-1" />
+                  OFF
+                </>
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Description */}
         <div className="bg-blue-50 p-4 rounded-lg">

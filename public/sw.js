@@ -306,6 +306,30 @@ self.addEventListener('message', (event) => {
       .then(() => {
         console.log('[SW] ✅ Notification displayed successfully');
         
+        // Auto-open notification if configured
+        if (notificationOptions.data?.autoOpen && notificationOptions.data?.url) {
+          console.log('[SW] 🚀 Auto-opening notification:', notificationOptions.data.url);
+          
+          // Small delay to let user see the notification
+          setTimeout(() => {
+            clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+              if (clientList.length > 0) {
+                // Focus existing window and navigate
+                const client = clientList[0];
+                client.focus();
+                client.postMessage({
+                  type: 'AUTO_OPEN_NOTIFICATION',
+                  url: notificationOptions.data.url,
+                  timestamp: Date.now()
+                });
+              } else {
+                // Open new window
+                clients.openWindow(notificationOptions.data.url);
+              }
+            });
+          }, 1500); // 1.5 second delay
+        }
+        
         // Send confirmation back to client
         if (event.source) {
           event.source.postMessage({

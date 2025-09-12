@@ -19,12 +19,27 @@ class RealTimeNotifications {
   public async connect(userId: number) {
     this.userId = userId;
     
+    // Set up message listener for auto-open navigation
+    this.setupAutoOpenListener();
+    
     // Check for notifications every 10 seconds
     this.startPolling();
     
     // Request notification permission if not granted
     if ('Notification' in window && Notification.permission === 'default') {
       await this.requestPermission();
+    }
+  }
+
+  // Set up listener for auto-open navigation messages from Service Worker
+  private setupAutoOpenListener() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'AUTO_OPEN_NOTIFICATION' && event.data?.url) {
+          console.log('[PWA_NOTIFICATIONS] 🚀 Auto-opening from Service Worker:', event.data.url);
+          window.location.href = event.data.url;
+        }
+      });
     }
   }
 
@@ -149,7 +164,8 @@ class RealTimeNotifications {
           userId: this.userId,
           type: notification.type,
           notificationId: notification.id,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          autoOpen: this.shouldAutoOpen(notification) // Add auto-open flag
         },
         actions: notification.actionText ? [
           {
@@ -226,6 +242,14 @@ class RealTimeNotifications {
         vibrate: notificationData.options.vibrate
       });
       
+      // Auto-open notification if configured
+      if (notificationData.options.data?.autoOpen && notificationData.options.data?.url) {
+        console.log('[PWA_NOTIFICATIONS] 🚀 Auto-opening notification:', notificationData.options.data.url);
+        setTimeout(() => {
+          window.location.href = notificationData.options.data.url;
+        }, 1000); // Small delay to let user see the notification
+      }
+      
       directNotification.onclick = () => {
         console.log('[PWA_NOTIFICATIONS] ✅ Direct notification clicked');
         if (notificationData.options.data?.url) {
@@ -241,6 +265,48 @@ class RealTimeNotifications {
       console.error('[PWA_NOTIFICATIONS] ❌ All notification methods failed:', error);
       return false;
     }
+  }
+
+  // Determine if notification should auto-open based on type and priority
+  private shouldAutoOpen(notification: any): boolean {
+    // Auto-open for high priority notifications or specific types
+    const autoOpenTypes = ['emergency', 'security', 'urgent_grade', 'attendance_alert', 'geolocation'];
+    const autoOpenPriority = ['high', 'urgent'];
+    
+    // Check settings from localStorage (user preference)
+    const autoOpenEnabled = localStorage.getItem('educafric-auto-open-notifications') !== 'false'; // Default: true
+    
+    if (!autoOpenEnabled) {
+      return false;
+    }
+    
+    // Auto-open based on priority
+    if (autoOpenPriority.includes(notification.priority)) {
+      return true;
+    }
+    
+    // Auto-open based on notification type
+    if (autoOpenTypes.includes(notification.type)) {
+      return true;
+    }
+    
+    // Auto-open if it has an actionUrl (actionable notification)
+    if (notification.actionUrl && notification.actionUrl !== '/') {
+      return true;
+    }
+    
+    return false;
+  }
+
+  // Enable/disable auto-open functionality
+  public setAutoOpenEnabled(enabled: boolean) {
+    localStorage.setItem('educafric-auto-open-notifications', enabled.toString());
+    console.log(`[PWA_NOTIFICATIONS] 🔧 Auto-open ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Check if auto-open is enabled
+  public isAutoOpenEnabled(): boolean {
+    return localStorage.getItem('educafric-auto-open-notifications') !== 'false';
   }
 
   public disconnect() {
