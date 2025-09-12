@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Home, LogOut, Globe, HelpCircle } from 'lucide-react';
+import { Home, LogOut, Globe, HelpCircle, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Logo from '@/components/Logo';
+import NotificationCenter from '@/components/shared/NotificationCenter';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 interface DashboardNavbarProps {
   title?: string;
@@ -22,6 +28,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   const { language, setLanguage } = useLanguage();
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const text = {
     fr: {
@@ -120,6 +127,36 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 <HelpCircle className="h-4 w-4 text-gray-600" />
                 <span className="hidden sm:inline ml-1 sm:ml-2 text-xs">{t.tutorial}</span>
               </Button>
+            )}
+
+            {/* PWA Notification Bell - NOW IN ALL DASHBOARDS! */}
+            {user?.id && (
+              <Popover open={showNotifications} onOpenChange={setShowNotifications}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative p-1 sm:p-2"
+                    data-testid="button-notifications"
+                  >
+                    <Bell className="h-4 w-4 text-gray-600" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-96 p-0 max-h-96 overflow-hidden" 
+                  align="end"
+                  data-testid="notifications-popover"
+                >
+                  <NotificationCenter
+                    userId={user.id}
+                    userRole={user.role as any}
+                    className="border-0 shadow-none"
+                  />
+                </PopoverContent>
+              </Popover>
             )}
 
             {/* Logout Button */}
