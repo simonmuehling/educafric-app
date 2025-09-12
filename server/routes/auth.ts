@@ -321,26 +321,41 @@ router.post('/login', (req, res, next) => {
                 const userIP = req.ip || req.connection.remoteAddress || 'Unknown';
                 const userName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email;
                 
-                const notification = await storage.createNotification(carineUserId, {
-                  title: '🔔 Connexion Commercial EDUCAFRIC',
-                  message: `${userName} (${user.email}) s'est connecté le ${loginTime} depuis l'IP ${userIP}`,
-                  type: 'commercial_login',
-                  category: 'security',
-                  priority: 'high',
-                  actionRequired: false,
-                  data: {
-                    commercialId: user.id,
-                    commercialEmail: user.email,
-                    commercialName: userName,
-                    loginTime: loginTime,
-                    ipAddress: userIP,
-                    userAgent: req.headers['user-agent'],
-                    schoolId: user.schoolId
-                  }
-                });
+                // Send notification to both Carine and simon.admin
+                const recipients = [
+                  { id: carineUserId, name: 'Carine' },
+                  { id: 2, name: 'simon.admin' }
+                ];
                 
-                const notificationId = notification?.id || 'unknown';
-                console.log(`[PWA_NOTIFICATION] 📱 Commercial login alert successfully created (ID: ${notificationId}) for recipient ${carineUserId} - Commercial: ${user.email}`);
+                const notifications = [];
+                for (const recipient of recipients) {
+                  try {
+                    const notification = await storage.createNotification({
+                      userId: recipient.id,
+                      title: '🔔 Connexion Commercial EDUCAFRIC',
+                      message: `${userName} (${user.email}) s'est connecté le ${loginTime} depuis l'IP ${userIP}`,
+                      type: 'commercial_login',
+                      category: 'security',
+                      priority: 'high',
+                      actionRequired: false,
+                      data: {
+                        commercialId: user.id,
+                        commercialEmail: user.email,
+                        commercialName: userName,
+                        loginTime: loginTime,
+                        ipAddress: userIP,
+                        userAgent: req.headers['user-agent'],
+                        schoolId: user.schoolId
+                      }
+                    });
+                    
+                    notifications.push(notification);
+                    const notificationId = notification?.id || 'unknown';
+                    console.log(`[PWA_NOTIFICATION] 📱 Commercial login alert successfully created (ID: ${notificationId}) for recipient ${recipient.name} (${recipient.id}) - Commercial: ${user.email}`);
+                  } catch (notificationError) {
+                    console.error(`[PWA_NOTIFICATION] Failed to send notification to ${recipient.name} (${recipient.id}):`, notificationError);
+                  }
+                }
               } catch (pwaError) {
                 console.error('[PWA_NOTIFICATION] Failed to send PWA notification to Carine:', pwaError);
               }
@@ -474,27 +489,42 @@ router.post('/sandbox-login', sandboxLoginLimiter, async (req, res) => {
               const userIP = req.ip || req.connection.remoteAddress || 'Unknown';
               const userName = user.name || user.email;
               
-              const notification = await storage.createNotification(carineUserId, {
-                title: '🔔 Connexion Commercial SANDBOX EDUCAFRIC',
-                message: `${userName} (${user.email}) s'est connecté en mode sandbox le ${loginTime} depuis l'IP ${userIP}`,
-                type: 'commercial_login',
-                category: 'security',
-                priority: 'high',
-                actionRequired: false,
-                data: {
-                  commercialId: user.id,
-                  commercialEmail: user.email,
-                  commercialName: userName,
-                  loginTime: loginTime,
-                  ipAddress: userIP,
-                  userAgent: req.headers['user-agent'],
-                  schoolId: user.schoolId,
-                  sandboxMode: true
-                }
-              });
+              // Send SANDBOX notification to both Carine and simon.admin
+              const recipients = [
+                { id: carineUserId, name: 'Carine' },
+                { id: 2, name: 'simon.admin' }
+              ];
               
-              const notificationId = notification?.id || 'unknown';
-              console.log(`[PWA_NOTIFICATION] 📱 Commercial SANDBOX login alert successfully created (ID: ${notificationId}) for recipient ${carineUserId} - Commercial: ${user.email}`);
+              const notifications = [];
+              for (const recipient of recipients) {
+                try {
+                  const notification = await storage.createNotification({
+                    userId: recipient.id,
+                    title: '🔔 Connexion Commercial SANDBOX EDUCAFRIC',
+                    message: `${userName} (${user.email}) s'est connecté en mode sandbox le ${loginTime} depuis l'IP ${userIP}`,
+                    type: 'commercial_login',
+                    category: 'security',
+                    priority: 'high',
+                    actionRequired: false,
+                    data: {
+                      commercialId: user.id,
+                      commercialEmail: user.email,
+                      commercialName: userName,
+                      loginTime: loginTime,
+                      ipAddress: userIP,
+                      userAgent: req.headers['user-agent'],
+                      schoolId: user.schoolId,
+                      sandboxMode: true
+                    }
+                  });
+                  
+                  notifications.push(notification);
+                  const notificationId = notification?.id || 'unknown';
+                  console.log(`[PWA_NOTIFICATION] 📱 Commercial SANDBOX login alert successfully created (ID: ${notificationId}) for recipient ${recipient.name} (${recipient.id}) - Commercial: ${user.email}`);
+                } catch (notificationError) {
+                  console.error(`[PWA_NOTIFICATION] Failed to send SANDBOX notification to ${recipient.name} (${recipient.id}):`, notificationError);
+                }
+              }
             } catch (pwaError) {
               console.error('[PWA_NOTIFICATION] Failed to send PWA notification to Carine for sandbox commercial:', pwaError);
             }
