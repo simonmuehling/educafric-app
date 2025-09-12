@@ -219,15 +219,25 @@ class RealTimeNotifications {
         }
       }
       
-      // Method 2: Fallback to registration.showNotification
+      // Method 2: Fallback to registration.showNotification (with timeout)
       if ('serviceWorker' in navigator) {
         console.log('[PWA_NOTIFICATIONS] 🔄 Trying Service Worker registration fallback');
         
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification(notificationData.title, notificationData.options);
-        
-        console.log('[PWA_NOTIFICATIONS] ✅ Registration notification shown');
-        return true;
+        try {
+          // Add timeout to prevent indefinite wait when SW is disabled
+          const registration = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Service Worker not ready within 2 seconds')), 2000)
+            )
+          ]) as ServiceWorkerRegistration;
+          
+          await registration.showNotification(notificationData.title, notificationData.options);
+          console.log('[PWA_NOTIFICATIONS] ✅ Registration notification shown');
+          return true;
+        } catch (error) {
+          console.log('[PWA_NOTIFICATIONS] ⚠️ Service Worker not ready, falling back to direct notification');
+        }
       }
       
       // Method 3: Direct notification fallback
