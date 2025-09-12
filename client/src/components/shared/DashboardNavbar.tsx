@@ -146,7 +146,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-96 p-0 max-h-96 overflow-hidden" 
+                  className="w-[min(95vw,420px)] p-0 max-h-[85vh] overflow-auto sm:rounded-lg rounded-none" 
                   align="end"
                   data-testid="notifications-popover"
                 >

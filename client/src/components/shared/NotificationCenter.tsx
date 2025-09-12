@@ -367,8 +367,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 items-center">
+      {/* Filters - Sticky sur mobile */}
+      <div className="sticky top-0 z-10 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+        <div className="flex flex-wrap gap-2 items-center">
         <Filter className="w-4 h-4 text-gray-500" />
         
         {/* Category filter */}
@@ -392,6 +393,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
         >
           {showOnlyUnread ? t.filterUnread : t.filterAll}
         </Button>
+        </div>
       </div>
 
       {/* PWA Notification Manager */}
@@ -409,7 +411,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
       {/* Notifications List */}
       <ModernCard>
-        <ScrollArea className="h-[600px]" data-testid="notifications-scroll-area">
+        <ScrollArea 
+          className="max-h-[70vh] sm:max-h-[60vh] h-auto overflow-y-auto overscroll-contain touch-pan-y scroll-smooth" 
+          data-testid="notifications-scroll-area"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -428,7 +433,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                 return (
                   <div
                     key={notification.id}
-                    className={`p-4 rounded-lg border transition-colors ${
+                    className={`p-3 sm:p-4 rounded-lg border transition-colors ${
                       notification.isRead 
                         ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700' 
                         : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
@@ -456,14 +461,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                           </div>
                         </div>
                         
-                        <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm">
+                        <p className="text-gray-600 dark:text-gray-300 mt-1 text-sm line-clamp-2 sm:line-clamp-none">
                           {notification.message}
                         </p>
                         
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-center space-x-4 text-xs text-gray-500">
                             <span className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
+                              <Clock className="w-4 h-4 sm:w-3 sm:h-3 mr-1" />
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             {notification.type && (
@@ -490,9 +495,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="min-h-[44px] sm:min-h-auto"
                                 onClick={() => markAsReadMutation.mutate(notification.id)}
                                 disabled={markAsReadMutation.isPending}
                                 data-testid={`button-mark-read-${notification.id}`}
+                                aria-label="Marquer comme lu"
                               >
                                 <Check className="w-4 h-4" />
                               </Button>
@@ -501,10 +508,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="min-h-[44px] sm:min-h-auto text-red-600 hover:text-red-700"
                               onClick={() => deleteNotificationMutation.mutate(notification.id)}
                               disabled={deleteNotificationMutation.isPending}
-                              className="text-red-600 hover:text-red-700"
                               data-testid={`button-delete-${notification.id}`}
+                              aria-label="Supprimer la notification"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>

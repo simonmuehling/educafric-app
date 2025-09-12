@@ -52,14 +52,6 @@ const SiteAdminDashboard: React.FC = () => {
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  const handleLogout = async () => {
-    try {
-      await logout();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
   
   // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
   React.useEffect(() => {
@@ -334,7 +326,7 @@ const SiteAdminDashboard: React.FC = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-96 p-0 max-h-96 overflow-hidden" 
+                  className="w-[min(95vw,420px)] p-0 max-h-[85vh] overflow-auto sm:rounded-lg rounded-none" 
                   align="end"
                   data-testid="notifications-popover-admin"
                 >
