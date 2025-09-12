@@ -10,6 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import NotificationCenter from '@/components/shared/NotificationCenter';
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 // Import functional modules
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -39,11 +45,21 @@ interface QuickAction {
 const SiteAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const { user } = useAuth();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { user, logout } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
   
   // AGGRESSIVE API DATA PRELOADING - SiteAdmin APIs
   React.useEffect(() => {
@@ -301,9 +317,35 @@ const SiteAdminDashboard: React.FC = () => {
                 data-testid="input-search-global"
               />
             </div>
-            <Button variant="outline" size="icon" className="self-end sm:self-auto">
-              <Bell className="h-4 w-4" />
-            </Button>
+            {/* PWA Notification Bell - SITE ADMIN VERSION */}
+            {user?.id && (
+              <Popover open={showNotifications} onOpenChange={setShowNotifications}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="relative self-end sm:self-auto"
+                    data-testid="button-notifications-admin"
+                  >
+                    <Bell className="h-4 w-4 text-gray-600" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-96 p-0 max-h-96 overflow-hidden" 
+                  align="end"
+                  data-testid="notifications-popover-admin"
+                >
+                  <NotificationCenter
+                    userId={user.id}
+                    userRole={user.role as any}
+                    className="border-0 shadow-none"
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
             <Button 
               variant="outline" 
               size="sm" 
