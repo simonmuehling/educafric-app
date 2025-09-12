@@ -18,6 +18,9 @@ const checkDeviceOnce = () => {
   return isLowEnd;
 };
 
+// Alias for backward compatibility
+const isLowEndDevice = checkDeviceOnce;
+
 // Lightweight install event
 self.addEventListener('install', (event) => {
   event.waitUntil(

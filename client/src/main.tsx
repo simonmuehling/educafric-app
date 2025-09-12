@@ -5,11 +5,11 @@ import "./index.css";
 import { fastModuleLoader } from "./utils/fastModuleLoader";
 import "./utils/pwaCleanup"; // Initialize PWA cleanup to prevent crashes
 
-// Register Service Worker for PWA functionality - Only in production
-// Force development mode when running on localhost
-const isProduction = import.meta.env.PROD && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1');
+// Register Service Worker for PWA functionality - ENABLED FOR DEVELOPMENT
+// Enable in development for PWA notifications testing
+const enableSW = import.meta.env.VITE_ENABLE_SW !== 'false'; // Default to enabled
 
-if ('serviceWorker' in navigator && isProduction) {
+if ('serviceWorker' in navigator && enableSW) {
   window.addEventListener('load', async () => {
     try {
       // Check if service worker file exists and has correct MIME type
@@ -38,7 +38,7 @@ if ('serviceWorker' in navigator && isProduction) {
     }
   });
 } else {
-  console.log('[PWA] Service Worker registration disabled for development or localhost');
+  console.log('[PWA] Service Worker registration disabled via VITE_ENABLE_SW=false');
 }
 
 // Setup console filtering moved to App.tsx (dynamic import) to prevent import conflicts
