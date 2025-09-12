@@ -163,11 +163,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const [showPWAManager, setShowPWAManager] = useState(false);
   const [realTimeNotifications, setRealTimeNotifications] = useState<Notification[]>([]);
 
-  // Fetch notifications - Fixed API query format
+  // Fetch notifications - FIXED: Use PWA endpoints that work!
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications', userId],
+    queryKey: ['/pwa/notifications/pending', userId],
     queryFn: async () => {
-      const response = await fetch(`/api/notifications?userId=${userId}`, {
+      console.log(`[NOTIFICATIONS_UI] 🔔 Fetching notifications for user ${userId}`);
+      
+      const response = await fetch(`/pwa/notifications/pending/${userId}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -176,26 +178,16 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       });
       
       if (!response.ok) {
-        console.warn('[NOTIFICATIONS] API failed, using mock data');
-        return [
-          {
-            id: 1,
-            title: "Nouveau message",
-            message: "Vous avez reçu un nouveau message",
-            type: "message",
-            priority: "medium" as const,
-            category: "communication",
-            isRead: false,
-            actionRequired: false,
-            createdAt: new Date().toISOString()
-          }
-        ];
+        console.error('[NOTIFICATIONS_UI] ❌ PWA endpoint failed:', response.status);
+        return [];
       }
       
       const data = await response.json();
-      return data.notifications || data || [];
+      console.log(`[NOTIFICATIONS_UI] ✅ Got ${data.length} notifications from PWA endpoint`);
+      return data || [];
     },
-    enabled: !!userId
+    enabled: !!userId,
+    refetchInterval: 10000 // Poll every 10 seconds like a real PWA
   });
 
   // Combine real-time and fetched notifications

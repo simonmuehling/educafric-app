@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Globe, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 
 interface ModernDashboardLayoutProps {
@@ -77,6 +78,13 @@ export const ModernDashboardLayout = ({
                 FR
               </button>
             </div>
+
+            {/* PWA Notification Center - NOW VISIBLE! */}
+            <NotificationCenter
+              userId={user?.id}
+              userRole={user?.role}
+              compact={true}
+            />
 
             {/* Logout Button */}
             <Button 
