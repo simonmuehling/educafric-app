@@ -2868,6 +2868,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const absenceData = req.body;
       console.log('[TEACHER_ABSENCE] POST /api/teacher/absence/declare for user:', user.id, 'data:', absenceData);
 
+      // Initialize notification arrays at function scope
+      let affectedStudents: Array<{id: number, name: string, phone?: string, parentPhone?: string, parentEmail?: string}> = [];
+      let parentNotifications: Array<{type: string, to?: string, message: string, student: string, subject?: string}> = [];
+
       // Validate required fields
       if (!absenceData.reason || !absenceData.startDate || !absenceData.endDate || !absenceData.classesAffected || absenceData.classesAffected.length === 0) {
         return res.status(400).json({ 
@@ -2906,13 +2910,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[TEACHER_ABSENCE] 📱 Sending notifications to students in classes:', absenceData.classesAffected);
         
         // Get affected students (mock data for now - would be database query in production)
-        const affectedStudents = [
+        affectedStudents = [
           { id: 1, name: 'Marie Kamdem', phone: '+237657001111', parentPhone: '+237657002222', parentEmail: 'parent1@test.com' },
           { id: 2, name: 'Paul Mbang', phone: '+237657003333', parentPhone: '+237657004444', parentEmail: 'parent2@test.com' },
           { id: 3, name: 'Sarah Ngozi', phone: '+237657005555', parentPhone: '+237657006666', parentEmail: 'parent3@test.com' }
         ];
-        
-        const parentNotifications: any[] = [];
         
         // 3. NOTIFY PARENTS VIA SMS + EMAIL + PUSH
         console.log('[TEACHER_ABSENCE] 👨‍👩‍👧‍👦 Sending notifications to', affectedStudents.length, 'parents...');

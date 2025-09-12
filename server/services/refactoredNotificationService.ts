@@ -109,7 +109,7 @@ export class RefactoredNotificationService {
 
     // Build message
     const dataValues = Object.values(payload.data);
-    const message = templateFn(...dataValues as any);
+    const message = templateFn.apply(null, dataValues);
 
     // African network optimization
     const optimizedMessage = this.optimizeForAfricanNetworks(message);
@@ -236,9 +236,9 @@ export class RefactoredNotificationService {
     }
 
     const allStats: Record<string, any> = {};
-    for (const [tmpl, results] of this.deliveryStats) {
+    this.deliveryStats.forEach((results, tmpl) => {
       allStats[tmpl] = this.calculateStats(results);
-    }
+    });
     
     return allStats;
   }

@@ -110,7 +110,7 @@ class NetworkOptimizer {
       } catch (error) {
         console.error('[NETWORK_OPTIMIZER] ❌ Connection monitoring failed:', error);
       }
-    }, 30000); // Check every 30 seconds
+    }, 120000); // Check every 2 minutes (reduced from 30s)
   }
 
   private async measureConnectionQuality(): Promise<ConnectionQuality> {
@@ -118,9 +118,10 @@ class NetworkOptimizer {
     
     try {
       // Test with small health check endpoint
-      await fetch('/api/health', { 
+      await fetch('/api', { 
         method: 'HEAD',
-        cache: 'no-cache'
+        cache: 'no-cache',
+        signal: AbortSignal.timeout(5000)
       });
       
       const ping = performance.now() - startTime;
