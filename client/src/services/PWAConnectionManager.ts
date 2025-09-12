@@ -24,6 +24,8 @@ interface NotificationQueue {
   retryCount: number;
 }
 
+// PRODUCTION SAFE: This service has been replaced by HealthMonitorMigration
+// All functionality moved to centralized health monitoring (no fake responses)
 class PWAConnectionManager {
   private state: ConnectionState = {
     isOnline: navigator.onLine,
@@ -39,9 +41,11 @@ class PWAConnectionManager {
   private batteryCheckInterval: number | null = null;
   private notificationQueue: NotificationQueue[] = [];
   private maxRetries = 5;
-  private pingIntervalMs = 300000; // Sera ajusté selon l'appareil
+  private pingIntervalMs = 600000; // OPTIMIZED: Default 10 minutes minimum
   private reconnectDelayMs = 10000; // 10 secondes
   private maxQueueSize = 50; // Sera ajusté selon l'appareil
+  private isPageVisible = true; // Track page visibility for idle detection
+  private consecutiveFailures = 0; // Track failures for exponential backoff
 
   private listeners: Array<(state: ConnectionState) => void> = [];
   
@@ -80,15 +84,22 @@ class PWAConnectionManager {
   };
 
   constructor() {
-    // Only initialize if not already initialized to prevent memory leaks
-    if (typeof window !== 'undefined' && !(window as any).__pwa_connection_initialized) {
-      this.adaptToDevice();
-      this.initializeConnectionMonitoring();
-      this.startPeriodicPing();
-      this.setupServiceWorkerSync();
-      this.startBatteryMonitoring();
-      this.setupFallbackIntegration();
+    console.log('[PWA_CONNECTION] 🚨 DISABLED: Use HealthMonitorMigration instead. This service no longer polls.');
+    
+    // PRODUCTION SAFE: Initialize with safe defaults but no polling
+    this.state = {
+      isOnline: navigator.onLine,
+      isConnected: false,
+      lastPingTime: 0,
+      retryCount: 0,
+      quality: 'offline',
+      deviceMode: 'standard'
+    };
+    
+    // Set global flag to prevent initialization
+    if (typeof window !== 'undefined') {
       (window as any).__pwa_connection_initialized = true;
+      (window as any).__pwa_connection_manager_instance = this;
     }
   }
 
@@ -109,19 +120,49 @@ class PWAConnectionManager {
     const capabilities = deviceDetector.getCapabilities();
     
     if (profile && capabilities) {
-      this.pingIntervalMs = profile.pingInterval;
+      // OPTIMIZED: Ensure minimum 10 minutes ping interval to prevent server overload
+      this.pingIntervalMs = Math.max(profile.pingInterval, 600000); // Minimum 10 minutes
       this.maxRetries = profile.maxRetries;
       this.maxQueueSize = capabilities.isLowEnd ? 10 : 50;
       this.state.deviceMode = capabilities.supportLevel;
 
       console.log(`[PWA_CONNECTION] 📱 Mode adapté: ${capabilities.supportLevel}`, {
-        pingInterval: `${profile.pingInterval / 1000}s`,
+        pingInterval: `${this.pingIntervalMs / 1000}s (min 10min enforced)`,
         maxRetries: profile.maxRetries,
         isLowEnd: capabilities.isLowEnd
       });
     }
   }
 
+  /**
+   * NEW: Setup idle detection to pause pinging when page is not visible
+   */
+  private setupIdleDetection() {
+    const handleVisibilityChange = () => {
+      this.isPageVisible = !document.hidden;
+      if (import.meta.env.DEV) {
+        console.log('[PWA_CONNECTION] 👁️ Page visibility changed:', this.isPageVisible ? 'visible' : 'hidden');
+      }
+      
+      if (this.isPageVisible) {
+        // Resume normal pinging when page becomes visible
+        this.restartPeriodicPing();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also listen for focus/blur events
+    window.addEventListener('focus', () => {
+      this.isPageVisible = true;
+      this.restartPeriodicPing();
+    });
+    
+    window.addEventListener('blur', () => {
+      this.isPageVisible = false;
+    });
+  }
+  
   /**
    * Initialise la surveillance de la connexion
    */
@@ -130,7 +171,7 @@ class PWAConnectionManager {
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
 
-    // Surveillance de la visibilité de la page
+    // Basic visibility change (kept for compatibility)
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
     // Surveillance des erreurs de fetch
@@ -138,38 +179,38 @@ class PWAConnectionManager {
   }
 
   /**
-   * Démarre le ping périodique pour maintenir la connexion
+   * OPTIMIZED: Démarre le ping périodique avec idle detection
    */
   private startPeriodicPing() {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-    }
-
-    this.pingInterval = window.setInterval(() => {
-      this.performHealthCheck();
-    }, this.pingIntervalMs);
-
-    // Premier ping immédiat
-    this.performHealthCheck();
+    console.log('[PWA_CONNECTION] 🚫 startPeriodicPing DISABLED - using HealthCheckService instead');
+    // PRODUCTION SAFE: All ping functionality moved to centralized HealthCheckService
+    // No intervals, no polling, no HEAD requests
+    return;
   }
 
   /**
-   * Effectue un contrôle de santé de la connexion
+   * OPTIMIZED: Effectue un contrôle de santé avec exponential backoff
    */
   private async performHealthCheck() {
-    if (!this.state.isOnline) {
+    console.log('[PWA_CONNECTION] 🚫 performHealthCheck DISABLED - using HealthCheckService instead');
+    // PRODUCTION SAFE: All health check functionality moved to centralized service
+    return;
+    
+    /* OLD CODE - DISABLED TO PREVENT POLLING
+    if (!this.state.isOnline || !this.isPageVisible) {
       return;
     }
 
     try {
       const startTime = Date.now();
       
-      // Create AbortController for better browser compatibility
+      const timeoutMs = Math.min(5000 + (this.consecutiveFailures * 2000), 15000);
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
       const response = await fetch('/api/health', {
-        method: 'GET',
+        method: 'HEAD',
         cache: 'no-cache',
         signal: controller.signal
       });
@@ -183,9 +224,13 @@ class PWAConnectionManager {
         this.state.isConnected = true;
         this.state.lastPingTime = Date.now();
         this.state.retryCount = 0;
+        this.consecutiveFailures = 0; // RESET: Clear failure count on success
         this.state.quality = this.calculateQuality(latency);
 
-        console.log(`[PWA_CONNECTION] ✅ Ping réussi (${latency}ms) - Qualité: ${this.state.quality}`);
+        // OPTIMIZATION: Only log in dev mode or on quality changes
+        if (import.meta.env.DEV) {
+          console.log(`[PWA_CONNECTION] ✅ Ping réussi (${latency}ms) - Qualité: ${this.state.quality}`);
+        }
         
         // Traiter les notifications en attente
         await this.processQueuedNotifications();
@@ -193,7 +238,13 @@ class PWAConnectionManager {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      // Silently handle ping failures to reduce console noise
+      this.consecutiveFailures++; // INCREMENT: Track consecutive failures
+      
+      // OPTIMIZATION: Only log errors in dev mode after multiple failures
+      if (import.meta.env.DEV && this.consecutiveFailures > 2) {
+        console.warn('[PWA_CONNECTION] ⚠️ Multiple ping failures:', this.consecutiveFailures);
+      }
+      
       this.state.quality = 'poor';
       this.handleConnectionError();
     }
@@ -212,23 +263,36 @@ class PWAConnectionManager {
   }
 
   /**
-   * Gère les erreurs de connexion
+   * OPTIMIZED: Gère les erreurs de connexion avec exponential backoff amélioré
    */
   private handleConnectionError() {
     this.state.isConnected = false;
     this.state.retryCount++;
 
     if (this.state.retryCount < this.maxRetries) {
-      const delay = Math.min(this.reconnectDelayMs * Math.pow(2, this.state.retryCount), 60000);
-      console.log(`[PWA_CONNECTION] 🔄 Tentative de reconnexion dans ${delay}ms (${this.state.retryCount}/${this.maxRetries})`);
+      // OPTIMIZATION: Enhanced exponential backoff with jitter to prevent thundering herd
+      const baseDelay = this.reconnectDelayMs * Math.pow(2, this.state.retryCount);
+      const jitter = Math.random() * 5000; // Add random jitter (0-5s)
+      const delay = Math.min(baseDelay + jitter, 120000); // Max 2 minutes
+      
+      if (import.meta.env.DEV) {
+        console.log(`[PWA_CONNECTION] 🔄 Tentative de reconnexion dans ${Math.round(delay/1000)}s (${this.state.retryCount}/${this.maxRetries})`);
+      }
       
       this.reconnectTimeout = window.setTimeout(() => {
-        this.performHealthCheck();
+        // Only retry if page is still visible
+        if (this.isPageVisible) {
+          this.performHealthCheck();
+        }
       }, delay);
     } else {
       // Handle connection failure gracefully
       this.state.quality = 'offline';
       this.state.isConnected = false;
+      
+      if (import.meta.env.DEV) {
+        console.log('[PWA_CONNECTION] 🔴 Max retries reached, marking as offline');
+      }
     }
   }
 

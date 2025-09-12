@@ -13,7 +13,7 @@ import {
   CheckCircle,
   Clock
 } from 'lucide-react';
-import { pwaConnectionManager } from '@/services/PWAConnectionManager';
+import { healthMonitorMigration } from '@/services/HealthMonitorMigration';
 
 interface ConnectionState {
   isOnline: boolean;
@@ -26,7 +26,7 @@ interface ConnectionState {
 const ConnectionStatusIndicator: React.FC = () => {
   const { language } = useLanguage();
   const [connectionState, setConnectionState] = useState<ConnectionState>(
-    pwaConnectionManager.getConnectionState()
+    healthMonitorMigration.getConnectionState()
   );
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -35,10 +35,10 @@ const ConnectionStatusIndicator: React.FC = () => {
       setConnectionState(state);
     };
 
-    pwaConnectionManager.addStateListener(handleStateChange);
+    healthMonitorMigration.addConnectionListener(handleStateChange);
 
     return () => {
-      pwaConnectionManager.removeStateListener(handleStateChange);
+      healthMonitorMigration.removeConnectionListener(handleStateChange);
     };
   }, []);
 

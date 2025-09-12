@@ -150,7 +150,7 @@ class DeviceDetector {
     if (isLowEnd) {
       // Profil ultra-économe pour appareils bas de gamme
       return {
-        pingInterval: 900000, // 15 minutes
+        pingInterval: 1800000, // 30 minutes - OPTIMIZED: Reduced server load
         maxCacheSize: 5, // 5MB max
         enableBackgroundSync: false, // Trop lourd
         enableNotificationQueue: true, // Mais queue limitée
@@ -163,7 +163,7 @@ class DeviceDetector {
     if (networkSpeed === 'slow') {
       // Profil pour connexion lente
       return {
-        pingInterval: 600000, // 10 minutes
+        pingInterval: 1200000, // 20 minutes - OPTIMIZED: Reduced server load
         maxCacheSize: 10,
         enableBackgroundSync: true,
         enableNotificationQueue: true,
@@ -176,7 +176,7 @@ class DeviceDetector {
     if (supportLevel === 'standard') {
       // Profil standard
       return {
-        pingInterval: 300000, // 5 minutes (actuel)
+        pingInterval: 900000, // 15 minutes - OPTIMIZED: Reduced server load
         maxCacheSize: 20,
         enableBackgroundSync: true,
         enableNotificationQueue: true,
@@ -188,7 +188,7 @@ class DeviceDetector {
 
     // Profil avancé pour appareils puissants
     return {
-      pingInterval: 120000, // 2 minutes
+      pingInterval: 600000, // 10 minutes - OPTIMIZED: Reduced from 2 minutes to prevent server overload
       maxCacheSize: 50,
       enableBackgroundSync: true,
       enableNotificationQueue: true,

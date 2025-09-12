@@ -11,6 +11,10 @@ import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
+// EMERGENCY: Stop all existing polling first, then initialize safe centralized monitoring
+import '@/utils/emergencyPollingStop';
+import '@/services/HealthCheckService';
+import '@/services/HealthMonitorMigration';
 
 // Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
@@ -42,9 +46,6 @@ import {
   LazyEnhancedSandbox,
   LazyUIShowcase
 } from "@/components/LazyLoader";
-
-// Initialize network optimizer for connection quality improvements
-import "@/utils/networkOptimizer";
 
 // Initialize global module preloader for instant loading
 import { fastModuleLoader } from "@/utils/fastModuleLoader";

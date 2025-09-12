@@ -218,17 +218,43 @@ const AutoPWARecovery: React.FC<AutoPWARecoveryProps> = ({ userId, onRecoveryCom
     }
   };
 
+  // OPTIMIZED: Cache network quality checks and debounce to prevent excessive requests
+  const networkQualityCache = React.useRef<{ quality: 'good' | 'fair' | 'poor'; timestamp: number } | null>(null);
+  const isCheckingQuality = React.useRef(false);
+  
   const checkNetworkQuality = async (): Promise<'good' | 'fair' | 'poor'> => {
+    // OPTIMIZATION: Prevent concurrent quality checks
+    if (isCheckingQuality.current) {
+      return networkQualityCache.current?.quality || 'poor';
+    }
+    
+    // OPTIMIZATION: Use cached result if less than 10 minutes old
+    const now = Date.now();
+    if (networkQualityCache.current && (now - networkQualityCache.current.timestamp) < 600000) {
+      return networkQualityCache.current.quality;
+    }
+    
+    isCheckingQuality.current = true;
+    
     try {
       const start = Date.now();
-      await fetch('/api/health', { method: 'HEAD' });
+      await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
       const latency = Date.now() - start;
       
-      if (latency < 300) return 'good';
-      if (latency < 800) return 'fair';
-      return 'poor';
+      let quality: 'good' | 'fair' | 'poor';
+      if (latency < 300) quality = 'good';
+      else if (latency < 800) quality = 'fair';
+      else quality = 'poor';
+      
+      // Cache the result
+      networkQualityCache.current = { quality, timestamp: now };
+      return quality;
     } catch {
-      return 'poor';
+      const quality = 'poor';
+      networkQualityCache.current = { quality, timestamp: now };
+      return quality;
+    } finally {
+      isCheckingQuality.current = false;
     }
   };
 

@@ -128,17 +128,33 @@ const EnhancedPWAManager: React.FC<EnhancedPWAManagerProps> = ({
     );
   };
 
+  // OPTIMIZED: Cache network quality checks to avoid redundant requests
+  const networkQualityCache = React.useRef<{ quality: 'good' | 'fair' | 'poor'; timestamp: number } | null>(null);
+  
   const checkNetworkQuality = async (): Promise<'good' | 'fair' | 'poor'> => {
+    // OPTIMIZATION: Use cached result if less than 5 minutes old
+    const now = Date.now();
+    if (networkQualityCache.current && (now - networkQualityCache.current.timestamp) < 300000) {
+      return networkQualityCache.current.quality;
+    }
+    
     try {
       const start = Date.now();
-      await fetch('/api/health', { method: 'HEAD' });
+      await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
       const latency = Date.now() - start;
       
-      if (latency < 300) return 'good';
-      if (latency < 800) return 'fair';
-      return 'poor';
+      let quality: 'good' | 'fair' | 'poor';
+      if (latency < 300) quality = 'good';
+      else if (latency < 800) quality = 'fair';
+      else quality = 'poor';
+      
+      // Cache the result
+      networkQualityCache.current = { quality, timestamp: now };
+      return quality;
     } catch {
-      return 'poor';
+      const quality = 'poor';
+      networkQualityCache.current = { quality, timestamp: now };
+      return quality;
     }
   };
 

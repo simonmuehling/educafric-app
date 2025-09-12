@@ -16,15 +16,14 @@ import {
   MemoryStick
 } from 'lucide-react';
 import { deviceDetector } from '../../utils/deviceDetector';
-import { connectionFallback } from '../../utils/connectionFallback';
-import { pwaConnectionManager } from '../../services/PWAConnectionManager';
+import { healthMonitorMigration } from '../../services/HealthMonitorMigration';
 
 const LowEndDeviceOptimizer: React.FC = () => {
   const [deviceInfo, setDeviceInfo] = useState(deviceDetector.getCapabilities());
   const [optimizationProfile, setOptimizationProfile] = useState(deviceDetector.getOptimizationProfile());
-  const [connectionState, setConnectionState] = useState(pwaConnectionManager.getConnectionState());
+  const [connectionState, setConnectionState] = useState(healthMonitorMigration.getConnectionState());
   const [batteryInfo, setBatteryInfo] = useState<{ level: number; charging: boolean } | null>(null);
-  const [fallbackStats, setFallbackStats] = useState(connectionFallback.getOfflineStats());
+  const [telemetry, setTelemetry] = useState(healthMonitorMigration.getTelemetry());
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   useEffect(() => {

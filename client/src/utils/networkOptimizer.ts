@@ -41,16 +41,9 @@ class NetworkOptimizer {
   }
 
   private initializeNetworkOptimizations() {
-    console.log('[NETWORK_OPTIMIZER] 🚀 Initializing network optimizations');
-    
-    // Override default fetch with optimized version
-    this.patchFetch();
-    
-    // Start connection monitoring
-    this.startConnectionMonitoring();
-    
-    // Configure service worker for offline support
-    this.configureOfflineSupport();
+    console.log('[NETWORK_OPTIMIZER] 🚨 DISABLED: Replaced by HealthCheckService - no polling initialized');
+    // PRODUCTION SAFE: All functionality moved to centralized HealthCheckService
+    // No fetch patching, no connection monitoring, no intervals
   }
 
   private patchFetch() {
@@ -102,15 +95,38 @@ class NetworkOptimizer {
     };
   }
 
+  private connectionMonitoringActive = false;
+  
   private async startConnectionMonitoring() {
+    // EMERGENCY FIX: Prevent multiple monitoring intervals
+    if (this.connectionMonitoringActive || (window as any).__network_optimizer_monitoring_started) {
+      console.log('[NETWORK_OPTIMIZER] ⚠️ Monitoring already started, skipping duplicate');
+      return;
+    }
+    
+    this.connectionMonitoringActive = true;
+    (window as any).__network_optimizer_monitoring_started = true;
+    
+    console.log('[NETWORK_OPTIMIZER] 🚀 Starting singleton monitoring with 15-minute intervals');
+    
+    // DISABLED: No more intervals - HealthCheckService handles this
+    console.log('[NETWORK_OPTIMIZER] 🚫 Interval monitoring disabled - using HealthCheckService');
+    return;
+    
+    /* OLD CODE - DISABLED
     setInterval(async () => {
+      if (document.hidden) {
+        console.log('[NETWORK_OPTIMIZER] ⏸️ Skipping monitoring - page hidden');
+        return;
+      }
+      
       try {
         const quality = await this.measureConnectionQuality();
         this.adaptToConnectionQuality(quality);
       } catch (error) {
         console.error('[NETWORK_OPTIMIZER] ❌ Connection monitoring failed:', error);
       }
-    }, 120000); // Check every 2 minutes (reduced from 30s)
+    }, 900000); // OPTIMIZED: 15 minutes instead of 2 minutes to prevent server overload
   }
 
   private async measureConnectionQuality(): Promise<ConnectionQuality> {
@@ -300,31 +316,88 @@ class NetworkOptimizer {
 // Initialize global network optimizer
 export const networkOptimizer = NetworkOptimizer.getInstance();
 
-// React hook for connection quality monitoring
+// OPTIMIZED React hook with singleton monitoring and much longer intervals
 export function useNetworkQuality(): { quality: ConnectionQuality | null; stats: any } {
   const [quality, setQuality] = React.useState<ConnectionQuality | null>(null);
   const [stats, setStats] = React.useState(networkOptimizer.getConnectionStats());
 
   React.useEffect(() => {
+    // EMERGENCY FIX: Global singleton to prevent multiple hooks creating overlapping intervals
+    if ((window as any).__useNetworkQuality_active) {
+      console.log('[NETWORK_OPTIMIZER] ⚠️ useNetworkQuality already active, using shared state');
+      
+      // Subscribe to existing state updates
+      const handleQualityUpdate = (event: CustomEvent) => {
+        setQuality(event.detail.quality);
+        setStats(event.detail.stats);
+      };
+      
+      window.addEventListener('network-quality-update', handleQualityUpdate as EventListener);
+      
+      // Get current cached values
+      if ((window as any).__networkQuality_cache) {
+        setQuality((window as any).__networkQuality_cache.quality);
+        setStats((window as any).__networkQuality_cache.stats);
+      }
+      
+      return () => {
+        window.removeEventListener('network-quality-update', handleQualityUpdate as EventListener);
+      };
+    }
+    
+    (window as any).__useNetworkQuality_active = true;
+    console.log('[NETWORK_OPTIMIZER] 🎯 Starting singleton useNetworkQuality with 10-minute intervals');
+    
     const checkQuality = async () => {
+      // OPTIMIZATION: Skip if page is hidden or already checking
+      if (document.hidden || (window as any).__quality_check_in_progress) {
+        return;
+      }
+      
+      (window as any).__quality_check_in_progress = true;
+      
       try {
         const currentQuality = await networkOptimizer.forceQualityTest();
         setQuality(currentQuality);
         setStats(networkOptimizer.getConnectionStats());
+        
+        // Cache for other components
+        (window as any).__networkQuality_cache = { quality: currentQuality, stats: networkOptimizer.getConnectionStats() };
+        
+        // Notify other components
+        window.dispatchEvent(new CustomEvent('network-quality-update', {
+          detail: { quality: currentQuality, stats: networkOptimizer.getConnectionStats() }
+        }));
+        
+        console.log('[NETWORK_OPTIMIZER] ✅ Quality check completed:', currentQuality.quality);
       } catch (error) {
-        console.error('Quality check failed:', error);
+        console.error('[NETWORK_OPTIMIZER] ❌ Quality check failed:', error);
+      } finally {
+        (window as any).__quality_check_in_progress = false;
       }
     };
 
-    // Initial check
-    checkQuality();
-
-    // Periodic updates
-    const interval = setInterval(checkQuality, 30000);
-
-    // Listen for network events
-    const handleNetworkChange = () => {
+    // Initial check only if no cache exists
+    if (!(window as any).__networkQuality_cache) {
       checkQuality();
+    } else {
+      setQuality((window as any).__networkQuality_cache.quality);
+      setStats((window as any).__networkQuality_cache.stats);
+    }
+
+    // OPTIMIZED: Much longer intervals to prevent server overload
+    const interval = setInterval(checkQuality, 600000); // 10 minutes instead of 30 seconds
+
+    // Listen for network events (but don't trigger immediate checks)
+    const handleNetworkChange = () => {
+      // Debounce network change events
+      if (!(window as any).__network_change_debounce) {
+        (window as any).__network_change_debounce = true;
+        setTimeout(() => {
+          checkQuality();
+          (window as any).__network_change_debounce = false;
+        }, 5000); // 5-second debounce
+      }
     };
 
     window.addEventListener('online', handleNetworkChange);
@@ -338,6 +411,9 @@ export function useNetworkQuality(): { quality: ConnectionQuality | null; stats:
       window.removeEventListener('offline', handleNetworkChange);
       window.removeEventListener('connection-critical', handleNetworkChange);
       window.removeEventListener('connection-restored', handleNetworkChange);
+      
+      // Clean up singleton state when no more components using it
+      (window as any).__useNetworkQuality_active = false;
     };
   }, []);
 

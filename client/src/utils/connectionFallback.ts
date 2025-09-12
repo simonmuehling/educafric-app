@@ -51,8 +51,9 @@ class ConnectionFallback {
       enableWebSocket: !isLowEnd, // WebSocket trop lourd pour bas de gamme
       enablePolling: true, // Polling toujours disponible
       enableLocalStorage: true, // Local storage toujours utile
-      heartbeatInterval: isLowEnd ? 30000 : 15000, // 30s vs 15s
-      maxOfflineTime: isLowEnd ? 300000 : 60000 // 5min vs 1min
+      // OPTIMIZED: Dramatically increased intervals to prevent server overload
+      heartbeatInterval: isLowEnd ? 1800000 : 900000, // 30min vs 15min (was 30s vs 15s)
+      maxOfflineTime: isLowEnd ? 1800000 : 900000 // 30min vs 15min (was 5min vs 1min)
     };
   }
 
@@ -87,20 +88,45 @@ class ConnectionFallback {
     this.interceptNetworkErrors();
   }
 
+  // OPTIMIZED: Enhanced heartbeat with idle detection and singleton protection
+  private isPageVisible = true;
+  private static initialized = false;
+  
   private startHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-    }
-
-    this.heartbeatInterval = window.setInterval(() => {
-      this.performHeartbeat();
-    }, this.config.heartbeatInterval);
+    console.log('[CONNECTION_FALLBACK] 🚨 DISABLED: Replaced by HealthCheckService - no heartbeat polling');
+    
+    // PRODUCTION SAFE: Mark as initialized to prevent other attempts
+    ConnectionFallback.initialized = true;
+    
+    // All heartbeat functionality moved to centralized HealthCheckService
+    // No intervals, no polling, no HEAD requests
+  }
+  
+  private setupIdleDetection(): void {
+    const handleVisibilityChange = () => {
+      this.isPageVisible = !document.hidden;
+      if (import.meta.env.DEV) {
+        console.log('[CONNECTION_FALLBACK] 👁️ Page visibility changed:', this.isPageVisible ? 'visible' : 'hidden');
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', () => { this.isPageVisible = true; });
+    window.addEventListener('blur', () => { this.isPageVisible = false; });
   }
 
   private async performHeartbeat(): Promise<void> {
+    console.log('[CONNECTION_FALLBACK] 🚫 performHeartbeat DISABLED - use HealthCheckService instead');
+    return; // No more heartbeat requests
+    
+    /* OLD CODE - DISABLED TO PREVENT POLLING
+    if (!this.isPageVisible) {
+      return;
+    }
+    
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch('/api/health', {
         method: 'HEAD',
@@ -120,6 +146,10 @@ class ConnectionFallback {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
+      // OPTIMIZATION: Only log errors in dev mode to reduce console noise
+      if (import.meta.env.DEV) {
+        console.warn('[CONNECTION_FALLBACK] 💔 Heartbeat failed:', error);
+      }
       this.handleHeartbeatFailure();
     }
   }
@@ -166,20 +196,25 @@ class ConnectionFallback {
       console.warn('[CONNECTION_FALLBACK] Erreur restauration données:', error);
     }
 
-    // Sauvegarder périodiquement
-    setInterval(saveOfflineData, 30000); // Toutes les 30 secondes
+    // OPTIMIZED: Reduced save frequency to prevent excessive localStorage writes
+    setInterval(saveOfflineData, 300000); // Toutes les 5 minutes (was 30 seconds)
   }
 
   private setupAutoRecovery(): void {
-    // Tentative de récupération automatique toutes les 2 minutes
-    const recoveryInterval = deviceDetector.shouldUseLowEndMode() ? 180000 : 120000;
+    // OPTIMIZED: Much longer recovery intervals to prevent server overload
+    const recoveryInterval = deviceDetector.shouldUseLowEndMode() ? 1800000 : 900000; // 30min vs 15min
 
     setInterval(async () => {
-      if (this.isOffline && this.reconnectAttempts < this.maxReconnectAttempts) {
-        console.log('[CONNECTION_FALLBACK] 🔄 Tentative de récupération automatique');
+      // OPTIMIZATION: Only attempt recovery if page is visible and truly offline
+      if (this.isOffline && this.reconnectAttempts < this.maxReconnectAttempts && this.isPageVisible) {
+        if (import.meta.env.DEV) {
+          console.log('[CONNECTION_FALLBACK] 🔄 Tentative de récupération automatique');
+        }
         await this.performHeartbeat();
       }
     }, recoveryInterval);
+    
+    console.log('[CONNECTION_FALLBACK] 🔄 Auto-recovery setup with interval:', recoveryInterval / 60000, 'minutes');
   }
 
   private interceptNetworkErrors(): void {
