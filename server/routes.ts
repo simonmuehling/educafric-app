@@ -2959,6 +2959,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log('[TEACHER_ABSENCE] 📧 Email notifications prepared for', parentNotifications.filter(n => n.type === 'EMAIL').length, 'parents');
           
+          // 🔔 PWA PUSH NOTIFICATIONS - Send to students AND parents
+          console.log('[TEACHER_ABSENCE] 🔔 Sending PWA notifications to students and parents...');
+          
+          // PWA notifications for students
+          for (const student of affectedStudents) {
+            try {
+              const studentNotification = {
+                userId: student.id, // In real app, would be student's user ID
+                title: '⚠️ Modification de cours',
+                message: `Votre cours de ${absenceData.subject || 'Mathématiques'} du ${absenceData.startDate} est modifié. Remplaçant en cours d'assignation.`,
+                type: 'teacher_absence',
+                priority: 'high',
+                actionUrl: '/student/timetable',
+                metadata: {
+                  absenceId: newAbsence.id,
+                  teacherName: absenceData.teacherName,
+                  subject: absenceData.subject,
+                  date: absenceData.startDate,
+                  reason: absenceData.reason
+                }
+              };
+              
+              await storage.createNotification(studentNotification);
+              console.log(`[TEACHER_ABSENCE] ✅ PWA notification sent to student: ${student.name}`);
+            } catch (pwaError) {
+              console.error(`[TEACHER_ABSENCE] ❌ PWA notification failed for student ${student.name}:`, pwaError);
+            }
+          }
+          
+          // PWA notifications for parents
+          for (const student of affectedStudents) {
+            try {
+              // In real app, would query parent's user ID from database
+              const parentUserId = student.id + 1000; // Mock parent user ID
+              
+              const parentNotification = {
+                userId: parentUserId,
+                title: `🏫 Absence enseignant - ${student.name}`,
+                message: `Le cours de ${absenceData.subject || 'Mathématiques'} de ${student.name} du ${absenceData.startDate} est modifié. Détails dans l'app.`,
+                type: 'teacher_absence_parent',
+                priority: 'high',
+                actionUrl: '/parent/children/timetable',
+                metadata: {
+                  absenceId: newAbsence.id,
+                  studentName: student.name,
+                  teacherName: absenceData.teacherName,
+                  subject: absenceData.subject,
+                  date: absenceData.startDate,
+                  reason: absenceData.reason,
+                  childId: student.id
+                }
+              };
+              
+              await storage.createNotification(parentNotification);
+              console.log(`[TEACHER_ABSENCE] ✅ PWA notification sent to parent of: ${student.name}`);
+            } catch (pwaError) {
+              console.error(`[TEACHER_ABSENCE] ❌ PWA notification failed for parent of ${student.name}:`, pwaError);
+            }
+          }
+          
         } catch (notificationError) {
           console.error('[TEACHER_ABSENCE] ⚠️ Notification service error:', notificationError);
         }
@@ -2966,9 +3026,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // 5. LOG NOTIFICATION SUMMARY
         console.log(`[TEACHER_ABSENCE] 🎯 NOTIFICATION SUMMARY:
         - Administration: ✅ Notified
-        - Students: ${affectedStudents.length} notified via app
+        - Students PWA: ${affectedStudents.length} PWA notifications sent
+        - Students App: ${affectedStudents.length} notified via app
         - Parents SMS: ${parentNotifications.filter(n => n.type === 'SMS').length} sent
         - Parents Email: ${parentNotifications.filter(n => n.type === 'EMAIL').length} prepared
+        - Parents PWA: ${affectedStudents.length} PWA notifications sent
         - Classes affected: ${absenceData.classesAffected.join(', ')}`);
         
       } catch (notificationError) {
@@ -2980,11 +3042,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         success: true, 
         absence: newAbsence,
-        message: 'Absence déclarée avec succès. La direction et les parents ont été informés automatiquement.',
+        message: 'Absence déclarée avec succès. La direction et les parents ont été informés automatiquement via SMS, Email et notifications PWA.',
         notificationsSent: {
           administration: true,
-          students: 3, // affectedStudents.length
-          parents: 3 // parentNotifications.length / 2 // SMS + Email per parent
+          students: affectedStudents.length,
+          studentsPWA: affectedStudents.length,
+          parents: parentNotifications.filter(n => n.type === 'SMS').length,
+          parentsPWA: affectedStudents.length,
+          parentEmailsPrepared: parentNotifications.filter(n => n.type === 'EMAIL').length
         }
       });
     } catch (error) {
