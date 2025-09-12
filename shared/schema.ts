@@ -332,6 +332,21 @@ export const locationTracking = pgTable("location_tracking", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Notification Preferences Table - PWA notification settings per user
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().unique(), // One preference set per user
+  pushNotifications: boolean("push_notifications").default(true),
+  emailNotifications: boolean("email_notifications").default(true),
+  smsNotifications: boolean("sms_notifications").default(false),
+  phone: text("phone"), // Optional phone number for SMS notifications
+  autoOpen: boolean("auto_open").default(true), // PWA auto-opening preference
+  soundEnabled: boolean("sound_enabled").default(true),
+  vibrationEnabled: boolean("vibration_enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Import Zod for schemas
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -354,6 +369,7 @@ export const insertNotificationSchema = createInsertSchema(notifications);
 export const insertTeacherAbsenceSchema = createInsertSchema(teacherAbsences);
 export const insertParentRequestSchema = createInsertSchema(parentRequests);
 export const insertEmailPreferencesSchema = createInsertSchema(emailPreferences);
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences);
 
 // Insert types
 export type InsertBusinessPartner = z.infer<typeof insertBusinessPartnerSchema>;
@@ -373,6 +389,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertTeacherAbsence = z.infer<typeof insertTeacherAbsenceSchema>;
 export type InsertParentRequest = z.infer<typeof insertParentRequestSchema>;
 export type InsertEmailPreferences = z.infer<typeof insertEmailPreferencesSchema>;
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 
 // Basic types for compatibility
 export type User = typeof users.$inferSelect;
@@ -392,6 +409,7 @@ export type PartnershipCommunication = typeof partnershipCommunications.$inferSe
 export type TeacherAbsence = typeof teacherAbsences.$inferSelect;
 export type ParentRequest = typeof parentRequests.$inferSelect;
 export type EmailPreferences = typeof emailPreferences.$inferSelect;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 export type CommunicationLog = typeof communicationLogs.$inferSelect;
 export type TimetableSlot = typeof timetableSlots.$inferSelect;
 export type ParentStudentRelation = typeof parentStudentRelations.$inferSelect;
