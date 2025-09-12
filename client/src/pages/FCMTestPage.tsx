@@ -39,7 +39,7 @@ export default function FCMTestPage() {
     try {
       const supported = 'Notification' in window && 'serviceWorker' in navigator;
       const permission = Notification.permission;
-      const realTimeService = RealTimeNotifications.getInstance();
+      const realTimeService = RealTimeNotifications;
       const mode = realTimeService.getNotificationMode();
 
       setFCMStatus({
@@ -75,7 +75,7 @@ export default function FCMTestPage() {
         addTestResult(`📱 Token registered: ${result.token?.substring(0, 20)}...`);
         
         // Initialize real-time notifications with FCM
-        const realTimeService = RealTimeNotifications.getInstance();
+        const realTimeService = RealTimeNotifications;
         await realTimeService.connect(testUserId);
         
         toast({
@@ -138,7 +138,7 @@ export default function FCMTestPage() {
     addTestResult('🔧 Testing real-time notification service...');
 
     try {
-      const realTimeService = RealTimeNotifications.getInstance();
+      const realTimeService = RealTimeNotifications;
       const success = await realTimeService.testNotification('FCM test from real-time service');
       
       if (success) {

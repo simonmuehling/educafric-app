@@ -432,10 +432,6 @@ class RealTimeNotifications {
     return localStorage.getItem('educafric-auto-open-notifications') !== 'false';
   }
 
-  public disconnect() {
-    this.isConnected = false;
-    this.userId = null;
-  }
 }
 
 export default RealTimeNotifications.getInstance();
