@@ -80,11 +80,12 @@ export const ModernDashboardLayout = ({
             </div>
 
             {/* PWA Notification Center - NOW VISIBLE! */}
-            <NotificationCenter
-              userId={user?.id}
-              userRole={user?.role}
-              compact={true}
-            />
+            {user?.id && (
+              <NotificationCenter
+                userId={user.id}
+                userRole={user.role as any}
+              />
+            )}
 
             {/* Logout Button */}
             <Button 
