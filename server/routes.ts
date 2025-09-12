@@ -169,11 +169,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // EMERGENCY: Disable all HEAD /api requests to stop server overload
+  // ENHANCED: Detailed HEAD /api request tracking to identify source
+  app.use((req, res, next) => {
+    if (req.method === 'HEAD' && req.path.startsWith('/api')) {
+      console.warn('[HEAD-TRAP]', JSON.stringify({
+        ip: req.ip,
+        ua: req.get('user-agent'),
+        referer: req.get('referer'),
+        xdbg: req.get('x-debug-stack') || null,
+        path: req.path,
+        time: new Date().toISOString(),
+        headers: Object.keys(req.headers).length > 10 ? 'many' : Object.keys(req.headers)
+      }, null, 2));
+    }
+    next();
+  });
+
   app.head('/api', (req, res) => {
-    console.log(`[SERVER] 🚨 HEAD /api BLOCKED from ${req.ip}, User-Agent: ${req.get('User-Agent')?.slice(0,50)}..., Referer: ${req.get('Referer')}`);
-    // EMERGENCY: Return 503 to break the polling loop
-    res.status(503).send('Service temporarily unavailable - polling disabled');
+    // FINAL SOLUTION: Complete termination of HEAD /api with connection close
+    res.set('Connection', 'close');
+    res.status(404).end('Not Found');
   });
 
   // Add missing authentication API endpoints
