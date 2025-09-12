@@ -9,7 +9,21 @@ interface NotificationPermissions {
 
 export const useNotificationPermissions = (): NotificationPermissions => {
   const [permission, setPermission] = useState<NotificationPermission>('default');
-  const [supported] = useState<boolean>('Notification' in window && 'serviceWorker' in navigator);
+  const [supported] = useState<boolean>(() => {
+    // Enhanced mobile support detection
+    const hasNotificationAPI = 'Notification' in window;
+    const hasServiceWorker = 'serviceWorker' in navigator;
+    const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost';
+    
+    console.log('[NOTIFICATION_PERMISSIONS] 🔍 Support check:', {
+      hasNotificationAPI,
+      hasServiceWorker,
+      isSecureContext,
+      userAgent: navigator.userAgent
+    });
+    
+    return hasNotificationAPI && hasServiceWorker && isSecureContext;
+  });
 
   useEffect(() => {
     if (supported) {
