@@ -180,6 +180,12 @@ class HealthCheckService {
    * Start periodic health checks with adaptive intervals
    */
   private startPeriodicChecks(): void {
+    console.log('[HEALTH_SERVICE] 🚫 EMERGENCY DISABLE: All periodic checks disabled to stop polling overload');
+    // EMERGENCY: Completely disable all polling to stop server overload
+    // Will re-enable once we identify the rogue polling source
+    return;
+    
+    /* DISABLED CODE:
     if (!this.isVisible || this.intervalId !== null) {
       return;
     }
@@ -203,6 +209,7 @@ class HealthCheckService {
     if (!this.lastResult || Date.now() - this.lastResult.timestamp > 60000) {
       this.performHealthCheck();
     }
+    */
   }
   
   /**

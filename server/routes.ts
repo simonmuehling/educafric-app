@@ -160,11 +160,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🚫 CRITICAL: PUBLIC ENDPOINTS MUST BE FIRST (before any /api middleware)
   // Health check endpoint - MUST be public (no authentication required)
   app.get('/api/health', (req, res) => {
+    // TEMPORARY: Log every request to identify polling source
+    console.log(`[SERVER] 🔍 Health check from ${req.ip}, User-Agent: ${req.get('User-Agent')?.slice(0,50)}..., Referer: ${req.get('Referer')}`);
     res.json({ 
       status: 'healthy', 
       timestamp: new Date().toISOString(),
       routes: 'refactored'
     });
+  });
+
+  // EMERGENCY: Disable all HEAD /api requests to stop server overload
+  app.head('/api', (req, res) => {
+    console.log(`[SERVER] 🚨 HEAD /api BLOCKED from ${req.ip}, User-Agent: ${req.get('User-Agent')?.slice(0,50)}..., Referer: ${req.get('Referer')}`);
+    // EMERGENCY: Return 503 to break the polling loop
+    res.status(503).send('Service temporarily unavailable - polling disabled');
   });
 
   // Add missing authentication API endpoints
