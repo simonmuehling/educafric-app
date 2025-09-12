@@ -233,7 +233,7 @@ const StudentProgress = () => {
 
       {/* Overall Progress Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ModernCard gradient="blue">
+        <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-blue-100 rounded-lg">
               <BarChart3 className="w-8 h-8 text-blue-600" />
@@ -246,7 +246,7 @@ const StudentProgress = () => {
           </div>
         </ModernCard>
 
-        <ModernCard gradient="green">
+        <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-green-100 rounded-lg">
               <Target className="w-8 h-8 text-green-600" />
@@ -259,7 +259,7 @@ const StudentProgress = () => {
           </div>
         </ModernCard>
 
-        <ModernCard gradient="purple">
+        <ModernCard variant="gradient">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-purple-100 rounded-lg">
               <Trophy className="w-8 h-8 text-purple-600" />
@@ -283,7 +283,7 @@ const StudentProgress = () => {
           {(Array.isArray(progressData) ? progressData.length : 0) > 0 ? (
             <div className="space-y-4">
               {(Array.isArray(progressData) ? progressData : []).map((data: ProgressData, index: number) => (
-                <ModernCard key={index} gradient="default">
+                <ModernCard key={index} variant="default">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-lg font-semibold text-gray-900">{data.subject}</h4>
@@ -365,7 +365,7 @@ const StudentProgress = () => {
           {Array.isArray(achievements) && (Array.isArray(achievements) ? achievements.length : 0) > 0 ? (
             <div className="space-y-3">
               {(Array.isArray(achievements) ? achievements : []).map((achievement: Achievement) => (
-                <ModernCard key={achievement.id} gradient="orange">
+                <ModernCard key={achievement.id} variant="gradient">
                   <div className="flex items-center space-x-4">
                     <div className="p-3 bg-yellow-100 rounded-lg">
                       <Trophy className="w-6 h-6 text-yellow-600" />

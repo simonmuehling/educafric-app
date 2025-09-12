@@ -127,7 +127,7 @@ const StudentAchievements: React.FC = () => {
       title: t?.stats?.points,
       value: (achievementsData?.stats?.points || 0).toString(),
       icon: <Star className="w-5 h-5" />,
-      gradient: 'yellow' as const,
+      gradient: 'orange' as const,
       trend: { value: 150, isPositive: true }
     },
     {

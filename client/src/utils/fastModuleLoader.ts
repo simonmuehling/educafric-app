@@ -223,7 +223,15 @@ class FastModuleLoader {
       'freelancer.settings': () => import('@/components/freelancer/modules/FreelancerSettings'),
       'commercial.settings': () => import('@/components/shared/UnifiedProfileManager'),
       // Generic settings fallback (removed duplication)
-      'settings': () => import('@/components/shared/UnifiedProfileManager') // Legacy compatibility for generic settings only
+      'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility for generic settings only
+      
+      // =============================================
+      // 🔧 GENERIC MODULE FALLBACKS - MISSING MAPPINGS FIX
+      // =============================================
+      // These were causing "Module X not found in mapping" errors
+      'profile': () => import('@/components/shared/UnifiedProfileManager'), // Generic profile fallback
+      'messages': () => import('@/components/shared/InterProfileCommunications'), // Generic messages fallback  
+      'communications': () => import('@/components/shared/CommunicationsCenter') // Generic communications fallback
     };
 
     // VALIDATION: Check for duplicate keys to prevent conflicts
