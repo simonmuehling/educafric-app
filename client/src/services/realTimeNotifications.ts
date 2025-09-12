@@ -76,7 +76,7 @@ class RealTimeNotifications {
     if (!this.userId) return;
 
     try {
-      const response = await fetch(`/api/notifications/pending/${this.userId}`, {
+      const response = await fetch(`/pwa/notifications/pending/${this.userId}`, {
         credentials: 'include', // Include authentication cookies
         headers: {
           'Accept': 'application/json',
@@ -97,7 +97,7 @@ class RealTimeNotifications {
           // Only mark as delivered if successfully displayed
           if (displaySuccess) {
             try {
-              const deliveredResponse = await fetch(`/api/notifications/${notification.id}/delivered`, { 
+              const deliveredResponse = await fetch(`/pwa/notifications/${notification.id}/delivered`, { 
                 method: 'POST',
                 credentials: 'include',
                 headers: {

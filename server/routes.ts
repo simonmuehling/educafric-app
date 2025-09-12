@@ -4638,6 +4638,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
   // Register API route modules AFTER settings routes (FIXED DUPLICATION)
   app.use('/api/notifications', notificationsRouter);
   
@@ -5676,7 +5677,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: 'Failed to update school profile' });
     }
   });
-  
+
+  // 🔔 PWA NOTIFICATIONS ENDPOINTS - BEFORE API CATCH-ALL (NO AUTH)
+  app.get('/pwa/notifications/pending/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      console.log('[PWA_NOTIFICATIONS] 🔔 PWA endpoint called for user:', userId);
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID required' });
+      }
+
+      const userIdNum = parseInt(userId, 10);
+      const allNotifications = await storage.getUserNotifications(userIdNum);
+      const pendingNotifications = allNotifications.filter((n: any) => !n.isDelivered && !n.isRead);
+      
+      const formattedNotifications = pendingNotifications.map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        message: n.content || n.message,
+        type: n.type,
+        priority: n.priority || 'normal',
+        timestamp: n.createdAt,
+        actionUrl: n.metadata?.actionUrl || '/',
+        actionText: n.metadata?.actionText || 'Voir',
+        userId: n.userId
+      }));
+
+      console.log(`[PWA_NOTIFICATIONS] ✅ Returning ${pendingNotifications.length} pending notifications`);
+      res.json(formattedNotifications);
+    } catch (error: any) {
+      console.error('[PWA_NOTIFICATIONS] Error:', error);
+      res.status(500).json({ message: 'Failed to fetch pending notifications' });
+    }
+  });
+
+  app.post('/pwa/notifications/:id/delivered', async (req, res) => {
+    try {
+      const { id } = req.params;
+      console.log('[PWA_NOTIFICATIONS] 📱 Marking notification as delivered:', id);
+      
+      if (!id) {
+        return res.status(400).json({ message: 'Notification ID required' });
+      }
+
+      const notificationId = parseInt(id, 10);
+      await storage.markNotificationAsDelivered(notificationId);
+      
+      console.log(`[PWA_NOTIFICATIONS] ✅ Notification ${notificationId} marked as delivered`);
+      res.json({ success: true, message: 'Notification marked as delivered' });
+    } catch (error: any) {
+      console.error('[PWA_NOTIFICATIONS] Error:', error);
+      res.status(500).json({ message: 'Failed to mark notification as delivered' });
+    }
+  });
 
   // API 404 handler - must be after all API routes
   app.use('/api/*', (req, res) => {
