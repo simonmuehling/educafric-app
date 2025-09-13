@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
-import { HealthCheckService } from '@/services/HealthCheckService';
+import { healthCheckService } from '@/services/HealthCheckService';
 
 interface PWAIssue {
   type: 'permission_denied' | 'service_worker_failed' | 'network_unstable' | 'browser_unsupported';
@@ -220,10 +220,10 @@ const AutoPWARecovery: React.FC<AutoPWARecoveryProps> = ({ userId, onRecoveryCom
   };
 
   // Use centralized HealthCheckService instead of direct API calls
-  const healthCheckService = HealthCheckService.getInstance();
+  // healthCheckService is already imported as singleton instance
   
   const getNetworkQuality = (): 'good' | 'fair' | 'poor' => {
-    const result = healthCheckService.getLastResult();
+    const result = healthCheckService.getLatestResult();
     if (!result || !result.isHealthy) return 'poor';
     
     const latency = result.responseTime;

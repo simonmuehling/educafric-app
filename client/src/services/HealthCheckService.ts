@@ -453,6 +453,9 @@ class HealthCheckService {
 // Export singleton instance
 export const healthCheckService = HealthCheckService.getInstance();
 
+// Export the class as well for cases where getInstance() is needed
+export { HealthCheckService };
+
 // Cleanup on page unload
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
