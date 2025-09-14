@@ -18,18 +18,30 @@ const activeIntervals: Set<number> = new Set();
 const activeTimeouts: Set<number> = new Set();
 
 // Override setInterval to track all intervals
-window.setInterval = function(handler: any, timeout?: number) {
-  const intervalId = originalSetInterval(handler, timeout);
+const newSetInterval = function(handler: any, timeout?: number, ...args: any[]) {
+  const intervalId = originalSetInterval(handler, timeout, ...args);
   activeIntervals.add(intervalId);
   return intervalId;
-};
+} as typeof window.setInterval;
+
+// Copy over any additional properties from original function
+Object.setPrototypeOf(newSetInterval, originalSetInterval);
+Object.assign(newSetInterval, originalSetInterval);
+
+window.setInterval = newSetInterval;
 
 // Override setTimeout to track all timeouts
-window.setTimeout = function(handler: any, timeout?: number) {
-  const timeoutId = originalSetTimeout(handler, timeout);
+const newSetTimeout = function(handler: any, timeout?: number, ...args: any[]) {
+  const timeoutId = originalSetTimeout(handler, timeout, ...args);
   activeTimeouts.add(timeoutId);
   return timeoutId;
-};
+} as typeof window.setTimeout;
+
+// Copy over any additional properties from original function
+Object.setPrototypeOf(newSetTimeout, originalSetTimeout);
+Object.assign(newSetTimeout, originalSetTimeout);
+
+window.setTimeout = newSetTimeout;
 
 // Override clearInterval to remove from tracking
 window.clearInterval = function(id?: number) {
