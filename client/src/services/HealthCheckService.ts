@@ -43,16 +43,16 @@ class HealthCheckService {
   private intervalId: number | null = null;
   private broadcastChannel: BroadcastChannel;
   
-  // Adaptive configuration
+  // Adaptive configuration - CONSERVATIVE INTERVALS TO PREVENT OVERLOAD
   private config: AdaptiveConfig = {
-    baseInterval: 120000,      // 2 minutes base
-    maxInterval: 300000,       // 5 minutes max
-    currentInterval: 120000,   // Start at base
+    baseInterval: 300000,      // 5 minutes base (was 2min) - SAFE
+    maxInterval: 600000,       // 10 minutes max (was 5min) - SAFER
+    currentInterval: 300000,   // Start at base
     consecutiveFailures: 0,
     device: 'standard'
   };
   
-  // Telemetry and safety
+  // Telemetry and safety - Enhanced with hourly limits
   private telemetry: HealthCheckTelemetry = {
     totalChecks: 0,
     averageResponseTime: 0,
@@ -60,6 +60,10 @@ class HealthCheckService {
     checksPerMinute: 0,
     failureCount: 0
   };
+  
+  // Additional safety: Track hourly request count
+  private hourlyRequestCount = 0;
+  private lastHourlyReset = Date.now();
   
   // Page visibility and activity tracking
   private isVisible = !document.hidden;
@@ -147,12 +151,12 @@ class HealthCheckService {
     
     if (isLowEnd || (isMobile && navigator.hardwareConcurrency <= 2)) {
       this.config.device = 'low-end';
-      this.config.baseInterval = 180000; // 3 minutes
-      this.config.maxInterval = 300000;  // 5 minutes
+      this.config.baseInterval = 600000; // 10 minutes (was 3min) - VERY CONSERVATIVE
+      this.config.maxInterval = 900000;  // 15 minutes (was 5min) - VERY SAFE
     } else if (connection?.effectiveType === '4g' && navigator.hardwareConcurrency > 4) {
       this.config.device = 'high-end';
-      this.config.baseInterval = 120000; // 2 minutes
-      this.config.maxInterval = 240000;  // 4 minutes
+      this.config.baseInterval = 240000; // 4 minutes (was 2min) - SAFER
+      this.config.maxInterval = 480000;  // 8 minutes (was 4min) - SAFER
     }
     
     this.config.currentInterval = this.config.baseInterval;
@@ -177,39 +181,56 @@ class HealthCheckService {
   }
   
   /**
-   * Start periodic health checks with adaptive intervals
+   * Start periodic health checks with conservative intervals (5+ minutes minimum)
    */
   private startPeriodicChecks(): void {
-    console.log('[HEALTH_SERVICE] 🚫 EMERGENCY DISABLE: All periodic checks disabled to stop polling overload');
-    // EMERGENCY: Completely disable all polling to stop server overload
-    // Will re-enable once we identify the rogue polling source
-    return;
-    
-    /* DISABLED CODE:
+    // SAFETY: Don't start if page is hidden or already running
     if (!this.isVisible || this.intervalId !== null) {
+      console.log('[HEALTH_SERVICE] ⏸️ Skipping start - page hidden or already running');
       return;
     }
     
-    console.log(`[HEALTH_SERVICE] ⏰ Starting periodic checks every ${this.config.currentInterval/1000}s`);
-    console.log(`[HEALTH_SERVICE] 🔍 DEBUG: Previous intervalId:`, this.intervalId);
+    // ADDITIONAL SAFETY: Enforce hourly limit (max 10 requests per hour)
+    const oneHourAgo = Date.now() - 3600000;
+    if (this.telemetry.lastCheckTime > oneHourAgo && this.telemetry.totalChecks >= 10) {
+      console.log('[HEALTH_SERVICE] ⏰ Hourly limit reached - delaying start');
+      // Retry after 1 hour
+      setTimeout(() => this.startPeriodicChecks(), 3600000);
+      return;
+    }
+    
+    console.log(`[HEALTH_SERVICE] 🚀 Starting SAFE periodic checks every ${this.config.currentInterval/1000}s (${this.config.currentInterval/60000} min)`);
+    console.log(`[HEALTH_SERVICE] 🛡️ Rate limits: Max 1 per 5min, Max 10 per hour`);
     
     this.intervalId = window.setInterval(() => {
-      console.log(`[HEALTH_SERVICE] 🔄 Interval fired - performing health check`);
-      // SAFETY: Only check if page is visible and user is active
+      // MULTI-LAYER SAFETY CHECKS
       const inactiveTime = Date.now() - this.lastActivityTime;
-      if (!this.isVisible || inactiveTime > 600000) { // 10 min inactive
-        console.log('[HEALTH_SERVICE] ⏸️ Skipping check - page hidden or inactive');
+      const timeSinceLastCheck = Date.now() - this.telemetry.lastCheckTime;
+      
+      if (!this.isVisible) {
+        console.log('[HEALTH_SERVICE] ⏸️ Skipping check - page hidden');
         return;
       }
       
+      if (inactiveTime > 600000) { // 10 minutes inactive
+        console.log('[HEALTH_SERVICE] ⏸️ Skipping check - user inactive');
+        return;
+      }
+      
+      if (timeSinceLastCheck < 300000) { // 5 minutes minimum
+        console.log('[HEALTH_SERVICE] ⏰ Rate limit - too soon since last check');
+        return;
+      }
+      
+      console.log(`[HEALTH_SERVICE] ✅ Safety checks passed - performing health check`);
       this.performHealthCheck();
     }, this.config.currentInterval);
     
-    // Initial check if no recent result
-    if (!this.lastResult || Date.now() - this.lastResult.timestamp > 60000) {
-      this.performHealthCheck();
+    // Initial check only if no recent result (>10 minutes old)
+    if (!this.lastResult || Date.now() - this.lastResult.timestamp > 600000) {
+      console.log('[HEALTH_SERVICE] 🚀 Performing initial health check');
+      setTimeout(() => this.performHealthCheck(), 5000); // Delay 5 seconds to avoid startup rush
     }
-    */
   }
   
   /**
@@ -255,15 +276,36 @@ class HealthCheckService {
       return this.inFlightRequest;
     }
     
-    // TELEMETRY: Enforce ≤1 request per 5 minutes globally
+    // ENHANCED RATE LIMITING: Multiple layers of protection
     const timeSinceLastCheck = Date.now() - this.telemetry.lastCheckTime;
+    const now = Date.now();
+    
+    // Reset hourly counter if needed
+    if (now - this.lastHourlyReset > 3600000) {
+      this.hourlyRequestCount = 0;
+      this.lastHourlyReset = now;
+    }
+    
+    // LAYER 1: 5-minute minimum between requests
     if (timeSinceLastCheck < 300000 && !immediate && this.telemetry.totalChecks > 0) {
       console.log(`[HEALTH_SERVICE] ⏰ Rate limit: ${Math.round(timeSinceLastCheck/1000)}s since last check (5min minimum)`);
       return this.lastResult || {
         isHealthy: false,
         responseTime: 0,
         timestamp: Date.now(),
-        error: 'Rate limited',
+        error: 'Rate limited (5min rule)',
+        fromCache: true
+      };
+    }
+    
+    // LAYER 2: 10 requests per hour maximum
+    if (this.hourlyRequestCount >= 10 && !immediate) {
+      console.log(`[HEALTH_SERVICE] ⏰ Hourly limit: ${this.hourlyRequestCount}/10 requests used this hour`);
+      return this.lastResult || {
+        isHealthy: false,
+        responseTime: 0,
+        timestamp: Date.now(),
+        error: 'Rate limited (hourly)',
         fromCache: true
       };
     }
@@ -381,11 +423,12 @@ class HealthCheckService {
   }
   
   /**
-   * Update telemetry data
+   * Update telemetry data with enhanced hourly tracking
    */
   private updateTelemetry(result: HealthCheckResult): void {
     this.telemetry.totalChecks++;
     this.telemetry.lastCheckTime = Date.now();
+    this.hourlyRequestCount++; // Track hourly requests
     
     if (!result.isHealthy) {
       this.telemetry.failureCount++;
@@ -396,11 +439,13 @@ class HealthCheckService {
     const count = this.telemetry.totalChecks;
     this.telemetry.averageResponseTime = (oldAvg * (count - 1) + result.responseTime) / count;
     
-    // Calculate checks per minute
+    // Calculate checks per minute (more conservative calculation)
     if (this.telemetry.totalChecks > 1) {
       const timespan = Date.now() - (this.telemetry.lastCheckTime - (this.config.currentInterval * (count - 1)));
-      this.telemetry.checksPerMinute = (count * 60000) / timespan;
+      this.telemetry.checksPerMinute = Math.min((count * 60000) / timespan, 12); // Cap at 12/min for safety
     }
+    
+    console.log(`[HEALTH_SERVICE] 📊 Telemetry: ${this.telemetry.totalChecks} total, ${this.hourlyRequestCount}/10 hourly`);
   }
   
   // Listener management

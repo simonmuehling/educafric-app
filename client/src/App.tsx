@@ -13,9 +13,8 @@ import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
 // EMERGENCY: Stop all existing polling first, then initialize safe centralized monitoring
 import '@/utils/emergencyPollingStop';
-// TEMPORARILY DISABLED TO ISOLATE POLLING SOURCE
-// import '@/services/HealthCheckService';
-// import '@/services/HealthMonitorMigration';
+// RE-ENABLED: Safe health monitoring with conservative intervals (5+ min)
+import '@/services/HealthCheckService';
 
 // Core pages - Always loaded (light components)
 import Home from "@/pages/Home";
