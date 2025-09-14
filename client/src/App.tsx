@@ -11,8 +11,8 @@ import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
-// EMERGENCY: Stop all existing polling first, then initialize safe centralized monitoring
-import '@/utils/emergencyPollingStop';
+// EMERGENCY STOP: Now manual-only - no automatic execution
+// To trigger manually: import('@/utils/emergencyPollingStop').then(m => m.emergencyStopAllPolling())
 // RE-ENABLED: Safe health monitoring with conservative intervals (5+ min)
 import '@/services/HealthCheckService';
 

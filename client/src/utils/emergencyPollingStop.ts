@@ -1,11 +1,14 @@
 /**
- * EMERGENCY POLLING STOP - Immediately terminate all health check polling
+ * EMERGENCY POLLING STOP - Manual termination utility for legacy polling
  * 
- * This utility forcefully stops all active polling intervals to prevent
- * server overload while the new centralized HealthCheckService takes over.
+ * This utility provides manual control to stop legacy polling intervals
+ * when needed, while allowing legitimate health monitoring to function.
+ * 
+ * AUTO-EXECUTION DISABLED: No longer automatically clears all timers to
+ * prevent interference with HealthCheckService and other legitimate intervals.
  */
 
-console.log('[EMERGENCY_STOP] 🚨 Initiating emergency polling termination...');
+console.log('[EMERGENCY_STOP] 🛠️ Emergency polling stop utility loaded (manual mode)');
 
 // Record original setTimeout and setInterval references
 const originalSetTimeout = window.setTimeout;
@@ -60,10 +63,12 @@ window.clearTimeout = function(id?: number) {
 };
 
 /**
- * Force clear all existing intervals and timeouts
+ * Force clear all existing intervals and timeouts (MANUAL USE ONLY)
+ * WARNING: This will clear ALL timers including legitimate ones like HealthCheckService!
+ * Only use when you specifically need to stop all polling due to emergencies.
  */
 export function emergencyStopAllPolling(): void {
-  console.log('[EMERGENCY_STOP] 🛑 Clearing all active intervals and timeouts...');
+  console.log('[EMERGENCY_STOP] 🛑 MANUAL emergency stop activated - clearing all timers...');
   
   let clearedCount = 0;
   
@@ -90,7 +95,8 @@ export function emergencyStopAllPolling(): void {
   activeIntervals.clear();
   activeTimeouts.clear();
   
-  // Also try to clear any intervals that might have been created before tracking
+  // DANGER ZONE: Clear all possible timer IDs - ONLY for true emergencies
+  console.log('[EMERGENCY_STOP] ⚠️ DANGER: Clearing all possible timer IDs (1-10000)...');
   for (let i = 1; i <= 10000; i++) {
     try {
       originalClearInterval(i);
@@ -110,8 +116,8 @@ export function emergencyStopAllPolling(): void {
     (window as any).__fetch_intercepted = false; // Allow clean fetch
   }
   
-  console.log(`[EMERGENCY_STOP] ✅ Cleared ${clearedCount} tracked timers + force cleared legacy intervals`);
-  console.log('[EMERGENCY_STOP] 🔄 All polling stopped - HealthCheckService will take over');
+  console.log(`[EMERGENCY_STOP] ✅ Manual emergency stop complete: ${clearedCount} tracked timers + 10000 possible timer IDs cleared`);
+  console.log('[EMERGENCY_STOP] ⚠️  WARNING: This includes HealthCheckService and other legitimate timers!');
 }
 
 /**
@@ -126,22 +132,30 @@ export function getPollingStats() {
   };
 }
 
-// Initialize emergency stop immediately when this module loads
-if (typeof window !== 'undefined') {
-  // Immediate stop to prevent any polling from starting
-  emergencyStopAllPolling();
-  
-  // Also stop after brief delay to catch delayed initializations
-  originalSetTimeout(() => {
-    emergencyStopAllPolling();
-    console.log('[EMERGENCY_STOP] 🔄 Secondary cleanup completed');
-  }, 1000); // 1 second delay
-  
-  // Final cleanup after more components may have loaded
-  originalSetTimeout(() => {
-    emergencyStopAllPolling();
-    console.log('[EMERGENCY_STOP] 🔄 Final cleanup completed');
-  }, 5000); // 5 seconds for complete initialization
-}
+// AUTOMATIC EXECUTION DISABLED: No longer auto-clears timers on module load
+// This prevents interference with HealthCheckService and other legitimate timers.
+// 
+// To manually trigger emergency stop, call emergencyStopAllPolling() from console:
+// import('@/utils/emergencyPollingStop').then(m => m.emergencyStopAllPolling())
+//
+// Previous behavior (DISABLED):
+// - Immediate stop on module load
+// - Secondary cleanup after 1 second  
+// - Final cleanup after 5 seconds
+//
+// if (typeof window !== 'undefined') {
+//   emergencyStopAllPolling();
+//   originalSetTimeout(() => {
+//     emergencyStopAllPolling();
+//     console.log('[EMERGENCY_STOP] 🔄 Secondary cleanup completed');
+//   }, 1000);
+//   originalSetTimeout(() => {
+//     emergencyStopAllPolling();
+//     console.log('[EMERGENCY_STOP] 🔄 Final cleanup completed');
+//   }, 5000);
+// }
+
+console.log('[EMERGENCY_STOP] ✅ Module loaded in MANUAL mode - automatic execution disabled');
+console.log('[EMERGENCY_STOP] 🔧 To trigger manually: emergencyStopAllPolling()');
 
 export default { emergencyStopAllPolling, getPollingStats };
