@@ -9,29 +9,42 @@ interface MemoryMetrics {
 }
 
 class MemoryOptimizer {
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private performanceMonitor: NodeJS.Timeout | null = null;
-  private memoryThreshold = 0.85; // 85% de la mémoire disponible
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private performanceMonitor: ReturnType<typeof setInterval> | null = null;
+  private memoryThreshold = 0.90; // 90% de la mémoire disponible (plus conservateur)
+  private isStarted = false; // Prévenir les démarrages multiples
+  private startupDelay = 30000; // 30 secondes de délai avant démarrage
 
-  // Démarrer l'optimisation automatique (mode agressif pour résoudre le problème critique)
+  // Démarrer l'optimisation automatique (mode conservateur pour éviter les conflits)
   start() {
-    // Nettoyage immédiat
-    this.performCleanup();
-    this.optimizeAnimations();
+    // Prévenir les démarrages multiples
+    if (this.isStarted) {
+      if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+        console.log('[MEMORY_OPTIMIZER] Déjà démarré, ignoré');
+      }
+      return;
+    }
+    
+    this.isStarted = true;
+    
+    // Pas de nettoyage immédiat pour éviter les conflits
+    // Optimisations légères seulement
     this.optimizeNetworkRequests();
     
-    // Much more efficient cleanup intervals for better performance
+    // Intervalles très conservateurs pour éviter les problèmes de performance
     this.cleanupInterval = setInterval(() => {
       this.performCleanup();
-    }, 300 * 1000); // 5 minutes - much less aggressive for performance
+    }, 1800 * 1000) as ReturnType<typeof setInterval>; // 30 minutes - beaucoup moins agressif
 
-    // Much less aggressive monitoring to reduce CPU overhead
+    // Monitoring très conservateur pour réduire la charge CPU
     this.performanceMonitor = setInterval(() => {
       this.checkMemoryUsage();
-      this.triggerGarbageCollection();
-    }, 600 * 1000); // 10 minutes - much more conservative for better performance
+      // Pas de garbage collection automatique pour éviter les freezes
+    }, 1200 * 1000) as ReturnType<typeof setInterval>; // 20 minutes - très conservateur
 
-    // Silent mode for performance
+    if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+      console.log('[MEMORY_OPTIMIZER] Démarré en mode conservateur (30min cleanup, 20min monitoring)');
+    }
   }
 
   // Arrêter l'optimisation
@@ -44,6 +57,8 @@ class MemoryOptimizer {
       clearInterval(this.performanceMonitor);
       this.performanceMonitor = null;
     }
+    this.isStarted = false;
+    
     // Afficher seulement en mode debug
     if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
       console.log('[MEMORY_OPTIMIZER] Optimiseur arrêté');
@@ -96,46 +111,51 @@ class MemoryOptimizer {
     }
   }
 
-  // Nettoyer le cache des requêtes anciennes
+  // Nettoyer le cache des requêtes anciennes (plus conservateur)
   private cleanQueryCache() {
     const cache = queryClient.getQueryCache();
     const queries = cache.getAll();
     const now = Date.now();
-    const maxAge = 10 * 60 * 1000; // 10 minutes
+    const maxAge = 30 * 60 * 1000; // 30 minutes - beaucoup plus conservateur
     
     let removedCount = 0;
     queries.forEach(query => {
-      if (query.state.dataUpdatedAt && (now - query.state.dataUpdatedAt) > maxAge) {
+      // Nettoyer seulement les requêtes vraiment anciennes et inutilisées
+      if (query.state.dataUpdatedAt && 
+          (now - query.state.dataUpdatedAt) > maxAge &&
+          query.getObserversCount() === 0) {
         cache.remove(query);
         removedCount++;
       }
     });
     
-    // Afficher seulement si beaucoup d'éléments supprimés
-    if (import.meta.env.DEV && removedCount > 5) {
-      console.log(`[MEMORY_OPTIMIZER] ${removedCount} requêtes anciennes supprimées du cache`);
+    // Afficher seulement si beaucoup d'éléments supprimés (seuil plus élevé)
+    if (import.meta.env.DEV && removedCount > 10) {
+      console.log(`[MEMORY_OPTIMIZER] ${removedCount} requêtes très anciennes supprimées du cache`);
     }
   }
 
-  // Nettoyer les éléments DOM inutiles
+  // Nettoyer les éléments DOM inutiles (mode très conservateur)
   private cleanDOMElements() {
-    // Supprimer les éléments cachés depuis longtemps
-    const hiddenElements = document.querySelectorAll('[style*="display: none"], [hidden]');
+    // Nettoyer seulement les éléments explicitement marqués pour suppression
+    const elementsToRemove = document.querySelectorAll('[data-cleanup="true"]');
     let removedCount = 0;
     
-    hiddenElements.forEach(element => {
-      if (element.getAttribute('data-keep') !== 'true') {
+    elementsToRemove.forEach(element => {
+      // Double vérification avant suppression
+      if (element.getAttribute('data-cleanup') === 'true' && 
+          element.getAttribute('data-keep') !== 'true') {
         element.remove();
         removedCount++;
       }
     });
 
-    // Nettoyer les listeners d'événements orphelins
+    // Nettoyer les listeners d'événements orphelins (plus conservateur)
     this.cleanEventListeners();
     
-    // Afficher seulement si beaucoup d'éléments supprimés  
-    if (import.meta.env.DEV && removedCount > 10) {
-      console.log(`[MEMORY_OPTIMIZER] ${removedCount} éléments DOM inutiles supprimés`);
+    // Afficher seulement si des éléments ont été supprimés
+    if (import.meta.env.DEV && removedCount > 0) {
+      console.log(`[MEMORY_OPTIMIZER] ${removedCount} éléments DOM marqués pour suppression nettoyés`);
     }
   }
 
@@ -150,22 +170,23 @@ class MemoryOptimizer {
     }));
   }
 
-  // Nettoyer le cache des images
+  // Optimiser le cache des images (plus conservateur)
   private cleanImageCache() {
-    const images = document.querySelectorAll('img');
+    const images = document.querySelectorAll('img[data-optimize="true"]');
     let optimizedCount = 0;
     
-    images.forEach(img => {
-      // Désactiver le cache des images non visibles
-      if (!this.isElementVisible(img)) {
+    images.forEach(imgElement => {
+      const img = imgElement as HTMLImageElement;
+      // Optimiser seulement les images explicitement marquées
+      if (!this.isElementVisible(img) && img.loading !== 'lazy') {
         img.loading = 'lazy';
         optimizedCount++;
       }
     });
     
-    // Réduire le spam - afficher seulement si beaucoup d'images optimisées
-    if (import.meta.env.DEV && optimizedCount > 5) {
-      console.log(`[MEMORY_OPTIMIZER] ${optimizedCount} images optimisées`);
+    // Affichage très conservateur
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MEMORY === 'true' && optimizedCount > 0) {
+      console.log(`[MEMORY_OPTIMIZER] ${optimizedCount} images marquées optimisées`);
     }
   }
 
@@ -180,45 +201,48 @@ class MemoryOptimizer {
     );
   }
 
-  // Déclencher le garbage collection si possible
+  // Déclencher le garbage collection si possible (désactivé par défaut)
   private triggerGarbageCollection() {
-    if ('gc' in window && typeof (window as any).gc === 'function') {
+    // GC forcé désactivé car il peut causer des freezes
+    // Laisser le navigateur gérer automatiquement
+    if (import.meta.env.VITE_FORCE_GC === 'true' && 'gc' in window && typeof (window as any).gc === 'function') {
       (window as any).gc();
       if (import.meta.env.DEV) {
-        console.log('[MEMORY_OPTIMIZER] Garbage collection forcé');
+        console.log('[MEMORY_OPTIMIZER] Garbage collection forcé (mode debug uniquement)');
       }
     }
   }
 
-  // Optimiser les performances des animations
+  // Optimiser les performances des animations (plus conservateur)
   optimizeAnimations() {
-    // Réduire la fréquence d'animation si la mémoire est faible
+    // Réduire la fréquence d'animation seulement en cas de mémoire critique
     const metrics = this.getMemoryMetrics();
-    if (metrics && metrics.percentage > 70) {
-      document.documentElement.style.setProperty('--animation-duration', '0.1s');
-      if (import.meta.env.DEV) {
-        console.log('[MEMORY_OPTIMIZER] Animations réduites pour économiser la mémoire');
+    if (metrics && metrics.percentage > 85) {
+      document.documentElement.style.setProperty('--animation-duration', '0.2s');
+      if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+        console.log('[MEMORY_OPTIMIZER] Animations légèrement réduites (mémoire critique)');
       }
     } else {
       document.documentElement.style.setProperty('--animation-duration', '0.3s');
     }
   }
 
-  // Optimiser les requêtes réseau
+  // Optimiser les requêtes réseau (paramètres équilibrés)
   optimizeNetworkRequests() {
-    // Définir des délais plus longs pour les requêtes non critiques
+    // Paramètres équilibrés pour performance et fraîcheur des données
     queryClient.setDefaultOptions({
       queries: {
-        staleTime: 10 * 60 * 1000, // 10 minutes
-        gcTime: 5 * 60 * 1000, // 5 minutes (anciennement cacheTime)
+        staleTime: 15 * 60 * 1000, // 15 minutes - équilibre performance/fraîcheur
+        gcTime: 20 * 60 * 1000, // 20 minutes - plus conservateur
         refetchInterval: false,
         refetchOnWindowFocus: false,
+        retry: 2, // Moins de tentatives pour éviter la surcharge
       }
     });
     
     // Afficher seulement en mode debug
     if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_MEMORY === 'true') {
-      console.log('[MEMORY_OPTIMIZER] Requêtes réseau optimisées');
+      console.log('[MEMORY_OPTIMIZER] Requêtes réseau optimisées avec paramètres équilibrés');
     }
   }
 
@@ -252,31 +276,58 @@ class MemoryOptimizer {
       return 'Performance optimale';
     }
   }
+
+  // Public getters for external access
+  getIsStarted(): boolean {
+    return this.isStarted;
+  }
+
+  getStartupDelay(): number {
+    return this.startupDelay;
+  }
 }
 
 // Instance globale de l'optimiseur
 export const memoryOptimizer = new MemoryOptimizer();
 
-// Démarrage automatique
+// Démarrage automatique avec délai pour éviter les conflits
 if (typeof window !== 'undefined') {
-  // Démarrer l'optimiseur après le chargement de la page
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      memoryOptimizer.start();
-      memoryOptimizer.optimizeNetworkRequests();
-    });
-  } else {
-    memoryOptimizer.start();
-    memoryOptimizer.optimizeNetworkRequests();
-  }
-
-  // Exposer l'optimiseur globalement pour debug
+  // Exposer l'optimiseur globalement pour debug et contrôle manuel
   (window as any).memoryOptimizer = memoryOptimizer;
+  
+  // Démarrage différé pour éviter les conflits avec l'initialisation de l'app
+  const startOptimizer = () => {
+    setTimeout(() => {
+      if (import.meta.env.VITE_DISABLE_MEMORY_OPTIMIZER !== 'true') {
+        memoryOptimizer.start();
+      } else if (import.meta.env.VITE_DEBUG_MEMORY === 'true') {
+        console.log('[MEMORY_OPTIMIZER] Démarrage automatique désactivé par VITE_DISABLE_MEMORY_OPTIMIZER');
+      }
+    }, memoryOptimizer.getStartupDelay()); // 30 secondes de délai
+  };
+  
+  // Démarrer l'optimiseur après le chargement complet de la page
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startOptimizer);
+  } else if (document.readyState === 'interactive') {
+    window.addEventListener('load', startOptimizer);
+  } else {
+    startOptimizer();
+  }
   
   // Nettoyage avant fermeture de la page
   window.addEventListener('beforeunload', () => {
     memoryOptimizer.stop();
   });
+  
+  // Fonction globale pour contrôle manuel
+  (window as any).toggleMemoryOptimizer = (enable: boolean) => {
+    if (enable && !memoryOptimizer.getIsStarted()) {
+      memoryOptimizer.start();
+    } else if (!enable && memoryOptimizer.getIsStarted()) {
+      memoryOptimizer.stop();
+    }
+  };
 }
 
 export default MemoryOptimizer;
