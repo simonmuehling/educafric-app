@@ -7,7 +7,7 @@ const EDUCAFRIC_CONTACT = {
   address: 'Douala & Yaoundé, Cameroun',
   website: 'https://educafric.com',
   socialMedia: {
-    facebook: 'https://facebook.com/educafriccom',
+    facebook: 'https://www.facebook.com/educafrique/',
     twitter: 'https://twitter.com/educafric',
     instagram: 'https://instagram.com/educafric',
     linkedin: 'https://linkedin.com/company/educafric',
