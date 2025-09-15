@@ -29,7 +29,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     if (!user) return;
     
     const preloadCommercialApiData = async () => {
-      console.log('[COMMERCIAL_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/commercial/leads',
@@ -43,7 +42,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[COMMERCIAL_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -53,7 +51,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[COMMERCIAL_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[COMMERCIAL_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -63,7 +60,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[COMMERCIAL_DASHBOARD] 🎯 ALL COMMERCIAL API DATA PRELOADED!');
     };
     
     preloadCommercialApiData();
@@ -76,7 +72,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     // ALWAYS call hooks in the same order - move useEffect before conditional return
     React.useEffect(() => {
       if (!ModuleComponent) {
-        console.log(`[COMMERCIAL_DASHBOARD] 🔄 On-demand loading ${moduleName}...`);
         preloadModule(moduleName);
       }
     }, [ModuleComponent, moduleName]);
@@ -84,7 +79,6 @@ const CommercialDashboard = ({ activeModule }: CommercialDashboardProps) => {
     if (ModuleComponent) {
       const isCritical = ['leads', 'appointments', 'schools', 'contacts', 'statistics', 'documents'].includes(moduleName);
       if (isCritical && apiDataPreloaded) {
-        console.log(`[COMMERCIAL_DASHBOARD] 🚀 ${moduleName} served INSTANTLY with PRELOADED DATA!`);
       }
       return React.createElement(ModuleComponent);
     }

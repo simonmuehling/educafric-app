@@ -58,7 +58,6 @@ const SiteAdminDashboard: React.FC = () => {
     if (!user) return;
     
     const preloadSiteAdminApiData = async () => {
-      console.log('[SITEADMIN_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/siteadmin/platform-stats',
@@ -70,7 +69,6 @@ const SiteAdminDashboard: React.FC = () => {
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[SITEADMIN_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -80,7 +78,6 @@ const SiteAdminDashboard: React.FC = () => {
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[SITEADMIN_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[SITEADMIN_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -90,7 +87,6 @@ const SiteAdminDashboard: React.FC = () => {
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[SITEADMIN_DASHBOARD] 🎯 ALL SITEADMIN API DATA PRELOADED!');
     };
     
     preloadSiteAdminApiData();
@@ -101,13 +97,10 @@ const SiteAdminDashboard: React.FC = () => {
     const criticalModules = ['siteadmin-overview', 'siteadmin-settings'];
     
     const forceLoadCriticalModules = async () => {
-      console.log('[SITEADMIN_DASHBOARD] 🚀 FORCE LOADING critical modules...');
       
       const promises = criticalModules.map(async (moduleName) => {
         try {
-          console.log(`[SITEADMIN_DASHBOARD] ⚡ Force loading ${moduleName}...`);
           await preloadModule(moduleName);
-          console.log(`[SITEADMIN_DASHBOARD] ✅ ${moduleName} module ready!`);
           return true;
         } catch (error) {
           console.error(`[SITEADMIN_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);
@@ -116,7 +109,6 @@ const SiteAdminDashboard: React.FC = () => {
       });
       
       await Promise.all(promises);
-      console.log('[SITEADMIN_DASHBOARD] 🎯 ALL CRITICAL MODULES PRELOADED - INSTANT ACCESS!');
     };
     
     forceLoadCriticalModules();

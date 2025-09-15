@@ -31,7 +31,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     if (!user) return;
     
     const preloadTeacherApiData = async () => {
-      console.log('[TEACHER_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/teacher/grades',
@@ -43,7 +42,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[TEACHER_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -58,7 +56,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[TEACHER_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[TEACHER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -68,7 +65,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[TEACHER_DASHBOARD] 🎯 ALL TEACHER API DATA PRELOADED!');
     };
     
     preloadTeacherApiData();
@@ -102,10 +98,8 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   
   // ULTRA-FAST module component creator - Fixed hook violation with DEBUG
   const createDynamicModule = React.useCallback((moduleName: string, fallbackComponent?: React.ReactNode) => {
-    console.log(`[TEACHER_DASHBOARD] 🔍 DEBUG: Attempting to load module "${moduleName}"`);
     
     const ModuleComponent = getModule(moduleName);
-    console.log(`[TEACHER_DASHBOARD] 🔍 DEBUG: getModule("${moduleName}") returned:`, ModuleComponent);
     
     if (ModuleComponent) {
       const isCritical = ['grades', 'classes', 'assignments', 'attendance', 'communications'].includes(moduleName);

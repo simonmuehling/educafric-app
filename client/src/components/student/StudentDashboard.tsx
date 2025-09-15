@@ -30,7 +30,6 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     if (!user) return;
     
     const preloadCriticalApiData = async () => {
-      console.log('[STUDENT_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/student/grades',
@@ -44,7 +43,6 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       // Preload all critical API data simultaneously
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[STUDENT_DASHBOARD] 📡 Preloading ${endpoint}...`);
           
           // Use prefetchQuery to load data into cache WITHOUT showing loading states
           await queryClient.prefetchQuery({
@@ -62,7 +60,6 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
             staleTime: 1000 * 60 * 5 // Keep data fresh for 5 minutes
           });
           
-          console.log(`[STUDENT_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[STUDENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -72,7 +69,6 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[STUDENT_DASHBOARD] 🎯 ALL API DATA PRELOADED - MODULES WILL BE INSTANT!');
     };
     
     preloadCriticalApiData();

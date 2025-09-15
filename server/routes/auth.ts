@@ -134,9 +134,6 @@ passport.deserializeUser(async (id: string | number, done) => {
     try {
       const userId = typeof id === 'string' ? parseInt(id) : id;
       if (isNaN(userId as number)) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[AUTH_DEBUG] Invalid user ID format:', id);
-        }
         return done(null, false);
       }
       

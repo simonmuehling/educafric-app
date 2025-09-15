@@ -32,7 +32,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     if (!user) return;
     
     const preloadDirectorApiData = async () => {
-      console.log('[DIRECTOR_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/director/teachers',
@@ -44,7 +43,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[DIRECTOR_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -59,7 +57,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[DIRECTOR_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -69,7 +66,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[DIRECTOR_DASHBOARD] 🎯 ALL DIRECTOR API DATA PRELOADED!');
     };
     
     preloadDirectorApiData();
@@ -80,13 +76,10 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     const criticalModules = ['overview', 'teachers', 'students', 'classes', 'director-timetable', 'director-attendance', 'director-communications'];
     
     const forceLoadCriticalModules = async () => {
-      console.log('[DIRECTOR_DASHBOARD] 🚀 FORCE LOADING critical modules...');
       
       const promises = criticalModules.map(async (moduleName) => {
         try {
-          console.log(`[DIRECTOR_DASHBOARD] ⚡ Force loading ${moduleName}...`);
           await preloadModule(moduleName);
-          console.log(`[DIRECTOR_DASHBOARD] ✅ ${moduleName} module ready!`);
           return true;
         } catch (error) {
           console.error(`[DIRECTOR_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);

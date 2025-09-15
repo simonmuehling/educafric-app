@@ -32,7 +32,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
     if (!user) return;
     
     const preloadFreelancerApiData = async () => {
-      console.log('[FREELANCER_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/freelancer/students',
@@ -43,7 +42,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[FREELANCER_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -58,7 +56,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[FREELANCER_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[FREELANCER_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -68,7 +65,6 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[FREELANCER_DASHBOARD] 🎯 ALL FREELANCER API DATA PRELOADED!');
     };
     
     preloadFreelancerApiData();
@@ -79,13 +75,10 @@ const FreelancerDashboard = ({ stats, activeModule }: FreelancerDashboardProps) 
     const criticalModules = ['students', 'sessions', 'schedule', 'resources', 'communications', 'settings'];
     
     const forceLoadCriticalModules = async () => {
-      console.log('[FREELANCER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
       
       const promises = criticalModules.map(async (moduleName) => {
         try {
-          console.log(`[FREELANCER_DASHBOARD] ⚡ Force loading ${moduleName}...`);
           await preloadModule(moduleName);
-          console.log(`[FREELANCER_DASHBOARD] ✅ ${moduleName} module ready!`);
           return true;
         } catch (error) {
           console.error(`[FREELANCER_DASHBOARD] ❌ Failed to load ${moduleName}:`, error);

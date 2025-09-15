@@ -29,7 +29,6 @@ class SecurityMonitor {
 
   logSecurityEvent(event: Omit<SecurityEvent, 'id' | 'timestamp'>) {
     // TEMPORARILY DISABLED - Security monitoring completely bypassed
-    console.log(`[SECURITY_BYPASS] Event ignored: ${event.type} from ${event.ip}`);
     return;
     
     const securityEvent: SecurityEvent = {
@@ -46,7 +45,6 @@ class SecurityMonitor {
       this.handleCriticalThreat(securityEvent);
     }
 
-    console.log(`[SECURITY_MONITOR] ${securityEvent.severity.toUpperCase()}: ${event.type} from ${event.ip}`);
   }
 
   private updateThreatScore(ip: string, score: number) {

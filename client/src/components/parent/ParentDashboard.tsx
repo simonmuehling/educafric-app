@@ -36,7 +36,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     if (!user) return;
     
     const preloadParentApiData = async () => {
-      console.log('[PARENT_DASHBOARD] 🚀 PRELOADING API DATA for instant access...');
       
       const apiEndpoints = [
         '/api/parent/children',
@@ -48,7 +47,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       
       const promises = apiEndpoints.map(async (endpoint) => {
         try {
-          console.log(`[PARENT_DASHBOARD] 📡 Preloading ${endpoint}...`);
           await queryClient.prefetchQuery({
             queryKey: [endpoint],
             queryFn: async () => {
@@ -63,7 +61,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
             },
             staleTime: 1000 * 60 * 5
           });
-          console.log(`[PARENT_DASHBOARD] ✅ ${endpoint} data cached!`);
           return true;
         } catch (error) {
           console.error(`[PARENT_DASHBOARD] ❌ Failed to preload ${endpoint}:`, error);
@@ -73,7 +70,6 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
       
       await Promise.all(promises);
       setApiDataPreloaded(true);
-      console.log('[PARENT_DASHBOARD] 🎯 ALL PARENT API DATA PRELOADED!');
     };
     
     preloadParentApiData();

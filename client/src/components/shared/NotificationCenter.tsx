@@ -167,7 +167,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/pwa/notifications/pending', userId],
     queryFn: async () => {
-      console.log(`[NOTIFICATIONS_UI] 🔔 Fetching notifications for user ${userId}`);
       
       const response = await fetch(`/pwa/notifications/pending/${userId}`, {
         method: 'GET',
@@ -183,7 +182,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
       }
       
       const data = await response.json();
-      console.log(`[NOTIFICATIONS_UI] ✅ Got ${data.length} notifications from PWA endpoint`);
       return data || [];
     },
     enabled: !!userId,

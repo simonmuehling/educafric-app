@@ -198,25 +198,20 @@ router.post('/', async (req: Request, res: Response) => {
 // Get pending notifications for a specific user (PWA polling endpoint) - NO AUTH FOR PWA
 router.get('/pending/:userId', async (req: Request, res: Response) => {
   try {
-    console.log('[NOTIFICATIONS_API] 🔔 PWA endpoint called for user:', req.params.userId);
     const { userId } = req.params;
     
     if (!userId) {
-      console.log('[NOTIFICATIONS_API] ❌ No userId provided');
       return res.status(400).json({ message: 'User ID required' });
     }
 
     const userIdNum = parseInt(userId, 10);
-    console.log(`[NOTIFICATIONS_API] Getting pending notifications for user ${userIdNum}`);
     
     // Get all notifications for user and filter for pending ones
     const allNotifications = await storage.getUserNotifications(userIdNum);
-    console.log(`[NOTIFICATIONS_API] 📊 Found ${allNotifications.length} total notifications`);
     
     const pendingNotifications = allNotifications.filter((n: any) => 
       !n.isDelivered && !n.isRead
     );
-    console.log(`[NOTIFICATIONS_API] 🔔 Found ${pendingNotifications.length} pending notifications`);
     
     // Transform notifications to match frontend expectations
     const formattedNotifications = pendingNotifications.map((n: any) => ({
@@ -231,7 +226,6 @@ router.get('/pending/:userId', async (req: Request, res: Response) => {
       userId: n.userId
     }));
 
-    console.log(`[NOTIFICATIONS_API] ✅ Returning ${pendingNotifications.length} pending notifications for user ${userIdNum}`);
     res.json(formattedNotifications);
   } catch (error: any) {
     console.error('[NOTIFICATIONS_API] Get pending notifications error:', error);

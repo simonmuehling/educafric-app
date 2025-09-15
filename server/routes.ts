@@ -570,7 +570,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/director/overview", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[DIRECTOR_API] GET /api/director/overview for user:', user.id);
       
       // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
@@ -707,7 +706,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { classId, teacherId } = req.query;
-      console.log('[DIRECTOR_API] GET /api/director/analytics for user:', user.id, 'filters:', { classId, teacherId });
       
       // Use existing data structure (no direct DB access in this route)
       // For sandbox mode, we'll use mock data that responds to filters
@@ -928,7 +926,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/director/rooms", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[ROOMS_API] GET /api/director/rooms for user:', user.id);
       
       // For now, return mock data. In production, fetch from database
       const rooms = [
@@ -1086,7 +1083,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/director/classes", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[DIRECTOR_CLASSES_API] GET /api/director/classes for user:', user.id);
       
       // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
@@ -1185,7 +1181,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { classId } = req.query;
-      console.log('[DIRECTOR_STUDENTS_API] GET /api/director/students for user:', user.id, 'classId:', classId);
       
       // ✅ ÉTUDIANTS SANDBOX POUR TOUTES LES CLASSES : PRIMAIRE → LYCÉE
       const allStudents = [
@@ -1278,7 +1273,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/director/teachers", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[DIRECTOR_TEACHERS_API] GET /api/director/teachers for user:', user.id);
       
       // Check if user is in sandbox/demo mode - patterns actualisés
       const isSandboxUser = user.email?.includes('@test.educafric.com') || 
@@ -1427,7 +1421,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/classes", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/classes for user:', user.id);
       
       // Grouper par école avec les classes assignées
       const schoolsWithClasses = [
@@ -1494,7 +1487,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/commercial/offer-templates", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[COMMERCIAL_API] GET /api/commercial/offer-templates for user:', user.id);
       
       // Simulation de modèles sauvegardés
       const templates = [
@@ -1539,7 +1531,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const templateData = req.body;
-      console.log('[COMMERCIAL_API] POST /api/commercial/offer-templates for user:', user.id);
       
       // Simulation de sauvegarde
       const savedTemplate = {
@@ -1594,7 +1585,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const { schoolId, reason } = req.body;
-      console.log('[TEACHER_API] POST /api/teacher/disconnect-school for user:', user.id, 'school:', schoolId);
       
       // Ici on implémentera la logique de déconnexion de l'école
       // Pour l'instant, simulation réussie
@@ -1617,7 +1607,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/students", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/students for user:', user.id);
       
       const students = [
         {
@@ -1650,7 +1639,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/grades", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/grades for user:', user.id);
       
       const grades = [
         {
@@ -1686,7 +1674,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const week = req.query.week ? parseInt(req.query.week as string) : 0;
-      console.log('[STUDENT_API] GET /api/student/timetable for user:', user.id, 'week offset:', week);
       
       // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC L'ÉCOLE
       console.log('[STUDENT_TIMETABLE] 🔄 Synchronizing with school schedule...');
@@ -1858,7 +1845,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/timetable/stats", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_API] GET /api/student/timetable/stats for user:', user.id);
       
       // Statistiques synchronisées avec l'école
       const stats = {
@@ -1881,7 +1867,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const term = req.query.term || 'current';
-      console.log('[STUDENT_API] GET /api/student/grades for user:', user.id, 'term:', term);
       
       // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES NOTES ENSEIGNANT
       console.log('[STUDENT_GRADES] 🔄 Synchronizing with teacher grades database...');
@@ -2044,7 +2029,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const term = req.query.term || 'current';
-      console.log('[STUDENT_API] GET /api/student/grades/stats for user:', user.id);
       
       // Statistiques calculées à partir des vraies notes synchronisées
       const stats = {
@@ -2074,7 +2058,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const period = req.query.period || 'current';
-      console.log('[STUDENT_API] GET /api/student/progress for user:', user.id, 'period:', period);
       
       // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES DONNÉES ENSEIGNANT
       console.log('[STUDENT_PROGRESS] 🔄 Synchronizing with teacher progress data...');
@@ -2235,7 +2218,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as any;
       const category = req.query.category || 'all';
-      console.log('[STUDENT_API] GET /api/student/achievements for user:', user.id, 'category:', category);
       
       // 🏆 SYNCHRONISATION AUTOMATIQUE AVEC LES RÉUSSITES BASÉES SUR PERFORMANCES
       console.log('[STUDENT_ACHIEVEMENTS] 🔄 Synchronizing achievements with teacher evaluations...');
@@ -2391,7 +2373,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/attendance", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_API] GET /api/student/attendance for user:', user.id);
       
       // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC LES PRÉSENCES ENSEIGNANT
       console.log('[STUDENT_ATTENDANCE] 🔄 Synchronizing with teacher attendance database...');
@@ -2629,7 +2610,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/assignments", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/assignments for user:', user.id);
       
       const assignments = [
         {
@@ -2664,7 +2644,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/attendance", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/attendance for user:', user.id);
       
       const attendance = [
         {
@@ -2697,7 +2676,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/communications", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/communications for user:', user.id);
       
       const communications = [
         {
@@ -2733,7 +2711,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/messages for user:', user.id, '(UNIFIED ENDPOINT)');
       
       const messages = [
         {
@@ -2787,7 +2764,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/schools", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[TEACHER_API] GET /api/teacher/schools for user:', user.id);
       
       const schools = [
         {
@@ -3117,7 +3093,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/messages", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_API] GET /api/student/messages for user:', user.id);
       
       // 🔄 SYNCHRONISATION AUTOMATIQUE AVEC FILTRAGE STRICT
       console.log('[STUDENT_MESSAGES] 🔄 Filtering messages for student class and parents...');
@@ -3293,7 +3268,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/teachers", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_API] GET /api/student/teachers for user:', user.id);
       
       // 🔄 ENSEIGNANTS DE SA CLASSE UNIQUEMENT
       const studentClass = user.class || '3ème A';
@@ -3385,7 +3359,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/student/parents", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[STUDENT_API] GET /api/student/parents for user:', user.id);
       
       // 🔄 PARENTS DE L'ÉTUDIANT UNIQUEMENT  
       const studentId = user.id;
@@ -4715,7 +4688,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Parent requests test endpoint - For frontend diagnostics
   app.get("/api/parent-requests-test", async (req, res) => {
     try {
-      console.log('[PARENT_REQUESTS_TEST] Test endpoint called');
       
       // Mock test data for parent requests
       const testRequests = [
@@ -5617,7 +5589,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/school/parent-child-connections', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_PARENTS_API] GET /api/school/parent-child-connections for user:', user.id);
       
       // Mock parent-child data
       const parents = [
@@ -5642,7 +5613,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/school/security', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_SECURITY_API] GET /api/school/security for user:', user.id);
       
       const security = {
         twoFactorEnabled: true,
@@ -5664,7 +5634,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/school/configuration', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_CONFIG_API] GET /api/school/configuration for user:', user.id);
       
       const configuration = {
         schoolName: 'Collège Saint-Joseph',
@@ -5687,7 +5656,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/school/notifications', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_NOTIFICATIONS_API] GET /api/school/notifications for user:', user.id);
       
       const notifications = {
         emailEnabled: true,
@@ -5708,7 +5676,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log('[SCHOOL_PROFILE_API] GET /api/school/profile for user:', user.id);
       
       const profile = {
         id: 1,
@@ -5735,7 +5702,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/school/logo/upload-url', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
-      console.log(`[SCHOOL_LOGO_API] POST /api/school/logo/upload-url for user: ${user.id}`);
       
       const { ObjectStorageService } = await import('./objectStorage');
       const objectStorageService = new ObjectStorageService();
@@ -5809,7 +5775,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/pwa/notifications/pending/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      console.log('[PWA_NOTIFICATIONS] 🔔 PWA endpoint called for user:', userId);
       
       if (!userId) {
         return res.status(400).json({ message: 'User ID required' });

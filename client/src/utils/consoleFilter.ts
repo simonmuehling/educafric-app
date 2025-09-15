@@ -52,6 +52,20 @@ export const setupConsoleFilter = () => {
     /\[FAST_LOADER\].*Starting aggressive load for/,
     /\[FAST_LOADER\].*loaded and cached successfully/,
     /\[FAST_LOADER\].*COMPLETED:.*total modules cached/,
+    // Auth and API debugging patterns
+    /\[.*_API\].*GET.*for user:/,
+    /\[.*_API\].*POST.*for user:/,
+    /\[.*_API\].*endpoint called/,
+    /\[.*DASHBOARD.*\].*Preloading/,
+    /\[.*DASHBOARD.*\].*data cached/,
+    /\[.*DASHBOARD.*\].*PRELOADED/,
+    /\[NOTIFICATIONS_UI\].*Got.*notifications/,
+    /\[NOTIFICATIONS_UI\].*Fetching notifications/,
+    /\[PWA_NOTIFICATIONS\].*endpoint called/,
+    /AUTH_DEBUG.*endpoint/,
+    /AUTH_DEBUG.*Session/,
+    /AUTH_DEBUG.*User/,
+    /AUTH_DEBUG.*Authentication/,
   ];
 
   // Filter function

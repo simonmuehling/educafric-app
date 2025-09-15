@@ -955,37 +955,14 @@ export default function BulletinManagementUnified() {
       // ✅ DEBUGGING COMPLET ET CONVERSION AMÉLIORÉE DES NOTES
       const gradesToSave = [];
       
-      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - manualGrades object:', manualGrades);
-      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Object.keys:', Object.keys(manualGrades));
-      console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Object.entries:', Object.entries(manualGrades));
       
       for (const [key, gradeData] of Object.entries(manualGrades)) {
-        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Processing:', { key, gradeData });
         
         const [studentId, subjectId, term] = key.split('_');
         
         // Debug chaque composant
-        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Parsed key:', { 
-          key, 
-          studentId, 
-          subjectId, 
-          term,
-          studentIdValid: !!studentId,
-          subjectIdValid: !!subjectId,
-          termValid: !!term
-        });
         
         // Debug gradeData
-        console.log('[MANUAL_GRADES] 🔍 DEBUGGING - Grade data:', {
-          gradeData,
-          hasGradeData: !!gradeData,
-          grade: gradeData?.grade,
-          gradeType: typeof gradeData?.grade,
-          gradeString: gradeData?.grade?.toString(),
-          gradeTrimmed: gradeData?.grade?.toString()?.trim(),
-          gradeNotEmpty: gradeData?.grade?.toString()?.trim() !== '',
-          gradeIsNumber: !isNaN(parseFloat(gradeData?.grade || ''))
-        });
         
         // ✅ VALIDATION SIMPLIFIÉE ET ROBUSTE
         if (!studentId || !subjectId || !term) {
