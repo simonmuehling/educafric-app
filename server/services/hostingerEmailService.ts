@@ -10,7 +10,7 @@ const EDUCAFRIC_CONTACT = {
     facebook: 'https://www.facebook.com/educafrique/',
     twitter: 'https://twitter.com/educafric',
     instagram: 'https://instagram.com/educafric',
-    linkedin: 'https://linkedin.com/company/educafric',
+    linkedin: 'https://www.linkedin.com/company/108875436',
     youtube: 'https://www.youtube.com/@educafric'
   }
 };
