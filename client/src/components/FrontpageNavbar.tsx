@@ -55,8 +55,7 @@ export default function FrontpageNavbar() {
 
 
   const navigationItems: NavigationItem[] = [
-    { href: '/demo', label: t.demo },
-    { href: '/geolocation-pricing', label: language === 'fr' ? 'GPS' : 'GPS' }
+    { href: '/demo', label: t.demo }
   ];
 
   const toggleLanguage = () => {
