@@ -60,8 +60,13 @@ app.get('/sw.js', (req, res) => {
   res.setHeader('Service-Worker-Allowed', '/');
   
   try {
-    const swPath = path.resolve('public/sw.js');
+    // In development, serve the lightweight minimal service worker for performance
+    const swPath = app.get("env") === "development" 
+      ? path.resolve('public/sw-minimal.js')
+      : path.resolve('public/sw.js');
+    
     if (fs.existsSync(swPath)) {
+      console.log(`[SW_OPTIMIZATION] Serving ${app.get("env") === "development" ? 'minimal' : 'full'} service worker for performance`);
       res.sendFile(swPath);
     } else {
       // Minimal memory-efficient service worker

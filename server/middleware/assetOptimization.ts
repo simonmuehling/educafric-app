@@ -2,63 +2,31 @@ import type { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import path from 'path';
 
-// Asset optimization middleware with aggressive caching and preload hints
+// Minimal asset optimization for maximum performance
 export const assetOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Skip if not a static asset request
-  if (!req.url.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+  // Fast path - only handle core asset types to reduce processing
+  const assetMatch = req.url.match(/\.(css|js|png|jpg|ico|woff2?)$/);
+  if (!assetMatch) {
     return next();
   }
 
-  // Add performance headers for assets
-  res.setHeader('X-Asset-Optimized', 'true');
-  
-  // AGGRESSIVE caching for maximum performance
-  const isVersioned = req.url.includes('?v=') || req.url.includes('&v=');
-  if (isVersioned) {
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year for versioned assets
+  // Minimal caching headers only
+  if (req.url.includes('?v=')) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   } else {
-    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800'); // 1 day with stale serving for 1 week
+    res.setHeader('Cache-Control', 'public, max-age=86400');
   }
-
-  // Add preload hints for critical resources
-  if (req.url.match(/\.(css|js)$/)) {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    
-    // Add resource hints for better loading performance
-    if (req.url.includes('main') || req.url.includes('vendor') || req.url.includes('index')) {
-      // Note: Preload hints removed as /api/preload-hints endpoint doesn't exist
-      res.setHeader('X-Critical-Resource', 'true');
-    }
-  }
-
-  // Add CORS headers for fonts with preload optimization
-  if (req.url.match(/\.(woff|woff2|ttf|eot)$/)) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Content-Type', req.url.endsWith('.woff2') ? 'font/woff2' : 'font/woff');
-  }
-
-  // Add compression hints
-  res.setHeader('Vary', 'Accept-Encoding');
   
   next();
 };
 
-// CSS optimization for development
+// Minimal CSS optimization
 export const cssOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (!req.url.endsWith('.css')) {
     return next();
   }
 
-  // Add CSS optimization headers
   res.setHeader('Content-Type', 'text/css; charset=utf-8');
-  res.setHeader('X-CSS-Optimized', 'true');
-
-  // Enable compression for CSS
-  if (!res.getHeader('Content-Encoding')) {
-    res.setHeader('Vary', 'Accept-Encoding');
-  }
-
   next();
 };
 
@@ -82,42 +50,27 @@ export const jsOptimizationMiddleware = (req: Request, res: Response, next: Next
   next();
 };
 
-// Image optimization middleware
+// Minimal image optimization
 export const imageOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.url.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)) {
+  const match = req.url.match(/\.(png|jpg|ico)$/);
+  if (!match) {
     return next();
   }
 
-  // Add image optimization headers
-  res.setHeader('X-Image-Optimized', 'true');
+  // Just basic MIME type for critical images
+  const ext = match[1];
+  if (ext === 'png') res.setHeader('Content-Type', 'image/png');
+  else if (ext === 'jpg') res.setHeader('Content-Type', 'image/jpeg');
+  else if (ext === 'ico') res.setHeader('Content-Type', 'image/x-icon');
   
-  // Add appropriate MIME types
-  const ext = path.extname(req.url).toLowerCase();
-  const mimeTypes: { [key: string]: string } = {
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.svg': 'image/svg+xml',
-    '.webp': 'image/webp',
-    '.ico': 'image/x-icon'
-  };
-
-  const mimeType = mimeTypes[ext];
-  if (mimeType) {
-    res.setHeader('Content-Type', mimeType);
-  }
-
-  // Enable long-term caching for images
-  res.setHeader('Cache-Control', 'public, max-age=2592000'); // 30 days
-
   next();
 };
 
 // Bundle size optimization with preload injection
 export const bundleOptimizationMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Inject preload hints for critical resources in HTML responses
-  if (req.url === '/' || req.url.endsWith('.html')) {
+  // Only inject preload hints for critical resources in production HTML responses
+  // Skip in development to avoid incorrect /assets paths that don't exist in Vite dev mode
+  if ((req.url === '/' || req.url.endsWith('.html')) && process.env.NODE_ENV === 'production') {
     const originalSend = res.send;
     res.send = function(body: any) {
       if (body && typeof body === 'string' && body.includes('<head>')) {

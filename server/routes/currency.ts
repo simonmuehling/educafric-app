@@ -5,12 +5,7 @@ const router = Router();
 // Currency detection service
 router.get('/detect', async (req, res) => {
   try {
-    console.log(`[SESSION_DEBUG] GET /api/currency/detect`);
-    console.log(`[SESSION_DEBUG] Session ID: ${req.sessionID}`);
-    
-    const cookieHeader = req.headers.cookie || 'NONE';
-    console.log(`[SESSION_DEBUG] Cookies received: ${cookieHeader}`);
-    console.log(`[SESSION_DEBUG] Session data:`, req.session);
+    // Session debugging removed for security and performance
     
     const userIP = req.ip || req.connection.remoteAddress || 'unknown';
     console.log(`[CURRENCY_API] Currency detection request from IP: ${userIP}`);

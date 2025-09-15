@@ -61,12 +61,14 @@ export const performanceMiddleware = (req: Request, res: Response, next: NextFun
       const endMemory = process.memoryUsage().rss;
       const memoryDiff = endMemory - startMemory;
 
-      // Optimized logging for 3500+ user scale - reduced thresholds
-      if (duration > 3000) { // Log slow requests over 3s (reduced from 10s)
+      // Optimized logging for 3500+ user scale - only log API routes in development
+      const shouldLogPerformance = process.env.NODE_ENV === 'production' || req.url.startsWith('/api/');
+      
+      if (shouldLogPerformance && duration > 3000) { // Log slow requests over 3s (reduced from 10s)
         console.warn(`[SLOW_REQUEST] ${req.method} ${req.url} took ${duration}ms`);
       }
       
-      if (duration > 8000) { // Only error log for extremely slow requests
+      if (shouldLogPerformance && duration > 8000) { // Only error log for extremely slow requests
         console.error(`[CRITICAL_TIMEOUT] ${req.method} ${req.url} took ${duration}ms`);
       }
 
