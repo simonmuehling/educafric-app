@@ -12,6 +12,13 @@ import {
 import { cn } from '@/lib/utils';
 
 
+interface NavigationItem {
+  href: string;
+  label: string;
+  onClick?: (e: React.MouseEvent) => void;
+  skipDefaultClick?: boolean;
+}
+
 export default function FrontpageNavbar() {
   const { language, setLanguage } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,44 +53,9 @@ export default function FrontpageNavbar() {
 
   const t = text[language];
 
-  const handlePricingClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    // Check if we're already on the demo page
-    if (window?.location?.pathname === '/demo') {
-      // Just scroll to pricing section
-      const pricingElement = document.getElementById('pricing');
-      if (pricingElement) {
-        pricingElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }
-    } else {
-      // Navigate to demo page with hash
-      navigate('/demo#pricing');
-      
-      // Scroll after navigation
-      setTimeout(() => {
-        const pricingElement = document.getElementById('pricing');
-        if (pricingElement) {
-          pricingElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-        }
-      }, 100);
-    }
-  };
 
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = [
     { href: '/demo', label: t.demo },
-    { 
-      href: '/demo#pricing', 
-      label: t.pricing,
-      onClick: handlePricingClick,
-      skipDefaultClick: true
-    },
     { href: '/geolocation-pricing', label: language === 'fr' ? 'GPS' : 'GPS' }
   ];
 
