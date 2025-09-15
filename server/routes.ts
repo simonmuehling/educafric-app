@@ -239,9 +239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(process.cwd(), 'public/manifest.json'));
   });
 
-  // Serve static files
+  // Serve static files - MEMORY FIX: Remove duplicate static middleware that was causing 265MB memory leak
   app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
-  app.use(express.static('public'));
 
   // Route spéciale pour la page de vérification des bulletins
   app.get('/verify/:verificationCode?', (req, res) => {

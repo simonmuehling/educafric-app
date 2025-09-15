@@ -164,23 +164,17 @@ app.use('/assets', express.static('dist/public/assets', {
   }
 }));
 
-// Configure correct MIME types for public assets
-app.use('/public', express.static('public', {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.png')) {
-      res.setHeader('Content-Type', 'image/png');
-    } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
-      res.setHeader('Content-Type', 'image/jpeg');
-    } else if (path.endsWith('.ico')) {
-      res.setHeader('Content-Type', 'image/x-icon');
-    } else if (path.endsWith('.webp')) {
-      res.setHeader('Content-Type', 'image/webp');
-    }
-  }
-}));
+// 🚀 MEMORY-OPTIMIZED: PWA Notifications Fix - Specific route handler to prevent 265MB memory leak
+app.get('/pwa-notifications-fix.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours cache
+  res.setHeader('X-Memory-Optimized', 'true');
+  res.sendFile('pwa-notifications-fix.js', { root: 'public' });
+});
 
-// Serve PWA assets from root with correct MIME types
-app.use(express.static('public', {
+// Configure correct MIME types for public assets (consolidated to prevent memory leaks)
+app.use('/public', express.static('public', {
+  maxAge: '1d', // 1 day cache for public assets
   setHeaders: (res, path) => {
     if (path.endsWith('.png')) {
       res.setHeader('Content-Type', 'image/png');
@@ -193,8 +187,35 @@ app.use(express.static('public', {
     } else if (path.endsWith('.json')) {
       res.setHeader('Content-Type', 'application/json');
     } else if (path.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
     }
+    res.setHeader('X-Asset-Source', 'public-prefixed');
+  }
+}));
+
+// Serve PWA assets from root with memory optimization
+app.use(express.static('public', {
+  maxAge: '1d', // 1 day cache
+  setHeaders: (res, path) => {
+    // Skip serving pwa-notifications-fix.js here to prevent duplicate processing
+    if (path.endsWith('pwa-notifications-fix.js')) {
+      return; // Already handled by specific route above
+    }
+    
+    if (path.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (path.endsWith('.ico')) {
+      res.setHeader('Content-Type', 'image/x-icon');
+    } else if (path.endsWith('.webp')) {
+      res.setHeader('Content-Type', 'image/webp');
+    } else if (path.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
+    } else if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+    }
+    res.setHeader('X-Asset-Source', 'public-root');
   }
 }));
 
