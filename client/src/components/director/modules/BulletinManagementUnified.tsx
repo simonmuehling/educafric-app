@@ -479,6 +479,8 @@ export default function BulletinManagementUnified() {
       // Status messages
       attention: 'Attention',
       error: 'Error',
+      approvalError: 'Erreur d\'approbation',
+      processError: 'Erreur de traitement',
       success: 'Success',
       loading: 'Loading...',
       selectAll: 'Select All',
@@ -2111,99 +2113,9 @@ export default function BulletinManagementUnified() {
           schoolName: formData.schoolName,
           date: new Date().toLocaleDateString('fr-FR')
         },
-        language: formData.language
-      };
-
-      // ✅ AJOUT STRUCTURE SUBJECTS POUR LE TEMPLATE DE CRÉATION AUSSI
-      const subjects = importedGrades && Object.keys(importedGrades.termGrades).length > 0 ? 
-          Object.entries(importedGrades.termGrades).map(([subject, grades]: [string, any]) => {
-            const currentGrade = parseFloat(((grades.CC + grades.EXAM) / 2).toFixed(2));
-            const subjectName = subject === 'MATH' ? 'Mathématiques' :
-                  subject === 'PHYS' ? 'Physique' :
-                  subject === 'CHIM' ? 'Chimie' :
-                  subject === 'BIO' ? 'Biologie' :
-                  subject === 'FRANC' ? 'Français' :
-                  subject === 'ANG' ? 'Anglais' :
-                  subject === 'HIST' ? 'Histoire' :
-                  subject === 'GEO' ? 'Géographie' : subject;
-            
-            if (formData.term === 'T3') {
-              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
-              const t1 = parseFloat((currentGrade - 2).toFixed(2));
-              const t2 = parseFloat((t1 + 0.9).toFixed(2));
-              const t3 = parseFloat((t2 + 1.0).toFixed(2));
-              const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(2));
-              
-              const coef = subjectName === 'Mathématiques' || subjectName === 'Français' ? 5 :
-                          subjectName === 'Physique' || subjectName === 'Sciences' ? 4 :
-                          subjectName === 'Histoire' || subjectName === 'Géographie' ? 3 : 2;
-              
-              const teacherName = subjectName === 'Mathématiques' ? 'M. Ndongo' :
-                                subjectName === 'Français' ? 'Mme Tchoumba' :
-                                subjectName === 'Physique' ? 'M. Bekono' :
-                                subjectName === 'Sciences' ? 'Mme Fouda' :
-                                subjectName === 'Anglais' ? 'M. Johnson' :
-                                subjectName === 'Histoire' ? 'M. Ebogo' :
-                                subjectName === 'Géographie' ? 'Mme Mvondo' : 'Prof.';
-              
-              console.log(`[BULLETIN_CREATE] 🎯 Subject ${subjectName}: T1=${t1}, T2=${t2}, T3=${t3}, Avg=${avgAnnual}`);
-              
-              return {
-                name: subjectName,
-                coefficient: coef,
-                t1: t1,
-                t2: t2,
-                t3: t3,
-                avgAnnual: avgAnnual,
-                teacherName: teacherName,
-                comments: avgAnnual >= 18 ? 'Excellent' :
-                         avgAnnual >= 15 ? 'Très Bien' :
-                         avgAnnual >= 12 ? 'Bien' :
-                         avgAnnual >= 10 ? 'Assez Bien' : 'Doit faire des efforts'
-              };
-            } else {
-              return {
-                name: subjectName,
-                grade: currentGrade,
-                coefficient: 2,
-                average: currentGrade,
-                teacherComment: grades.CC >= 18 ? 'Excellent travail' :
-                               grades.CC >= 15 ? 'Très bien' :
-                               grades.CC >= 12 ? 'Bien' :
-                               grades.CC >= 10 ? 'Assez bien' : 'Doit faire des efforts'
-              };
-            }
-          }) : 
-          formData.subjectsGeneral.map(subject => {
-            if (formData.term === 'T3') {
-              const currentGrade = subject.averageMark;
-              // ❌ TEMPORAIRE : Plus de Math.random(), données fixes  
-              const t1 = Math.max(8, Math.min(20, currentGrade - 2));
-              const t2 = Math.max(8, Math.min(20, currentGrade - 1));
-              const t3 = currentGrade;
-              const avgAnnual = parseFloat(((t1 + t2 + t3) / 3).toFixed(1));
-              
-              console.log(`[BULLETIN_CREATE] 🎯 Manual Subject ${subject.name}: T1=${t1}, T2=${t2}, T3=${t3}, Avg=${avgAnnual}`);
-              
-              return {
-                name: subject.name,
-                coefficient: subject.coefficient,
-                t1: parseFloat(t1.toFixed(1)),
-                t2: parseFloat(t2.toFixed(1)),
-                t3: parseFloat(t3.toFixed(1)),
-                avgAnnual: avgAnnual,
-                teacherName: 'Prof.',
-                comments: subject.comments || 'Bon travail'
-              };
-            } else {
-              return subject;
-            }
-          });
-
-      // ✅ AJOUTER SUBJECTS AU BULLETIN DATA
-      (bulletinData as any).subjects = subjects;
-      // 🎯 DONNÉES ADDITIONNELLES POUR L'API DE CRÉATION
-      Object.assign(bulletinData, {
+        language: formData.language,
+        
+        // ✅ ADDITIONAL DATA FOR API CREATION
         studentId: parseInt(selectedStudentId),
         classId: parseInt(selectedClassId),
         termSpecificData: termSpecificData,
@@ -2284,8 +2196,8 @@ export default function BulletinManagementUnified() {
           directorComments: (importedGrades ? parseFloat(importedGrades.termAverage) : formData.generalAverage) >= 10 ? 
             "Continuer sur cette lancée. Félicitations pour ces bons résultats." : 
             "Doit redoubler pour mieux consolider les acquis."
-        })
-      });
+        }
+      };
 
       console.log('[BULLETIN_CREATE] ✅ Données préparées avec structure identique à l\'aperçu:', bulletinData);
       console.log('[BULLETIN_CREATE] 🔍 Notes importées:', importedGrades ? '✅ Oui' : '❌ Non');
@@ -2353,7 +2265,7 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  const text = {
+  const bulletinText = {
     fr: {
       title: 'Gestion des Bulletins EDUCAFRIC - Module Unifié',
       description: 'Modulez et validez les bulletins envoyés par les enseignants, puis envoyez-les aux élèves et parents avec signature digitale.',
@@ -2426,7 +2338,7 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  const t = text[language];
+  const bt = bulletinText[language];
 
   // Composant pour afficher une liste de bulletins avec sélection
   const BulletinListWithSelection = ({ 
@@ -2445,7 +2357,7 @@ export default function BulletinManagementUnified() {
     <div className="space-y-3">
       {bulletins.length === 0 ? (
         <Card className="p-6 text-center text-gray-500">
-          {t.noData}
+          {bt.noData}
         </Card>
       ) : (
         bulletins.map((bulletin) => (
@@ -2477,7 +2389,7 @@ export default function BulletinManagementUnified() {
                   <p className="text-sm">{bulletin.className}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">{t.teacher}</Label>
+                  <Label className="text-sm font-medium">{bt.teacher}</Label>
                   <p className="text-sm">{bulletin.teacherName}</p>
                 </div>
                 <div>
@@ -2494,7 +2406,7 @@ export default function BulletinManagementUnified() {
                     onClick={() => viewBulletinDetails(bulletin.id)}
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    {t.viewDetails}
+                    {bt.viewDetails}
                   </Button>
                   
                   <Button
@@ -2504,7 +2416,7 @@ export default function BulletinManagementUnified() {
                     className="text-blue-600 hover:text-blue-700"
                   >
                     <Download className="w-4 h-4 mr-1" />
-                    {t.downloadPdf}
+                    {bt.downloadPdf}
                   </Button>
                   
                   {actionType === 'approve' && bulletin.status === 'submitted' && (
@@ -2514,7 +2426,7 @@ export default function BulletinManagementUnified() {
                       size="sm"
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
-                      {t.approve}
+                      {bt.approve}
                     </Button>
                   )}
                   
@@ -2533,7 +2445,7 @@ export default function BulletinManagementUnified() {
                       ) : (
                         <>
                           <Signature className="w-4 h-4 mr-1" />
-                          {t.signAndSend}
+                          {bt.signAndSend}
                         </>
                       )}
                     </Button>
@@ -2568,7 +2480,7 @@ export default function BulletinManagementUnified() {
     <div className="space-y-3">
       {bulletins.length === 0 ? (
         <Card className="p-6 text-center text-gray-500">
-          {t.noData}
+          {bt.noData}
         </Card>
       ) : (
         bulletins.map((bulletin) => (
@@ -2584,7 +2496,7 @@ export default function BulletinManagementUnified() {
                   <p className="text-sm">{bulletin.className}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">{t.teacher}</Label>
+                  <Label className="text-sm font-medium">{bt.teacher}</Label>
                   <p className="text-sm">{bulletin.teacherName}</p>
                 </div>
                 <div>
@@ -2601,7 +2513,7 @@ export default function BulletinManagementUnified() {
                     onClick={() => viewBulletinDetails(bulletin.id)}
                   >
                     <Eye className="w-4 h-4 mr-1" />
-                    {t.viewDetails}
+                    {bt.viewDetails}
                   </Button>
                   
                   <Button
@@ -2611,7 +2523,7 @@ export default function BulletinManagementUnified() {
                     className="text-blue-600 hover:text-blue-700"
                   >
                     <Download className="w-4 h-4 mr-1" />
-                    {t.downloadPdf}
+                    {bt.downloadPdf}
                   </Button>
                   
                   {actionType === 'approve' && bulletin.status === 'submitted' && (
@@ -2621,7 +2533,7 @@ export default function BulletinManagementUnified() {
                       size="sm"
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
-                      {t.approve}
+                      {bt.approve}
                     </Button>
                   )}
                   
@@ -2640,7 +2552,7 @@ export default function BulletinManagementUnified() {
                       ) : (
                         <>
                           <Signature className="w-4 h-4 mr-1" />
-                          {t.signAndSend}
+                          {bt.signAndSend}
                         </>
                       )}
                     </Button>
@@ -2665,13 +2577,13 @@ export default function BulletinManagementUnified() {
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 {bulletin.submittedAt && (
-                  <span>{t.submittedAt}: {new Date(bulletin.submittedAt).toLocaleDateString()}</span>
+                  <span>{bt.submittedAt}: {new Date(bulletin.submittedAt).toLocaleDateString()}</span>
                 )}
                 {bulletin.approvedAt && (
-                  <span>{t.approvedAt}: {new Date(bulletin.approvedAt).toLocaleDateString()}</span>
+                  <span>{bt.approvedAt}: {new Date(bulletin.approvedAt).toLocaleDateString()}</span>
                 )}
                 {bulletin.sentAt && (
-                  <span>{t.sentAt}: {new Date(bulletin.sentAt).toLocaleDateString()}</span>
+                  <span>{bt.sentAt}: {new Date(bulletin.sentAt).toLocaleDateString()}</span>
                 )}
               </div>
               <Badge variant={
