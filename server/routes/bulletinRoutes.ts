@@ -2125,26 +2125,52 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
     
     // ✅ GÉNÉRER HTML AVEC LE TEMPLATE MODULAIRE
     const htmlContent = modularTemplateGenerator.generateBulletinTemplate(templateData, 'fr');
-    
-    // ✅ POUR L'INSTANT, RETOURNER LE HTML DIRECTEMENT (PDF sera ajouté plus tard)
-    // TODO: Intégrer générateur PDF avec le HTML généré
     console.log('[BULLETIN_CREATE_PDF] ✅ Template HTML généré avec succès');
     
-    // Simuler un PDF buffer pour la compatibilité
-    const pdfBuffer = Buffer.from(htmlContent, 'utf8');
+    // ✅ CONVERTIR HTML EN PDF AVEC PUPPETEER
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     
-    // Generate proper filename with real student name
-    const studentName = bulletinData.metadata?.studentData?.fullName?.replace(/\s/g, '-') || 'eleve';
-    const term = bulletinData.term?.replace(/\s/g, '-') || 'trimestre';
-    const filename = `bulletin-${studentName}-${term}-${bulletinId}.pdf`;
-    
-    // Set headers for HTML download (temporary until PDF integration)
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Disposition', `inline; filename="${filename.replace('.pdf', '.html')}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    
-    console.log(`[BULLETIN_DOWNLOAD_PDF] ✅ PDF generated successfully for bulletin ${bulletinId}`);
-    res.send(pdfBuffer);
+    try {
+      const page = await browser.newPage();
+      
+      // Définir le contenu HTML
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      // Générer le PDF avec options optimisées pour A4
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '3mm',
+          right: '3mm',
+          bottom: '3mm',
+          left: '3mm'
+        }
+      });
+      
+      await browser.close();
+      
+      // Generate proper filename with real student name
+      const studentName = bulletinData.metadata?.studentData?.fullName?.replace(/\s/g, '-') || 'eleve';
+      const term = bulletinData.term?.replace(/\s/g, '-') || 'trimestre';
+      const filename = `bulletin-${studentName}-${term}-${bulletinId}.pdf`;
+      
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log(`[BULLETIN_DOWNLOAD_PDF] ✅ PDF generated successfully for bulletin ${bulletinId}`);
+      res.send(pdfBuffer);
+      
+    } catch (puppeteerError) {
+      await browser.close();
+      throw puppeteerError;
+    }
     
   } catch (error) {
     console.error('[BULLETIN_DOWNLOAD_PDF] ❌ Error:', error);
