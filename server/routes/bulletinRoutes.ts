@@ -1145,8 +1145,8 @@ router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
     const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(templateData, 'fr');
     
     // ✅ CONVERTIR HTML EN PDF (nous utiliserons puppeteer pour cette conversion)
-    const puppeteer = require('puppeteer');
-    const browser = await puppeteer.launch({
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
@@ -2128,8 +2128,8 @@ router.get('/:id/download-pdf', requireAuth, async (req, res) => {
     console.log('[BULLETIN_CREATE_PDF] ✅ Template HTML généré avec succès');
     
     // ✅ CONVERTIR HTML EN PDF AVEC PUPPETEER
-    const puppeteer = require('puppeteer');
-    const browser = await puppeteer.launch({
+    const puppeteer = await import('puppeteer');
+    const browser = await puppeteer.default.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
