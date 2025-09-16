@@ -169,7 +169,7 @@ router.get('/teacher-appreciations/:studentId/:classId/:academicYear/:term', req
     // Récupérer toutes les appréciations des enseignants pour cet élève
     const appreciations = await db.select({
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.name,
+      subjectName: subjects.nameFr,
       teacherId: teacherGradeSubmissions.teacherId,
       teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
       subjectComments: teacherGradeSubmissions.subjectComments,
