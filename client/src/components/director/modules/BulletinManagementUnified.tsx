@@ -1840,7 +1840,7 @@ export default function BulletinManagementUnified() {
         studentId: resolvedStudentId,
         classId: resolvedClassId,
         academicYear: '2024-2025',
-        term: selectedTerm,
+        term: sampleApiTerm,
         language: language
       };
 
