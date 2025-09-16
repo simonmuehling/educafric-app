@@ -43,6 +43,7 @@ import {
 
 interface Subject {
   name: string;
+  code?: string; // ✅ Added for language-agnostic categorization
   t1Grade: number;
   t2Grade: number;
   t3Grade: number;
@@ -148,6 +149,430 @@ export default function BulletinManagementUnified() {
   const { language } = useLanguage();
   const { toast } = useToast();
 
+  // ✅ COMPREHENSIVE BILINGUAL TEXT SYSTEM
+  const text = {
+    fr: {
+      // Tab titles
+      generateBulletins: 'Génération de Bulletins',
+      manualGradeEntry: 'Saisie Manuelle',
+      pending: 'En Attente',
+      approved: 'Approuvés',
+      sent: 'Envoyés',
+      myBulletins: 'Mes Bulletins',
+      
+      // Auto-fill section
+      autoFillData: 'Auto-remplissage des Données',
+      autoFillDescription: 'Charger automatiquement les informations depuis la base de données',
+      autoFill: 'Auto-remplir',
+      
+      // Form labels and inputs
+      selectClass: 'Sélectionner une classe',
+      selectStudent: 'Sélectionner un élève',
+      selectTerm: 'Sélectionner le trimestre',
+      academicInfo: 'Informations Académiques',
+      academicYear: 'Année Académique',
+      term: 'Trimestre',
+      class: 'Classe',
+      firstTerm: 'Premier Trimestre',
+      secondTerm: 'Deuxième Trimestre',
+      thirdTerm: 'Troisième Trimestre',
+      
+      // Official information
+      officialInfo: 'Informations Officielles (Cameroun)',
+      regionalDelegation: 'Délégation Régionale',
+      departmentalDelegation: 'Délégation Départementale',
+      
+      // Student information
+      studentInfo: 'Informations Élève',
+      firstName: 'Prénom',
+      lastName: 'Nom',
+      matricule: 'Matricule',
+      studentPhoto: 'Photo Élève',
+      photoLoadedAuto: '(Chargée automatiquement)',
+      photoOptional: '(Optionnel)',
+      noPhotoFound: 'Aucune photo de profil trouvée',
+      addPhotoBelow: 'Vous pouvez en ajouter une ci-dessous',
+      photoUrl: 'URL de la photo',
+      uploadPhoto: 'Télécharger une photo',
+      uploading: 'Téléchargement...',
+      maxSize: 'Max 5MB • JPG, PNG, GIF',
+      remove: 'Supprimer',
+      photoFromProfile: '✅ Photo du profil chargée',
+      
+      // Grade entry
+      gradeEntry: 'Saisie des Notes',
+      gradeEntrySuffix: 'Saisie des Notes -',
+      save: 'Sauvegarder',
+      saving: 'Sauvegarde...',
+      gradesEntered: 'Notes saisies !',
+      createBulletinsNow: 'Créer les bulletins maintenant :',
+      clickStudent: 'Cliquez sur un élève pour voir l\'aperçu de son bulletin et le créer :',
+      preview: 'Aperçu',
+      create: 'Créer Bulletin',
+      workflowAccelerated: '⚡ Workflow accéléré : Cliquez directement "Aperçu" ou "Créer Bulletin" pour chaque élève !',
+      
+      // Manual grade entry help
+      manualGradeEntryTitle: 'Saisie Manuelle des Notes',
+      selectClassToStart: 'Sélectionnez une classe pour commencer la saisie des notes.',
+      studentsSubjectsLoaded: 'Les élèves, matières et professeurs seront automatiquement chargés.',
+      features: '✅ Fonctionnalités',
+      autoLoadClassData: '• Auto-chargement des données de classe',
+      entryByTerm: '• Saisie par trimestre (T1, T2, T3)',
+      autoSave: '• Sauvegarde automatique en base',
+      gradesUsedForBulletins: '• Notes utilisées pour les bulletins',
+      
+      // Table headers
+      student: 'Élève',
+      subject: 'Matière',
+      grade: 'Note CC',
+      exam: 'Note Examen',
+      average: 'Moyenne',
+      
+      // Term labels
+      firstTermShort: '1er Trimestre',
+      secondTermShort: '2ème Trimestre',
+      thirdTermShort: '3ème Trimestre',
+      
+      // Imported grades
+      importedGrades: 'Notes Importées',
+      termAverage: 'Moyenne du Trimestre',
+      numberOfSubjects: 'Nombre de Matières',
+      subjects: 'matières',
+      importSuccessful: '✅ Importation réussie',
+      gradesReadyForBulletin: 'Les notes sont prêtes à être utilisées pour le bulletin',
+      integrateToBulletin: '✅ Intégrer au Bulletin',
+      hide: 'Masquer',
+      
+      // Subject names
+      mathematics: 'Mathématiques',
+      physics: 'Physique',
+      chemistry: 'Chimie',
+      biology: 'Biologie',
+      french: 'Français',
+      english: 'Anglais',
+      history: 'Histoire',
+      geography: 'Géographie',
+      
+      // Actions and buttons
+      createBulletin: 'Créer le Bulletin',
+      bulletinOf: 'Bulletin de',
+      selectStudentFirst: 'Veuillez d\'abord sélectionner un élève, une classe et un trimestre',
+      previewBulletin: 'Aperçu Bulletin',
+      createAndSave: 'Créer & Enregistrer le Bulletin',
+      generating: '⚡ Génération en cours...',
+      
+      // Workflow steps
+      step1: 'Saisie Notes',
+      step2: 'Aperçu',
+      step3: 'Création',
+      newWorkflow: '✨ Nouveau workflow unifié : Plus besoin de changer d\'onglet ! Saisissez les notes → Cliquez Aperçu → Puis Créer & Enregistrer directement.',
+      
+      // Status messages
+      attention: 'Attention',
+      error: 'Erreur',
+      success: 'Succès',
+      loading: 'Chargement...',
+      selectAll: 'Sélectionner tous',
+      selected: 'sélectionnés',
+      bulkSign: 'Signature groupée',
+      sending: 'Envoi...',
+      
+      // Bulletin status
+      bulletinsPending: 'Bulletins en Attente d\'Approbation',
+      bulletinsApproved: 'Bulletins Approuvés',
+      bulletinsSent: 'Bulletins Envoyés',
+      
+      // Toast messages
+      studentSelected: 'Élève sélectionné',
+      infoAutoLoaded: 'Informations automatiquement chargées pour',
+      gradesFound: 'Notes trouvées',
+      termCalculated: 'Moyenne calculée:',
+      with: 'avec',
+      manualEntry: 'Saisie manuelle',
+      noGradesImported: 'Aucune note importée - Veuillez saisir manuellement',
+      termSelected: 'Trimestre sélectionné',
+      previewGenerated: 'Aperçu généré',
+      bulletinCreated: 'Bulletin créé',
+      creationInProgress: 'Création en cours...',
+      gradesIntegrated: 'Notes intégrées',
+      subjectsIntegrated: 'matières intégrées au bulletin',
+      bulletinsLoaded: 'Bulletins chargés',
+      bulletinsFoundInSystem: 'bulletins trouvés dans le système',
+      cannotLoadBulletins: 'Impossible de charger les bulletins',
+      missingGrades: 'Notes manquantes',
+      noGradesAvailable: 'Aucune note disponible pour cet élève/trimestre. Veuillez saisir des notes d\'abord.',
+      previewError: 'Erreur d\'aperçu',
+      cannotGeneratePreview: 'Impossible de générer l\'aperçu. Veuillez réessayer.',
+      pdfPreviewOpened: 'Aperçu PDF ouvert',
+      sampleBulletinDisplayed: 'Échantillon de bulletin',
+      displayedInNewTab: 'affiché dans un nouvel onglet',
+      termRequired: 'Trimestre requis',
+      selectTermFirst: 'Veuillez d\'abord sélectionner un trimestre (T1, T2 ou T3)',
+      selectClassAndStudent: 'Veuillez sélectionner une classe et un élève avant l\'aperçu',
+      missingInfo: 'Informations manquantes',
+      studentInfoNotLoaded: 'Les informations de l\'élève ne se sont pas chargées automatiquement. Veuillez re-sélectionner l\'élève.',
+      noValidGrades: 'Aucune note valide',
+      enterValidGrades: 'Veuillez saisir des notes valides',
+      gradesSaved: 'Notes sauvegardées',
+      gradesSavedSuccessfully: 'notes sauvegardées avec succès',
+      saveError: 'Erreur de sauvegarde',
+      cannotSaveGrades: 'Impossible de sauvegarder les notes',
+      importError: 'Erreur d\'importation',
+      importProblem: 'Problème lors de l\'importation automatique',
+      noImportedGrades: 'Aucune note importée à intégrer',
+      
+      // Appreciation codes
+      SATISFACTORY: 'Satisfaisant',
+      VERY_GOOD: 'Très Bien',
+      EXCELLENT: 'Excellent',
+      GOOD: 'Bien',
+      FAIRLY_GOOD: 'Assez Bien',
+      NEEDS_IMPROVEMENT: 'Doit faire des efforts',
+      
+      // Council decision codes
+      ADMITTED_NEXT_CLASS: 'Admis(e) en classe supérieure',
+      REPEAT_CURRENT_CLASS: 'Redouble en classe actuelle',
+      ADMITTED_WITH_RESERVATIONS: 'Admis(e) avec réserves',
+      
+      // Participation codes
+      ACTIVE_CONSTRUCTIVE: 'Active et constructive',
+      MODERATE_PARTICIPATION: 'Participation modérée',
+      NEEDS_ENGAGEMENT: 'Doit s\'impliquer davantage',
+      
+      // Remark codes for grades
+      EXCELLENT_REMARK: 'Très bien',
+      GOOD_REMARK: 'Bien',
+      FAIRLY_GOOD_REMARK: 'Assez bien',
+      NEEDS_IMPROVEMENT_REMARK: 'À améliorer',
+      
+      // Teacher label
+      TEACHER: 'Enseignant',
+      
+      // Toast messages for integration
+      GRADES_INTEGRATED_TITLE: '✅ Notes intégrées',
+      SUBJECTS_INTEGRATED_DESC: 'matières intégrées au bulletin',
+      
+      // Term descriptions for UI
+      FIRST_TERM_DESC: 'Début d\'année',
+      SECOND_TERM_DESC: 'Milieu d\'année',
+      THIRD_TERM_DESC: 'Évaluation Finale',
+      FIRST_TERM_DETAIL: '🌱 Période d\'adaptation et d\'observation - Identification des forces et axes d\'amélioration',
+      SECOND_TERM_DETAIL: '📈 Consolidation des acquis - Évaluation des progrès et préparation finale',
+      THIRD_TERM_DETAIL: '🏆 Décision de passage - Ce bulletin détermine l\'admission en classe supérieure'
+    },
+    en: {
+      // Tab titles
+      generateBulletins: 'Generate Bulletins',
+      manualGradeEntry: 'Manual Entry',
+      pending: 'Pending',
+      approved: 'Approved',
+      sent: 'Sent',
+      myBulletins: 'My Bulletins',
+      
+      // Auto-fill section
+      autoFillData: 'Auto-fill Data',
+      autoFillDescription: 'Automatically load information from the database',
+      autoFill: 'Auto-fill',
+      
+      // Form labels and inputs
+      selectClass: 'Select a class',
+      selectStudent: 'Select a student',
+      selectTerm: 'Select term',
+      academicInfo: 'Academic Information',
+      academicYear: 'Academic Year',
+      term: 'Term',
+      class: 'Class',
+      firstTerm: 'First Term',
+      secondTerm: 'Second Term',
+      thirdTerm: 'Third Term',
+      
+      // Official information
+      officialInfo: 'Official Information (Cameroon)',
+      regionalDelegation: 'Regional Delegation',
+      departmentalDelegation: 'Departmental Delegation',
+      
+      // Student information
+      studentInfo: 'Student Information',
+      firstName: 'First Name',
+      lastName: 'Last Name',
+      matricule: 'Registration Number',
+      studentPhoto: 'Student Photo',
+      photoLoadedAuto: '(Loaded automatically)',
+      photoOptional: '(Optional)',
+      noPhotoFound: 'No profile photo found',
+      addPhotoBelow: 'You can add one below',
+      photoUrl: 'Photo URL',
+      uploadPhoto: 'Upload a photo',
+      uploading: 'Uploading...',
+      maxSize: 'Max 5MB • JPG, PNG, GIF',
+      remove: 'Remove',
+      photoFromProfile: '✅ Profile photo loaded',
+      
+      // Grade entry
+      gradeEntry: 'Grade Entry',
+      gradeEntrySuffix: 'Grade Entry -',
+      save: 'Save',
+      saving: 'Saving...',
+      gradesEntered: 'Grades entered!',
+      createBulletinsNow: 'Create bulletins now:',
+      clickStudent: 'Click on a student to preview their bulletin and create it:',
+      preview: 'Preview',
+      create: 'Create Bulletin',
+      workflowAccelerated: '⚡ Accelerated workflow: Click directly "Preview" or "Create Bulletin" for each student!',
+      
+      // Manual grade entry help
+      manualGradeEntryTitle: 'Manual Grade Entry',
+      selectClassToStart: 'Select a class to start entering grades.',
+      studentsSubjectsLoaded: 'Students, subjects and teachers will be automatically loaded.',
+      features: '✅ Features',
+      autoLoadClassData: '• Auto-load class data',
+      entryByTerm: '• Entry by term (T1, T2, T3)',
+      autoSave: '• Automatic database save',
+      gradesUsedForBulletins: '• Grades used for bulletins',
+      
+      // Table headers
+      student: 'Student',
+      subject: 'Subject',
+      grade: 'CC Grade',
+      exam: 'Exam Grade',
+      average: 'Average',
+      
+      // Term labels
+      firstTermShort: '1st Term',
+      secondTermShort: '2nd Term',
+      thirdTermShort: '3rd Term',
+      
+      // Imported grades
+      importedGrades: 'Imported Grades',
+      termAverage: 'Term Average',
+      numberOfSubjects: 'Number of Subjects',
+      subjects: 'subjects',
+      importSuccessful: '✅ Import successful',
+      gradesReadyForBulletin: 'Grades are ready to be used for the bulletin',
+      integrateToBulletin: '✅ Integrate to Bulletin',
+      hide: 'Hide',
+      
+      // Subject names
+      mathematics: 'Mathematics',
+      physics: 'Physics',
+      chemistry: 'Chemistry',
+      biology: 'Biology',
+      french: 'French',
+      english: 'English',
+      history: 'History',
+      geography: 'Geography',
+      
+      // Actions and buttons
+      createBulletin: 'Create Bulletin',
+      bulletinOf: 'Bulletin for',
+      selectStudentFirst: 'Please first select a student, class and term',
+      previewBulletin: 'Preview Bulletin',
+      createAndSave: 'Create & Save Bulletin',
+      generating: '⚡ Generating...',
+      
+      // Workflow steps
+      step1: 'Grade Entry',
+      step2: 'Preview',
+      step3: 'Creation',
+      newWorkflow: '✨ New unified workflow: No need to change tabs! Enter grades → Click Preview → Then Create & Save directly.',
+      
+      // Status messages
+      attention: 'Attention',
+      error: 'Error',
+      success: 'Success',
+      loading: 'Loading...',
+      selectAll: 'Select All',
+      selected: 'selected',
+      bulkSign: 'Bulk Sign',
+      sending: 'Sending...',
+      
+      // Bulletin status
+      bulletinsPending: 'Bulletins Pending Approval',
+      bulletinsApproved: 'Approved Bulletins',
+      bulletinsSent: 'Sent Bulletins',
+      
+      // Toast messages
+      studentSelected: 'Student selected',
+      infoAutoLoaded: 'Information automatically loaded for',
+      gradesFound: 'Grades found',
+      termCalculated: 'Average calculated:',
+      with: 'with',
+      manualEntry: 'Manual entry',
+      noGradesImported: 'No grades imported - Please enter manually',
+      termSelected: 'Term selected',
+      previewGenerated: 'Preview generated',
+      bulletinCreated: 'Bulletin created',
+      creationInProgress: 'Creation in progress...',
+      gradesIntegrated: 'Grades integrated',
+      subjectsIntegrated: 'subjects integrated to bulletin',
+      bulletinsLoaded: 'Bulletins loaded',
+      bulletinsFoundInSystem: 'bulletins found in system',
+      cannotLoadBulletins: 'Cannot load bulletins',
+      missingGrades: 'Missing grades',
+      noGradesAvailable: 'No grades available for this student/term. Please enter grades first.',
+      previewError: 'Preview error',
+      cannotGeneratePreview: 'Cannot generate preview. Please try again.',
+      pdfPreviewOpened: 'PDF preview opened',
+      sampleBulletinDisplayed: 'Sample bulletin',
+      displayedInNewTab: 'displayed in new tab',
+      termRequired: 'Term required',
+      selectTermFirst: 'Please first select a term (T1, T2 or T3)',
+      selectClassAndStudent: 'Please select a class and student before preview',
+      missingInfo: 'Missing information',
+      studentInfoNotLoaded: 'Student information was not loaded automatically. Please re-select the student.',
+      noValidGrades: 'No valid grades',
+      enterValidGrades: 'Please enter valid grades',
+      gradesSaved: 'Grades saved',
+      gradesSavedSuccessfully: 'grades saved successfully',
+      saveError: 'Save error',
+      cannotSaveGrades: 'Cannot save grades',
+      importError: 'Import error',
+      importProblem: 'Problem during automatic import',
+      noImportedGrades: 'No imported grades to integrate',
+      
+      // Appreciation codes
+      SATISFACTORY: 'Satisfactory',
+      VERY_GOOD: 'Very Good',
+      EXCELLENT: 'Excellent',
+      GOOD: 'Good',
+      FAIRLY_GOOD: 'Fairly Good',
+      NEEDS_IMPROVEMENT: 'Needs Improvement',
+      
+      // Council decision codes
+      ADMITTED_NEXT_CLASS: 'Admitted to next class',
+      REPEAT_CURRENT_CLASS: 'Repeat current class',
+      ADMITTED_WITH_RESERVATIONS: 'Admitted with reservations',
+      
+      // Participation codes
+      ACTIVE_CONSTRUCTIVE: 'Active and constructive',
+      MODERATE_PARTICIPATION: 'Moderate participation',
+      NEEDS_ENGAGEMENT: 'Needs more engagement',
+      
+      // Remark codes for grades
+      EXCELLENT_REMARK: 'Excellent',
+      GOOD_REMARK: 'Good',
+      FAIRLY_GOOD_REMARK: 'Fairly good',
+      NEEDS_IMPROVEMENT_REMARK: 'Needs improvement',
+      
+      // Teacher label
+      TEACHER: 'Teacher',
+      
+      // Toast messages for integration
+      GRADES_INTEGRATED_TITLE: '✅ Grades integrated',
+      SUBJECTS_INTEGRATED_DESC: 'subjects integrated to bulletin',
+      
+      // Term descriptions for UI
+      FIRST_TERM_DESC: 'Beginning of year',
+      SECOND_TERM_DESC: 'Mid-year',
+      THIRD_TERM_DESC: 'Final Evaluation',
+      FIRST_TERM_DETAIL: '🌱 Adaptation and observation period - Identifying strengths and areas for improvement',
+      SECOND_TERM_DETAIL: '📈 Consolidation of learning - Progress evaluation and final preparation',
+      THIRD_TERM_DETAIL: '🏆 Advancement decision - This report determines admission to next grade'
+    }
+  };
+
+  const t = text[language as keyof typeof text];
+
   // États pour le générateur modulable
   const [classes, setClasses] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
@@ -203,7 +628,7 @@ export default function BulletinManagementUnified() {
     className: '',
     enrollment: 0,
     academicYear: '2024-2025',
-    term: 'Premier Trimestre',
+    term: 'T1',
     
     // Matières et notes
     subjectsGeneral: [] as Subject[],
@@ -214,25 +639,25 @@ export default function BulletinManagementUnified() {
     generalAverage: 0,
     classRank: 1,
     totalStudents: 0,
-    workAppreciation: 'Satisfaisant',
-    conductAppreciation: 'Très Bien',
+    workAppreciation: 'SATISFACTORY',
+    conductAppreciation: 'VERY_GOOD',
     generalAppreciation: '',
     
     // Informations système
     verificationCode: '',
     
     // DONNÉES CONSEIL DE CLASSE T3
-    councilDecision: 'ADMIS(E) EN CLASSE SUPÉRIEURE',
-    councilMention: 'PASSABLE',
-    councilOrientation: 'Filière générale recommandée',
+    councilDecision: 'ADMITTED_NEXT_CLASS',
+    councilMention: 'SATISFACTORY',
+    councilOrientation: 'GENERAL_TRACK_RECOMMENDED',
     councilDate: new Date().toISOString().split('T')[0],
     councilObservationsTeacher: '',
     councilObservationsDirector: '',
     
     // BILAN COMPORTEMENTAL ANNUEL
     conductGrade: 18,
-    participation: 'Active et constructive',
-    assiduity: 'Excellente',
+    participation: 'ACTIVE_CONSTRUCTIVE',
+    assiduity: 'EXCELLENT',
     absencesT1: 0,
     absencesT2: 0,
     absencesT3: 2,
@@ -264,8 +689,8 @@ export default function BulletinManagementUnified() {
   const integrateImportedGradesToBulletin = () => {
     if (!importedGrades || !importedGrades.termGrades) {
       toast({
-        title: "❌ Erreur",
-        description: "Aucune note importée à intégrer",
+        title: t.error,
+        description: t.noImportedGrades,
         variant: "destructive"
       });
       return;
@@ -274,41 +699,42 @@ export default function BulletinManagementUnified() {
     const gradesToIntegrate = importedGrades.termGrades;
     const coefficients = importedGrades.coefficients || {};
     
-    // Convertir les notes importées en format matières compatible avec le type Subject
+    // Convert imported grades to Subject format compatible with bulletin
     const convertedSubjects = Object.entries(gradesToIntegrate).map(([subjectCode, grades]: [string, any]) => {
-      const subjectName = getSubjectDisplayName(subjectCode);
+      const subjectName = getSubjectDisplayName(subjectCode, language);
       const averageGrade = calculateSubjectAverage(grades);
+      const gradeRemark = getGradeRemark(averageGrade);
       
       return {
         name: subjectName,
-        t1Grade: formData.term === 'Premier Trimestre' ? averageGrade : 0,
-        t2Grade: formData.term === 'Deuxième Trimestre' ? averageGrade : 0,
-        t3Grade: formData.term === 'Troisième Trimestre' ? averageGrade : 0,
+        code: subjectCode, // ✅ Add subject code for language-agnostic categorization
+        t1Grade: formData.term === 'T1' ? averageGrade : 0,
+        t2Grade: formData.term === 'T2' ? averageGrade : 0,
+        t3Grade: formData.term === 'T3' ? averageGrade : 0,
         coefficient: coefficients[subjectCode] || 1,
         total: averageGrade * (coefficients[subjectCode] || 1),
         position: 1,
         averageMark: averageGrade,
-        remark: averageGrade >= 16 ? 'Très bien' : 
-                averageGrade >= 14 ? 'Bien' : 
-                averageGrade >= 12 ? 'Assez bien' : 'À améliorer',
-        comments: averageGrade >= 16 ? 'Très bien' : 
-                 averageGrade >= 14 ? 'Bien' : 
-                 averageGrade >= 12 ? 'Assez bien' : 'À améliorer',
-        teacherName: 'Enseignant'
+        remark: gradeRemark,
+        comments: gradeRemark,
+        teacherName: t.TEACHER
       } as Subject;
     });
 
-    // Répartir les matières par catégorie
+    // ✅ Categorize subjects by codes (language-agnostic)
+    const generalSubjectCodes = ['MATH', 'FRANC', 'ANG', 'HIST', 'GEO'];
+    const professionalSubjectCodes = ['PHY', 'CHIM', 'BIO', 'SCI'];
+    
     const generalSubjects = convertedSubjects.filter(s => 
-      ['Mathématiques', 'Français', 'Anglais', 'Histoire', 'Géographie'].includes(s.name)
+      generalSubjectCodes.includes(s.code || '')
     );
     
     const professionalSubjects = convertedSubjects.filter(s => 
-      ['Physique', 'Chimie', 'Biologie', 'Sciences'].includes(s.name)
+      professionalSubjectCodes.includes(s.code || '')
     );
     
     const otherSubjects = convertedSubjects.filter(s => 
-      !generalSubjects.includes(s) && !professionalSubjects.includes(s)
+      !generalSubjectCodes.includes(s.code || '') && !professionalSubjectCodes.includes(s.code || '')
     );
 
     // Mettre à jour le formulaire
@@ -321,8 +747,8 @@ export default function BulletinManagementUnified() {
     }));
 
     toast({
-      title: "✅ Notes intégrées",
-      description: `${convertedSubjects.length} matières intégrées au bulletin`,
+      title: t.GRADES_INTEGRATED_TITLE,
+      description: `${convertedSubjects.length} ${t.SUBJECTS_INTEGRATED_DESC}`,
       duration: 3000
     });
 
@@ -330,19 +756,39 @@ export default function BulletinManagementUnified() {
   };
 
   // Helper functions
-  const getSubjectDisplayName = (code: string): string => {
-    const mapping: Record<string, string> = {
-      'MATH': 'Mathématiques',
-      'PHY': 'Physique', 
-      'CHIM': 'Chimie',
-      'BIO': 'Biologie',
-      'FRANC': 'Français',
-      'ANG': 'Anglais',
-      'HIST': 'Histoire',
-      'GEO': 'Géographie',
-      'EPS': 'EPS'
+  const getGradeRemark = (grade: number): string => {
+    if (grade >= 16) return t.EXCELLENT_REMARK;
+    if (grade >= 14) return t.GOOD_REMARK;
+    if (grade >= 12) return t.FAIRLY_GOOD_REMARK;
+    return t.NEEDS_IMPROVEMENT_REMARK;
+  };
+  
+  const getSubjectDisplayName = (code: string, lang: string = language): string => {
+    const mappings: Record<string, Record<string, string>> = {
+      fr: {
+        'MATH': 'Mathématiques',
+        'PHY': 'Physique', 
+        'CHIM': 'Chimie',
+        'BIO': 'Biologie',
+        'FRANC': 'Français',
+        'ANG': 'Anglais',
+        'HIST': 'Histoire',
+        'GEO': 'Géographie',
+        'EPS': 'EPS'
+      },
+      en: {
+        'MATH': 'Mathematics',
+        'PHY': 'Physics', 
+        'CHIM': 'Chemistry',
+        'BIO': 'Biology',
+        'FRANC': 'French',
+        'ANG': 'English',
+        'HIST': 'History',
+        'GEO': 'Geography',
+        'EPS': 'Physical Education'
+      }
     };
-    return mapping[code] || code;
+    return mappings[lang]?.[code] || mappings['en']?.[code] || code;
   };
 
   const calculateSubjectAverage = (grades: any): number => {
@@ -468,7 +914,7 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_LOAD] ❌ Erreur:', error);
       toast({
-        title: "Erreur",
+        title: t.error,
         description: "Impossible de charger les bulletins",
         variant: "destructive",
       });
@@ -527,7 +973,7 @@ export default function BulletinManagementUnified() {
         console.log('[STUDENT_SELECTION] ✅ Informations pré-remplies:', {
           nom: updatedData.studentFirstName + ' ' + updatedData.studentLastName,
           matricule: updatedData.studentNumber,
-          photo: updatedData.studentPhoto ? '✅ Photo chargée' : '❌ Pas de photo'
+          photo: updatedData.studentPhoto ? `✅ ${language === 'fr' ? 'Photo chargée' : 'Photo loaded'}` : `❌ ${language === 'fr' ? 'Pas de photo' : 'No photo'}`
         });
         
         // 🎯 IMPORTATION AUTOMATIQUE dès qu'on a élève + classe + trimestre
@@ -537,7 +983,7 @@ export default function BulletinManagementUnified() {
         
         // Notification de succès
         toast({
-          title: "✅ Élève sélectionné",
+          title: t.studentSelected,
           description: `Informations automatiquement chargées pour ${updatedData.studentFirstName} ${updatedData.studentLastName}`,
         });
       }
@@ -549,11 +995,11 @@ export default function BulletinManagementUnified() {
     try {
       console.log('[AUTO_IMPORT] 🎯 Déclenchement importation pour:', { studentId, classId, term });
       
-      // Mapper le trimestre vers le format API
-      const termMapping = {
-        'Premier Trimestre': 'T1',
-        'Deuxième Trimestre': 'T2', 
-        'Troisième Trimestre': 'T3'
+      // Map term to API format using translation keys
+      const termMapping: Record<string, string> = {
+        [t.firstTerm]: 'T1',
+        [t.secondTerm]: 'T2', 
+        [t.thirdTerm]: 'T3'
       };
       
       const apiTerm = termMapping[term as keyof typeof termMapping] || 'T1';
@@ -633,14 +1079,14 @@ export default function BulletinManagementUnified() {
           setShowImportedGrades(false);
           toast({
             title: "ℹ️ Pas de notes",
-            description: "📝 Saisie manuelle - Aucune note importée",
+            description: t.noGradesImported,
           });
         } else {
           setImportedGrades(null);
           setShowImportedGrades(false);
           toast({
             title: "ℹ️ Pas de notes",
-            description: "📝 Saisie manuelle - Aucune note importée",
+            description: t.noGradesImported,
           });
         }
       } else {
@@ -649,7 +1095,7 @@ export default function BulletinManagementUnified() {
         setShowImportedGrades(false);
         toast({
           title: "📝 Saisie manuelle",
-          description: "Aucune note importée - Veuillez saisir manuellement",
+          description: t.noGradesImported,
         });
       }
     } catch (error) {
@@ -657,7 +1103,7 @@ export default function BulletinManagementUnified() {
       setImportedGrades(null);
       setShowImportedGrades(false);
       toast({
-        title: "⚠️ Erreur d'importation",
+        title: t.importError,
         description: "Problème lors de l'importation automatique",
         variant: "destructive"
       });
@@ -720,8 +1166,8 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_APPROVE] ❌ Erreur:', error);
       toast({
-        title: "Erreur d'approbation",
-        description: error.message || "Erreur lors de l'approbation du bulletin",
+        title: t.error,
+        description: error.message || t.approvalError,
         variant: "destructive",
       });
     }
@@ -796,8 +1242,8 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_PROCESS] ❌ Erreur:', error);
       toast({
-        title: "Erreur du processus",
-        description: error.message || "Erreur lors du processus de signature et d'envoi des bulletins",
+        title: t.error,
+        description: error.message || t.processError,
         variant: "destructive",
       });
     } finally {
@@ -822,7 +1268,7 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_VIEW] ❌ Erreur:', error);
       toast({
-        title: "Erreur d'affichage",
+        title: t.error,
         description: "Impossible d'ouvrir le bulletin",
         variant: "destructive",
       });
@@ -853,7 +1299,7 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_DOWNLOAD] ❌ Erreur:', error);
       toast({
-        title: "Erreur de téléchargement",
+        title: t.error,
         description: "Impossible de télécharger le PDF du bulletin",
         variant: "destructive",
       });
@@ -921,8 +1367,8 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[MANUAL_GRADES] ❌ Erreur chargement:', error);
       toast({
-        title: "❌ Erreur",
-        description: "Impossible de charger les données de la classe",
+        title: t.error,
+        description: t.cannotLoadBulletins,
         variant: "destructive",
       });
     }
@@ -932,7 +1378,7 @@ export default function BulletinManagementUnified() {
   const saveManualGrades = async () => {
     if (!manualGradeClass || Object.keys(manualGrades).length === 0) {
       toast({
-        title: "⚠️ Aucune note à sauvegarder",
+        title: t.attention,
         description: "Veuillez saisir au moins une note",
         variant: "destructive",
       });
@@ -1017,7 +1463,7 @@ export default function BulletinManagementUnified() {
       
       if (gradesToSave.length === 0) {
         toast({
-          title: "⚠️ Aucune note valide",
+          title: t.noValidGrades,
           description: "Veuillez saisir des notes valides",
           variant: "destructive",
         });
@@ -1107,8 +1553,8 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[MANUAL_GRADES] ❌ Erreur sauvegarde:', error);
       toast({
-        title: "❌ Erreur de sauvegarde",
-        description: "Impossible de sauvegarder les notes",
+        title: t.saveError,
+        description: t.cannotSaveGrades,
         variant: "destructive",
       });
     } finally {
@@ -1123,18 +1569,33 @@ export default function BulletinManagementUnified() {
     }
   }, [manualGradeClass]);
 
-  // ✅ FONCTION POUR ADAPTER LES BOUTONS AU TRIMESTRE
-  const getTermDisplayText = (term: string) => {
-    switch (term) {
-      case 'Premier Trimestre':
-        return { short: 'T1', full: '1er Trimestre' };
-      case 'Deuxième Trimestre':
-        return { short: 'T2', full: '2ème Trimestre' };
-      case 'Troisième Trimestre':
-        return { short: 'T3', full: '3ème Trimestre' };
+  // ✅ HELPER FUNCTIONS FOR TERM CONVERSION
+  const getTermDisplayText = (termCode: string) => {
+    switch (termCode) {
+      case 'T1':
+        return { short: t.firstTermShort, full: t.firstTerm, code: 'T1' };
+      case 'T2':
+        return { short: t.secondTermShort, full: t.secondTerm, code: 'T2' };
+      case 'T3':
+        return { short: t.thirdTermShort, full: t.thirdTerm, code: 'T3' };
       default:
-        return { short: 'T1', full: '1er Trimestre' };
+        return { short: t.firstTermShort, full: t.firstTerm, code: 'T1' };
     }
+  };
+
+  // Convert legacy French terms to codes (for migration compatibility)
+  const convertTermToCode = (term: string): string => {
+    const mapping: Record<string, string> = {
+      [t.firstTerm]: 'T1',
+      [t.secondTerm]: 'T2', 
+      [t.thirdTerm]: 'T3'
+    };
+    return mapping[term] || term;
+  };
+
+  // Convert codes to display text
+  const getTermDisplayName = (termCode: string): string => {
+    return getTermDisplayText(termCode).full;
   };
 
   // Prévisualiser un bulletin avec données en temps réel
@@ -1144,8 +1605,8 @@ export default function BulletinManagementUnified() {
       if (!formData.term) {
         console.warn('[PREVIEW_DEBUG] ❌ Aucun trimestre sélectionné');
         toast({
-          title: "Trimestre requis", 
-          description: "Veuillez d'abord sélectionner un trimestre (T1, T2 ou T3)",
+          title: t.termRequired, 
+          description: t.selectTermFirst,
           variant: "destructive",
         });
         return;
@@ -1206,7 +1667,7 @@ export default function BulletinManagementUnified() {
       }
 
       // ✅ VÉRIFICATION SYNCHRONISATION T3 SPÉCIFIQUE
-      if (formData.term === 'Troisième Trimestre') {
+      if (formData.term === 'T3') {
         console.log('[PREVIEW_T3] 🎯 Vérification synchronisation T3...');
         
         // Forcer un délai minimal pour s'assurer que l'import est terminé
@@ -1217,8 +1678,8 @@ export default function BulletinManagementUnified() {
       }
 
       // ✅ RÉCUPÉRATION DIRECTE DES DONNÉES SANS COMPLEXITÉ
-      const termMapping = { 'Premier Trimestre': 'T1', 'Deuxième Trimestre': 'T2', 'Troisième Trimestre': 'T3' };
-      const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      // Term is already in code format (T1, T2, T3)
+      const apiTerm = formData.term || 'T1';
       
       console.log('[PREVIEW_SIMPLE] 🎯 Génération aperçu direct:', {
         studentId: resolvedStudentId,
@@ -1229,7 +1690,7 @@ export default function BulletinManagementUnified() {
       // ✅ RÉCUPÉRATION DE DONNÉES AVEC RETRY POUR T3
       let previewData = null;
       let retryCount = 0;
-      const maxRetries = formData.term === 'Troisième Trimestre' ? 2 : 1;
+      const maxRetries = formData.term === 'T3' ? 2 : 1;
       
       while (!previewData && retryCount < maxRetries) {
         try {
@@ -1250,7 +1711,7 @@ export default function BulletinManagementUnified() {
           }
           
           // Si pas de données et qu'on est en T3, retry après délai
-          if (!previewData && formData.term === 'Troisième Trimestre' && retryCount < maxRetries - 1) {
+          if (!previewData && formData.term === 'T3' && retryCount < maxRetries - 1) {
             console.log('[PREVIEW_T3] ⏱️ Attente supplémentaire pour synchronisation...');
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
@@ -1296,7 +1757,7 @@ export default function BulletinManagementUnified() {
       if (!previewData || !previewData.subjects || previewData.subjects.length === 0) {
         toast({
           title: "⚠️ Notes manquantes",
-          description: "Aucune note disponible pour cet élève/trimestre. Veuillez saisir des notes d'abord.",
+          description: t.noGradesAvailable,
           variant: "destructive",
         });
         return;
@@ -1344,7 +1805,7 @@ export default function BulletinManagementUnified() {
         academicData: {
           className: formData.className || "6ème A",
           academicYear: formData.academicYear || "2024-2025",
-          term: formData.term || "Premier Trimestre",
+          term: formData.term || 'T1',
           enrollment: formData.enrollment || "1"
         },
         grades: {
@@ -1361,11 +1822,11 @@ export default function BulletinManagementUnified() {
         subjects: previewSubjects
       };
 
-      // ✅ DÉTERMINER LE TRIMESTRE ET LA LANGUE
-      const termMapping = {
-        'Premier Trimestre': 'T1',
-        'Deuxième Trimestre': 'T2', 
-        'Troisième Trimestre': 'T3'
+      // ✅ DETERMINE TERM AND LANGUAGE
+      const termMapping: Record<string, string> = {
+        [t.firstTerm]: 'T1',
+        [t.secondTerm]: 'T2', 
+        [t.thirdTerm]: 'T3'
       };
       const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
       const language = 'fr'; // Pour l'instant, utiliser le français par défaut
@@ -1397,8 +1858,8 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[PREVIEW_SIMPLE] ❌ Erreur:', error);
       toast({
-        title: "❌ Erreur d'aperçu",
-        description: "Impossible de générer l'aperçu. Veuillez réessayer.",
+        title: t.previewError,
+        description: t.cannotGeneratePreview,
         variant: "destructive",
       });
     }
@@ -1456,7 +1917,7 @@ export default function BulletinManagementUnified() {
         };
 
         switch (formData.term) {
-          case 'Premier Trimestre':
+          case 'T1':
             return {
               ...baseData,
               termType: 'first',
@@ -1466,7 +1927,7 @@ export default function BulletinManagementUnified() {
               generalAppreciation: baseData.generalAppreciation || 'Début d\'année scolaire - Adaptation en cours'
             };
           
-          case 'Deuxième Trimestre':
+          case 'T2':
             return {
               ...baseData,
               termType: 'second',
@@ -1476,7 +1937,7 @@ export default function BulletinManagementUnified() {
               generalAppreciation: baseData.generalAppreciation || 'Milieu d\'année - Évaluation des progrès'
             };
           
-          case 'Troisième Trimestre':
+          case 'T3':
             const averageThreshold = 10;
             const isPromoted = baseData.generalAverage >= averageThreshold;
             
@@ -1545,7 +2006,7 @@ export default function BulletinManagementUnified() {
                     subject === 'GEO' ? 'Géographie' : subject;
               
               // ✅ UTILISER LES VRAIES DONNÉES T1/T2/T3 DEPUIS L'API 
-              if (formData.term === 'Troisième Trimestre') {
+              if (formData.term === 'T3') {
                 console.log('[BULLETIN_FRONTEND] ✅ Récupération vraies données T1/T2/T3 depuis API');
                 
                 // ✅ UTILISER LES VRAIES DONNÉES des notes manuelles saisies
@@ -1612,7 +2073,7 @@ export default function BulletinManagementUnified() {
             }) :
             formData.subjectsGeneral.map(subject => {
               // ✅ FORMAT T3 POUR DONNÉES MANUELLES - PLUS DE GÉNÉRATION ALÉATOIRE
-              if (formData.term === 'Troisième Trimestre') {
+              if (formData.term === 'T3') {
                 console.log('[BULLETIN_FRONTEND] ⚠️ WARNING: Section données manuelles génère encore des données artificielles');
                 
                 const currentGrade = subject.averageMark;
@@ -1666,7 +2127,7 @@ export default function BulletinManagementUnified() {
                   subject === 'HIST' ? 'Histoire' :
                   subject === 'GEO' ? 'Géographie' : subject;
             
-            if (formData.term === 'Troisième Trimestre') {
+            if (formData.term === 'T3') {
               // ❌ TEMPORAIRE : Plus de Math.random(), données fixes
               const t1 = parseFloat((currentGrade - 2).toFixed(2));
               const t2 = parseFloat((t1 + 0.9).toFixed(2));
@@ -1714,7 +2175,7 @@ export default function BulletinManagementUnified() {
             }
           }) : 
           formData.subjectsGeneral.map(subject => {
-            if (formData.term === 'Troisième Trimestre') {
+            if (formData.term === 'T3') {
               const currentGrade = subject.averageMark;
               // ❌ TEMPORAIRE : Plus de Math.random(), données fixes  
               const t1 = Math.max(8, Math.min(20, currentGrade - 2));
@@ -1748,7 +2209,7 @@ export default function BulletinManagementUnified() {
         termSpecificData: termSpecificData,
         
         // ✅ DONNÉES T3 SPÉCIFIQUES SELON L'IMAGE FOURNIE
-        ...(formData.term === 'Troisième Trimestre' && {
+        ...(formData.term === 'T3') && {
           // ✅ SECTION SUMMARY AVEC PROGRESSION NATURELLE
           summary: {
             // Moyennes par trimestre avec progression naturelle
@@ -1839,7 +2300,7 @@ export default function BulletinManagementUnified() {
       if (!bulletinData.grades.general || bulletinData.grades.general.length === 0) {
         toast({
           title: "⚠️ Problème de notes",
-          description: "Aucune note trouvée. Veuillez re-sélectionner l'élève ou saisir manuellement",
+          description: t.noGradesAvailable,
           variant: "destructive",
         });
         return;
@@ -1883,7 +2344,7 @@ export default function BulletinManagementUnified() {
     } catch (error) {
       console.error('[BULLETIN_CREATE] ❌ Erreur:', error);
       toast({
-        title: "Erreur de création",
+        title: t.error,
         description: error.message || "Impossible de créer le bulletin",
         variant: "destructive",
       });
@@ -1922,7 +2383,7 @@ export default function BulletinManagementUnified() {
       generatePdf: 'Générer PDF',
       preview: 'Aperçu',
       loading: 'Chargement...',
-      error: 'Erreur',
+      error: 'Error',
       success: 'Succès',
       selectAll: 'Sélectionner tous',
       bulkSign: 'Signer et Envoyer la Sélection',
@@ -2352,7 +2813,7 @@ export default function BulletinManagementUnified() {
         <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="manual-grades" className="flex items-center justify-center w-full bg-green-100 border-green-300 text-green-800 font-semibold">
             <PenTool className="w-5 h-5 mr-2" />
-            🎯 Interface Unifiée : Saisie → Aperçu → Création de Bulletins
+            🎯 {language === 'fr' ? 'Interface Unifiée : Saisie → Aperçu → Création de Bulletins' : 'Unified Interface: Entry → Preview → Bulletin Creation'}
           </TabsTrigger>
         </TabsList>
 
@@ -2364,19 +2825,19 @@ export default function BulletinManagementUnified() {
               <CardHeader>
                 <CardTitle className="flex items-center text-green-800">
                   <PenTool className="mr-2 h-5 w-5" />
-                  Saisie Manuelle des Notes
+                  {t.manualGradeEntryTitle}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Label>Sélectionnez une classe</Label>
+                    <Label>{t.selectClass}</Label>
                     <Select
                       value={manualGradeClass}
                       onValueChange={setManualGradeClass}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Choisir une classe..." />
+                        <SelectValue placeholder={t.selectClass} />
                       </SelectTrigger>
                       <SelectContent>
                         {classes.map((classItem) => (
@@ -2473,11 +2934,11 @@ export default function BulletinManagementUnified() {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                         <Calendar className="w-4 h-4 mr-2 text-green-600" />
-                        Informations Académiques
+                        {t.academicInfo}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <Label>Année Académique</Label>
+                          <Label>{t.academicYear}</Label>
                           <Input 
                             value={formData.academicYear}
                             onChange={(e) => setFormData(prev => ({ ...prev, academicYear: e.target.value }))}
@@ -2485,23 +2946,23 @@ export default function BulletinManagementUnified() {
                           />
                         </div>
                         <div>
-                          <Label>Trimestre</Label>
+                          <Label>{t.term}</Label>
                           <Select
                             value={formData.term}
                             onValueChange={(value) => setFormData(prev => ({ ...prev, term: value }))}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner le trimestre" />
+                              <SelectValue placeholder={t.selectTerm} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Premier Trimestre">Premier Trimestre</SelectItem>
-                              <SelectItem value="Deuxième Trimestre">Deuxième Trimestre</SelectItem>
-                              <SelectItem value="Troisième Trimestre">Troisième Trimestre</SelectItem>
+                              <SelectItem value="T1">{t.firstTerm}</SelectItem>
+                              <SelectItem value="T2">{t.secondTerm}</SelectItem>
+                              <SelectItem value="T3">{t.thirdTerm}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label>Classe</Label>
+                          <Label>{t.class}</Label>
                           <Input 
                             value={formData.className || classes.find(c => c.id.toString() === manualGradeClass)?.name || ''}
                             onChange={(e) => setFormData(prev => ({ ...prev, className: e.target.value }))}
@@ -2517,11 +2978,11 @@ export default function BulletinManagementUnified() {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                         <Shield className="w-4 h-4 mr-2 text-purple-600" />
-                        Informations Officielles (Cameroun)
+                        {t.officialInfo}
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <Label>Délégation Régionale</Label>
+                          <Label>{t.regionalDelegation}</Label>
                           <Input 
                             value={formData.regionalDelegation}
                             onChange={(e) => setFormData(prev => ({ ...prev, regionalDelegation: e.target.value }))}
@@ -2529,7 +2990,7 @@ export default function BulletinManagementUnified() {
                           />
                         </div>
                         <div>
-                          <Label>Délégation Départementale</Label>
+                          <Label>{t.departmentalDelegation}</Label>
                           <Input 
                             value={formData.departmentalDelegation}
                             onChange={(e) => setFormData(prev => ({ ...prev, departmentalDelegation: e.target.value }))}
@@ -2543,8 +3004,8 @@ export default function BulletinManagementUnified() {
                     <div className="bg-white rounded-lg border p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h5 className="font-medium text-gray-900 mb-1">Auto-remplissage des Données</h5>
-                          <p className="text-sm text-gray-600">Charger automatiquement les informations depuis la base de données</p>
+                          <h5 className="font-medium text-gray-900 mb-1">{t.autoFillData}</h5>
+                          <p className="text-sm text-gray-600">{t.autoFillDescription}</p>
                         </div>
                         <Button 
                           variant="outline"
@@ -2563,7 +3024,7 @@ export default function BulletinManagementUnified() {
                           className="flex items-center"
                         >
                           <Star className="w-4 h-4 mr-1" />
-                          Auto-remplir
+                          {t.autoFill}
                         </Button>
                       </div>
                     </div>
@@ -2577,7 +3038,7 @@ export default function BulletinManagementUnified() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>Saisie des Notes - {classes.find(c => c.id.toString() === manualGradeClass)?.name}</span>
+                    <span>{t.gradeEntrySuffix} {classes.find(c => c.id.toString() === manualGradeClass)?.name}</span>
                     <Button 
                       onClick={saveManualGrades}
                       disabled={savingGrades || Object.keys(manualGrades).length === 0}
@@ -2586,12 +3047,12 @@ export default function BulletinManagementUnified() {
                       {savingGrades ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Sauvegarde...
+                          {t.saving}
                         </>
                       ) : (
                         <>
                           <Save className="w-4 h-4 mr-2" />
-                          Sauvegarder ({Object.keys(manualGrades).length} notes)
+                          {t.save} ({Object.keys(manualGrades).length} {language === 'fr' ? 'notes' : 'grades'})
                         </>
                       )}
                     </Button>
@@ -2602,9 +3063,9 @@ export default function BulletinManagementUnified() {
                     {/* Tabs pour les trimestres */}
                     <Tabs defaultValue="T1" className="w-full">
                       <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="T1">1er Trimestre</TabsTrigger>
-                        <TabsTrigger value="T2">2ème Trimestre</TabsTrigger>
-                        <TabsTrigger value="T3">3ème Trimestre</TabsTrigger>
+                        <TabsTrigger value="T1">{t.firstTermShort}</TabsTrigger>
+                        <TabsTrigger value="T2">{t.secondTermShort}</TabsTrigger>
+                        <TabsTrigger value="T3">{t.thirdTermShort}</TabsTrigger>
                       </TabsList>
 
                       {['T1', 'T2', 'T3'].map((term) => (
@@ -2613,7 +3074,7 @@ export default function BulletinManagementUnified() {
                             <table className="w-full border-collapse">
                               <thead>
                                 <tr className="bg-gray-50">
-                                  <th className="border border-gray-200 p-2 text-left">Élève</th>
+                                  <th className="border border-gray-200 p-2 text-left">{t.student}</th>
                                   {classSubjects.map((subject) => {
                                     const teacher = classTeachers.find(t => t.id === subject.teacher_id);
                                     return (
@@ -2688,14 +3149,14 @@ export default function BulletinManagementUnified() {
                     <div className="flex items-center mb-3">
                       <div className="flex items-center space-x-2 text-sm font-medium text-blue-700">
                         <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span>Notes saisies !</span>
+                        <span>{t.gradesEntered}</span>
                         <span className="mx-2">→</span>
-                        <span>Créer les bulletins maintenant :</span>
+                        <span>{t.createBulletinsNow}</span>
                       </div>
                     </div>
                     
                     <div className="text-sm text-gray-600 mb-4">
-                      Cliquez sur un élève pour voir l'aperçu de son bulletin et le créer :
+                      {t.clickStudent}
                     </div>
                     
                     <div className="space-y-3">
@@ -2738,7 +3199,7 @@ export default function BulletinManagementUnified() {
                                 setSelectedClassId(classData.id);
                                 setFormData(prev => ({
                                   ...prev,
-                                  term: 'Premier Trimestre',
+                                  term: 'T1',
                                   studentFirstName: studentData.firstName,
                                   studentLastName: studentData.lastName,
                                   className: classData.name,
@@ -2763,7 +3224,7 @@ export default function BulletinManagementUnified() {
                               className="border-blue-300 text-blue-700 hover:bg-blue-50"
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              Aperçu {getTermDisplayText(formData.term).short}
+                              {t.preview} {getTermDisplayText(formData.term).short}
                             </Button>
                             
                             <Button 
@@ -2791,7 +3252,7 @@ export default function BulletinManagementUnified() {
                                 setSelectedClassId(classData.id);
                                 setFormData(prev => ({
                                   ...prev,
-                                  term: 'Premier Trimestre',
+                                  term: 'T1',
                                   studentFirstName: studentData.firstName,
                                   studentLastName: studentData.lastName,
                                   className: classData.name,
@@ -2816,7 +3277,7 @@ export default function BulletinManagementUnified() {
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <FileText className="w-4 h-4 mr-1" />
-                              Créer Bulletin {getTermDisplayText(formData.term).short}
+                              {t.create} {getTermDisplayText(formData.term).short}
                             </Button>
                           </div>
                         </div>
@@ -2824,7 +3285,7 @@ export default function BulletinManagementUnified() {
                     </div>
                     
                     <div className="mt-3 text-xs text-blue-600 bg-blue-50/50 rounded p-2">
-                      ⚡ <strong>Workflow accéléré :</strong> Cliquez directement "Aperçu" ou "Créer Bulletin" pour chaque élève !
+                      {t.workflowAccelerated}
                     </div>
                   </div>
                 )}
@@ -2837,18 +3298,18 @@ export default function BulletinManagementUnified() {
                 <CardContent className="pt-6">
                   <div className="text-center py-8">
                     <PenTool className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-600 mb-2">Saisie Manuelle des Notes</h3>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">{t.manualGradeEntryTitle}</h3>
                     <p className="text-gray-500 mb-4">
-                      Sélectionnez une classe pour commencer la saisie des notes.
-                      Les élèves, matières et professeurs seront automatiquement chargés.
+                      {t.selectClassToStart}
+                      {t.studentsSubjectsLoaded}
                     </p>
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-                      <h4 className="font-medium text-blue-800 mb-2">✅ Fonctionnalités</h4>
+                      <h4 className="font-medium text-blue-800 mb-2">{t.features}</h4>
                       <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Auto-chargement des données de classe</li>
-                        <li>• Saisie par trimestre (T1, T2, T3)</li>
-                        <li>• Sauvegarde automatique en base</li>
-                        <li>• Notes utilisées pour les bulletins</li>
+                        <li>{t.autoLoadClassData}</li>
+                        <li>{t.entryByTerm}</li>
+                        <li>{t.autoSave}</li>
+                        <li>{t.gradesUsedForBulletins}</li>
                       </ul>
                     </div>
                   </div>
@@ -2864,7 +3325,7 @@ export default function BulletinManagementUnified() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <AlertCircle className="w-5 h-5 mr-2 text-orange-600" />
-                Bulletins en Attente d'Approbation ({pendingBulletins.length})
+                {t.bulletinsPending} ({pendingBulletins.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -2880,7 +3341,7 @@ export default function BulletinManagementUnified() {
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                  Bulletins Approuvés ({approvedBulletins.length})
+                  {t.bulletinsApproved} ({approvedBulletins.length})
                   {selectedBulletins.length > 0 && (
                     <Badge className="ml-2 bg-blue-100 text-blue-800">
                       {selectedBulletins.length} {t.selected}
@@ -2907,7 +3368,7 @@ export default function BulletinManagementUnified() {
                         {loading ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            Envoi...
+                            {t.sending}
                           </>
                         ) : (
                           <>
@@ -3062,7 +3523,7 @@ export default function BulletinManagementUnified() {
                         <SelectValue placeholder="🗓️ Choisir la période d'évaluation" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Premier Trimestre" className="py-3">
+                        <SelectItem value="T1" className="py-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                             <div>
@@ -3071,7 +3532,7 @@ export default function BulletinManagementUnified() {
                             </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="Deuxième Trimestre" className="py-3">
+                        <SelectItem value="T2" className="py-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
                             <div>
@@ -3080,7 +3541,7 @@ export default function BulletinManagementUnified() {
                             </div>
                           </div>
                         </SelectItem>
-                        <SelectItem value="Troisième Trimestre" className="py-3">
+                        <SelectItem value="T3" className="py-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
                             <div>
@@ -3120,42 +3581,42 @@ export default function BulletinManagementUnified() {
                   {/* Informations contextuelles au trimestre sélectionné */}
                   {formData.term && (
                     <div className={`mt-3 p-3 rounded-lg border-2 ${
-                      formData.term === 'Premier Trimestre' ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300' :
-                      formData.term === 'Deuxième Trimestre' ? 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-300' :
+                      formData.term === 'T1' ? 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300' :
+                      formData.term === 'T2' ? 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-300' :
                       'bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300'
                     }`}>
                       <div className={`flex items-center text-sm font-medium ${
-                        formData.term === 'Premier Trimestre' ? 'text-blue-800' :
-                        formData.term === 'Deuxième Trimestre' ? 'text-purple-800' :
+                        formData.term === 'T1' ? 'text-blue-800' :
+                        formData.term === 'T2' ? 'text-purple-800' :
                         'text-orange-800'
                       }`}>
-                        {formData.term === 'Premier Trimestre' && (
+                        {(formData.term === t.firstTerm || formData.term === 'T1') && (
                           <>
                             <BookOpen className="w-5 h-5 mr-2" />
-                            <span className="text-lg font-bold">1er Trimestre - Début d'année</span>
+                            <span className="text-lg font-bold">{t.firstTermShort} - {t.FIRST_TERM_DESC}</span>
                           </>
                         )}
-                        {formData.term === 'Deuxième Trimestre' && (
+                        {(formData.term === t.secondTerm || formData.term === 'T2') && (
                           <>
                             <Clock className="w-5 h-5 mr-2" />
-                            <span className="text-lg font-bold">2ème Trimestre - Milieu d'année</span>
+                            <span className="text-lg font-bold">{t.secondTermShort} - {t.SECOND_TERM_DESC}</span>
                           </>
                         )}
-                        {formData.term === 'Troisième Trimestre' && (
+                        {(formData.term === t.thirdTerm || formData.term === 'T3') && (
                           <>
                             <AlertCircle className="w-5 h-5 mr-2" />
-                            <span className="text-lg font-bold">3ème Trimestre - Évaluation Finale</span>
+                            <span className="text-lg font-bold">{t.thirdTermShort} - {t.THIRD_TERM_DESC}</span>
                           </>
                         )}
                       </div>
                       <p className={`mt-2 text-sm ${
-                        formData.term === 'Premier Trimestre' ? 'text-blue-700' :
-                        formData.term === 'Deuxième Trimestre' ? 'text-purple-700' :
+                        (formData.term === t.firstTerm || formData.term === 'T1') ? 'text-blue-700' :
+                        (formData.term === t.secondTerm || formData.term === 'T2') ? 'text-purple-700' :
                         'text-orange-700'
                       }`}>
-                        {formData.term === 'Premier Trimestre' && '🌱 Période d\'adaptation et d\'observation - Identification des forces et axes d\'amélioration'}
-                        {formData.term === 'Deuxième Trimestre' && '📈 Consolidation des acquis - Évaluation des progrès et préparation finale'}
-                        {formData.term === 'Troisième Trimestre' && '🏆 Décision de passage - Ce bulletin détermine l\'admission en classe supérieure'}
+                        {(formData.term === t.firstTerm || formData.term === 'T1') && t.FIRST_TERM_DETAIL}
+                        {(formData.term === t.secondTerm || formData.term === 'T2') && t.SECOND_TERM_DETAIL}
+                        {(formData.term === t.thirdTerm || formData.term === 'T3') && t.THIRD_TERM_DETAIL}
                       </p>
                     </div>
                   )}
@@ -3236,7 +3697,7 @@ export default function BulletinManagementUnified() {
             </div>
 
             {/* SECTION T3 SPÉCIFIQUE - CONSEIL DE CLASSE ET COMPORTEMENT */}
-            {formData.term === 'Troisième Trimestre' && (
+            {formData.term === 'T3' && (
               <div className="space-y-6">
                 <Card className="border-amber-200 bg-amber-50">
                   <CardHeader>
@@ -3280,7 +3741,7 @@ export default function BulletinManagementUnified() {
                             <SelectItem value="BIEN">🥈 Bien (14-16)</SelectItem>
                             <SelectItem value="ASSEZ BIEN">🥉 Assez Bien (12-14)</SelectItem>
                             <SelectItem value="PASSABLE">📋 Passable (10-12)</SelectItem>
-                            <SelectItem value="INSUFFISANT">❌ Insuffisant (&lt;10)</SelectItem>
+                            <SelectItem value="INSUFFICIENT">❌ {t.INSUFFICIENT} (&lt;10)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -3377,7 +3838,7 @@ export default function BulletinManagementUnified() {
                             <SelectItem value="Très bonne">✅ Très bonne</SelectItem>
                             <SelectItem value="Bonne">👌 Bonne</SelectItem>
                             <SelectItem value="À améliorer">⚠️ À améliorer</SelectItem>
-                            <SelectItem value="Insuffisante">❌ Insuffisante</SelectItem>
+                            <SelectItem value="INSUFFICIENT">❌ {t.INSUFFICIENT}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -3454,9 +3915,9 @@ export default function BulletinManagementUnified() {
                           {importedGrades.termAverage}/20
                         </Badge>
                         <span className="text-sm text-gray-500">
-                          {importedGrades.term === 'T1' ? 'Premier Trimestre' :
-                           importedGrades.term === 'T2' ? 'Deuxième Trimestre' :
-                           importedGrades.term === 'T3' ? 'Troisième Trimestre' :
+                          {importedGrades.term === 'T1' ? t.firstTerm :
+                           importedGrades.term === 'T2' ? t.secondTerm :
+                           importedGrades.term === 'T3' ? t.thirdTerm :
                            `Trimestre ${importedGrades.term}`}
                         </span>
                       </div>
@@ -3464,7 +3925,7 @@ export default function BulletinManagementUnified() {
                     <div>
                       <Label className="text-sm font-medium">Nombre de Matières</Label>
                       <p className="text-lg font-semibold text-gray-800 mt-1">
-                        {Object.keys(importedGrades.termGrades).length} matières
+                        {Object.keys(importedGrades.termGrades).length} {t.subjects}
                       </p>
                     </div>
                   </div>
@@ -3474,10 +3935,10 @@ export default function BulletinManagementUnified() {
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">Matière</th>
-                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Note CC</th>
-                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Note Examen</th>
-                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">Moyenne</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-900">{t.subject}</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t.grade}</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t.exam}</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-900">{t.average}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
@@ -3486,14 +3947,14 @@ export default function BulletinManagementUnified() {
                           return (
                             <tr key={subject} className="hover:bg-gray-50">
                               <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                                {subject === 'MATH' ? 'Mathématiques' :
-                                 subject === 'PHYS' ? 'Physique' :
-                                 subject === 'CHIM' ? 'Chimie' :
-                                 subject === 'BIO' ? 'Biologie' :
-                                 subject === 'FRANC' ? 'Français' :
-                                 subject === 'ANG' ? 'Anglais' :
-                                 subject === 'HIST' ? 'Histoire' :
-                                 subject === 'GEO' ? 'Géographie' :
+                                {subject === 'MATH' ? t.mathematics :
+                                 subject === 'PHYS' ? t.physics :
+                                 subject === 'CHIM' ? t.chemistry :
+                                 subject === 'BIO' ? t.biology :
+                                 subject === 'FRANC' ? t.french :
+                                 subject === 'ANG' ? t.english :
+                                 subject === 'HIST' ? t.history :
+                                 subject === 'GEO' ? t.geography :
                                  subject}
                               </td>
                               <td className="px-4 py-3 text-center text-sm text-gray-600">
@@ -3522,7 +3983,7 @@ export default function BulletinManagementUnified() {
                   {/* Actions */}
                   <div className="mt-4 flex items-center justify-between">
                     <div className="text-sm text-gray-600">
-                      <span className="font-medium">✅ Importation réussie</span> - Les notes sont prêtes à être utilisées pour le bulletin
+                      <span className="font-medium">{t.importSuccessful}</span> - {t.gradesReadyForBulletin}
                     </div>
                     <div className="flex space-x-2">
                       <Button 
@@ -3530,7 +3991,7 @@ export default function BulletinManagementUnified() {
                         className="bg-green-600 hover:bg-green-700 text-white text-xs"
                         size="sm"
                       >
-                        ✅ Intégrer au Bulletin
+                        {t.integrateToBulletin}
                       </Button>
                       <Button 
                         variant="outline" 
@@ -3538,7 +3999,7 @@ export default function BulletinManagementUnified() {
                         onClick={() => setShowImportedGrades(false)}
                         className="text-gray-600 hover:text-gray-700 text-xs"
                       >
-                        Masquer
+                        {t.hide}
                       </Button>
                     </div>
                   </div>
@@ -3552,26 +4013,26 @@ export default function BulletinManagementUnified() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <User className="mr-2 h-5 w-5 text-green-600" />
-                    Informations Élève
+                    {t.studentInfo}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label>Prénom</Label>
+                    <Label>{t.firstName}</Label>
                     <Input 
                       value={formData.studentFirstName}
                       onChange={(e) => setFormData(prev => ({ ...prev, studentFirstName: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <Label>Nom</Label>
+                    <Label>{t.lastName}</Label>
                     <Input 
                       value={formData.studentLastName}
                       onChange={(e) => setFormData(prev => ({ ...prev, studentLastName: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <Label>Matricule</Label>
+                    <Label>{t.matricule}</Label>
                     <Input 
                       value={formData.studentNumber}
                       onChange={(e) => setFormData(prev => ({ ...prev, studentNumber: e.target.value }))}
@@ -3580,7 +4041,7 @@ export default function BulletinManagementUnified() {
                   <div>
                     <Label className="flex items-center space-x-2">
                       <Camera className="h-4 w-4" />
-                      <span>Photo Élève {formData.studentPhoto ? '(Chargée automatiquement)' : '(Optionnel)'}</span>
+                      <span>{t.studentPhoto} {formData.studentPhoto ? t.photoLoadedAuto : t.photoOptional}</span>
                     </Label>
                     <div className="mt-2 space-y-3">
                       {formData.studentPhoto ? (
@@ -3588,7 +4049,7 @@ export default function BulletinManagementUnified() {
                           <div className="relative">
                             <img 
                               src={formData.studentPhoto} 
-                              alt="Photo élève" 
+                              alt={language === 'fr' ? 'Photo élève' : 'Student photo'} 
                               className="w-16 h-20 object-cover border border-gray-300 rounded shadow-sm"
                               onError={(e) => {
                                 console.log('[PHOTO_ERROR] Impossible de charger:', formData.studentPhoto);
@@ -3607,32 +4068,32 @@ export default function BulletinManagementUnified() {
                               className="text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="w-4 h-4 mr-1" />
-                              Supprimer
+                              {t.remove}
                             </Button>
-                            <span className="text-xs text-green-600 font-medium">✅ Photo du profil chargée</span>
+                            <span className="text-xs text-green-600 font-medium">{t.photoFromProfile}</span>
                           </div>
                         </div>
                       ) : (
                         <div className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
                           <Camera className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500 mb-2">Aucune photo de profil trouvée</p>
-                          <p className="text-xs text-gray-400">Vous pouvez en ajouter une ci-dessous</p>
+                          <p className="text-sm text-gray-500 mb-2">{t.noPhotoFound}</p>
+                          <p className="text-xs text-gray-400">{t.addPhotoBelow}</p>
                         </div>
                       )}
                       
                       <div className="grid grid-cols-1 gap-3">
                         <div>
-                          <Label className="text-sm">URL de la photo</Label>
+                          <Label className="text-sm">{t.photoUrl}</Label>
                           <Input 
                             value={formData.studentPhoto}
                             onChange={(e) => setFormData(prev => ({ ...prev, studentPhoto: e.target.value }))}
-                            placeholder="https://... ou utilisez le bouton ci-dessous"
+                            placeholder={language === 'fr' ? 'https://... ou utilisez le bouton ci-dessous' : 'https://... or use the button below'}
                             className="text-sm"
                           />
                         </div>
                         
                         <div className="text-center">
-                          <span className="text-sm text-gray-500">ou</span>
+                          <span className="text-sm text-gray-500">{language === 'fr' ? 'ou' : 'or'}</span>
                         </div>
                         
                         <div>
@@ -3653,17 +4114,17 @@ export default function BulletinManagementUnified() {
                             {uploadingPhoto ? (
                               <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                                Téléchargement...
+                                {t.uploading}
                               </>
                             ) : (
                               <>
                                 <Upload className="w-4 h-4 mr-2" />
-                                Télécharger une photo
+                                {t.uploadPhoto}
                               </>
                             )}
                           </Button>
                           <p className="text-xs text-gray-500 mt-1">
-                            Max 5MB • JPG, PNG, GIF
+                            {t.maxSize}
                           </p>
                         </div>
                       </div>
@@ -3681,7 +4142,7 @@ export default function BulletinManagementUnified() {
                     {selectedStudentId ? (
                       <>
                         <h3 className="text-lg font-medium">
-                          Bulletin de {students.find(s => s.id.toString() === selectedStudentId)?.name || 'Élève'}
+                          {t.bulletinOf} {students.find(s => s.id.toString() === selectedStudentId)?.name || (language === 'fr' ? 'Élève' : 'Student')}
                         </h3>
                         <p className="text-sm text-gray-600">
                           📚 Classe: {classes.find(c => c.id.toString() === selectedClassId)?.name || 'Non sélectionnée'} 
@@ -3695,9 +4156,9 @@ export default function BulletinManagementUnified() {
                       </>
                     ) : (
                       <>
-                        <h3 className="text-lg font-medium text-gray-400">Créer le Bulletin</h3>
+                        <h3 className="text-lg font-medium text-gray-400">{t.createBulletin}</h3>
                         <p className="text-sm text-gray-500">
-                          Veuillez d'abord sélectionner un élève, une classe et un trimestre
+                          {t.selectStudentFirst}
                         </p>
                       </>
                     )}
@@ -3708,17 +4169,17 @@ export default function BulletinManagementUnified() {
                       <div className="flex items-center space-x-2 text-sm text-green-700">
                         <div className="flex items-center space-x-1">
                           <span className="w-6 h-6 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                          <span>Saisie Notes</span>
+                          <span>{t.step1}</span>
                         </div>
                         <span>→</span>
                         <div className="flex items-center space-x-1">
                           <span className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                          <span>Aperçu</span>
+                          <span>{t.step2}</span>
                         </div>
                         <span>→</span>
                         <div className="flex items-center space-x-1">
                           <span className="w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                          <span>Création</span>
+                          <span>{t.step3}</span>
                         </div>
                       </div>
                     </div>
