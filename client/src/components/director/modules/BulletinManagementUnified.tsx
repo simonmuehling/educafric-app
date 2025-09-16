@@ -1945,6 +1945,37 @@ export default function BulletinManagementUnified() {
       console.log('[BULLETIN_CREATE] 🎯 Création du bulletin avec MÊMES DONNÉES que l\'aperçu');
       console.log('[BULLETIN_CREATE] Élève:', selectedStudentId, 'Classe:', selectedClassId, 'Trimestre:', formData.term);
 
+      // ✅ RÉCUPÉRER LES NOTES COMME DANS LA FONCTION PREVIEW
+      const termMapping: Record<string, string> = {
+        [t.firstTerm]: 'T1',
+        [t.secondTerm]: 'T2', 
+        [t.thirdTerm]: 'T3'
+      };
+      const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      
+      let importedGrades = null;
+      try {
+        console.log('[BULLETIN_CREATE] 📡 Récupération des notes pour:', {studentId: selectedStudentId, classId: selectedClassId, term: apiTerm});
+        
+        const gradesResponse = await fetch(`/api/bulletins/?studentId=${selectedStudentId}&classId=${selectedClassId}&term=${apiTerm}&academicYear=2024-2025`, {
+          credentials: 'include'
+        });
+        
+        if (gradesResponse.ok) {
+          const gradesData = await gradesResponse.json();
+          if (gradesData.success && gradesData.data?.subjects?.length > 0) {
+            importedGrades = gradesData.data;
+            console.log('[BULLETIN_CREATE] ✅ Notes récupérées:', gradesData.data.subjects.length, 'matières');
+          } else {
+            console.log('[BULLETIN_CREATE] ⚠️ Aucune note trouvée dans la réponse');
+          }
+        } else {
+          console.log('[BULLETIN_CREATE] ❌ Erreur lors de la récupération des notes:', gradesResponse.status);
+        }
+      } catch (error) {
+        console.error('[BULLETIN_CREATE] ❌ Erreur lors de la récupération des notes:', error);
+      }
+
       // ✅ VÉRIFICATIONS ET NOTIFICATIONS AUTOMATIQUES COMME L'APERÇU  
       if (!formData.studentFirstName || !formData.studentLastName) {
         toast({
