@@ -53,6 +53,7 @@ import documentsRouter from "./routes/documents";
 import authRoutes from "./routes/auth";
 import facebookWebhookRoutes from "./routes/facebook-webhook";
 import subscriptionRoutes from "./routes/subscription";
+import bulletinSamplesRoutes from "./routes/bulletinSamplesRoutes";
 import administrationRoutes from "./routes/administration";
 import autofixRoutes from "./routes/autofix";
 import multiRoleRoutes from "./routes/multiRoleRoutes";
@@ -185,16 +186,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Fixed: Only catch HEAD requests to /api root, not all /api/* paths
   app.head('/api', (req, res) => {
-    // ULTIMATE SOLUTION: Immediate connection termination + process identification
-    const callerInfo = `${req.ip}|${req.get('User-Agent')}|${new Date().toISOString()}`;
-    
-    // Log final identification attempt
-    console.log(`[HEAD-ELIMINATION] 🛑 TERMINATED: ${callerInfo}`);
-    
-    // Immediate connection termination
-    req.socket.destroy();
-    return; // Prevent any response
+    // Only handle exact /api path, not /api/something
+    if (req.path === '/api') {
+      const callerInfo = `${req.ip}|${req.get('User-Agent')}|${new Date().toISOString()}`;
+      console.log(`[HEAD-ELIMINATION] 🛑 TERMINATED: ${callerInfo}`);
+      req.socket.destroy();
+      return;
+    }
+    // Let other /api/* paths continue to their handlers
+    res.status(404).json({ success: false, message: 'Not found' });
   });
 
   // Add missing authentication API endpoints
@@ -4770,6 +4772,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/whatsapp', checkSubscriptionFeature('advanced_communications'), whatsappRoutes);
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
   app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
+  
+  // Bulletin samples routes
+  app.use('/api/bulletin-samples', bulletinSamplesRoutes);
   
   // Additional routes after main registrations  
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
