@@ -1828,13 +1828,13 @@ export default function BulletinManagementUnified() {
         [t.secondTerm]: 'T2', 
         [t.thirdTerm]: 'T3'
       };
-      const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      const sampleApiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
       const language = 'fr'; // Pour l'instant, utiliser le français par défaut
 
-      console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${apiTerm} en ${language}`);
+      console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${sampleApiTerm} en ${language}`);
 
       // ✅ APPELER L'API DES ÉCHANTILLONS PDF AU LIEU DE LA GÉNÉRATION HTML
-      const response = await fetch(`/api/bulletin-samples/preview/${apiTerm}/${language}`, {
+      const response = await fetch(`/api/bulletin-samples/preview/${sampleApiTerm}/${language}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -1847,7 +1847,7 @@ export default function BulletinManagementUnified() {
         
         toast({
           title: "📋 Aperçu PDF ouvert",
-          description: `Échantillon de bulletin ${apiTerm} affiché dans un nouvel onglet`,
+          description: `Échantillon de bulletin ${sampleApiTerm} affiché dans un nouvel onglet`,
           duration: 3000,
         });
       } else {
