@@ -18,18 +18,14 @@ export const bulletins = pgTable("bulletins", {
   term: text("term").notNull(), // "Premier Trimestre", "Deuxième Trimestre", etc.
   academicYear: text("academic_year").notNull(), // "2024-2025"
   
-  // Workflow status
-  status: text("status").notNull().default("draft"), // draft, submitted, reviewed, approved, sent
-  submittedAt: timestamp("submitted_at"),
-  reviewedAt: timestamp("reviewed_at"),
+  // Simplified workflow status - SINGLE SIGNATURE ONLY
+  status: text("status").notNull().default("draft"), // draft, approved, sent
   approvedAt: timestamp("approved_at"),
   sentAt: timestamp("sent_at"),
   
-  // Who performed actions
-  submittedBy: integer("submitted_by"), // Teacher ID
-  reviewedBy: integer("reviewed_by"), // Director ID
-  approvedBy: integer("approved_by"), // Director ID
-  sentBy: integer("sent_by"), // Director ID
+  // Who performed actions - SINGLE APPROVER
+  approvedBy: integer("approved_by"), // Single approver (Teacher or Director)
+  sentBy: integer("sent_by"), // Who sent the bulletin
   
   // Calculated grades
   generalAverage: decimal("general_average", { precision: 5, scale: 2 }),
@@ -101,7 +97,7 @@ export const bulletinWorkflow = pgTable("bulletin_workflow", {
   term: text("term").notNull(),
   academicYear: text("academic_year").notNull(),
   
-  // Workflow status
+  // Simplified workflow status - SINGLE SIGNATURE ONLY
   currentStatus: text("current_status").notNull().default("awaiting_teacher_submissions"), 
   // awaiting_teacher_submissions, incomplete, ready_for_approval, approved, sent
   
