@@ -1836,8 +1836,8 @@ export default function BulletinManagementUnified() {
       console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${sampleApiTerm} en ${language}`);
 
       // ✅ RÉCUPÉRER LES DONNÉES COMPLÈTES DE L'ÉLÈVE ET DE LA CLASSE
-      const selectedStudent = allStudents.find(s => s.id === parseInt(resolvedStudentId));
-      const selectedClass = allClasses.find(c => c.id === parseInt(resolvedClassId));
+      const selectedStudent = students.find(s => s.id === parseInt(resolvedStudentId));
+      const selectedClass = classes.find(c => c.id === parseInt(resolvedClassId));
       
       if (!selectedStudent || !selectedClass) {
         throw new Error('Élève ou classe introuvable');
