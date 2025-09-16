@@ -120,10 +120,10 @@ export const productionSessionConfig = {
   name: 'educafric.sid', // Explicit session name for consistency
   proxy: true,
   cookie: {
-    secure: false, // Must be false for HTTP in development
+    secure: true, // MUST be true for SameSite=None in production iframe
     httpOnly: true, // Standard session cookie security
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 JOURS (au lieu de 24h) - Durée largement augmentée
-    sameSite: 'lax' as const, // Standard for same-site requests
+    sameSite: 'none' as const, // REQUIRED for cross-site iframe context (Replit)
     path: '/', // Available for all paths
   },
   genid: (req: any) => {
