@@ -1835,23 +1835,43 @@ export default function BulletinManagementUnified() {
 
       console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${sampleApiTerm} en ${language}`);
 
-      // ✅ APPELER L'API DES ÉCHANTILLONS PDF AU LIEU DE LA GÉNÉRATION HTML
-      const response = await fetch(`/api/bulletin-samples/preview/${sampleApiTerm}/${language}`, {
-        method: 'GET',
-        credentials: 'include'
+      // ✅ CRÉER UN VRAI BULLETIN AVEC LES DONNÉES RÉELLES DE L'ÉLÈVE
+      const bulletinData = {
+        studentId: resolvedStudentId,
+        classId: resolvedClassId,
+        academicYear: '2024-2025',
+        term: selectedTerm,
+        language: language
+      };
+
+      console.log('[PREVIEW_REAL] 📡 Création bulletin avec données réelles:', bulletinData);
+
+      const response = await fetch('/api/bulletins/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(bulletinData)
       });
 
       if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        console.log('[PREVIEW_SIMPLE] ✅ Échantillon PDF ouvert avec succès');
+        const bulletinResponse = await response.json();
+        console.log('[PREVIEW_REAL] ✅ Bulletin créé:', bulletinResponse);
         
-        toast({
-          title: "📋 Aperçu PDF ouvert",
-          description: `Échantillon de bulletin ${sampleApiTerm} affiché dans un nouvel onglet`,
-          duration: 3000,
-        });
+        // Ouvrir le PDF généré dans un nouvel onglet
+        if (bulletinResponse.downloadUrl) {
+          window.open(bulletinResponse.downloadUrl, '_blank');
+          console.log('[PREVIEW_REAL] ✅ Bulletin PDF ouvert avec succès');
+          
+          toast({
+            title: "📋 Bulletin généré !",
+            description: `Bulletin de ${formData.studentFirstName} ${formData.studentLastName} créé et affiché`,
+            duration: 3000,
+          });
+        } else {
+          throw new Error('URL de téléchargement manquante dans la réponse');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Erreur serveur: ${response.status}`);
