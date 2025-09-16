@@ -1361,24 +1361,37 @@ export default function BulletinManagementUnified() {
         subjects: previewSubjects
       };
 
-      // ✅ ENVOYER L'APERÇU DIRECTEMENT
-      console.log('[PREVIEW_SIMPLE] 📡 Envoi données aperçu:', simplePreviewData);
+      // ✅ DÉTERMINER LE TRIMESTRE ET LA LANGUE
+      const termMapping = {
+        'Premier Trimestre': 'T1',
+        'Deuxième Trimestre': 'T2', 
+        'Troisième Trimestre': 'T3'
+      };
+      const apiTerm = termMapping[formData.term as keyof typeof termMapping] || 'T1';
+      const language = 'fr'; // Pour l'instant, utiliser le français par défaut
 
-      const response = await fetch('/api/templates/bulletin/preview-custom', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(simplePreviewData)
+      console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${apiTerm} en ${language}`);
+
+      // ✅ APPELER L'API DES ÉCHANTILLONS PDF AU LIEU DE LA GÉNÉRATION HTML
+      const response = await fetch(`/api/bulletin-samples/preview/${apiTerm}/${language}`, {
+        method: 'GET',
+        credentials: 'include'
       });
 
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');
-        console.log('[PREVIEW_SIMPLE] ✅ Aperçu ouvert avec succès');
+        console.log('[PREVIEW_SIMPLE] ✅ Échantillon PDF ouvert avec succès');
+        
+        toast({
+          title: "📋 Aperçu PDF ouvert",
+          description: `Échantillon de bulletin ${apiTerm} affiché dans un nouvel onglet`,
+          duration: 3000,
+        });
       } else {
-        throw new Error(`Erreur serveur: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Erreur serveur: ${response.status}`);
       }
 
     } catch (error) {

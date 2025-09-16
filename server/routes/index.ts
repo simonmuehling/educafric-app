@@ -63,6 +63,9 @@ import enhancedGeolocationRoutes from "./enhancedGeolocation";
 import whatsappRoutes from "./whatsapp";
 import whatsappSetupRoutes from "./whatsapp-setup-helper";
 import whatsappTestRoutes from "./test-whatsapp";
+
+// Import bulletin samples routes
+import bulletinSamplesRoutes from "./bulletinSamplesRoutes";
 // Import Vonage routes
 try {
   var vonageMessagesRoutes = require("./vonage-messages").default;
@@ -147,6 +150,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/whatsapp', whatsappRoutes);
   app.use('/api/whatsapp-setup', whatsappSetupRoutes);
   app.use('/api/test', whatsappTestRoutes);
+  
+  // Bulletin samples routes
+  app.use('/api/bulletin-samples', bulletinSamplesRoutes);
   
   // Debug Vonage routes registration
   if (vonageMessagesRoutes) {
