@@ -1835,16 +1835,55 @@ export default function BulletinManagementUnified() {
 
       console.log('[PREVIEW_SIMPLE] 📡 Demande échantillon PDF:', `${sampleApiTerm} en ${language}`);
 
-      // ✅ CRÉER UN VRAI BULLETIN AVEC LES DONNÉES RÉELLES DE L'ÉLÈVE
+      // ✅ RÉCUPÉRER LES DONNÉES COMPLÈTES DE L'ÉLÈVE ET DE LA CLASSE
+      const selectedStudent = allStudents.find(s => s.id === parseInt(resolvedStudentId));
+      const selectedClass = allClasses.find(c => c.id === parseInt(resolvedClassId));
+      
+      if (!selectedStudent || !selectedClass) {
+        throw new Error('Élève ou classe introuvable');
+      }
+
+      // ✅ CONSTRUIRE LES DONNÉES COMPLÈTES POUR LE BULLETIN
       const bulletinData = {
         studentId: resolvedStudentId,
         classId: resolvedClassId,
         academicYear: '2024-2025',
         term: sampleApiTerm,
-        language: language
+        language: language,
+        schoolData: {
+          schoolName: 'École Secondaire de Yaoundé',
+          schoolAddress: 'Yaoundé, Cameroun',
+          schoolPhone: '+237655123456',
+          logoUrl: ''
+        },
+        studentData: {
+          id: selectedStudent.id,
+          studentId: selectedStudent.id,
+          fullName: selectedStudent.name,
+          firstName: selectedStudent.name.split(' ')[0],
+          lastName: selectedStudent.name.split(' ').slice(1).join(' '),
+          className: selectedClass.name,
+          dateOfBirth: '2005-01-01',
+          placeOfBirth: 'Yaoundé'
+        },
+        academicData: {
+          classId: selectedClass.id,
+          className: selectedClass.name,
+          academicYear: '2024-2025',
+          term: sampleApiTerm,
+          enrollment: 30
+        },
+        grades: previewSubjects,
+        evaluations: {
+          generalAverage: parseFloat(previewData.termAverage),
+          classRank: formData.classRank || 1,
+          generalAppreciation: formData.generalAppreciation || "Bon travail",
+          workAppreciation: formData.workAppreciation || "Satisfaisant",
+          conductAppreciation: formData.conductAppreciation || "Très bien"
+        }
       };
 
-      console.log('[PREVIEW_REAL] 📡 Création bulletin avec données réelles:', bulletinData);
+      console.log('[PREVIEW_REAL] 📡 Création bulletin avec données complètes:', bulletinData);
 
       const response = await fetch('/api/bulletins/create', {
         method: 'POST',
