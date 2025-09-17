@@ -60,6 +60,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+// Texte des niveaux de rendement (bilingue)
+export const PERFORMANCE_LEVELS_TEXT = {
+  fr: `NIVEAU DE RENDEMENT:
+DESCRIPTION DES NIVEAUX DE RENDEMENT DE L'ÉLÈVE
+Le niveau de rendement est déterminé par les résultats obtenus après l'évaluation des apprentissages. 
+Le niveau 1 indique un rendement non satisfaisant. L'élève est en dessous de la moyenne, Il a besoin d'un accompagnement particulier pour les compétences non acquises (tutorat, devoirs supplémentaires…).
+Le niveau 2, bien qu'il indique une réussite, la cote C correspond à un niveau de rendement qui ne donne pas entièrement satisfaction. L'élève démontre avec une efficacité limitée l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau exige que l'élève s'améliore considérablement pour combler des insuffisances spécifiques dans ses apprentissages (accompagnement par des travaux supplémentaires).
+Par ailleurs, la cote C+ correspond à un niveau de rendement assez satisfaisant. À ce stade, l'élève démontre avec une certaine efficacité l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau indique que l'élève devrait s'efforcer de corriger les insuffisances identifiées dans ses apprentissages. 
+Le niveau 3 indique un rendement satisfaisant. L'élève démontre avec efficacité l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau montre que l'élève mène bien ses apprentissages.
+Le niveau 4 signifie que le rendement de l'élève est très élevé. L'élève démontre avec beaucoup d'efficacité l'habileté à mobiliser des ressources pour développer la compétence. Ce niveau montre que l'élève a mené avec brio ses apprentissages.`,
+  
+  en: `PERFORMANCE LEVELS:
+DESCRIPTION OF STUDENT PERFORMANCE LEVELS
+The level of performance is determined by the score obtained in the summative assessment.
+Level 1 indicates unsatisfactory performance. The student performance is below average and will require assistance where competences were not acquired (mentoring, extra homework).
+Level 2, while indicating success, C means performance that is not entirely satisfactory. The student demonstrates, with limited effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student needs to improve considerably to overcome specific shortcomings in his/her learning (extra support needed).
+C+ means the performance is fairly satisfactory. The student demonstrates, with certain effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student should strive to overcome specific shortcomings in his/her learning.
+Level 3 shows satisfactory performance. The student demonstrates, with effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student is learning successfully.
+Level 4 means that the student's performance is very high. The student demonstrates, with a great deal of effectiveness, the ability to mobilise resources to develop the competence. This level shows that the student excellently mastered his/her learning.`
+};
+
 // Types for bulletin generation
 interface ApprovedGrade {
   id: number;
@@ -110,6 +131,7 @@ interface BulletinGenerationRequest {
   includeComments: boolean;
   includeRankings: boolean;
   includeStatistics: boolean;
+  includePerformanceLevels: boolean;
   format: 'pdf' | 'batch_pdf';
 }
 
@@ -137,6 +159,7 @@ export default function ComprehensiveBulletinGenerator() {
   const [includeComments, setIncludeComments] = useState(true);
   const [includeRankings, setIncludeRankings] = useState(true);
   const [includeStatistics, setIncludeStatistics] = useState(true);
+  const [includePerformanceLevels, setIncludePerformanceLevels] = useState(true);
   const [generationFormat, setGenerationFormat] = useState<'pdf' | 'batch_pdf'>('pdf');
   
   // Dialog states
@@ -179,6 +202,7 @@ export default function ComprehensiveBulletinGenerator() {
       includeComments: 'Inclure les commentaires des professeurs',
       includeRankings: 'Inclure les classements',
       includeStatistics: 'Inclure les statistiques de classe',
+      includePerformanceLevels: 'Inclure les niveaux de rendement',
       outputFormat: 'Format de sortie',
       individualPdf: 'PDF individuels',
       batchPdf: 'PDF groupé (un fichier)',
@@ -260,6 +284,7 @@ export default function ComprehensiveBulletinGenerator() {
       includeComments: 'Include teacher comments',
       includeRankings: 'Include rankings',
       includeStatistics: 'Include class statistics',
+      includePerformanceLevels: 'Include performance levels',
       outputFormat: 'Output format',
       individualPdf: 'Individual PDFs',
       batchPdf: 'Batch PDF (single file)',
@@ -475,6 +500,7 @@ export default function ComprehensiveBulletinGenerator() {
       includeComments,
       includeRankings,
       includeStatistics,
+      includePerformanceLevels,
       format: generationFormat
     };
 
@@ -780,6 +806,15 @@ export default function ComprehensiveBulletinGenerator() {
                     />
                     <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="include-performance-levels"
+                      checked={includePerformanceLevels}
+                      onCheckedChange={setIncludePerformanceLevels}
+                      data-testid="include-performance-levels"
+                    />
+                    <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                  </div>
                 </div>
               </div>
 
@@ -821,7 +856,7 @@ export default function ComprehensiveBulletinGenerator() {
                   <div>Année scolaire: {academicYear}</div>
                   <div>Élèves sélectionnés: {selectedStudents.length}</div>
                   <div>Format: {generationFormat === 'pdf' ? t.individualPdf : t.batchPdf}</div>
-                  <div>Options: {[includeComments && 'Commentaires', includeRankings && 'Classements', includeStatistics && 'Statistiques'].filter(Boolean).join(', ')}</div>
+                  <div>Options: {[includeComments && 'Commentaires', includeRankings && 'Classements', includeStatistics && 'Statistiques', includePerformanceLevels && 'Niveaux de rendement'].filter(Boolean).join(', ')}</div>
                 </div>
               </div>
 

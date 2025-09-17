@@ -6,6 +6,27 @@ import path from 'path';
 import crypto from 'crypto';
 import QRCode from 'qrcode';
 
+// Texte des niveaux de rendement (bilingue) - côté serveur
+const PERFORMANCE_LEVELS_TEXT = {
+  fr: `NIVEAU DE RENDEMENT:
+DESCRIPTION DES NIVEAUX DE RENDEMENT DE L'ÉLÈVE
+Le niveau de rendement est déterminé par les résultats obtenus après l'évaluation des apprentissages. 
+Le niveau 1 indique un rendement non satisfaisant. L'élève est en dessous de la moyenne, Il a besoin d'un accompagnement particulier pour les compétences non acquises (tutorat, devoirs supplémentaires…).
+Le niveau 2, bien qu'il indique une réussite, la cote C correspond à un niveau de rendement qui ne donne pas entièrement satisfaction. L'élève démontre avec une efficacité limitée l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau exige que l'élève s'améliore considérablement pour combler des insuffisances spécifiques dans ses apprentissages (accompagnement par des travaux supplémentaires).
+Par ailleurs, la cote C+ correspond à un niveau de rendement assez satisfaisant. À ce stade, l'élève démontre avec une certaine efficacité l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau indique que l'élève devrait s'efforcer de corriger les insuffisances identifiées dans ses apprentissages. 
+Le niveau 3 indique un rendement satisfaisant. L'élève démontre avec efficacité l'habileté à mobiliser des ressources pour développer la compétence. Un rendement à ce niveau montre que l'élève mène bien ses apprentissages.
+Le niveau 4 signifie que le rendement de l'élève est très élevé. L'élève démontre avec beaucoup d'efficacité l'habileté à mobiliser des ressources pour développer la compétence. Ce niveau montre que l'élève a mené avec brio ses apprentissages.`,
+  
+  en: `PERFORMANCE LEVELS:
+DESCRIPTION OF STUDENT PERFORMANCE LEVELS
+The level of performance is determined by the score obtained in the summative assessment.
+Level 1 indicates unsatisfactory performance. The student performance is below average and will require assistance where competences were not acquired (mentoring, extra homework).
+Level 2, while indicating success, C means performance that is not entirely satisfactory. The student demonstrates, with limited effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student needs to improve considerably to overcome specific shortcomings in his/her learning (extra support needed).
+C+ means the performance is fairly satisfactory. The student demonstrates, with certain effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student should strive to overcome specific shortcomings in his/her learning.
+Level 3 shows satisfactory performance. The student demonstrates, with effectiveness, the ability to mobilise resources to develop the competence. Performance at this level shows that the student is learning successfully.
+Level 4 means that the student's performance is very high. The student demonstrates, with a great deal of effectiveness, the ability to mobilise resources to develop the competence. This level shows that the student excellently mastered his/her learning.`
+};
+
 // Types for bulletin generation
 export interface StudentGradeData {
   studentId: number;
@@ -69,6 +90,7 @@ export interface BulletinOptions {
   includeComments: boolean;
   includeRankings: boolean;
   includeStatistics: boolean;
+  includePerformanceLevels?: boolean;
   language: 'fr' | 'en';
   format: 'A4' | 'Letter';
   orientation: 'portrait' | 'landscape';
@@ -848,8 +870,93 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ℹ️ No principal signature available, showing name only`);
       }
       
-      // 10. FOOTER WITH QR CODE AND VERIFICATION
-      const footerY = 80;
+      // 10. PERFORMANCE LEVELS SECTION (if enabled)
+      let performanceLevelsY = 150; // Start position for performance levels
+      
+      if (options.includePerformanceLevels) {
+        console.log('[COMPREHENSIVE_PDF] 📖 Including performance levels text');
+        
+        const performanceText = PERFORMANCE_LEVELS_TEXT[options.language || 'fr'];
+        
+        // Draw performance levels header
+        const performanceHeaderY = performanceLevelsY;
+        drawText('NIVEAUX DE RENDEMENT', tableStartX, performanceHeaderY, {
+          font: helveticaBold,
+          size: 12,
+          color: headerColor
+        });
+        
+        // Add separator line
+        page.drawLine({
+          start: { x: tableStartX, y: performanceHeaderY - 5 },
+          end: { x: tableStartX + tableWidth, y: performanceHeaderY - 5 },
+          thickness: 1,
+          color: borderColor
+        });
+        
+        // Split the performance text into paragraphs and draw them
+        const lines = performanceText.split('\n').filter(line => line.trim() !== '');
+        let currentY = performanceHeaderY - 20;
+        const lineHeight = 12;
+        const maxLineWidth = tableWidth - 20; // Leave margin on both sides
+        
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          
+          // Check if this is a header line (starts with a level description)
+          const isHeader = line.startsWith('NIVEAU DE RENDEMENT') || 
+                          line.startsWith('DESCRIPTION') || 
+                          line.startsWith('PERFORMANCE LEVELS');
+          
+          if (isHeader) {
+            drawText(line.trim(), tableStartX + 10, currentY, {
+              font: helveticaBold,
+              size: 11,
+              color: primaryColor
+            });
+          } else {
+            // Word wrap for long lines
+            const words = line.trim().split(' ');
+            let currentLine = '';
+            
+            for (const word of words) {
+              const testLine = currentLine + (currentLine ? ' ' : '') + word;
+              const testWidth = helvetica.widthOfTextAtSize(testLine, 9);
+              
+              if (testWidth <= maxLineWidth) {
+                currentLine = testLine;
+              } else {
+                if (currentLine) {
+                  drawText(currentLine, tableStartX + 10, currentY, {
+                    font: helvetica,
+                    size: 9,
+                    color: textColor
+                  });
+                  currentY -= lineHeight;
+                }
+                currentLine = word;
+              }
+            }
+            
+            // Draw the last line
+            if (currentLine) {
+              drawText(currentLine, tableStartX + 10, currentY, {
+                font: helvetica,
+                size: 9,
+                color: textColor
+              });
+            }
+          }
+          
+          currentY -= lineHeight + 2; // Extra space between paragraphs
+        }
+        
+        // Update footer position to account for performance levels section
+        performanceLevelsY = currentY - 20;
+      }
+      
+      // 11. FOOTER WITH QR CODE AND VERIFICATION
+      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 80) : 80;
       
       // Generate enhanced verification data with real school information
       const verificationCode = crypto.randomUUID();

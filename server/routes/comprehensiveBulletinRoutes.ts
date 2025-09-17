@@ -66,7 +66,7 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
     const approvedGrades = await db.select({
       studentId: teacherGradeSubmissions.studentId,
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.nameFr,
+      subjectName: subjects.name,
       teacherId: teacherGradeSubmissions.teacherId,
       teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
       firstEvaluation: teacherGradeSubmissions.firstEvaluation,
@@ -93,7 +93,7 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
     ));
 
     // Get unique students with their info
-    const uniqueStudentIds = [...new Set(approvedGrades.map(g => g.studentId))];
+    const uniqueStudentIds = Array.from(new Set(approvedGrades.map(g => g.studentId)));
     
     const studentsInfo = await db.execute(sql`
       SELECT 
@@ -101,8 +101,8 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
         u.first_name,
         u.last_name,
         u.email,
-        COALESCE(u.matricule, u.id::text) as matricule,
-        u.birth_date,
+        u.id::text as matricule,
+        u.date_of_birth as birth_date,
         COALESCE(u.photo_url, u.profile_picture_url) as photo,
         c.id as class_id,
         c.name as class_name
@@ -239,8 +239,8 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
       SELECT AVG(term_average) as class_average
       FROM teacher_grade_submissions
       WHERE class_id = ${parseInt(classId as string)}
-        AND term = ${term}
-        AND academic_year = ${academicYear}
+        AND term = ${term as string}
+        AND academic_year = ${academicYear as string}
         AND school_id = ${schoolId}
         AND review_status = 'approved'
         AND term_average IS NOT NULL
@@ -320,7 +320,7 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
     // Get approved grades for this student
     const approvedGrades = await db.select({
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.nameFr,
+      subjectName: subjects.name,
       firstEvaluation: teacherGradeSubmissions.firstEvaluation,
       secondEvaluation: teacherGradeSubmissions.secondEvaluation,
       thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
@@ -406,6 +406,7 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
       includeComments = true, 
       includeRankings = true, 
       includeStatistics = true,
+      includePerformanceLevels = false,
       format = 'pdf'
     } = req.body;
 
@@ -503,7 +504,7 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
         console.log(`[COMPREHENSIVE_GENERATION] 📝 Processing student ${i + 1}/${studentIds.length}: ${studentId}`);
 
         // Get student data with approved grades
-        const studentData = await this.getStudentBulletinData(
+        const studentData = await getStudentBulletinData(
           studentId, 
           classId, 
           term, 
@@ -521,6 +522,7 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
           includeComments,
           includeRankings,
           includeStatistics,
+          includePerformanceLevels,
           language: 'fr',
           format: 'A4',
           orientation: 'portrait'
@@ -534,7 +536,7 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
 
         // Save PDF and create download URL
         const filename = `bulletin_${studentData.firstName}_${studentData.lastName}_${term}_${academicYear}.pdf`;
-        const downloadUrl = await this.saveBulletinPdf(pdfBuffer, filename, schoolId);
+        const downloadUrl = await saveBulletinPdf(pdfBuffer, filename, schoolId);
         
         downloadUrls.push(downloadUrl);
         generationResults.push({
@@ -602,8 +604,8 @@ async function getStudentBulletinData(
     id: users.id,
     firstName: users.firstName,
     lastName: users.lastName,
-    matricule: sql<string>`COALESCE(${users.matricule}, ${users.id}::text)`,
-    birthDate: users.birthDate,
+    matricule: sql<string>`${users.id}::text`,
+    birthDate: users.dateOfBirth,
     photo: sql<string>`COALESCE(${users.photoURL}, ${users.profilePictureUrl})`,
     className: classes.name,
     schoolName: schools.name
