@@ -201,15 +201,32 @@ export default function SimplifiedBulletinManager() {
   // Load classes with proper authentication and error handling
   const loadClasses = async () => {
     try {
-      const response = await apiRequest('GET', '/api/classes');
+      // Use director-specific endpoint for sandbox users
+      const isSandboxUser = user?.email?.includes('sandbox') || user?.email?.includes('educafric.demo');
+      const apiEndpoint = isSandboxUser ? '/api/director/classes' : '/api/classes';
+      
+      console.log('[BULLETIN] Loading classes from:', apiEndpoint, 'for user:', user?.email);
+      
+      const response = await apiRequest('GET', apiEndpoint);
       const data = await response.json();
       
       if (data.success && data.classes) {
         // Preserve full class objects with ID and name
         setClasses(data.classes);
+        console.log('[BULLETIN] ✅ Classes loaded successfully:', data.classes.length);
+        toast({
+          title: t.success,
+          description: `${data.classes.length} classes chargées`,
+          variant: 'default'
+        });
       } else {
         console.warn('No classes found or invalid response:', data);
         setClasses([]);
+        toast({
+          title: t.error,
+          description: 'Aucune classe trouvée',
+          variant: 'destructive'
+        });
       }
     } catch (error: any) {
       console.error('Error loading classes:', error);
@@ -222,7 +239,7 @@ export default function SimplifiedBulletinManager() {
       } else {
         toast({
           title: t.error,
-          description: 'Impossible de charger les classes',
+          description: `Impossible de charger les classes: ${error.message}`,
           variant: 'destructive'
         });
       }
@@ -240,18 +257,55 @@ export default function SimplifiedBulletinManager() {
   const loadStudents = async (classId: number) => {
     try {
       setLoading(true);
-      const response = await apiRequest('GET', `/api/students/class/${classId}`);
+      
+      // Use director-specific endpoint for sandbox users
+      const isSandboxUser = user?.email?.includes('sandbox') || user?.email?.includes('educafric.demo');
+      let apiEndpoint: string;
+      let response: Response;
+      
+      if (isSandboxUser) {
+        // For sandbox users, use director endpoint (doesn't require classId)
+        apiEndpoint = '/api/director/students';
+        console.log('[BULLETIN] Loading students from:', apiEndpoint, 'for user:', user?.email);
+        response = await apiRequest('GET', apiEndpoint);
+      } else {
+        // For regular users, use class-specific endpoint
+        apiEndpoint = `/api/students/class/${classId}`;
+        console.log('[BULLETIN] Loading students from:', apiEndpoint, 'for classId:', classId);
+        response = await apiRequest('GET', apiEndpoint);
+      }
+      
       const data = await response.json();
       
       if (data.success && data.students) {
-        setStudents(data.students);
+        // For sandbox users, filter students by class if needed
+        let filteredStudents = data.students;
+        if (isSandboxUser && classId) {
+          filteredStudents = data.students.filter((student: any) => 
+            student.classId === classId || student.className === classes.find(c => c.id === classId)?.name
+          );
+        }
+        
+        setStudents(filteredStudents);
         setSelectedStudent(''); // Reset student selection
         setStudentInfo(null);
         setSubjects([]);
         setBulletinPreview(null);
+        
+        console.log('[BULLETIN] ✅ Students loaded successfully:', filteredStudents.length);
+        toast({
+          title: t.success,
+          description: `${filteredStudents.length} élèves chargés`,
+          variant: 'default'
+        });
       } else {
-        console.warn('No students found for class:', classId);
+        console.warn('No students found for class:', classId, 'Response:', data);
         setStudents([]);
+        toast({
+          title: t.error,
+          description: 'Aucun élève trouvé pour cette classe',
+          variant: 'destructive'
+        });
       }
     } catch (error: any) {
       console.error('Error loading students:', error);
@@ -264,7 +318,7 @@ export default function SimplifiedBulletinManager() {
       } else {
         toast({
           title: t.error,
-          description: 'Impossible de charger les élèves',
+          description: `Impossible de charger les élèves: ${error.message}`,
           variant: 'destructive'
         });
       }
