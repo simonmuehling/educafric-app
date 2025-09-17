@@ -225,7 +225,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       teacherAbsence: 'Teacher Absences',
       parentRequests: 'Parent Requests',
 
-      bulletins: 'Bulletins',
+      bulletins: 'Report Cards',
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
 
@@ -434,7 +434,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
     },
     {
       id: 'bulletin-management',
-      label: language === 'fr' ? 'Bulletins' : 'Bulletins',
+      label: t.bulletins,
       icon: <FileText className="w-6 h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('bulletin-management')

@@ -21,9 +21,14 @@ const isSandboxOrTestUser = (user: any): boolean => {
   // Exemptions pour comptes sandbox et test
   const exemptPatterns = [
     '@test.educafric.com',
+    '@educafric.demo',
+    '@educafric.test',
     'sandbox@',
+    'sandbox.',
     'demo@',
+    'demo.',
     'test@',
+    'test.',
     '.sandbox@',
     '.demo@',
     '.test@'
@@ -47,9 +52,15 @@ export const checkSubscriptionFeature = (requiredFeature: string) => {
       
       // ✅ EXEMPTION PERMANENTE: Comptes sandbox et @test.educafric.com
       if (isSandboxOrTestUser(user)) {
-        console.log(`[PREMIUM_EXEMPT] User ${user.email} is exempt from premium restrictions`);
-        req.subscription = { isPremium: true, planName: 'Sandbox Unlimited', isExempt: true };
-        req.limits = { canAccess: true, isExempt: true };
+        console.log(`[PREMIUM_EXEMPT] ✅ User ${user.email} (${user.role}) is exempt from premium restrictions for feature: ${requiredFeature}`);
+        req.subscription = { 
+          isPremium: true, 
+          planName: 'Sandbox Unlimited', 
+          isExempt: true,
+          features: ['*'],
+          type: 'sandbox'
+        };
+        req.limits = { canAccess: true, isExempt: true, unlimited: true };
         return next();
       }
 
@@ -213,8 +224,23 @@ export const injectSubscriptionInfo = () => {
         return next();
       }
 
-      const schoolId = req.user.schoolId;
-      const subscriptionInfo = await SubscriptionService.getAvailableFeatures(schoolId, req.user.email);
+      const user = req.user;
+      
+      // ✅ EXEMPTION SANDBOX: Bypass pour comptes sandbox/test
+      if (isSandboxOrTestUser(user)) {
+        res.subscriptionInfo = {
+          features: ['*'],
+          restrictions: [],
+          planName: 'Sandbox Unlimited',
+          isFreemium: false,
+          isPremium: true,
+          isExempt: true
+        };
+        return next();
+      }
+
+      const schoolId = user.schoolId;
+      const subscriptionInfo = await SubscriptionService.getAvailableFeatures(schoolId, user.email);
       
       // Ajouter les informations d'abonnement aux réponses
       res.subscriptionInfo = subscriptionInfo;
