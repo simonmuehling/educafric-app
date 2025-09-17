@@ -72,19 +72,19 @@ export const useRealTimeUpdates = (options: UseRealTimeOptions = {}) => {
   // WebSocket URL
   const getWebSocketURL = useCallback(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    let host = window.location.host;
     
-    // Ensure we have a valid host with port
-    if (!host || host === 'undefined' || !host.includes(':')) {
+    // Handle cases where host might be undefined or empty
+    if (!host) {
       // Fallback for development environment
-      const port = window.location.port || '5000';
       const hostname = window.location.hostname || 'localhost';
-      const validHost = `${hostname}:${port}`;
-      console.log('[REALTIME] 🔧 Using fallback host:', validHost);
-      return `${protocol}//${validHost}/ws?userId=${user?.id}&sessionToken=${Date.now()}`;
+      const port = window.location.port || '5000';
+      host = `${hostname}:${port}`;
+      console.log('[REALTIME] 🔧 Using fallback host:', host);
     }
     
-    const url = `${protocol}//${host}/ws?userId=${user?.id}&sessionToken=${Date.now()}`;
+    // Remove insecure sessionToken from URL - authentication should be handled via headers or cookies
+    const url = `${protocol}//${host}/ws?userId=${user?.id}`;
     console.log('[REALTIME] 📡 WebSocket URL:', url);
     return url;
   }, [user?.id]);

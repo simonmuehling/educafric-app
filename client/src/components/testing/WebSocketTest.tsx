@@ -49,16 +49,17 @@ export const WebSocketTest = () => {
     // Test 1: URL Construction
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      let testUrl = '';
+      let host = window.location.host;
       
-      if (!host || host === 'undefined' || !host.includes(':')) {
-        const port = window.location.port || '5000';
+      // Handle cases where host might be undefined or empty
+      if (!host) {
         const hostname = window.location.hostname || 'localhost';
-        testUrl = `${protocol}//${hostname}:${port}/ws?userId=${user?.id}&sessionToken=${Date.now()}`;
-      } else {
-        testUrl = `${protocol}//${host}/ws?userId=${user?.id}&sessionToken=${Date.now()}`;
+        const port = window.location.port || '5000';
+        host = `${hostname}:${port}`;
       }
+      
+      // Remove insecure sessionToken from URL - authentication should be handled via headers or cookies
+      const testUrl = `${protocol}//${host}/ws?userId=${user?.id}`;
       
       addTestResult(
         'URL Construction', 

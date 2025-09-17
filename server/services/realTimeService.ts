@@ -132,10 +132,9 @@ export class RealTimeService {
   private async handleConnection(ws: WebSocket, request: any): Promise<void> {
     console.log('[REALTIME] 📱 New WebSocket connection established');
 
-    // Handle authentication via URL parameters or headers
+    // Handle authentication via URL parameters
     const url = new URL(request.url!, `http://${request.headers.host}`);
     const userId = url.searchParams.get('userId');
-    const sessionToken = url.searchParams.get('sessionToken');
 
     if (!userId) {
       ws.close(1008, 'Authentication required');
@@ -143,10 +142,10 @@ export class RealTimeService {
     }
 
     try {
-      // Verify user session
-      const user = await this.verifyUserSession(parseInt(userId), sessionToken);
+      // Verify user exists (basic validation for now)
+      const user = await this.verifyUserSession(parseInt(userId));
       if (!user) {
-        ws.close(1008, 'Invalid session');
+        ws.close(1008, 'Invalid user');
         return;
       }
 
@@ -651,10 +650,9 @@ export class RealTimeService {
   }
 
   // Verify user session
-  private async verifyUserSession(userId: number, sessionToken: string | null): Promise<any> {
+  private async verifyUserSession(userId: number): Promise<any> {
     try {
-      // For now, just verify user exists
-      // In production, would verify session token
+      // Basic user verification - check if user exists and is active
       const user = await db.select()
         .from(users)
         .where(eq(users.id, userId))
