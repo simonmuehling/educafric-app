@@ -515,10 +515,10 @@ export class OptimizedBulletinGenerator {
       let currentY = await this.generateOptimizedHeader(page, drawText, schoolInfo, options.language);
       currentY -= spacing.minSpacing;
       
-      // 2. BULLETIN TITLE - FIXED CENTERING AND COMPLETE TEXT
-      const titleText = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
+      // 2. BULLETIN TITLE - REDUCED SIZE TO PREVENT CUTOFF
+      const titleText = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT';
       drawText(titleText, A4_DIMENSIONS.margin, currentY, {
-        size: 16,
+        size: 14,
         font: fonts.bold,
         align: 'center',
         maxWidth: A4_DIMENSIONS.contentWidth
