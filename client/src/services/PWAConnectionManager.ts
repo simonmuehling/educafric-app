@@ -250,6 +250,7 @@ class PWAConnectionManager {
     }
 
     this.notifyListeners();
+    */
   }
 
   /**
