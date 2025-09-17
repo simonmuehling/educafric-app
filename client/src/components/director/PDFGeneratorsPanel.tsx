@@ -19,7 +19,7 @@ import {
   GraduationCap,
   Clock
 } from 'lucide-react';
-import ComprehensiveBulletinGenerator from '@/components/director/modules/ComprehensiveBulletinGenerator';
+import SimpleBulletinEntry from '@/components/director/modules/SimpleBulletinEntry';
 import { apiRequest } from '@/lib/queryClient';
 
 interface PDFGeneratorOptions {
@@ -302,7 +302,7 @@ export function PDFGeneratorsPanel() {
         <div className="lg:col-span-2">
           {selectedGenerator === 'comprehensive-bulletin' ? (
             /* Manual Data Entry Interface for Comprehensive Bulletins */
-            <ComprehensiveBulletinGenerator />
+            <SimpleBulletinEntry />
           ) : (
             <Card>
               <CardHeader>
