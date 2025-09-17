@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Clock
 } from 'lucide-react';
+import ComprehensiveBulletinGenerator from '@/components/director/modules/ComprehensiveBulletinGenerator';
 import { apiRequest } from '@/lib/queryClient';
 
 interface PDFGeneratorOptions {
@@ -42,6 +43,43 @@ interface PDFGeneratorConfig {
 }
 
 const PDF_GENERATORS: PDFGeneratorConfig[] = [
+  {
+    id: 'comprehensive-bulletin',
+    title: 'Bulletin Complet avec Saisie Manuelle',
+    description: 'Interface complète pour saisir manuellement toutes les données de bulletin (absences, sanctions, appréciations, coefficients)',
+    icon: BookOpen,
+    endpoint: '/api/optimized-bulletins/generate',
+    demoEndpoint: '/api/optimized-bulletins/sample',
+    sampleFiles: {
+      fr: '/samples/optimized-bulletin-t3-fr.pdf',
+      en: '/samples/optimized-bulletin-t3-en.pdf'
+    },
+    defaultOptions: {
+      language: 'fr',
+      format: 'A4',
+      colorScheme: 'standard',
+      includeAbsences: true,
+      includeLateness: true,
+      includeSanctions: true,
+      includeAppreciations: true,
+      includeComments: true,
+      includeStatistics: true,
+      term: 'T1'
+    },
+    colorSchemes: [
+      { value: 'standard', label: 'Standard', description: 'Couleurs académiques camerounaises' },
+      { value: 'official', label: 'Officiel', description: 'Style gouvernemental Cameroun' },
+      { value: 'modern', label: 'Moderne', description: 'Design contemporain' }
+    ],
+    specificOptions: [
+      { key: 'includeAbsences', label: 'Inclure absences/retards', type: 'boolean' },
+      { key: 'includeSanctions', label: 'Inclure sanctions disciplinaires', type: 'boolean' },
+      { key: 'includeAppreciations', label: 'Inclure appréciations détaillées', type: 'boolean' },
+      { key: 'includeComments', label: 'Inclure commentaires', type: 'boolean' },
+      { key: 'includeStatistics', label: 'Inclure statistiques de classe', type: 'boolean' },
+      { key: 'term', label: 'Trimestre', type: 'select', options: ['T1', 'T2', 'T3'] }
+    ]
+  },
   {
     id: 'master-sheet',
     title: 'Feuille de Maître',
@@ -262,151 +300,178 @@ export function PDFGeneratorsPanel() {
 
         {/* Configuration Panel */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configuration - {currentGenerator.title}
-              </CardTitle>
-              <CardDescription>
-                {currentGenerator.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Basic Options */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="language">Langue</Label>
-                  <Select
-                    value={currentOptions.language}
-                    onValueChange={(value) => updateOption('language', value)}
-                  >
-                    <SelectTrigger data-testid="select-language">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="format">Format</Label>
-                  <Select
-                    value={currentOptions.format}
-                    onValueChange={(value) => updateOption('format', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A4">A4 (210×297mm)</SelectItem>
-                      <SelectItem value="Letter">Letter (8.5×11in)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="colorScheme">Thème</Label>
-                  <Select
-                    value={currentOptions.colorScheme}
-                    onValueChange={(value) => updateOption('colorScheme', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {currentGenerator.colorSchemes.map(scheme => (
-                        <SelectItem key={scheme.value} value={scheme.value}>
-                          {scheme.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Advanced Options Toggle */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="advanced-options"
-                  checked={showAdvanced}
-                  onCheckedChange={setShowAdvanced}
-                />
-                <Label htmlFor="advanced-options">Options avancées</Label>
-              </div>
-
-              {/* Advanced Options */}
-              {showAdvanced && currentGenerator.specificOptions && (
-                <>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentGenerator.specificOptions.map(option => (
-                      <div key={option.key} className="flex items-center space-x-2">
-                        <Switch
-                          id={option.key}
-                          checked={currentOptions[option.key] || false}
-                          onCheckedChange={(checked) => updateOption(option.key, checked)}
-                        />
-                        <Label htmlFor={option.key} className="text-sm">
-                          {option.label}
-                        </Label>
-                      </div>
-                    ))}
+          {selectedGenerator === 'comprehensive-bulletin' ? (
+            /* Manual Data Entry Interface for Comprehensive Bulletins */
+            <ComprehensiveBulletinGenerator />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Configuration - {currentGenerator.title}
+                </CardTitle>
+                <CardDescription>
+                  {currentGenerator.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Basic Options */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Langue</Label>
+                    <Select
+                      value={currentOptions.language}
+                      onValueChange={(value) => updateOption('language', value)}
+                    >
+                      <SelectTrigger data-testid="select-language">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="en">English</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </>
-              )}
 
-              {/* Action Buttons */}
-              <Separator />
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={handleGenerateDemo}
-                  disabled={isGenerating}
-                  className="flex items-center gap-2"
-                  data-testid="button-generate-demo"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
-                  Générer Démo
-                </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="format">Format</Label>
+                    <Select
+                      value={currentOptions.format}
+                      onValueChange={(value) => updateOption('format', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A4">A4 (210×297mm)</SelectItem>
+                        <SelectItem value="Letter">Letter (8.5×11in)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <Button
-                  variant="outline"
-                  onClick={() => handleViewSample('fr')}
-                  className="flex items-center gap-2"
-                  data-testid="button-view-sample-fr"
-                >
-                  <Eye className="h-4 w-4" />
-                  Aperçu FR
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => handleViewSample('en')}
-                  className="flex items-center gap-2"
-                  data-testid="button-view-sample-en"
-                >
-                  <Eye className="h-4 w-4" />
-                  Aperçu EN
-                </Button>
-              </div>
-
-              {/* Color Scheme Info */}
-              <div className="p-3 bg-muted rounded-lg">
-                <div className="text-sm font-medium mb-1">
-                  Thème sélectionné : {currentGenerator.colorSchemes.find(s => s.value === currentOptions.colorScheme)?.label}
+                  <div className="space-y-2">
+                    <Label htmlFor="colorScheme">Thème</Label>
+                    <Select
+                      value={currentOptions.colorScheme}
+                      onValueChange={(value) => updateOption('colorScheme', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currentGenerator.colorSchemes.map(scheme => (
+                          <SelectItem key={scheme.value} value={scheme.value}>
+                            {scheme.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {currentGenerator.colorSchemes.find(s => s.value === currentOptions.colorScheme)?.description}
+
+                {/* Advanced Options Toggle */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="advanced-options"
+                    checked={showAdvanced}
+                    onCheckedChange={setShowAdvanced}
+                  />
+                  <Label htmlFor="advanced-options">Options avancées</Label>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Advanced Options */}
+                {showAdvanced && currentGenerator.specificOptions && (
+                  <>
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {currentGenerator.specificOptions.map(option => {
+                        if (option.type === 'select' && option.options) {
+                          return (
+                            <div key={option.key} className="space-y-2">
+                              <Label htmlFor={option.key}>{option.label}</Label>
+                              <Select
+                                value={currentOptions[option.key] || option.options[0]}
+                                onValueChange={(value) => updateOption(option.key, value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {option.options.map(opt => (
+                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={option.key} className="flex items-center space-x-2">
+                            <Switch
+                              id={option.key}
+                              checked={currentOptions[option.key] || false}
+                              onCheckedChange={(checked) => updateOption(option.key, checked)}
+                            />
+                            <Label htmlFor={option.key} className="text-sm">
+                              {option.label}
+                            </Label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Action Buttons */}
+                <Separator />
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={handleGenerateDemo}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2"
+                    data-testid="button-generate-demo"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    Générer Démo
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => handleViewSample('fr')}
+                    className="flex items-center gap-2"
+                    data-testid="button-view-sample-fr"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Aperçu FR
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => handleViewSample('en')}
+                    className="flex items-center gap-2"
+                    data-testid="button-view-sample-en"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Aperçu EN
+                  </Button>
+                </div>
+
+                {/* Color Scheme Info */}
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="text-sm font-medium mb-1">
+                    Thème sélectionné : {currentGenerator.colorSchemes.find(s => s.value === currentOptions.colorScheme)?.label}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {currentGenerator.colorSchemes.find(s => s.value === currentOptions.colorScheme)?.description}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
