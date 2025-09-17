@@ -733,11 +733,11 @@ const ClassManagement: React.FC = () => {
                     {String(t?.actions?.addClass) || "N/A"}
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="bg-white max-w-md">
-                <DialogHeader className="bg-white">
+              <DialogContent className="bg-white max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="bg-white sticky top-0 z-10 border-b border-gray-200 pb-4">
                   <DialogTitle>{String(t?.actions?.addClass) || "N/A"}</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 bg-white">
+                <div className="space-y-4 bg-white p-1">
                   <div>
                     <Label>{String(t?.form?.className) || "N/A"}</Label>
                     <Input
