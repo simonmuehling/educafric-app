@@ -103,7 +103,7 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
         u.email,
         COALESCE(u.matricule, u.id::text) as matricule,
         u.birth_date,
-        u.photo,
+        COALESCE(u.photo_url, u.profile_picture_url) as photo,
         c.id as class_id,
         c.name as class_name
       FROM users u
@@ -430,8 +430,22 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
       });
     }
 
-    // Get school information
-    const schoolInfo = await db.select()
+    // Get complete school information with all official Cameroon fields
+    const schoolInfo = await db.select({
+      id: schools.id,
+      name: schools.name,
+      address: schools.address,
+      phone: schools.phone,
+      email: schools.email,
+      logoUrl: schools.logoUrl,
+      academicYear: schools.academicYear,
+      currentTerm: schools.currentTerm,
+      regionaleMinisterielle: schools.regionaleMinisterielle,
+      delegationDepartementale: schools.delegationDepartementale,
+      boitePostale: schools.boitePostale,
+      arrondissement: schools.arrondissement,
+      settings: schools.settings
+    })
       .from(schools)
       .where(eq(schools.id, schoolId))
       .limit(1);
@@ -443,15 +457,38 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
       });
     }
 
+    // Get principal teacher (director) name for signature
+    const principalInfo = await db.select({
+      firstName: users.firstName,
+      lastName: users.lastName,
+      teacherSignatureUrl: users.teacherSignatureUrl
+    })
+      .from(users)
+      .where(and(
+        eq(users.schoolId, schoolId),
+        eq(users.role, 'Director')
+      ))
+      .limit(1);
+
     const school: SchoolInfo = {
       id: schoolInfo[0].id,
       name: schoolInfo[0].name || 'École',
       address: schoolInfo[0].address || '',
       phone: schoolInfo[0].phone || '',
       email: schoolInfo[0].email || '',
-      directorName: schoolInfo[0].directorName,
-      region: 'Centre', // Could be from school data
-      delegation: 'Mfoundi' // Could be from school data
+      logoUrl: schoolInfo[0].logoUrl, // Real logo from database
+      directorName: principalInfo.length > 0 
+        ? `${principalInfo[0].firstName} ${principalInfo[0].lastName}` 
+        : undefined,
+      // Official Cameroon Ministry fields
+      regionaleMinisterielle: schoolInfo[0].regionaleMinisterielle,
+      delegationDepartementale: schoolInfo[0].delegationDepartementale,
+      boitePostale: schoolInfo[0].boitePostale,
+      arrondissement: schoolInfo[0].arrondissement,
+      // Academic info
+      academicYear: schoolInfo[0].academicYear,
+      currentTerm: schoolInfo[0].currentTerm,
+      settings: schoolInfo[0].settings
     };
 
     // Generate bulletins for each student
@@ -560,20 +597,34 @@ async function getStudentBulletinData(
   schoolId: number
 ): Promise<StudentGradeData | null> {
   
-  // Get student info
+  // Get student info with complete data
   const studentInfo = await db.select({
     id: users.id,
     firstName: users.firstName,
     lastName: users.lastName,
     matricule: sql<string>`COALESCE(${users.matricule}, ${users.id}::text)`,
     birthDate: users.birthDate,
-    photo: users.photo,
-    className: classes.name
+    photo: sql<string>`COALESCE(${users.photoURL}, ${users.profilePictureUrl})`,
+    className: classes.name,
+    schoolName: schools.name
   })
   .from(users)
   .leftJoin(classes, eq(classes.id, classId))
+  .leftJoin(schools, eq(schools.id, schoolId))
   .where(eq(users.id, studentId))
   .limit(1);
+
+  // Get principal teacher signature for bulletin footer
+  const principalSignature = await db.select({
+    teacherSignatureUrl: users.teacherSignatureUrl
+  })
+    .from(users)
+    .where(and(
+      eq(users.schoolId, schoolId),
+      eq(users.role, 'Director'),
+      eq(users.isPrincipalTeacher, true)
+    ))
+    .limit(1);
 
   if (!studentInfo.length) {
     return null;
@@ -650,7 +701,10 @@ async function getStudentBulletinData(
     classRank: 1, // Would need to calculate from all students in class
     totalStudents: 1, // Would need to count all students in class
     term,
-    academicYear
+    academicYear,
+    // Additional real database fields
+    schoolName: studentInfo[0].schoolName || undefined,
+    principalSignature: principalSignature.length > 0 ? principalSignature[0].teacherSignatureUrl : undefined
   };
 
   return studentData;

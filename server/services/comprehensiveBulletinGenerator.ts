@@ -13,7 +13,7 @@ export interface StudentGradeData {
   lastName: string;
   matricule: string;
   birthDate?: string;
-  photo?: string;
+  photo?: string; // Can be photoURL or profilePictureUrl from database
   classId: number;
   className: string;
   subjects: SubjectGrade[];
@@ -24,6 +24,9 @@ export interface StudentGradeData {
   absences?: number;
   term: string;
   academicYear: string;
+  // Additional school context
+  schoolName?: string;
+  principalSignature?: string; // Principal teacher signature
 }
 
 export interface SubjectGrade {
@@ -47,11 +50,19 @@ export interface SchoolInfo {
   address: string;
   phone: string;
   email: string;
-  logo?: string;
+  logoUrl?: string; // Real field from database
   directorName?: string;
   motto?: string;
-  region?: string;
-  delegation?: string;
+  // Official Cameroon Ministry fields
+  regionaleMinisterielle?: string;
+  delegationDepartementale?: string;
+  boitePostale?: string;
+  arrondissement?: string;
+  // Academic info
+  academicYear?: string;
+  currentTerm?: string;
+  // Settings
+  settings?: any;
 }
 
 export interface BulletinOptions {
@@ -71,48 +82,127 @@ export interface BulletinOptions {
 
 export class ComprehensiveBulletinGenerator {
   
-  // Helper method to embed images (logo/photo) into PDF
-  static async embedImage(pdfDoc: PDFDocument, imagePath: string): Promise<PDFImage | null> {
+  // Enhanced method to embed images with comprehensive error handling
+  static async embedImage(pdfDoc: PDFDocument, imagePath: string, imageType: 'logo' | 'photo' | 'signature' = 'photo'): Promise<PDFImage | null> {
     try {
-      if (!imagePath) return null;
+      if (!imagePath || imagePath.trim() === '') {
+        console.log(`[PDF_IMAGES] ℹ️ No ${imageType} path provided, skipping image embedding`);
+        return null;
+      }
+
+      console.log(`[PDF_IMAGES] 🔄 Attempting to embed ${imageType} from: ${imagePath}`);
       
       // Check if image exists and read it
       let imageBytes: Uint8Array;
+      let imageSource = '';
       
-      if (imagePath.startsWith('http')) {
-        // Handle URL images
-        const response = await fetch(imagePath);
-        if (!response.ok) {
-          console.warn(`[PDF_IMAGES] ⚠️ Failed to fetch image from URL: ${imagePath}`);
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        // Handle URL images with timeout and proper headers
+        imageSource = 'URL';
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          
+          const response = await fetch(imagePath, {
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'EDUCAFRIC-PDF-Generator/1.0'
+            }
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            console.warn(`[PDF_IMAGES] ⚠️ HTTP ${response.status} - Failed to fetch ${imageType} from URL: ${imagePath}`);
+            return null;
+          }
+          
+          // Check content type
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.startsWith('image/')) {
+            console.warn(`[PDF_IMAGES] ⚠️ Invalid content type '${contentType}' for ${imageType}: ${imagePath}`);
+            return null;
+          }
+          
+          // Check file size (max 5MB)
+          const contentLength = response.headers.get('content-length');
+          if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) {
+            console.warn(`[PDF_IMAGES] ⚠️ ${imageType} file too large (${contentLength} bytes): ${imagePath}`);
+            return null;
+          }
+          
+          const arrayBuffer = await response.arrayBuffer();
+          imageBytes = new Uint8Array(arrayBuffer);
+          
+        } catch (fetchError: any) {
+          if (fetchError.name === 'AbortError') {
+            console.warn(`[PDF_IMAGES] ⚠️ Timeout fetching ${imageType} from URL: ${imagePath}`);
+          } else {
+            console.warn(`[PDF_IMAGES] ⚠️ Network error fetching ${imageType}: ${fetchError.message}`);
+          }
           return null;
         }
-        const arrayBuffer = await response.arrayBuffer();
-        imageBytes = new Uint8Array(arrayBuffer);
       } else {
         // Handle local file paths
+        imageSource = 'local file';
         const fullPath = path.isAbsolute(imagePath) ? imagePath : path.join(process.cwd(), imagePath);
         
         try {
+          // Check if file exists and is readable
+          const stats = await fs.stat(fullPath);
+          if (!stats.isFile()) {
+            console.warn(`[PDF_IMAGES] ⚠️ ${imageType} path is not a file: ${fullPath}`);
+            return null;
+          }
+          
+          // Check file size (max 5MB)
+          if (stats.size > 5 * 1024 * 1024) {
+            console.warn(`[PDF_IMAGES] ⚠️ ${imageType} file too large (${stats.size} bytes): ${fullPath}`);
+            return null;
+          }
+          
           imageBytes = await fs.readFile(fullPath);
-        } catch (error) {
-          console.warn(`[PDF_IMAGES] ⚠️ Image file not found: ${fullPath}`);
+        } catch (fileError: any) {
+          console.warn(`[PDF_IMAGES] ⚠️ Cannot read ${imageType} file: ${fileError.message}`);
           return null;
         }
       }
       
-      // Determine image type and embed
-      const imageType = this.getImageType(imagePath, imageBytes);
-      
-      if (imageType === 'png') {
-        return await pdfDoc.embedPng(imageBytes);
-      } else if (imageType === 'jpg' || imageType === 'jpeg') {
-        return await pdfDoc.embedJpg(imageBytes);
-      } else {
-        console.warn(`[PDF_IMAGES] ⚠️ Unsupported image format: ${imagePath}`);
+      // Validate image data
+      if (!imageBytes || imageBytes.length === 0) {
+        console.warn(`[PDF_IMAGES] ⚠️ Empty ${imageType} data from ${imageSource}`);
         return null;
       }
-    } catch (error) {
-      console.error(`[PDF_IMAGES] ❌ Error embedding image ${imagePath}:`, error);
+      
+      // Determine image type and embed
+      const detectedImageType = this.getImageType(imagePath, imageBytes);
+      
+      if (!detectedImageType) {
+        console.warn(`[PDF_IMAGES] ⚠️ Could not determine ${imageType} format: ${imagePath}`);
+        return null;
+      }
+      
+      let embeddedImage: PDFImage;
+      
+      try {
+        if (detectedImageType === 'png') {
+          embeddedImage = await pdfDoc.embedPng(imageBytes);
+        } else if (detectedImageType === 'jpg' || detectedImageType === 'jpeg') {
+          embeddedImage = await pdfDoc.embedJpg(imageBytes);
+        } else {
+          console.warn(`[PDF_IMAGES] ⚠️ Unsupported ${imageType} format '${detectedImageType}': ${imagePath}`);
+          return null;
+        }
+      } catch (embedError: any) {
+        console.error(`[PDF_IMAGES] ❌ Failed to embed ${imageType} in PDF: ${embedError.message}`);
+        return null;
+      }
+      
+      console.log(`[PDF_IMAGES] ✅ Successfully embedded ${imageType} (${detectedImageType}, ${imageBytes.length} bytes) from ${imageSource}`);
+      return embeddedImage;
+      
+    } catch (error: any) {
+      console.error(`[PDF_IMAGES] ❌ Unexpected error embedding ${imageType} '${imagePath}': ${error.message}`);
       return null;
     }
   }
@@ -212,22 +302,28 @@ export class ComprehensiveBulletinGenerator {
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
       
-      // Embed school logo if available
+      // Embed school logo if available (real database field)
       let schoolLogo: PDFImage | null = null;
-      if (schoolInfo.logo) {
-        schoolLogo = await this.embedImage(pdfDoc, schoolInfo.logo);
-        if (schoolLogo) {
-          console.log(`[COMPREHENSIVE_PDF] 🖼️ School logo embedded successfully`);
-        }
+      if (schoolInfo.logoUrl) {
+        schoolLogo = await this.embedImage(pdfDoc, schoolInfo.logoUrl, 'logo');
+      } else {
+        console.log(`[COMPREHENSIVE_PDF] ℹ️ No school logo URL available in database`);
       }
       
-      // Embed student photo if available
+      // Embed student photo if available (real database field)
       let studentPhoto: PDFImage | null = null;
       if (studentData.photo) {
-        studentPhoto = await this.embedImage(pdfDoc, studentData.photo);
-        if (studentPhoto) {
-          console.log(`[COMPREHENSIVE_PDF] 📸 Student photo embedded successfully`);
-        }
+        studentPhoto = await this.embedImage(pdfDoc, studentData.photo, 'photo');
+      } else {
+        console.log(`[COMPREHENSIVE_PDF] ℹ️ No student photo available in database`);
+      }
+      
+      // Embed principal teacher signature if available
+      let principalSignature: PDFImage | null = null;
+      if (studentData.principalSignature) {
+        principalSignature = await this.embedImage(pdfDoc, studentData.principalSignature, 'signature');
+      } else {
+        console.log(`[COMPREHENSIVE_PDF] ℹ️ No principal signature available in database`);
       }
       
       // Embed fonts
@@ -757,50 +853,108 @@ export class ComprehensiveBulletinGenerator {
         currentY -= 40;
       }
       
-      // 9. SIGNATURES SECTION
+      // 9. SIGNATURES SECTION WITH REAL IMAGES
       const signaturesY = Math.max(currentY - 60, 120);
       
       const principalLabel = options.language === 'fr' ? 'Le Directeur' : 'The Principal';
       const teacherLabel = options.language === 'fr' ? 'Le Professeur Principal' : 'Class Teacher';
       
+      // Class Teacher signature area (left side)
       drawText(teacherLabel, tableStartX, signaturesY, { 
         font: helveticaBold, 
         size: 10, 
         color: textColor 
       });
       
+      // Principal signature area (right side)
       drawText(principalLabel, tableStartX + 300, signaturesY, { 
         font: helveticaBold, 
         size: 10, 
         color: textColor 
       });
       
-      if (schoolInfo.directorName) {
+      // Draw principal signature image if available
+      if (principalSignature && schoolInfo.directorName) {
+        const signatureMaxWidth = 120;
+        const signatureMaxHeight = 40;
+        
+        const signatureDimensions = this.calculateImageDimensions(
+          principalSignature.width,
+          principalSignature.height,
+          signatureMaxWidth,
+          signatureMaxHeight
+        );
+        
+        // Position signature above director name
+        const signatureX = tableStartX + 300;
+        const signatureY = signaturesY - 35;
+        
+        // Draw signature image
+        page.drawImage(principalSignature, {
+          x: signatureX,
+          y: signatureY,
+          width: signatureDimensions.width,
+          height: signatureDimensions.height
+        });
+        
+        // Draw director name below signature
+        drawText(schoolInfo.directorName, signatureX, signatureY - 15, { 
+          font: helvetica, 
+          size: 9, 
+          color: textColor 
+        });
+        
+        console.log(`[COMPREHENSIVE_PDF] ✍️ Principal signature positioned at (${signatureX}, ${signatureY})`);
+      } else if (schoolInfo.directorName) {
+        // Fallback: just show director name if no signature available
         drawText(schoolInfo.directorName, tableStartX + 300, signaturesY - 40, { 
           font: helvetica, 
           size: 9, 
           color: textColor 
         });
+        
+        console.log(`[COMPREHENSIVE_PDF] ℹ️ No principal signature available, showing name only`);
       }
       
       // 10. FOOTER WITH QR CODE AND VERIFICATION
       const footerY = 80;
       
-      // Generate verification data
+      // Generate enhanced verification data with real school information
       const verificationCode = crypto.randomUUID();
       const shortCode = this.generateShortCode();
+      
+      // Enhanced verification data including real school and academic context
       const verificationData = {
+        studentId: studentData.studentId,
+        studentName: `${studentData.firstName} ${studentData.lastName}`,
+        matricule: studentData.matricule,
+        schoolId: schoolInfo.id,
+        schoolName: schoolInfo.name,
+        regionaleMinisterielle: schoolInfo.regionaleMinisterielle || 'Non définie',
+        delegationDepartementale: schoolInfo.delegationDepartementale || 'Non définie',
+        classId: studentData.classId,
+        className: studentData.className,
+        term: studentData.term,
+        academicYear: studentData.academicYear || schoolInfo.academicYear || '2024-2025',
+        generalAverage: overallAverage.toFixed(2),
+        classRank: studentData.classRank,
+        totalStudents: studentData.totalStudents,
+        subjectCount: studentData.subjects.length,
+        timestamp: new Date().toISOString(),
+        shortCode,
+        educafricVersion: '2025.1'
+      };
+      
+      // Generate enhanced verification hash with comprehensive school data
+      const verificationHash = this.generateVerificationHash({
         studentId: studentData.studentId,
         schoolId: schoolInfo.id,
         term: studentData.term,
-        academicYear: studentData.academicYear,
+        academicYear: studentData.academicYear || schoolInfo.academicYear || '2024-2025',
         generalAverage: overallAverage.toFixed(2),
-        classRank: studentData.classRank,
-        totalStudents: studentData.totalStudents
-      };
-      
-      // Generate verification hash
-      const verificationHash = this.generateVerificationHash(verificationData);
+        schoolName: schoolInfo.name,
+        regionaleMinisterielle: schoolInfo.regionaleMinisterielle || 'Non définie'
+      });
       
       // Create QR code data - verification URL
       const baseURL = process.env.BASE_URL || 'https://app.replit.dev';
