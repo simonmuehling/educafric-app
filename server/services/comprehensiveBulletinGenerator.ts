@@ -878,6 +878,9 @@ export class ComprehensiveBulletinGenerator {
         
         const performanceText = PERFORMANCE_LEVELS_TEXT[options.language || 'fr'];
         
+        // Calculate table width based on page dimensions and margins
+        const tableWidth = width - 80; // Same calculation as used elsewhere in the file
+        
         // Draw performance levels header
         const performanceHeaderY = performanceLevelsY;
         drawText('NIVEAUX DE RENDEMENT', tableStartX, performanceHeaderY, {

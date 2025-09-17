@@ -405,6 +405,7 @@ export class PDFGenerator {
     studentPhoto?: string;
     matricule?: string;
     studentId?: string;
+    phone?: string;
   }): Promise<number> {
     try {
       console.log('[PDF_HEADER] 📋 Using legacy addCompactSchoolHeader - migrating to standardized format...');
@@ -2789,7 +2790,7 @@ export class PDFGenerator {
       doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
       doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
       yPosition += 6;
-      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Classe: ${bulletinData.student.class}`, margin, yPosition);
       doc.text(`Période: Premier Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
       yPosition += 10;
 
@@ -2954,7 +2955,7 @@ export class PDFGenerator {
       doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
       doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
       yPosition += 6;
-      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Classe: ${bulletinData.student.class}`, margin, yPosition);
       doc.text(`Période: Deuxième Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
       yPosition += 10;
 
@@ -3110,7 +3111,7 @@ export class PDFGenerator {
       doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
       doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
       yPosition += 6;
-      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Classe: ${bulletinData.student.class}`, margin, yPosition);
       doc.text(`Période: Troisième Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
       yPosition += 10;
 

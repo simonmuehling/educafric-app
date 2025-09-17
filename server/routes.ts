@@ -94,6 +94,11 @@ import educationalContentRoutes from "./routes/api/educational-content";
 import vonageMessagesRouter from "./routes/vonage-messages";
 import fcmRoutes from "./routes/fcm";
 
+// Import new PDF generators routes
+import masterSheetsRouter from "./routes/api/master-sheets";
+import transcriptsRouter from "./routes/api/transcripts";
+import timetablesRouter from "./routes/api/timetables";
+
 // Import connection tracking
 import { trackConnection, trackPageVisit } from "./middleware/connectionTrackingMiddleware";
 import { ConnectionTrackingService } from "./services/connectionTrackingService";
@@ -5773,6 +5778,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // FCM (Firebase Cloud Messaging) routes
   app.use('/api/fcm', fcmRoutes);
+  
+  // 🔥 NEW: PDF Generators - Professional document generation
+  app.use('/api/master-sheets', checkSubscriptionFeature('advanced_grade_management'), masterSheetsRouter);
+  app.use('/api/transcripts', checkSubscriptionFeature('advanced_grade_management'), transcriptsRouter);
+  app.use('/api/timetables', checkSubscriptionFeature('advanced_class_management'), timetablesRouter);
+  
+  // 🎯 PDF GENERATOR ROUTES: Consolidated in their respective routers
+  // Demo endpoints are now handled by: /api/master-sheets/demo, /api/transcripts/demo, /api/timetables/demo
   
   // Register missing routes
   app.use('/api/sandbox-data', sandboxDataRoutes);

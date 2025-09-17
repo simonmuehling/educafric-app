@@ -48,6 +48,7 @@ class FastModuleLoader {
       'bulletin-management': () => import('@/components/director/modules/WorkingBulletinManager'),
       'comprehensive-bulletins': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
+      'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       
       // Grade Review System - Premium Feature
       'grade-review-queue': () => import('@/components/director/modules/GradeReviewQueue'),

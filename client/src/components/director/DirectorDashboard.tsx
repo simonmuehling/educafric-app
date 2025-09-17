@@ -7,7 +7,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { 
   School, Users, BookOpen, Calendar, DollarSign, Settings,
   BarChart3, FileText, MessageSquare, Shield, Award,
-  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare
+  UserCheck, ClipboardList, Clock, UserX, CheckCircle, HelpCircle, Bell, Building2, Star, Languages, CheckSquare, FileSpreadsheet
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -208,6 +208,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       // Grade Review System
       gradeReview: 'Révision des Notes',
       gradeReviewQueue: 'File de Révision',
+      pdfGenerators: 'Générateurs PDF',
 
       finances: 'Finances',
       reports: 'Rapports', 
@@ -236,6 +237,7 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       // Grade Review System
       gradeReview: 'Grade Review',
       gradeReviewQueue: 'Review Queue',
+      pdfGenerators: 'PDF Generators',
 
       finances: 'Finances',
       reports: 'Reports',
@@ -485,6 +487,26 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           ]}
         >
           {createDynamicModule('comprehensive-bulletins')}
+        </PremiumFeatureGate>
+      )
+    },
+    {
+      id: 'pdf-generators',
+      label: t.pdfGenerators,
+      icon: <FileSpreadsheet className="w-6 h-6" />,
+      color: 'bg-gradient-to-r from-green-500 to-teal-500',
+      component: (
+        <PremiumFeatureGate
+          featureName="Générateurs PDF Professionnels"
+          userType="School"
+          features={[
+            "Feuilles de Maître avec statistiques complètes",
+            "Relevés de Notes officiels multi-trimestres",
+            "Emplois du Temps avec en-têtes camerounais",
+            "Génération avec données démo et réelles"
+          ]}
+        >
+          {createDynamicModule('pdf-generators')}
         </PremiumFeatureGate>
       )
     },
