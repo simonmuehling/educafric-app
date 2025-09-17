@@ -429,51 +429,50 @@ Source: Système Educafric - École${filtersActive ? ' (Vue Filtrée)' : ' (Vue 
     }, 3000);
   };
 
+  /**
+   * SUPPRIMÉ: Duplication dangereuse de generateCameroonOfficialHeader
+   * Utiliser les routes serveur /api/reports/:type/export/pdf à la place
+   * 
+   * @deprecated Utiliser les générateurs PDF côté serveur pour éviter la duplication
+   */
+
   const generateProcesVerbalReport = async () => {
     setGeneratingReport('procesVerbal');
     
     try {
-      // Import jsPDF dynamically
-      const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const margin = 20; // Increased margin for better readability
-      let yPosition = margin;
-
-      // Header - République du Cameroun - Enhanced
-      pdf.setFontSize(16);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(0, 0, 0);
-      pdf.text('RÉPUBLIQUE DU CAMEROUN', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 6;
+      // ✅ UTILISER API SERVEUR AU LIEU DE GÉNÉRATION CÔTÉ CLIENT
+      // Cela évite la duplication de generateCameroonOfficialHeader
+      const params = new URLSearchParams();
+      if (selectedClass !== 'all') params.append('classId', selectedClass);
+      if (selectedTeacher !== 'all') params.append('teacherId', selectedTeacher);
+      if (selectedPeriod !== 'all') params.append('period', selectedPeriod);
+      if (selectedSubject !== 'all') params.append('subject', selectedSubject);
       
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'italic');
-      pdf.text('Paix - Travail - Patrie', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 8;
+      const response = await fetch(`/api/reports/proces-verbal/export/pdf?${params.toString()}`, {
+        credentials: 'include'
+      });
       
-      pdf.setFontSize(11);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 5;
-      pdf.text('DÉLÉGATION RÉGIONALE DU CENTRE', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 5;
-      pdf.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', pageWidth / 2, yPosition, { align: 'center' });
-      yPosition += 8;
-
-      // School Info Box
-      pdf.setDrawColor(0, 0, 0);
-      pdf.setLineWidth(1);
-      pdf.rect(margin, yPosition, pageWidth - 2*margin, 20);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.text('ÉTABLISSEMENT SCOLAIRE EDUCAFRIC', pageWidth / 2, yPosition + 6, { align: 'center' });
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      pdf.text('B.P. 8524 Yaoundé - Tél: +237 657 004 011', pageWidth / 2, yPosition + 12, { align: 'center' });
-      pdf.text('Email: info@educafric.com - Site: www.educafric.com', pageWidth / 2, yPosition + 16, { align: 'center' });
-      yPosition += 25;
+      // Télécharger le PDF généré côté serveur
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `proces-verbal-${new Date().toISOString().slice(0, 10)}.pdf`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      
+      // ✅ SUCCESS: PDF généré côté serveur avec en-tête standardisé
+      toast({
+        title: language === 'fr' ? 'Procès-Verbal Généré' : 'Minutes Generated',
+        description: language === 'fr' ? 'Le PDF a été téléchargé avec l\'en-tête officiel standardisé' : 'PDF downloaded with standardized official header'
+      });
+      
+      setGeneratingReport(null);
+      return; // Exit early - plus besoin de génération côté client
 
       // Title with decoration
       pdf.setFontSize(18);

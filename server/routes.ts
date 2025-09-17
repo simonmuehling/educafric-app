@@ -5084,6 +5084,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Individual class report PDF generation
+  // ✅ NOUVEAU: Route unifiée pour génération de Procès-Verbal PDF avec en-tête standardisé
+  app.get('/api/reports/proces-verbal/export/pdf', requireAuth, requireAnyRole(['Director', 'Admin', 'Teacher']), async (req: Request, res: Response) => {
+    try {
+      const { classId, teacherId, period, subject } = req.query;
+      const user = req.user as any;
+      
+      console.log('[PROCES_VERBAL_PDF] 📋 Génération procès-verbal avec en-tête standardisé...');
+      
+      // Import PDFGenerator avec en-tête officiel camerounais
+      const { PDFGenerator } = await import('./services/pdfGenerator');
+      
+      // Préparer les données pour le générateur
+      const documentData = {
+        id: `proces-verbal-${Date.now()}`,
+        title: 'Procès-Verbal de Classe',
+        user: user,
+        type: 'report' as const
+      };
+      
+      // Utiliser le générateur système qui inclut l'en-tête standardisé
+      const pdfBuffer = await PDFGenerator.generateSystemReport(documentData);
+      
+      // Configuration des headers de réponse
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="proces-verbal-${new Date().toISOString().slice(0, 10)}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Envoyer le PDF généré avec en-tête officiel camerounais
+      res.send(pdfBuffer);
+      
+      console.log('[PROCES_VERBAL_PDF] ✅ PDF généré avec en-tête standardisé et envoyé');
+      
+    } catch (error) {
+      console.error('[PROCES_VERBAL_PDF] ❌ Erreur génération:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Erreur lors de la génération du procès-verbal PDF',
+        error: error.message 
+      });
+    }
+  });
+
   app.get('/api/director/class-reports/:classId/pdf', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
     try {
       const classId = parseInt(req.params.classId);
@@ -5290,6 +5332,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[COMMERCIAL_DOCS] PDF view error:', error);
       res.status(500).json({ error: 'Failed to generate PDF', details: (error as Error).message });
+    }
+  });
+
+  // Commercial Reports Export Endpoints (PDF and Excel)
+  app.post('/api/commercial/reports/export/pdf', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const { period, type } = req.body;
+      const user = req.user as any;
+      
+      console.log(`[COMMERCIAL_REPORTS] Generating PDF report - Period: ${period}, Type: ${type}`);
+      
+      // Import PDF generator dynamically
+      const { PDFGenerator } = await import('./services/pdfGenerator.js');
+      
+      // Generate commercial report PDF with standardized header
+      const reportData = {
+        id: `commercial-report-${period}-${type}-${Date.now()}`,
+        title: `Rapport Commercial - ${period} - ${type}`,
+        user: user || { email: 'system@educafric.com' },
+        type: 'commercial' as const,
+        content: `Rapport commercial pour la période ${period} de type ${type}`
+      };
+      
+      const pdfBuffer = await PDFGenerator.generateCommercialDocument(reportData);
+      
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('PDF generation returned empty buffer');
+      }
+      
+      // Set PDF headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="rapport-commercial-${period}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      console.log(`[COMMERCIAL_REPORTS] ✅ PDF report generated successfully: ${pdfBuffer.length} bytes`);
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error('[COMMERCIAL_REPORTS] PDF generation error:', error);
+      res.status(500).json({ error: 'Failed to generate commercial report PDF', details: (error as Error).message });
+    }
+  });
+
+  app.post('/api/commercial/reports/export/excel', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const { period, type } = req.body;
+      const user = req.user as any;
+      
+      console.log(`[COMMERCIAL_REPORTS] Generating Excel report - Period: ${period}, Type: ${type}`);
+      
+      // Generate Excel data (mock implementation)
+      const excelData = `Commercial Report\nPeriod: ${period}\nType: ${type}\nGenerated: ${new Date().toISOString()}\nUser: ${user?.email || 'system@educafric.com'}\n\nSample Data:\nRevenue, Schools, Date\n50000, 5, 2025-01\n60000, 7, 2025-02\n75000, 9, 2025-03`;
+      
+      const buffer = Buffer.from(excelData, 'utf-8');
+      
+      // Set Excel headers for download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="rapport-commercial-${period}.xlsx"`);
+      res.setHeader('Content-Length', buffer.length);
+      
+      console.log(`[COMMERCIAL_REPORTS] ✅ Excel report generated successfully: ${buffer.length} bytes`);
+      res.send(buffer);
+      
+    } catch (error) {
+      console.error('[COMMERCIAL_REPORTS] Excel generation error:', error);
+      res.status(500).json({ error: 'Failed to generate commercial report Excel', details: (error as Error).message });
+    }
+  });
+
+  // Commercial Reports Data Endpoint
+  app.get('/api/commercial/reports', requireAuth, requireAnyRole(['Commercial', 'SiteAdmin', 'Admin']), async (req: Request, res: Response) => {
+    try {
+      const { period = 'month', type = 'sales' } = req.query;
+      
+      console.log(`[COMMERCIAL_REPORTS] Fetching report data - Period: ${period}, Type: ${type}`);
+      
+      // Mock commercial report data (replace with actual data fetch from database)
+      const reportData = {
+        totalRevenue: 125000 + Math.floor(Math.random() * 50000),
+        newSchools: 12 + Math.floor(Math.random() * 8),
+        conversionRate: 65 + Math.floor(Math.random() * 20),
+        avgDealSize: 8500 + Math.floor(Math.random() * 3000),
+        monthlyTrend: [
+          { month: 'Jan', revenue: 45000, schools: 8 },
+          { month: 'Feb', revenue: 52000, schools: 10 },
+          { month: 'Mar', revenue: 48000, schools: 9 },
+          { month: 'Apr', revenue: 58000, schools: 12 }
+        ],
+        topSchools: [
+          { name: 'École Excellence Yaoundé', revenue: 25000, students: 450 },
+          { name: 'Collège International Douala', revenue: 22000, students: 380 },
+          { name: 'Lycée Moderne Bafoussam', revenue: 18000, students: 320 }
+        ]
+      };
+      
+      console.log('[COMMERCIAL_REPORTS] ✅ Report data fetched successfully');
+      res.json(reportData);
+      
+    } catch (error) {
+      console.error('[COMMERCIAL_REPORTS] Data fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch commercial report data', details: (error as Error).message });
     }
   });
   

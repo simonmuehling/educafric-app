@@ -328,16 +328,17 @@ export class PDFGenerator {
       type: 'system'
     };
     
-    // Add standardized school administrative header
-    const schoolData = {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: 'SYSTÈME EDUCAFRIC',
-      region: 'Délégation Régionale du Centre',
-      department: 'Délégation Départementale du Mfoundi',
-      boitePostale: 'B.P. 8524 Yaoundé',
-      phone: 'Tél: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé'
     };
-    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -623,24 +624,32 @@ export class PDFGenerator {
         type: 'report'
       };
       
-      // Add standardized school administrative header
-      const schoolData = {
-        schoolName: 'ÉTABLISSEMENT SCOLAIRE',
-        region: 'Délégation Régionale du Centre',
-        department: 'Délégation Départementale du Mfoundi'
+      // Generate standardized Cameroonian official header
+      const headerData: CameroonOfficialHeaderData = {
+        schoolName: 'ÉTABLISSEMENT SCOLAIRE EDUCAFRIC',
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: '+237 657 004 011',
+        email: 'info@educafric.com',
+        postalBox: 'B.P. 8524 Yaoundé'
       };
-      let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+      let yPosition = await PDFGenerator.generateCameroonOfficialHeader(doc, headerData);
       
       // Add QR code after header
       await this.addQRCodeToDocument(doc, documentData, 160, 25);
       
-      // Add document title
-      doc.setFontSize(20);
+      // Document subtitle
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('EDUCAFRIC - Système de Gestion Scolaire', 105, yPosition, { align: 'center' });
+      yPosition += 5;
+      
+      // Title is now placed after the standardized header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
       doc.text('RAPPORT DE CLASSE', 105, yPosition, { align: 'center' });
       yPosition += 10;
-      
-      doc.setFontSize(12);
-      doc.text('EDUCAFRIC - Système de Gestion Scolaire', 105, 30, { align: 'center' });
       
       // Add class information section
       yPosition = Math.max(yPosition + 20, 70);
@@ -717,16 +726,17 @@ export class PDFGenerator {
       type: 'system'
     };
     
-    // Add standardized school administrative header
-    const schoolData = {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: 'EDUCAFRIC SYSTEM',
-      region: 'Central Region Delegation',
-      department: 'Mfoundi Departmental Delegation',
-      boitePostale: 'P.O. Box 8524 Yaoundé',
-      phone: 'Tel: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'P.O. Box 8524 Yaoundé'
     };
-    yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -982,16 +992,17 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add standardized school administrative header
-    const schoolData = {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: data.user?.schoolName || 'SYSTÈME EDUCAFRIC',
-      region: 'Délégation Régionale du Centre',
-      department: 'Délégation Départementale du Mfoundi',
-      boitePostale: 'B.P. 8524 Yaoundé',
-      phone: 'Tél: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
@@ -1124,14 +1135,17 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // ✅ EN-TÊTE OFFICIEL ÉCOLE 
-    const schoolData = {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: 'EDUCATIONAL INSTITUTION',
-      boitePostale: 'P.O. Box 8524 Yaoundé',
-      phone: 'Tel: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'P.O. Box 8524 Yaoundé'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Titre principal
     doc.setFontSize(16);
@@ -1299,14 +1313,17 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // ✅ EN-TÊTE OFFICIEL ÉCOLE 
-    const schoolData = {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: 'ÉTABLISSEMENT SCOLAIRE',
-      boitePostale: 'B.P. 8524 Yaoundé',
-      phone: 'Tél: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Titre principal
     doc.setFontSize(16);
@@ -1710,15 +1727,25 @@ export class PDFGenerator {
     const margin = 15;
     let yPosition = margin;
     
-    // === EN-TÊTE COMPACT UNIFIÉ ===
-    yPosition = await this.addCompactSchoolHeader(doc, {
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
       schoolName: testBulletinData.schoolBranding.schoolName,
-      boitePostale: 'B.P. 1234 Yaoundé',
-      studentName: testBulletinData.student.name,
-      studentPhoto: testBulletinData.student.photo,
-      matricule: testBulletinData.student.matricule, // ✅ PASSER LE MATRICULE
-      studentId: testBulletinData.student.studentId   // ✅ PASSER LE STUDENT ID
-    });
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 222 345 678',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 1234 Yaoundé'
+    };
+    yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+    
+    // Informations élève positionnées après l'en-tête standardisé
+    yPosition += 5;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Élève: ${testBulletinData.student.name}`, margin, yPosition);
+    doc.text(`Matricule: ${testBulletinData.student.matricule}`, pageWidth - 80, yPosition);
+    yPosition += 6;
     
     // Titre du document (bilingue)
     yPosition += 5;
@@ -1865,14 +1892,17 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // ✅ EN-TÊTE OFFICIEL ÉCOLE (comme pour les bulletins)
-    const schoolData = {
-      schoolName: 'ÉTABLISSEMENT SCOLAIRE',
-      boitePostale: 'B.P. 8524 Yaoundé',
-      phone: 'Tél: +237 656 200 472',
-      email: 'Email: info@educafric.com'
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
+      schoolName: 'ÉTABLISSEMENT SCOLAIRE EDUCAFRIC',
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé'
     };
-    let yPosition = await this.addCompactSchoolHeader(doc, schoolData);
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
@@ -2267,43 +2297,45 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // Add QR code for document verification
-    await this.addQRCodeToDocument(doc, data, 160, 15);
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    const headerData: CameroonOfficialHeaderData = {
+      schoolName: 'ÉTABLISSEMENT SCOLAIRE EDUCAFRIC',
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé'
+    };
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
-    // En-tête avec logo EDUCAFRIC
-    doc.setFontSize(24);
-    doc.setTextColor(46, 134, 193); // #2E86C1
-    doc.text('EDUCAFRIC', 20, 30);
-    doc.setFontSize(14);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Plateforme Éducative Africaine - Solution Technologique Avancée', 20, 40);
+    // Add QR code after standardized header
+    await this.addQRCodeToDocument(doc, data, 160, 25);
     
-    // Ligne de séparation
-    doc.setDrawColor(243, 156, 18); // #F39C12
-    doc.setLineWidth(2);
-    doc.line(20, 45, 190, 45);
-    
-    // Titre principal
+    // Document title positioned after standardized header
+    yPosition += 10;
     doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
-    doc.text('Guide Commercial - Système de Validation', 20, 60);
-    doc.text('des Bulletins Sécurisés 2025', 20, 72);
+    doc.text('Guide Commercial - Système de Validation', 105, yPosition, { align: 'center' });
+    yPosition += 8;
+    doc.text('des Bulletins Sécurisés 2025', 105, yPosition, { align: 'center' });
     
-    // Badge COMMERCIAL
+    // Badge COMMERCIAL (repositioned)
     doc.setFillColor(239, 68, 68); // Rouge
-    doc.rect(140, 75, 35, 8, 'F');
+    doc.rect(140, yPosition + 5, 35, 8, 'F');
     doc.setFontSize(10);
     doc.setTextColor(255, 255, 255);
-    doc.text('COMMERCIAL', 142, 81);
+    doc.text('COMMERCIAL', 142, yPosition + 11);
     
-    // Métadonnées
+    // Métadonnées (repositioned)
+    yPosition += 20;
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, 90);
-    doc.text(`Version: 2025.1 - Solution Entreprise`, 20, 97);
-    doc.text(`Contact: commercial@educafric.com`, 20, 104);
+    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, yPosition);
+    doc.text(`Version: 2025.1 - Solution Entreprise`, 20, yPosition + 7);
+    doc.text(`Contact: commercial@educafric.com`, 20, yPosition + 14);
     
-    let yPosition = 120;
+    yPosition += 25;
     
     // Section 1: Innovation Technologique
     doc.setFontSize(16);
@@ -2496,15 +2528,28 @@ export class PDFGenerator {
       const margin = 15;
       let yPosition = margin;
       
-      // === EN-TÊTE MODERNE INSPIRÉ GEGOK12 ===
-      yPosition = await this.addModernSchoolHeader(doc, {
+      // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+      const headerData: CameroonOfficialHeaderData = {
         schoolName: bulletinData.schoolBranding.schoolName,
-        address: realSchoolData.address || 'B.P. 1234 Yaoundé',
-        student: bulletinData.student,
-        period: 'Premier Trimestre ' + bulletinData.academicYear,
-        academicYear: bulletinData.academicYear,
-        // language: 'fr' // Removed - not in type definition
-      }, yPosition);
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: realSchoolData.phone || '+237 657 004 011',
+        email: realSchoolData.email || 'info@educafric.com',
+        postalBox: realSchoolData.address || 'B.P. 1234 Yaoundé'
+      };
+      yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+      
+      // Informations élève positionnées après l'en-tête
+      yPosition += 5;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
+      doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
+      yPosition += 6;
+      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Période: Premier Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
+      yPosition += 10;
 
       // === TITRE AVEC DESIGN MODERNE ===
       doc.setFillColor(220, 38, 127); // Rose Educafric
@@ -2648,20 +2693,28 @@ export class PDFGenerator {
       const margin = 15;
       let yPosition = margin;
       
-      // EN-TÊTE
-      yPosition = await this.addCompactSchoolHeader(doc, {
+      // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+      const headerData: CameroonOfficialHeaderData = {
         schoolName: bulletinData.schoolBranding.schoolName,
-        boitePostale: realSchoolData.address || 'B.P. 1234 Yaoundé',
-        studentName: bulletinData.student.name,
-        studentPhoto: bulletinData.student.photo,
-
-        matricule: bulletinData.student.matricule,
-        // studentBirthDate: bulletinData.student.dateOfBirth, // Removed - not in type definition
-        // studentGender: bulletinData.student.gender, // Removed - not in type definition
-        // studentBirthPlace: bulletinData.student.placeOfBirth, // Removed - not in type definition
-        // period: 'Deuxième Trimestre ' + bulletinData.academicYear, // Removed - not in type definition
-        // language: 'fr' // Removed - not in type definition
-      });
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: realSchoolData.phone || '+237 657 004 011',
+        email: realSchoolData.email || 'info@educafric.com',
+        postalBox: realSchoolData.address || 'B.P. 1234 Yaoundé'
+      };
+      yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+      
+      // Informations élève positionnées après l'en-tête
+      yPosition += 5;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
+      doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
+      yPosition += 6;
+      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Période: Deuxième Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
+      yPosition += 10;
 
       // TITRE
       doc.setFontSize(16);
@@ -2796,20 +2849,28 @@ export class PDFGenerator {
       const margin = 15;
       let yPosition = margin;
       
-      // EN-TÊTE
-      yPosition = await this.addCompactSchoolHeader(doc, {
+      // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+      const headerData: CameroonOfficialHeaderData = {
         schoolName: bulletinData.schoolBranding.schoolName,
-        boitePostale: realSchoolData.address || 'B.P. 1234 Yaoundé',
-        studentName: bulletinData.student.name,
-        studentPhoto: bulletinData.student.photo,
-
-        matricule: bulletinData.student.matricule,
-        // studentBirthDate: bulletinData.student.dateOfBirth, // Removed - not in type definition
-        // studentGender: bulletinData.student.gender, // Removed - not in type definition
-        // studentBirthPlace: bulletinData.student.placeOfBirth, // Removed - not in type definition
-        // period: 'Troisième Trimestre ' + bulletinData.academicYear, // Removed - not in type definition
-        // language: 'fr' // Removed - not in type definition
-      });
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: realSchoolData.phone || '+237 657 004 011',
+        email: realSchoolData.email || 'info@educafric.com',
+        postalBox: realSchoolData.address || 'B.P. 1234 Yaoundé'
+      };
+      yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+      
+      // Informations élève positionnées après l'en-tête
+      yPosition += 5;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Élève: ${bulletinData.student.name}`, margin, yPosition);
+      doc.text(`Matricule: ${bulletinData.student.matricule}`, pageWidth - 80, yPosition);
+      yPosition += 6;
+      doc.text(`Classe: ${bulletinData.student.className}`, margin, yPosition);
+      doc.text(`Période: Troisième Trimestre ${bulletinData.academicYear}`, pageWidth - 120, yPosition);
+      yPosition += 10;
 
       // TITRE
       doc.setFontSize(16);
