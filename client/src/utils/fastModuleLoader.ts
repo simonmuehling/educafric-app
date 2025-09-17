@@ -46,6 +46,7 @@ class FastModuleLoader {
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       'bulletin-management': () => import('@/components/director/modules/WorkingBulletinManager'),
+      'comprehensive-bulletins': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       
       // Grade Review System - Premium Feature

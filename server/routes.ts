@@ -75,6 +75,7 @@ import uploadsRoutes from "./routes/uploads";
 import bulletinRoutes from "./routes/bulletinRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 import gradeReviewRoutes from "./routes/gradeReview";
+import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
@@ -5297,6 +5298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   
   app.use('/api/bulletins', bulletinRoutes);
+  app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
   app.use('/api/templates', templateRoutes);
   
   // ✅ ROUTES BULLETIN T3 AVEC MOYENNES ANNUELLES (via route directe)
