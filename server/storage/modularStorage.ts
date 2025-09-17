@@ -8,6 +8,8 @@ import { StudentStorage } from "./studentStorage";
 import { PWAStorage } from "./pwaStorage";
 import { TimetableStorage } from "./timetableStorage";
 import { BulletinStorage } from "./bulletinStorage";
+import { SubjectStorage } from "./subjectStorage";
+import { AcademicStorage } from "./academicStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 
 // Main storage class combining all modules
@@ -19,6 +21,8 @@ export class ModularStorage {
   private pwaStorage: PWAStorage;
   private timetableStorage: TimetableStorage;
   private bulletinStorage: BulletinStorage;
+  private subjectStorage: SubjectStorage;
+  private academicStorage: AcademicStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -28,6 +32,8 @@ export class ModularStorage {
     this.pwaStorage = new PWAStorage();
     this.timetableStorage = new TimetableStorage();
     this.bulletinStorage = new BulletinStorage();
+    this.subjectStorage = new SubjectStorage();
+    this.academicStorage = new AcademicStorage();
   }
 
   // === USER METHODS ===
@@ -116,7 +122,9 @@ export class ModularStorage {
   async getUserSchools(userId: number) { return this.schoolStorage.getUserSchools(userId); }
   async getSchoolClasses(schoolId: number) { return this.schoolStorage.getSchoolClasses(schoolId); }
   async getSchoolTeachers(schoolId: number) { return this.schoolStorage.getSchoolTeachers(schoolId); }
-  async getSchoolSubjects(schoolId: number) { return this.schoolStorage.getSchoolSubjects(schoolId); }
+  async getSchoolSubjects(schoolId: number) { return this.subjectStorage.getSchoolSubjects(schoolId); }
+  async findOrCreateSubject(schoolId: number, subjectName: string) { return this.subjectStorage.findOrCreateSubject(schoolId, subjectName); }
+  async createSubjectsBatch(subjectsData: any[]) { return this.subjectStorage.createSubjectsBatch(subjectsData); }
   async getSchoolAdministrators(schoolId: number) { return this.schoolStorage.getSchoolAdministrators(schoolId); }
   async getSchoolConfiguration(schoolId: number) { return this.schoolStorage.getSchoolConfiguration(schoolId); }
   async updateSchoolConfiguration(schoolId: number, config: any) { return this.schoolStorage.updateSchoolConfiguration(schoolId, config); }
@@ -138,13 +146,31 @@ export class ModularStorage {
 
   // === GRADE METHODS ===
   async getGradesBySchool(schoolId: number) { return this.gradeStorage.getGradesBySchool(schoolId); }
-  async getGradesByClass(classId: number) { return this.gradeStorage.getGradesByClass(classId); }
+  async getGradesByClass(classId: number, filters?: any) { return this.gradeStorage.getGradesByClass(classId, filters); }
   async getGradesBySubject(subjectId: number) { return this.gradeStorage.getGradesBySubject(subjectId); }
   async getGrade(gradeId: number) { return this.gradeStorage.getGrade(gradeId); }
   async createGrade(gradeData: any) { return this.gradeStorage.createGrade(gradeData); }
   async updateGrade(gradeId: number, updates: any) { return this.gradeStorage.updateGrade(gradeId, updates); }
   async deleteGrade(gradeId: number) { return this.gradeStorage.deleteGrade(gradeId); }
   async recordGrade(data: any) { return this.gradeStorage.recordGrade(data); }
+  // New grade methods for import functionality
+  async getGradeByStudentSubjectTerm(studentId: number, subjectId: number, academicYear: string, term: string) { 
+    return this.gradeStorage.getGradeByStudentSubjectTerm(studentId, subjectId, academicYear, term); 
+  }
+  async getStudentGrades(studentId: number, filters?: any) { 
+    return this.gradeStorage.getStudentGradesWithFilters(studentId, filters); 
+  }
+  async createGradesBatch(gradesData: any[]) { return this.gradeStorage.createGradesBatch(gradesData); }
+  async getGradeStatistics(classId: number, academicYear: string, term?: string) { 
+    return this.gradeStorage.getGradeStatistics(classId, academicYear, term); 
+  }
+
+  // === ACADEMIC CONFIGURATION METHODS ===
+  async getAcademicConfiguration(schoolId: number) { return this.academicStorage.getAcademicConfiguration(schoolId); }
+  async setAcademicConfiguration(schoolId: number, config: any) { return this.academicStorage.setAcademicConfiguration(schoolId, config); }
+  async updateAcademicTerms(schoolId: number, terms: any[], userId: number) { return this.academicStorage.updateAcademicTerms(schoolId, terms, userId); }
+  async updateAcademicYear(schoolId: number, year: any, userId: number) { return this.academicStorage.updateAcademicYear(schoolId, year, userId); }
+  async initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number) { return this.academicStorage.initializeNewAcademicYear(schoolId, year, promotionSettings, userId); }
 
   // === PWA METHODS ===
   async trackPwaSession(data: any) { return this.pwaStorage.trackPwaSession(data); }
@@ -1055,4 +1081,20 @@ export class ModularStorage {
   async getBulletinsByStudent(studentId: number) { return this.bulletinStorage.getBulletinsByStudent(studentId); }
   async getBulletinsByClass(classId: number) { return this.bulletinStorage.getBulletinsByClass(classId); }
   async getBulletinsBySchool(schoolId: number) { return this.bulletinStorage.getBulletinsBySchool(schoolId); }
+
+  // === SUBJECT METHODS ===
+  async getSubject(id: number) { return this.subjectStorage.getSubject(id); }
+  async createSubject(subjectData: any) { return this.subjectStorage.createSubject(subjectData); }
+  async updateSubject(id: number, updates: any) { return this.subjectStorage.updateSubject(id, updates); }
+  async deleteSubject(id: number) { return this.subjectStorage.deleteSubject(id); }
+  async getSubjectsByClass(classId: number) { return this.subjectStorage.getSubjectsByClass(classId); }
+
+  // === ACADEMIC CONFIGURATION METHODS ===
+  async getAcademicConfiguration(schoolId: number) { return this.academicStorage.getAcademicConfiguration(schoolId); }
+  async setAcademicConfiguration(schoolId: number, config: any) { return this.academicStorage.setAcademicConfiguration(schoolId, config); }
+  async updateAcademicTerms(schoolId: number, terms: any[], userId: number) { return this.academicStorage.updateAcademicTerms(schoolId, terms, userId); }
+  async updateAcademicYear(schoolId: number, year: any, userId: number) { return this.academicStorage.updateAcademicYear(schoolId, year, userId); }
+  async initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number) { 
+    return this.academicStorage.initializeNewAcademicYear(schoolId, year, promotionSettings, userId); 
+  }
 }

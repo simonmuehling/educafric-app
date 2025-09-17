@@ -1,7 +1,7 @@
 // ===== ACADEMIC SCHEMA MODULE =====
 // Extracted from huge schema.ts to prevent crashes
 
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, jsonb, unique } from "drizzle-orm/pg-core";
 
 export const grades = pgTable("grades", {
   id: serial("id").primaryKey(),
@@ -10,15 +10,39 @@ export const grades = pgTable("grades", {
   subjectId: integer("subject_id").notNull(),
   classId: integer("class_id").notNull(),
   schoolId: integer("school_id").notNull(),
-  score: decimal("score", { precision: 5, scale: 2 }),
-  maxScore: decimal("max_score", { precision: 5, scale: 2 }),
-  gradeType: text("grade_type"), // assignment, test, exam, project
-  term: text("term"),
-  academicYear: text("academic_year"),
+  grade: decimal("grade", { precision: 5, scale: 2 }), // FIXED: Rename score to grade
+  coefficient: integer("coefficient").default(1),
+  examType: text("exam_type").default("evaluation"), // FIXED: Rename gradeType to examType
+  term: text("term").notNull(), // Made required for bulletins
+  academicYear: text("academic_year").notNull(), // Made required for bulletins
   comments: text("comments"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
-});
+}, (table) => ({
+  // FIXED: Unique constraint WITHOUT examType to match validation logic
+  uniqueGradePerStudentSubjectTerm: unique("unique_grade_student_subject_term_core").on(
+    table.studentId, 
+    table.subjectId, 
+    table.term, 
+    table.academicYear
+  )
+}));
+
+// Academic Configuration table for school settings
+export const academicConfiguration = pgTable("academic_configuration", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  academicYear: jsonb("academic_year").notNull(), // {startYear: 2024, endYear: 2025, name: "2024-2025"}
+  terms: jsonb("terms").notNull(), // [{id: 1, name: "Premier Trimestre", startDate: "...", endDate: "..."}]
+  gradingScale: jsonb("grading_scale"), // {minGrade: 0, maxGrade: 20, passingGrade: 10}
+  schoolCalendar: jsonb("school_calendar"), // {vacationDays: [], holidays: []}
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedBy: integer("updated_by") // User who last updated
+}, (table) => ({
+  uniqueConfigPerSchool: unique("unique_config_per_school").on(table.schoolId)
+}));
 
 export const attendance = pgTable("attendance", {
   id: serial("id").primaryKey(),

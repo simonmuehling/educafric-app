@@ -66,7 +66,9 @@ import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
 import whatsappMsSolutionsSetup from "./routes/whatsapp-ms-solutions-setup";
 import classesRoutes from "./routes/classes";
-import gradesRoutes from "./routes/grades";
+import gradesRoutes from "./routes/gradesRoutes";
+import subjectsRoutes from "./routes/subjectsRoutes";
+import academicRoutes from "./routes/academicRoutes";
 import teachersStandalone from "./routes/teachers";
 import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
@@ -4780,6 +4782,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
   app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
   app.use('/api/grades', gradesRoutes);
+  app.use('/api/subjects', subjectsRoutes);
+  app.use('/api/academic', academicRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);

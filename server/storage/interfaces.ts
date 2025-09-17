@@ -39,13 +39,16 @@ export interface IStudentStorage {
 
 export interface IGradeStorage {
   getGradesBySchool(schoolId: number): Promise<any[]>;
-  getGradesByClass(classId: number): Promise<any[]>;
+  getGradesByClass(classId: number, filters?: any): Promise<any[]>;
   getGradesBySubject(subjectId: number): Promise<any[]>;
   getGrade(gradeId: number): Promise<any | null>;
   createGrade(gradeData: any): Promise<any>;
   updateGrade(gradeId: number, updates: any): Promise<any>;
   deleteGrade(gradeId: number): Promise<void>;
   recordGrade(data: any): Promise<any>;
+  // New methods for import functionality
+  getGradeByStudentSubjectTerm(studentId: number, subjectId: number, academicYear: string, term: string): Promise<any | null>;
+  getStudentGradesWithFilters(studentId: number, filters?: any): Promise<any[]>;
 }
 
 export interface IPWAStorage {
@@ -61,4 +64,21 @@ export interface IBulletinStorage {
   getBulletinsByStudent(studentId: number): Promise<any[]>;
   getBulletinsByClass(classId: number): Promise<any[]>;
   getBulletinsBySchool(schoolId: number): Promise<any[]>;
+}
+
+export interface ISubjectStorage {
+  getSchoolSubjects(schoolId: number): Promise<any[]>;
+  getSubject(id: number): Promise<any | null>;
+  createSubject(subjectData: any): Promise<any>;
+  updateSubject(id: number, updates: any): Promise<any>;
+  deleteSubject(id: number): Promise<void>;
+  getSubjectsByClass(classId: number): Promise<any[]>;
+}
+
+export interface IAcademicStorage {
+  getAcademicConfiguration(schoolId: number): Promise<any | null>;
+  setAcademicConfiguration(schoolId: number, config: any): Promise<any>;
+  updateAcademicTerms(schoolId: number, terms: any[], userId: number): Promise<any>;
+  updateAcademicYear(schoolId: number, year: any, userId: number): Promise<any>;
+  initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number): Promise<any>;
 }
