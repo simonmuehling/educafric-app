@@ -437,7 +437,8 @@ export class RealTimeService {
   public async checkForConflicts(userId: number, resourceType: string, resourceId: number): Promise<ConflictAlert | null> {
     const conflictKey = `${resourceType}-${resourceId}`;
     
-    for (const [sessionId, session] of userWorkingSessions.entries()) {
+    for (const sessionId of Array.from(userWorkingSessions.keys())) {
+      const session = userWorkingSessions.get(sessionId)!;
       const currentKey = `${session.resourceType}-${session.resourceId}`;
       
       if (currentKey === conflictKey && session.userId !== userId) {
@@ -599,29 +600,29 @@ export class RealTimeService {
 
   // Send message to specific user by ID
   private sendToSpecificUser(userId: number, event: RealTimeEvent): void {
-    for (const [sessionId, session] of connectedUsers.entries()) {
+    connectedUsers.forEach((session, sessionId) => {
       if (session.userId === userId) {
         this.sendToUser(sessionId, event);
       }
-    }
+    });
   }
 
   // Broadcast to all users in a school
   private broadcastToSchool(schoolId: number, event: RealTimeEvent): void {
-    for (const [sessionId, session] of connectedUsers.entries()) {
+    connectedUsers.forEach((session, sessionId) => {
       if (session.schoolId === schoolId) {
         this.sendToUser(sessionId, event);
       }
-    }
+    });
   }
 
   // Broadcast to specific role in a school
   private broadcastToRole(schoolId: number, role: string, event: RealTimeEvent): void {
-    for (const [sessionId, session] of connectedUsers.entries()) {
+    connectedUsers.forEach((session, sessionId) => {
       if (session.schoolId === schoolId && session.userRole === role) {
         this.sendToUser(sessionId, event);
       }
-    }
+    });
   }
 
   // Get connected users in school
@@ -694,7 +695,7 @@ export class RealTimeService {
       const now = new Date();
       
       // Clean up stale connections
-      for (const [sessionId, session] of connectedUsers.entries()) {
+      connectedUsers.forEach((session, sessionId) => {
         const timeSinceActivity = now.getTime() - session.lastActivity.getTime();
         
         if (timeSinceActivity > 300000) { // 5 minutes
@@ -709,7 +710,7 @@ export class RealTimeService {
             console.error('[REALTIME] Heartbeat error:', error);
           }
         }
-      }
+      });
     }, 30000); // Every 30 seconds
   }
 
