@@ -537,11 +537,23 @@ export class ComprehensiveBulletinGenerator {
         postalBox: schoolInfo.boitePostale || schoolInfo.address
       };
       
-      // ✅ STANDARDIZED HEADER GENERATED - SCHOOL INFO ALREADY INCLUDED
-      // Generate standardized header and get the Y position after it  
+      // 🔧 CRITICAL FIX 1: Define content frame constants
+      const content = {
+        left: 40,
+        right: width - 40,
+        width: width - 80
+      };
+      
+      console.log(`[LAYOUT_DEBUG] Content frame: left=${content.left}, width=${content.width}, right=${content.right}`);
+      
+      // 🔧 CRITICAL FIX 2: Header transformation containment
+      page.pushGraphicsState();
       let currentY = await PdfLibBulletinGenerator.generateStandardizedCameroonHeader(
         page, drawText, timesBold, times, width, height, headerData
       );
+      page.popGraphicsState();
+      
+      console.log(`[LAYOUT_DEBUG] Header completed, currentY: ${currentY}`);
       
       // ✅ SCHOOL LOGO HANDLING (if not already in standardized header)
       // Note: Advanced logo rendering can be added to the standardized header in future
@@ -576,35 +588,40 @@ export class ComprehensiveBulletinGenerator {
       
       currentY -= 5; // DRASTICALLY COMPRESSED: From 100px to 5px
       
-      // 2. BULLETIN TITLE - PERFECT CENTERING
+      // 🔧 CRITICAL FIX 1: FIXED TITLE CENTERING - Use content bounds instead of page width
       const bulletinTitle = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
-      const titleWidth = timesBold.widthOfTextAtSize(bulletinTitle, 14);
-      const titleX = (width - titleWidth) / 2; // Perfect mathematical centering
       
-      drawText(bulletinTitle, titleX, currentY, { 
+      drawText(bulletinTitle, content.left, currentY, { 
         font: timesBold, 
         size: 14,
-        color: textColor
+        color: textColor,
+        maxWidth: content.width,
+        align: 'center'
       });
       
       const periodText = options.language === 'fr' 
         ? `${this.getTermText(studentData.term, 'fr')} ${studentData.academicYear}`
         : `${this.getTermText(studentData.term, 'en')} ${studentData.academicYear}`;
       
-      const periodWidth = helveticaBold.widthOfTextAtSize(periodText, 10);
-      const periodX = (width - periodWidth) / 2; // Perfect mathematical centering
-      
-      drawText(periodText, periodX, currentY - 18, { 
+      drawText(periodText, content.left, currentY - 18, { 
         font: helveticaBold, 
         size: 10,
-        color: textColor
+        color: textColor,
+        maxWidth: content.width,
+        align: 'center'
       });
+      
+      console.log(`[LAYOUT_DEBUG] Title centered within content bounds (${content.left} to ${content.right})`);
       
       currentY -= 25; // Increased spacing to prevent overlap
       
-      // 3. STUDENT INFORMATION SECTION WITH PHOTO - SAFE SPACING
-      const studentSectionHeight = 35; // DRASTICALLY COMPRESSED: From 70 to 35
-      drawRect(40, currentY - studentSectionHeight, width - 80, studentSectionHeight, { 
+      // 🔧 CRITICAL FIX 4: Dynamic section height based on content and photo presence
+      const hasPhotoOrPlaceholder = studentPhoto || options.photoMaxWidth;
+      const studentSectionHeight = hasPhotoOrPlaceholder ? 48 : 40; // Increased from fixed 35px
+      
+      console.log(`[LAYOUT_DEBUG] Student section height: ${studentSectionHeight}px (photo present: ${!!studentPhoto})`);
+      
+      drawRect(content.left, currentY - studentSectionHeight, content.width, studentSectionHeight, { 
         color: lightGray, 
         borderColor: borderColor, 
         borderWidth: 1 
@@ -630,7 +647,7 @@ export class ComprehensiveBulletinGenerator {
         );
         
         // Position photo on the right side of the student section
-        const photoX = width - photoDimensions.width - 50; // 50px margin from right
+        const photoX = content.right - photoDimensions.width - 10; // 10px margin from right
         const photoY = currentY - studentSectionHeight + 5; // 5px margin from bottom
         
         // Draw photo border
@@ -649,76 +666,103 @@ export class ComprehensiveBulletinGenerator {
         });
         
         photoWidth = photoDimensions.width;
-        photoSpace = photoWidth + 60; // Photo width + margins
+        photoSpace = photoWidth + 20; // Photo width + margins
         
         console.log(`[COMPREHENSIVE_PDF] 📸 Student photo positioned at (${photoX}, ${photoY}) size: ${photoDimensions.width}x${photoDimensions.height}`);
       }
       
-      // Student basic info (adjusted for photo space)
-      const infoAreaWidth = width - 120 - photoSpace; // Available width for text
+      // 🔧 CRITICAL FIX 3: Student info overlap prevention with space detection
+      const infoAreaRight = content.right - photoSpace;
+      const minTwoColumnWidth = 320; // Minimum width needed for two-column layout
+      const availableWidth = infoAreaRight - content.left;
+      const needsTwoLines = availableWidth < minTwoColumnWidth;
       
+      console.log(`[LAYOUT_DEBUG] Info area: left=${content.left}, right=${infoAreaRight}, width=${availableWidth}, needsTwoLines=${needsTwoLines}`);
+      
+      // Student name (first line)
       const studentLabel = options.language === 'fr' ? 'Élève:' : 'Student:';
-      drawText(studentLabel, 50, currentY - 12, { 
+      drawText(studentLabel, content.left + 10, currentY - 12, { 
         font: helveticaBold, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
-      drawText(`${studentData.firstName} ${studentData.lastName}`, 100, currentY - 12, { 
+      drawText(`${studentData.firstName} ${studentData.lastName}`, content.left + 60, currentY - 12, { 
         font: helvetica, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
       
-      // Class information (positioned considering photo space) - COMPRESSED TO ONE LINE
-      const classStartX = Math.min(280, infoAreaWidth - 100);
+      // Class information with smart positioning
       const classLabel = options.language === 'fr' ? 'Classe:' : 'Class:';
-      drawText(classLabel, classStartX, currentY - 12, { 
+      let classY, classStartX;
+      
+      if (needsTwoLines) {
+        // Move class to second line
+        classY = currentY - 25;
+        classStartX = content.left + 10;
+        console.log(`[LAYOUT_DEBUG] Class moved to second line due to space constraints`);
+      } else {
+        // Keep on same line, but ensure minimum spacing
+        classY = currentY - 12;
+        classStartX = Math.max(content.left + 240, infoAreaRight - 120);
+      }
+      
+      drawText(classLabel, classStartX, classY, { 
         font: helveticaBold, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
-      drawText(studentData.className, classStartX + 40, currentY - 12, { 
+      drawText(studentData.className, classStartX + 40, classY, { 
         font: helvetica, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
       
+      // Matricule (always on line based on layout)
+      const matriculeY = needsTwoLines ? currentY - 38 : currentY - 25;
       const matriculeLabel = options.language === 'fr' ? 'Matricule:' : 'ID Number:';
-      drawText(matriculeLabel, 50, currentY - 25, { 
+      drawText(matriculeLabel, content.left + 10, matriculeY, { 
         font: helveticaBold, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
-      drawText(studentData.matricule, 100, currentY - 25, { 
+      drawText(studentData.matricule, content.left + 70, matriculeY, { 
         font: helvetica, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 9,
         color: textColor 
       });
       
+      // Birth date (if available)
       if (studentData.birthDate) {
         const birthLabel = options.language === 'fr' ? 'Né(e) le:' : 'Born on:';
-        drawText(birthLabel, classStartX, currentY - 25, { 
+        const birthX = needsTwoLines ? content.left + 200 : classStartX;
+        const birthY = needsTwoLines ? currentY - 38 : matriculeY;
+        
+        drawText(birthLabel, birthX, birthY, { 
           font: helveticaBold, 
-          size: 9, // DRASTICALLY REDUCED: From 11 to 9
+          size: 9,
           color: textColor 
         });
-        drawText(studentData.birthDate, classStartX + 50, currentY - 25, { 
+        drawText(studentData.birthDate, birthX + 60, birthY, { 
           font: helvetica, 
-          size: 9, // DRASTICALLY REDUCED: From 11 to 9
+          size: 9,
           color: textColor 
         });
       }
       
       // Add photo placeholder if no photo available but space is reserved
       if (!studentPhoto && options.photoMaxWidth) {
-        const placeholderX = width - (options.photoMaxWidth || 50) - 50;
-        const placeholderY = currentY - studentSectionHeight + 5;
         const placeholderWidth = options.photoMaxWidth || 50;
+        const placeholderX = content.right - placeholderWidth - 10; // Use content frame
+        const placeholderY = currentY - studentSectionHeight + 5;
         
         // 🔧 CRITICAL FIX: Enforce placeholder sizing within section bounds  
         // Constrain placeholder height to fit within studentSectionHeight with 10px margin
         const constrainedPlaceholderHeight = Math.min(options.photoMaxHeight || 60, studentSectionHeight - 10);
         const placeholderHeight = constrainedPlaceholderHeight;
+        
+        // Update photoSpace for placeholder
+        photoSpace = placeholderWidth + 20;
         
         // Draw placeholder rectangle
         drawRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight, {
@@ -735,6 +779,8 @@ export class ComprehensiveBulletinGenerator {
           size: 8,
           color: rgb(0.6, 0.6, 0.6)
         });
+        
+        console.log(`[LAYOUT_DEBUG] Photo placeholder positioned at (${placeholderX}, ${placeholderY}) size: ${placeholderWidth}x${placeholderHeight}`);
       }
       
       // 🔧 CRITICAL FIX: Guarantee vertical flow without overlap
