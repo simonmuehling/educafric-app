@@ -3,6 +3,10 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { marked } from 'marked';
+import { 
+  GenerateDocumentPdfRequestSchema,
+  validatePdfData
+} from '../../shared/pdfValidationSchemas';
 
 const router = Router();
 
@@ -274,31 +278,101 @@ router.get('/:filename', async (req, res) => {
 
 // Generate PDF from MD files
 router.get('/:filename/pdf', async (req, res) => {
+  let browser = null;
   try {
+    // ✅ VALIDATE FILENAME PARAMETER
     const filename = req.params.filename;
-    
-    if (!filename.endsWith('.md')) {
-      return res.status(400).json({ error: 'PDF generation only available for .md files' });
+    if (!filename || typeof filename !== 'string' || filename.trim() === '') {
+      return res.status(400).json({ 
+        error: 'Invalid filename', 
+        message: 'Filename parameter is required' 
+      });
     }
     
-    const filePath = path.join(process.cwd(), 'public', 'documents', filename);
+    // ✅ VALIDATE FILE EXTENSION
+    if (!filename.endsWith('.md')) {
+      return res.status(400).json({ 
+        error: 'Invalid file type', 
+        message: 'PDF generation only available for .md files' 
+      });
+    }
+    
+    // ✅ VALIDATE REQUEST USING ZOD SCHEMA
+    let validatedRequest;
+    try {
+      validatedRequest = validatePdfData(
+        GenerateDocumentPdfRequestSchema,
+        { filename, language: 'fr', format: 'A4' },
+        'Document PDF request'
+      );
+    } catch (validationError: any) {
+      console.error('[DOCUMENT_PDF] ❌ Validation error:', validationError.message);
+      return res.status(400).json({ 
+        error: 'Invalid request data', 
+        message: validationError.message 
+      });
+    }
+    
+    // ✅ VALIDATE FILE PATH AND EXISTENCE
+    const filePath = path.join(process.cwd(), 'public', 'documents', validatedRequest.filename);
+    
+    // Check if file path is safe (prevent directory traversal)
+    if (!filePath.startsWith(path.join(process.cwd(), 'public', 'documents'))) {
+      return res.status(403).json({ 
+        error: 'Access denied', 
+        message: 'Invalid file path' 
+      });
+    }
     
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ 
+        error: 'Document not found', 
+        message: `Document '${validatedRequest.filename}' not found` 
+      });
     }
 
-    // Dynamic import for puppeteer
-    const puppeteer = await import('puppeteer');
+    // ✅ READ AND VALIDATE FILE CONTENT
+    let content;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch (readError: any) {
+      console.error('[DOCUMENT_PDF] ❌ File read error:', readError);
+      return res.status(500).json({ 
+        error: 'File read failed', 
+        message: 'Unable to read document file' 
+      });
+    }
     
-    const content = fs.readFileSync(filePath, 'utf8');
-    const htmlContent = marked(content);
+    if (!content || content.trim() === '') {
+      return res.status(400).json({ 
+        error: 'Empty document', 
+        message: 'Document content is empty' 
+      });
+    }
+
+    // ✅ GENERATE HTML WITH ERROR HANDLING
+    let htmlContent;
+    try {
+      htmlContent = marked(content);
+    } catch (markdownError: any) {
+      console.error('[DOCUMENT_PDF] ❌ Markdown parsing error:', markdownError);
+      return res.status(500).json({ 
+        error: 'Markdown parsing failed', 
+        message: 'Unable to parse document content' 
+      });
+    }
+    
+    // ✅ SAFE FILENAME FOR DISPLAY
+    const safeFilename = validatedRequest.filename
+      .replace(/[<>:"|\/\\*?]/g, '_')
+      .substring(0, 100); // Limit length
     
     const htmlPage = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>${filename} - EDUCAFRIC</title>
+    <title>${safeFilename} - EDUCAFRIC</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -340,7 +414,7 @@ router.get('/:filename/pdf', async (req, res) => {
 </head>
 <body>
     <div class="header">
-        <h1>📄 ${filename}</h1>
+        <h1>📄 ${safeFilename}</h1>
         <p><strong>EDUCAFRIC Platform</strong> - Document officiel</p>
     </div>
     
@@ -353,35 +427,95 @@ router.get('/:filename/pdf', async (req, res) => {
 </body>
 </html>`;
 
-    const browser = await puppeteer.default.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-    });
+    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    let pdfBuffer;
+    try {
+      // Dynamic import for puppeteer with validation
+      const puppeteer = await import('puppeteer');
+      if (!puppeteer || !puppeteer.default) {
+        throw new Error('Puppeteer is not available');
+      }
+
+      browser = await puppeteer.default.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(htmlPage, { 
+        waitUntil: 'networkidle0', 
+        timeout: 30000 
+      });
+      
+      pdfBuffer = await page.pdf({
+        format: validatedRequest.format as any,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        },
+        printBackground: true,
+        timeout: 30000
+      });
+      
+      // ✅ VALIDATE PDF BUFFER
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('Generated PDF is empty or invalid');
+      }
+      
+    } catch (pdfError: any) {
+      console.error('[DOCUMENT_PDF] ❌ PDF generation error:', pdfError);
+      return res.status(500).json({ 
+        error: 'PDF generation failed', 
+        message: 'Unable to generate PDF from document' 
+      });
+    } finally {
+      // ✅ ENSURE BROWSER CLEANUP
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.error('[DOCUMENT_PDF] ❌ Error closing browser:', closeError);
+        }
+        browser = null;
+      }
+    }
     
-    const page = await browser.newPage();
-    await page.setContent(htmlPage, { waitUntil: 'networkidle0' });
+    // ✅ GENERATE SAFE PDF FILENAME
+    const pdfFilename = validatedRequest.filename
+      .replace('.md', '.pdf')
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .substring(0, 100); // Limit length
     
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      margin: {
-        top: '20mm',
-        right: '15mm',
-        bottom: '20mm',
-        left: '15mm'
-      },
-      printBackground: true
-    });
-    
-    await browser.close();
-    
-    const pdfFilename = filename.replace('.md', '.pdf');
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
+    res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${pdfFilename}"`);
-    res.send(pdfBuffer);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'private, no-cache');
     
-  } catch (error) {
-    console.error('PDF generation error:', error);
-    res.status(500).json({ error: 'PDF generation failed' });
+    console.log('[DOCUMENT_PDF] ✅ PDF generated successfully:', pdfFilename, `(${pdfBuffer.length} bytes)`);
+    
+    // ✅ SEND VALIDATED PDF BUFFER
+    res.end(Buffer.from(pdfBuffer));
+    
+  } catch (error: any) {
+    console.error('[DOCUMENT_PDF] ❌ Unexpected error:', error);
+    
+    // ✅ ENSURE BROWSER CLEANUP
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('[DOCUMENT_PDF] ❌ Error closing browser in catch:', closeError);
+      }
+    }
+    
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      message: 'Unable to generate PDF. Please try again later.' 
+    });
   }
 });
 

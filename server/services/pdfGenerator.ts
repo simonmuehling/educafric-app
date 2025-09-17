@@ -197,6 +197,12 @@ export class PDFGenerator {
     // PAS DE LOGO NI DUPLICATION - Comme dans le HTML
     
     return yPosition;
+      
+    } catch (error: any) {
+      console.error('[PDF_HEADER] ❌ Error adding school header:', error.message);
+      // Return a safe default position to continue PDF generation
+      return 120;
+    }
   }
 
   /**

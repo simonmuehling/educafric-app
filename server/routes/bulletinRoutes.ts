@@ -24,6 +24,14 @@ import {
   determineCouncilDecision,
   type SubjectRow 
 } from '../utils/grades';
+import { 
+  PdfBulletinMetadataSchema,
+  PdfBulletinTemplateDataSchema,
+  GenerateBulletinPdfRequestSchema,
+  validatePdfData,
+  extractSafeSchoolData,
+  extractSafeStudentData
+} from '../../shared/pdfValidationSchemas';
 
 const router = Router();
 
@@ -1085,9 +1093,21 @@ router.post('/bulletins/:id/publish', requireAuth, async (req, res) => {
 
 // Generate PDF bulletin using the beautiful template system
 router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
+  let browser = null;
   try {
+    // ✅ VALIDATE INPUT PARAMETERS
     const bulletinId = parseInt(req.params.id);
+    if (isNaN(bulletinId) || bulletinId <= 0) {
+      return res.status(400).json({ 
+        error: 'Invalid bulletin ID', 
+        message: 'Bulletin ID must be a positive integer' 
+      });
+    }
+
     const user = req.user as any;
+    if (!user) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     
     console.log('[BULLETIN_PDF] Generating PDF for bulletin:', bulletinId);
 
@@ -1095,91 +1115,180 @@ router.get('/bulletins/:id/pdf', requireAuth, async (req, res) => {
     const bulletinMetadata = bulletinMetadataStore.get(bulletinId);
     
     if (!bulletinMetadata) {
-      return res.status(404).json({ error: 'Bulletin not found' });
+      return res.status(404).json({ 
+        error: 'Bulletin not found', 
+        message: `No bulletin found with ID ${bulletinId}` 
+      });
     }
 
-    // ✅ UTILISER LE SYSTÈME DE TEMPLATE MODULAIRE pour générer le PDF
+    // ✅ VALIDATE BULLETIN METADATA USING ZOD
+    let validatedMetadata;
+    try {
+      validatedMetadata = validatePdfData(
+        PdfBulletinMetadataSchema, 
+        bulletinMetadata, 
+        'Bulletin metadata'
+      );
+    } catch (validationError: any) {
+      console.error('[BULLETIN_PDF] ❌ Validation error:', validationError.message);
+      return res.status(400).json({ 
+        error: 'Invalid bulletin data', 
+        message: validationError.message 
+      });
+    }
+
+    // ✅ EXTRACT SAFE DATA WITH FALLBACKS
+    const safeSchoolData = extractSafeSchoolData(validatedMetadata.metadata?.schoolData);
+    const safeStudentData = extractSafeStudentData(
+      validatedMetadata.metadata?.studentData, 
+      bulletinId
+    );
+
+    // ✅ BUILD TEMPLATE DATA WITH SAFE ACCESS
     const templateData: BulletinTemplateData = {
       schoolInfo: {
-        schoolName: bulletinMetadata.metadata?.schoolData?.name || "École Example",
-        address: bulletinMetadata.metadata?.schoolData?.address || "B.P. 1234",
-        city: bulletinMetadata.metadata?.schoolData?.city || "Yaoundé",
-        phoneNumber: bulletinMetadata.metadata?.schoolData?.phone || "+237 XXX XXX XXX",
-        email: bulletinMetadata.metadata?.schoolData?.email || "contact@ecole.cm",
-        directorName: bulletinMetadata.metadata?.schoolData?.director || "Directeur",
-        academicYear: bulletinMetadata.academicYear || "2024-2025",
-        regionalDelegation: "DU CENTRE",
-        departmentalDelegation: "DU MFOUNDI"
+        schoolName: safeSchoolData.name,
+        address: safeSchoolData.address,
+        city: safeSchoolData.city || "Yaoundé",
+        phoneNumber: safeSchoolData.phone || "+237 XXX XXX XXX",
+        email: safeSchoolData.email || "contact@ecole.cm",
+        directorName: safeSchoolData.director || "Directeur",
+        academicYear: safeSchoolData.academicYear,
+        regionalDelegation: safeSchoolData.regionalDelegation || "DU CENTRE",
+        departmentalDelegation: safeSchoolData.departmentalDelegation || "DU MFOUNDI"
       },
       student: {
-        firstName: bulletinMetadata.metadata?.studentData?.firstName || "Élève",
-        lastName: bulletinMetadata.metadata?.studentData?.lastName || "",
-        birthDate: bulletinMetadata.metadata?.studentData?.birthDate || "Date non renseignée",
-        birthPlace: bulletinMetadata.metadata?.studentData?.birthPlace || "Lieu non renseigné",
-        gender: bulletinMetadata.metadata?.studentData?.gender === 'M' ? 'Masculin' : 'Féminin',
-        className: bulletinMetadata.metadata?.academicData?.className || "Classe",
-        studentNumber: bulletinMetadata.metadata?.studentData?.matricule || bulletinId.toString(),
-        photo: bulletinMetadata.metadata?.studentData?.photo
+        firstName: safeStudentData.firstName,
+        lastName: safeStudentData.lastName,
+        birthDate: safeStudentData.birthDate,
+        birthPlace: safeStudentData.birthPlace,
+        gender: safeStudentData.gender === 'M' ? 'Masculin' : 'Féminin',
+        className: safeStudentData.className,
+        studentNumber: safeStudentData.matricule,
+        photo: safeStudentData.photo
       },
-      period: `${bulletinMetadata.term} ${bulletinMetadata.academicYear}`,
-      subjects: bulletinMetadata.metadata?.grades?.map((grade: any) => ({
-        name: grade.name || grade.subjectName,
-        grade: parseFloat(grade.grade) || parseFloat(grade.note) || 0,
+      period: `${validatedMetadata.term} ${validatedMetadata.academicYear}`,
+      subjects: (validatedMetadata.metadata?.grades || []).map((grade: any) => ({
+        name: grade.name || grade.subjectName || 'Matière',
+        grade: Math.max(0, Math.min(20, parseFloat(grade.grade) || parseFloat(grade.note) || 0)),
         maxGrade: 20,
-        coefficient: grade.coefficient || 1,
+        coefficient: Math.max(1, grade.coefficient || 1),
         comments: grade.comments || grade.appreciation || '',
         teacherName: grade.teacherName || 'Enseignant'
-      })) || [],
-      generalAverage: bulletinMetadata.generalAverage || 0,
-      classRank: bulletinMetadata.classRank || 1,
-      totalStudents: bulletinMetadata.totalStudentsInClass || 30,
+      })),
+      generalAverage: Math.max(0, Math.min(20, validatedMetadata.generalAverage)),
+      classRank: Math.max(1, validatedMetadata.classRank),
+      totalStudents: Math.max(1, validatedMetadata.totalStudentsInClass),
       conduct: "Très bien",
       conductGrade: 18,
       absences: 2,
-      teacherComments: bulletinMetadata.teacherComments || "Élève sérieux et appliqué.",
-      directorComments: bulletinMetadata.directorComments || "",
+      teacherComments: validatedMetadata.teacherComments || "Élève sérieux et appliqué.",
+      directorComments: validatedMetadata.directorComments || "",
       verificationCode: `EDU2024-${bulletinId}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`
     };
 
-    // ✅ GÉNÉRER LE HTML AVEC LE TEMPLATE MODULAIRE
-    const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(templateData, 'fr');
-    
-    // ✅ CONVERTIR HTML EN PDF (nous utiliserons puppeteer pour cette conversion)
-    const puppeteer = await import('puppeteer');
-    const browser = await puppeteer.default.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
-    await page.setContent(htmlTemplate, { waitUntil: 'networkidle0' });
-    
-    // ✅ GÉNÉRER LE PDF AVEC LES BONNES OPTIONS
-    const pdfBytes = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
-    });
-    
-    await browser.close();
+    // ✅ VALIDATE TEMPLATE DATA
+    let validatedTemplateData;
+    try {
+      validatedTemplateData = validatePdfData(
+        PdfBulletinTemplateDataSchema,
+        templateData,
+        'Template data'
+      );
+    } catch (validationError: any) {
+      console.error('[BULLETIN_PDF] ❌ Template validation error:', validationError.message);
+      return res.status(400).json({ 
+        error: 'Invalid template data', 
+        message: validationError.message 
+      });
+    }
 
-    // ✅ APPLIQUER LES CORRECTIONS SUGGÉRÉES PAR L'UTILISATEUR
-    const studentName = `${templateData.student.firstName}_${templateData.student.lastName}`.replace(/\s+/g, '_');
-    const filename = `bulletin_${studentName}_${bulletinMetadata.term.replace(/\s+/g, '_')}.pdf`;
+    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    let pdfBytes;
+    try {
+      // Generate HTML template
+      const htmlTemplate = modularTemplateGenerator.generateBulletinTemplate(validatedTemplateData, 'fr');
+      
+      if (!htmlTemplate || htmlTemplate.trim() === '') {
+        throw new Error('Generated HTML template is empty');
+      }
+      
+      // Launch puppeteer with proper error handling
+      const puppeteer = await import('puppeteer');
+      browser = await puppeteer.default.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(htmlTemplate, { waitUntil: 'networkidle0', timeout: 30000 });
+      
+      // Generate PDF with timeout
+      pdfBytes = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
+        timeout: 30000
+      });
+      
+      if (!pdfBytes || pdfBytes.length === 0) {
+        throw new Error('Generated PDF is empty or invalid');
+      }
+      
+    } catch (pdfError: any) {
+      console.error('[BULLETIN_PDF] ❌ PDF generation error:', pdfError);
+      return res.status(500).json({ 
+        error: 'PDF generation failed', 
+        message: 'Unable to generate PDF document' 
+      });
+    } finally {
+      // Ensure browser is always closed
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.error('[BULLETIN_PDF] ❌ Error closing browser:', closeError);
+        }
+        browser = null;
+      }
+    }
+
+    // ✅ GENERATE SAFE FILENAME
+    const safeStudentName = `${validatedTemplateData.student.firstName}_${validatedTemplateData.student.lastName}`
+      .replace(/[^a-zA-Z0-9_\-]/g, '_')
+      .replace(/_{2,}/g, '_');
+    const safeTerm = validatedMetadata.term.replace(/[^a-zA-Z0-9_\-]/g, '_');
+    const filename = `bulletin_${safeStudentName}_${safeTerm}.pdf`;
     
-    // ✅ SET HEADERS BEFORE SENDING (comme recommandé)
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
     res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     res.setHeader('Content-Length', pdfBytes.length);
+    res.setHeader('Cache-Control', 'private, no-cache');
     
-    // ✅ SEND AS BINARY using Buffer.from() (comme recommandé)
+    // ✅ SEND PDF BUFFER SAFELY
     res.end(Buffer.from(pdfBytes));
     
-    console.log('[BULLETIN_PDF] ✅ Beautiful PDF generated successfully:', filename);
+    console.log('[BULLETIN_PDF] ✅ PDF generated successfully:', filename, `(${pdfBytes.length} bytes)`);
 
-  } catch (error) {
-    console.error('[BULLETIN_PDF] ❌ Error:', error);
-    res.status(500).json({ error: 'Failed to generate PDF', details: error.message });
+  } catch (error: any) {
+    console.error('[BULLETIN_PDF] ❌ Unexpected error:', error);
+    
+    // Ensure browser cleanup
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeError) {
+        console.error('[BULLETIN_PDF] ❌ Error closing browser in catch:', closeError);
+      }
+    }
+    
+    // Return user-friendly error without exposing stack traces
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      message: 'Unable to generate bulletin PDF. Please try again later.' 
+    });
   }
 });
 
@@ -1188,24 +1297,53 @@ router.get('/test-bulletin/pdf', async (req, res) => {
   try {
     console.log('[TEST_BULLETIN_PDF] Generating test bulletin PDF...');
     
-    // Generate the PDF using the PDF generator service
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    // ✅ VALIDATE PDF GENERATOR SERVICE EXISTS
+    if (!PDFGenerator || typeof PDFGenerator.generateTestBulletinDocument !== 'function') {
+      throw new Error('PDF generator service is not available');
+    }
     
-    // ✅ SET HEADERS BEFORE SENDING (following user guidance)
+    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    let pdfBuffer;
+    try {
+      pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    } catch (pdfError: any) {
+      console.error('[TEST_BULLETIN_PDF] ❌ PDF generation failed:', pdfError);
+      return res.status(500).json({ 
+        error: 'PDF generation failed',
+        message: 'Unable to generate test bulletin PDF' 
+      });
+    }
+    
+    // ✅ VALIDATE PDF BUFFER
+    if (!pdfBuffer) {
+      throw new Error('Generated PDF buffer is null or undefined');
+    }
+    
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      throw new Error('Generated PDF is not a valid buffer');
+    }
+    
+    if (pdfBuffer.length === 0) {
+      throw new Error('Generated PDF buffer is empty');
+    }
+    
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
     res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="test-bulletin-amina-kouakou-2024.pdf"');
     res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'private, no-cache');
     
-    console.log('[TEST_BULLETIN_PDF] ✅ Test bulletin PDF generated successfully');
-    // ✅ SEND AS BINARY using Buffer.from() (following user guidance)
+    console.log('[TEST_BULLETIN_PDF] ✅ Test bulletin PDF generated successfully (', pdfBuffer.length, 'bytes)');
+    
+    // ✅ SEND VALIDATED BUFFER
     res.end(Buffer.from(pdfBuffer));
     
-  } catch (error) {
-    console.error('[TEST_BULLETIN_PDF] ❌ Error generating test bulletin PDF:', error);
+  } catch (error: any) {
+    console.error('[TEST_BULLETIN_PDF] ❌ Unexpected error:', error);
     res.status(500).json({ 
-      error: 'Failed to generate test bulletin PDF',
-      details: error.message 
+      error: 'Internal server error',
+      message: 'Unable to generate test bulletin PDF. Please try again later.' 
     });
   }
 });
@@ -1214,27 +1352,70 @@ router.get('/test-bulletin/pdf', async (req, res) => {
 // No authentication required for preview samples in sandbox
 router.get('/preview-sample', async (req, res) => {
   try {
-    const schoolId = req.query.schoolId || 1;
+    // ✅ VALIDATE SCHOOL ID PARAMETER
+    const schoolIdParam = req.query.schoolId;
+    let schoolId = 1; // Default value
+    
+    if (schoolIdParam) {
+      const parsedSchoolId = parseInt(schoolIdParam as string);
+      if (isNaN(parsedSchoolId) || parsedSchoolId <= 0) {
+        return res.status(400).json({ 
+          error: 'Invalid school ID', 
+          message: 'School ID must be a positive integer' 
+        });
+      }
+      schoolId = parsedSchoolId;
+    }
+    
     console.log('[BULLETIN_PREVIEW_SAMPLE] Generating preview sample for school:', schoolId);
     
-    // Generate the PDF using the PDF generator service
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    // ✅ VALIDATE PDF GENERATOR SERVICE EXISTS
+    if (!PDFGenerator || typeof PDFGenerator.generateTestBulletinDocument !== 'function') {
+      throw new Error('PDF generator service is not available');
+    }
     
-    // ✅ SET HEADERS BEFORE SENDING (following user guidance)
+    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    let pdfBuffer;
+    try {
+      pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    } catch (pdfError: any) {
+      console.error('[BULLETIN_PREVIEW_SAMPLE] ❌ PDF generation failed:', pdfError);
+      return res.status(500).json({ 
+        error: 'PDF generation failed',
+        message: 'Unable to generate preview sample PDF' 
+      });
+    }
+    
+    // ✅ VALIDATE PDF BUFFER
+    if (!pdfBuffer) {
+      throw new Error('Generated PDF buffer is null or undefined');
+    }
+    
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      throw new Error('Generated PDF is not a valid buffer');
+    }
+    
+    if (pdfBuffer.length === 0) {
+      throw new Error('Generated PDF buffer is empty');
+    }
+    
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
     res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="bulletin-preview-sample.pdf"');
     res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'private, no-cache');
     
-    console.log('[BULLETIN_PREVIEW_SAMPLE] ✅ Preview sample PDF generated successfully');
-    // ✅ SEND AS BINARY using Buffer.from() (following user guidance)
+    console.log('[BULLETIN_PREVIEW_SAMPLE] ✅ Preview sample PDF generated successfully (', pdfBuffer.length, 'bytes)');
+    
+    // ✅ SEND VALIDATED BUFFER
     res.end(Buffer.from(pdfBuffer));
     
-  } catch (error) {
-    console.error('[BULLETIN_PREVIEW_SAMPLE] ❌ Error generating preview sample:', error);
+  } catch (error: any) {
+    console.error('[BULLETIN_PREVIEW_SAMPLE] ❌ Unexpected error:', error);
     res.status(500).json({ 
-      error: 'Failed to generate bulletin preview sample',
-      details: error.message 
+      error: 'Internal server error',
+      message: 'Unable to generate preview sample PDF. Please try again later.' 
     });
   }
 });
@@ -1242,25 +1423,65 @@ router.get('/preview-sample', async (req, res) => {
 // Generate Document 12 format PDF for schools
 router.get('/template-preview/pdf', requireAuth, async (req, res) => {
   try {
+    // ✅ VALIDATE USER AUTHENTICATION
     const user = req.user as any;
-    console.log('[DOCUMENT_12_PDF] Generating Document 12 format PDF for school:', user.schoolId);
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'User not authenticated',
+        message: 'Authentication required to access template preview' 
+      });
+    }
     
-    // Generate the PDF using the PDF generator service
-    const pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    const schoolId = user.schoolId || 1;
+    console.log('[DOCUMENT_12_PDF] Generating Document 12 format PDF for school:', schoolId);
     
-    // Set headers for PDF download
+    // ✅ VALIDATE PDF GENERATOR SERVICE EXISTS
+    if (!PDFGenerator || typeof PDFGenerator.generateTestBulletinDocument !== 'function') {
+      throw new Error('PDF generator service is not available');
+    }
+    
+    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    let pdfBuffer;
+    try {
+      pdfBuffer = await PDFGenerator.generateTestBulletinDocument();
+    } catch (pdfError: any) {
+      console.error('[DOCUMENT_12_PDF] ❌ PDF generation failed:', pdfError);
+      return res.status(500).json({ 
+        error: 'PDF generation failed',
+        message: 'Unable to generate Document 12 PDF template' 
+      });
+    }
+    
+    // ✅ VALIDATE PDF BUFFER
+    if (!pdfBuffer) {
+      throw new Error('Generated PDF buffer is null or undefined');
+    }
+    
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      throw new Error('Generated PDF is not a valid buffer');
+    }
+    
+    if (pdfBuffer.length === 0) {
+      throw new Error('Generated PDF buffer is empty');
+    }
+    
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
+    res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="document-12-bulletin-template-educafric.pdf"');
     res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'private, no-cache');
     
-    console.log('[DOCUMENT_12_PDF] ✅ Document 12 PDF generated successfully');
-    res.send(pdfBuffer);
+    console.log('[DOCUMENT_12_PDF] ✅ Document 12 PDF generated successfully (', pdfBuffer.length, 'bytes)');
     
-  } catch (error) {
-    console.error('[DOCUMENT_12_PDF] ❌ Error generating Document 12 PDF:', error);
+    // ✅ SEND VALIDATED BUFFER
+    res.end(Buffer.from(pdfBuffer));
+    
+  } catch (error: any) {
+    console.error('[DOCUMENT_12_PDF] ❌ Unexpected error:', error);
     res.status(500).json({ 
-      error: 'Failed to generate Document 12 PDF',
-      details: error.message 
+      error: 'Internal server error',
+      message: 'Unable to generate Document 12 PDF. Please try again later.' 
     });
   }
 });

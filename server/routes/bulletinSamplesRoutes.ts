@@ -2,6 +2,10 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import { 
+  GenerateDocumentPdfRequestSchema,
+  validatePdfData
+} from '../../shared/pdfValidationSchemas';
 
 const router = express.Router();
 
@@ -18,60 +22,165 @@ router.get('/preview/:term/:language?', requireAuth, async (req, res) => {
   try {
     const { term, language = 'fr' } = req.params;
     
-    // Validation des paramètres
-    if (!['T1', 'T2', 'T3'].includes(term.toUpperCase())) {
+    // ✅ VALIDATE INPUT PARAMETERS STRICTLY
+    if (!term || typeof term !== 'string' || term.trim() === '') {
       return res.status(400).json({ 
         success: false, 
-        message: 'Term must be T1, T2, or T3' 
+        message: 'Term parameter is required',
+        availableTerms: ['T1', 'T2', 'T3']
+      });
+    }
+    
+    if (!language || typeof language !== 'string' || language.trim() === '') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Language parameter is required',
+        availableLanguages: ['fr', 'en']
+      });
+    }
+    
+    // ✅ VALIDATE TERM VALUE
+    const validTerms = ['T1', 'T2', 'T3'];
+    if (!validTerms.includes(term.toUpperCase())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid term '${term}'. Must be one of: ${validTerms.join(', ')}`,
+        availableTerms: validTerms
       });
     }
 
-    if (!['fr', 'en'].includes(language.toLowerCase())) {
+    // ✅ VALIDATE LANGUAGE VALUE
+    const validLanguages = ['fr', 'en'];
+    if (!validLanguages.includes(language.toLowerCase())) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Language must be fr or en' 
+        message: `Invalid language '${language}'. Must be one of: ${validLanguages.join(', ')}`,
+        availableLanguages: validLanguages
       });
     }
 
     const normalizedTerm = term.toLowerCase();
     const normalizedLang = language.toLowerCase();
     
-    // Chemin vers le fichier PDF échantillon
+    // ✅ BUILD SAFE FILE PATH
     const sampleFileName = `bulletin-sample-${normalizedTerm}-${normalizedLang}.pdf`;
-    const samplePath = path.join(process.cwd(), 'public', 'samples', sampleFileName);
+    const samplesDir = path.join(process.cwd(), 'public', 'samples');
+    const samplePath = path.join(samplesDir, sampleFileName);
 
     console.log('[BULLETIN_SAMPLES] 📂 Trying to serve sample:', sampleFileName);
     console.log('[BULLETIN_SAMPLES] 📂 Full path:', samplePath);
-
-    // Vérifier que le fichier existe
-    if (!fs.existsSync(samplePath)) {
-      console.error('[BULLETIN_SAMPLES] ❌ Sample file not found:', samplePath);
-      return res.status(404).json({ 
+    
+    // ✅ VALIDATE SAMPLES DIRECTORY EXISTS
+    if (!fs.existsSync(samplesDir)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Samples directory not found:', samplesDir);
+      return res.status(500).json({ 
         success: false, 
-        message: `Bulletin sample not found for ${term} in ${language}`,
-        availableTerms: ['T1', 'T2', 'T3'],
-        availableLanguages: ['fr', 'en']
+        message: 'Bulletin samples directory not found',
+        error: 'Server configuration error'
       });
     }
 
-    // Lire et servir le fichier PDF
-    const pdfBuffer = fs.readFileSync(samplePath);
+    // ✅ VALIDATE FILE PATH SECURITY (prevent directory traversal)
+    if (!samplePath.startsWith(samplesDir)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Security violation - path traversal attempt:', samplePath);
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied',
+        error: 'Invalid file path'
+      });
+    }
+
+    // ✅ CHECK FILE EXISTENCE
+    if (!fs.existsSync(samplePath)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Sample file not found:', samplePath);
+      
+      // ✅ LIST AVAILABLE SAMPLES FOR DEBUGGING
+      let availableSamples = [];
+      try {
+        const files = fs.readdirSync(samplesDir);
+        availableSamples = files.filter(file => 
+          file.endsWith('.pdf') && file.includes('bulletin-sample')
+        );
+      } catch (listError) {
+        console.error('[BULLETIN_SAMPLES] ❌ Error listing available samples:', listError);
+      }
+      
+      return res.status(404).json({ 
+        success: false, 
+        message: `Bulletin sample not found for ${term} in ${language}`,
+        requestedFile: sampleFileName,
+        availableTerms: validTerms,
+        availableLanguages: validLanguages,
+        availableSamples: availableSamples
+      });
+    }
+
+    // ✅ READ FILE WITH ERROR HANDLING
+    let pdfBuffer;
+    let fileStats;
+    try {
+      pdfBuffer = fs.readFileSync(samplePath);
+      fileStats = fs.statSync(samplePath);
+    } catch (readError: any) {
+      console.error('[BULLETIN_SAMPLES] ❌ Error reading sample file:', readError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error reading bulletin sample file',
+        error: 'File access error'
+      });
+    }
     
-    // Headers pour affichage PDF dans le navigateur
+    // ✅ VALIDATE PDF BUFFER
+    if (!pdfBuffer) {
+      console.error('[BULLETIN_SAMPLES] ❌ PDF buffer is null or undefined');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error reading bulletin sample',
+        error: 'Invalid file content'
+      });
+    }
+    
+    if (!Buffer.isBuffer(pdfBuffer)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Read data is not a buffer');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error reading bulletin sample',
+        error: 'Invalid buffer type'
+      });
+    }
+    
+    if (pdfBuffer.length === 0) {
+      console.error('[BULLETIN_SAMPLES] ❌ PDF buffer is empty');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Bulletin sample file is empty',
+        error: 'Empty file'
+      });
+    }
+    
+    // ✅ GENERATE SAFE FILENAME FOR RESPONSE
+    const safeFilename = `bulletin-sample-${normalizedTerm}-${normalizedLang}.pdf`
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
+    
+    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL FILE READ
+    res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="bulletin-sample-${term}-${language}.pdf"`);
+    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.setHeader('Last-Modified', fileStats.mtime.toUTCString());
     
     console.log('[BULLETIN_SAMPLES] ✅ Serving PDF sample:', sampleFileName, `(${pdfBuffer.length} bytes)`);
     
-    res.send(pdfBuffer);
+    // ✅ SEND VALIDATED BUFFER
+    res.end(Buffer.from(pdfBuffer));
 
-  } catch (error) {
-    console.error('[BULLETIN_SAMPLES] ❌ Error serving bulletin sample:', error);
+  } catch (error: any) {
+    console.error('[BULLETIN_SAMPLES] ❌ Unexpected error serving bulletin sample:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error serving bulletin sample',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Internal server error',
+      error: 'Unable to serve bulletin sample. Please try again later.'
     });
   }
 });
@@ -125,47 +234,112 @@ router.get('/info/:term/:language?', requireAuth, async (req, res) => {
   try {
     const { term, language = 'fr' } = req.params;
     
-    if (!['T1', 'T2', 'T3'].includes(term.toUpperCase())) {
+    // ✅ VALIDATE INPUT PARAMETERS
+    if (!term || typeof term !== 'string' || term.trim() === '') {
       return res.status(400).json({ 
         success: false, 
-        message: 'Term must be T1, T2, or T3' 
+        message: 'Term parameter is required',
+        availableTerms: ['T1', 'T2', 'T3']
+      });
+    }
+    
+    const validTerms = ['T1', 'T2', 'T3'];
+    if (!validTerms.includes(term.toUpperCase())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid term '${term}'. Must be one of: ${validTerms.join(', ')}`,
+        availableTerms: validTerms
+      });
+    }
+    
+    const validLanguages = ['fr', 'en'];
+    if (!validLanguages.includes(language.toLowerCase())) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Invalid language '${language}'. Must be one of: ${validLanguages.join(', ')}`,
+        availableLanguages: validLanguages
       });
     }
 
     const normalizedTerm = term.toLowerCase();
     const normalizedLang = language.toLowerCase();
     
+    // ✅ BUILD SAFE FILE PATH
     const sampleFileName = `bulletin-sample-${normalizedTerm}-${normalizedLang}.pdf`;
-    const samplePath = path.join(process.cwd(), 'public', 'samples', sampleFileName);
-
-    if (!fs.existsSync(samplePath)) {
-      return res.status(404).json({ 
+    const samplesDir = path.join(process.cwd(), 'public', 'samples');
+    const samplePath = path.join(samplesDir, sampleFileName);
+    
+    // ✅ VALIDATE SAMPLES DIRECTORY EXISTS
+    if (!fs.existsSync(samplesDir)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Samples directory not found:', samplesDir);
+      return res.status(500).json({ 
         success: false, 
-        message: `Bulletin sample not found for ${term} in ${language}`
+        message: 'Bulletin samples directory not found'
+      });
+    }
+    
+    // ✅ VALIDATE FILE PATH SECURITY
+    if (!samplePath.startsWith(samplesDir)) {
+      console.error('[BULLETIN_SAMPLES] ❌ Security violation - path traversal attempt:', samplePath);
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Access denied'
       });
     }
 
-    const stats = fs.statSync(samplePath);
+    // ✅ CHECK FILE EXISTENCE
+    if (!fs.existsSync(samplePath)) {
+      return res.status(404).json({ 
+        success: false, 
+        message: `Bulletin sample not found for ${term} in ${language}`,
+        requestedFile: sampleFileName,
+        availableTerms: validTerms,
+        availableLanguages: validLanguages
+      });
+    }
+
+    // ✅ GET FILE STATS WITH ERROR HANDLING
+    let stats;
+    try {
+      stats = fs.statSync(samplePath);
+    } catch (statError: any) {
+      console.error('[BULLETIN_SAMPLES] ❌ Error getting file stats:', statError);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error accessing bulletin sample file'
+      });
+    }
     
-    res.json({
+    // ✅ VALIDATE FILE STATS
+    if (!stats) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Unable to get sample file information'
+      });
+    }
+    
+    // ✅ RETURN SAFE FILE INFORMATION
+    res.status(200).json({
       success: true,
       sample: {
         fileName: sampleFileName,
         term: term.toUpperCase(),
         language: language.toUpperCase(),
-        size: stats.size,
-        created: stats.birthtime,
-        modified: stats.mtime,
-        url: `/api/bulletin-samples/preview/${normalizedTerm}/${normalizedLang}`
+        size: Math.max(0, stats.size || 0),
+        created: stats.birthtime ? stats.birthtime.toISOString() : null,
+        modified: stats.mtime ? stats.mtime.toISOString() : null,
+        url: `/api/bulletin-samples/preview/${normalizedTerm}/${normalizedLang}`,
+        isFile: stats.isFile(),
+        sizeFormatted: `${(stats.size / 1024).toFixed(1)} KB`
       }
     });
 
-  } catch (error) {
-    console.error('[BULLETIN_SAMPLES] ❌ Error getting sample info:', error);
+  } catch (error: any) {
+    console.error('[BULLETIN_SAMPLES] ❌ Unexpected error getting sample info:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Error getting bulletin sample info',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      message: 'Internal server error',
+      error: 'Unable to get bulletin sample information. Please try again later.'
     });
   }
 });

@@ -1,11 +1,30 @@
 // GÉNÉRATEUR PDF EDUCAFRIC AVEC PDF-LIB - SOLUTION PROPRE ET FIABLE
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { 
+  validatePdfData,
+  PdfBulletinTemplateDataSchema
+} from '../../shared/pdfValidationSchemas';
 
 export class PdfLibBulletinGenerator {
   
   static async generateCleanBulletin(bulletinData?: any): Promise<Buffer> {
     try {
       console.log('[PDF_LIB] 🎯 Génération bulletin avec pdf-lib - solution propre');
+      
+      // ✅ VALIDATE INPUT DATA
+      if (bulletinData && typeof bulletinData === 'object') {
+        try {
+          bulletinData = validatePdfData(
+            PdfBulletinTemplateDataSchema,
+            bulletinData,
+            'Bulletin data for PDF generation'
+          );
+          console.log('[PDF_LIB] ✅ Input data validated successfully');
+        } catch (validationError: any) {
+          console.warn('[PDF_LIB] ⚠️ Input validation failed, using defaults:', validationError.message);
+          bulletinData = null; // Use defaults
+        }
+      }
       
       // 1) Créer nouveau document PDF
       const pdfDoc = await PDFDocument.create();
@@ -18,10 +37,26 @@ export class PdfLibBulletinGenerator {
       const page = pdfDoc.addPage();
       const { width, height } = page.getSize();
       
-      // 4) Fonction helper pour dessiner du texte
-      const drawText = (text: string, x: number, y: number, options: any = {}) => {
+      // 4) ✅ FONCTION HELPER SÉCURISÉE POUR DESSINER DU TEXTE
+      const drawText = (text: string | number | undefined | null, x: number, y: number, options: any = {}) => {
         const { size = 10, font = times, color = rgb(0, 0, 0) } = options;
-        page.drawText(text || '', { x, y, size, font, color });
+        
+        // ✅ SANITIZE TEXT INPUT
+        let safeText = '';
+        if (text !== null && text !== undefined) {
+          safeText = String(text).substring(0, 200); // Limit length
+        }
+        
+        // ✅ VALIDATE COORDINATES
+        const safeX = Math.max(0, Math.min(width - 10, Number(x) || 0));
+        const safeY = Math.max(0, Math.min(height - 10, Number(y) || 0));
+        
+        try {
+          page.drawText(safeText, { x: safeX, y: safeY, size, font, color });
+        } catch (textError: any) {
+          console.warn('[PDF_LIB] ⚠️ Error drawing text:', textError.message);
+          // Continue without throwing to prevent PDF generation failure
+        }
       };
       
       // 5) Header officiel camerounais
@@ -40,14 +75,22 @@ export class PdfLibBulletinGenerator {
       drawText('BULLETIN DE NOTES', 200, height - 160, { font: timesBold, size: 16, color: rgb(0, 0, 0.8) });
       drawText('Période: 2024-2025', 220, height - 180, { font: times, size: 11 });
       
-      // 7) Informations élève
-      drawText('Élève: Jean Kamga', 40, height - 220, { font: times, size: 11 });
-      drawText('Classe: 6ème A', 40, height - 240, { font: times, size: 11 });
-      drawText('Matricule: 1', 40, height - 260, { font: times, size: 11 });
+      // 7) ✅ INFORMATIONS ÉLÈVE AVEC DONNÉES VALIDÉES
+      const safeStudentFirstName = bulletinData?.student?.firstName || 'Jean';
+      const safeStudentLastName = bulletinData?.student?.lastName || 'Kamga';
+      const safeClassName = bulletinData?.student?.className || '6ème A';
+      const safeMatricule = bulletinData?.student?.studentNumber || bulletinData?.student?.matricule || '1';
+      const safeBirthDate = bulletinData?.student?.birthDate || 'Date non renseignée';
+      const safeGender = bulletinData?.student?.gender === 'Masculin' ? 'M' : bulletinData?.student?.gender === 'Féminin' ? 'F' : 'M';
+      const safeBirthPlace = bulletinData?.student?.birthPlace || 'Yaoundé, Cameroun';
       
-      drawText('Né(e) le: Date non renseignée', 300, height - 220, { font: times, size: 11 });
-      drawText('Sexe: M', 300, height - 240, { font: times, size: 11 });
-      drawText('Lieu de naissance: Yaoundé, Cameroun', 300, height - 260, { font: times, size: 11 });
+      drawText(`Élève: ${safeStudentFirstName} ${safeStudentLastName}`, 40, height - 220, { font: times, size: 11 });
+      drawText(`Classe: ${safeClassName}`, 40, height - 240, { font: times, size: 11 });
+      drawText(`Matricule: ${safeMatricule}`, 40, height - 260, { font: times, size: 11 });
+      
+      drawText(`Né(e) le: ${safeBirthDate}`, 300, height - 220, { font: times, size: 11 });
+      drawText(`Sexe: ${safeGender}`, 300, height - 240, { font: times, size: 11 });
+      drawText(`Lieu de naissance: ${safeBirthPlace}`, 300, height - 260, { font: times, size: 11 });
       
       // Période spécifique
       drawText('Période: Premier Trimestre 2024-2025', 40, height - 290, { font: timesBold, size: 11 });
