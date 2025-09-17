@@ -43,6 +43,45 @@ const COLORS = {
   darkGray: rgb(0.3, 0.3, 0.3)
 };
 
+// Interface for comprehensive data from manual entry
+interface ComprehensiveManualData {
+  // Attendance data
+  unjustifiedAbsenceHours?: string;
+  justifiedAbsenceHours?: string;
+  latenessCount?: number;
+  detentionHours?: string;
+  
+  // Disciplinary data
+  conductWarning?: boolean;
+  conductBlame?: boolean;
+  exclusionDays?: number;
+  permanentExclusion?: boolean;
+  
+  // Academic data
+  totalGeneral?: string;
+  numberOfAverages?: number;
+  successRate?: string;
+  workAppreciation?: string;
+  generalComment?: string;
+  
+  // Signatures
+  parentVisa?: { name: string; date: string };
+  teacherVisa?: { name: string; date: string };
+  headmasterVisa?: { name: string; date: string };
+  
+  // Subject coefficients
+  subjectCoefficients?: Record<number, {
+    CTBA?: string;
+    CBA?: string;
+    CA?: string;
+    CMA?: string;
+    COTE?: string;
+    CNA?: string;
+    minGrade?: string;
+    maxGrade?: string;
+  }>;
+}
+
 export class OptimizedBulletinGenerator {
   
   /**
@@ -95,6 +134,43 @@ export class OptimizedBulletinGenerator {
     return langObs.poor[Math.floor(Math.random() * langObs.poor.length)];
   }
 
+  /**
+   * USE MANUAL DATA OR FALLBACK TO SAMPLE - Priority to real entered data
+   */
+  static useManualDataOrFallback(manualData: ComprehensiveManualData | null, termAverage: number, language: 'fr' | 'en') {
+    if (manualData) {
+      console.log('[OPTIMIZED_BULLETIN] 📋 Using manual comprehensive data');
+      return {
+        // Use manual data when available, fallback to default/calculated values
+        unjustifiedAbsenceHours: parseFloat(manualData.unjustifiedAbsenceHours || '0'),
+        justifiedAbsenceHours: parseFloat(manualData.justifiedAbsenceHours || '0'),
+        latenessCount: manualData.latenessCount || 0,
+        detentionHours: parseFloat(manualData.detentionHours || '0'),
+        
+        conductWarning: manualData.conductWarning || false,
+        conductBlame: manualData.conductBlame || false,
+        exclusionDays: manualData.exclusionDays || 0,
+        permanentExclusion: manualData.permanentExclusion || false,
+        
+        totalGeneral: parseFloat(manualData.totalGeneral || (termAverage * 9 * 2).toString()),
+        numberOfAverages: manualData.numberOfAverages || 9,
+        successRate: parseFloat(manualData.successRate || Math.min(95, Math.max(20, 60 + (termAverage - 10) * 4)).toString()),
+        
+        workAppreciation: manualData.workAppreciation || this.generateDetailedAppreciation(termAverage, language),
+        generalComment: manualData.generalComment || this.generateGeneralComment(termAverage, language),
+        
+        parentVisa: manualData.parentVisa,
+        teacherVisa: manualData.teacherVisa,
+        headmasterVisa: manualData.headmasterVisa,
+        
+        subjectCoefficients: manualData.subjectCoefficients
+      };
+    }
+    
+    console.log('[OPTIMIZED_BULLETIN] 🎲 Generating sample comprehensive data');
+    return this.generateComprehensiveSampleData(termAverage, language);
+  }
+  
   /**
    * GENERATE COMPREHENSIVE SAMPLE DATA - All bulletin fields with realistic fictional data
    */
@@ -693,6 +769,7 @@ export class OptimizedBulletinGenerator {
   static async generateOptimizedBulletin(
     studentData: StudentGradeData,
     schoolInfo: SchoolInfo,
+    comprehensiveData: ComprehensiveManualData | null = null,
     options: BulletinOptions = {
       includeComments: true,
       includeRankings: true,
@@ -809,39 +886,98 @@ export class OptimizedBulletinGenerator {
       
       currentY = tableResult.endY;
       
-      // 5. CONDUCT AND STATISTICS (if applicable)
-      if (studentData.conductGrade || studentData.absences !== undefined || options.includeStatistics) {
-        let conductInfo = [];
-        
-        if (studentData.conductGrade) {
-          const conductLabel = options.language === 'fr' ? 'Conduite' : 'Conduct';
-          conductInfo.push(`${conductLabel}: ${studentData.conductGrade}/20`);
-        }
-        
-        if (studentData.absences !== undefined) {
-          const absenceLabel = options.language === 'fr' ? 'Absences' : 'Absences';
-          conductInfo.push(`${absenceLabel}: ${studentData.absences}`);
-        }
-        
-        if (options.includeStatistics) {
-          const avgLabel = options.language === 'fr' ? 'Moyenne classe' : 'Class average';
-          conductInfo.push(`${avgLabel}: ${tableResult.totals.overallAverage.toFixed(2)}/20`);
-        }
-        
+      // 5. COMPREHENSIVE DATA INTEGRATION - Use manual data when available
+      const usedData = this.useManualDataOrFallback(comprehensiveData, tableResult.totals.overallAverage, options.language);
+      
+      // Display conduct and comprehensive information
+      let conductInfo = [];
+      
+      // Traditional conduct grade or discipline from comprehensive data
+      if (studentData.conductGrade) {
+        const conductLabel = options.language === 'fr' ? 'Conduite' : 'Conduct';
+        conductInfo.push(`${conductLabel}: ${studentData.conductGrade}/20`);
+      } else if (usedData.conductWarning || usedData.conductBlame) {
+        const disciplineLabel = options.language === 'fr' ? 'Discipline' : 'Discipline';
+        const disciplineStatus = usedData.conductBlame ? (options.language === 'fr' ? 'Blâme' : 'Blame') : 
+                                 usedData.conductWarning ? (options.language === 'fr' ? 'Avertissement' : 'Warning') : 
+                                 (options.language === 'fr' ? 'Satisfaisante' : 'Satisfactory');
+        conductInfo.push(`${disciplineLabel}: ${disciplineStatus}`);
+      }
+      
+      // Absences from comprehensive data
+      if (usedData.unjustifiedAbsenceHours > 0 || usedData.justifiedAbsenceHours > 0) {
+        const absenceLabel = options.language === 'fr' ? 'Absences' : 'Absences';
+        const totalAbsences = usedData.unjustifiedAbsenceHours + usedData.justifiedAbsenceHours;
+        conductInfo.push(`${absenceLabel}: ${totalAbsences}h`);
+      } else if (studentData.absences !== undefined) {
+        const absenceLabel = options.language === 'fr' ? 'Absences' : 'Absences';
+        conductInfo.push(`${absenceLabel}: ${studentData.absences}`);
+      }
+      
+      // Lateness from comprehensive data
+      if (usedData.latenessCount > 0) {
+        const latenessLabel = options.language === 'fr' ? 'Retards' : 'Lateness';
+        conductInfo.push(`${latenessLabel}: ${usedData.latenessCount}`);
+      }
+      
+      if (options.includeStatistics) {
+        const avgLabel = options.language === 'fr' ? 'Moyenne classe' : 'Class average';
+        conductInfo.push(`${avgLabel}: ${tableResult.totals.overallAverage.toFixed(2)}/20`);
+      }
+      
+      if (conductInfo.length > 0) {
         drawText(conductInfo.join(' • '), A4_DIMENSIONS.margin, currentY, { size: 10 });
         currentY -= spacing.conductHeight + spacing.minSpacing;
       }
       
-      // 6. SIGNATURES
-      if (schoolInfo.directorName) {
-        const principalLabel = options.language === 'fr' ? 'Le Directeur' : 'The Principal';
-        const teacherLabel = options.language === 'fr' ? 'Le Professeur Principal' : 'Class Teacher';
+      // Work appreciation from comprehensive data
+      if (usedData.workAppreciation) {
+        const appreciationLabel = options.language === 'fr' ? 'Appréciation du travail:' : 'Work appreciation:';
+        drawText(appreciationLabel, A4_DIMENSIONS.margin, currentY, { size: 10, bold: true });
+        currentY -= 15;
         
-        drawText(teacherLabel, A4_DIMENSIONS.margin, currentY, { size: 10, bold: true });
-        drawText(principalLabel, A4_DIMENSIONS.width - 200, currentY, { size: 10, bold: true });
+        // Split long text into multiple lines
+        const appreciationLines = this.wrapText(usedData.workAppreciation, 70);
+        appreciationLines.forEach(line => {
+          drawText(line, A4_DIMENSIONS.margin, currentY, { size: 9 });
+          currentY -= 12;
+        });
+        currentY -= spacing.minSpacing;
+      }
+      
+      // 6. COMPREHENSIVE SIGNATURES - Use manual data when available
+      const hasCustomSignatures = usedData.parentVisa || usedData.teacherVisa || usedData.headmasterVisa;
+      
+      if (hasCustomSignatures || schoolInfo.directorName) {
+        const signatureY = currentY;
         
-        if (schoolInfo.directorName) {
-          drawText(schoolInfo.directorName, A4_DIMENSIONS.width - 200, currentY - 30, { size: 9 });
+        // Parent/Guardian signature
+        if (usedData.parentVisa) {
+          const parentLabel = options.language === 'fr' ? 'VISA PARENT/TUTEUR' : 'PARENT/GUARDIAN VISA';
+          drawText(parentLabel, A4_DIMENSIONS.margin, signatureY, { size: 9, bold: true });
+          drawText(usedData.parentVisa.name, A4_DIMENSIONS.margin, signatureY - 15, { size: 8 });
+          drawText(usedData.parentVisa.date, A4_DIMENSIONS.margin, signatureY - 28, { size: 8 });
+        }
+        
+        // Teacher signature
+        if (usedData.teacherVisa) {
+          const teacherLabel = options.language === 'fr' ? 'VISA PROFESSEUR' : 'TEACHER VISA';
+          drawText(teacherLabel, A4_DIMENSIONS.width / 2 - 50, signatureY, { size: 9, bold: true });
+          drawText(usedData.teacherVisa.name, A4_DIMENSIONS.width / 2 - 50, signatureY - 15, { size: 8 });
+          drawText(usedData.teacherVisa.date, A4_DIMENSIONS.width / 2 - 50, signatureY - 28, { size: 8 });
+        }
+        
+        // Principal/Headmaster signature
+        if (usedData.headmasterVisa || schoolInfo.directorName) {
+          const principalLabel = options.language === 'fr' ? 'VISA DIRECTEUR' : 'PRINCIPAL VISA';
+          drawText(principalLabel, A4_DIMENSIONS.width - 200, signatureY, { size: 9, bold: true });
+          
+          if (usedData.headmasterVisa) {
+            drawText(usedData.headmasterVisa.name, A4_DIMENSIONS.width - 200, signatureY - 15, { size: 8 });
+            drawText(usedData.headmasterVisa.date, A4_DIMENSIONS.width - 200, signatureY - 28, { size: 8 });
+          } else if (schoolInfo.directorName) {
+            drawText(schoolInfo.directorName, A4_DIMENSIONS.width - 200, signatureY - 15, { size: 8 });
+          }
         }
         
         currentY -= spacing.signaturesHeight + spacing.minSpacing;

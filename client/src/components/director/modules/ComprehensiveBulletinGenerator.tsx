@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { apiRequest } from '@/lib/queryClient';
+import { 
+  bulletinComprehensiveValidationSchema, 
+  insertBulletinSubjectCodesSchema,
+  type InsertBulletinComprehensive,
+  type InsertBulletinSubjectCodes
+} from '@shared/schemas/bulletinComprehensiveSchema';
 import { 
   FileText, 
   Download, 
@@ -40,7 +52,15 @@ import {
   TrendingUp,
   Filter,
   Search,
-  Clock
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Edit3,
+  Database,
+  UserCheck,
+  FileSignature,
+  Settings,
+  BookMarked
 } from 'lucide-react';
 import {
   Dialog,
@@ -186,6 +206,52 @@ interface GenerationProgress {
   downloadUrls: string[];
 }
 
+// Manual data entry validation schema
+const manualDataValidationSchema = z.object({
+  // Absences & Lateness
+  unjustifiedAbsenceHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
+  justifiedAbsenceHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
+  latenessCount: z.number().min(0, "Must be >= 0").optional(),
+  detentionHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
+  
+  // Disciplinary Sanctions
+  conductWarning: z.boolean().optional(),
+  conductBlame: z.boolean().optional(),
+  exclusionDays: z.number().min(0, "Must be >= 0").optional(),
+  permanentExclusion: z.boolean().optional(),
+  
+  // Academic Totals
+  totalGeneral: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
+  numberOfAverages: z.number().min(0, "Must be >= 0").optional(),
+  successRate: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
+  
+  // Appreciations
+  workAppreciation: z.string().max(500, "Maximum 500 characters").optional(),
+  generalComment: z.string().max(300, "Maximum 300 characters").optional(),
+  
+  // Signatures
+  parentVisaName: z.string().optional(),
+  parentVisaDate: z.string().optional(),
+  teacherVisaName: z.string().optional(),
+  teacherVisaDate: z.string().optional(),
+  headmasterVisaName: z.string().optional(),
+  headmasterVisaDate: z.string().optional(),
+  
+  // Subject Coefficients (dynamic fields will be added based on subjects)
+  subjectCoefficients: z.record(z.object({
+    CTBA: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20"),
+    CBA: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20"),
+    CA: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20"),
+    CMA: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20"),
+    COTE: z.enum(["A", "B", "C", "D", "E", "F", ""]).optional(),
+    CNA: z.string().max(50).optional(),
+    minGrade: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20"),
+    maxGrade: z.string().optional().refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 20), "Must be a valid number between 0-20")
+  })).optional()
+});
+
+type ManualDataForm = z.infer<typeof manualDataValidationSchema>;
+
 export default function ComprehensiveBulletinGenerator() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -256,6 +322,50 @@ export default function ComprehensiveBulletinGenerator() {
   // Generation tracking
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Manual data entry state
+  const [selectedStudentForEntry, setSelectedStudentForEntry] = useState<number | null>(null);
+  const [isManualEntryMode, setIsManualEntryMode] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<Record<string, ManualDataForm>>({});
+  
+  // Collapsible sections state
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    absences: true,
+    sanctions: false,
+    totals: false,
+    subjectCoefficients: false,
+    appreciations: false,
+    signatures: false
+  });
+  
+  // Subject coefficients data state
+  const [subjectCoefficients, setSubjectCoefficients] = useState<Record<string, any>>({});
+  
+  // React Hook Form setup for manual data entry
+  const manualDataForm = useForm<ManualDataForm>({
+    resolver: zodResolver(manualDataValidationSchema),
+    defaultValues: {
+      unjustifiedAbsenceHours: '',
+      justifiedAbsenceHours: '',
+      latenessCount: 0,
+      detentionHours: '',
+      conductWarning: false,
+      conductBlame: false,
+      exclusionDays: 0,
+      permanentExclusion: false,
+      totalGeneral: '',
+      numberOfAverages: 0,
+      successRate: '',
+      workAppreciation: '',
+      generalComment: '',
+      parentVisaName: '',
+      parentVisaDate: new Date().toISOString().split('T')[0],
+      teacherVisaName: '',
+      teacherVisaDate: new Date().toISOString().split('T')[0],
+      headmasterVisaName: '',
+      headmasterVisaDate: new Date().toISOString().split('T')[0]
+    }
+  });
 
   const text = {
     fr: {
@@ -386,7 +496,45 @@ export default function ComprehensiveBulletinGenerator() {
       close: 'Fermer',
       loading: 'Chargement...',
       error: 'Erreur',
-      success: 'Succès'
+      success: 'Succès',
+      
+      // Manual data entry
+      manualDataEntry: 'Saisie Manuelle',
+      selectStudentForEntry: 'Sélectionner un élève pour la saisie',
+      saveDraft: 'Sauvegarder le brouillon',
+      loadDraft: 'Charger le brouillon',
+      resetForm: 'Réinitialiser le formulaire',
+      draftSaved: 'Brouillon sauvegardé',
+      draftLoaded: 'Brouillon chargé',
+      formReset: 'Formulaire réinitialisé',
+      
+      // Form sections
+      absencesLateness: 'Absences & Retards',
+      disciplinarySanctions: 'Sanctions Disciplinaires',
+      academicTotals: 'Moyennes & Totaux',
+      appreciationsComments: 'Appréciations & Commentaires',
+      signaturesSection: 'Signatures',
+      
+      // Form fields
+      unjustifiedAbsHours: 'Abs. non J. (heures)',
+      justifiedAbsHours: 'Abs. just. (heures)',
+      latenessCountField: 'Retards (nombre)',
+      detentionHoursField: 'Consignes (heures)',
+      conductWarningField: 'Avertissement de conduite',
+      conductBlameField: 'Blâme de conduite',
+      exclusionDaysField: 'Exclusions (jours)',
+      permanentExclusionField: 'Exclusion définitive',
+      totalGeneralField: 'Total général',
+      numberOfAveragesField: 'Nombre de moyennes',
+      successRateField: 'Taux de réussite (%)',
+      workAppreciationField: 'Appréciation du travail (500 car. max)',
+      generalCommentField: 'Commentaire général (300 car. max)',
+      parentVisaNameField: 'Nom parent/tuteur',
+      parentVisaDateField: 'Date visa parent',
+      teacherVisaNameField: 'Nom professeur principal',
+      teacherVisaDateField: 'Date visa professeur',
+      headmasterVisaNameField: 'Nom chef d\'établissement',
+      headmasterVisaDateField: 'Date visa chef'
     },
     en: {
       title: 'Comprehensive Bulletin Generator',
@@ -516,11 +664,249 @@ export default function ComprehensiveBulletinGenerator() {
       close: 'Close',
       loading: 'Loading...',
       error: 'Error',
-      success: 'Success'
+      success: 'Success',
+      
+      // Manual data entry
+      manualDataEntry: 'Manual Data Entry',
+      selectStudentForEntry: 'Select a student for data entry',
+      saveDraft: 'Save Draft',
+      loadDraft: 'Load Draft',
+      resetForm: 'Reset Form',
+      draftSaved: 'Draft saved',
+      draftLoaded: 'Draft loaded',
+      formReset: 'Form reset',
+      
+      // Form sections
+      absencesLateness: 'Absences & Lateness',
+      disciplinarySanctions: 'Disciplinary Sanctions',
+      academicTotals: 'Averages & Totals',
+      appreciationsComments: 'Appreciations & Comments',
+      signaturesSection: 'Signatures',
+      
+      // Form fields
+      unjustifiedAbsHours: 'Unjust. Abs. (hours)',
+      justifiedAbsHours: 'Just. Abs. (hours)',
+      latenessCountField: 'Lateness (count)',
+      detentionHoursField: 'Detentions (hours)',
+      conductWarningField: 'Conduct warning',
+      conductBlameField: 'Conduct blame',
+      exclusionDaysField: 'Exclusions (days)',
+      permanentExclusionField: 'Permanent exclusion',
+      totalGeneralField: 'General total',
+      numberOfAveragesField: 'Number of averages',
+      successRateField: 'Success rate (%)',
+      workAppreciationField: 'Work appreciation (500 char. max)',
+      generalCommentField: 'General comment (300 char. max)',
+      parentVisaNameField: 'Parent/Guardian name',
+      parentVisaDateField: 'Parent visa date',
+      teacherVisaNameField: 'Main teacher name',
+      teacherVisaDateField: 'Teacher visa date',
+      headmasterVisaNameField: 'School head name',
+      headmasterVisaDateField: 'Headmaster visa date'
     }
   };
 
   const t = text[language as keyof typeof text];
+  
+  // Manual data entry utility functions
+  const toggleSection = (sectionKey: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
+  
+  // Subject coefficients helper functions
+  const updateSubjectCoefficient = (subjectId: number, field: string, value: string) => {
+    setSubjectCoefficients(prev => ({
+      ...prev,
+      [subjectId]: {
+        ...prev[subjectId],
+        [field]: value
+      }
+    }));
+  };
+  
+  const fillDefaultCoefficients = () => {
+    if (!selectedStudentForEntry) return;
+    
+    const student = filteredStudents.find(s => s.id === selectedStudentForEntry);
+    if (!student?.approvedGrades) return;
+    
+    const defaultCoefficients: Record<number, any> = {};
+    student.approvedGrades.forEach(grade => {
+      const baseAverage = grade.termAverage || 12;
+      defaultCoefficients[grade.subjectId] = {
+        CTBA: (baseAverage + (Math.random() - 0.5) * 2).toFixed(1),
+        CBA: (baseAverage + (Math.random() - 0.5) * 1.5).toFixed(1),
+        CA: (baseAverage + (Math.random() - 0.5) * 2.5).toFixed(1),
+        CMA: (baseAverage + (Math.random() - 0.5) * 1.8).toFixed(1),
+        COTE: baseAverage >= 16 ? 'A' : baseAverage >= 14 ? 'B' : baseAverage >= 12 ? 'C' : baseAverage >= 10 ? 'D' : 'E',
+        CNA: baseAverage < 10 ? 'Non acquis' : '',
+        minGrade: Math.max(0, baseAverage - 3).toFixed(1),
+        maxGrade: Math.min(20, baseAverage + 2).toFixed(1)
+      };
+    });
+    
+    setSubjectCoefficients(defaultCoefficients);
+    
+    toast({
+      title: "Coefficients remplis",
+      description: "Les valeurs par défaut ont été appliquées à toutes les matières."
+    });
+  };
+  
+  const clearAllCoefficients = () => {
+    setSubjectCoefficients({});
+    
+    toast({
+      title: "Coefficients effacés",
+      description: "Tous les coefficients ont été supprimés."
+    });
+  };
+  
+  const saveDraftData = () => {
+    if (!selectedStudentForEntry) return;
+    
+    const currentData = manualDataForm.getValues();
+    const draftKey = `${selectedStudentForEntry}-${selectedTerm}-${academicYear}`;
+    
+    setSavedDrafts(prev => ({
+      ...prev,
+      [draftKey]: currentData
+    }));
+    
+    // Store in localStorage for persistence
+    localStorage.setItem(`educafric-bulletin-drafts`, JSON.stringify({
+      ...savedDrafts,
+      [draftKey]: currentData
+    }));
+    
+    toast({
+      title: t.success,
+      description: t.draftSaved
+    });
+  };
+  
+  const loadDraftData = () => {
+    if (!selectedStudentForEntry) return;
+    
+    const draftKey = `${selectedStudentForEntry}-${selectedTerm}-${academicYear}`;
+    
+    // First check in-memory drafts
+    let draftData = savedDrafts[draftKey];
+    
+    // If not found, check localStorage
+    if (!draftData) {
+      const storedDrafts = localStorage.getItem('educafric-bulletin-drafts');
+      if (storedDrafts) {
+        const parsedDrafts = JSON.parse(storedDrafts);
+        draftData = parsedDrafts[draftKey];
+        if (draftData) {
+          setSavedDrafts(parsedDrafts);
+        }
+      }
+    }
+    
+    if (draftData) {
+      manualDataForm.reset(draftData);
+      toast({
+        title: t.success,
+        description: t.draftLoaded
+      });
+    } else {
+      toast({
+        title: t.error,
+        description: 'Aucun brouillon trouvé pour cet élève',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const resetFormData = () => {
+    manualDataForm.reset();
+    toast({
+      title: t.success,
+      description: t.formReset
+    });
+  };
+  
+  // Save manual data mutation
+  const saveManualDataMutation = useMutation({
+    mutationFn: async (data: ManualDataForm) => {
+      if (!selectedStudentForEntry || !selectedClass) {
+        throw new Error('Student and class selection required');
+      }
+      
+      // Prepare comprehensive data with proper mapping
+      const comprehensiveData = {
+        studentId: selectedStudentForEntry,
+        classId: parseInt(selectedClass),
+        term: selectedTerm,
+        academicYear,
+        
+        // Map form data to schema
+        unjustifiedAbsenceHours: data.unjustifiedAbsenceHours || '',
+        justifiedAbsenceHours: data.justifiedAbsenceHours || '',
+        latenessCount: data.latenessCount || 0,
+        detentionHours: data.detentionHours || '',
+        
+        conductWarning: data.conductWarning || false,
+        conductBlame: data.conductBlame || false,
+        exclusionDays: data.exclusionDays || 0,
+        permanentExclusion: data.permanentExclusion || false,
+        
+        totalGeneral: data.totalGeneral || '',
+        numberOfAverages: data.numberOfAverages || 0,
+        successRate: data.successRate || '',
+        
+        workAppreciation: data.workAppreciation || '',
+        generalComment: data.generalComment || '',
+        
+        // Map signature fields to JSON format
+        parentVisaName: data.parentVisaName || '',
+        parentVisaDate: data.parentVisaDate || '',
+        teacherVisaName: data.teacherVisaName || '',
+        teacherVisaDate: data.teacherVisaDate || '',
+        headmasterVisaName: data.headmasterVisaName || '',
+        headmasterVisaDate: data.headmasterVisaDate || '',
+        
+        // Include subject coefficients
+        subjectCoefficients
+      };
+      
+      console.log('[MANUAL_SAVE] 💾 Saving comprehensive data:', comprehensiveData);
+      
+      return apiRequest('/api/comprehensive-bulletins/save', {
+        method: 'POST',
+        body: JSON.stringify(comprehensiveData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Succès',
+        description: 'Données du bulletin sauvegardées avec succès'
+      });
+      
+      // Refresh the saved drafts
+      const draftKey = `${selectedStudentForEntry}_${selectedClass}_${selectedTerm}_${academicYear}`;
+      setSavedDrafts(prev => ({ ...prev, [draftKey]: manualDataForm.getValues() }));
+    },
+    onError: (error: any) => {
+      console.error('[MANUAL_SAVE] ❌ Save error:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Échec de la sauvegarde des données'
+      });
+    }
+  });
+  
+  const onManualDataSubmit = (data: ManualDataForm) => {
+    saveManualDataMutation.mutate(data);
+  };
 
   // Load classes on component mount
   const { data: classes, isLoading: loadingClasses } = useQuery({
@@ -751,10 +1137,13 @@ export default function ComprehensiveBulletinGenerator() {
 
       {/* Main Interface */}
       <Tabs defaultValue="class-selection" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="class-selection">{t.classSelection}</TabsTrigger>
           <TabsTrigger value="student-management" disabled={!selectedClass}>
             {t.studentManagement}
+          </TabsTrigger>
+          <TabsTrigger value="manual-data-entry" disabled={!selectedClass}>
+            {t.manualDataEntry}
           </TabsTrigger>
           <TabsTrigger value="generation-options" disabled={!selectedClass}>
             {t.generationOptions}
@@ -859,6 +1248,734 @@ export default function ComprehensiveBulletinGenerator() {
           </Card>
         </TabsContent>
 
+        {/* Manual Data Entry Tab */}
+        <TabsContent value="manual-data-entry" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Edit3 className="h-5 w-5" />
+                {t.manualDataEntry}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Student Selection for Manual Entry */}
+              <div className="space-y-4">
+                <Label>{t.selectStudentForEntry}</Label>
+                <Select 
+                  value={selectedStudentForEntry?.toString() || ''} 
+                  onValueChange={(value) => setSelectedStudentForEntry(parseInt(value))}
+                >
+                  <SelectTrigger data-testid="student-select-manual">
+                    <SelectValue placeholder={t.selectStudentForEntry} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredStudents.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.firstName} {student.lastName} - {student.matricule}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Draft Management Buttons */}
+                {selectedStudentForEntry && (
+                  <div className="flex gap-2">
+                    <Button onClick={saveDraftData} variant="outline" size="sm" data-testid="save-draft">
+                      <Database className="h-4 w-4 mr-2" />
+                      {t.saveDraft}
+                    </Button>
+                    <Button onClick={loadDraftData} variant="outline" size="sm" data-testid="load-draft">
+                      <FileDown className="h-4 w-4 mr-2" />
+                      {t.loadDraft}
+                    </Button>
+                    <Button onClick={resetFormData} variant="outline" size="sm" data-testid="reset-form">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {t.resetForm}
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Manual Data Entry Form */}
+              {selectedStudentForEntry && (
+                <Form {...manualDataForm}>
+                  <form onSubmit={manualDataForm.handleSubmit(onManualDataSubmit)} className="space-y-6">
+                    
+                    {/* Section 1: Absences & Lateness */}
+                    <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-orange-600" />
+                                {t.absencesLateness}
+                              </div>
+                              {openSections.absences ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={manualDataForm.control}
+                                name="unjustifiedAbsenceHours"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.unjustifiedAbsHours}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        step="0.5" 
+                                        min="0" 
+                                        placeholder="0.0"
+                                        data-testid="unjustified-abs-hours"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="justifiedAbsenceHours"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.justifiedAbsHours}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        step="0.5" 
+                                        min="0" 
+                                        placeholder="0.0"
+                                        data-testid="justified-abs-hours"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="latenessCount"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.latenessCountField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                        data-testid="lateness-count"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="detentionHours"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.detentionHoursField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        step="0.5" 
+                                        min="0" 
+                                        placeholder="0.0"
+                                        data-testid="detention-hours"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 2: Disciplinary Sanctions */}
+                    <Collapsible open={openSections.sanctions} onOpenChange={() => toggleSection('sanctions')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-5 w-5 text-red-600" />
+                                {t.disciplinarySanctions}
+                              </div>
+                              {openSections.sanctions ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={manualDataForm.control}
+                                name="conductWarning"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="conduct-warning"
+                                      />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel>{t.conductWarningField}</FormLabel>
+                                    </div>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="conductBlame"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="conduct-blame"
+                                      />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel>{t.conductBlameField}</FormLabel>
+                                    </div>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="exclusionDays"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.exclusionDaysField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                        data-testid="exclusion-days"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="permanentExclusion"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="permanent-exclusion"
+                                      />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                      <FormLabel className="text-red-600 font-semibold">{t.permanentExclusionField}</FormLabel>
+                                    </div>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 3: Academic Totals */}
+                    <Collapsible open={openSections.totals} onOpenChange={() => toggleSection('totals')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Calculator className="h-5 w-5 text-blue-600" />
+                                {t.academicTotals}
+                              </div>
+                              {openSections.totals ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={manualDataForm.control}
+                                name="totalGeneral"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.totalGeneralField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        step="0.01" 
+                                        min="0" 
+                                        placeholder="0.00"
+                                        data-testid="total-general"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="numberOfAverages"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.numberOfAveragesField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        min="0" 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                        data-testid="number-of-averages"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="successRate"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.successRateField}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        type="number" 
+                                        step="0.01" 
+                                        min="0" 
+                                        max="100" 
+                                        placeholder="0.00"
+                                        data-testid="success-rate"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 4: Subject Coefficients & Codes */}
+                    <Collapsible open={openSections.subjectCoefficients} onOpenChange={() => toggleSection('subjectCoefficients')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Settings className="h-5 w-5 text-indigo-600" />
+                                {t.subjectCoefficientsSection}
+                              </div>
+                              {openSections.subjectCoefficients ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-4">
+                            {selectedStudentForEntry && filteredStudents.find(s => s.id === selectedStudentForEntry)?.approvedGrades?.length > 0 ? (
+                              <div className="space-y-4">
+                                <p className="text-sm text-muted-foreground mb-4">
+                                  {t.subjectCoefficientsDescription}
+                                </p>
+                                <div className="overflow-x-auto">
+                                  <table className="w-full border-collapse border border-gray-300">
+                                    <thead>
+                                      <tr className="bg-gray-50">
+                                        <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Matière</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CTBA</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CBA</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CA</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CMA</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">COTE</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CNA</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Min</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Max</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {filteredStudents.find(s => s.id === selectedStudentForEntry)?.approvedGrades?.map((grade, index) => (
+                                        <tr key={grade.subjectId} className="hover:bg-gray-50">
+                                          <td className="border border-gray-300 px-3 py-2 text-sm font-medium">
+                                            {grade.subjectName}
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.CTBA || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CTBA', e.target.value)}
+                                              data-testid={`ctba-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.CBA || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CBA', e.target.value)}
+                                              data-testid={`cba-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.CA || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CA', e.target.value)}
+                                              data-testid={`ca-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.CMA || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CMA', e.target.value)}
+                                              data-testid={`cma-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Select
+                                              value={subjectCoefficients[grade.subjectId]?.COTE || ''}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'COTE', value)}
+                                            >
+                                              <SelectTrigger className="h-8 text-xs" data-testid={`cote-${grade.subjectId}`}>
+                                                <SelectValue placeholder="-" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="">-</SelectItem>
+                                                <SelectItem value="A">A</SelectItem>
+                                                <SelectItem value="B">B</SelectItem>
+                                                <SelectItem value="C">C</SelectItem>
+                                                <SelectItem value="D">D</SelectItem>
+                                                <SelectItem value="E">E</SelectItem>
+                                                <SelectItem value="F">F</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="text"
+                                              placeholder="-"
+                                              className="h-8 text-center text-xs"
+                                              maxLength={50}
+                                              value={subjectCoefficients[grade.subjectId]?.CNA || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CNA', e.target.value)}
+                                              data-testid={`cna-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.minGrade || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'minGrade', e.target.value)}
+                                              data-testid={`min-grade-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="20"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.maxGrade || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'maxGrade', e.target.value)}
+                                              data-testid={`max-grade-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={fillDefaultCoefficients}
+                                    data-testid="fill-default-coefficients"
+                                  >
+                                    <RefreshCw className="h-4 w-4 mr-2" />
+                                    {t.fillDefaultValues}
+                                  </Button>
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={clearAllCoefficients}
+                                    data-testid="clear-coefficients"
+                                  >
+                                    <X className="h-4 w-4 mr-2" />
+                                    {t.clearAll}
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center py-8 text-muted-foreground">
+                                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p>{t.selectStudentToConfigureCoefficients}</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 5: Appreciations & Comments */}
+                    <Collapsible open={openSections.appreciations} onOpenChange={() => toggleSection('appreciations')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <BookMarked className="h-5 w-5 text-green-600" />
+                                {t.appreciationsComments}
+                              </div>
+                              {openSections.appreciations ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-4">
+                            <FormField
+                              control={manualDataForm.control}
+                              name="workAppreciation"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.workAppreciationField}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      {...field} 
+                                      placeholder="Entrez l'appréciation détaillée du travail de l'élève..."
+                                      className="min-h-[100px]"
+                                      maxLength={500}
+                                      data-testid="work-appreciation"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value?.length || 0}/500 caractères
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={manualDataForm.control}
+                              name="generalComment"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.generalCommentField}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      {...field} 
+                                      placeholder="Commentaire général sur le trimestre..."
+                                      className="min-h-[80px]"
+                                      maxLength={300}
+                                      data-testid="general-comment"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value?.length || 0}/300 caractères
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 6: Signatures */}
+                    <Collapsible open={openSections.signatures} onOpenChange={() => toggleSection('signatures')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <FileSignature className="h-5 w-5 text-purple-600" />
+                                {t.signaturesSection}
+                              </div>
+                              {openSections.signatures ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-6">
+                            {/* Parent Visa */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm text-muted-foreground">VISA PARENT/TUTEUR</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="parentVisaName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.parentVisaNameField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="Nom du parent/tuteur" data-testid="parent-visa-name" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="parentVisaDate"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.parentVisaDateField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} type="date" data-testid="parent-visa-date" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Teacher Visa */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm text-muted-foreground">VISA PROFESSEUR PRINCIPAL</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="teacherVisaName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.teacherVisaNameField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="Nom du professeur principal" data-testid="teacher-visa-name" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="teacherVisaDate"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.teacherVisaDateField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} type="date" data-testid="teacher-visa-date" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Headmaster Visa */}
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-sm text-muted-foreground">VISA CHEF D'ÉTABLISSEMENT</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="headmasterVisaName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.headmasterVisaNameField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} placeholder="Nom du chef d'établissement" data-testid="headmaster-visa-name" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="headmasterVisaDate"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.headmasterVisaDateField}</FormLabel>
+                                      <FormControl>
+                                        <Input {...field} type="date" data-testid="headmaster-visa-date" />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Form Submit Button */}
+                    <div className="flex justify-center pt-6">
+                      <Button type="submit" size="lg" data-testid="save-manual-data">
+                        <Save className="h-5 w-5 mr-2" />
+                        Sauvegarder les données
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              )}
+              
+              {!selectedStudentForEntry && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Edit3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>{t.selectStudentForEntry}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         {/* Student Management Tab */}
         <TabsContent value="student-management" className="space-y-4">
           <Card>

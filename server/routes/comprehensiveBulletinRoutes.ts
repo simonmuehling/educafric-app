@@ -13,8 +13,16 @@ import {
   classes, 
   schools,
   bulletins,
-  bulletinWorkflow
+  bulletinWorkflow,
+  bulletinComprehensive,
+  bulletinSubjectCodes
 } from '../../shared/schema';
+import { 
+  bulletinComprehensiveValidationSchema,
+  insertBulletinSubjectCodesSchema,
+  type InsertBulletinComprehensive,
+  type InsertBulletinSubjectCodes
+} from '../../shared/schemas/bulletinComprehensiveSchema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 
 const router = Router();
@@ -1006,6 +1014,248 @@ router.post('/generate-sample', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to generate comprehensive bulletin sample',
+      error: error.message
+    });
+  }
+});
+
+// Save comprehensive bulletin manual data
+router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const validationResult = bulletinComprehensiveValidationSchema.safeParse(req.body);
+    
+    if (!validationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.errors
+      });
+    }
+
+    const { subjectCoefficients, ...bulletinData } = validationResult.data;
+
+    // Prepare data for database
+    const comprehensiveData = {
+      ...bulletinData,
+      schoolId,
+      enteredBy: user.id,
+      lastModifiedBy: user.id,
+      // Convert string numbers to proper decimal format
+      unjustifiedAbsenceHours: bulletinData.unjustifiedAbsenceHours ? parseFloat(bulletinData.unjustifiedAbsenceHours).toString() : "0.00",
+      justifiedAbsenceHours: bulletinData.justifiedAbsenceHours ? parseFloat(bulletinData.justifiedAbsenceHours).toString() : "0.00",
+      detentionHours: bulletinData.detentionHours ? parseFloat(bulletinData.detentionHours).toString() : "0.00",
+      totalGeneral: bulletinData.totalGeneral ? parseFloat(bulletinData.totalGeneral).toString() : null,
+      successRate: bulletinData.successRate ? parseFloat(bulletinData.successRate).toString() : null,
+      // Convert signature data to JSON format
+      parentVisa: bulletinData.parentVisaName || bulletinData.parentVisaDate ? {
+        name: bulletinData.parentVisaName || '',
+        date: bulletinData.parentVisaDate || ''
+      } : null,
+      teacherVisa: bulletinData.teacherVisaName || bulletinData.teacherVisaDate ? {
+        name: bulletinData.teacherVisaName || '',
+        date: bulletinData.teacherVisaDate || ''
+      } : null,
+      headmasterVisa: bulletinData.headmasterVisaName || bulletinData.headmasterVisaDate ? {
+        name: bulletinData.headmasterVisaName || '',
+        date: bulletinData.headmasterVisaDate || ''
+      } : null
+    };
+
+    console.log('[COMPREHENSIVE_SAVE] 💾 Saving bulletin data:', {
+      studentId: comprehensiveData.studentId,
+      classId: comprehensiveData.classId,
+      term: comprehensiveData.term,
+      academicYear: comprehensiveData.academicYear,
+      subjectCoefficientsCount: subjectCoefficients ? Object.keys(subjectCoefficients).length : 0
+    });
+
+    // Check if record already exists
+    const existingRecord = await db.select()
+      .from(bulletinComprehensive)
+      .where(and(
+        eq(bulletinComprehensive.studentId, comprehensiveData.studentId),
+        eq(bulletinComprehensive.classId, comprehensiveData.classId),
+        eq(bulletinComprehensive.term, comprehensiveData.term),
+        eq(bulletinComprehensive.academicYear, comprehensiveData.academicYear),
+        eq(bulletinComprehensive.schoolId, schoolId)
+      ))
+      .limit(1);
+
+    let bulletinComprehensiveId: number;
+
+    if (existingRecord.length > 0) {
+      // Update existing record
+      await db.update(bulletinComprehensive)
+        .set({
+          ...comprehensiveData,
+          updatedAt: new Date()
+        })
+        .where(eq(bulletinComprehensive.id, existingRecord[0].id));
+      
+      bulletinComprehensiveId = existingRecord[0].id;
+      console.log('[COMPREHENSIVE_SAVE] ✅ Updated existing record:', bulletinComprehensiveId);
+    } else {
+      // Insert new record
+      const insertResult = await db.insert(bulletinComprehensive)
+        .values(comprehensiveData)
+        .returning({ id: bulletinComprehensive.id });
+      
+      bulletinComprehensiveId = insertResult[0].id;
+      console.log('[COMPREHENSIVE_SAVE] ✅ Created new record:', bulletinComprehensiveId);
+    }
+
+    // Handle subject coefficients if provided
+    if (subjectCoefficients && typeof subjectCoefficients === 'object') {
+      // First, delete existing subject codes for this bulletin
+      await db.delete(bulletinSubjectCodes)
+        .where(eq(bulletinSubjectCodes.bulletinComprehensiveId, bulletinComprehensiveId));
+
+      // Insert new subject codes
+      const subjectCodesData = [];
+      for (const [subjectId, coefficients] of Object.entries(subjectCoefficients)) {
+        if (coefficients && typeof coefficients === 'object') {
+          const subjectCodeData = {
+            bulletinComprehensiveId,
+            studentId: comprehensiveData.studentId,
+            subjectId: parseInt(subjectId),
+            subjectName: `Subject ${subjectId}`, // This should be fetched from subjects table in production
+            CTBA: coefficients.CTBA ? parseFloat(coefficients.CTBA).toString() : null,
+            CBA: coefficients.CBA ? parseFloat(coefficients.CBA).toString() : null,
+            CA: coefficients.CA ? parseFloat(coefficients.CA).toString() : null,
+            CMA: coefficients.CMA ? parseFloat(coefficients.CMA).toString() : null,
+            COTE: coefficients.COTE || null,
+            CNA: coefficients.CNA || null,
+            minGrade: coefficients.minGrade ? parseFloat(coefficients.minGrade).toString() : null,
+            maxGrade: coefficients.maxGrade ? parseFloat(coefficients.maxGrade).toString() : null
+          };
+          
+          subjectCodesData.push(subjectCodeData);
+        }
+      }
+
+      if (subjectCodesData.length > 0) {
+        await db.insert(bulletinSubjectCodes).values(subjectCodesData);
+        console.log('[COMPREHENSIVE_SAVE] ✅ Saved subject coefficients:', subjectCodesData.length);
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Comprehensive bulletin data saved successfully',
+      data: { bulletinComprehensiveId }
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_SAVE] ❌ Save error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save comprehensive bulletin data',
+      error: error.message
+    });
+  }
+});
+
+// Load comprehensive bulletin manual data
+router.get('/load/:studentId/:classId/:term/:academicYear', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { studentId, classId, term, academicYear } = req.params;
+
+    console.log('[COMPREHENSIVE_LOAD] 📥 Loading bulletin data:', {
+      studentId, classId, term, academicYear, schoolId
+    });
+
+    // Load main bulletin data
+    const bulletinData = await db.select()
+      .from(bulletinComprehensive)
+      .where(and(
+        eq(bulletinComprehensive.studentId, parseInt(studentId)),
+        eq(bulletinComprehensive.classId, parseInt(classId)),
+        eq(bulletinComprehensive.term, term),
+        eq(bulletinComprehensive.academicYear, academicYear),
+        eq(bulletinComprehensive.schoolId, schoolId)
+      ))
+      .limit(1);
+
+    if (!bulletinData.length) {
+      return res.json({
+        success: true,
+        message: 'No saved data found',
+        data: null
+      });
+    }
+
+    const bulletin = bulletinData[0];
+
+    // Load subject coefficients
+    const subjectCodesData = await db.select()
+      .from(bulletinSubjectCodes)
+      .where(eq(bulletinSubjectCodes.bulletinComprehensiveId, bulletin.id));
+
+    // Transform subject codes to expected format
+    const subjectCoefficients: Record<string, any> = {};
+    subjectCodesData.forEach(code => {
+      subjectCoefficients[code.subjectId] = {
+        CTBA: code.CTBA || '',
+        CBA: code.CBA || '',
+        CA: code.CA || '',
+        CMA: code.CMA || '',
+        COTE: code.COTE || '',
+        CNA: code.CNA || '',
+        minGrade: code.minGrade || '',
+        maxGrade: code.maxGrade || ''
+      };
+    });
+
+    // Transform data for frontend
+    const responseData = {
+      ...bulletin,
+      // Transform JSON visa data to separate fields for form
+      parentVisaName: bulletin.parentVisa?.name || '',
+      parentVisaDate: bulletin.parentVisa?.date || '',
+      teacherVisaName: bulletin.teacherVisa?.name || '',
+      teacherVisaDate: bulletin.teacherVisa?.date || '',
+      headmasterVisaName: bulletin.headmasterVisa?.name || '',
+      headmasterVisaDate: bulletin.headmasterVisa?.date || '',
+      // Add subject coefficients
+      subjectCoefficients
+    };
+
+    console.log('[COMPREHENSIVE_LOAD] ✅ Loaded data:', {
+      bulletinId: bulletin.id,
+      subjectCoefficientsCount: Object.keys(subjectCoefficients).length
+    });
+
+    res.json({
+      success: true,
+      message: 'Comprehensive bulletin data loaded successfully',
+      data: responseData
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_LOAD] ❌ Load error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load comprehensive bulletin data',
       error: error.message
     });
   }
