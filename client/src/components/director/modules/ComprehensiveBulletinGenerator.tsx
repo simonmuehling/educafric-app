@@ -1049,8 +1049,8 @@ export default function ComprehensiveBulletinGenerator() {
                 </div>
 
                 {/* Section Évaluation & Trimestre */}
-                <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     {t.sectionEvaluation}
                   </h4>
@@ -1333,8 +1333,8 @@ export default function ComprehensiveBulletinGenerator() {
                 </div>
 
                 {/* Section Appréciations & Signatures */}
-                <div className="bg-teal-50 dark:bg-teal-950/20 p-4 rounded-lg space-y-3">
-                  <h4 className="font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-2">
+                <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     {t.sectionSignatures}
                   </h4>
