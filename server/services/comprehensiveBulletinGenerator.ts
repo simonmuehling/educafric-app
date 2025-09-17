@@ -63,6 +63,17 @@ export interface SubjectGrade {
   maxScore: number;
   comments?: string;
   rank?: number;
+  // New field for professional sectioning
+  category?: 'general' | 'technical' | 'optional';
+}
+
+// Helper type for organized subject sections
+export interface SubjectSection {
+  title: string;
+  subjects: SubjectGrade[];
+  totalPoints: number;
+  totalCoefficients: number;
+  sectionAverage: number;
 }
 
 export interface SchoolInfo {
@@ -286,6 +297,102 @@ export class ComprehensiveBulletinGenerator {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return result;
+  }
+  
+  // Helper method to organize subjects into professional sections
+  static organizeSubjectsBySections(subjects: SubjectGrade[], language: 'fr' | 'en'): SubjectSection[] {
+    const sections: SubjectSection[] = [];
+    
+    // Define section titles based on language
+    const sectionTitles = {
+      general: language === 'fr' ? 'MATIÈRES GÉNÉRALES' : 'GENERAL SUBJECTS',
+      technical: language === 'fr' ? 'MATIÈRES TECHNIQUES' : 'TECHNICAL SUBJECTS',
+      optional: language === 'fr' ? 'MATIÈRES OPTIONNELLES' : 'OPTIONAL SUBJECTS'
+    };
+    
+    // Categorize subjects automatically if not categorized
+    const generalKeywords = ['français', 'french', 'anglais', 'english', 'mathématiques', 'mathematics', 'math', 'sciences', 'science', 'histoire', 'history', 'géographie', 'geography', 'philosophie', 'philosophy', 'littérature', 'literature'];
+    const technicalKeywords = ['informatique', 'computer', 'technologie', 'technology', 'électronique', 'electronics', 'mécanique', 'mechanics', 'chimie', 'chemistry', 'physique', 'physics', 'biologie', 'biology'];
+    
+    const categorizedSubjects = subjects.map(subject => {
+      if (subject.category) return subject; // Already categorized
+      
+      const subjectLower = subject.subjectName.toLowerCase();
+      
+      if (generalKeywords.some(keyword => subjectLower.includes(keyword))) {
+        return { ...subject, category: 'general' as const };
+      } else if (technicalKeywords.some(keyword => subjectLower.includes(keyword))) {
+        return { ...subject, category: 'technical' as const };
+      } else {
+        // Default categorization based on position/coefficient
+        return { ...subject, category: subject.coefficient >= 3 ? 'general' : 'technical' as const };
+      }
+    });
+    
+    // Group subjects by category
+    const groupedSubjects = {
+      general: categorizedSubjects.filter(s => s.category === 'general'),
+      technical: categorizedSubjects.filter(s => s.category === 'technical'),
+      optional: categorizedSubjects.filter(s => s.category === 'optional')
+    };
+    
+    // Create sections for non-empty categories
+    Object.entries(groupedSubjects).forEach(([category, subjects]) => {
+      if (subjects.length > 0) {
+        const totalPoints = subjects.reduce((sum, s) => sum + (s.termAverage * s.coefficient), 0);
+        const totalCoefficients = subjects.reduce((sum, s) => sum + s.coefficient, 0);
+        const sectionAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+        
+        sections.push({
+          title: sectionTitles[category as keyof typeof sectionTitles],
+          subjects,
+          totalPoints,
+          totalCoefficients,
+          sectionAverage
+        });
+      }
+    });
+    
+    return sections;
+  }
+  
+  // Helper method to get term text in both languages
+  static getTermText(term: string, language: 'fr' | 'en'): string {
+    const termMap = {
+      fr: {
+        'T1': 'Premier Trimestre',
+        'T2': 'Deuxième Trimestre', 
+        'T3': 'Troisième Trimestre',
+        'S1': 'Premier Semestre',
+        'S2': 'Deuxième Semestre'
+      },
+      en: {
+        'T1': 'First Term',
+        'T2': 'Second Term',
+        'T3': 'Third Term', 
+        'S1': 'First Semester',
+        'S2': 'Second Semester'
+      }
+    };
+    
+    return termMap[language][term as keyof typeof termMap[typeof language]] || term;
+  }
+  
+  // Helper method to get academic appreciation
+  static getAcademicAppreciation(average: number, language: 'fr' | 'en'): string {
+    if (average >= 18) {
+      return language === 'fr' ? 'EXCELLENT' : 'EXCELLENT';
+    } else if (average >= 16) {
+      return language === 'fr' ? 'TRÈS BIEN' : 'VERY GOOD';
+    } else if (average >= 14) {
+      return language === 'fr' ? 'BIEN' : 'GOOD';
+    } else if (average >= 12) {
+      return language === 'fr' ? 'ASSEZ BIEN' : 'FAIRLY GOOD';
+    } else if (average >= 10) {
+      return language === 'fr' ? 'PASSABLE' : 'FAIR';
+    } else {
+      return language === 'fr' ? 'INSUFFISANT' : 'INSUFFICIENT';
+    }
   }
   
   // Helper method to generate verification hash
@@ -635,135 +742,216 @@ export class ComprehensiveBulletinGenerator {
       // Set currentY to the safe position for next section
       currentY = sectionBottomY - 10; // Section end with margin
       
-      // 4. GRADES TABLE HEADER
-      const tableStartY = currentY;
-      const tableHeaders = options.language === 'fr' 
-        ? ['MATIÈRES', 'T1/20', 'T2/20', 'T3/20', 'MOY/20', 'COEF', 'POINTS', 'RANG', 'OBSERVATIONS']
-        : ['SUBJECTS', 'T1/20', 'T2/20', 'T3/20', 'AVG/20', 'COEF', 'POINTS', 'RANK', 'COMMENTS'];
-      
-      const tableColWidths = [120, 40, 40, 40, 45, 35, 45, 35, 110];
+      // 4. PROFESSIONAL SECTIONED GRADES TABLE - MATCHING EXAMPLE PDF
       const tableStartX = 40;
+      const tableWidth = width - 80;
       
-      // Draw table header background - DRASTICALLY COMPRESSED
-      drawRect(tableStartX, currentY - 16, width - 80, 16, { // DRASTICALLY COMPRESSED: From 25 to 16
+      // New column structure matching example: SUBJECTS | C | T1 | T2 | T3 | COMP | TEACHER
+      const tableHeaders = options.language === 'fr' 
+        ? ['MATIÈRES', 'C', 'T1', 'T2', 'T3', 'COMP', 'ENSEIGNANT']
+        : ['SUBJECTS', 'C', 'T1', 'T2', 'T3', 'COMP', 'TEACHER'];
+      
+      // Optimized column widths for professional compact look
+      const tableColWidths = [140, 20, 30, 30, 30, 35, 85];
+      
+      // Organize subjects into professional sections with comprehensive debugging
+      console.log(`[SECTIONED_DEBUG] 📊 Processing ${studentData.subjects.length} subjects for sectioning:`);
+      studentData.subjects.forEach((subject, i) => {
+        console.log(`[SECTIONED_DEBUG] Subject ${i + 1}: ${subject.subjectName} (coef: ${subject.coefficient}, category: ${subject.category || 'auto'})`);
+      });
+      
+      const subjectSections = this.organizeSubjectsBySections(studentData.subjects, options.language);
+      console.log(`[SECTIONED_DEBUG] 🎯 Created ${subjectSections.length} sections:`);
+      subjectSections.forEach((section, i) => {
+        console.log(`[SECTIONED_DEBUG] Section ${i + 1}: "${section.title}" - ${section.subjects.length} subjects, avg: ${section.sectionAverage.toFixed(2)}`);
+      });
+      
+      // Draw main table header - ultra-compact professional style
+      const headerHeight = 12;
+      drawRect(tableStartX, currentY - headerHeight, tableWidth, headerHeight, {
         color: lightGray,
         borderColor: borderColor, 
         borderWidth: 1 
       });
       
-      // Draw table headers - DRASTICALLY SMALLER TEXT
-      let colX = tableStartX + 3;
+      let colX = tableStartX + 2;
       tableHeaders.forEach((header, index) => {
-        drawText(header, colX, currentY - 11, { // DRASTICALLY COMPRESSED: From -18 to -11
+        drawText(header, colX, currentY - 8, {
           font: helveticaBold, 
-          size: 7, // DRASTICALLY REDUCED: From 9 to 7
+          size: 7,
           color: textColor
         });
         colX += tableColWidths[index];
       });
       
-      currentY -= 16; // DRASTICALLY COMPRESSED: From 25 to 16
+      currentY -= headerHeight;
       
-      // 5. SUBJECTS AND GRADES
-      let totalPoints = 0;
-      let totalCoefficients = 0;
+      // Draw sectioned subjects with professional organization
+      let grandTotalPoints = 0;
+      let grandTotalCoefficients = 0;
       
-      studentData.subjects.forEach((subject, index) => {
-        const rowY = currentY - (index * 12); // DRASTICALLY COMPRESSED: From 20 to 12
-        const isEvenRow = index % 2 === 0;
-        
-        // Alternate row background - DRASTICALLY SMALLER
-        if (isEvenRow) {
-          drawRect(tableStartX, rowY - 12, width - 80, 12, { // DRASTICALLY COMPRESSED: From 20 to 12
-            color: rgb(0.98, 0.98, 0.98),
-            borderColor: borderColor,
-            borderWidth: 0.5
-          });
-        } else {
-          drawLine(tableStartX, rowY, tableStartX + width - 80, rowY, { 
-            color: borderColor, 
-            thickness: 0.5 
-          });
-        }
-        
-        // Subject data
-        const points = subject.termAverage * subject.coefficient;
-        totalPoints += points;
-        totalCoefficients += subject.coefficient;
-        
-        colX = tableStartX + 3;
-        const rowData = [
-          subject.subjectName,
-          subject.firstEvaluation?.toFixed(1) || '--',
-          subject.secondEvaluation?.toFixed(1) || '--',
-          subject.thirdEvaluation?.toFixed(1) || '--',
-          subject.termAverage.toFixed(1),
-          subject.coefficient.toString(),
-          points.toFixed(1),
-          subject.rank?.toString() || '--',
-          options.includeComments ? (subject.comments || '') : ''
-        ];
-        
-        rowData.forEach((data, colIndex) => {
-          const textSize = colIndex === 0 ? 7 : 6; // DRASTICALLY REDUCED: From 8,7 to 7,6
-          const font = colIndex === 0 ? helveticaBold : helvetica;
-          
-          drawText(data, colX, rowY - 8, { // DRASTICALLY COMPRESSED: From -12 to -8
-            font, 
-            size: textSize, 
-            color: textColor 
-          });
-          colX += tableColWidths[colIndex];
+      console.log(`[SECTIONED_RENDER] 🎨 Starting to render ${subjectSections.length} sections...`);
+      
+      subjectSections.forEach((section, sectionIndex) => {
+        console.log(`[SECTIONED_RENDER] 📋 Rendering section ${sectionIndex + 1}: "${section.title}" with ${section.subjects.length} subjects`);
+        // Section header (GENERAL SUBJECTS / TECHNICAL SUBJECTS)
+        const sectionHeaderHeight = 10;
+        drawRect(tableStartX, currentY - sectionHeaderHeight, tableWidth, sectionHeaderHeight, {
+          color: rgb(0.9, 0.9, 0.9),
+          borderColor: borderColor,
+          borderWidth: 1
         });
+        
+        drawText(section.title, tableStartX + 5, currentY - 7, {
+          font: helveticaBold,
+          size: 8,
+          color: textColor
+        });
+        
+        currentY -= sectionHeaderHeight;
+        
+        // Draw subjects in this section
+        section.subjects.forEach((subject, index) => {
+          const rowHeight = 10;
+          const isEvenRow = index % 2 === 0;
+          
+          // Subtle alternating row background
+          if (isEvenRow) {
+            drawRect(tableStartX, currentY - rowHeight, tableWidth, rowHeight, {
+              color: rgb(0.98, 0.98, 0.98),
+              borderColor: borderColor,
+              borderWidth: 0.25
+            });
+          }
+          
+          // Draw subject data with new column structure
+          colX = tableStartX + 2;
+          
+          const rowData = [
+            subject.subjectName,
+            subject.coefficient.toString(),
+            subject.firstEvaluation?.toFixed(1) || '--',
+            subject.secondEvaluation?.toFixed(1) || '--', 
+            subject.thirdEvaluation?.toFixed(1) || '--',
+            subject.termAverage.toFixed(1),
+            subject.teacherName || 'N/A'
+          ];
+          
+          rowData.forEach((data, colIndex) => {
+            const textSize = colIndex === 0 ? 7 : 6;
+            const font = colIndex === 0 ? helveticaBold : helvetica;
+            
+            // Truncate teacher name if too long
+            let displayData = data;
+            if (colIndex === 6 && data.length > 12) {
+              displayData = data.substring(0, 10) + '..';
+            }
+            
+            drawText(displayData, colX, currentY - 7, {
+              font, 
+              size: textSize, 
+              color: textColor
+            });
+            colX += tableColWidths[colIndex];
+          });
+          
+          currentY -= rowHeight;
+        });
+        
+        // Section sub-total
+        const subTotalHeight = 10;
+        drawRect(tableStartX, currentY - subTotalHeight, tableWidth, subTotalHeight, {
+          color: rgb(0.92, 0.92, 0.92),
+          borderColor: borderColor,
+          borderWidth: 1
+        });
+        
+        const subTotalLabel = options.language === 'fr' ? 'Sous-total:' : 'Sub-total:';
+        drawText(subTotalLabel, tableStartX + 5, currentY - 7, {
+          font: helveticaBold,
+          size: 7,
+          color: textColor
+        });
+        
+        drawText(`${section.sectionAverage.toFixed(2)}/20`, tableStartX + 80, currentY - 7, {
+          font: timesBold,
+          size: 8,
+          color: textColor
+        });
+        
+        drawText(`Coef: ${section.totalCoefficients}`, tableStartX + 140, currentY - 7, {
+          font: helvetica,
+          size: 6,
+          color: textColor
+        });
+        
+        drawText(`Pts: ${section.totalPoints.toFixed(1)}`, tableStartX + 200, currentY - 7, {
+          font: helvetica,
+          size: 6,
+          color: textColor
+        });
+        
+        currentY -= subTotalHeight + 2; // Small gap between sections
+        
+        // Update grand totals
+        grandTotalPoints += section.totalPoints;
+        grandTotalCoefficients += section.totalCoefficients;
       });
       
-      const gradesTableHeight = studentData.subjects.length * 12; // DRASTICALLY COMPRESSED: From 20 to 12
-      currentY -= gradesTableHeight + 5; // DRASTICALLY COMPRESSED: From 10 to 5
+      // Calculate grand total average
+      const grandTotalAverage = grandTotalCoefficients > 0 ? grandTotalPoints / grandTotalCoefficients : 0;
       
-      // 6. SUMMARY SECTION - DRASTICALLY COMPRESSED
-      drawRect(tableStartX, currentY - 20, width - 80, 20, { // DRASTICALLY COMPRESSED: From 40 to 20
-        color: lightGray,
+      // 5. GRAND TOTAL SUMMARY - PROFESSIONAL STYLE MATCHING EXAMPLE
+      const summaryHeight = 15;
+      drawRect(tableStartX, currentY - summaryHeight, tableWidth, summaryHeight, {
+        color: rgb(0.85, 0.85, 0.85), // Darker gray for prominence
         borderColor: borderColor, 
-        borderWidth: 1 
+        borderWidth: 1
       });
       
-      const overallAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
-      const averageLabel = options.language === 'fr' ? 'MOYENNE GÉNÉRALE:' : 'OVERALL AVERAGE:';
-      const rankLabel = options.language === 'fr' ? 'RANG:' : 'RANK:';
-      
-      drawText(averageLabel, tableStartX + 10, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
-        font: helveticaBold, 
-        size: 9, // DRASTICALLY REDUCED: From 12 to 9
+      const grandTotalLabel = options.language === 'fr' ? 'TOTAL GÉNÉRAL:' : 'GRAND TOTAL:';
+      drawText(grandTotalLabel, tableStartX + 5, currentY - 10, {
+        font: timesBold, 
+        size: 9,
         color: textColor
       });
-      drawText(`${overallAverage.toFixed(2)}/20`, tableStartX + 130, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
+      
+      drawText(`${grandTotalAverage.toFixed(2)}/20`, tableStartX + 100, currentY - 10, {
         font: timesBold, 
-        size: 10, // DRASTICALLY REDUCED: From 14 to 10
+        size: 10,
+        color: textColor
+      });
+      
+      drawText(`Coef: ${grandTotalCoefficients}`, tableStartX + 170, currentY - 10, {
+        font: helveticaBold, 
+        size: 8,
+        color: textColor
+      });
+      
+      drawText(`Points: ${grandTotalPoints.toFixed(1)}`, tableStartX + 240, currentY - 10, {
+        font: helveticaBold, 
+        size: 8,
         color: textColor
       });
       
       if (options.includeRankings) {
-        drawText(rankLabel, tableStartX + 220, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
+        const rankLabel = options.language === 'fr' ? 'Rang:' : 'Rank:';
+        drawText(`${rankLabel} ${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 320, currentY - 10, {
           font: helveticaBold, 
-          size: 9, // DRASTICALLY REDUCED: From 12 to 9
-          color: textColor
-        });
-        drawText(`${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 260, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
-          font: timesBold, 
-          size: 10, // DRASTICALLY REDUCED: From 14 to 10
+          size: 8,
           color: textColor
         });
       }
       
-      // Academic appreciation - DRASTICALLY COMPRESSED
-      const appreciation = this.getAcademicAppreciation(overallAverage, options.language);
-      drawText(appreciation, tableStartX + 10, currentY - 18, { 
+      // Academic appreciation in second line
+      const appreciation = this.getAcademicAppreciation(grandTotalAverage, options.language);
+      drawText(appreciation, tableStartX + 5, currentY - 22, {
         font: helveticaBold, 
-        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        size: 8,
         color: textColor
       });
       
-      currentY -= 15; // DRASTICALLY COMPRESSED: From 60 to 15
+      currentY -= summaryHeight + 8; // Compact spacing
       
       // 7. CONDUCT, ATTENDANCE & STATISTICS - REORGANIZED IN ONE COMPACT ROW
       if ((studentData.conductGrade || studentData.absences !== undefined) || options.includeStatistics) {
@@ -786,7 +974,7 @@ export class ComprehensiveBulletinGenerator {
         
         // Add statistics if enabled
         if (options.includeStatistics) {
-          const classAverage = overallAverage; // Would be calculated from all students
+          const classAverage = grandTotalAverage; // Use the calculated grand total average
           const statsText = options.language === 'fr' 
             ? `Moy. classe: ${classAverage.toFixed(2)}/20 • Effectif: ${studentData.totalStudents}`
             : `Class avg: ${classAverage.toFixed(2)}/20 • Total: ${studentData.totalStudents}`;
@@ -941,7 +1129,7 @@ export class ComprehensiveBulletinGenerator {
         className: studentData.className,
         term: studentData.term,
         academicYear: studentData.academicYear || schoolInfo.academicYear || '2024-2025',
-        generalAverage: overallAverage.toFixed(2),
+        generalAverage: grandTotalAverage.toFixed(2),
         classRank: studentData.classRank,
         totalStudents: studentData.totalStudents,
         subjectCount: studentData.subjects.length,
@@ -956,7 +1144,7 @@ export class ComprehensiveBulletinGenerator {
         schoolId: schoolInfo.id,
         term: studentData.term,
         academicYear: studentData.academicYear || schoolInfo.academicYear || '2024-2025',
-        generalAverage: overallAverage.toFixed(2)
+        generalAverage: grandTotalAverage.toFixed(2)
       });
       
       // Create QR code data - verification URL
@@ -1054,7 +1242,7 @@ export class ComprehensiveBulletinGenerator {
         verificationURL,
         studentData,
         schoolInfo,
-        overallAverage: overallAverage.toFixed(2)
+        overallAverage: grandTotalAverage.toFixed(2)
       };
       
       // Generate PDF
