@@ -9,6 +9,7 @@ export * from "./schemas/academicSchema";
 export * from "./schemas/messagingSchema";
 export * from "./schemas/bulletinSchema";
 export * from "./schemas/bulletinExtensionsSchema";
+export * from "./schemas/bulletinComprehensiveSchema"; // NEW: Comprehensive bulletin data (absences, sanctions, appreciations)
 export * from "./schemas/bulletinVerificationSchema"; // NEW: Bulletin verification system
 export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment for RBAC security
 
@@ -26,8 +27,9 @@ import { schools, classes, subjects } from "./schemas/schoolSchema";
 import { grades, attendance, homework, homeworkSubmissions } from "./schemas/academicSchema";
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from "./schemas/bulletinSchema";
 import { studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings } from "./schemas/bulletinExtensionsSchema";
+import { bulletinComprehensive, bulletinSubjectCodes } from "./schemas/bulletinComprehensiveSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
