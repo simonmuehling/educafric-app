@@ -120,14 +120,12 @@ export const productionSessionConfig = {
   name: 'educafric.sid', // Explicit session name for consistency
   proxy: true,
   cookie: {
-    secure: true, // MUST be true for SameSite=None in production iframe
+    // 🔧 CRITICAL FIX: Environment-aware cookie security
+    secure: process.env.NODE_ENV === 'production', // Only secure in production (HTTPS), allow HTTP in development
     httpOnly: true, // Standard session cookie security
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 JOURS (au lieu de 24h) - Durée largement augmentée
-    sameSite: 'none' as const, // REQUIRED for cross-site iframe context (Replit)
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const, // 'none' for production iframe, 'lax' for development
     path: '/', // Available for all paths
-  },
-  genid: (req: any) => {
-    // Générer un ID de session persistant basé sur l'utilisateur
-    return `educafric-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
+  // genid: removed - using express-session's secure default crypto-based generator
 };
