@@ -253,7 +253,7 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
         ? Math.round(((approvedGradesCount[0]?.count || 0) / totalStudents[0].count) * 100)
         : 0,
       averageGrade: classAverages.rows[0]?.class_average 
-        ? parseFloat(classAverages.rows[0].class_average) 
+        ? parseFloat(classAverages.rows[0].class_average as string) 
         : 0
     };
 
@@ -301,8 +301,8 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
       id: users.id,
       firstName: users.firstName,
       lastName: users.lastName,
-      matricule: sql<string>`COALESCE(${users.matricule}, ${users.id}::text)`,
-      birthDate: users.birthDate,
+      matricule: sql<string>`${users.id}::text`,
+      birthDate: users.dateOfBirth,
       className: classes.name
     })
     .from(users)
@@ -635,7 +635,7 @@ async function getStudentBulletinData(
   // Get approved grades
   const approvedGrades = await db.select({
     subjectId: teacherGradeSubmissions.subjectId,
-    subjectName: subjects.nameFr,
+    subjectName: subjects.name,
     teacherId: teacherGradeSubmissions.teacherId,
     teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
     firstEvaluation: teacherGradeSubmissions.firstEvaluation,
@@ -719,5 +719,296 @@ async function saveBulletinPdf(pdfBuffer: Buffer, filename: string, schoolId: nu
   const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
   return `${baseUrl}/api/bulletins/download/${filename}`;
 }
+
+// Generate comprehensive bulletin samples with realistic African student data
+// PUBLIC ENDPOINT - No authentication required for sample generation
+router.post('/generate-sample', async (req, res) => {
+  try {
+    console.log('[COMPREHENSIVE_SAMPLE] 🎯 Generating comprehensive bulletin samples');
+
+    const { term = 'T1', language = 'fr' } = req.body;
+
+    // Create realistic African school data
+    const school: SchoolInfo = {
+      id: 1,
+      name: 'Collège Excellence Africaine',
+      address: 'Quartier Bastos, Yaoundé',
+      phone: '+237 222 345 678',
+      email: 'info@college-excellence.cm',
+      logoUrl: null, // Will use default logo
+      directorName: 'Dr. Amina TCHOFFO',
+      motto: 'Excellence, Discipline, Réussite',
+      // Official Cameroon Ministry fields
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI',
+      boitePostale: 'B.P. 15234 Yaoundé',
+      arrondissement: 'Yaoundé 1er',
+      // Academic info
+      academicYear: '2024-2025',
+      currentTerm: term,
+    };
+
+    // Create realistic student data with African names and comprehensive grades
+    const studentData: StudentGradeData = {
+      studentId: 1,
+      firstName: 'Marie-Claire',
+      lastName: 'NKOMO MBALLA',
+      matricule: 'CEA-2024-0157',
+      birthDate: '2010-03-15',
+      photo: null,
+      classId: 1,
+      className: '6ème A Sciences',
+      term,
+      academicYear: '2024-2025',
+      schoolName: school.name,
+      
+      // Comprehensive subject grades with realistic African curriculum
+      subjects: [
+        {
+          subjectId: 1,
+          subjectName: 'Mathématiques',
+          teacherId: 1,
+          teacherName: 'M. KONÉ Joseph',
+          firstEvaluation: 16.5,
+          secondEvaluation: term === 'T1' ? undefined : 15.0,
+          thirdEvaluation: term === 'T3' ? 17.5 : undefined,
+          termAverage: term === 'T1' ? 16.5 : term === 'T2' ? 15.75 : 16.33,
+          coefficient: 4,
+          maxScore: 20,
+          comments: 'Excellents résultats. Élève méthodique et rigoureuse. Continue ainsi.',
+          rank: 2
+        },
+        {
+          subjectId: 2,
+          subjectName: 'Français',
+          teacherId: 2,
+          teacherName: 'Mme DIALLO Fatoumata',
+          firstEvaluation: 14.0,
+          secondEvaluation: term === 'T1' ? undefined : 14.5,
+          thirdEvaluation: term === 'T3' ? 15.0 : undefined,
+          termAverage: term === 'T1' ? 14.0 : term === 'T2' ? 14.25 : 14.5,
+          coefficient: 4,
+          maxScore: 20,
+          comments: 'Bonne maîtrise de la langue. Améliorer l\'expression écrite.',
+          rank: 8
+        },
+        {
+          subjectId: 3,
+          subjectName: 'Anglais',
+          teacherId: 3,
+          teacherName: 'M. SMITH John',
+          firstEvaluation: 15.5,
+          secondEvaluation: term === 'T1' ? undefined : 16.0,
+          thirdEvaluation: term === 'T3' ? 16.5 : undefined,
+          termAverage: term === 'T1' ? 15.5 : term === 'T2' ? 15.75 : 16.0,
+          coefficient: 3,
+          maxScore: 20,
+          comments: 'Excellent accent et bonne participation orale. Keep it up!',
+          rank: 3
+        },
+        {
+          subjectId: 4,
+          subjectName: 'Histoire-Géographie',
+          teacherId: 4,
+          teacherName: 'M. OUÉDRAOGO Paul',
+          firstEvaluation: 13.5,
+          secondEvaluation: term === 'T1' ? undefined : 14.0,
+          thirdEvaluation: term === 'T3' ? 14.5 : undefined,
+          termAverage: term === 'T1' ? 13.5 : term === 'T2' ? 13.75 : 14.0,
+          coefficient: 3,
+          maxScore: 20,
+          comments: 'Bonne connaissance de l\'Histoire africaine. Approfondir la géographie.',
+          rank: 12
+        },
+        {
+          subjectId: 5,
+          subjectName: 'Sciences Physiques',
+          teacherId: 5,
+          teacherName: 'Mme CAMARA Aïcha',
+          firstEvaluation: 17.0,
+          secondEvaluation: term === 'T1' ? undefined : 16.5,
+          thirdEvaluation: term === 'T3' ? 18.0 : undefined,
+          termAverage: term === 'T1' ? 17.0 : term === 'T2' ? 16.75 : 17.17,
+          coefficient: 3,
+          maxScore: 20,
+          comments: 'Excellente compréhension des phénomènes physiques. Élève douée.',
+          rank: 1
+        },
+        {
+          subjectId: 6,
+          subjectName: 'Sciences Naturelles (SVT)',
+          teacherId: 6,
+          teacherName: 'M. TRAORÉ Ibrahim',
+          firstEvaluation: 16.0,
+          secondEvaluation: term === 'T1' ? undefined : 15.5,
+          thirdEvaluation: term === 'T3' ? 16.5 : undefined,
+          termAverage: term === 'T1' ? 16.0 : term === 'T2' ? 15.75 : 16.0,
+          coefficient: 3,
+          maxScore: 20,
+          comments: 'Très bonne observation scientifique. Développer l\'esprit de synthèse.',
+          rank: 4
+        },
+        {
+          subjectId: 7,
+          subjectName: 'Éducation Physique et Sportive',
+          teacherId: 7,
+          teacherName: 'M. BAMBA Sekou',
+          firstEvaluation: 18.0,
+          secondEvaluation: term === 'T1' ? undefined : 17.5,
+          thirdEvaluation: term === 'T3' ? 18.5 : undefined,
+          termAverage: term === 'T1' ? 18.0 : term === 'T2' ? 17.75 : 18.0,
+          coefficient: 1,
+          maxScore: 20,
+          comments: 'Excellente sportive. Leadership naturel dans les équipes.',
+          rank: 1
+        },
+        {
+          subjectId: 8,
+          subjectName: 'Arts Plastiques',
+          teacherId: 8,
+          teacherName: 'Mme NDOUMBE Célestine',
+          firstEvaluation: 15.0,
+          secondEvaluation: term === 'T1' ? undefined : 15.5,
+          thirdEvaluation: term === 'T3' ? 16.0 : undefined,
+          termAverage: term === 'T1' ? 15.0 : term === 'T2' ? 15.25 : 15.5,
+          coefficient: 1,
+          maxScore: 20,
+          comments: 'Créativité remarquable. Sens artistique développé.',
+          rank: 5
+        },
+        {
+          subjectId: 9,
+          subjectName: 'Éducation Civique et Morale',
+          teacherId: 9,
+          teacherName: 'M. ESSOMBA Laurent',
+          firstEvaluation: 16.5,
+          secondEvaluation: term === 'T1' ? undefined : 17.0,
+          thirdEvaluation: term === 'T3' ? 17.5 : undefined,
+          termAverage: term === 'T1' ? 16.5 : term === 'T2' ? 16.75 : 17.0,
+          coefficient: 1,
+          maxScore: 20,
+          comments: 'Excellente citoyenne. Valeurs morales exemplaires.',
+          rank: 2
+        },
+        {
+          subjectId: 10,
+          subjectName: 'Informatique',
+          teacherId: 10,
+          teacherName: 'M. MVOGO Christian',
+          firstEvaluation: 17.5,
+          secondEvaluation: term === 'T1' ? undefined : 18.0,
+          thirdEvaluation: term === 'T3' ? 18.5 : undefined,
+          termAverage: term === 'T1' ? 17.5 : term === 'T2' ? 17.75 : 18.0,
+          coefficient: 2,
+          maxScore: 20,
+          comments: 'Maîtrise excellente des outils informatiques. Très à l\'aise.',
+          rank: 1
+        }
+      ],
+      
+      // Calculate comprehensive statistics
+      overallAverage: 0, // Will be calculated
+      classRank: 3,
+      totalStudents: 35,
+      conductGrade: 17,
+      absences: 2,
+      principalSignature: 'Dr. Amina TCHOFFO - Directrice'
+    };
+
+    // Calculate overall average
+    let totalPoints = 0;
+    let totalCoefficients = 0;
+    
+    studentData.subjects.forEach(subject => {
+      totalPoints += subject.termAverage * subject.coefficient;
+      totalCoefficients += subject.coefficient;
+    });
+    
+    studentData.overallAverage = totalPoints / totalCoefficients;
+
+    // Comprehensive bulletin options with ALL features enabled
+    const options: BulletinOptions = {
+      includeComments: true,
+      includeRankings: true,
+      includeStatistics: true,
+      includePerformanceLevels: true,
+      language: language as 'fr' | 'en',
+      format: 'A4',
+      orientation: 'portrait',
+      includeQRCode: true,
+      qrCodeSize: 60,
+      logoMaxWidth: 80,
+      logoMaxHeight: 80,
+      photoMaxWidth: 60,
+      photoMaxHeight: 80
+    };
+
+    console.log('[COMPREHENSIVE_SAMPLE] 📊 Generating with comprehensive options:', {
+      term,
+      language,
+      studentName: `${studentData.firstName} ${studentData.lastName}`,
+      subjectCount: studentData.subjects.length,
+      overallAverage: studentData.overallAverage.toFixed(2)
+    });
+
+    // Generate comprehensive PDF
+    const pdfBuffer = await ComprehensiveBulletinGenerator.generateProfessionalBulletin(
+      studentData,
+      school,
+      options
+    );
+
+    // Save the sample with appropriate naming
+    const filename = `comprehensive-bulletin-${term.toLowerCase()}-${language}.pdf`;
+    const samplePath = `public/samples/${filename}`;
+    
+    // Ensure samples directory exists
+    const fs = require('fs');
+    const path = require('path');
+    const samplesDir = path.join(process.cwd(), 'public/samples');
+    if (!fs.existsSync(samplesDir)) {
+      fs.mkdirSync(samplesDir, { recursive: true });
+    }
+    
+    // Save PDF
+    fs.writeFileSync(path.join(process.cwd(), samplePath), pdfBuffer);
+
+    console.log('[COMPREHENSIVE_SAMPLE] ✅ Generated comprehensive sample:', filename);
+
+    res.json({
+      success: true,
+      message: `Comprehensive bulletin sample generated successfully`,
+      data: {
+        filename,
+        path: samplePath,
+        url: `/samples/${filename}`,
+        term,
+        language,
+        student: {
+          name: `${studentData.firstName} ${studentData.lastName}`,
+          class: studentData.className,
+          average: studentData.overallAverage.toFixed(2),
+          rank: `${studentData.classRank}/${studentData.totalStudents}`
+        },
+        features: {
+          totalSubjects: studentData.subjects.length,
+          includeComments: options.includeComments,
+          includeRankings: options.includeRankings,
+          includeStatistics: options.includeStatistics,
+          includePerformanceLevels: options.includePerformanceLevels,
+          qrCodeIncluded: options.includeQRCode
+        }
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_SAMPLE] ❌ Error generating sample:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate comprehensive bulletin sample',
+      error: error.message
+    });
+  }
+});
 
 export default router;
