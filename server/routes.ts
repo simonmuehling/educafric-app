@@ -5243,6 +5243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // === CONTRATS DE PARTENARIAT OFFICIELS (Bilingue PDF) ===
         { id: 32, title: "CONTRAT PARTENARIAT OFFICIEL EDUCAFRIC 2025 - FR", description: "Contrat de partenariat officiel actualisé 2025 - Version française", type: "commercial", url: "/documents/educafric-contrat-officiel-2025-actualise.html" },
         { id: 33, title: "OFFICIAL PARTNERSHIP CONTRACT EDUCAFRIC 2025 - EN", description: "Official partnership contract updated 2025 - English version", type: "commercial", url: "/documents/educafric-official-contract-2025-updated-version-6-en.html" },
+        { id: 34, title: "CONTRAT DE PARTENARIAT OFFICIEL 2025 - ÉCOLES / OFFICIAL PARTNERSHIP CONTRACT 2025 - SCHOOLS", description: "Contrat de partenariat bilingue spécialement conçu pour les écoles qui paient Educafric - 2025", type: "commercial", url: "/documents/contrat-partenariat-ecoles-2025.html" },
         
         // === DOCUMENTS SYSTÈME (PDF uniquement) ===
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
@@ -5283,6 +5284,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pdfBuffer = await PDFGenerator.generatePartnershipContractFR();
       } else if (docId === 33) {
         pdfBuffer = await PDFGenerator.generatePartnershipContractEN();
+      } else if (docId === 34) {
+        // ✅ SECURITY FIX: School Partnership Contract 2025 - VALIDATE ALL INPUTS
+        try {
+          const { schoolPartnershipContractSchema } = await import('../shared/validationSchemas.js');
+          
+          // Extract and validate all query parameters
+          const validationResult = schoolPartnershipContractSchema.safeParse({
+            schoolName: req.query.schoolName,
+            amount: req.query.amount,
+            studentCount: req.query.studentCount,
+            contactInfo: req.query.contactInfo
+          });
+          
+          if (!validationResult.success) {
+            console.error('[SECURITY] Invalid contract parameters:', validationResult.error.errors);
+            return res.status(400).json({ 
+              error: 'Invalid contract parameters',
+              details: validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+            });
+          }
+          
+          const validatedData = validationResult.data;
+          console.log('[SECURITY] ✅ Contract parameters validated successfully:', Object.keys(validatedData));
+          
+          // Generate PDF with validated and sanitized data
+          pdfBuffer = await PDFGenerator.generateSchoolPartnershipContract2025(validatedData);
+          
+        } catch (validationError) {
+          console.error('[SECURITY] ❌ Contract validation failed:', validationError);
+          return res.status(400).json({ 
+            error: 'Contract generation failed - invalid parameters',
+            message: 'Please check your input parameters'
+          });
+        }
       } else if (docId <= 10) {
         pdfBuffer = await PDFGenerator.generateCommercialDocument({ 
           id: docId.toString(), 

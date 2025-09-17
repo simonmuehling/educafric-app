@@ -3860,4 +3860,104 @@ export class PDFGenerator {
       throw new Error(`Failed to generate partnership contract EN PDF: ${error.message}`);
     }
   }
+
+  /**
+   * Generate School Partnership Contract 2025 PDF (Bilingual FR/EN)
+   * For contracts where schools pay Educafric
+   * ✅ SECURITY: Now uses validated and sanitized input data
+   */
+  static async generateSchoolPartnershipContract2025(data?: { 
+    schoolName?: number | string, 
+    amount?: number | string, 
+    studentCount?: number | string, 
+    contactInfo?: string 
+  }): Promise<Buffer> {
+    try {
+      const puppeteer = await import('puppeteer');
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      console.log('[PDF_GENERATOR] 📋 Starting School Partnership Contract 2025 PDF generation...');
+      
+      // Read the HTML file
+      const htmlPath = path.join(process.cwd(), 'public/documents/contrat-partenariat-ecoles-2025.html');
+      let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+      
+      // ✅ SECURITY FIX: Sanitize all input data before HTML injection
+      const { sanitizeHtml } = await import('../../shared/validationSchemas.js');
+      
+      // Replace placeholders with SANITIZED data if provided
+      if (data) {
+        if (data.schoolName) {
+          const sanitizedSchoolName = sanitizeHtml(String(data.schoolName));
+          htmlContent = htmlContent.replace(/\[NOM DE L'ÉCOLE\]/g, sanitizedSchoolName);
+          htmlContent = htmlContent.replace(/\[SCHOOL NAME\]/g, sanitizedSchoolName);
+        }
+        if (data.amount) {
+          // Numbers are safe but still sanitize for consistency
+          const sanitizedAmount = sanitizeHtml(String(data.amount));
+          htmlContent = htmlContent.replace(/\[MONTANT ANNUEL\]/g, sanitizedAmount + ' FCFA');
+          htmlContent = htmlContent.replace(/\[ANNUAL AMOUNT\]/g, sanitizedAmount + ' FCFA');
+        }
+        if (data.studentCount) {
+          const sanitizedStudentCount = sanitizeHtml(String(data.studentCount));
+          htmlContent = htmlContent.replace(/\[NOMBRE D'ÉTUDIANTS\]/g, sanitizedStudentCount);
+          htmlContent = htmlContent.replace(/\[NUMBER OF STUDENTS\]/g, sanitizedStudentCount);
+        }
+        if (data.contactInfo) {
+          const sanitizedContactInfo = sanitizeHtml(String(data.contactInfo));
+          htmlContent = htmlContent.replace(/\[CONTACT ÉCOLE\]/g, sanitizedContactInfo);
+          htmlContent = htmlContent.replace(/\[SCHOOL CONTACT\]/g, sanitizedContactInfo);
+        }
+      }
+      
+      // Launch browser with security options
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+      
+      const page = await browser.newPage();
+      
+      // ✅ SECURITY FIX: Disable JavaScript execution to prevent XSS
+      await page.setJavaScriptEnabled(false);
+      
+      // ✅ SECURITY: Add strict CSP to prevent any script execution
+      await page.setExtraHTTPHeaders({
+        'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https:;"
+      });
+      
+      // Set sanitized content with timeout for stability
+      await page.setContent(htmlContent, {
+        waitUntil: 'networkidle0',
+        timeout: 30000
+      });
+      
+      console.log('[PDF_SECURITY] ✅ JavaScript disabled and CSP applied for secure PDF generation');
+      
+      // Generate PDF with A4 format and official margins
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '1.5cm',
+          bottom: '1.5cm',
+          left: '1cm',
+          right: '1cm'
+        },
+        displayHeaderFooter: true,
+        headerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">EDUCAFRIC - Contrat de Partenariat Officiel 2025 - Écoles / Official Partnership Contract 2025 - Schools</div>',
+        footerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">Page <span class="pageNumber"></span> de <span class="totalPages"></span> - Document Officiel EDUCAFRIC / Official EDUCAFRIC Document</div>'
+      });
+      
+      await browser.close();
+      
+      console.log('[PDF_GENERATOR] ✅ School Partnership Contract 2025 PDF generated successfully');
+      return Buffer.from(pdfBuffer);
+      
+    } catch (error) {
+      console.error('[PDF_GENERATOR] ❌ Error generating School Partnership Contract 2025 PDF:', error);
+      throw new Error(`Failed to generate School Partnership Contract 2025 PDF: ${error.message}`);
+    }
+  }
 }

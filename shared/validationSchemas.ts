@@ -95,3 +95,56 @@ export type UserSettingsUpdateData = z.infer<typeof userSettingsUpdateSchema>;
 export type IdParam = z.infer<typeof idParamSchema>;
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 export type UserCreationData = z.infer<typeof userCreationSchema>;
+
+// School Partnership Contract validation schema - CRITICAL SECURITY
+export const schoolPartnershipContractSchema = z.object({
+  schoolName: z.string()
+    .trim()
+    .min(1, "School name is required")
+    .max(200, "School name too long")
+    .regex(/^[a-zA-Z0-9\s\-'".,()\u00e0\u00e2\u00e4\u00e9\u00e8\u00ea\u00eb\u00ef\u00ee\u00f4\u00f6\u00f9\u00fb\u00fc\u00ff\u00e7\u00c0\u00c2\u00c4\u00c9\u00c8\u00ca\u00cb\u00cf\u00ce\u00d4\u00d6\u00d9\u00db\u00dc\u0178\u00c7]+$/, "Invalid characters in school name")
+    .optional(),
+  amount: z.string()
+    .trim()
+    .regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid number")
+    .transform((val) => parseFloat(val))
+    .refine((val) => val >= 0 && val <= 1000000, "Amount must be between 0 and 1,000,000")
+    .optional(),
+  studentCount: z.string()
+    .trim()
+    .regex(/^\d+$/, "Student count must be a positive integer")
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => val >= 1 && val <= 10000, "Student count must be between 1 and 10,000")
+    .optional(),
+  contactInfo: z.string()
+    .trim()
+    .max(500, "Contact info too long")
+    .regex(/^[a-zA-Z0-9\s\-'\".,()@+\u00e0\u00e2\u00e4\u00e9\u00e8\u00ea\u00eb\u00ef\u00ee\u00f4\u00f6\u00f9\u00fb\u00fc\u00ff\u00e7\u00c0\u00c2\u00c4\u00c9\u00c8\u00ca\u00cb\u00cf\u00ce\u00d4\u00d6\u00d9\u00db\u00dc\u0178\u00c7\n\r]+$/, "Invalid characters in contact info")
+    .optional()
+});
+
+/**
+ * Sanitize HTML content to prevent XSS attacks
+ * Removes all HTML tags and dangerous characters
+ * CRITICAL SECURITY FUNCTION
+ */
+export function sanitizeHtml(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  
+  return input
+    // Remove all HTML tags
+    .replace(/<[^>]*>/g, '')
+    // Escape HTML entities
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    // Remove control characters except newlines and tabs
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    // Trim whitespace
+    .trim();
+}
+
+export type SchoolPartnershipContractData = z.infer<typeof schoolPartnershipContractSchema>;
