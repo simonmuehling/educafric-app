@@ -546,12 +546,11 @@ export class ComprehensiveBulletinGenerator {
       
       console.log(`[LAYOUT_DEBUG] Content frame: left=${content.left}, width=${content.width}, right=${content.right}`);
       
-      // 🔧 CRITICAL FIX 2: Header transformation containment
-      page.pushGraphicsState();
+      // ✅ STANDARDIZED HEADER GENERATED - SCHOOL INFO ALREADY INCLUDED
+      // Generate standardized header and get the Y position after it  
       let currentY = await PdfLibBulletinGenerator.generateStandardizedCameroonHeader(
         page, drawText, timesBold, times, width, height, headerData
       );
-      page.popGraphicsState();
       
       console.log(`[LAYOUT_DEBUG] Header completed, currentY: ${currentY}`);
       
