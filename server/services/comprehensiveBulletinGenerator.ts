@@ -576,31 +576,33 @@ export class ComprehensiveBulletinGenerator {
       
       currentY -= 5; // DRASTICALLY COMPRESSED: From 100px to 5px
       
-      // 2. BULLETIN TITLE - DRASTICALLY COMPRESSED
+      // 2. BULLETIN TITLE - PERFECT CENTERING
       const bulletinTitle = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
-      drawText(bulletinTitle, width / 2, currentY, { 
+      const titleWidth = timesBold.widthOfTextAtSize(bulletinTitle, 14);
+      const titleX = (width - titleWidth) / 2; // Perfect mathematical centering
+      
+      drawText(bulletinTitle, titleX, currentY, { 
         font: timesBold, 
-        size: 14, // DRASTICALLY REDUCED: From 18 to 14
-        color: textColor,
-        align: 'center',
-        maxWidth: width - 80
+        size: 14,
+        color: textColor
       });
       
       const periodText = options.language === 'fr' 
         ? `${this.getTermText(studentData.term, 'fr')} ${studentData.academicYear}`
         : `${this.getTermText(studentData.term, 'en')} ${studentData.academicYear}`;
       
-      drawText(periodText, width / 2, currentY - 15, { // DRASTICALLY REDUCED: From -22 to -15
+      const periodWidth = helveticaBold.widthOfTextAtSize(periodText, 10);
+      const periodX = (width - periodWidth) / 2; // Perfect mathematical centering
+      
+      drawText(periodText, periodX, currentY - 18, { 
         font: helveticaBold, 
-        size: 10, // DRASTICALLY REDUCED: From 12 to 10
-        color: textColor,
-        align: 'center',
-        maxWidth: width - 80
+        size: 10,
+        color: textColor
       });
       
-      currentY -= 20; // DRASTICALLY COMPRESSED: From 60 to 20
+      currentY -= 25; // Increased spacing to prevent overlap
       
-      // 3. STUDENT INFORMATION SECTION WITH PHOTO - DRASTICALLY COMPRESSED
+      // 3. STUDENT INFORMATION SECTION WITH PHOTO - SAFE SPACING
       const studentSectionHeight = 35; // DRASTICALLY COMPRESSED: From 70 to 35
       drawRect(40, currentY - studentSectionHeight, width - 80, studentSectionHeight, { 
         color: lightGray, 
@@ -740,7 +742,7 @@ export class ComprehensiveBulletinGenerator {
       const sectionBottomY = currentY - studentSectionHeight;
       
       // Set currentY to the safe position for next section
-      currentY = sectionBottomY - 10; // Section end with margin
+      currentY = sectionBottomY - 20; // Increased margin to prevent overlap
       
       // 4. PROFESSIONAL SECTIONED GRADES TABLE - MATCHING EXAMPLE PDF
       const tableStartX = 40;
