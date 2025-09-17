@@ -297,7 +297,8 @@ const TeacherGradebook: React.FC = () => {
           grade: cell.grade,
           coefficient: subjects.find(s => s.id === cell.subjectId)?.coefficient || 1,
           examType: 'draft',
-          comments: ''
+          comments: '',
+          status: 'draft'
         });
       }
     });

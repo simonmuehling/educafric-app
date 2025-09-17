@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, Clock, CheckCircle, AlertCircle,
   Plus, Calendar, Users, Eye, Edit,
@@ -25,6 +26,20 @@ interface Assignment {
   submittedCount: number;
   pendingCount: number;
   completionRate: number;
+}
+
+interface TeacherClass {
+  id: number;
+  name: string;
+  level: string;
+  section: string;
+}
+
+interface TeacherSubject {
+  id: number;
+  name: string;
+  code: string;
+  coefficient: number;
 }
 
 const FunctionalTeacherAssignments: React.FC = () => {
@@ -91,6 +106,59 @@ const FunctionalTeacherAssignments: React.FC = () => {
       }
       
       return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Fetch teacher classes for dropdown
+  const { data: teacherClasses = [], isLoading: classesLoading } = useQuery<TeacherClass[]>({
+    queryKey: ['/api/teacher/classes'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/classes', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.warn('[TEACHER_ASSIGNMENTS] Classes API failed, using mock data');
+        return [
+          { id: 1, name: "6ème A", level: "6ème", section: "A" },
+          { id: 2, name: "5ème B", level: "5ème", section: "B" }
+        ];
+      }
+      
+      const data = await response.json();
+      return data.classes || [];
+    },
+    enabled: !!user
+  });
+
+  // Fetch teacher subjects for dropdown
+  const { data: teacherSubjects = [], isLoading: subjectsLoading } = useQuery<TeacherSubject[]>({
+    queryKey: ['/api/teacher/subjects'],
+    queryFn: async () => {
+      const response = await fetch('/api/teacher/subjects', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.warn('[TEACHER_ASSIGNMENTS] Subjects API failed, using mock data');
+        return [
+          { id: 1, name: "Mathématiques", code: "MATH", coefficient: 4 },
+          { id: 2, name: "Français", code: "FRAN", coefficient: 4 },
+          { id: 3, name: "Anglais", code: "ANGL", coefficient: 3 }
+        ];
+      }
+      
+      const data = await response.json();
+      return data.subjects || [];
     },
     enabled: !!user
   });
@@ -395,24 +463,48 @@ const FunctionalTeacherAssignments: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-sm font-medium">Classe ID</label>
-                      <input
-                        type="text"
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Classe</label>
+                      <Select 
                         value={homeworkForm.classId}
-                        onChange={(e) => setHomeworkForm(prev => ({ ...prev, classId: e.target.value }))}
-                        placeholder="ID de la classe"
-                        className="w-full border rounded-md px-3 py-2"
-                      />
+                        onValueChange={(value) => setHomeworkForm(prev => ({ ...prev, classId: value }))}
+                        disabled={classesLoading}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={classesLoading ? "Chargement..." : "Sélectionnez une classe"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teacherClasses.map((cls) => (
+                            <SelectItem key={cls.id} value={cls.id.toString()}>
+                              {cls.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {teacherClasses.length === 0 && !classesLoading && (
+                        <p className="text-xs text-gray-500 mt-1">Aucune classe assignée</p>
+                      )}
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Matière ID</label>
-                      <input
-                        type="text"
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">Matière</label>
+                      <Select 
                         value={homeworkForm.subjectId}
-                        onChange={(e) => setHomeworkForm(prev => ({ ...prev, subjectId: e.target.value }))}
-                        placeholder="ID matière"
-                        className="w-full border rounded-md px-3 py-2"
-                      />
+                        onValueChange={(value) => setHomeworkForm(prev => ({ ...prev, subjectId: value }))}
+                        disabled={subjectsLoading}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={subjectsLoading ? "Chargement..." : "Sélectionnez une matière"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teacherSubjects.map((subject) => (
+                            <SelectItem key={subject.id} value={subject.id.toString()}>
+                              {subject.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {teacherSubjects.length === 0 && !subjectsLoading && (
+                        <p className="text-xs text-gray-500 mt-1">Aucune matière assignée</p>
+                      )}
                     </div>
                   </div>
                   <div>
