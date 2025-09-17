@@ -9,6 +9,7 @@ export * from "./schemas/academicSchema";
 export * from "./schemas/messagingSchema";
 export * from "./schemas/bulletinSchema";
 export * from "./schemas/bulletinExtensionsSchema";
+export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment for RBAC security
 
 // Import existing schema modules
 export * from "./tutorialSchema";

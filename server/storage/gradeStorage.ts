@@ -2,8 +2,9 @@
 // Extracted from huge storage.ts to prevent crashes
 
 import { db } from "../db";
-import { grades, attendance, homework, homeworkSubmissions } from "../../shared/schema";
-import { eq, desc, and } from "drizzle-orm";
+// Import directly from specific schema module to fix column typing
+import { grades, attendance, homework, homeworkSubmissions } from "../../shared/schemas/academicSchema";
+import { eq, desc, and, sql } from "drizzle-orm";
 import type { IGradeStorage } from "./interfaces";
 
 export class GradeStorage implements IGradeStorage {
@@ -15,13 +16,6 @@ export class GradeStorage implements IGradeStorage {
     }
   }
 
-  async getGradesByClass(classId: number): Promise<any[]> {
-    try {
-      return await db.select().from(grades).where(eq(grades.classId, classId));
-    } catch (error) {
-      return [];
-    }
-  }
 
   async getGradesBySubject(subjectId: number): Promise<any[]> {
     try {
@@ -193,11 +187,11 @@ export class GradeStorage implements IGradeStorage {
         .onConflictDoUpdate({
           target: [grades.studentId, grades.subjectId, grades.term, grades.academicYear],
           set: {
-            grade: grades.grade, // Update existing grade
-            coefficient: grades.coefficient,
-            examType: grades.examType,
-            comments: grades.comments,
-            teacherId: grades.teacherId,
+            grade: sql`excluded.grade`, // Fixed: score -> grade
+            coefficient: sql`excluded.coefficient`,
+            examType: sql`excluded.exam_type`,
+            comments: sql`excluded.comments`,
+            teacherId: sql`excluded.teacher_id`,
             updatedAt: new Date()
           }
         })
@@ -220,11 +214,11 @@ export class GradeStorage implements IGradeStorage {
             .onConflictDoUpdate({
               target: [grades.studentId, grades.subjectId, grades.term, grades.academicYear],
               set: {
-                grade: gradeData.grade,
-                coefficient: gradeData.coefficient,
-                examType: gradeData.examType,
-                comments: gradeData.comments,
-                teacherId: gradeData.teacherId,
+                grade: sql`excluded.grade`, // Fixed: score -> grade
+                coefficient: sql`excluded.coefficient`,
+                examType: sql`excluded.exam_type`,
+                comments: sql`excluded.comments`,
+                teacherId: sql`excluded.teacher_id`,
                 updatedAt: new Date()
               }
             })

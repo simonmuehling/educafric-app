@@ -19,6 +19,7 @@ import { checkSubscriptionFeature, checkFreemiumLimits } from "./middleware/subs
 // Import route modules
 import notificationsRouter from "./routes/api/notifications";
 import teachersRouter from "./routes/api/teachers";
+import teacherRbacRouter from "./routes/api/teacher-rbac";
 import studentsRouter from "./routes/students";
 import studentRoutesApi from "./routes/studentRoutes";
 import freelancerRouter from "./routes/freelancer";
@@ -4744,6 +4745,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Advanced teacher management (unlimited teachers + analytics)
   app.use('/api/teachers', checkSubscriptionFeature('advanced_teacher_management'), checkFreemiumLimits('teachers'), teachersRouter);
   app.use('/api/teacher', teacherRouter);
+  app.use('/api/teacher', requireAuth, teacherRbacRouter);
   
   // 🔥 PREMIUM RESTRICTED: Advanced student management (unlimited students + tracking)
   app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
