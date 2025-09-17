@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -240,6 +240,13 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-orange-500',
       component: createDynamicModule('teacher-grades')
+    },
+    {
+      id: 'gradebook',
+      label: language === 'fr' ? 'Carnet de Notes' : 'Gradebook',
+      icon: <Grid className="w-6 h-6" />,
+      color: 'bg-indigo-600',
+      component: createDynamicModule('teacher-gradebook')
     },
     {
       id: 'assignments',

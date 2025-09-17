@@ -157,6 +157,8 @@ class FastModuleLoader {
       'teacher-timetable': () => import('@/components/teacher/modules/TeacherTimetable'),
       'teacher-attendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
       'teacher-grades': () => import('@/components/teacher/modules/FunctionalTeacherGrades'),
+      'teacher-gradebook': () => import('@/components/teacher/modules/TeacherGradebook'),
+      'gradebook': () => import('@/components/teacher/modules/TeacherGradebook'),
       'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
