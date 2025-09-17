@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Textarea } from '../../ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Input } from '../../ui/input';
 import { useToast } from '../../../hooks/use-toast';
@@ -439,6 +439,11 @@ const EducationalContentApproval: React.FC = () => {
             <DialogTitle>
               {approvalAction === 'approve' ? 'Approuver le contenu' : 'Rejeter le contenu'}
             </DialogTitle>
+            <DialogDescription>
+              {approvalAction === 'approve' 
+                ? 'Confirmez l\'approbation de ce contenu pédagogique'
+                : 'Précisez les raisons du rejet pour aider l\'enseignant à améliorer son contenu'}
+            </DialogDescription>
           </DialogHeader>
           
           {selectedContent && (

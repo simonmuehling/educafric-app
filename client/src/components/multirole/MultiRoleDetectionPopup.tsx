@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Users, School, User, Phone } from 'lucide-react';
@@ -107,6 +107,9 @@ export default function MultiRoleDetectionPopup({
             <Phone className="w-5 h-5 text-blue-600" />
             {t('multiRole.detectedRoles')}
           </DialogTitle>
+          <DialogDescription>
+            {t('multiRole.detectionExplanation')}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

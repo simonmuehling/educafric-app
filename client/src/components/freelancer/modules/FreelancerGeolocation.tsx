@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger 
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -433,6 +433,11 @@ const FreelancerGeolocation = () => {
                   <DialogTitle className="text-xl font-semibold text-gray-900">
                     {language === 'fr' ? 'Ajouter une Zone de Cours' : 'Add Teaching Zone'}
                   </DialogTitle>
+                  <DialogDescription>
+                    {language === 'fr' 
+                      ? 'Définissez une nouvelle zone géographique pour vos cours particuliers'
+                      : 'Define a new geographical area for your private lessons'}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 py-4 bg-white">
                   <div className="space-y-2">

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SignaturePad } from "./SignaturePad";
@@ -126,6 +126,9 @@ export function BulletinSignatureModal({
             <FileCheck className="w-5 h-5" />
             Signature du Bulletin - {getRoleTitle()}
           </DialogTitle>
+          <DialogDescription>
+            Signez le bulletin de {bulletinData.studentName} de la classe {bulletinData.className}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

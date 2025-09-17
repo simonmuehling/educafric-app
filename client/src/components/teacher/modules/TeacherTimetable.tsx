@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
 const TeacherTimetable = () => {
@@ -332,6 +332,11 @@ const TeacherTimetable = () => {
             <DialogTitle>
               {currentSlot ? t.editSlot : t.addSlot}
             </DialogTitle>
+            <DialogDescription>
+              {currentSlot 
+                ? (language === 'fr' ? 'Modifiez les détails de ce créneau d\'enseignement' : 'Edit the details of this teaching slot')
+                : (language === 'fr' ? 'Ajoutez un nouveau créneau à votre emploi du temps' : 'Add a new slot to your timetable')}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

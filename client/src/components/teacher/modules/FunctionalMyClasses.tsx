@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Plus, Users, BookOpen, Clock, MapPin, 
@@ -321,6 +321,9 @@ const FunctionalMyClasses: React.FC = () => {
           <DialogContent className="max-w-md bg-white">
             <DialogHeader>
               <DialogTitle>{t.createClass}</DialogTitle>
+              <DialogDescription>
+                {language === 'fr' ? 'Créez une nouvelle classe pour organiser vos étudiants' : 'Create a new class to organize your students'}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -515,6 +518,9 @@ const FunctionalMyClasses: React.FC = () => {
               <AlertTriangle className="w-5 h-5 text-orange-500" />
               Déconnexion de l'école
             </DialogTitle>
+            <DialogDescription>
+              {language === 'fr' ? 'Confirmez la déconnexion de cette école et perdez l\'accès aux classes' : 'Confirm disconnection from this school and lose access to classes'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-gray-600">

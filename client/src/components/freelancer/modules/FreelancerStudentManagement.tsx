@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Users, UserPlus, Calendar, BookOpen, BarChart3, 
   MessageSquare, Phone, Mail, MapPin, Edit, Eye
@@ -197,6 +197,11 @@ const FreelancerStudentManagement: React.FC = () => {
             <DialogContent className="max-w-2xl bg-white">
               <DialogHeader>
                 <DialogTitle>{t.addStudent}</DialogTitle>
+                <DialogDescription>
+                  {language === 'fr' 
+                    ? 'Ajoutez un nouvel étudiant à votre liste de répétition' 
+                    : 'Add a new student to your tutoring list'}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -377,6 +382,11 @@ const FreelancerStudentManagement: React.FC = () => {
                       <DialogContent className="max-w-2xl bg-white">
                         <DialogHeader>
                           <DialogTitle>{t.studentDetails}</DialogTitle>
+                          <DialogDescription>
+                            {language === 'fr' 
+                              ? `Consultez les détails et informations de contact de ${student.firstName || ''} ${student.lastName || ''}` 
+                              : `View details and contact information for ${student.firstName || ''} ${student.lastName || ''}`}
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
