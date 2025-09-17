@@ -467,14 +467,14 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ✅ Custom logo positioned at (${logoX}, ${logoY})`);
       }
       
-      currentY -= 20; // COMPRESSED: Reduced from 100px to 20px
+      currentY -= 5; // DRASTICALLY COMPRESSED: From 100px to 5px
       
-      // 2. BULLETIN TITLE - COMPRESSED
+      // 2. BULLETIN TITLE - DRASTICALLY COMPRESSED
       const bulletinTitle = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
       drawText(bulletinTitle, width / 2, currentY, { 
         font: timesBold, 
-        size: 16, // REDUCED: From 18 to 16
-        color: textColor, // BLACK TEXT
+        size: 14, // DRASTICALLY REDUCED: From 18 to 14
+        color: textColor,
         align: 'center',
         maxWidth: width - 80
       });
@@ -483,18 +483,18 @@ export class ComprehensiveBulletinGenerator {
         ? `${this.getTermText(studentData.term, 'fr')} ${studentData.academicYear}`
         : `${this.getTermText(studentData.term, 'en')} ${studentData.academicYear}`;
       
-      drawText(periodText, width / 2, currentY - 18, { // REDUCED: From -22 to -18
+      drawText(periodText, width / 2, currentY - 15, { // DRASTICALLY REDUCED: From -22 to -15
         font: helveticaBold, 
-        size: 11, // REDUCED: From 12 to 11
-        color: textColor, // BLACK TEXT
+        size: 10, // DRASTICALLY REDUCED: From 12 to 10
+        color: textColor,
         align: 'center',
         maxWidth: width - 80
       });
       
-      currentY -= 35; // COMPRESSED: From 60 to 35
+      currentY -= 20; // DRASTICALLY COMPRESSED: From 60 to 20
       
-      // 3. STUDENT INFORMATION SECTION WITH PHOTO - COMPRESSED
-      const studentSectionHeight = 55; // COMPRESSED: From 70 to 55
+      // 3. STUDENT INFORMATION SECTION WITH PHOTO - DRASTICALLY COMPRESSED
+      const studentSectionHeight = 35; // DRASTICALLY COMPRESSED: From 70 to 35
       drawRect(40, currentY - studentSectionHeight, width - 80, studentSectionHeight, { 
         color: lightGray, 
         borderColor: borderColor, 
@@ -509,11 +509,15 @@ export class ComprehensiveBulletinGenerator {
         const photoMaxWidth = options.photoMaxWidth || 50;
         const photoMaxHeight = options.photoMaxHeight || 60;
         
+        // 🔧 CRITICAL FIX: Enforce photo sizing within section bounds
+        // Constrain photo height to fit within studentSectionHeight with 10px margin
+        const constrainedPhotoMaxHeight = Math.min(photoMaxHeight, studentSectionHeight - 10);
+        
         const photoDimensions = this.calculateImageDimensions(
           studentPhoto.width,
           studentPhoto.height,
           photoMaxWidth,
-          photoMaxHeight
+          constrainedPhotoMaxHeight
         );
         
         // Position photo on the right side of the student section
@@ -545,53 +549,53 @@ export class ComprehensiveBulletinGenerator {
       const infoAreaWidth = width - 120 - photoSpace; // Available width for text
       
       const studentLabel = options.language === 'fr' ? 'Élève:' : 'Student:';
-      drawText(studentLabel, 50, currentY - 20, { 
+      drawText(studentLabel, 50, currentY - 12, { 
         font: helveticaBold, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
-      drawText(`${studentData.firstName} ${studentData.lastName}`, 120, currentY - 20, { 
+      drawText(`${studentData.firstName} ${studentData.lastName}`, 100, currentY - 12, { 
         font: helvetica, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
       
-      // Class information (positioned considering photo space)
-      const classStartX = Math.min(300, infoAreaWidth - 100);
+      // Class information (positioned considering photo space) - COMPRESSED TO ONE LINE
+      const classStartX = Math.min(280, infoAreaWidth - 100);
       const classLabel = options.language === 'fr' ? 'Classe:' : 'Class:';
-      drawText(classLabel, classStartX, currentY - 20, { 
+      drawText(classLabel, classStartX, currentY - 12, { 
         font: helveticaBold, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
-      drawText(studentData.className, classStartX + 40, currentY - 20, { 
+      drawText(studentData.className, classStartX + 40, currentY - 12, { 
         font: helvetica, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
       
       const matriculeLabel = options.language === 'fr' ? 'Matricule:' : 'ID Number:';
-      drawText(matriculeLabel, 50, currentY - 40, { 
+      drawText(matriculeLabel, 50, currentY - 25, { 
         font: helveticaBold, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
-      drawText(studentData.matricule, 120, currentY - 40, { 
+      drawText(studentData.matricule, 100, currentY - 25, { 
         font: helvetica, 
-        size: 11, 
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
         color: textColor 
       });
       
       if (studentData.birthDate) {
         const birthLabel = options.language === 'fr' ? 'Né(e) le:' : 'Born on:';
-        drawText(birthLabel, classStartX, currentY - 40, { 
+        drawText(birthLabel, classStartX, currentY - 25, { 
           font: helveticaBold, 
-          size: 11, 
+          size: 9, // DRASTICALLY REDUCED: From 11 to 9
           color: textColor 
         });
-        drawText(studentData.birthDate, classStartX + 60, currentY - 40, { 
+        drawText(studentData.birthDate, classStartX + 50, currentY - 25, { 
           font: helvetica, 
-          size: 11, 
+          size: 9, // DRASTICALLY REDUCED: From 11 to 9
           color: textColor 
         });
       }
@@ -601,7 +605,11 @@ export class ComprehensiveBulletinGenerator {
         const placeholderX = width - (options.photoMaxWidth || 50) - 50;
         const placeholderY = currentY - studentSectionHeight + 5;
         const placeholderWidth = options.photoMaxWidth || 50;
-        const placeholderHeight = options.photoMaxHeight || 60;
+        
+        // 🔧 CRITICAL FIX: Enforce placeholder sizing within section bounds  
+        // Constrain placeholder height to fit within studentSectionHeight with 10px margin
+        const constrainedPlaceholderHeight = Math.min(options.photoMaxHeight || 60, studentSectionHeight - 10);
+        const placeholderHeight = constrainedPlaceholderHeight;
         
         // Draw placeholder rectangle
         drawRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight, {
@@ -620,7 +628,12 @@ export class ComprehensiveBulletinGenerator {
         });
       }
       
-      currentY -= 65; // COMPRESSED: From 80 to 65
+      // 🔧 CRITICAL FIX: Guarantee vertical flow without overlap
+      // Since photo is constrained within section bounds, we only need section margin
+      const sectionBottomY = currentY - studentSectionHeight;
+      
+      // Set currentY to the safe position for next section
+      currentY = sectionBottomY - 10; // Section end with margin
       
       // 4. GRADES TABLE HEADER
       const tableStartY = currentY;
@@ -631,38 +644,38 @@ export class ComprehensiveBulletinGenerator {
       const tableColWidths = [120, 40, 40, 40, 45, 35, 45, 35, 110];
       const tableStartX = 40;
       
-      // Draw table header background - BLACK AND WHITE
-      drawRect(tableStartX, currentY - 22, width - 80, 22, { // COMPRESSED: From 25 to 22
-        color: lightGray, // LIGHT GRAY BACKGROUND
+      // Draw table header background - DRASTICALLY COMPRESSED
+      drawRect(tableStartX, currentY - 16, width - 80, 16, { // DRASTICALLY COMPRESSED: From 25 to 16
+        color: lightGray,
         borderColor: borderColor, 
         borderWidth: 1 
       });
       
-      // Draw table headers - BLACK TEXT
-      let colX = tableStartX + 5;
+      // Draw table headers - DRASTICALLY SMALLER TEXT
+      let colX = tableStartX + 3;
       tableHeaders.forEach((header, index) => {
-        drawText(header, colX, currentY - 15, { // COMPRESSED: From -18 to -15
+        drawText(header, colX, currentY - 11, { // DRASTICALLY COMPRESSED: From -18 to -11
           font: helveticaBold, 
-          size: 8, // REDUCED: From 9 to 8
-          color: textColor // BLACK TEXT
+          size: 7, // DRASTICALLY REDUCED: From 9 to 7
+          color: textColor
         });
         colX += tableColWidths[index];
       });
       
-      currentY -= 22; // COMPRESSED: From 25 to 22
+      currentY -= 16; // DRASTICALLY COMPRESSED: From 25 to 16
       
       // 5. SUBJECTS AND GRADES
       let totalPoints = 0;
       let totalCoefficients = 0;
       
       studentData.subjects.forEach((subject, index) => {
-        const rowY = currentY - (index * 16); // COMPRESSED: From 20 to 16
+        const rowY = currentY - (index * 12); // DRASTICALLY COMPRESSED: From 20 to 12
         const isEvenRow = index % 2 === 0;
         
-        // Alternate row background - LIGHT GRAY ONLY
+        // Alternate row background - DRASTICALLY SMALLER
         if (isEvenRow) {
-          drawRect(tableStartX, rowY - 16, width - 80, 16, { // COMPRESSED: From 20 to 16
-            color: rgb(0.98, 0.98, 0.98), // Very light gray
+          drawRect(tableStartX, rowY - 12, width - 80, 12, { // DRASTICALLY COMPRESSED: From 20 to 12
+            color: rgb(0.98, 0.98, 0.98),
             borderColor: borderColor,
             borderWidth: 0.5
           });
@@ -678,7 +691,7 @@ export class ComprehensiveBulletinGenerator {
         totalPoints += points;
         totalCoefficients += subject.coefficient;
         
-        colX = tableStartX + 5;
+        colX = tableStartX + 3;
         const rowData = [
           subject.subjectName,
           subject.firstEvaluation?.toFixed(1) || '--',
@@ -692,10 +705,10 @@ export class ComprehensiveBulletinGenerator {
         ];
         
         rowData.forEach((data, colIndex) => {
-          const textSize = colIndex === 0 ? 8 : 7; // COMPRESSED: Reduced font sizes
+          const textSize = colIndex === 0 ? 7 : 6; // DRASTICALLY REDUCED: From 8,7 to 7,6
           const font = colIndex === 0 ? helveticaBold : helvetica;
           
-          drawText(data, colX, rowY - 10, { // COMPRESSED: From -12 to -10
+          drawText(data, colX, rowY - 8, { // DRASTICALLY COMPRESSED: From -12 to -8
             font, 
             size: textSize, 
             color: textColor 
@@ -704,12 +717,12 @@ export class ComprehensiveBulletinGenerator {
         });
       });
       
-      const gradesTableHeight = studentData.subjects.length * 16; // COMPRESSED: From 20 to 16
-      currentY -= gradesTableHeight + 8; // COMPRESSED: From 10 to 8
+      const gradesTableHeight = studentData.subjects.length * 12; // DRASTICALLY COMPRESSED: From 20 to 12
+      currentY -= gradesTableHeight + 5; // DRASTICALLY COMPRESSED: From 10 to 5
       
-      // 6. SUMMARY SECTION - COMPRESSED
-      drawRect(tableStartX, currentY - 30, width - 80, 30, { // COMPRESSED: From 40 to 30
-        color: lightGray, // LIGHT GRAY BACKGROUND
+      // 6. SUMMARY SECTION - DRASTICALLY COMPRESSED
+      drawRect(tableStartX, currentY - 20, width - 80, 20, { // DRASTICALLY COMPRESSED: From 40 to 20
+        color: lightGray,
         borderColor: borderColor, 
         borderWidth: 1 
       });
@@ -718,94 +731,83 @@ export class ComprehensiveBulletinGenerator {
       const averageLabel = options.language === 'fr' ? 'MOYENNE GÉNÉRALE:' : 'OVERALL AVERAGE:';
       const rankLabel = options.language === 'fr' ? 'RANG:' : 'RANK:';
       
-      drawText(averageLabel, tableStartX + 10, currentY - 12, { // COMPRESSED: From -15 to -12
+      drawText(averageLabel, tableStartX + 10, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
         font: helveticaBold, 
-        size: 11, // REDUCED: From 12 to 11
-        color: textColor // BLACK TEXT
+        size: 9, // DRASTICALLY REDUCED: From 12 to 9
+        color: textColor
       });
-      drawText(`${overallAverage.toFixed(2)}/20`, tableStartX + 150, currentY - 12, { // COMPRESSED: From -15 to -12
+      drawText(`${overallAverage.toFixed(2)}/20`, tableStartX + 130, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
         font: timesBold, 
-        size: 12, // REDUCED: From 14 to 12
-        color: textColor // BLACK TEXT
+        size: 10, // DRASTICALLY REDUCED: From 14 to 10
+        color: textColor
       });
       
       if (options.includeRankings) {
-        drawText(rankLabel, tableStartX + 280, currentY - 12, { // COMPRESSED: From -15 to -12
+        drawText(rankLabel, tableStartX + 220, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
           font: helveticaBold, 
-          size: 11, // REDUCED: From 12 to 11
-          color: textColor // BLACK TEXT
+          size: 9, // DRASTICALLY REDUCED: From 12 to 9
+          color: textColor
         });
-        drawText(`${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 330, currentY - 12, { // COMPRESSED: From -15 to -12
+        drawText(`${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 260, currentY - 8, { // DRASTICALLY COMPRESSED: From -15 to -8
           font: timesBold, 
-          size: 12, // REDUCED: From 14 to 12 
-          color: textColor // BLACK TEXT
+          size: 10, // DRASTICALLY REDUCED: From 14 to 10
+          color: textColor
         });
       }
       
-      // Academic appreciation
+      // Academic appreciation - DRASTICALLY COMPRESSED
       const appreciation = this.getAcademicAppreciation(overallAverage, options.language);
-      drawText(appreciation, tableStartX + 10, currentY - 35, { 
+      drawText(appreciation, tableStartX + 10, currentY - 18, { 
         font: helveticaBold, 
-        size: 11, 
-        color: textColor // BLACK TEXT
+        size: 9, // DRASTICALLY REDUCED: From 11 to 9
+        color: textColor
       });
       
-      currentY -= 25; // COMPRESSED: From 60 to 25
+      currentY -= 15; // DRASTICALLY COMPRESSED: From 60 to 15
       
-      // 7. CONDUCT AND ATTENDANCE (if available)
-      if (studentData.conductGrade || studentData.absences !== undefined) {
-        const conductLabel = options.language === 'fr' ? 'CONDUITE ET ASSIDUITÉ' : 'CONDUCT AND ATTENDANCE';
-        drawText(conductLabel, tableStartX, currentY, { 
-          font: helveticaBold, 
-          size: 11, 
-          color: textColor // BLACK TEXT 
-        });
+      // 7. CONDUCT, ATTENDANCE & STATISTICS - REORGANIZED IN ONE COMPACT ROW
+      if ((studentData.conductGrade || studentData.absences !== undefined) || options.includeStatistics) {
+        // DRASTIC ORGANIZATION: Put conduct and statistics in same horizontal row
+        let rowContent = [];
         
-        let conductText = '';
-        if (studentData.conductGrade) {
-          const conductGradeLabel = options.language === 'fr' ? 'Conduite:' : 'Conduct:';
-          conductText += `${conductGradeLabel} ${studentData.conductGrade}/20`;
-        }
-        if (studentData.absences !== undefined) {
-          const absencesLabel = options.language === 'fr' ? 'Absences:' : 'Absences:';
-          conductText += `  ${absencesLabel} ${studentData.absences}`;
+        // Add conduct info if available
+        if (studentData.conductGrade || studentData.absences !== undefined) {
+          let conductText = '';
+          if (studentData.conductGrade) {
+            const conductGradeLabel = options.language === 'fr' ? 'Conduite:' : 'Conduct:';
+            conductText += `${conductGradeLabel} ${studentData.conductGrade}/20`;
+          }
+          if (studentData.absences !== undefined) {
+            const absencesLabel = options.language === 'fr' ? 'Absences:' : 'Absences:';
+            conductText += `  ${absencesLabel} ${studentData.absences}`;
+          }
+          rowContent.push(conductText);
         }
         
-        drawText(conductText, tableStartX + 20, currentY - 20, { 
+        // Add statistics if enabled
+        if (options.includeStatistics) {
+          const classAverage = overallAverage; // Would be calculated from all students
+          const statsText = options.language === 'fr' 
+            ? `Moy. classe: ${classAverage.toFixed(2)}/20 • Effectif: ${studentData.totalStudents}`
+            : `Class avg: ${classAverage.toFixed(2)}/20 • Total: ${studentData.totalStudents}`;
+          rowContent.push(statsText);
+        }
+        
+        // Draw all content in one compact row
+        const combinedText = rowContent.join(' • ');
+        drawText(combinedText, tableStartX, currentY, { 
           font: helvetica, 
-          size: 10, 
+          size: 8, // DRASTICALLY REDUCED: From 11 to 8
           color: textColor 
         });
         
-        currentY -= 25; // COMPRESSED: From 40 to 25
+        currentY -= 12; // DRASTICALLY COMPRESSED: From 50 total to 12
       }
       
-      // 8. CLASS STATISTICS (if enabled)
-      if (options.includeStatistics && currentY > 120) {
-        const statsLabel = options.language === 'fr' ? 'STATISTIQUES DE LA CLASSE' : 'CLASS STATISTICS';
-        drawText(statsLabel, tableStartX, currentY, { 
-          font: helveticaBold, 
-          size: 11, 
-          color: textColor // BLACK TEXT 
-        });
-        
-        // Calculate class statistics (mock data for now)
-        const classAverage = overallAverage; // Would be calculated from all students
-        const statsText = options.language === 'fr' 
-          ? `Moyenne de classe: ${classAverage.toFixed(2)}/20 • Effectif: ${studentData.totalStudents} élèves`
-          : `Class average: ${classAverage.toFixed(2)}/20 • Total students: ${studentData.totalStudents}`;
-        
-        drawText(statsText, tableStartX + 20, currentY - 20, { 
-          font: helvetica, 
-          size: 10, 
-          color: textColor 
-        });
-        
-        currentY -= 25; // COMPRESSED: From 40 to 25
-      }
+      // 8. STATISTICS SECTION MOVED TO COMBINED ROW ABOVE - NO LONGER NEEDED HERE
       
-      // 9. SIGNATURES SECTION WITH REAL IMAGES
-      const signaturesY = Math.max(currentY - 60, 120);
+      // 9. SIGNATURES SECTION - DRASTICALLY COMPRESSED
+      const signaturesY = Math.max(currentY - 25, 100); // DRASTICALLY COMPRESSED: From 60 to 25
       
       const principalLabel = options.language === 'fr' ? 'Le Directeur' : 'The Principal';
       const teacherLabel = options.language === 'fr' ? 'Le Professeur Principal' : 'Class Teacher';
@@ -867,96 +869,60 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ℹ️ No principal signature available, showing name only`);
       }
       
-      // 10. PERFORMANCE LEVELS SECTION (if enabled) - COMPRESSED
-      let performanceLevelsY = currentY - 15; // COMPRESSED: Start closer to previous content
+      // 10. PERFORMANCE LEVELS SECTION - DRASTICALLY COMPRESSED INLINE FORMAT
+      let performanceLevelsY = currentY - 8; // DRASTICALLY COMPRESSED: Start much closer
       
       if (options.includePerformanceLevels) {
-        console.log('[COMPREHENSIVE_PDF] 📖 Including performance levels text');
+        console.log('[COMPREHENSIVE_PDF] 📖 Including performance levels text - compact format');
         
-        const performanceText = PERFORMANCE_LEVELS_TEXT[options.language || 'fr'];
+        // DRASTIC CHANGE: Use ultra-compact format instead of full text
+        const compactLevels = options.language === 'fr' 
+          ? 'NIVEAUX: Niveau 1 (Non satisfaisant <10), Niveau 2 (C: Limité 10-12, C+: Assez bien 12-14), Niveau 3 (Satisfaisant 14-16), Niveau 4 (Très élevé >16)'
+          : 'LEVELS: Level 1 (Unsatisfactory <10), Level 2 (C: Limited 10-12, C+: Fair 12-14), Level 3 (Satisfactory 14-16), Level 4 (Very High >16)';
         
-        // Calculate table width based on page dimensions and margins
-        const tableWidth = width - 80; // Same calculation as used elsewhere in the file
+        // Draw compact performance levels in small text
+        const tableWidth = width - 80;
+        const maxLineWidth = tableWidth - 20;
         
-        // Draw performance levels header
-        const performanceHeaderY = performanceLevelsY;
-        drawText('NIVEAUX DE RENDEMENT', tableStartX, performanceHeaderY, {
-          font: helveticaBold,
-          size: 10, // REDUCED: From 12 to 10
-          color: textColor // BLACK TEXT
-        });
+        // Word wrap the compact text
+        const words = compactLevels.split(' ');
+        let currentLine = '';
+        let textY = performanceLevelsY;
         
-        // Add separator line
-        page.drawLine({
-          start: { x: tableStartX, y: performanceHeaderY - 3 }, // COMPRESSED: From -5 to -3
-          end: { x: tableStartX + tableWidth, y: performanceHeaderY - 3 },
-          thickness: 1,
-          color: borderColor
-        });
-        
-        // Split the performance text into paragraphs and draw them
-        const lines = performanceText.split('\n').filter(line => line.trim() !== '');
-        let currentY = performanceHeaderY - 15; // COMPRESSED: From -20 to -15
-        const lineHeight = 9; // COMPRESSED: From 12 to 9
-        const maxLineWidth = tableWidth - 20; // Leave margin on both sides
-        
-        for (const line of lines) {
-          if (line.trim() === '') continue;
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const testWidth = helvetica.widthOfTextAtSize(testLine, 7);
           
-          // Check if this is a header line (starts with a level description)
-          const isHeader = line.startsWith('NIVEAU DE RENDEMENT') || 
-                          line.startsWith('DESCRIPTION') || 
-                          line.startsWith('PERFORMANCE LEVELS');
-          
-          if (isHeader) {
-            drawText(line.trim(), tableStartX + 10, currentY, {
-              font: helveticaBold,
-              size: 11,
-              color: textColor // BLACK TEXT
-            });
+          if (testWidth <= maxLineWidth) {
+            currentLine = testLine;
           } else {
-            // Word wrap for long lines
-            const words = line.trim().split(' ');
-            let currentLine = '';
-            
-            for (const word of words) {
-              const testLine = currentLine + (currentLine ? ' ' : '') + word;
-              const testWidth = helvetica.widthOfTextAtSize(testLine, 9);
-              
-              if (testWidth <= maxLineWidth) {
-                currentLine = testLine;
-              } else {
-                if (currentLine) {
-                  drawText(currentLine, tableStartX + 10, currentY, {
-                    font: helvetica,
-                    size: 9,
-                    color: textColor
-                  });
-                  currentY -= lineHeight;
-                }
-                currentLine = word;
-              }
-            }
-            
-            // Draw the last line
             if (currentLine) {
-              drawText(currentLine, tableStartX + 10, currentY, {
+              drawText(currentLine, tableStartX + 5, textY, {
                 font: helvetica,
-                size: 9,
+                size: 7, // DRASTICALLY REDUCED: From 9 to 7
                 color: textColor
               });
+              textY -= 8; // DRASTICALLY COMPRESSED: From 12 to 8
             }
+            currentLine = word;
           }
-          
-          currentY -= lineHeight + 1; // COMPRESSED: From +2 to +1
         }
         
-        // Update footer position to account for performance levels section
-        performanceLevelsY = currentY - 10; // COMPRESSED: From -20 to -10
+        // Draw the last line
+        if (currentLine) {
+          drawText(currentLine, tableStartX + 5, textY, {
+            font: helvetica,
+            size: 7,
+            color: textColor
+          });
+          textY -= 8;
+        }
+        
+        performanceLevelsY = textY - 5; // DRASTICALLY COMPRESSED: From -20 to -5
       }
       
-      // 11. FOOTER WITH QR CODE AND VERIFICATION - COMPRESSED
-      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 60) : 60; // COMPRESSED: From 80 to 60
+      // 11. FOOTER WITH QR CODE AND VERIFICATION - DRASTICALLY COMPRESSED
+      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 40) : 40; // DRASTICALLY COMPRESSED: From 80 to 40
       
       // Generate enhanced verification data with real school information
       const verificationCode = crypto.randomUUID();
