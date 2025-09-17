@@ -75,8 +75,8 @@ const FunctionalDirectorProfile: React.FC = () => {
     enabled: !!user
   });
 
-  // Extract profile from settings data
-  const profile = profileData?.settings?.profile || {};
+  // Extract profile from settings data - stable reference to prevent infinite re-renders
+  const profile = profileData?.settings?.profile ?? null;
 
   // Update profile mutation using settings endpoint
   const updateProfileMutation = useMutation({
@@ -107,11 +107,12 @@ const FunctionalDirectorProfile: React.FC = () => {
     }
   });
 
+  // Only update formData when profile ID changes to prevent infinite re-renders
   useEffect(() => {
-    if (profile) {
+    if (profile && (!formData || formData.id !== profile.id)) {
       setFormData(profile);
     }
-  }, [profile]);
+  }, [profile?.id]);
 
   const handleSave = () => {
     if (formData) {

@@ -84,6 +84,18 @@ export const teacherGradeSubmissions = pgTable("teacher_grade_submissions", {
   isSubmitted: boolean("is_submitted").default(false),
   submittedAt: timestamp("submitted_at"),
   
+  // Director Review Status - NEW FIELDS
+  reviewStatus: text("review_status").notNull().default("pending"), // pending, under_review, approved, returned, changes_requested
+  reviewedBy: integer("reviewed_by"), // Director or Admin who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  reviewFeedback: text("review_feedback"), // Comments from director
+  returnReason: text("return_reason"), // Specific reason if returned
+  
+  // Review workflow tracking
+  reviewPriority: text("review_priority").default("normal"), // urgent, normal, low
+  requiresAttention: boolean("requires_attention").default(false),
+  lastStatusChange: timestamp("last_status_change").defaultNow(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -163,6 +175,32 @@ export const bulletinNotifications = pgTable("bulletin_notifications", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Grade Review History - tracks all review actions for audit trail
+export const gradeReviewHistory = pgTable("grade_review_history", {
+  id: serial("id").primaryKey(),
+  gradeSubmissionId: integer("grade_submission_id").notNull(), // FK to teacherGradeSubmissions
+  reviewerId: integer("reviewer_id").notNull(), // Director/Admin who performed the action
+  reviewAction: text("review_action").notNull(), // approved, returned, changes_requested, under_review
+  
+  // Review details
+  previousStatus: text("previous_status"), // Status before this action
+  newStatus: text("new_status").notNull(), // Status after this action
+  feedback: text("feedback"), // Director's comments/feedback
+  returnReason: text("return_reason"), // Specific reason if returned/changes requested
+  
+  // Grade comparison (if grades were changed)
+  previousGradeData: jsonb("previous_grade_data"), // Snapshot of grades before review
+  newGradeData: jsonb("new_grade_data"), // Snapshot of grades after review
+  
+  // Review metadata
+  reviewPriority: text("review_priority"), // urgent, normal, low
+  timeSpentReviewing: integer("time_spent_reviewing"), // Minutes spent on review
+  ipAddress: text("ip_address"), // For audit purposes
+  userAgent: text("user_agent"), // Browser/device info
+  
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Relations
 export const bulletinRelations = relations(bulletins, ({ one, many }) => ({
   // Links to other tables
@@ -181,12 +219,39 @@ export const workflowRelations = relations(bulletinWorkflow, ({ one }) => ({
   })
 }));
 
+export const gradeSubmissionRelations = relations(teacherGradeSubmissions, ({ many }) => ({
+  reviewHistory: many(gradeReviewHistory)
+}));
+
+export const reviewHistoryRelations = relations(gradeReviewHistory, ({ one }) => ({
+  gradeSubmission: one(teacherGradeSubmissions, {
+    fields: [gradeReviewHistory.gradeSubmissionId],
+    references: [teacherGradeSubmissions.id]
+  })
+}));
+
 // Zod schemas for validation
 export const insertBulletinSchema = createInsertSchema(bulletins);
 export const insertTeacherGradeSubmissionSchema = createInsertSchema(teacherGradeSubmissions);
 export const insertBulletinWorkflowSchema = createInsertSchema(bulletinWorkflow);
-
 export const insertBulletinNotificationSchema = createInsertSchema(bulletinNotifications);
+export const insertGradeReviewHistorySchema = createInsertSchema(gradeReviewHistory);
+
+// Specific schemas for review actions
+export const reviewGradeSubmissionSchema = z.object({
+  submissionId: z.number(),
+  reviewAction: z.enum(['approved', 'returned', 'changes_requested', 'under_review']),
+  feedback: z.string().optional(),
+  returnReason: z.string().optional(),
+  reviewPriority: z.enum(['urgent', 'normal', 'low']).default('normal')
+});
+
+export const bulkReviewSchema = z.object({
+  submissionIds: z.array(z.number()),
+  reviewAction: z.enum(['approved', 'returned', 'changes_requested']),
+  feedback: z.string().optional(),
+  returnReason: z.string().optional()
+});
 
 // Type exports
 export type Bulletin = typeof bulletins.$inferSelect;
@@ -197,3 +262,7 @@ export type BulletinWorkflow = typeof bulletinWorkflow.$inferSelect;
 export type InsertBulletinWorkflow = z.infer<typeof insertBulletinWorkflowSchema>;
 export type BulletinNotification = typeof bulletinNotifications.$inferSelect;
 export type InsertBulletinNotification = z.infer<typeof insertBulletinNotificationSchema>;
+export type GradeReviewHistory = typeof gradeReviewHistory.$inferSelect;
+export type InsertGradeReviewHistory = z.infer<typeof insertGradeReviewHistorySchema>;
+export type ReviewGradeSubmissionInput = z.infer<typeof reviewGradeSubmissionSchema>;
+export type BulkReviewInput = z.infer<typeof bulkReviewSchema>;

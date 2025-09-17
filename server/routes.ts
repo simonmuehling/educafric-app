@@ -74,6 +74,7 @@ import manualPaymentRoutes from "./routes/manual-payments";
 import uploadsRoutes from "./routes/uploads";
 import bulletinRoutes from "./routes/bulletinRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
+import gradeReviewRoutes from "./routes/gradeReview";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
@@ -4823,6 +4824,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
   app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
   app.use('/api/grades', gradesRoutes);
+  // 🔥 PREMIUM RESTRICTED: Grade review system for directors (director role required)
+  app.use('/api/grade-review', checkSubscriptionFeature('advanced_grade_management'), gradeReviewRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
