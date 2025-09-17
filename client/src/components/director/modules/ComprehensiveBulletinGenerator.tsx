@@ -1013,7 +1013,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-comments"
                         checked={includeComments}
-                        onCheckedChange={setIncludeComments}
+                        onCheckedChange={(checked) => setIncludeComments(checked === true)}
                         data-testid="include-comments"
                       />
                       <Label htmlFor="include-comments">{t.includeComments}</Label>
@@ -1022,7 +1022,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-rankings"
                         checked={includeRankings}
-                        onCheckedChange={setIncludeRankings}
+                        onCheckedChange={(checked) => setIncludeRankings(checked === true)}
                         data-testid="include-rankings"
                       />
                       <Label htmlFor="include-rankings">{t.includeRankings}</Label>
@@ -1031,7 +1031,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-statistics"
                         checked={includeStatistics}
-                        onCheckedChange={setIncludeStatistics}
+                        onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
                         data-testid="include-statistics"
                       />
                       <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
@@ -1040,7 +1040,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-performance-levels"
                         checked={includePerformanceLevels}
-                        onCheckedChange={setIncludePerformanceLevels}
+                        onCheckedChange={(checked) => setIncludePerformanceLevels(checked === true)}
                         data-testid="include-performance-levels"
                       />
                       <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
@@ -1059,7 +1059,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-first-trimester"
                         checked={includeFirstTrimester}
-                        onCheckedChange={setIncludeFirstTrimester}
+                        onCheckedChange={(checked) => setIncludeFirstTrimester(checked === true)}
                         data-testid="include-first-trimester"
                       />
                       <Label htmlFor="include-first-trimester">{t.includeFirstTrimester}</Label>
@@ -1068,7 +1068,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-discipline"
                         checked={includeDiscipline}
-                        onCheckedChange={setIncludeDiscipline}
+                        onCheckedChange={(checked) => setIncludeDiscipline(checked === true)}
                         data-testid="include-discipline"
                       />
                       <Label htmlFor="include-discipline">{t.includeDiscipline}</Label>
@@ -1077,7 +1077,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-student-work"
                         checked={includeStudentWork}
-                        onCheckedChange={setIncludeStudentWork}
+                        onCheckedChange={(checked) => setIncludeStudentWork(checked === true)}
                         data-testid="include-student-work"
                       />
                       <Label htmlFor="include-student-work">{t.includeStudentWork}</Label>
@@ -1086,7 +1086,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-class-profile"
                         checked={includeClassProfile}
-                        onCheckedChange={setIncludeClassProfile}
+                        onCheckedChange={(checked) => setIncludeClassProfile(checked === true)}
                         data-testid="include-class-profile"
                       />
                       <Label htmlFor="include-class-profile">{t.includeClassProfile}</Label>
@@ -1105,7 +1105,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-unjustified-absences"
                         checked={includeUnjustifiedAbsences}
-                        onCheckedChange={setIncludeUnjustifiedAbsences}
+                        onCheckedChange={(checked) => setIncludeUnjustifiedAbsences(checked === true)}
                         data-testid="include-unjustified-absences"
                       />
                       <Label htmlFor="include-unjustified-absences">{t.includeUnjustifiedAbsences}</Label>
@@ -1114,7 +1114,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-justified-absences"
                         checked={includeJustifiedAbsences}
-                        onCheckedChange={setIncludeJustifiedAbsences}
+                        onCheckedChange={(checked) => setIncludeJustifiedAbsences(checked === true)}
                         data-testid="include-justified-absences"
                       />
                       <Label htmlFor="include-justified-absences">{t.includeJustifiedAbsences}</Label>
@@ -1123,7 +1123,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-lateness"
                         checked={includeLateness}
-                        onCheckedChange={setIncludeLateness}
+                        onCheckedChange={(checked) => setIncludeLateness(checked === true)}
                         data-testid="include-lateness"
                       />
                       <Label htmlFor="include-lateness">{t.includeLateness}</Label>
@@ -1132,7 +1132,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-detentions"
                         checked={includeDetentions}
-                        onCheckedChange={setIncludeDetentions}
+                        onCheckedChange={(checked) => setIncludeDetentions(checked === true)}
                         data-testid="include-detentions"
                       />
                       <Label htmlFor="include-detentions">{t.includeDetentions}</Label>
@@ -1151,7 +1151,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-conduct-warning"
                         checked={includeConductWarning}
-                        onCheckedChange={setIncludeConductWarning}
+                        onCheckedChange={(checked) => setIncludeConductWarning(checked === true)}
                         data-testid="include-conduct-warning"
                       />
                       <Label htmlFor="include-conduct-warning">{t.includeConductWarning}</Label>
@@ -1160,7 +1160,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-conduct-blame"
                         checked={includeConductBlame}
-                        onCheckedChange={setIncludeConductBlame}
+                        onCheckedChange={(checked) => setIncludeConductBlame(checked === true)}
                         data-testid="include-conduct-blame"
                       />
                       <Label htmlFor="include-conduct-blame">{t.includeConductBlame}</Label>
@@ -1169,7 +1169,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-exclusions"
                         checked={includeExclusions}
-                        onCheckedChange={setIncludeExclusions}
+                        onCheckedChange={(checked) => setIncludeExclusions(checked === true)}
                         data-testid="include-exclusions"
                       />
                       <Label htmlFor="include-exclusions">{t.includeExclusions}</Label>
@@ -1178,7 +1178,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-permanent-exclusion"
                         checked={includePermanentExclusion}
-                        onCheckedChange={setIncludePermanentExclusion}
+                        onCheckedChange={(checked) => setIncludePermanentExclusion(checked === true)}
                         data-testid="include-permanent-exclusion"
                       />
                       <Label htmlFor="include-permanent-exclusion">{t.includePermanentExclusion}</Label>
@@ -1197,7 +1197,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-total-general"
                         checked={includeTotalGeneral}
-                        onCheckedChange={setIncludeTotalGeneral}
+                        onCheckedChange={(checked) => setIncludeTotalGeneral(checked === true)}
                         data-testid="include-total-general"
                       />
                       <Label htmlFor="include-total-general">{t.includeTotalGeneral}</Label>
@@ -1206,7 +1206,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-appreciations"
                         checked={includeAppreciations}
-                        onCheckedChange={setIncludeAppreciations}
+                        onCheckedChange={(checked) => setIncludeAppreciations(checked === true)}
                         data-testid="include-appreciations"
                       />
                       <Label htmlFor="include-appreciations">{t.includeAppreciations}</Label>
@@ -1215,7 +1215,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-general-average"
                         checked={includeGeneralAverage}
-                        onCheckedChange={setIncludeGeneralAverage}
+                        onCheckedChange={(checked) => setIncludeGeneralAverage(checked === true)}
                         data-testid="include-general-average"
                       />
                       <Label htmlFor="include-general-average">{t.includeGeneralAverage}</Label>
@@ -1224,7 +1224,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-trimester-average"
                         checked={includeTrimesterAverage}
-                        onCheckedChange={setIncludeTrimesterAverage}
+                        onCheckedChange={(checked) => setIncludeTrimesterAverage(checked === true)}
                         data-testid="include-trimester-average"
                       />
                       <Label htmlFor="include-trimester-average">{t.includeTrimesterAverage}</Label>
@@ -1233,7 +1233,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-number-of-averages"
                         checked={includeNumberOfAverages}
-                        onCheckedChange={setIncludeNumberOfAverages}
+                        onCheckedChange={(checked) => setIncludeNumberOfAverages(checked === true)}
                         data-testid="include-number-of-averages"
                       />
                       <Label htmlFor="include-number-of-averages">{t.includeNumberOfAverages}</Label>
@@ -1242,7 +1242,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-success-rate"
                         checked={includeSuccessRate}
-                        onCheckedChange={setIncludeSuccessRate}
+                        onCheckedChange={(checked) => setIncludeSuccessRate(checked === true)}
                         data-testid="include-success-rate"
                       />
                       <Label htmlFor="include-success-rate">{t.includeSuccessRate}</Label>
@@ -1261,7 +1261,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-coef"
                         checked={includeCoef}
-                        onCheckedChange={setIncludeCoef}
+                        onCheckedChange={(checked) => setIncludeCoef(checked === true)}
                         data-testid="include-coef"
                       />
                       <Label htmlFor="include-coef">{t.includeCoef}</Label>
@@ -1270,7 +1270,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-ctba"
                         checked={includeCTBA}
-                        onCheckedChange={setIncludeCTBA}
+                        onCheckedChange={(checked) => setIncludeCTBA(checked === true)}
                         data-testid="include-ctba"
                       />
                       <Label htmlFor="include-ctba">{t.includeCTBA}</Label>
@@ -1279,7 +1279,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-min-max"
                         checked={includeMinMax}
-                        onCheckedChange={setIncludeMinMax}
+                        onCheckedChange={(checked) => setIncludeMinMax(checked === true)}
                         data-testid="include-min-max"
                       />
                       <Label htmlFor="include-min-max">{t.includeMinMax}</Label>
@@ -1288,7 +1288,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-cba"
                         checked={includeCBA}
-                        onCheckedChange={setIncludeCBA}
+                        onCheckedChange={(checked) => setIncludeCBA(checked === true)}
                         data-testid="include-cba"
                       />
                       <Label htmlFor="include-cba">{t.includeCBA}</Label>
@@ -1297,7 +1297,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-ca"
                         checked={includeCA}
-                        onCheckedChange={setIncludeCA}
+                        onCheckedChange={(checked) => setIncludeCA(checked === true)}
                         data-testid="include-ca"
                       />
                       <Label htmlFor="include-ca">{t.includeCA}</Label>
@@ -1306,7 +1306,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-cma"
                         checked={includeCMA}
-                        onCheckedChange={setIncludeCMA}
+                        onCheckedChange={(checked) => setIncludeCMA(checked === true)}
                         data-testid="include-cma"
                       />
                       <Label htmlFor="include-cma">{t.includeCMA}</Label>
@@ -1315,7 +1315,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-cote"
                         checked={includeCOTE}
-                        onCheckedChange={setIncludeCOTE}
+                        onCheckedChange={(checked) => setIncludeCOTE(checked === true)}
                         data-testid="include-cote"
                       />
                       <Label htmlFor="include-cote">{t.includeCOTE}</Label>
@@ -1324,7 +1324,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-cna"
                         checked={includeCNA}
-                        onCheckedChange={setIncludeCNA}
+                        onCheckedChange={(checked) => setIncludeCNA(checked === true)}
                         data-testid="include-cna"
                       />
                       <Label htmlFor="include-cna">{t.includeCNA}</Label>
@@ -1343,7 +1343,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-work-appreciation"
                         checked={includeWorkAppreciation}
-                        onCheckedChange={setIncludeWorkAppreciation}
+                        onCheckedChange={(checked) => setIncludeWorkAppreciation(checked === true)}
                         data-testid="include-work-appreciation"
                       />
                       <Label htmlFor="include-work-appreciation">{t.includeWorkAppreciation}</Label>
@@ -1352,7 +1352,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-parent-visa"
                         checked={includeParentVisa}
-                        onCheckedChange={setIncludeParentVisa}
+                        onCheckedChange={(checked) => setIncludeParentVisa(checked === true)}
                         data-testid="include-parent-visa"
                       />
                       <Label htmlFor="include-parent-visa">{t.includeParentVisa}</Label>
@@ -1361,7 +1361,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-teacher-visa"
                         checked={includeTeacherVisa}
-                        onCheckedChange={setIncludeTeacherVisa}
+                        onCheckedChange={(checked) => setIncludeTeacherVisa(checked === true)}
                         data-testid="include-teacher-visa"
                       />
                       <Label htmlFor="include-teacher-visa">{t.includeTeacherVisa}</Label>
@@ -1370,7 +1370,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <Checkbox
                         id="include-headmaster-visa"
                         checked={includeHeadmasterVisa}
-                        onCheckedChange={setIncludeHeadmasterVisa}
+                        onCheckedChange={(checked) => setIncludeHeadmasterVisa(checked === true)}
                         data-testid="include-headmaster-visa"
                       />
                       <Label htmlFor="include-headmaster-visa">{t.includeHeadmasterVisa}</Label>
