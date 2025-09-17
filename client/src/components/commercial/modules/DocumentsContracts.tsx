@@ -264,6 +264,19 @@ const DocumentsContracts = () => {
       url: '/documents/contrat-commercial-educafric-2025-actualise.html',
       description: 'Contrat commercial actualisé pour ventes avec tarification réelle 2025 - Écoles: 50,000-150,000 XAF/an selon type (Publique 50,000, Privée 75,000, GPS 50,000, Complets 90,000-115,000) - Parents: 12,000-18,000 XAF/an selon école - Freelancers: 25,000 XAF/an - Remises familiales et packages multiples disponibles'
     },
+    {
+      id: 34,
+      name: 'CONTRAT DE PARTENARIAT OFFICIEL 2025 - ÉCOLES (Écoles paient Educafric)',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Établissements Scolaires',
+      date: '2025-01-17',
+      status: 'finalized',
+      size: '19.9 KB',
+      format: 'PDF',
+      url: '/documents/contrat-partenariat-ecoles-2025.html',
+      description: 'Contrat officiel 2025 où les écoles paient Educafric pour les services éducatifs - Modèle bilingue (FR/EN) avec espaces pour montant annuel, nombre d\'étudiants, nom et contact de l\'école - Official 2025 contract where schools pay Educafric for educational services - Bilingual template (FR/EN) with spaces for annual amount, student count, school name and contact'
+    },
     
     // Bulk Import Templates - NEW
     {
