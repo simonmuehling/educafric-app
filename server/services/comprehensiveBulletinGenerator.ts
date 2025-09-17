@@ -358,14 +358,11 @@ export class ComprehensiveBulletinGenerator {
       const page = pdfDoc.addPage(PageSizes.A4);
       const { width, height } = page.getSize();
       
-      // Define colors
-      const headerColor = rgb(0.1, 0.2, 0.6); // Dark blue
-      const primaryColor = rgb(0.2, 0.4, 0.8); // Blue
-      const successColor = rgb(0.1, 0.6, 0.1); // Green
-      const warningColor = rgb(0.8, 0.6, 0.1); // Orange
-      const textColor = rgb(0.1, 0.1, 0.1); // Dark gray
-      const lightGray = rgb(0.95, 0.95, 0.95);
-      const borderColor = rgb(0.7, 0.7, 0.7);
+      // Define colors - BLACK AND WHITE ONLY
+      const textColor = rgb(0, 0, 0); // Pure black text
+      const lightGray = rgb(0.95, 0.95, 0.95); // Very light gray for backgrounds
+      const borderColor = rgb(0, 0, 0); // Black borders
+      const whiteColor = rgb(1, 1, 1); // Pure white
       
       // Helper function for text drawing
       const drawText = (text: string, x: number, y: number, options: any = {}) => {
@@ -470,14 +467,14 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ✅ Custom logo positioned at (${logoX}, ${logoY})`);
       }
       
-      currentY -= 100;
+      currentY -= 20; // COMPRESSED: Reduced from 100px to 20px
       
-      // 2. BULLETIN TITLE
+      // 2. BULLETIN TITLE - COMPRESSED
       const bulletinTitle = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
       drawText(bulletinTitle, width / 2, currentY, { 
         font: timesBold, 
-        size: 18, 
-        color: headerColor,
+        size: 16, // REDUCED: From 18 to 16
+        color: textColor, // BLACK TEXT
         align: 'center',
         maxWidth: width - 80
       });
@@ -486,18 +483,18 @@ export class ComprehensiveBulletinGenerator {
         ? `${this.getTermText(studentData.term, 'fr')} ${studentData.academicYear}`
         : `${this.getTermText(studentData.term, 'en')} ${studentData.academicYear}`;
       
-      drawText(periodText, width / 2, currentY - 22, { 
+      drawText(periodText, width / 2, currentY - 18, { // REDUCED: From -22 to -18
         font: helveticaBold, 
-        size: 12, 
-        color: primaryColor,
+        size: 11, // REDUCED: From 12 to 11
+        color: textColor, // BLACK TEXT
         align: 'center',
         maxWidth: width - 80
       });
       
-      currentY -= 60;
+      currentY -= 35; // COMPRESSED: From 60 to 35
       
-      // 3. STUDENT INFORMATION SECTION WITH PHOTO
-      const studentSectionHeight = 70; // Increased height for photo
+      // 3. STUDENT INFORMATION SECTION WITH PHOTO - COMPRESSED
+      const studentSectionHeight = 55; // COMPRESSED: From 70 to 55
       drawRect(40, currentY - studentSectionHeight, width - 80, studentSectionHeight, { 
         color: lightGray, 
         borderColor: borderColor, 
@@ -525,7 +522,7 @@ export class ComprehensiveBulletinGenerator {
         
         // Draw photo border
         drawRect(photoX - 2, photoY - 2, photoDimensions.width + 4, photoDimensions.height + 4, {
-          color: rgb(1, 1, 1),
+          color: whiteColor,
           borderColor: borderColor,
           borderWidth: 1
         });
@@ -623,7 +620,7 @@ export class ComprehensiveBulletinGenerator {
         });
       }
       
-      currentY -= 80;
+      currentY -= 65; // COMPRESSED: From 80 to 65
       
       // 4. GRADES TABLE HEADER
       const tableStartY = currentY;
@@ -634,38 +631,38 @@ export class ComprehensiveBulletinGenerator {
       const tableColWidths = [120, 40, 40, 40, 45, 35, 45, 35, 110];
       const tableStartX = 40;
       
-      // Draw table header background
-      drawRect(tableStartX, currentY - 25, width - 80, 25, { 
-        color: primaryColor, 
+      // Draw table header background - BLACK AND WHITE
+      drawRect(tableStartX, currentY - 22, width - 80, 22, { // COMPRESSED: From 25 to 22
+        color: lightGray, // LIGHT GRAY BACKGROUND
         borderColor: borderColor, 
         borderWidth: 1 
       });
       
-      // Draw table headers
+      // Draw table headers - BLACK TEXT
       let colX = tableStartX + 5;
       tableHeaders.forEach((header, index) => {
-        drawText(header, colX, currentY - 18, { 
+        drawText(header, colX, currentY - 15, { // COMPRESSED: From -18 to -15
           font: helveticaBold, 
-          size: 9, 
-          color: rgb(1, 1, 1) // White text
+          size: 8, // REDUCED: From 9 to 8
+          color: textColor // BLACK TEXT
         });
         colX += tableColWidths[index];
       });
       
-      currentY -= 25;
+      currentY -= 22; // COMPRESSED: From 25 to 22
       
       // 5. SUBJECTS AND GRADES
       let totalPoints = 0;
       let totalCoefficients = 0;
       
       studentData.subjects.forEach((subject, index) => {
-        const rowY = currentY - (index * 20);
+        const rowY = currentY - (index * 16); // COMPRESSED: From 20 to 16
         const isEvenRow = index % 2 === 0;
         
-        // Alternate row background
+        // Alternate row background - LIGHT GRAY ONLY
         if (isEvenRow) {
-          drawRect(tableStartX, rowY - 20, width - 80, 20, { 
-            color: rgb(0.98, 0.98, 0.98),
+          drawRect(tableStartX, rowY - 16, width - 80, 16, { // COMPRESSED: From 20 to 16
+            color: rgb(0.98, 0.98, 0.98), // Very light gray
             borderColor: borderColor,
             borderWidth: 0.5
           });
@@ -695,10 +692,10 @@ export class ComprehensiveBulletinGenerator {
         ];
         
         rowData.forEach((data, colIndex) => {
-          const textSize = colIndex === 0 ? 9 : 8; // Subject name slightly larger
+          const textSize = colIndex === 0 ? 8 : 7; // COMPRESSED: Reduced font sizes
           const font = colIndex === 0 ? helveticaBold : helvetica;
           
-          drawText(data, colX, rowY - 12, { 
+          drawText(data, colX, rowY - 10, { // COMPRESSED: From -12 to -10
             font, 
             size: textSize, 
             color: textColor 
@@ -707,12 +704,12 @@ export class ComprehensiveBulletinGenerator {
         });
       });
       
-      const gradesTableHeight = studentData.subjects.length * 20;
-      currentY -= gradesTableHeight + 10;
+      const gradesTableHeight = studentData.subjects.length * 16; // COMPRESSED: From 20 to 16
+      currentY -= gradesTableHeight + 8; // COMPRESSED: From 10 to 8
       
-      // 6. SUMMARY SECTION
-      drawRect(tableStartX, currentY - 40, width - 80, 40, { 
-        color: successColor, 
+      // 6. SUMMARY SECTION - COMPRESSED
+      drawRect(tableStartX, currentY - 30, width - 80, 30, { // COMPRESSED: From 40 to 30
+        color: lightGray, // LIGHT GRAY BACKGROUND
         borderColor: borderColor, 
         borderWidth: 1 
       });
@@ -721,27 +718,27 @@ export class ComprehensiveBulletinGenerator {
       const averageLabel = options.language === 'fr' ? 'MOYENNE GÉNÉRALE:' : 'OVERALL AVERAGE:';
       const rankLabel = options.language === 'fr' ? 'RANG:' : 'RANK:';
       
-      drawText(averageLabel, tableStartX + 10, currentY - 15, { 
+      drawText(averageLabel, tableStartX + 10, currentY - 12, { // COMPRESSED: From -15 to -12
         font: helveticaBold, 
-        size: 12, 
-        color: rgb(1, 1, 1) 
+        size: 11, // REDUCED: From 12 to 11
+        color: textColor // BLACK TEXT
       });
-      drawText(`${overallAverage.toFixed(2)}/20`, tableStartX + 150, currentY - 15, { 
+      drawText(`${overallAverage.toFixed(2)}/20`, tableStartX + 150, currentY - 12, { // COMPRESSED: From -15 to -12
         font: timesBold, 
-        size: 14, 
-        color: rgb(1, 1, 1) 
+        size: 12, // REDUCED: From 14 to 12
+        color: textColor // BLACK TEXT
       });
       
       if (options.includeRankings) {
-        drawText(rankLabel, tableStartX + 280, currentY - 15, { 
+        drawText(rankLabel, tableStartX + 280, currentY - 12, { // COMPRESSED: From -15 to -12
           font: helveticaBold, 
-          size: 12, 
-          color: rgb(1, 1, 1) 
+          size: 11, // REDUCED: From 12 to 11
+          color: textColor // BLACK TEXT
         });
-        drawText(`${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 330, currentY - 15, { 
+        drawText(`${studentData.classRank}/${studentData.totalStudents}`, tableStartX + 330, currentY - 12, { // COMPRESSED: From -15 to -12
           font: timesBold, 
-          size: 14, 
-          color: rgb(1, 1, 1) 
+          size: 12, // REDUCED: From 14 to 12 
+          color: textColor // BLACK TEXT
         });
       }
       
@@ -750,10 +747,10 @@ export class ComprehensiveBulletinGenerator {
       drawText(appreciation, tableStartX + 10, currentY - 35, { 
         font: helveticaBold, 
         size: 11, 
-        color: rgb(1, 1, 1) 
+        color: textColor // BLACK TEXT
       });
       
-      currentY -= 60;
+      currentY -= 25; // COMPRESSED: From 60 to 25
       
       // 7. CONDUCT AND ATTENDANCE (if available)
       if (studentData.conductGrade || studentData.absences !== undefined) {
@@ -761,7 +758,7 @@ export class ComprehensiveBulletinGenerator {
         drawText(conductLabel, tableStartX, currentY, { 
           font: helveticaBold, 
           size: 11, 
-          color: primaryColor 
+          color: textColor // BLACK TEXT 
         });
         
         let conductText = '';
@@ -780,7 +777,7 @@ export class ComprehensiveBulletinGenerator {
           color: textColor 
         });
         
-        currentY -= 40;
+        currentY -= 25; // COMPRESSED: From 40 to 25
       }
       
       // 8. CLASS STATISTICS (if enabled)
@@ -789,7 +786,7 @@ export class ComprehensiveBulletinGenerator {
         drawText(statsLabel, tableStartX, currentY, { 
           font: helveticaBold, 
           size: 11, 
-          color: primaryColor 
+          color: textColor // BLACK TEXT 
         });
         
         // Calculate class statistics (mock data for now)
@@ -804,7 +801,7 @@ export class ComprehensiveBulletinGenerator {
           color: textColor 
         });
         
-        currentY -= 40;
+        currentY -= 25; // COMPRESSED: From 40 to 25
       }
       
       // 9. SIGNATURES SECTION WITH REAL IMAGES
@@ -870,8 +867,8 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ℹ️ No principal signature available, showing name only`);
       }
       
-      // 10. PERFORMANCE LEVELS SECTION (if enabled)
-      let performanceLevelsY = 150; // Start position for performance levels
+      // 10. PERFORMANCE LEVELS SECTION (if enabled) - COMPRESSED
+      let performanceLevelsY = currentY - 15; // COMPRESSED: Start closer to previous content
       
       if (options.includePerformanceLevels) {
         console.log('[COMPREHENSIVE_PDF] 📖 Including performance levels text');
@@ -885,22 +882,22 @@ export class ComprehensiveBulletinGenerator {
         const performanceHeaderY = performanceLevelsY;
         drawText('NIVEAUX DE RENDEMENT', tableStartX, performanceHeaderY, {
           font: helveticaBold,
-          size: 12,
-          color: headerColor
+          size: 10, // REDUCED: From 12 to 10
+          color: textColor // BLACK TEXT
         });
         
         // Add separator line
         page.drawLine({
-          start: { x: tableStartX, y: performanceHeaderY - 5 },
-          end: { x: tableStartX + tableWidth, y: performanceHeaderY - 5 },
+          start: { x: tableStartX, y: performanceHeaderY - 3 }, // COMPRESSED: From -5 to -3
+          end: { x: tableStartX + tableWidth, y: performanceHeaderY - 3 },
           thickness: 1,
           color: borderColor
         });
         
         // Split the performance text into paragraphs and draw them
         const lines = performanceText.split('\n').filter(line => line.trim() !== '');
-        let currentY = performanceHeaderY - 20;
-        const lineHeight = 12;
+        let currentY = performanceHeaderY - 15; // COMPRESSED: From -20 to -15
+        const lineHeight = 9; // COMPRESSED: From 12 to 9
         const maxLineWidth = tableWidth - 20; // Leave margin on both sides
         
         for (const line of lines) {
@@ -915,7 +912,7 @@ export class ComprehensiveBulletinGenerator {
             drawText(line.trim(), tableStartX + 10, currentY, {
               font: helveticaBold,
               size: 11,
-              color: primaryColor
+              color: textColor // BLACK TEXT
             });
           } else {
             // Word wrap for long lines
@@ -951,15 +948,15 @@ export class ComprehensiveBulletinGenerator {
             }
           }
           
-          currentY -= lineHeight + 2; // Extra space between paragraphs
+          currentY -= lineHeight + 1; // COMPRESSED: From +2 to +1
         }
         
         // Update footer position to account for performance levels section
-        performanceLevelsY = currentY - 20;
+        performanceLevelsY = currentY - 10; // COMPRESSED: From -20 to -10
       }
       
-      // 11. FOOTER WITH QR CODE AND VERIFICATION
-      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 80) : 80;
+      // 11. FOOTER WITH QR CODE AND VERIFICATION - COMPRESSED
+      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 60) : 60; // COMPRESSED: From 80 to 60
       
       // Generate enhanced verification data with real school information
       const verificationCode = crypto.randomUUID();
@@ -1027,7 +1024,7 @@ export class ComprehensiveBulletinGenerator {
           
           // Draw QR code border
           drawRect(qrCodeX - 2, qrCodeY - 2, qrCodeSize + 4, qrCodeSize + 4, {
-            color: rgb(1, 1, 1),
+            color: whiteColor,
             borderColor: borderColor,
             borderWidth: 1
           });
