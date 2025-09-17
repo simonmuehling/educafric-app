@@ -19,7 +19,6 @@ import { checkSubscriptionFeature, checkFreemiumLimits } from "./middleware/subs
 // Import route modules
 import notificationsRouter from "./routes/api/notifications";
 import teachersRouter from "./routes/api/teachers";
-import teacherRbacRouter from "./routes/api/teacher-rbac";
 import studentsRouter from "./routes/students";
 import studentRoutesApi from "./routes/studentRoutes";
 import freelancerRouter from "./routes/freelancer";
@@ -54,7 +53,6 @@ import documentsRouter from "./routes/documents";
 import authRoutes from "./routes/auth";
 import facebookWebhookRoutes from "./routes/facebook-webhook";
 import subscriptionRoutes from "./routes/subscription";
-import bulletinSamplesRoutes from "./routes/bulletinSamplesRoutes";
 import administrationRoutes from "./routes/administration";
 import autofixRoutes from "./routes/autofix";
 import multiRoleRoutes from "./routes/multiRoleRoutes";
@@ -67,9 +65,7 @@ import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
 import whatsappMsSolutionsSetup from "./routes/whatsapp-ms-solutions-setup";
 import classesRoutes from "./routes/classes";
-import gradesRoutes from "./routes/gradesRoutes";
-import subjectsRoutes from "./routes/subjectsRoutes";
-import academicRoutes from "./routes/academicRoutes";
+import gradesRoutes from "./routes/grades";
 import teachersStandalone from "./routes/teachers";
 import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
@@ -189,17 +185,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
-  // Fixed: Only catch HEAD requests to /api root, not all /api/* paths
   app.head('/api', (req, res) => {
-    // Only handle exact /api path, not /api/something
-    if (req.path === '/api') {
-      const callerInfo = `${req.ip}|${req.get('User-Agent')}|${new Date().toISOString()}`;
-      console.log(`[HEAD-ELIMINATION] 🛑 TERMINATED: ${callerInfo}`);
-      req.socket.destroy();
-      return;
-    }
-    // Let other /api/* paths continue to their handlers
-    res.status(404).json({ success: false, message: 'Not found' });
+    // ULTIMATE SOLUTION: Immediate connection termination + process identification
+    const callerInfo = `${req.ip}|${req.get('User-Agent')}|${new Date().toISOString()}`;
+    
+    // Log final identification attempt
+    console.log(`[HEAD-ELIMINATION] 🛑 TERMINATED: ${callerInfo}`);
+    
+    // Immediate connection termination
+    req.socket.destroy();
+    return; // Prevent any response
   });
 
   // Add missing authentication API endpoints
@@ -966,12 +961,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, capacity } = validationResult.data;
       console.log('[ROOMS_API] POST /api/director/rooms - Adding room:', { name, capacity });
 
+      // Validate school access
+      const schoolId = user.schoolId;
+      if (!schoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
+      
       // For now, return success with mock ID. In production, save to database
       const newRoom = {
         id: Math.floor(Math.random() * 1000) + 100,
         name,
         capacity,
-        schoolId: user.schoolId || 1,
+        schoolId,
         isOccupied: false,
         createdAt: new Date().toISOString()
       };
@@ -1045,7 +1049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: Math.floor(Math.random() * 10000) + 1000,
           name: room.name.trim(),
           capacity: capacity,
-          schoolId: user.schoolId || 1,
+          schoolId: user.schoolId || 1, // Sandbox mock data - acceptable for demo
           isOccupied: false,
           createdAt: new Date().toISOString()
         });
@@ -1683,8 +1687,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[STUDENT_TIMETABLE] 🔄 Synchronizing with school schedule...');
       console.log('[STUDENT_TIMETABLE] 📡 Fetching latest timetable from school database...');
       
-      // Récupérer l'ID de l'école de l'étudiant 
-      const studentSchoolId = user.schoolId || 1;
+      // Récupérer l'ID de l'école de l'étudiant avec validation
+      const studentSchoolId = user.schoolId;
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       const studentClass = user.class || '3ème A';
       
       console.log(`[STUDENT_TIMETABLE] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
@@ -1876,8 +1886,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[STUDENT_GRADES] 🔄 Synchronizing with teacher grades database...');
       console.log('[STUDENT_GRADES] 📡 Fetching latest grades from teachers for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant
-      const studentSchoolId = user.schoolId || 1;
+      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
+      const studentSchoolId = user.schoolId;
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       const studentClass = user.class || '3ème A';
       
       console.log(`[STUDENT_GRADES] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
@@ -2067,8 +2083,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[STUDENT_PROGRESS] 🔄 Synchronizing with teacher progress data...');
       console.log('[STUDENT_PROGRESS] 📡 Calculating academic progress for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant
-      const studentSchoolId = user.schoolId || 1;
+      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
+      const studentSchoolId = user.schoolId;
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       const studentClass = user.class || '3ème A';
       
       console.log(`[STUDENT_PROGRESS] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
@@ -2227,8 +2249,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[STUDENT_ACHIEVEMENTS] 🔄 Synchronizing achievements with teacher evaluations...');
       console.log('[STUDENT_ACHIEVEMENTS] 🏆 Calculating earned achievements for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant
-      const studentSchoolId = user.schoolId || 1;
+      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
+      const studentSchoolId = user.schoolId;
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       const studentClass = user.class || '3ème A';
       
       console.log(`[STUDENT_ACHIEVEMENTS] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
@@ -2382,8 +2410,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('[STUDENT_ATTENDANCE] 🔄 Synchronizing with teacher attendance database...');
       console.log('[STUDENT_ATTENDANCE] 📡 Fetching latest attendance from teachers for student:', user.id);
       
-      // Récupérer l'ID de l'école et la classe de l'étudiant
-      const studentSchoolId = user.schoolId || 1;
+      // Récupérer l'ID de l'école et la classe de l'étudiant avec validation
+      const studentSchoolId = user.schoolId;
+      if (!studentSchoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
       const studentClass = user.class || '3ème A';
       
       console.log(`[STUDENT_ATTENDANCE] 🏫 School: ${studentSchoolId}, Class: ${studentClass}`);
@@ -2860,6 +2894,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Validate school access
+      const schoolId = user.schoolId;
+      if (!schoolId) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'School access required' 
+        });
+      }
+      
       // Create absence record
       const newAbsence = {
         id: Math.floor(Math.random() * 10000) + 1000,
@@ -2877,7 +2920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending',
         substitute: 'En recherche',
         submittedAt: new Date().toISOString(),
-        schoolId: user.schoolId || 1
+        schoolId
       };
 
       // ============= AUTOMATIC NOTIFICATIONS SYSTEM =============
@@ -4745,7 +4788,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 🔥 PREMIUM RESTRICTED: Advanced teacher management (unlimited teachers + analytics)
   app.use('/api/teachers', checkSubscriptionFeature('advanced_teacher_management'), checkFreemiumLimits('teachers'), teachersRouter);
   app.use('/api/teacher', teacherRouter);
-  app.use('/api/teacher', requireAuth, teacherRbacRouter);
   
   // 🔥 PREMIUM RESTRICTED: Advanced student management (unlimited students + tracking)
   app.use('/api/students', checkSubscriptionFeature('advanced_student_management'), checkFreemiumLimits('students'), studentsRouter);
@@ -4777,15 +4819,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/whatsapp-setup', checkSubscriptionFeature('advanced_communications'), whatsappMsSolutionsSetup);
   app.use('/api/vonage-messages', checkSubscriptionFeature('advanced_communications'), vonageMessagesRouter);
   
-  // Bulletin samples routes
-  app.use('/api/bulletin-samples', bulletinSamplesRoutes);
-  
   // Additional routes after main registrations  
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
   app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
   app.use('/api/grades', gradesRoutes);
-  app.use('/api/subjects', subjectsRoutes);
-  app.use('/api/academic', academicRoutes);
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
