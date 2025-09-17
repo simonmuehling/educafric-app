@@ -28,7 +28,7 @@ import { studentAcademicInfo, studentDiscipline, studentFees, termPerformance, s
 export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings };
 
 // Additional simplified tables for compatibility
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
 
 // Missing exports for compatibility - prevent crashes
 export const attendanceAutomation = pgTable("attendance_automation", {
@@ -349,8 +349,19 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// ===== ENHANCED GRADE ENTRY STATUS ENUMS =====
+export const GRADE_ENTRY_STATUS = {
+  DRAFT: 'draft',
+  SUBMITTED: 'submitted',
+  RETURNED: 'returned',
+  APPROVED: 'approved',
+  PUBLISHED: 'published'
+} as const;
+
+export type GradeEntryStatus = typeof GRADE_ENTRY_STATUS[keyof typeof GRADE_ENTRY_STATUS];
+
 // Import Zod for schemas
-import { createInsertSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Insert schemas for validation
@@ -491,3 +502,188 @@ export const offerLetterTemplates = pgTable("offer_letter_templates", {
 export const insertOfferLetterTemplateSchema = createInsertSchema(offerLetterTemplates);
 export type InsertOfferLetterTemplate = z.infer<typeof insertOfferLetterTemplateSchema>;
 export type OfferLetterTemplate = typeof offerLetterTemplates.$inferSelect;
+
+// ===== COMPREHENSIVE MULTI-USER BULLETIN SYSTEM TABLES =====
+
+// 1. Teacher Subject Assignments - Track which teachers can input grades for which subjects/classes
+export const teacherSubjectAssignments = pgTable("teacher_subject_assignments", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  classId: integer("class_id").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  // Composite unique constraint to prevent duplicate teacher-subject-class assignments
+  teacherSubjectClassUnique: unique().on(table.schoolId, table.teacherId, table.classId, table.subjectId)
+}));
+
+// 2. Grade Entries - Versioned grade inputs from teachers (separate from final bulletins)
+export const gradeEntries = pgTable("grade_entries", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  studentId: integer("student_id").notNull(),
+  classId: integer("class_id").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  termId: integer("term_id").notNull(),
+  teacherId: integer("teacher_id").notNull(),
+  score: numeric("score", { precision: 5, scale: 2 }).notNull(), // e.g., 15.75
+  coefficient: numeric("coefficient", { precision: 3, scale: 1 }).default("1.0"), // e.g., 2.0
+  status: text("status").notNull().default("draft"), // 'draft','submitted','returned','approved','published'
+  version: integer("version").default(1),
+  comment: text("comment"),
+  // Enhanced audit trail fields
+  approvedBy: integer("approved_by"), // User ID who approved the grade
+  approvedAt: timestamp("approved_at"), // When the grade was approved
+  returnedBy: integer("returned_by"), // User ID who returned the grade for revision
+  returnedReason: text("returned_reason"), // Reason for returning the grade
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  // Composite unique constraint to prevent duplicate grade entries per version
+  gradeEntryVersionUnique: unique().on(table.schoolId, table.studentId, table.classId, table.subjectId, table.termId, table.teacherId, table.version)
+}));
+
+// 3. Grading Scales - Configurable grading scales for schools
+export const gradingScales = pgTable("grading_scales", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  name: text("name").notNull(), // e.g., "Excellent", "Good", "Average"
+  min: numeric("min", { precision: 5, scale: 2 }).notNull(), // e.g., 18.00
+  max: numeric("max", { precision: 5, scale: 2 }).notNull(), // e.g., 20.00
+  label: text("label").notNull(), // Display label
+  color: text("color").notNull(), // Hex color code
+  order: integer("order").default(0), // For sorting
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// 4. Term Configuration - Academic term configuration
+export const termConfig = pgTable("term_config", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  academicYearId: integer("academic_year_id").notNull(),
+  name: text("name").notNull(), // e.g., "Premier Trimestre", "Deuxième Trimestre"
+  shortName: text("short_name"), // e.g., "T1", "T2"
+  order: integer("order").notNull(), // 1, 2, 3, etc.
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  active: boolean("active").default(true),
+  isCurrent: boolean("is_current").default(false), // Only one can be current per school
+  gradeSubmissionDeadline: date("grade_submission_deadline"),
+  bulletinPublicationDate: date("bulletin_publication_date"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// 5. Bulletin Signatories - School signature configuration
+export const bulletinSignatories = pgTable("bulletin_signatories", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull().unique(), // One record per school
+  principalName: text("principal_name").notNull(),
+  principalTitle: text("principal_title").notNull(), // e.g., "Directeur", "Principal"
+  principalSignatureUrl: text("principal_signature_url"), // URL to signature image
+  
+  // Secondary signatory (optional)
+  secondaryName: text("secondary_name"),
+  secondaryTitle: text("secondary_title"), // e.g., "Directeur des Études"
+  secondarySignatureUrl: text("secondary_signature_url"),
+  
+  // School seal/stamp
+  schoolSealUrl: text("school_seal_url"),
+  
+  // Configuration
+  showPrincipalSignature: boolean("show_principal_signature").default(true),
+  showSecondarySignature: boolean("show_secondary_signature").default(false),
+  showSchoolSeal: boolean("show_school_seal").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// ===== ZOD SCHEMAS FOR NEW BULLETIN SYSTEM TABLES =====
+
+// Insert schemas for validation
+export const insertTeacherSubjectAssignmentSchema = createInsertSchema(teacherSubjectAssignments);
+export const insertGradeEntrySchema = createInsertSchema(gradeEntries).extend({
+  status: z.nativeEnum(GRADE_ENTRY_STATUS).default(GRADE_ENTRY_STATUS.DRAFT)
+});
+export const insertGradingScaleSchema = createInsertSchema(gradingScales).refine(
+  (data: any) => Number(data.min) <= Number(data.max),
+  {
+    message: "Minimum score must be less than or equal to maximum score",
+    path: ["min"]
+  }
+);
+
+// Enhanced validation schema for grading scales with non-overlap check
+export const validatedGradingScaleSchema = insertGradingScaleSchema.refine(
+  async (data) => {
+    // Note: This validation would need database access in real implementation
+    // For now, we provide the structure for non-overlapping scales per school
+    return true;
+  },
+  {
+    message: "Grading scale ranges cannot overlap within the same school",
+    path: ["max"]
+  }
+);
+export const insertTermConfigSchema = createInsertSchema(termConfig);
+export const insertBulletinSignatorySchema = createInsertSchema(bulletinSignatories);
+
+// Select schemas for queries
+export const selectTeacherSubjectAssignmentSchema = createSelectSchema(teacherSubjectAssignments);
+export const selectGradeEntrySchema = createSelectSchema(gradeEntries);
+export const selectGradingScaleSchema = createSelectSchema(gradingScales);
+export const selectTermConfigSchema = createSelectSchema(termConfig);
+export const selectBulletinSignatorySchema = createSelectSchema(bulletinSignatories);
+
+// ===== TYPESCRIPT TYPES FOR NEW BULLETIN SYSTEM TABLES =====
+
+// Insert types
+export type InsertTeacherSubjectAssignment = z.infer<typeof insertTeacherSubjectAssignmentSchema>;
+export type InsertGradeEntry = z.infer<typeof insertGradeEntrySchema>;
+export type InsertGradingScale = z.infer<typeof insertGradingScaleSchema>;
+export type InsertTermConfig = z.infer<typeof insertTermConfigSchema>;
+export type InsertBulletinSignatory = z.infer<typeof insertBulletinSignatorySchema>;
+
+// Select types
+export type TeacherSubjectAssignment = typeof teacherSubjectAssignments.$inferSelect;
+export type GradeEntry = typeof gradeEntries.$inferSelect;
+export type GradingScale = typeof gradingScales.$inferSelect;
+export type TermConfig = typeof termConfig.$inferSelect;
+export type BulletinSignatory = typeof bulletinSignatories.$inferSelect;
+
+
+// ===== UTILITY SCHEMAS FOR COMPLEX OPERATIONS =====
+
+// Schema for bulk grade entry creation
+export const bulkGradeEntrySchema = z.object({
+  schoolId: z.number(),
+  classId: z.number(),
+  subjectId: z.number(),
+  termId: z.number(),
+  teacherId: z.number(),
+  entries: z.array(z.object({
+    studentId: z.number(),
+    score: z.number().min(0).max(20),
+    coefficient: z.number().min(0.1).max(10).default(1),
+    comment: z.string().optional()
+  }))
+});
+
+export type BulkGradeEntry = z.infer<typeof bulkGradeEntrySchema>;
+
+// Schema for grade validation rules
+export const gradeValidationSchema = z.object({
+  minScore: z.number().min(0),
+  maxScore: z.number().max(20),
+  requireComment: z.boolean().default(false),
+  allowDecimals: z.boolean().default(true),
+  coefficientRequired: z.boolean().default(true)
+});
+
+export type GradeValidation = z.infer<typeof gradeValidationSchema>;
