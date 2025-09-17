@@ -690,4 +690,347 @@ router.patch('/priority/:id', requireAuth, requireDirectorAuth, async (req, res)
   }
 });
 
+// ===== COMPREHENSIVE BULLETIN GENERATOR API =====
+
+// Get approved students for bulletin generation
+router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+    
+    const { 
+      classId, 
+      term, 
+      academicYear,
+      page = 1,
+      limit = 50 
+    } = req.query;
+
+    console.log('[GRADE_REVIEW] 📋 Fetching approved students:', { classId, term, academicYear, schoolId });
+
+    // Validation
+    if (!classId || !term || !academicYear) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required params: classId, term, academicYear'
+      });
+    }
+
+    if (!['T1', 'T2', 'T3'].includes(term as string)) {
+      return res.status(400).json({
+        success: false,
+        message: 'term must be T1, T2, or T3'
+      });
+    }
+
+    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    // Get students with approved grades
+    const approvedStudents = await db.select({
+      // Student info
+      studentId: teacherGradeSubmissions.studentId,
+      studentName: sql<string>`CONCAT(student.first_name, ' ', student.last_name)`.as('studentName'),
+      studentMatricule: sql<string>`student.matricule`.as('studentMatricule'),
+      classId: teacherGradeSubmissions.classId,
+      className: classes.name,
+      
+      // Grade submission details
+      subjectId: teacherGradeSubmissions.subjectId,
+      subjectName: subjects.nameFr,
+      teacherId: teacherGradeSubmissions.teacherId,
+      teacherName: sql<string>`CONCAT(teacher.first_name, ' ', teacher.last_name)`.as('teacherName'),
+      
+      // Grade data based on term
+      grade: term === 'T1' ? teacherGradeSubmissions.firstEvaluation :
+             term === 'T2' ? teacherGradeSubmissions.secondEvaluation :
+             teacherGradeSubmissions.thirdEvaluation,
+      coefficient: teacherGradeSubmissions.coefficient,
+      subjectComments: teacherGradeSubmissions.subjectComments,
+      
+      // Review information
+      reviewStatus: teacherGradeSubmissions.reviewStatus,
+      reviewedAt: teacherGradeSubmissions.reviewedAt,
+      reviewedBy: teacherGradeSubmissions.reviewedBy
+    })
+    .from(teacherGradeSubmissions)
+    .leftJoin(users.as('student'), eq(teacherGradeSubmissions.studentId, sql`student.id`))
+    .leftJoin(users.as('teacher'), eq(teacherGradeSubmissions.teacherId, sql`teacher.id`))
+    .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+    .leftJoin(classes, eq(teacherGradeSubmissions.classId, classes.id))
+    .where(and(
+      eq(teacherGradeSubmissions.schoolId, schoolId),
+      eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+      eq(teacherGradeSubmissions.term, term as string),
+      eq(teacherGradeSubmissions.academicYear, academicYear as string),
+      eq(teacherGradeSubmissions.reviewStatus, 'approved'),
+      eq(teacherGradeSubmissions.isSubmitted, true)
+    ))
+    .orderBy(sql`student.first_name, student.last_name, subjects.name_fr`)
+    .limit(parseInt(limit as string))
+    .offset(offset);
+
+    // Group by student to calculate averages
+    const studentMap = new Map();
+    
+    approvedStudents.forEach(row => {
+      const studentId = row.studentId;
+      
+      if (!studentMap.has(studentId)) {
+        studentMap.set(studentId, {
+          id: studentId,
+          firstName: row.studentName?.split(' ')[0] || 'Prénom',
+          lastName: row.studentName?.split(' ').slice(1).join(' ') || 'Nom',
+          matricule: row.studentMatricule || `MATR${studentId}`,
+          classId: row.classId,
+          className: row.className,
+          approvedGrades: [],
+          totalPoints: 0,
+          totalCoefficients: 0
+        });
+      }
+      
+      const student = studentMap.get(studentId);
+      const grade = parseFloat(row.grade as string);
+      const coef = parseInt(row.coefficient as string) || 1;
+      
+      if (!isNaN(grade)) {
+        student.approvedGrades.push({
+          id: row.subjectId,
+          studentId: row.studentId,
+          subjectId: row.subjectId,
+          subjectName: row.subjectName || `Matière ${row.subjectId}`,
+          teacherId: row.teacherId,
+          teacherName: row.teacherName || `Enseignant ${row.teacherId}`,
+          [term === 'T1' ? 'firstEvaluation' : term === 'T2' ? 'secondEvaluation' : 'thirdEvaluation']: grade,
+          termAverage: grade,
+          coefficient: coef,
+          subjectComments: row.subjectComments,
+          reviewStatus: 'approved',
+          reviewedAt: row.reviewedAt
+        });
+        
+        student.totalPoints += grade * coef;
+        student.totalCoefficients += coef;
+      }
+    });
+
+    // Calculate overall averages and ranks
+    const students = Array.from(studentMap.values()).map(student => {
+      const overallAverage = student.totalCoefficients > 0 ? 
+        parseFloat((student.totalPoints / student.totalCoefficients).toFixed(2)) : 0;
+      
+      return {
+        ...student,
+        overallAverage
+      };
+    });
+
+    // Calculate class ranks
+    students.sort((a, b) => b.overallAverage - a.overallAverage);
+    students.forEach((student, index) => {
+      student.classRank = index + 1;
+      student.totalStudents = students.length;
+    });
+
+    // Get total count for pagination
+    const totalCount = await db.select({ count: sql<number>`COUNT(DISTINCT ${teacherGradeSubmissions.studentId})` })
+      .from(teacherGradeSubmissions)
+      .where(and(
+        eq(teacherGradeSubmissions.schoolId, schoolId),
+        eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+        eq(teacherGradeSubmissions.term, term as string),
+        eq(teacherGradeSubmissions.academicYear, academicYear as string),
+        eq(teacherGradeSubmissions.reviewStatus, 'approved'),
+        eq(teacherGradeSubmissions.isSubmitted, true)
+      ));
+
+    console.log('[GRADE_REVIEW] ✅ Approved students fetched:', { 
+      studentCount: students.length,
+      totalCount: totalCount[0]?.count || 0 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        students,
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          total: totalCount[0]?.count || 0,
+          totalPages: Math.ceil((totalCount[0]?.count || 0) / parseInt(limit as string))
+        }
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[GRADE_REVIEW] ❌ Error fetching approved students:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch approved students',
+      error: error.message
+    });
+  }
+});
+
+// Get class statistics for bulletin generation
+router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId || 1;
+    
+    const { classId, term, academicYear } = req.query;
+
+    console.log('[GRADE_REVIEW] 📊 Fetching class statistics:', { classId, term, academicYear, schoolId });
+
+    // Validation
+    if (!classId || !term || !academicYear) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required params: classId, term, academicYear'
+      });
+    }
+
+    if (!['T1', 'T2', 'T3'].includes(term as string)) {
+      return res.status(400).json({
+        success: false,
+        message: 'term must be T1, T2, or T3'
+      });
+    }
+
+    // Get all students in the class with submissions
+    const classSubmissions = await db.select({
+      studentId: teacherGradeSubmissions.studentId,
+      reviewStatus: teacherGradeSubmissions.reviewStatus,
+      grade: term === 'T1' ? teacherGradeSubmissions.firstEvaluation :
+             term === 'T2' ? teacherGradeSubmissions.secondEvaluation :
+             teacherGradeSubmissions.thirdEvaluation,
+      coefficient: teacherGradeSubmissions.coefficient
+    })
+    .from(teacherGradeSubmissions)
+    .where(and(
+      eq(teacherGradeSubmissions.schoolId, schoolId),
+      eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+      eq(teacherGradeSubmissions.term, term as string),
+      eq(teacherGradeSubmissions.academicYear, academicYear as string),
+      eq(teacherGradeSubmissions.isSubmitted, true)
+    ));
+
+    // Calculate statistics by student
+    const studentStats = new Map();
+    
+    classSubmissions.forEach(submission => {
+      const studentId = submission.studentId;
+      
+      if (!studentStats.has(studentId)) {
+        studentStats.set(studentId, {
+          totalSubmissions: 0,
+          approvedSubmissions: 0,
+          pendingSubmissions: 0,
+          totalPoints: 0,
+          totalCoefficients: 0,
+          hasAnyApproved: false
+        });
+      }
+      
+      const stats = studentStats.get(studentId);
+      stats.totalSubmissions++;
+      
+      if (submission.reviewStatus === 'approved') {
+        stats.approvedSubmissions++;
+        stats.hasAnyApproved = true;
+        
+        const grade = parseFloat(submission.grade as string);
+        const coef = parseInt(submission.coefficient as string) || 1;
+        
+        if (!isNaN(grade)) {
+          stats.totalPoints += grade * coef;
+          stats.totalCoefficients += coef;
+        }
+      } else if (submission.reviewStatus === 'pending') {
+        stats.pendingSubmissions++;
+      }
+    });
+
+    // Aggregate class statistics
+    const totalStudents = studentStats.size;
+    let approvedStudents = 0;
+    let pendingStudents = 0;
+    let totalClassPoints = 0;
+    let totalClassCoefficients = 0;
+
+    studentStats.forEach(stats => {
+      if (stats.hasAnyApproved) {
+        approvedStudents++;
+        totalClassPoints += stats.totalCoefficients > 0 ? stats.totalPoints / stats.totalCoefficients : 0;
+        totalClassCoefficients++;
+      }
+      if (stats.pendingSubmissions > 0) {
+        pendingStudents++;
+      }
+    });
+
+    const completionRate = totalStudents > 0 ? 
+      parseFloat(((approvedStudents / totalStudents) * 100).toFixed(1)) : 0;
+    
+    const averageGrade = totalClassCoefficients > 0 ? 
+      parseFloat((totalClassPoints / totalClassCoefficients).toFixed(2)) : 0;
+
+    // Get review status breakdown
+    const statusBreakdown = await db.select({
+      reviewStatus: teacherGradeSubmissions.reviewStatus,
+      count: sql<number>`COUNT(DISTINCT ${teacherGradeSubmissions.studentId})`
+    })
+    .from(teacherGradeSubmissions)
+    .where(and(
+      eq(teacherGradeSubmissions.schoolId, schoolId),
+      eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+      eq(teacherGradeSubmissions.term, term as string),
+      eq(teacherGradeSubmissions.academicYear, academicYear as string),
+      eq(teacherGradeSubmissions.isSubmitted, true)
+    ))
+    .groupBy(teacherGradeSubmissions.reviewStatus);
+
+    const statusSummary = statusBreakdown.reduce((acc: any, item: any) => {
+      acc[item.reviewStatus] = item.count;
+      return acc;
+    }, {
+      pending: 0,
+      approved: 0,
+      returned: 0,
+      under_review: 0,
+      changes_requested: 0
+    });
+
+    console.log('[GRADE_REVIEW] ✅ Class statistics calculated:', { 
+      totalStudents, 
+      approvedStudents, 
+      completionRate 
+    });
+
+    res.json({
+      success: true,
+      data: {
+        classId: parseInt(classId as string),
+        term,
+        academicYear,
+        totalStudents,
+        approvedStudents,
+        pendingStudents,
+        completionRate,
+        averageGrade,
+        statusSummary,
+        readyForBulletins: approvedStudents > 0
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[GRADE_REVIEW] ❌ Error fetching class statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch class statistics',
+      error: error.message
+    });
+  }
+});
+
 export default router;

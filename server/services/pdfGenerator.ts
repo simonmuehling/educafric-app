@@ -72,7 +72,8 @@ export class PDFGenerator {
     matricule?: string;
     studentId?: string;
   }): Promise<number> {
-    let yPosition = 12;
+    try {
+      let yPosition = 12;
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 15;
     
