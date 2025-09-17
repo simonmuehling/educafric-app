@@ -39,7 +39,8 @@ import {
   Star,
   TrendingUp,
   Filter,
-  Search
+  Search,
+  Clock
 } from 'lucide-react';
 import {
   Dialog,
@@ -133,6 +134,48 @@ interface BulletinGenerationRequest {
   includeStatistics: boolean;
   includePerformanceLevels: boolean;
   format: 'pdf' | 'batch_pdf';
+  
+  // Section Évaluation & Trimestre
+  includeFirstTrimester: boolean;
+  includeDiscipline: boolean;
+  includeStudentWork: boolean;
+  includeClassProfile: boolean;
+  
+  // Section Absences & Retards
+  includeUnjustifiedAbsences: boolean;
+  includeJustifiedAbsences: boolean;
+  includeLateness: boolean;
+  includeDetentions: boolean;
+  
+  // Section Sanctions Disciplinaires
+  includeConductWarning: boolean;
+  includeConductBlame: boolean;
+  includeExclusions: boolean;
+  includePermanentExclusion: boolean;
+  
+  // Section Moyennes & Totaux
+  includeTotalGeneral: boolean;
+  includeAppreciations: boolean;
+  includeGeneralAverage: boolean;
+  includeTrimesterAverage: boolean;
+  includeNumberOfAverages: boolean;
+  includeSuccessRate: boolean;
+  
+  // Section Coefficients & Codes
+  includeCoef: boolean;
+  includeCTBA: boolean;
+  includeMinMax: boolean;
+  includeCBA: boolean;
+  includeCA: boolean;
+  includeCMA: boolean;
+  includeCOTE: boolean;
+  includeCNA: boolean;
+  
+  // Section Appréciations & Signatures
+  includeWorkAppreciation: boolean;
+  includeParentVisa: boolean;
+  includeTeacherVisa: boolean;
+  includeHeadmasterVisa: boolean;
 }
 
 interface GenerationProgress {
@@ -161,6 +204,48 @@ export default function ComprehensiveBulletinGenerator() {
   const [includeStatistics, setIncludeStatistics] = useState(true);
   const [includePerformanceLevels, setIncludePerformanceLevels] = useState(true);
   const [generationFormat, setGenerationFormat] = useState<'pdf' | 'batch_pdf'>('pdf');
+  
+  // Section Évaluation & Trimestre
+  const [includeFirstTrimester, setIncludeFirstTrimester] = useState(false);
+  const [includeDiscipline, setIncludeDiscipline] = useState(false);
+  const [includeStudentWork, setIncludeStudentWork] = useState(false);
+  const [includeClassProfile, setIncludeClassProfile] = useState(false);
+  
+  // Section Absences & Retards
+  const [includeUnjustifiedAbsences, setIncludeUnjustifiedAbsences] = useState(false);
+  const [includeJustifiedAbsences, setIncludeJustifiedAbsences] = useState(false);
+  const [includeLateness, setIncludeLateness] = useState(false);
+  const [includeDetentions, setIncludeDetentions] = useState(false);
+  
+  // Section Sanctions Disciplinaires
+  const [includeConductWarning, setIncludeConductWarning] = useState(false);
+  const [includeConductBlame, setIncludeConductBlame] = useState(false);
+  const [includeExclusions, setIncludeExclusions] = useState(false);
+  const [includePermanentExclusion, setIncludePermanentExclusion] = useState(false);
+  
+  // Section Moyennes & Totaux
+  const [includeTotalGeneral, setIncludeTotalGeneral] = useState(false);
+  const [includeAppreciations, setIncludeAppreciations] = useState(false);
+  const [includeGeneralAverage, setIncludeGeneralAverage] = useState(false);
+  const [includeTrimesterAverage, setIncludeTrimesterAverage] = useState(false);
+  const [includeNumberOfAverages, setIncludeNumberOfAverages] = useState(false);
+  const [includeSuccessRate, setIncludeSuccessRate] = useState(false);
+  
+  // Section Coefficients & Codes
+  const [includeCoef, setIncludeCoef] = useState(false);
+  const [includeCTBA, setIncludeCTBA] = useState(false);
+  const [includeMinMax, setIncludeMinMax] = useState(false);
+  const [includeCBA, setIncludeCBA] = useState(false);
+  const [includeCA, setIncludeCA] = useState(false);
+  const [includeCMA, setIncludeCMA] = useState(false);
+  const [includeCOTE, setIncludeCOTE] = useState(false);
+  const [includeCNA, setIncludeCNA] = useState(false);
+  
+  // Section Appréciations & Signatures
+  const [includeWorkAppreciation, setIncludeWorkAppreciation] = useState(false);
+  const [includeParentVisa, setIncludeParentVisa] = useState(false);
+  const [includeTeacherVisa, setIncludeTeacherVisa] = useState(false);
+  const [includeHeadmasterVisa, setIncludeHeadmasterVisa] = useState(false);
   
   // Dialog states
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
@@ -206,6 +291,54 @@ export default function ComprehensiveBulletinGenerator() {
       outputFormat: 'Format de sortie',
       individualPdf: 'PDF individuels',
       batchPdf: 'PDF groupé (un fichier)',
+      
+      // Section Évaluation & Trimestre
+      sectionEvaluation: 'Évaluation & Trimestre',
+      includeFirstTrimester: '1er trimestre',
+      includeDiscipline: 'Discipline',
+      includeStudentWork: 'Travail de l\'élève',
+      includeClassProfile: 'Profil de la classe',
+      
+      // Section Absences & Retards
+      sectionAbsences: 'Absences & Retards',
+      includeUnjustifiedAbsences: 'Abs. non. J. (h)',
+      includeJustifiedAbsences: 'Abs just. (h)',
+      includeLateness: 'Retards (nombre de fois)',
+      includeDetentions: 'Consignes (heures)',
+      
+      // Section Sanctions Disciplinaires
+      sectionSanctions: 'Sanctions Disciplinaires',
+      includeConductWarning: 'Avertissement de conduite',
+      includeConductBlame: 'Blâme de conduite',
+      includeExclusions: 'Exclusions (jours)',
+      includePermanentExclusion: 'Exclusion définitive',
+      
+      // Section Moyennes & Totaux
+      sectionAverages: 'Moyennes & Totaux',
+      includeTotalGeneral: 'TOTAL GÉNÉRAL',
+      includeAppreciations: 'APPRÉCIATIONS',
+      includeGeneralAverage: 'Moyenne Générale',
+      includeTrimesterAverage: 'MOYENNE TRIM',
+      includeNumberOfAverages: 'Nombre de moyennes',
+      includeSuccessRate: 'Taux de réussite',
+      
+      // Section Coefficients & Codes
+      sectionCoefficients: 'Coefficients & Codes',
+      includeCoef: 'COEF',
+      includeCTBA: 'CTBA',
+      includeMinMax: '[Min – Max]',
+      includeCBA: 'CBA',
+      includeCA: 'CA',
+      includeCMA: 'CMA',
+      includeCOTE: 'COTE',
+      includeCNA: 'CNA',
+      
+      // Section Appréciations & Signatures
+      sectionSignatures: 'Appréciations & Signatures',
+      includeWorkAppreciation: 'Appréciation du travail de l\'élève (points forts et points à améliorer)',
+      includeParentVisa: 'Visa du parent / Tuteur',
+      includeTeacherVisa: 'Nom et visa du professeur principal',
+      includeHeadmasterVisa: 'Le Chef d\'établissement',
       
       // Actions
       previewBulletin: 'Aperçu du bulletin',
@@ -288,6 +421,54 @@ export default function ComprehensiveBulletinGenerator() {
       outputFormat: 'Output format',
       individualPdf: 'Individual PDFs',
       batchPdf: 'Batch PDF (single file)',
+      
+      // Section Évaluation & Trimestre
+      sectionEvaluation: 'Evaluation & Term',
+      includeFirstTrimester: 'First term',
+      includeDiscipline: 'Discipline',
+      includeStudentWork: 'Student work',
+      includeClassProfile: 'Class profile',
+      
+      // Section Absences & Retards
+      sectionAbsences: 'Absences & Lateness',
+      includeUnjustifiedAbsences: 'Unjust. Abs. (h)',
+      includeJustifiedAbsences: 'Just. Abs. (h)',
+      includeLateness: 'Lateness (number of times)',
+      includeDetentions: 'Detentions (hours)',
+      
+      // Section Sanctions Disciplinaires
+      sectionSanctions: 'Disciplinary Sanctions',
+      includeConductWarning: 'Conduct warning',
+      includeConductBlame: 'Conduct blame',
+      includeExclusions: 'Exclusions (days)',
+      includePermanentExclusion: 'Permanent exclusion',
+      
+      // Section Moyennes & Totaux
+      sectionAverages: 'Averages & Totals',
+      includeTotalGeneral: 'GENERAL TOTAL',
+      includeAppreciations: 'APPRECIATIONS',
+      includeGeneralAverage: 'General Average',
+      includeTrimesterAverage: 'TERM AVERAGE',
+      includeNumberOfAverages: 'Number of averages',
+      includeSuccessRate: 'Success rate',
+      
+      // Section Coefficients & Codes
+      sectionCoefficients: 'Coefficients & Codes',
+      includeCoef: 'COEF',
+      includeCTBA: 'CTBA',
+      includeMinMax: '[Min – Max]',
+      includeCBA: 'CBA',
+      includeCA: 'CA',
+      includeCMA: 'CMA',
+      includeCOTE: 'GRADE',
+      includeCNA: 'CNA',
+      
+      // Section Appréciations & Signatures
+      sectionSignatures: 'Appreciations & Signatures',
+      includeWorkAppreciation: 'Student work appreciation (strengths and areas to improve)',
+      includeParentVisa: 'Parent/Guardian visa',
+      includeTeacherVisa: 'Main teacher name and visa',
+      includeHeadmasterVisa: 'The School Head',
       
       // Actions
       previewBulletin: 'Preview bulletin',
@@ -501,7 +682,49 @@ export default function ComprehensiveBulletinGenerator() {
       includeRankings,
       includeStatistics,
       includePerformanceLevels,
-      format: generationFormat
+      format: generationFormat,
+      
+      // Section Évaluation & Trimestre
+      includeFirstTrimester,
+      includeDiscipline,
+      includeStudentWork,
+      includeClassProfile,
+      
+      // Section Absences & Retards
+      includeUnjustifiedAbsences,
+      includeJustifiedAbsences,
+      includeLateness,
+      includeDetentions,
+      
+      // Section Sanctions Disciplinaires
+      includeConductWarning,
+      includeConductBlame,
+      includeExclusions,
+      includePermanentExclusion,
+      
+      // Section Moyennes & Totaux
+      includeTotalGeneral,
+      includeAppreciations,
+      includeGeneralAverage,
+      includeTrimesterAverage,
+      includeNumberOfAverages,
+      includeSuccessRate,
+      
+      // Section Coefficients & Codes
+      includeCoef,
+      includeCTBA,
+      includeMinMax,
+      includeCBA,
+      includeCA,
+      includeCMA,
+      includeCOTE,
+      includeCNA,
+      
+      // Section Appréciations & Signatures
+      includeWorkAppreciation,
+      includeParentVisa,
+      includeTeacherVisa,
+      includeHeadmasterVisa
     };
 
     generateMutation.mutate(request);
@@ -775,45 +998,383 @@ export default function ComprehensiveBulletinGenerator() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Content Options */}
-              <div className="space-y-4">
+              {/* Content Options - Organized in Logical Sections */}
+              <div className="space-y-8">
                 <h3 className="text-lg font-semibold">Contenu du bulletin</h3>
-                <div className="grid gap-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="include-comments"
-                      checked={includeComments}
-                      onCheckedChange={setIncludeComments}
-                      data-testid="include-comments"
-                    />
-                    <Label htmlFor="include-comments">{t.includeComments}</Label>
+                
+                {/* Basic Options (Keep existing) */}
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Options de base
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-comments"
+                        checked={includeComments}
+                        onCheckedChange={setIncludeComments}
+                        data-testid="include-comments"
+                      />
+                      <Label htmlFor="include-comments">{t.includeComments}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-rankings"
+                        checked={includeRankings}
+                        onCheckedChange={setIncludeRankings}
+                        data-testid="include-rankings"
+                      />
+                      <Label htmlFor="include-rankings">{t.includeRankings}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-statistics"
+                        checked={includeStatistics}
+                        onCheckedChange={setIncludeStatistics}
+                        data-testid="include-statistics"
+                      />
+                      <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-performance-levels"
+                        checked={includePerformanceLevels}
+                        onCheckedChange={setIncludePerformanceLevels}
+                        data-testid="include-performance-levels"
+                      />
+                      <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="include-rankings"
-                      checked={includeRankings}
-                      onCheckedChange={setIncludeRankings}
-                      data-testid="include-rankings"
-                    />
-                    <Label htmlFor="include-rankings">{t.includeRankings}</Label>
+                </div>
+
+                {/* Section Évaluation & Trimestre */}
+                <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {t.sectionEvaluation}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-first-trimester"
+                        checked={includeFirstTrimester}
+                        onCheckedChange={setIncludeFirstTrimester}
+                        data-testid="include-first-trimester"
+                      />
+                      <Label htmlFor="include-first-trimester">{t.includeFirstTrimester}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-discipline"
+                        checked={includeDiscipline}
+                        onCheckedChange={setIncludeDiscipline}
+                        data-testid="include-discipline"
+                      />
+                      <Label htmlFor="include-discipline">{t.includeDiscipline}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-student-work"
+                        checked={includeStudentWork}
+                        onCheckedChange={setIncludeStudentWork}
+                        data-testid="include-student-work"
+                      />
+                      <Label htmlFor="include-student-work">{t.includeStudentWork}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-class-profile"
+                        checked={includeClassProfile}
+                        onCheckedChange={setIncludeClassProfile}
+                        data-testid="include-class-profile"
+                      />
+                      <Label htmlFor="include-class-profile">{t.includeClassProfile}</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="include-statistics"
-                      checked={includeStatistics}
-                      onCheckedChange={setIncludeStatistics}
-                      data-testid="include-statistics"
-                    />
-                    <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
+                </div>
+
+                {/* Section Absences & Retards */}
+                <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t.sectionAbsences}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-unjustified-absences"
+                        checked={includeUnjustifiedAbsences}
+                        onCheckedChange={setIncludeUnjustifiedAbsences}
+                        data-testid="include-unjustified-absences"
+                      />
+                      <Label htmlFor="include-unjustified-absences">{t.includeUnjustifiedAbsences}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-justified-absences"
+                        checked={includeJustifiedAbsences}
+                        onCheckedChange={setIncludeJustifiedAbsences}
+                        data-testid="include-justified-absences"
+                      />
+                      <Label htmlFor="include-justified-absences">{t.includeJustifiedAbsences}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-lateness"
+                        checked={includeLateness}
+                        onCheckedChange={setIncludeLateness}
+                        data-testid="include-lateness"
+                      />
+                      <Label htmlFor="include-lateness">{t.includeLateness}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-detentions"
+                        checked={includeDetentions}
+                        onCheckedChange={setIncludeDetentions}
+                        data-testid="include-detentions"
+                      />
+                      <Label htmlFor="include-detentions">{t.includeDetentions}</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="include-performance-levels"
-                      checked={includePerformanceLevels}
-                      onCheckedChange={setIncludePerformanceLevels}
-                      data-testid="include-performance-levels"
-                    />
-                    <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                </div>
+
+                {/* Section Sanctions Disciplinaires */}
+                <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-red-700 dark:text-red-300 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    {t.sectionSanctions}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-conduct-warning"
+                        checked={includeConductWarning}
+                        onCheckedChange={setIncludeConductWarning}
+                        data-testid="include-conduct-warning"
+                      />
+                      <Label htmlFor="include-conduct-warning">{t.includeConductWarning}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-conduct-blame"
+                        checked={includeConductBlame}
+                        onCheckedChange={setIncludeConductBlame}
+                        data-testid="include-conduct-blame"
+                      />
+                      <Label htmlFor="include-conduct-blame">{t.includeConductBlame}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-exclusions"
+                        checked={includeExclusions}
+                        onCheckedChange={setIncludeExclusions}
+                        data-testid="include-exclusions"
+                      />
+                      <Label htmlFor="include-exclusions">{t.includeExclusions}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-permanent-exclusion"
+                        checked={includePermanentExclusion}
+                        onCheckedChange={setIncludePermanentExclusion}
+                        data-testid="include-permanent-exclusion"
+                      />
+                      <Label htmlFor="include-permanent-exclusion">{t.includePermanentExclusion}</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Moyennes & Totaux */}
+                <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <Calculator className="h-4 w-4" />
+                    {t.sectionAverages}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-total-general"
+                        checked={includeTotalGeneral}
+                        onCheckedChange={setIncludeTotalGeneral}
+                        data-testid="include-total-general"
+                      />
+                      <Label htmlFor="include-total-general">{t.includeTotalGeneral}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-appreciations"
+                        checked={includeAppreciations}
+                        onCheckedChange={setIncludeAppreciations}
+                        data-testid="include-appreciations"
+                      />
+                      <Label htmlFor="include-appreciations">{t.includeAppreciations}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-general-average"
+                        checked={includeGeneralAverage}
+                        onCheckedChange={setIncludeGeneralAverage}
+                        data-testid="include-general-average"
+                      />
+                      <Label htmlFor="include-general-average">{t.includeGeneralAverage}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-trimester-average"
+                        checked={includeTrimesterAverage}
+                        onCheckedChange={setIncludeTrimesterAverage}
+                        data-testid="include-trimester-average"
+                      />
+                      <Label htmlFor="include-trimester-average">{t.includeTrimesterAverage}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-number-of-averages"
+                        checked={includeNumberOfAverages}
+                        onCheckedChange={setIncludeNumberOfAverages}
+                        data-testid="include-number-of-averages"
+                      />
+                      <Label htmlFor="include-number-of-averages">{t.includeNumberOfAverages}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-success-rate"
+                        checked={includeSuccessRate}
+                        onCheckedChange={setIncludeSuccessRate}
+                        data-testid="include-success-rate"
+                      />
+                      <Label htmlFor="include-success-rate">{t.includeSuccessRate}</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Coefficients & Codes */}
+                <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    {t.sectionCoefficients}
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-coef"
+                        checked={includeCoef}
+                        onCheckedChange={setIncludeCoef}
+                        data-testid="include-coef"
+                      />
+                      <Label htmlFor="include-coef">{t.includeCoef}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-ctba"
+                        checked={includeCTBA}
+                        onCheckedChange={setIncludeCTBA}
+                        data-testid="include-ctba"
+                      />
+                      <Label htmlFor="include-ctba">{t.includeCTBA}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-min-max"
+                        checked={includeMinMax}
+                        onCheckedChange={setIncludeMinMax}
+                        data-testid="include-min-max"
+                      />
+                      <Label htmlFor="include-min-max">{t.includeMinMax}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-cba"
+                        checked={includeCBA}
+                        onCheckedChange={setIncludeCBA}
+                        data-testid="include-cba"
+                      />
+                      <Label htmlFor="include-cba">{t.includeCBA}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-ca"
+                        checked={includeCA}
+                        onCheckedChange={setIncludeCA}
+                        data-testid="include-ca"
+                      />
+                      <Label htmlFor="include-ca">{t.includeCA}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-cma"
+                        checked={includeCMA}
+                        onCheckedChange={setIncludeCMA}
+                        data-testid="include-cma"
+                      />
+                      <Label htmlFor="include-cma">{t.includeCMA}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-cote"
+                        checked={includeCOTE}
+                        onCheckedChange={setIncludeCOTE}
+                        data-testid="include-cote"
+                      />
+                      <Label htmlFor="include-cote">{t.includeCOTE}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-cna"
+                        checked={includeCNA}
+                        onCheckedChange={setIncludeCNA}
+                        data-testid="include-cna"
+                      />
+                      <Label htmlFor="include-cna">{t.includeCNA}</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Appréciations & Signatures */}
+                <div className="bg-teal-50 dark:bg-teal-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    {t.sectionSignatures}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-work-appreciation"
+                        checked={includeWorkAppreciation}
+                        onCheckedChange={setIncludeWorkAppreciation}
+                        data-testid="include-work-appreciation"
+                      />
+                      <Label htmlFor="include-work-appreciation">{t.includeWorkAppreciation}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-parent-visa"
+                        checked={includeParentVisa}
+                        onCheckedChange={setIncludeParentVisa}
+                        data-testid="include-parent-visa"
+                      />
+                      <Label htmlFor="include-parent-visa">{t.includeParentVisa}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-teacher-visa"
+                        checked={includeTeacherVisa}
+                        onCheckedChange={setIncludeTeacherVisa}
+                        data-testid="include-teacher-visa"
+                      />
+                      <Label htmlFor="include-teacher-visa">{t.includeTeacherVisa}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-headmaster-visa"
+                        checked={includeHeadmasterVisa}
+                        onCheckedChange={setIncludeHeadmasterVisa}
+                        data-testid="include-headmaster-visa"
+                      />
+                      <Label htmlFor="include-headmaster-visa">{t.includeHeadmasterVisa}</Label>
+                    </div>
                   </div>
                 </div>
               </div>
