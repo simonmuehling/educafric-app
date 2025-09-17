@@ -5812,6 +5812,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
+  
+  // ✅ ROUTE NOUVEAU GÉNÉRATEUR OPTIMISÉ - ESPACE INTELLIGENT ET ZÉRO CHEVAUCHEMENT
+  app.post('/api/optimized-bulletins/sample', async (req, res) => {
+    try {
+      console.log('[OPTIMIZED_BULLETIN] 🎯 Génération bulletin optimisé avec espacement intelligent');
+
+      const { term = 'T3', language = 'fr', ...options } = req.body;
+
+      // Import du nouveau générateur optimisé
+      const { OptimizedBulletinGenerator } = await import('./services/optimizedBulletinGenerator.js');
+
+      // Données réalistes pour test
+      const schoolInfo = {
+        id: 1,
+        name: 'Collège Excellence Africaine',
+        address: 'Quartier Bastos, Yaoundé',
+        phone: '+237 222 345 678',
+        email: 'info@college-excellence.cm',
+        logoUrl: null,
+        region: 'CENTRE',
+        delegation: 'MFOUNDI'
+      };
+
+      const studentData = {
+        id: 1,
+        firstName: 'Marie-Claire',
+        lastName: 'NKOMO MBALLA',
+        matricule: 'CEA-2024-0157',
+        birthDate: '2010-03-15',
+        birthPlace: 'Yaoundé',
+        gender: 'Féminin',
+        class: '6ème A Sciences',
+        term: term,
+        academicYear: '2024-2025',
+        rank: '3/35',
+        subjects: [
+          { subjectId: 1, subjectName: 'Mathématiques', coefficient: 4, termAverage: 17.5, maxScore: 20, teacherId: 1, teacherName: 'M. KONÉ Joachim', comments: 'Excellent travail' },
+          { subjectId: 2, subjectName: 'Français', coefficient: 4, termAverage: 15.0, maxScore: 20, teacherId: 2, teacherName: 'Mme DIALLO Aminata', comments: 'Très bien' },
+          { subjectId: 3, subjectName: 'Anglais', coefficient: 3, termAverage: 16.5, maxScore: 20, teacherId: 3, teacherName: 'M. SMITH John', comments: 'Good progress' },
+          { subjectId: 4, subjectName: 'Histoire-Géographie', coefficient: 3, termAverage: 14.5, maxScore: 20, teacherId: 4, teacherName: 'M. OUÉDRAOGO Bakary', comments: 'Bien' },
+          { subjectId: 5, subjectName: 'Sciences Physiques', coefficient: 3, termAverage: 18.0, maxScore: 20, teacherId: 5, teacherName: 'Mme CAMARA Fatoumata', comments: 'Excellent' },
+          { subjectId: 6, subjectName: 'Sciences Naturelles (SVT)', coefficient: 3, termAverage: 16.5, maxScore: 20, teacherId: 6, teacherName: 'M. TRAORÉ Moussa', comments: 'Très bien' },
+          { subjectId: 7, subjectName: 'Éducation Physique', coefficient: 1, termAverage: 18.5, maxScore: 20, teacherId: 7, teacherName: 'M. BAMBA Seydou', comments: 'Excellent' },
+          { subjectId: 8, subjectName: 'Arts Plastiques', coefficient: 1, termAverage: 16.0, maxScore: 20, teacherId: 8, teacherName: 'Mme NDOUMBE Clarisse', comments: 'Bien' },
+          { subjectId: 9, subjectName: 'Informatique', coefficient: 2, termAverage: 18.5, maxScore: 20, teacherId: 9, teacherName: 'M. MVOGO Christian', comments: 'Excellent' }
+        ]
+      };
+
+      const bulletinOptions = {
+        includeComments: true,
+        includeRankings: true,
+        includeStatistics: true,
+        includePerformanceLevels: true,
+        includeQRCode: true,
+        language: language,
+        format: 'A4',
+        orientation: 'portrait',
+        ...options
+      };
+
+      console.log('[OPTIMIZED_BULLETIN] 📊 Génération avec options:', {
+        term,
+        language,
+        studentName: `${studentData.firstName} ${studentData.lastName}`,
+        subjectCount: studentData.subjects.length
+      });
+
+      // Génération du bulletin optimisé
+      const pdfBuffer = await OptimizedBulletinGenerator.generateOptimizedBulletin(
+        studentData,
+        schoolInfo,
+        bulletinOptions
+      );
+
+      // Sauvegarde du fichier
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const filename = `optimized-bulletin-${term.toLowerCase()}-${language}.pdf`;
+      const filepath = path.join(process.cwd(), 'public', 'samples', filename);
+      
+      // S'assurer que le dossier existe
+      const sampleDir = path.dirname(filepath);
+      if (!fs.existsSync(sampleDir)) {
+        fs.mkdirSync(sampleDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(filepath, pdfBuffer);
+      
+      console.log('[OPTIMIZED_BULLETIN] ✅ Bulletin optimisé généré:', {
+        filename,
+        size: pdfBuffer.length,
+        path: filepath
+      });
+
+      res.json({
+        success: true,
+        message: 'Bulletin optimisé généré avec succès',
+        data: {
+          filename,
+          path: `public/samples/${filename}`,
+          url: `/samples/${filename}`,
+          term,
+          language,
+          student: {
+            name: `${studentData.firstName} ${studentData.lastName}`,
+            class: studentData.class,
+            rank: studentData.rank
+          },
+          features: {
+            totalSubjects: studentData.subjects.length,
+            intelligentSpacing: true,
+            zeroOverlaps: true,
+            fullA4Optimization: true,
+            ...bulletinOptions
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('[OPTIMIZED_BULLETIN] ❌ Erreur:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la génération du bulletin optimisé',
+        error: error.message
+      });
+    }
+  });
+  
   app.use('/api/templates', templateRoutes);
   
   // ✅ ROUTES BULLETIN T3 AVEC MOYENNES ANNUELLES (via route directe)

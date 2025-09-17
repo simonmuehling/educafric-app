@@ -1,0 +1,677 @@
+// OPTIMIZED BULLETIN GENERATOR - INTELLIGENT SPACING & NO OVERLAPS
+// Professional academic bulletins with automatic layout optimization for A4
+import { PDFDocument, StandardFonts, rgb, PageSizes, PDFImage } from 'pdf-lib';
+import crypto from 'crypto';
+import QRCode from 'qrcode';
+import { 
+  StudentGradeData, 
+  SchoolInfo, 
+  BulletinOptions, 
+  SubjectGrade,
+  SubjectSection 
+} from './comprehensiveBulletinGenerator';
+
+// Layout constants for A4 optimization
+const A4_DIMENSIONS = {
+  width: 595.276, // A4 width in points
+  height: 841.89, // A4 height in points
+  margin: 30,     // Standard margin
+  contentWidth: 535.276, // width - (2 * margin)
+  contentHeight: 781.89  // height - (2 * margin)
+};
+
+// Spacing system for intelligent layout
+interface SpacingSystem {
+  headerHeight: number;
+  titleSectionHeight: number;
+  studentInfoHeight: number;
+  tableHeaderHeight: number;
+  subjectRowHeight: number;
+  summaryHeight: number;
+  conductHeight: number;
+  signaturesHeight: number;
+  footerHeight: number;
+  minSpacing: number; // Minimum spacing between sections
+}
+
+// Color palette - Professional black & white with subtle grays
+const COLORS = {
+  black: rgb(0, 0, 0),
+  white: rgb(1, 1, 1),
+  lightGray: rgb(0.95, 0.95, 0.95),
+  mediumGray: rgb(0.7, 0.7, 0.7),
+  darkGray: rgb(0.3, 0.3, 0.3)
+};
+
+export class OptimizedBulletinGenerator {
+  
+  /**
+   * INTELLIGENT SPACING CALCULATOR - Prevents overlaps automatically
+   * Calculates optimal spacing based on content and available space
+   */
+  static calculateIntelligentSpacing(
+    contentRequirements: {
+      subjectCount: number;
+      includeComments: boolean;
+      includeRankings: boolean;
+      includeStatistics: boolean;
+      includePerformanceLevels: boolean;
+      includeQRCode: boolean;
+      hasSignatures: boolean;
+    }
+  ): SpacingSystem {
+    console.log('[INTELLIGENT_SPACING] 🧮 Calculating optimal spacing for content...');
+    
+    // Base spacing requirements
+    const headerHeight = 110; // Standardized Cameroonian header
+    const titleSectionHeight = 45; // Title + period
+    const studentInfoHeight = 65; // Student details in compact rows
+    const tableHeaderHeight = 25; // Column headers
+    const summaryHeight = 35; // Averages and totals
+    const conductHeight = contentRequirements.includeStatistics ? 20 : 15;
+    const signaturesHeight = contentRequirements.hasSignatures ? 50 : 0;
+    const footerHeight = contentRequirements.includeQRCode ? 90 : 60;
+    
+    // Calculate subject table requirements
+    const baseSubjectRowHeight = 18; // Minimum row height
+    const commentPadding = contentRequirements.includeComments ? 3 : 0;
+    const rankingPadding = contentRequirements.includeRankings ? 2 : 0;
+    const subjectRowHeight = baseSubjectRowHeight + commentPadding + rankingPadding;
+    
+    // Performance levels text (if included)
+    const performanceLevelsHeight = contentRequirements.includePerformanceLevels ? 40 : 0;
+    
+    // Calculate total required height
+    const totalRequiredHeight = 
+      headerHeight + 
+      titleSectionHeight + 
+      studentInfoHeight + 
+      tableHeaderHeight + 
+      (subjectRowHeight * contentRequirements.subjectCount) + 
+      summaryHeight + 
+      conductHeight + 
+      signaturesHeight + 
+      performanceLevelsHeight +
+      footerHeight;
+    
+    console.log(`[INTELLIGENT_SPACING] Total required: ${totalRequiredHeight}px, Available: ${A4_DIMENSIONS.contentHeight}px`);
+    
+    // Calculate available space for inter-section spacing
+    const availableSpacing = A4_DIMENSIONS.contentHeight - totalRequiredHeight;
+    const sectionCount = 8; // Number of sections with spacing needs
+    const minSpacing = Math.max(3, availableSpacing / sectionCount);
+    
+    // Adjust subject row height if we have extra space
+    const adjustedSubjectRowHeight = availableSpacing > 30 ? 
+      subjectRowHeight + Math.min(3, availableSpacing / contentRequirements.subjectCount) : 
+      subjectRowHeight;
+    
+    const spacing: SpacingSystem = {
+      headerHeight,
+      titleSectionHeight,
+      studentInfoHeight,
+      tableHeaderHeight,
+      subjectRowHeight: adjustedSubjectRowHeight,
+      summaryHeight,
+      conductHeight,
+      signaturesHeight,
+      footerHeight: footerHeight + performanceLevelsHeight,
+      minSpacing
+    };
+    
+    console.log('[INTELLIGENT_SPACING] ✅ Optimal spacing calculated:', spacing);
+    return spacing;
+  }
+
+  /**
+   * PROFESSIONAL TEXT DRAWER - Handles alignment and sizing automatically
+   */
+  static createTextDrawer(page: any, fonts: any) {
+    return (text: string | number, x: number, y: number, options: any = {}) => {
+      const {
+        size = 10,
+        font = fonts.regular,
+        color = COLORS.black,
+        align = 'left',
+        maxWidth,
+        bold = false,
+        wrap = false
+      } = options;
+      
+      // Auto-select bold font if requested
+      const selectedFont = bold ? fonts.bold : font;
+      const safeText = String(text || '').trim();
+      
+      if (!safeText) return { width: 0, height: size };
+      
+      let drawX = x;
+      let drawY = y;
+      
+      // Handle text alignment
+      if (align === 'center' && maxWidth) {
+        const textWidth = selectedFont.widthOfTextAtSize(safeText, size);
+        drawX = x + (maxWidth - textWidth) / 2;
+      } else if (align === 'right' && maxWidth) {
+        const textWidth = selectedFont.widthOfTextAtSize(safeText, size);
+        drawX = x + maxWidth - textWidth;
+      }
+      
+      // Handle text wrapping if requested
+      if (wrap && maxWidth) {
+        const words = safeText.split(' ');
+        let currentLine = '';
+        let currentY = drawY;
+        let lineCount = 0;
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          const testWidth = selectedFont.widthOfTextAtSize(testLine, size);
+          
+          if (testWidth <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) {
+              page.drawText(currentLine, { 
+                x: align === 'center' ? x + (maxWidth - selectedFont.widthOfTextAtSize(currentLine, size)) / 2 : drawX, 
+                y: currentY, 
+                size, 
+                font: selectedFont, 
+                color 
+              });
+              currentY -= size + 2;
+              lineCount++;
+            }
+            currentLine = word;
+          }
+        }
+        
+        if (currentLine) {
+          page.drawText(currentLine, { 
+            x: align === 'center' ? x + (maxWidth - selectedFont.widthOfTextAtSize(currentLine, size)) / 2 : drawX, 
+            y: currentY, 
+            size, 
+            font: selectedFont, 
+            color 
+          });
+          lineCount++;
+        }
+        
+        return { width: maxWidth, height: lineCount * (size + 2) };
+      }
+      
+      // Single line text
+      try {
+        page.drawText(safeText, { x: drawX, y: drawY, size, font: selectedFont, color });
+        const textWidth = selectedFont.widthOfTextAtSize(safeText, size);
+        return { width: textWidth, height: size };
+      } catch (error) {
+        console.warn('[TEXT_DRAWER] Failed to draw text:', error);
+        return { width: 0, height: size };
+      }
+    };
+  }
+
+  /**
+   * STANDARDIZED CAMEROON HEADER - Optimized for A4
+   */
+  static async generateOptimizedHeader(
+    page: any, 
+    drawText: Function, 
+    schoolInfo: SchoolInfo, 
+    language: 'fr' | 'en'
+  ): Promise<number> {
+    console.log('[OPTIMIZED_HEADER] 🏛️ Generating standardized Cameroonian header...');
+    
+    const startY = A4_DIMENSIONS.height - A4_DIMENSIONS.margin;
+    let currentY = startY;
+    
+    // Three-column layout for header
+    const leftCol = A4_DIMENSIONS.margin;
+    const centerCol = A4_DIMENSIONS.width / 2;
+    const rightCol = A4_DIMENSIONS.width - A4_DIMENSIONS.margin - 150;
+    
+    // LEFT COLUMN: Official Cameroon information
+    drawText('RÉPUBLIQUE DU CAMEROUN', leftCol, currentY, { size: 10, bold: true });
+    drawText('Paix - Travail - Patrie', leftCol, currentY - 15, { size: 8 });
+    
+    const ministry = schoolInfo.regionaleMinisterielle?.includes('BASE') 
+      ? 'MINISTÈRE DE L\'ÉDUCATION DE BASE'
+      : 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES';
+    
+    drawText(ministry, leftCol, currentY - 28, { size: 8, bold: true });
+    drawText('DÉLÉGATION RÉGIONALE DU CENTRE', leftCol, currentY - 41, { size: 7 });
+    drawText('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', leftCol, currentY - 54, { size: 7 });
+    
+    // RIGHT COLUMN: Authentication information
+    drawText('DOCUMENT OFFICIEL', rightCol, currentY, { size: 8, bold: true });
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+    drawText(`Généré le: ${currentDate}`, rightCol, currentY - 15, { size: 7 });
+    drawText('Version: 2025.1', rightCol, currentY - 28, { size: 7 });
+    drawText('educafric.com', rightCol, currentY - 41, { size: 6, color: COLORS.darkGray });
+    
+    // CENTER COLUMN: School information
+    // School logo placeholder
+    const logoSize = 25;
+    const logoX = centerCol - logoSize / 2;
+    const logoY = currentY - 5;
+    
+    page.drawRectangle({
+      x: logoX,
+      y: logoY,
+      width: logoSize,
+      height: logoSize,
+      borderColor: COLORS.mediumGray,
+      borderWidth: 1
+    });
+    
+    drawText('LOGO', centerCol, logoY + 12, { 
+      size: 6, 
+      align: 'center', 
+      maxWidth: logoSize, 
+      color: COLORS.mediumGray 
+    });
+    
+    // School name - centered and prominent
+    drawText(schoolInfo.name.toUpperCase(), centerCol, logoY - 15, { 
+      size: 9, 
+      bold: true, 
+      align: 'center', 
+      maxWidth: 200 
+    });
+    
+    // Contact information - compact and centered
+    if (schoolInfo.phone) {
+      drawText(`Tél: ${schoolInfo.phone}`, centerCol, logoY - 28, { 
+        size: 6, 
+        align: 'center', 
+        maxWidth: 200 
+      });
+    }
+    
+    if (schoolInfo.email) {
+      drawText(schoolInfo.email, centerCol, logoY - 38, { 
+        size: 5, 
+        align: 'center', 
+        maxWidth: 200 
+      });
+    }
+    
+    // Separator line
+    const separatorY = currentY - 75;
+    page.drawLine({
+      start: { x: A4_DIMENSIONS.margin, y: separatorY },
+      end: { x: A4_DIMENSIONS.width - A4_DIMENSIONS.margin, y: separatorY },
+      thickness: 1,
+      color: COLORS.black
+    });
+    
+    console.log('[OPTIMIZED_HEADER] ✅ Header completed');
+    return separatorY - 10;
+  }
+
+  /**
+   * OPTIMIZED SUBJECT TABLE - Intelligent column widths and spacing
+   */
+  static drawOptimizedSubjectTable(
+    page: any,
+    drawText: Function,
+    subjects: SubjectGrade[],
+    startY: number,
+    spacing: SpacingSystem,
+    options: BulletinOptions
+  ): { endY: number; totals: any } {
+    console.log('[OPTIMIZED_TABLE] 📊 Drawing subject table with intelligent layout...');
+    
+    const tableStartX = A4_DIMENSIONS.margin;
+    const tableWidth = A4_DIMENSIONS.contentWidth;
+    let currentY = startY;
+    
+    // Intelligent column width calculation
+    const columns = {
+      subject: { width: tableWidth * 0.35, x: tableStartX }, // 35% for subject name
+      eval1: { width: tableWidth * 0.10, x: tableStartX + tableWidth * 0.35 }, // 10% each evaluation
+      eval2: { width: tableWidth * 0.10, x: tableStartX + tableWidth * 0.45 },
+      eval3: { width: tableWidth * 0.10, x: tableStartX + tableWidth * 0.55 },
+      average: { width: tableWidth * 0.12, x: tableStartX + tableWidth * 0.65 }, // 12% for average
+      coeff: { width: tableWidth * 0.08, x: tableStartX + tableWidth * 0.77 }, // 8% coefficient
+      total: { width: tableWidth * 0.15, x: tableStartX + tableWidth * 0.85 } // 15% total points
+    };
+    
+    // Table header with background
+    page.drawRectangle({
+      x: tableStartX,
+      y: currentY - spacing.tableHeaderHeight,
+      width: tableWidth,
+      height: spacing.tableHeaderHeight,
+      color: COLORS.lightGray
+    });
+    
+    // Header text
+    const headerY = currentY - 15;
+    const headerLabels = options.language === 'fr' 
+      ? ['MATIÈRES', 'EVAL1', 'EVAL2', 'EVAL3', 'MOY', 'COEF', 'TOTAL']
+      : ['SUBJECTS', 'EVAL1', 'EVAL2', 'EVAL3', 'AVG', 'COEF', 'TOTAL'];
+    
+    drawText(headerLabels[0], columns.subject.x + 5, headerY, { size: 9, bold: true });
+    drawText(headerLabels[1], columns.eval1.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.eval1.width });
+    drawText(headerLabels[2], columns.eval2.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.eval2.width });
+    drawText(headerLabels[3], columns.eval3.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.eval3.width });
+    drawText(headerLabels[4], columns.average.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.average.width });
+    drawText(headerLabels[5], columns.coeff.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.coeff.width });
+    drawText(headerLabels[6], columns.total.x, headerY, { size: 9, bold: true, align: 'center', maxWidth: columns.total.width });
+    
+    currentY -= spacing.tableHeaderHeight + spacing.minSpacing;
+    
+    // Subject rows with alternating backgrounds
+    let totalPoints = 0;
+    let totalCoefficients = 0;
+    
+    subjects.forEach((subject, index) => {
+      const isEven = index % 2 === 0;
+      const rowY = currentY - spacing.subjectRowHeight;
+      
+      // Alternating row background
+      if (isEven) {
+        page.drawRectangle({
+          x: tableStartX,
+          y: rowY,
+          width: tableWidth,
+          height: spacing.subjectRowHeight,
+          color: COLORS.lightGray
+        });
+      }
+      
+      // Subject data
+      const textY = currentY - 12;
+      const subjectTotal = subject.termAverage * subject.coefficient;
+      
+      drawText(subject.subjectName, columns.subject.x + 5, textY, { size: 9 });
+      drawText(subject.firstEvaluation || '-', columns.eval1.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.eval1.width 
+      });
+      drawText(subject.secondEvaluation || '-', columns.eval2.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.eval2.width 
+      });
+      drawText(subject.thirdEvaluation || '-', columns.eval3.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.eval3.width 
+      });
+      drawText(subject.termAverage.toFixed(2), columns.average.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.average.width, bold: true 
+      });
+      drawText(subject.coefficient, columns.coeff.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.coeff.width 
+      });
+      drawText(subjectTotal.toFixed(1), columns.total.x, textY, { 
+        size: 9, align: 'center', maxWidth: columns.total.width, bold: true 
+      });
+      
+      // Teacher name (smaller text below subject if space allows)
+      if (spacing.subjectRowHeight > 20 && subject.teacherName) {
+        drawText(`Prof: ${subject.teacherName}`, columns.subject.x + 5, textY - 10, { 
+          size: 7, color: COLORS.darkGray 
+        });
+      }
+      
+      totalPoints += subjectTotal;
+      totalCoefficients += subject.coefficient;
+      currentY -= spacing.subjectRowHeight;
+    });
+    
+    // Summary row
+    currentY -= spacing.minSpacing;
+    const summaryY = currentY - spacing.summaryHeight;
+    
+    page.drawRectangle({
+      x: tableStartX,
+      y: summaryY,
+      width: tableWidth,
+      height: spacing.summaryHeight,
+      color: COLORS.mediumGray
+    });
+    
+    const overallAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+    const summaryTextY = currentY - 15;
+    
+    drawText(options.language === 'fr' ? 'MOYENNE GÉNÉRALE' : 'OVERALL AVERAGE', 
+      columns.subject.x + 5, summaryTextY, { size: 10, bold: true });
+    drawText(overallAverage.toFixed(2), columns.average.x, summaryTextY, { 
+      size: 12, bold: true, align: 'center', maxWidth: columns.average.width 
+    });
+    drawText(totalCoefficients, columns.coeff.x, summaryTextY, { 
+      size: 10, bold: true, align: 'center', maxWidth: columns.coeff.width 
+    });
+    drawText(totalPoints.toFixed(1), columns.total.x, summaryTextY, { 
+      size: 10, bold: true, align: 'center', maxWidth: columns.total.width 
+    });
+    
+    console.log('[OPTIMIZED_TABLE] ✅ Subject table completed');
+    
+    return {
+      endY: summaryY - spacing.minSpacing,
+      totals: {
+        overallAverage,
+        totalPoints,
+        totalCoefficients
+      }
+    };
+  }
+
+  /**
+   * MAIN OPTIMIZED BULLETIN GENERATION METHOD
+   */
+  static async generateOptimizedBulletin(
+    studentData: StudentGradeData,
+    schoolInfo: SchoolInfo,
+    options: BulletinOptions = {
+      includeComments: true,
+      includeRankings: true,
+      includeStatistics: true,
+      includePerformanceLevels: true,
+      language: 'fr',
+      format: 'A4',
+      orientation: 'portrait',
+      includeQRCode: true,
+      qrCodeSize: 60,
+      logoMaxWidth: 50,
+      logoMaxHeight: 50,
+      photoMaxWidth: 40,
+      photoMaxHeight: 50
+    }
+  ): Promise<Buffer> {
+    try {
+      console.log('[OPTIMIZED_BULLETIN] 🚀 Generating optimized bulletin with intelligent spacing...');
+      
+      // Create PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage(PageSizes.A4);
+      const { width, height } = page.getSize();
+      
+      // Embed fonts
+      const fonts = {
+        regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
+        bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+        times: await pdfDoc.embedFont(StandardFonts.TimesRoman),
+        timesBold: await pdfDoc.embedFont(StandardFonts.TimesRomanBold)
+      };
+      
+      // Create optimized text drawer
+      const drawText = this.createTextDrawer(page, fonts);
+      
+      // Calculate intelligent spacing based on content
+      const contentReqs = {
+        subjectCount: studentData.subjects.length,
+        includeComments: options.includeComments || false,
+        includeRankings: options.includeRankings || false,
+        includeStatistics: options.includeStatistics || false,
+        includePerformanceLevels: options.includePerformanceLevels || false,
+        includeQRCode: options.includeQRCode !== false,
+        hasSignatures: !!schoolInfo.directorName
+      };
+      
+      const spacing = this.calculateIntelligentSpacing(contentReqs);
+      
+      // 1. STANDARDIZED HEADER
+      let currentY = await this.generateOptimizedHeader(page, drawText, schoolInfo, options.language);
+      currentY -= spacing.minSpacing;
+      
+      // 2. BULLETIN TITLE
+      const titleText = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT';
+      drawText(titleText, A4_DIMENSIONS.width / 2, currentY, {
+        size: 16,
+        font: fonts.bold,
+        align: 'center',
+        maxWidth: A4_DIMENSIONS.contentWidth
+      });
+      
+      currentY -= 25;
+      const termText = options.language === 'fr' 
+        ? `Période: ${studentData.term} - ${studentData.academicYear}`
+        : `Period: ${studentData.term} - ${studentData.academicYear}`;
+      
+      drawText(termText, A4_DIMENSIONS.width / 2, currentY, {
+        size: 12,
+        align: 'center',
+        maxWidth: A4_DIMENSIONS.contentWidth
+      });
+      
+      currentY -= spacing.titleSectionHeight + spacing.minSpacing;
+      
+      // 3. STUDENT INFORMATION - Optimized two-column layout
+      const leftInfoX = A4_DIMENSIONS.margin;
+      const rightInfoX = A4_DIMENSIONS.width / 2 + 20;
+      
+      const studentNameText = options.language === 'fr' 
+        ? `Élève: ${studentData.firstName} ${studentData.lastName}`
+        : `Student: ${studentData.firstName} ${studentData.lastName}`;
+      
+      drawText(studentNameText, leftInfoX, currentY, { size: 11, bold: true });
+      drawText(`${options.language === 'fr' ? 'Classe' : 'Class'}: ${studentData.className}`, 
+        rightInfoX, currentY, { size: 11 });
+      
+      currentY -= 18;
+      drawText(`${options.language === 'fr' ? 'Matricule' : 'Registration'}: ${studentData.matricule}`, 
+        leftInfoX, currentY, { size: 10 });
+      
+      if (options.includeRankings) {
+        drawText(`${options.language === 'fr' ? 'Rang' : 'Rank'}: ${studentData.classRank}/${studentData.totalStudents}`, 
+          rightInfoX, currentY, { size: 10 });
+      }
+      
+      currentY -= spacing.studentInfoHeight + spacing.minSpacing;
+      
+      // 4. OPTIMIZED SUBJECT TABLE
+      const tableResult = this.drawOptimizedSubjectTable(
+        page, 
+        drawText, 
+        studentData.subjects, 
+        currentY, 
+        spacing, 
+        options
+      );
+      
+      currentY = tableResult.endY;
+      
+      // 5. CONDUCT AND STATISTICS (if applicable)
+      if (studentData.conductGrade || studentData.absences !== undefined || options.includeStatistics) {
+        let conductInfo = [];
+        
+        if (studentData.conductGrade) {
+          const conductLabel = options.language === 'fr' ? 'Conduite' : 'Conduct';
+          conductInfo.push(`${conductLabel}: ${studentData.conductGrade}/20`);
+        }
+        
+        if (studentData.absences !== undefined) {
+          const absenceLabel = options.language === 'fr' ? 'Absences' : 'Absences';
+          conductInfo.push(`${absenceLabel}: ${studentData.absences}`);
+        }
+        
+        if (options.includeStatistics) {
+          const avgLabel = options.language === 'fr' ? 'Moyenne classe' : 'Class average';
+          conductInfo.push(`${avgLabel}: ${tableResult.totals.overallAverage.toFixed(2)}/20`);
+        }
+        
+        drawText(conductInfo.join(' • '), A4_DIMENSIONS.margin, currentY, { size: 10 });
+        currentY -= spacing.conductHeight + spacing.minSpacing;
+      }
+      
+      // 6. SIGNATURES
+      if (schoolInfo.directorName) {
+        const principalLabel = options.language === 'fr' ? 'Le Directeur' : 'The Principal';
+        const teacherLabel = options.language === 'fr' ? 'Le Professeur Principal' : 'Class Teacher';
+        
+        drawText(teacherLabel, A4_DIMENSIONS.margin, currentY, { size: 10, bold: true });
+        drawText(principalLabel, A4_DIMENSIONS.width - 200, currentY, { size: 10, bold: true });
+        
+        if (schoolInfo.directorName) {
+          drawText(schoolInfo.directorName, A4_DIMENSIONS.width - 200, currentY - 30, { size: 9 });
+        }
+        
+        currentY -= spacing.signaturesHeight + spacing.minSpacing;
+      }
+      
+      // 7. FOOTER WITH QR CODE AND VERIFICATION
+      const footerY = 50;
+      
+      // Generate verification data
+      const verificationCode = crypto.randomUUID().slice(0, 8).toUpperCase();
+      
+      // QR Code (if enabled)
+      if (options.includeQRCode !== false) {
+        try {
+          const qrSize = options.qrCodeSize || 60;
+          const verificationURL = `${process.env.BASE_URL || 'https://app.replit.dev'}/verify?code=${verificationCode}`;
+          
+          const qrCodeDataURL = await QRCode.toDataURL(verificationURL, {
+            width: qrSize,
+            margin: 1,
+            color: { dark: '#000000', light: '#FFFFFF' }
+          });
+          
+          const qrCodeImage = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
+          const qrCodePdfImage = await pdfDoc.embedPng(qrCodeImage);
+          
+          page.drawImage(qrCodePdfImage, {
+            x: A4_DIMENSIONS.width - qrSize - A4_DIMENSIONS.margin,
+            y: footerY,
+            width: qrSize,
+            height: qrSize
+          });
+          
+          console.log('[OPTIMIZED_BULLETIN] 📱 QR code embedded successfully');
+        } catch (qrError) {
+          console.warn('[OPTIMIZED_BULLETIN] ⚠️ QR code generation failed:', qrError);
+        }
+      }
+      
+      // Verification text
+      const codeText = options.language === 'fr' 
+        ? `Code de vérification: ${verificationCode}`
+        : `Verification code: ${verificationCode}`;
+        
+      drawText(codeText, A4_DIMENSIONS.margin, footerY + 30, { size: 8 });
+      
+      const authText = options.language === 'fr'
+        ? 'Document authentifié par EDUCAFRIC'
+        : 'Document authenticated by EDUCAFRIC';
+        
+      drawText(authText, A4_DIMENSIONS.margin, footerY + 15, { size: 8 });
+      
+      drawText(`${schoolInfo.name} - ${schoolInfo.phone || ''}`, 
+        A4_DIMENSIONS.margin, footerY, { size: 8, color: COLORS.darkGray });
+      
+      // Generate PDF
+      const pdfBytes = await pdfDoc.save({
+        useObjectStreams: false,
+        addDefaultPage: false
+      });
+      
+      console.log(`[OPTIMIZED_BULLETIN] ✅ Bulletin generated successfully - ${pdfBytes.length} bytes`);
+      
+      return Buffer.from(pdfBytes);
+      
+    } catch (error) {
+      console.error('[OPTIMIZED_BULLETIN] ❌ Generation failed:', error);
+      throw error;
+    }
+  }
+}

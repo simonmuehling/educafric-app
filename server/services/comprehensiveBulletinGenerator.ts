@@ -345,7 +345,7 @@ export class ComprehensiveBulletinGenerator {
         
         sections.push({
           title: sectionTitles[category as keyof typeof sectionTitles],
-          subjects,
+          subjects: subjects as SubjectGrade[],
           totalPoints,
           totalCoefficients,
           sectionAverage
@@ -356,44 +356,7 @@ export class ComprehensiveBulletinGenerator {
     return sections;
   }
   
-  // Helper method to get term text in both languages
-  static getTermText(term: string, language: 'fr' | 'en'): string {
-    const termMap = {
-      fr: {
-        'T1': 'Premier Trimestre',
-        'T2': 'Deuxième Trimestre', 
-        'T3': 'Troisième Trimestre',
-        'S1': 'Premier Semestre',
-        'S2': 'Deuxième Semestre'
-      },
-      en: {
-        'T1': 'First Term',
-        'T2': 'Second Term',
-        'T3': 'Third Term', 
-        'S1': 'First Semester',
-        'S2': 'Second Semester'
-      }
-    };
-    
-    return termMap[language][term as keyof typeof termMap[typeof language]] || term;
-  }
   
-  // Helper method to get academic appreciation
-  static getAcademicAppreciation(average: number, language: 'fr' | 'en'): string {
-    if (average >= 18) {
-      return language === 'fr' ? 'EXCELLENT' : 'EXCELLENT';
-    } else if (average >= 16) {
-      return language === 'fr' ? 'TRÈS BIEN' : 'VERY GOOD';
-    } else if (average >= 14) {
-      return language === 'fr' ? 'BIEN' : 'GOOD';
-    } else if (average >= 12) {
-      return language === 'fr' ? 'ASSEZ BIEN' : 'FAIRLY GOOD';
-    } else if (average >= 10) {
-      return language === 'fr' ? 'PASSABLE' : 'FAIR';
-    } else {
-      return language === 'fr' ? 'INSUFFISANT' : 'INSUFFICIENT';
-    }
-  }
   
   // Helper method to generate verification hash
   static generateVerificationHash(data: {
@@ -1317,21 +1280,35 @@ export class ComprehensiveBulletinGenerator {
   
   // Helper methods
   static getTermText(term: string, language: 'fr' | 'en'): string {
-    const terms = {
-      'T1': language === 'fr' ? 'Premier Trimestre' : 'First Term',
-      'T2': language === 'fr' ? 'Deuxième Trimestre' : 'Second Term', 
-      'T3': language === 'fr' ? 'Troisième Trimestre' : 'Third Term'
+    const termMap = {
+      fr: {
+        'T1': 'Premier Trimestre',
+        'T2': 'Deuxième Trimestre', 
+        'T3': 'Troisième Trimestre',
+        'S1': 'Premier Semestre',
+        'S2': 'Deuxième Semestre'
+      },
+      en: {
+        'T1': 'First Term',
+        'T2': 'Second Term',
+        'T3': 'Third Term', 
+        'S1': 'First Semester',
+        'S2': 'Second Semester'
+      }
     };
-    return terms[term as keyof typeof terms] || term;
+    
+    return termMap[language][term as keyof typeof termMap[typeof language]] || term;
   }
   
   static getAcademicAppreciation(average: number, language: 'fr' | 'en'): string {
-    if (average >= 16) {
-      return language === 'fr' ? 'TRÈS BIEN' : 'EXCELLENT';
+    if (average >= 18) {
+      return language === 'fr' ? 'EXCELLENT' : 'EXCELLENT';
+    } else if (average >= 16) {
+      return language === 'fr' ? 'TRÈS BIEN' : 'VERY GOOD';
     } else if (average >= 14) {
       return language === 'fr' ? 'BIEN' : 'GOOD';
     } else if (average >= 12) {
-      return language === 'fr' ? 'ASSEZ BIEN' : 'SATISFACTORY';
+      return language === 'fr' ? 'ASSEZ BIEN' : 'FAIRLY GOOD';
     } else if (average >= 10) {
       return language === 'fr' ? 'PASSABLE' : 'FAIR';
     } else {
