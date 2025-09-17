@@ -36,8 +36,8 @@ export class PdfLibBulletinGenerator {
         postalBox: headerData?.postalBox || 'B.P. 8524 Yaoundé'
       };
       
-      const margin = 40;
-      let yPosition = pageHeight - 50;
+      const margin = 30; // Optimized for A4 format
+      let yPosition = pageHeight - 40;
       
       // Définir les positions des 3 colonnes
       const leftColX = margin;
@@ -60,12 +60,12 @@ export class PdfLibBulletinGenerator {
       drawText(regionalDelegation, leftColX, yPosition - 46, { font: normalFont, size: 7 });
       drawText(departmentalDelegation, leftColX, yPosition - 58, { font: normalFont, size: 7 });
       
-      // === COLONNE DROITE: Mêmes informations officielles (symétrie) ===
-      drawText('RÉPUBLIQUE DU CAMEROUN', rightColX, yPosition, { font: boldFont, size: 10 });
-      drawText('Paix - Travail - Patrie', rightColX, yPosition - 18, { font: normalFont, size: 8 });
-      drawText(ministry, rightColX, yPosition - 32, { font: boldFont, size: 8 });
-      drawText(regionalDelegation, rightColX, yPosition - 46, { font: normalFont, size: 7 });
-      drawText(departmentalDelegation, rightColX, yPosition - 58, { font: normalFont, size: 7 });
+      // === COLONNE DROITE: Informations d'authentification ===
+      drawText('DOCUMENT OFFICIEL', rightColX, yPosition, { font: boldFont, size: 8 });
+      const currentDate = new Date().toLocaleDateString('fr-FR');
+      drawText(`Généré le: ${currentDate}`, rightColX, yPosition - 18, { font: normalFont, size: 7 });
+      drawText('Version: 2025.1', rightColX, yPosition - 32, { font: normalFont, size: 7 });
+      drawText('educafric.com', rightColX, yPosition - 46, { font: normalFont, size: 6, color: rgb(0.4, 0.4, 0.4) });
       
       // === COLONNE CENTRE: École et logo ===
       // Logo placeholder (carré centré)
@@ -95,24 +95,28 @@ export class PdfLibBulletinGenerator {
         color: rgb(0.6, 0.6, 0.6) 
       });
       
-      // ✅ CONFIGURABLE SCHOOL NAME
-      drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { font: boldFont, size: 10 });
+      // ✅ CONFIGURABLE SCHOOL NAME - A4 optimized
+      drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { font: boldFont, size: 9 });
       
-      // ✅ CONFIGURABLE CONTACT INFORMATION
+      // ✅ CONFIGURABLE CONTACT INFORMATION - Compact for A4
+      let contactY = logoY - 26;
       if (safeHeaderData.phone) {
-        drawText(`Tél: ${safeHeaderData.phone}`, centerX, logoY - 28, { font: normalFont, size: 7 });
+        drawText(`Tél: ${safeHeaderData.phone}`, centerX, contactY, { font: normalFont, size: 6 });
+        contactY -= 8;
       }
       
       if (safeHeaderData.postalBox) {
-        drawText(safeHeaderData.postalBox, centerX, logoY - 38, { font: normalFont, size: 7 });
+        drawText(safeHeaderData.postalBox, centerX, contactY, { font: normalFont, size: 6 });
+        contactY -= 7;
       }
       
       if (safeHeaderData.email) {
-        drawText(safeHeaderData.email, centerX, logoY - 48, { font: normalFont, size: 6 });
+        drawText(safeHeaderData.email, centerX, contactY, { font: normalFont, size: 5 });
+        contactY -= 6;
       }
       
-      // Ligne de séparation officielle
-      const separatorY = yPosition - 85;
+      // Ligne de séparation officielle - A4 optimized
+      const separatorY = Math.min(yPosition - 70, contactY - 10);
       page.drawLine({
         start: { x: margin, y: separatorY },
         end: { x: pageWidth - margin, y: separatorY },

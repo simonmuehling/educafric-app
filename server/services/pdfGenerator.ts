@@ -195,8 +195,8 @@ export class PDFGenerator {
       console.log('[PDF_HEADER] 📋 Generating standardized Cameroonian official header...');
       
       const pageWidth = doc.internal.pageSize.getWidth();
-      const margin = 15;
-      let yPosition = 15;
+      const margin = 20; // Optimized for A4 format
+      let yPosition = 20;
       
       // Définir les positions des 3 colonnes
       const leftColX = margin;
@@ -231,29 +231,28 @@ export class PDFGenerator {
       doc.text(regionaleText, leftColX, yPosition + 22);
       doc.text(departementText, leftColX, yPosition + 28);
       
-      // === COLONNE DROITE: Même informations officielles (symétrie) ===
-      doc.setFontSize(10);
+      // === COLONNE DROITE: Informations d'authentification ===
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('RÉPUBLIQUE DU CAMEROUN', rightColX, yPosition);
-      
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'italic');
-      doc.text('Paix - Travail - Patrie', rightColX, yPosition + 6);
-      
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.text(ministry, rightColX, yPosition + 14);
+      doc.text('DOCUMENT OFFICIEL', rightColX, yPosition);
       
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text(regionaleText, rightColX, yPosition + 22);
-      doc.text(departementText, rightColX, yPosition + 28);
+      const currentDate = new Date().toLocaleDateString('fr-FR');
+      doc.text(`Généré le: ${currentDate}`, rightColX, yPosition + 8);
+      
+      doc.setFontSize(7);
+      doc.text('Version: 2025.1', rightColX, yPosition + 16);
+      
+      doc.setFontSize(6);
+      doc.setTextColor(100, 100, 100);
+      doc.text('educafric.com', rightColX, yPosition + 24);
       
       // === COLONNE CENTRE: École et logo ===
-      const logoSize = 25;
+      const logoSize = 30;
       const logoX = centerX - (logoSize / 2);
-      const logoY = yPosition - 2;
+      const logoY = yPosition;
       
       // Display real logo if available, otherwise placeholder
       if (headerData.logoUrl) {
@@ -280,37 +279,42 @@ export class PDFGenerator {
         this.drawLogoPlaceholder(doc, logoX, logoY, logoSize, centerX);
       }
       
-      // Nom de l'établissement (centré sous le logo)
-      doc.setFontSize(10);
+      // Nom de l'établissement (centré sous le logo) - A4 optimized
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text(headerData.schoolName.toUpperCase(), centerX, yPosition + 35, { align: 'center' });
+      doc.text(headerData.schoolName.toUpperCase(), centerX, yPosition + 32, { align: 'center' });
       
-      // Informations de contact (centrées)
+      // Informations de contact (centrées) - Compact for A4
+      let contactY = yPosition + 38;
       if (headerData.phone) {
-        doc.setFontSize(7);
+        doc.setFontSize(6);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Tél: ${headerData.phone}`, centerX, yPosition + 42, { align: 'center' });
+        doc.text(`Tél: ${headerData.phone}`, centerX, contactY, { align: 'center' });
+        contactY += 5;
       }
       
       if (headerData.postalBox) {
-        doc.setFontSize(7);
-        doc.text(headerData.postalBox, centerX, yPosition + 48, { align: 'center' });
+        doc.setFontSize(6);
+        doc.text(headerData.postalBox, centerX, contactY, { align: 'center' });
+        contactY += 5;
       }
       
       if (headerData.email) {
-        doc.setFontSize(6);
-        doc.text(headerData.email, centerX, yPosition + 54, { align: 'center' });
+        doc.setFontSize(5);
+        doc.text(headerData.email, centerX, contactY, { align: 'center' });
+        contactY += 4;
       }
       
-      // Add address if available
+      // Add address if available - very compact
       if (headerData.address) {
-        doc.setFontSize(6);
-        doc.text(headerData.address, centerX, yPosition + 60, { align: 'center' });
+        doc.setFontSize(5);
+        doc.text(headerData.address, centerX, contactY, { align: 'center' });
+        contactY += 4;
       }
       
-      // Ligne de séparation officielle (adjust Y if address was added)
-      const separatorY = headerData.address ? yPosition + 71 : yPosition + 65;
+      // Ligne de séparation officielle - A4 optimized position
+      const separatorY = contactY + 6;
       doc.setLineWidth(0.8);
       doc.setDrawColor(0, 0, 0);
       doc.line(margin, separatorY, pageWidth - margin, separatorY);
