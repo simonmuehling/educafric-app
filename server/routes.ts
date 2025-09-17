@@ -73,6 +73,7 @@ import stripeRoutes from "./routes/stripe";
 import manualPaymentRoutes from "./routes/manual-payments";
 import uploadsRoutes from "./routes/uploads";
 import bulletinRoutes from "./routes/bulletinRoutes";
+import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 import gradeReviewRoutes from "./routes/gradeReview";
 import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
@@ -5298,6 +5299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   
   app.use('/api/bulletins', bulletinRoutes);
+  app.use('/api/bulletins', bulletinVerificationRoutes);
   app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
   app.use('/api/templates', templateRoutes);
   

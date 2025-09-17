@@ -1,8 +1,10 @@
 // COMPREHENSIVE BULLETIN GENERATOR - PROFESSIONAL ACADEMIC BULLETINS
 // Integrates with approved grades from director review system
-import { PDFDocument, StandardFonts, rgb, PageSizes } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, PageSizes, PDFImage } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
+import QRCode from 'qrcode';
 
 // Types for bulletin generation
 export interface StudentGradeData {
@@ -59,9 +61,132 @@ export interface BulletinOptions {
   language: 'fr' | 'en';
   format: 'A4' | 'Letter';
   orientation: 'portrait' | 'landscape';
+  includeQRCode?: boolean;
+  qrCodeSize?: number;
+  logoMaxWidth?: number;
+  logoMaxHeight?: number;
+  photoMaxWidth?: number;
+  photoMaxHeight?: number;
 }
 
 export class ComprehensiveBulletinGenerator {
+  
+  // Helper method to embed images (logo/photo) into PDF
+  static async embedImage(pdfDoc: PDFDocument, imagePath: string): Promise<PDFImage | null> {
+    try {
+      if (!imagePath) return null;
+      
+      // Check if image exists and read it
+      let imageBytes: Uint8Array;
+      
+      if (imagePath.startsWith('http')) {
+        // Handle URL images
+        const response = await fetch(imagePath);
+        if (!response.ok) {
+          console.warn(`[PDF_IMAGES] ⚠️ Failed to fetch image from URL: ${imagePath}`);
+          return null;
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        imageBytes = new Uint8Array(arrayBuffer);
+      } else {
+        // Handle local file paths
+        const fullPath = path.isAbsolute(imagePath) ? imagePath : path.join(process.cwd(), imagePath);
+        
+        try {
+          imageBytes = await fs.readFile(fullPath);
+        } catch (error) {
+          console.warn(`[PDF_IMAGES] ⚠️ Image file not found: ${fullPath}`);
+          return null;
+        }
+      }
+      
+      // Determine image type and embed
+      const imageType = this.getImageType(imagePath, imageBytes);
+      
+      if (imageType === 'png') {
+        return await pdfDoc.embedPng(imageBytes);
+      } else if (imageType === 'jpg' || imageType === 'jpeg') {
+        return await pdfDoc.embedJpg(imageBytes);
+      } else {
+        console.warn(`[PDF_IMAGES] ⚠️ Unsupported image format: ${imagePath}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`[PDF_IMAGES] ❌ Error embedding image ${imagePath}:`, error);
+      return null;
+    }
+  }
+  
+  // Helper method to determine image type
+  static getImageType(imagePath: string, imageBytes: Uint8Array): string | null {
+    // Check file extension first
+    const ext = path.extname(imagePath).toLowerCase();
+    if (ext === '.png') return 'png';
+    if (ext === '.jpg' || ext === '.jpeg') return 'jpg';
+    
+    // Check magic bytes as fallback
+    if (imageBytes.length >= 8) {
+      // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+      if (imageBytes[0] === 0x89 && imageBytes[1] === 0x50 && imageBytes[2] === 0x4E && imageBytes[3] === 0x47) {
+        return 'png';
+      }
+      
+      // JPEG signature: FF D8 FF
+      if (imageBytes[0] === 0xFF && imageBytes[1] === 0xD8 && imageBytes[2] === 0xFF) {
+        return 'jpg';
+      }
+    }
+    
+    return null;
+  }
+  
+  // Helper method to calculate image dimensions maintaining aspect ratio
+  static calculateImageDimensions(
+    originalWidth: number, 
+    originalHeight: number, 
+    maxWidth: number, 
+    maxHeight: number
+  ): { width: number; height: number } {
+    const aspectRatio = originalWidth / originalHeight;
+    
+    let newWidth = originalWidth;
+    let newHeight = originalHeight;
+    
+    // Scale down if needed
+    if (newWidth > maxWidth) {
+      newWidth = maxWidth;
+      newHeight = newWidth / aspectRatio;
+    }
+    
+    if (newHeight > maxHeight) {
+      newHeight = maxHeight;
+      newWidth = newHeight * aspectRatio;
+    }
+    
+    return { width: newWidth, height: newHeight };
+  }
+  
+  // Helper method to generate short verification code
+  static generateShortCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+  
+  // Helper method to generate verification hash
+  static generateVerificationHash(data: {
+    studentId: number;
+    schoolId: number;
+    term: string;
+    academicYear: string;
+    generalAverage?: string;
+  }): string {
+    const hashString = `${data.studentId}-${data.schoolId}-${data.term}-${data.academicYear}-${data.generalAverage || ''}`;
+    return crypto.createHash('sha256').update(hashString).digest('hex');
+  }
   
   static async generateProfessionalBulletin(
     studentData: StudentGradeData,
@@ -72,7 +197,13 @@ export class ComprehensiveBulletinGenerator {
       includeStatistics: true,
       language: 'fr',
       format: 'A4',
-      orientation: 'portrait'
+      orientation: 'portrait',
+      includeQRCode: true,
+      qrCodeSize: 80,
+      logoMaxWidth: 60,
+      logoMaxHeight: 60,
+      photoMaxWidth: 50,
+      photoMaxHeight: 60
     }
   ): Promise<Buffer> {
     try {
@@ -80,6 +211,24 @@ export class ComprehensiveBulletinGenerator {
       
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
+      
+      // Embed school logo if available
+      let schoolLogo: PDFImage | null = null;
+      if (schoolInfo.logo) {
+        schoolLogo = await this.embedImage(pdfDoc, schoolInfo.logo);
+        if (schoolLogo) {
+          console.log(`[COMPREHENSIVE_PDF] 🖼️ School logo embedded successfully`);
+        }
+      }
+      
+      // Embed student photo if available
+      let studentPhoto: PDFImage | null = null;
+      if (studentData.photo) {
+        studentPhoto = await this.embedImage(pdfDoc, studentData.photo);
+        if (studentPhoto) {
+          console.log(`[COMPREHENSIVE_PDF] 📸 Student photo embedded successfully`);
+        }
+      }
       
       // Embed fonts
       const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -203,28 +352,68 @@ export class ComprehensiveBulletinGenerator {
         });
       }
       
-      // School Information (Right side)
-      drawText(schoolInfo.name, 350, currentY, { 
+      // School Information and Logo (Right side)
+      let schoolInfoStartX = 350;
+      
+      // If logo exists, draw it first and adjust text position
+      if (schoolLogo) {
+        const logoMaxWidth = options.logoMaxWidth || 60;
+        const logoMaxHeight = options.logoMaxHeight || 60;
+        
+        const logoDimensions = this.calculateImageDimensions(
+          schoolLogo.width,
+          schoolLogo.height,
+          logoMaxWidth,
+          logoMaxHeight
+        );
+        
+        // Draw school logo
+        const logoX = width - logoDimensions.width - 40; // Right-aligned with margin
+        const logoY = currentY - logoDimensions.height + 10;
+        
+        page.drawImage(schoolLogo, {
+          x: logoX,
+          y: logoY,
+          width: logoDimensions.width,
+          height: logoDimensions.height
+        });
+        
+        // Adjust text position to avoid overlap with logo
+        schoolInfoStartX = logoX - 20; // Leave space between text and logo
+        
+        console.log(`[COMPREHENSIVE_PDF] 🖼️ Logo positioned at (${logoX}, ${logoY}) size: ${logoDimensions.width}x${logoDimensions.height}`);
+      }
+      
+      // School name and information
+      const schoolNameWidth = helveticaBold.widthOfTextAtSize(schoolInfo.name, 14);
+      const schoolNameX = schoolInfoStartX - schoolNameWidth; // Right-align text
+      
+      drawText(schoolInfo.name, schoolNameX, currentY, { 
         font: helveticaBold, 
         size: 14, 
         color: primaryColor 
       });
+      
       if (schoolInfo.address) {
-        drawText(schoolInfo.address, 350, currentY - 18, { 
+        const addressWidth = helvetica.widthOfTextAtSize(schoolInfo.address, 9);
+        drawText(schoolInfo.address, schoolInfoStartX - addressWidth, currentY - 18, { 
           font: helvetica, 
           size: 9, 
           color: textColor 
         });
       }
       if (schoolInfo.phone) {
-        drawText(`Tél: ${schoolInfo.phone}`, 350, currentY - 32, { 
+        const phoneText = `Tél: ${schoolInfo.phone}`;
+        const phoneWidth = helvetica.widthOfTextAtSize(phoneText, 9);
+        drawText(phoneText, schoolInfoStartX - phoneWidth, currentY - 32, { 
           font: helvetica, 
           size: 9, 
           color: textColor 
         });
       }
       if (schoolInfo.email) {
-        drawText(schoolInfo.email, 350, currentY - 46, { 
+        const emailWidth = helvetica.widthOfTextAtSize(schoolInfo.email, 9);
+        drawText(schoolInfo.email, schoolInfoStartX - emailWidth, currentY - 46, { 
           font: helvetica, 
           size: 9, 
           color: textColor 
@@ -257,14 +446,57 @@ export class ComprehensiveBulletinGenerator {
       
       currentY -= 60;
       
-      // 3. STUDENT INFORMATION SECTION
-      drawRect(40, currentY - 50, width - 80, 50, { 
+      // 3. STUDENT INFORMATION SECTION WITH PHOTO
+      const studentSectionHeight = 70; // Increased height for photo
+      drawRect(40, currentY - studentSectionHeight, width - 80, studentSectionHeight, { 
         color: lightGray, 
         borderColor: borderColor, 
         borderWidth: 1 
       });
       
-      // Student basic info
+      // Student photo positioning (right side of student info section)
+      let photoWidth = 0;
+      let photoSpace = 0;
+      
+      if (studentPhoto) {
+        const photoMaxWidth = options.photoMaxWidth || 50;
+        const photoMaxHeight = options.photoMaxHeight || 60;
+        
+        const photoDimensions = this.calculateImageDimensions(
+          studentPhoto.width,
+          studentPhoto.height,
+          photoMaxWidth,
+          photoMaxHeight
+        );
+        
+        // Position photo on the right side of the student section
+        const photoX = width - photoDimensions.width - 50; // 50px margin from right
+        const photoY = currentY - studentSectionHeight + 5; // 5px margin from bottom
+        
+        // Draw photo border
+        drawRect(photoX - 2, photoY - 2, photoDimensions.width + 4, photoDimensions.height + 4, {
+          color: rgb(1, 1, 1),
+          borderColor: borderColor,
+          borderWidth: 1
+        });
+        
+        // Draw student photo
+        page.drawImage(studentPhoto, {
+          x: photoX,
+          y: photoY,
+          width: photoDimensions.width,
+          height: photoDimensions.height
+        });
+        
+        photoWidth = photoDimensions.width;
+        photoSpace = photoWidth + 60; // Photo width + margins
+        
+        console.log(`[COMPREHENSIVE_PDF] 📸 Student photo positioned at (${photoX}, ${photoY}) size: ${photoDimensions.width}x${photoDimensions.height}`);
+      }
+      
+      // Student basic info (adjusted for photo space)
+      const infoAreaWidth = width - 120 - photoSpace; // Available width for text
+      
       const studentLabel = options.language === 'fr' ? 'Élève:' : 'Student:';
       drawText(studentLabel, 50, currentY - 20, { 
         font: helveticaBold, 
@@ -277,13 +509,15 @@ export class ComprehensiveBulletinGenerator {
         color: textColor 
       });
       
+      // Class information (positioned considering photo space)
+      const classStartX = Math.min(300, infoAreaWidth - 100);
       const classLabel = options.language === 'fr' ? 'Classe:' : 'Class:';
-      drawText(classLabel, 300, currentY - 20, { 
+      drawText(classLabel, classStartX, currentY - 20, { 
         font: helveticaBold, 
         size: 11, 
         color: textColor 
       });
-      drawText(studentData.className, 340, currentY - 20, { 
+      drawText(studentData.className, classStartX + 40, currentY - 20, { 
         font: helvetica, 
         size: 11, 
         color: textColor 
@@ -303,15 +537,39 @@ export class ComprehensiveBulletinGenerator {
       
       if (studentData.birthDate) {
         const birthLabel = options.language === 'fr' ? 'Né(e) le:' : 'Born on:';
-        drawText(birthLabel, 300, currentY - 40, { 
+        drawText(birthLabel, classStartX, currentY - 40, { 
           font: helveticaBold, 
           size: 11, 
           color: textColor 
         });
-        drawText(studentData.birthDate, 360, currentY - 40, { 
+        drawText(studentData.birthDate, classStartX + 60, currentY - 40, { 
           font: helvetica, 
           size: 11, 
           color: textColor 
+        });
+      }
+      
+      // Add photo placeholder if no photo available but space is reserved
+      if (!studentPhoto && options.photoMaxWidth) {
+        const placeholderX = width - (options.photoMaxWidth || 50) - 50;
+        const placeholderY = currentY - studentSectionHeight + 5;
+        const placeholderWidth = options.photoMaxWidth || 50;
+        const placeholderHeight = options.photoMaxHeight || 60;
+        
+        // Draw placeholder rectangle
+        drawRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight, {
+          color: rgb(0.98, 0.98, 0.98),
+          borderColor: borderColor,
+          borderWidth: 1
+        });
+        
+        // Add placeholder text
+        const placeholderText = options.language === 'fr' ? 'Photo' : 'Photo';
+        const textWidth = helvetica.widthOfTextAtSize(placeholderText, 8);
+        drawText(placeholderText, placeholderX + (placeholderWidth - textWidth) / 2, placeholderY + placeholderHeight / 2 - 4, {
+          font: helvetica,
+          size: 8,
+          color: rgb(0.6, 0.6, 0.6)
         });
       }
       
@@ -525,16 +783,95 @@ export class ComprehensiveBulletinGenerator {
         });
       }
       
-      // 10. FOOTER WITH VERIFICATION CODE
-      const verificationCode = `EDU-${studentData.academicYear}-${studentData.matricule}-${Date.now().toString(36).toUpperCase()}`;
-      const footerY = 60;
+      // 10. FOOTER WITH QR CODE AND VERIFICATION
+      const footerY = 80;
       
-      drawText(`Code de vérification: ${verificationCode}`, tableStartX, footerY, { 
+      // Generate verification data
+      const verificationCode = crypto.randomUUID();
+      const shortCode = this.generateShortCode();
+      const verificationData = {
+        studentId: studentData.studentId,
+        schoolId: schoolInfo.id,
+        term: studentData.term,
+        academicYear: studentData.academicYear,
+        generalAverage: overallAverage.toFixed(2),
+        classRank: studentData.classRank,
+        totalStudents: studentData.totalStudents
+      };
+      
+      // Generate verification hash
+      const verificationHash = this.generateVerificationHash(verificationData);
+      
+      // Create QR code data - verification URL
+      const baseURL = process.env.BASE_URL || 'https://app.replit.dev';
+      const verificationURL = `${baseURL}/verify?code=${verificationCode}`;
+      
+      // Embed QR code in PDF if enabled
+      if (options.includeQRCode !== false) {
+        try {
+          // Generate QR code as data URL
+          const qrCodeSize = options.qrCodeSize || 80;
+          const qrCodeDataURL = await QRCode.toDataURL(verificationURL, {
+            width: qrCodeSize,
+            margin: 1,
+            color: {
+              dark: '#000000',
+              light: '#FFFFFF'
+            }
+          });
+          
+          // Extract image data from data URL
+          const base64Data = qrCodeDataURL.split(',')[1];
+          const qrCodeImage = Buffer.from(base64Data, 'base64');
+          
+          // Embed QR code image
+          const qrCodePdfImage = await pdfDoc.embedPng(qrCodeImage);
+          
+          // Position QR code in footer (bottom right)
+          const qrCodeX = width - qrCodeSize - 50; // Right side with margin
+          const qrCodeY = 20; // Bottom with margin
+          
+          // Draw QR code border
+          drawRect(qrCodeX - 2, qrCodeY - 2, qrCodeSize + 4, qrCodeSize + 4, {
+            color: rgb(1, 1, 1),
+            borderColor: borderColor,
+            borderWidth: 1
+          });
+          
+          // Draw QR code
+          page.drawImage(qrCodePdfImage, {
+            x: qrCodeX,
+            y: qrCodeY,
+            width: qrCodeSize,
+            height: qrCodeSize
+          });
+          
+          // QR code label
+          const qrLabel = options.language === 'fr' ? 'Scanner pour vérifier' : 'Scan to verify';
+          const qrLabelWidth = helvetica.widthOfTextAtSize(qrLabel, 7);
+          drawText(qrLabel, qrCodeX + (qrCodeSize - qrLabelWidth) / 2, qrCodeY - 12, {
+            font: helvetica,
+            size: 7,
+            color: textColor
+          });
+          
+          console.log(`[COMPREHENSIVE_PDF] 📱 QR code generated and embedded: ${verificationURL}`);
+          
+        } catch (qrError) {
+          console.error('[COMPREHENSIVE_PDF] ❌ QR code generation failed:', qrError);
+          // Fallback to text code if QR generation fails
+        }
+      }
+      
+      // Verification codes (text)
+      const codeLabel = options.language === 'fr' ? 'Code de vérification:' : 'Verification code:';
+      drawText(`${codeLabel} ${shortCode}`, tableStartX, footerY, { 
         font: helvetica, 
         size: 8, 
         color: textColor 
       });
       
+      // Authentication text
       const authText = options.language === 'fr' 
         ? 'Document authentifié par signature numérique EDUCAFRIC'
         : 'Document authenticated by EDUCAFRIC digital signature';
@@ -545,11 +882,23 @@ export class ComprehensiveBulletinGenerator {
         color: textColor 
       });
       
+      // School contact info
       drawText(`${schoolInfo.name} - ${schoolInfo.phone || ''}`, tableStartX, footerY - 30, { 
         font: helvetica, 
         size: 8, 
         color: textColor 
       });
+      
+      // Return verification data for saving to database
+      const bulletinVerificationData = {
+        verificationCode,
+        shortCode,
+        verificationHash,
+        verificationURL,
+        studentData,
+        schoolInfo,
+        overallAverage: overallAverage.toFixed(2)
+      };
       
       // Generate PDF
       const pdfBytes = await pdfDoc.save({
@@ -560,7 +909,13 @@ export class ComprehensiveBulletinGenerator {
       
       console.log(`[COMPREHENSIVE_PDF] ✅ Professional bulletin generated - Size: ${pdfBytes.length} bytes`);
       
-      return Buffer.from(pdfBytes);
+      // Store verification data in PDF metadata for later retrieval
+      const pdfBuffer = Buffer.from(pdfBytes);
+      
+      // Attach verification data as a property for access by calling code
+      (pdfBuffer as any).verificationData = bulletinVerificationData;
+      
+      return pdfBuffer;
       
     } catch (error) {
       console.error('[COMPREHENSIVE_PDF] ❌ Error:', error);
