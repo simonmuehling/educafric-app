@@ -5843,10 +5843,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         birthDate: '2010-03-15',
         birthPlace: 'Yaoundé',
         gender: 'Féminin',
-        class: '6ème A Sciences',
+        className: '6ème A Sciences', // Fixed: was 'class', now 'className'
+        classRank: 3, // Fixed: extracted rank number
+        totalStudents: 35, // Fixed: extracted total students
         term: term,
         academicYear: '2024-2025',
-        rank: '3/35',
         subjects: [
           { subjectId: 1, subjectName: 'Mathématiques', coefficient: 4, termAverage: 17.5, maxScore: 20, teacherId: 1, teacherName: 'M. KONÉ Joachim', comments: 'Excellent travail' },
           { subjectId: 2, subjectName: 'Français', coefficient: 4, termAverage: 15.0, maxScore: 20, teacherId: 2, teacherName: 'Mme DIALLO Aminata', comments: 'Très bien' },

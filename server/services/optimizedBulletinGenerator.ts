@@ -222,13 +222,14 @@ export class OptimizedBulletinGenerator {
   ): Promise<number> {
     console.log('[OPTIMIZED_HEADER] 🏛️ Generating standardized Cameroonian header...');
     
-    const startY = A4_DIMENSIONS.height - A4_DIMENSIONS.margin;
+    // REDUCED TOP SPACING - Start closer to top
+    const startY = A4_DIMENSIONS.height - 25; // Reduced from A4_DIMENSIONS.margin (30)
     let currentY = startY;
     
-    // Three-column layout for header
+    // FIXED COLUMN LAYOUT - Better spacing to prevent overlaps
     const leftCol = A4_DIMENSIONS.margin;
     const centerCol = A4_DIMENSIONS.width / 2;
-    const rightCol = A4_DIMENSIONS.width - A4_DIMENSIONS.margin - 150;
+    const rightCol = A4_DIMENSIONS.width - A4_DIMENSIONS.margin - 120; // Increased spacing
     
     // LEFT COLUMN: Official Cameroon information
     drawText('RÉPUBLIQUE DU CAMEROUN', leftCol, currentY, { size: 10, bold: true });
@@ -296,8 +297,8 @@ export class OptimizedBulletinGenerator {
       });
     }
     
-    // Separator line
-    const separatorY = currentY - 75;
+    // COMPACT SEPARATOR - Reduce spacing between header and content
+    const separatorY = currentY - 45; // Reduced from 75 to 45
     page.drawLine({
       start: { x: A4_DIMENSIONS.margin, y: separatorY },
       end: { x: A4_DIMENSIONS.width - A4_DIMENSIONS.margin, y: separatorY },
@@ -306,7 +307,7 @@ export class OptimizedBulletinGenerator {
     });
     
     console.log('[OPTIMIZED_HEADER] ✅ Header completed');
-    return separatorY - 10;
+    return separatorY - 5; // Reduced from 10 to 5
   }
 
   /**
@@ -514,9 +515,9 @@ export class OptimizedBulletinGenerator {
       let currentY = await this.generateOptimizedHeader(page, drawText, schoolInfo, options.language);
       currentY -= spacing.minSpacing;
       
-      // 2. BULLETIN TITLE
-      const titleText = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT';
-      drawText(titleText, A4_DIMENSIONS.width / 2, currentY, {
+      // 2. BULLETIN TITLE - FIXED CENTERING AND COMPLETE TEXT
+      const titleText = options.language === 'fr' ? 'BULLETIN DE NOTES' : 'SCHOOL REPORT CARD';
+      drawText(titleText, A4_DIMENSIONS.margin, currentY, {
         size: 16,
         font: fonts.bold,
         align: 'center',
@@ -528,7 +529,7 @@ export class OptimizedBulletinGenerator {
         ? `Période: ${studentData.term} - ${studentData.academicYear}`
         : `Period: ${studentData.term} - ${studentData.academicYear}`;
       
-      drawText(termText, A4_DIMENSIONS.width / 2, currentY, {
+      drawText(termText, A4_DIMENSIONS.margin, currentY, {
         size: 12,
         align: 'center',
         maxWidth: A4_DIMENSIONS.contentWidth
