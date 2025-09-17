@@ -4945,25 +4945,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===== SCHOOL OFFICIAL SETTINGS API =====
   app.get('/api/director/school-settings', requireAuth, requireAnyRole(['Director']), async (req: Request, res: Response) => {
     try {
-      const user = { schoolId: 999, role: 'Director' }; // Demo data for sandbox
+      // Get real school data from database instead of demo data
+      const user = req.user as { schoolId: number; role: string };
+      const schoolId = user.schoolId || 999; // Fallback to sandbox for demo
       
-      const demoSchool = {
-        id: user.schoolId,
-        name: "École Internationale de Yaoundé - Campus Sandbox",
-        type: "private", // public, private, enterprise
-        address: "Quartier Bastos, Yaoundé",
-        phone: "+237 222 123 456",
-        email: "contact@ecole-sandbox.cm",
-        logoUrl: "https://images.unsplash.com/photo-1562774053-701939374585?w=200&h=200&fit=crop&crop=center",
-        regionaleMinisterielle: "Délégation Régionale du Centre",
-        delegationDepartementale: "Délégation Départementale du Mfoundi",
-        boitePostale: "B.P. 8524 Yaoundé",
-        arrondissement: "Yaoundé 1er"
-      };
-
+      // Fetch real school data from database
+      const schoolQuery = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+      
+      if (schoolQuery.length === 0) {
+        // Fallback to demo data if school not found
+        console.log(`[SCHOOL_SETTINGS] School ${schoolId} not found, using demo data`);
+        const demoSchool = {
+          id: schoolId,
+          name: "École Internationale de Yaoundé - Campus Sandbox",
+          type: "private",
+          address: "Quartier Bastos, Yaoundé",
+          phone: "+237 222 123 456",
+          email: "contact@ecole-sandbox.cm",
+          logoUrl: "https://images.unsplash.com/photo-1562774053-701939374585?w=200&h=200&fit=crop&crop=center",
+          regionaleMinisterielle: "Délégation Régionale du Centre",
+          delegationDepartementale: "Délégation Départementale du Mfoundi",
+          boitePostale: "B.P. 8524 Yaoundé",
+          arrondissement: "Yaoundé 1er"
+        };
+        
+        return res.json({
+          success: true,
+          school: demoSchool
+        });
+      }
+      
+      // Return real school data
+      const school = schoolQuery[0];
+      console.log(`[SCHOOL_SETTINGS] ✅ Returning real school data for: ${school.name}`);
+      
       res.json({
         success: true,
-        school: demoSchool
+        school: {
+          id: school.id,
+          name: school.name,
+          type: school.type,
+          address: school.address,
+          phone: school.phone,
+          email: school.email,
+          logoUrl: school.logoUrl,
+          regionaleMinisterielle: school.regionaleMinisterielle,
+          delegationDepartementale: school.delegationDepartementale,
+          boitePostale: school.boitePostale,
+          arrondissement: school.arrondissement,
+          // Additional fields for completeness
+          subscriptionStatus: school.subscriptionStatus,
+          subscriptionPlan: school.subscriptionPlan,
+          academicYear: school.academicYear,
+          currentTerm: school.currentTerm
+        }
       });
     } catch (error) {
       console.error('[SCHOOL_SETTINGS] Error:', error);

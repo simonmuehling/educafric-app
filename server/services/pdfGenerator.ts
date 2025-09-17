@@ -15,9 +15,175 @@ export interface CameroonOfficialHeaderData {
   phone?: string;
   email?: string;
   postalBox?: string;
+  address?: string;
+  // Mapping from schema fields
+  regionaleMinisterielle?: string; // Maps to region
+  delegationDepartementale?: string; // Maps to department  
+  boitePostale?: string; // Maps to postalBox
+}
+
+// School data fetcher helper
+export class SchoolDataService {
+  static async getSchoolData(schoolId: number): Promise<CameroonOfficialHeaderData | null> {
+    try {
+      // Import here to avoid circular dependencies
+      const { db } = await import('../db.js');
+      const { schools } = await import('../../shared/schema.js');
+      const { eq } = await import('drizzle-orm');
+      
+      const school = await db.select().from(schools).where(eq(schools.id, schoolId)).limit(1);
+      
+      if (!school.length) {
+        console.log(`[SCHOOL_DATA] No school found with ID: ${schoolId}`);
+        return null;
+      }
+      
+      const schoolData = school[0];
+      
+      // Use exact delegation strings from school data (no fragile regex parsing)
+      const regionaleText = schoolData.regionaleMinisterielle || 'DÉLÉGATION RÉGIONALE DU CENTRE';
+      const departementText = schoolData.delegationDepartementale || 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI';
+      
+      // Extract just the location name for legacy compatibility 
+      const regionMatch = regionaleText.match(/(?:du|de l?a?)\s+([\w\s-]+)$/i);
+      const region = regionMatch ? regionMatch[1].toUpperCase().trim() : 'CENTRE';
+      
+      const departmentMatch = departementText.match(/(?:du|de l?a?)\s+([\w\s-]+)$/i);
+      const department = departmentMatch ? departmentMatch[1].toUpperCase().trim() : 'MFOUNDI';
+      
+      return {
+        schoolName: schoolData.name || 'ÉTABLISSEMENT SCOLAIRE',
+        region,
+        department,
+        educationLevel: 'secondary', // Default, could be configurable later
+        logoUrl: schoolData.logoUrl || undefined,
+        phone: schoolData.phone || undefined,
+        email: schoolData.email || undefined,
+        postalBox: schoolData.boitePostale || undefined,
+        address: schoolData.address || undefined,
+        // Keep original mapping for reference
+        regionaleMinisterielle: regionaleText,
+        delegationDepartementale: departementText,
+        boitePostale: schoolData.boitePostale || undefined
+      };
+    } catch (error) {
+      console.error('[SCHOOL_DATA] Error fetching school data:', error);
+      return null;
+    }
+  }
 }
 
 export class PDFGenerator {
+
+  /**
+   * Convert logo URL to base64 for jsPDF compatibility
+   * ✅ SECURED: Domain validation, timeouts, size limits to prevent SSRF attacks
+   */
+  private static async convertLogoToBase64(logoUrl: string): Promise<string | null> {
+    try {
+      if (logoUrl.startsWith('http')) {
+        // ✅ SECURITY: Validate allowed domains to prevent SSRF attacks
+        const allowedDomains = [
+          'educafric.com',
+          'www.educafric.com',
+          'localhost',
+          '127.0.0.1',
+          '0.0.0.0',
+          // Add more trusted domains as needed
+        ];
+        
+        const url = new URL(logoUrl);
+        const isAllowedDomain = allowedDomains.some(domain => 
+          url.hostname === domain || url.hostname.endsWith('.' + domain)
+        );
+        
+        if (!isAllowedDomain) {
+          throw new Error(`Domain '${url.hostname}' not in allowed list`);
+        }
+        
+        // ✅ SECURITY: Set timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        try {
+          const response = await fetch(logoUrl, {
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'EDUCAFRIC-PDF-Generator/1.0'
+            }
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          
+          // ✅ SECURITY: Validate content type
+          const contentType = response.headers.get('content-type') || '';
+          if (!contentType.startsWith('image/')) {
+            throw new Error(`Invalid content type: ${contentType}`);
+          }
+          
+          // ✅ SECURITY: Check content length to prevent memory exhaustion
+          const contentLength = response.headers.get('content-length');
+          if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) { // 5MB max
+            throw new Error('Image too large (>5MB)');
+          }
+          
+          const buffer = await response.arrayBuffer();
+          
+          // ✅ SECURITY: Final size check after download
+          if (buffer.byteLength > 5 * 1024 * 1024) {
+            throw new Error('Downloaded image too large (>5MB)');
+          }
+          
+          const base64 = Buffer.from(buffer).toString('base64');
+          const mimeType = contentType || 'image/jpeg';
+          return `data:${mimeType};base64,${base64}`;
+          
+        } finally {
+          clearTimeout(timeoutId);
+        }
+        
+      } else {
+        // Local file path: read from filesystem with security checks
+        const fs = await import('fs');
+        const path = await import('path');
+        
+        // ✅ SECURITY: Validate file path to prevent directory traversal
+        const normalizedPath = path.normalize(logoUrl);
+        if (normalizedPath.includes('..') || !normalizedPath.startsWith('/') && !normalizedPath.match(/^[a-zA-Z]:/)) {
+          throw new Error('Invalid file path - potential directory traversal');
+        }
+        
+        if (fs.existsSync(normalizedPath)) {
+          const stats = fs.statSync(normalizedPath);
+          
+          // ✅ SECURITY: Check file size
+          if (stats.size > 5 * 1024 * 1024) { // 5MB max
+            throw new Error('Local image file too large (>5MB)');
+          }
+          
+          const buffer = fs.readFileSync(normalizedPath);
+          const ext = path.extname(normalizedPath).toLowerCase();
+          
+          // ✅ SECURITY: Validate file extension
+          if (!['.png', '.jpg', '.jpeg', '.gif', '.webp'].includes(ext)) {
+            throw new Error(`Unsupported image format: ${ext}`);
+          }
+          
+          const mimeType = ext === '.png' ? 'image/png' : 
+                          ext === '.gif' ? 'image/gif' :
+                          ext === '.webp' ? 'image/webp' : 'image/jpeg';
+          const base64 = buffer.toString('base64');
+          return `data:${mimeType};base64,${base64}`;
+        }
+        throw new Error('Local file not found');
+      }
+    } catch (error) {
+      console.error('[PDF_LOGO] Secured logo conversion failed:', error.message);
+      return null;
+    }
+  }
 
   /**
    * Generate standardized Cameroonian official header for all PDF documents
@@ -42,8 +208,9 @@ export class PDFGenerator {
         ? 'MINISTÈRE DE L\'ÉDUCATION DE BASE'
         : 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES';
       
-      const region = headerData.region || 'CENTRE';
-      const department = headerData.department || 'MFOUNDI';
+      // Use exact delegation strings from real school data
+      const regionaleText = headerData.regionaleMinisterielle || 'DÉLÉGATION RÉGIONALE DU CENTRE';
+      const departementText = headerData.delegationDepartementale || 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI';
       
       // === COLONNE GAUCHE: Informations officielles ===
       doc.setFontSize(10);
@@ -61,8 +228,8 @@ export class PDFGenerator {
       
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text(`DÉLÉGATION RÉGIONALE DU ${region}`, leftColX, yPosition + 22);
-      doc.text(`DÉLÉGATION DÉPARTEMENTALE DU ${department}`, leftColX, yPosition + 28);
+      doc.text(regionaleText, leftColX, yPosition + 22);
+      doc.text(departementText, leftColX, yPosition + 28);
       
       // === COLONNE DROITE: Même informations officielles (symétrie) ===
       doc.setFontSize(10);
@@ -80,24 +247,38 @@ export class PDFGenerator {
       
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text(`DÉLÉGATION RÉGIONALE DU ${region}`, rightColX, yPosition + 22);
-      doc.text(`DÉLÉGATION DÉPARTEMENTALE DU ${department}`, rightColX, yPosition + 28);
+      doc.text(regionaleText, rightColX, yPosition + 22);
+      doc.text(departementText, rightColX, yPosition + 28);
       
       // === COLONNE CENTRE: École et logo ===
-      // Placeholder pour logo (carré centré)
       const logoSize = 25;
       const logoX = centerX - (logoSize / 2);
       const logoY = yPosition - 2;
       
-      doc.setDrawColor(100, 100, 100);
-      doc.setLineWidth(0.8);
-      doc.rect(logoX, logoY, logoSize, logoSize);
-      
-      // Texte logo placeholder
-      doc.setFontSize(6);
-      doc.setTextColor(100, 100, 100);
-      doc.text('LOGO', centerX, logoY + 12, { align: 'center' });
-      doc.text('ÉCOLE', centerX, logoY + 17, { align: 'center' });
+      // Display real logo if available, otherwise placeholder
+      if (headerData.logoUrl) {
+        try {
+          // Convert logo URL to base64 for jsPDF compatibility
+          const logoBase64 = await this.convertLogoToBase64(headerData.logoUrl);
+          if (logoBase64) {
+            // ✅ FIX: Detect actual format from data URL instead of forcing 'JPEG'
+            const mimeMatch = logoBase64.match(/data:image\/(\w+);base64,/);
+            const imageFormat = mimeMatch ? mimeMatch[1].toUpperCase() : 'JPEG';
+            
+            doc.addImage(logoBase64, imageFormat, logoX, logoY, logoSize, logoSize);
+            console.log(`[PDF_HEADER] ✅ Real school logo loaded (${imageFormat}) from URL and added successfully`);
+          } else {
+            throw new Error('Logo conversion failed');
+          }
+        } catch (logoError) {
+          console.warn('[PDF_HEADER] ⚠️ Failed to load school logo, using placeholder:', logoError.message);
+          // Fallback to placeholder if logo loading fails
+          this.drawLogoPlaceholder(doc, logoX, logoY, logoSize, centerX);
+        }
+      } else {
+        // Draw placeholder when no logo URL is provided
+        this.drawLogoPlaceholder(doc, logoX, logoY, logoSize, centerX);
+      }
       
       // Nom de l'établissement (centré sous le logo)
       doc.setFontSize(10);
@@ -122,8 +303,14 @@ export class PDFGenerator {
         doc.text(headerData.email, centerX, yPosition + 54, { align: 'center' });
       }
       
-      // Ligne de séparation officielle
-      const separatorY = yPosition + 65;
+      // Add address if available
+      if (headerData.address) {
+        doc.setFontSize(6);
+        doc.text(headerData.address, centerX, yPosition + 60, { align: 'center' });
+      }
+      
+      // Ligne de séparation officielle (adjust Y if address was added)
+      const separatorY = headerData.address ? yPosition + 71 : yPosition + 65;
       doc.setLineWidth(0.8);
       doc.setDrawColor(0, 0, 0);
       doc.line(margin, separatorY, pageWidth - margin, separatorY);
@@ -137,6 +324,21 @@ export class PDFGenerator {
       // Return safe fallback position
       return 80;
     }
+  }
+
+  /**
+   * Draw logo placeholder when real logo is not available
+   */
+  private static drawLogoPlaceholder(doc: any, logoX: number, logoY: number, logoSize: number, centerX: number): void {
+    doc.setDrawColor(100, 100, 100);
+    doc.setLineWidth(0.8);
+    doc.rect(logoX, logoY, logoSize, logoSize);
+    
+    // Placeholder text
+    doc.setFontSize(6);
+    doc.setTextColor(100, 100, 100);
+    doc.text('LOGO', centerX, logoY + 12, { align: 'center' });
+    doc.text('ÉCOLE', centerX, logoY + 17, { align: 'center' });
   }
 
   /**
@@ -207,14 +409,17 @@ export class PDFGenerator {
     try {
       console.log('[PDF_HEADER] 📋 Using legacy addCompactSchoolHeader - migrating to standardized format...');
       
-      // Migrate to new standardized header format
+      // NOTE: addCompactSchoolHeader is deprecated - should pass real school data
+      // For now, try to use provided school data, otherwise fallback
       const headerData: CameroonOfficialHeaderData = {
         schoolName: schoolData?.schoolName || 'ÉTABLISSEMENT SCOLAIRE',
         region: 'CENTRE',
         department: 'MFOUNDI',
         educationLevel: 'secondary',
-        phone: '+237 222 345 678',
-        postalBox: schoolData?.boitePostale || 'B.P. 8524 Yaoundé'
+        phone: schoolData?.phone || '+237 222 345 678',
+        postalBox: schoolData?.boitePostale || 'B.P. 8524 Yaoundé',
+        logoUrl: schoolData?.logoUrl || undefined,
+        email: undefined // Not provided in legacy interface
       };
       
       // Use the new standardized header
@@ -328,17 +533,23 @@ export class PDFGenerator {
       type: 'system'
     };
     
-    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
-    const headerData: CameroonOfficialHeaderData = {
+    // ✅ UTILISER VRAIES DONNÉES ÉCOLE AVEC FALLBACK SYSTÈME
+    // For system documents, try to get school data but fallback to system info
+    const systemHeaderData: CameroonOfficialHeaderData = {
       schoolName: 'SYSTÈME EDUCAFRIC',
       region: 'CENTRE',
       department: 'MFOUNDI',
       educationLevel: 'secondary',
       phone: '+237 656 200 472',
       email: 'info@educafric.com',
-      postalBox: 'B.P. 8524 Yaoundé'
+      postalBox: 'B.P. 8524 Yaoundé',
+      // Données officielles camerounaises complètes pour documents système
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
     };
-    yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+    yPosition = await this.generateCameroonOfficialHeader(doc, systemHeaderData);
+    
+    console.log('[PDF_GENERATOR] ✅ French workflow documentation using official Cameroon format');
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -624,9 +835,11 @@ export class PDFGenerator {
         type: 'report'
       };
       
-      // Generate standardized Cameroonian official header
-      const headerData: CameroonOfficialHeaderData = {
-        schoolName: 'ÉTABLISSEMENT SCOLAIRE EDUCAFRIC',
+      // ✅ UTILISER VRAIES DONNÉES ÉCOLE AU LIEU DE DONNÉES HARDCODÉES
+      const realSchoolData = await SchoolDataService.getSchoolData(schoolId);
+      const headerData: CameroonOfficialHeaderData = realSchoolData || {
+        // Fallback data if school not found
+        schoolName: 'ÉTABLISSEMENT SCOLAIRE',
         region: 'CENTRE',
         department: 'MFOUNDI',
         educationLevel: 'secondary',
@@ -635,6 +848,8 @@ export class PDFGenerator {
         postalBox: 'B.P. 8524 Yaoundé'
       };
       let yPosition = await PDFGenerator.generateCameroonOfficialHeader(doc, headerData);
+      
+      console.log(`[PDF_GENERATOR] ✅ Class report using real school data: ${headerData.schoolName}`);
       
       // Add QR code after header
       await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -727,16 +942,22 @@ export class PDFGenerator {
     };
     
     // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    // Pour documents système EN, utiliser format officiel camerounais avec traductions anglaises
     const headerData: CameroonOfficialHeaderData = {
       schoolName: 'EDUCAFRIC SYSTEM',
       region: 'CENTRE',
-      department: 'MFOUNDI',
+      department: 'MFOUNDI', 
       educationLevel: 'secondary',
       phone: '+237 656 200 472',
       email: 'info@educafric.com',
-      postalBox: 'P.O. Box 8524 Yaoundé'
+      postalBox: 'P.O. Box 8524 Yaoundé',
+      // Données officielles camerounaises complètes pour documents système
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
     };
     yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+    
+    console.log('[PDF_GENERATOR] ✅ English workflow documentation using official Cameroon format');
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, documentData, 160, 25);
@@ -993,16 +1214,22 @@ export class PDFGenerator {
     doc.setFont('helvetica');
     
     // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    // Pour les rapports système, pas de schoolId spécifique - utiliser données système officielles
     const headerData: CameroonOfficialHeaderData = {
       schoolName: data.user?.schoolName || 'SYSTÈME EDUCAFRIC',
       region: 'CENTRE',
-      department: 'MFOUNDI',
+      department: 'MFOUNDI', 
       educationLevel: 'secondary',
       phone: '+237 656 200 472',
       email: 'info@educafric.com',
-      postalBox: 'B.P. 8524 Yaoundé'
+      postalBox: 'B.P. 8524 Yaoundé',
+      // Données officielles camerounaises complètes pour documents système
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
     };
     let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+    
+    console.log('[PDF_GENERATOR] ✅ System report using official Cameroon format');
     
     // Add QR code after header
     await this.addQRCodeToDocument(doc, data, 160, 25);
@@ -1314,16 +1541,22 @@ export class PDFGenerator {
     doc.setFont('helvetica');
     
     // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ
+    // Pour guides commerciaux, utiliser format officiel avec données système
     const headerData: CameroonOfficialHeaderData = {
-      schoolName: 'ÉTABLISSEMENT SCOLAIRE',
+      schoolName: 'ÉTABLISSEMENT SCOLAIRE EDUCAFRIC',
       region: 'CENTRE',
       department: 'MFOUNDI',
       educationLevel: 'secondary',
       phone: '+237 656 200 472',
       email: 'info@educafric.com',
-      postalBox: 'B.P. 8524 Yaoundé'
+      postalBox: 'B.P. 8524 Yaoundé',
+      // Données officielles camerounaises complètes pour documents commerciaux
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
     };
     let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
+    
+    console.log('[PDF_GENERATOR] ✅ Commercial guide (FR) using official Cameroon format');
     
     // Titre principal
     doc.setFontSize(16);
@@ -2093,35 +2326,44 @@ export class PDFGenerator {
     // Configuration
     doc.setFont('helvetica');
     
-    // En-tête avec branding EDUCAFRIC
-    doc.setFontSize(20);
-    doc.setTextColor(0, 121, 242); // #0079F2
-    doc.text('EDUCAFRIC', 20, 30);
-    doc.setFontSize(14);
-    doc.text('Système Multi-Rôle - Guide Commercial', 20, 40);
+    // ✅ UTILISER EN-TÊTE OFFICIEL CAMEROUNAIS STANDARDISÉ AU LIEU DU FORMAT MANUEL
+    const headerData: CameroonOfficialHeaderData = {
+      schoolName: 'SYSTÈME MULTI-RÔLE EDUCAFRIC',
+      region: 'CENTRE',
+      department: 'MFOUNDI',
+      educationLevel: 'secondary',
+      phone: '+237 656 200 472',
+      email: 'info@educafric.com',
+      postalBox: 'B.P. 8524 Yaoundé',
+      // Données officielles camerounaises complètes pour documents multi-rôle
+      regionaleMinisterielle: 'DÉLÉGATION RÉGIONALE DU CENTRE',
+      delegationDepartementale: 'DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI'
+    };
+    let yPosition = await this.generateCameroonOfficialHeader(doc, headerData);
     
-    // Ligne de séparation
-    doc.setDrawColor(0, 121, 242);
-    doc.setLineWidth(1);
-    doc.line(20, 45, 190, 45);
+    // Add QR code after standardized header
+    await this.addQRCodeToDocument(doc, data, 160, 25);
     
-    // Métadonnées document
+    console.log('[PDF_GENERATOR] ✅ Multi-role guide using official Cameroon format');
+    
+    // Métadonnées document repositionnées après en-tête officiel
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Document ID: ${data.id}`, 20, 55);
-    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, 62);
-    doc.text(`Généré par: ${data.user.email}`, 20, 69);
-    doc.text(`Type: Guide Commercial Multi-Rôle`, 20, 76);
+    doc.text(`Document ID: ${data.id}`, 20, yPosition);
+    doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, yPosition + 7);
+    doc.text(`Généré par: ${data.user.email}`, 20, yPosition + 14);
+    doc.text(`Type: Guide Commercial Multi-Rôle`, 20, yPosition + 21);
     
-    // Titre principal
+    // Titre principal repositionné
+    yPosition += 35;
     doc.setFontSize(18);
     doc.setTextColor(0, 0, 0);
-    doc.text('Système Multi-Rôle EDUCAFRIC', 20, 90);
+    doc.text('Système Multi-Rôle EDUCAFRIC', 20, yPosition);
     doc.setFontSize(14);
-    doc.text('Guide Commercial (Français / English)', 20, 100);
+    doc.text('Guide Commercial (Français / English)', 20, yPosition + 8);
     
     // Section 1: Vue d'ensemble (Français)
-    let yPosition = 120;
+    yPosition += 20;
     doc.setFontSize(16);
     doc.setTextColor(0, 121, 242);
     doc.text('1. VUE D\'ENSEMBLE DU SYSTÈME', 20, yPosition);

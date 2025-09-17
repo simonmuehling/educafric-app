@@ -3,7 +3,7 @@ import { PDFGenerator, CameroonOfficialHeaderData } from './pdfGenerator';
 
 export class SimpleBulletinGenerator {
   
-  static async generateSimpleBulletin(headerData?: CameroonOfficialHeaderData): Promise<Buffer> {
+  static async generateSimpleBulletin(headerData?: CameroonOfficialHeaderData, schoolId?: number): Promise<Buffer> {
     try {
       const { jsPDF } = await import('jspdf');
       
@@ -15,16 +15,27 @@ export class SimpleBulletinGenerator {
       
       console.log('[SIMPLE_BULLETIN] ✅ Génération bulletin simple avec en-tête standardisé');
       
-      // ✅ USE STANDARDIZED CAMEROON OFFICIAL HEADER
-      const headerEndY = await PDFGenerator.generateCameroonOfficialHeader(doc, headerData || {
-        schoolName: 'École Saint-Joseph',
+      // ✅ USE REAL SCHOOL DATA OR FALLBACK TO DEMO
+      let realHeaderData = headerData;
+      
+      if (!realHeaderData && schoolId) {
+        // Try to get real school data
+        const { SchoolDataService } = await import('./pdfGenerator');
+        realHeaderData = await SchoolDataService.getSchoolData(schoolId);
+      }
+      
+      // Fallback to demo data if no real data available
+      const finalHeaderData = realHeaderData || {
+        schoolName: 'École Saint-Joseph (Demo)',
         region: 'CENTRE',
         department: 'MFOUNDI',
-        educationLevel: 'secondary',
+        educationLevel: 'secondary' as const,
         phone: '+237 657 004 011',
         postalBox: 'B.P. 8524 Yaoundé',
         email: 'contact@educafric.com'
-      });
+      };
+      
+      const headerEndY = await PDFGenerator.generateCameroonOfficialHeader(doc, finalHeaderData);
       
       // ✅ BULLETIN TITLE POSITIONED AFTER STANDARDIZED HEADER
       let yPosition = headerEndY;
