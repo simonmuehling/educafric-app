@@ -68,7 +68,7 @@ export class PdfLibBulletinGenerator {
       drawText('educafric.com', rightColX, yPosition - 46, { font: normalFont, size: 6, color: rgb(0.4, 0.4, 0.4) });
       
       // === COLONNE CENTRE: École et logo ===
-      // Logo placeholder (carré centré)
+      // Logo placeholder (carré centré) - Zone définie plus strictement pour éviter débordement
       const logoSize = 25;
       const logoX = centerX - (logoSize / 2);
       const logoY = yPosition - 5;
@@ -83,35 +83,53 @@ export class PdfLibBulletinGenerator {
         borderWidth: 1
       });
       
-      // Texte placeholder dans le logo
+      // Texte placeholder dans le logo - CENTRÉ CORRECTEMENT
       drawText('LOGO', centerX, logoY + 15, { 
         font: normalFont, 
         size: 6, 
-        color: rgb(0.6, 0.6, 0.6) 
+        color: rgb(0.6, 0.6, 0.6),
+        align: 'center'
       });
       drawText('ÉCOLE', centerX, logoY + 8, { 
         font: normalFont, 
         size: 6, 
-        color: rgb(0.6, 0.6, 0.6) 
+        color: rgb(0.6, 0.6, 0.6),
+        align: 'center'
       });
       
-      // ✅ CONFIGURABLE SCHOOL NAME - A4 optimized
-      drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { font: boldFont, size: 9 });
+      // ✅ CONFIGURABLE SCHOOL NAME - A4 optimized et CENTRÉ CORRECTEMENT
+      drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { 
+        font: boldFont, 
+        size: 9,
+        align: 'center'
+      });
       
-      // ✅ CONFIGURABLE CONTACT INFORMATION - Compact for A4
+      // ✅ CONFIGURABLE CONTACT INFORMATION - Compact for A4 et CENTRÉ CORRECTEMENT
       let contactY = logoY - 26;
       if (safeHeaderData.phone) {
-        drawText(`Tél: ${safeHeaderData.phone}`, centerX, contactY, { font: normalFont, size: 6 });
+        drawText(`Tél: ${safeHeaderData.phone}`, centerX, contactY, { 
+          font: normalFont, 
+          size: 6,
+          align: 'center'
+        });
         contactY -= 8;
       }
       
       if (safeHeaderData.postalBox) {
-        drawText(safeHeaderData.postalBox, centerX, contactY, { font: normalFont, size: 6 });
+        drawText(safeHeaderData.postalBox, centerX, contactY, { 
+          font: normalFont, 
+          size: 6,
+          align: 'center'
+        });
         contactY -= 7;
       }
       
       if (safeHeaderData.email) {
-        drawText(safeHeaderData.email, centerX, contactY, { font: normalFont, size: 5 });
+        drawText(safeHeaderData.email, centerX, contactY, { 
+          font: normalFont, 
+          size: 5,
+          align: 'center'
+        });
         contactY -= 6;
       }
       
@@ -165,9 +183,9 @@ export class PdfLibBulletinGenerator {
       const page = pdfDoc.addPage();
       const { width, height } = page.getSize();
       
-      // 4) ✅ FONCTION HELPER SÉCURISÉE POUR DESSINER DU TEXTE
+      // 4) ✅ FONCTION HELPER SÉCURISÉE POUR DESSINER DU TEXTE AVEC SUPPORT CENTRAGE
       const drawText = (text: string | number | undefined | null, x: number, y: number, options: any = {}) => {
-        const { size = 10, font = times, color = rgb(0, 0, 0) } = options;
+        const { size = 10, font = times, color = rgb(0, 0, 0), align = 'left', maxWidth } = options;
         
         // ✅ SANITIZE TEXT INPUT
         let safeText = '';
@@ -175,8 +193,26 @@ export class PdfLibBulletinGenerator {
           safeText = String(text).substring(0, 200); // Limit length
         }
         
+        if (!safeText) return; // Skip empty text
+        
+        // ✅ CALCULATE TEXT WIDTH FOR ALIGNMENT
+        let finalX = x;
+        
+        if (align === 'center' && maxWidth) {
+          // Center text within the specified maxWidth area
+          const textWidth = font.widthOfTextAtSize(safeText, size);
+          finalX = x + (maxWidth - textWidth) / 2;
+        } else if (align === 'center') {
+          // Center text using the page width if no maxWidth provided
+          const textWidth = font.widthOfTextAtSize(safeText, size);
+          finalX = x - textWidth / 2;
+        } else if (align === 'right' && maxWidth) {
+          const textWidth = font.widthOfTextAtSize(safeText, size);
+          finalX = x + maxWidth - textWidth;
+        }
+        
         // ✅ VALIDATE COORDINATES
-        const safeX = Math.max(0, Math.min(width - 10, Number(x) || 0));
+        const safeX = Math.max(0, Math.min(width - 10, Number(finalX) || 0));
         const safeY = Math.max(0, Math.min(height - 10, Number(y) || 0));
         
         try {
