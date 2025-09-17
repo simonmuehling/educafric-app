@@ -17,6 +17,8 @@ import {
   cacheControlMiddleware,
   memoryCleanupMiddleware
 } from "./middleware/performance";
+import { realTimeService } from "./services/realTimeService";
+import { realTimeTrackingMiddleware } from "./middleware/realTimeIntegration";
 import {
   assetOptimizationMiddleware,
   cssOptimizationMiddleware,
@@ -150,6 +152,9 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Real-time tracking middleware for API operations
+app.use('/api', realTimeTrackingMiddleware);
+
 // 🚫 CRITICAL: Optimized static asset serving for production performance
 app.use('/assets', express.static('dist/public/assets', {
   maxAge: '1y', // 1 year cache for hashed assets
@@ -265,6 +270,11 @@ app.use((req, res, next) => {
   setupAutoFixMiddleware(app);
 
   const server = await registerRoutes(app);
+
+  // Initialize real-time WebSocket service
+  console.log('[REALTIME] Initializing WebSocket service...');
+  realTimeService.initialize(server);
+  console.log('[REALTIME] ✅ Real-time service initialized');
 
   // Initialize automated system reporting service
   console.log('[SYSTEM_REPORTS] Initializing automated reporting service...');

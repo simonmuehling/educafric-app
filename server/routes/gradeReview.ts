@@ -13,6 +13,7 @@ import {
   type BulkReviewInput
 } from '../../shared/schema';
 import { eq, and, sql, desc, asc, inArray, isNotNull } from 'drizzle-orm';
+import { triggerGradeUpdate, triggerReviewQueueUpdate } from '../middleware/realTimeIntegration';
 
 const router = Router();
 
@@ -377,8 +378,15 @@ router.post('/review', requireAuth, requireDirectorAuth, async (req, res) => {
       return updatedSubmission[0];
     });
 
-    // TODO: Send notification to teacher about review status change
-    // This would integrate with the existing notification system
+    // Trigger real-time updates
+    triggerGradeUpdate(submissionId, previousStatus, reviewAction, user.id, feedback);
+    
+    // Update review queue
+    if (reviewAction === 'approved' || reviewAction === 'returned') {
+      triggerReviewQueueUpdate('REMOVE', submissionId);
+    } else {
+      triggerReviewQueueUpdate('UPDATE', submissionId);
+    }
 
     console.log('[GRADE_REVIEW] ✅ Review completed:', { 
       submissionId, 
@@ -498,6 +506,20 @@ router.post('/bulk-review', requireAuth, requireDirectorAuth, async (req, res) =
       await tx.insert(gradeReviewHistory).values(historyEntries);
 
       return updates;
+    });
+
+    // Trigger real-time updates for bulk operations
+    submissionIds.forEach(id => {
+      const submission = currentSubmissions.find(s => s.id === id);
+      if (submission) {
+        triggerGradeUpdate(id, submission.reviewStatus, reviewAction, user.id, feedback);
+        
+        if (reviewAction === 'approved' || reviewAction === 'returned') {
+          triggerReviewQueueUpdate('REMOVE', id);
+        } else {
+          triggerReviewQueueUpdate('UPDATE', id);
+        }
+      }
     });
 
     console.log('[GRADE_REVIEW] ✅ Bulk review completed:', { 

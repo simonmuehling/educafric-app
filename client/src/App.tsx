@@ -73,6 +73,7 @@ import Verify from "@/pages/Verify";
 import DebugInspector from "@/pages/DebugInspector";
 import PWAAnalyticsDemo from "@/pages/PWAAnalyticsDemo";
 import EducationalConnections from "@/pages/EducationalConnections";
+import { WebSocketTest } from "@/components/testing/WebSocketTest";
 import SubscriptionManagement from "@/pages/SubscriptionManagement";
 import SignatureTest from "@/pages/SignatureTest";
 import TestBulletinPDF from "@/pages/TestBulletinPDF";
@@ -448,6 +449,7 @@ function Router() {
       <Route path="/bulletin-tests" component={BulletinTestSuite} />
       <Route path="/test-bulletin-pdf" component={TestBulletinPDF} />
       <Route path="/pwa-notifications-test" component={PWANotificationTest} />
+      <Route path="/websocket-test" component={WebSocketTest} />
       
       {/* Fallback to 404 */}
       <Route path="/parent-connect" component={lazy(() => import('./pages/ParentConnect'))} />
