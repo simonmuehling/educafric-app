@@ -396,65 +396,33 @@ export class ComprehensiveBulletinGenerator {
         });
       };
       
-      let currentY = height - 40;
+      // ✅ USE STANDARDIZED CAMEROON OFFICIAL HEADER FROM PDFLIB GENERATOR
+      const { PdfLibBulletinGenerator } = await import('./pdfLibBulletinGenerator');
       
-      // 1. OFFICIAL HEADER - Cameroon Educational System
-      if (options.language === 'fr') {
-        drawText('RÉPUBLIQUE DU CAMEROUN', 40, currentY, { 
-          font: timesBold, 
-          size: 12, 
-          color: headerColor 
-        });
-        drawText('Paix - Travail - Patrie', 40, currentY - 18, { 
-          font: times, 
-          size: 10, 
-          color: textColor 
-        });
-        drawText('MINISTÈRE DE L\'ÉDUCATION DE BASE', 40, currentY - 36, { 
-          font: helvetica, 
-          size: 9, 
-          color: textColor 
-        });
-        
-        if (schoolInfo.region) {
-          drawText(`DÉLÉGATION RÉGIONALE DU ${schoolInfo.region.toUpperCase()}`, 40, currentY - 54, { 
-            font: helvetica, 
-            size: 8, 
-            color: textColor 
-          });
-        }
-        if (schoolInfo.delegation) {
-          drawText(`DÉLÉGATION DÉPARTEMENTALE ${schoolInfo.delegation.toUpperCase()}`, 40, currentY - 68, { 
-            font: helvetica, 
-            size: 8, 
-            color: textColor 
-          });
-        }
-      } else {
-        drawText('REPUBLIC OF CAMEROON', 40, currentY, { 
-          font: timesBold, 
-          size: 12, 
-          color: headerColor 
-        });
-        drawText('Peace - Work - Fatherland', 40, currentY - 18, { 
-          font: times, 
-          size: 10, 
-          color: textColor 
-        });
-        drawText('MINISTRY OF BASIC EDUCATION', 40, currentY - 36, { 
-          font: helvetica, 
-          size: 9, 
-          color: textColor 
-        });
-      }
+      // Convert school info to standardized header data
+      const headerData: any = {
+        schoolName: schoolInfo.name,
+        region: (schoolInfo as any).region || 'CENTRE',
+        department: (schoolInfo as any).delegation || 'MFOUNDI', 
+        educationLevel: (options.language === 'fr' && schoolInfo.regionaleMinisterielle?.includes('BASE') ? 'base' : 'secondary') as 'base' | 'secondary',
+        logoUrl: schoolInfo.logoUrl,
+        phone: schoolInfo.phone,
+        email: schoolInfo.email,
+        postalBox: schoolInfo.boitePostale || schoolInfo.address
+      };
       
-      // School Information and Logo (Right side)
-      let schoolInfoStartX = 350;
+      // ✅ STANDARDIZED HEADER GENERATED - SCHOOL INFO ALREADY INCLUDED
+      // Generate standardized header and get the Y position after it  
+      let currentY = await PdfLibBulletinGenerator.generateStandardizedCameroonHeader(
+        page, drawText, timesBold, times, width, height, headerData
+      );
       
-      // If logo exists, draw it first and adjust text position
-      if (schoolLogo) {
-        const logoMaxWidth = options.logoMaxWidth || 60;
-        const logoMaxHeight = options.logoMaxHeight || 60;
+      // ✅ SCHOOL LOGO HANDLING (if not already in standardized header)
+      // Note: Advanced logo rendering can be added to the standardized header in future
+      if (schoolLogo && (options as any).includeCustomLogo) {
+        console.log('[COMPREHENSIVE_PDF] 🖼️ Adding custom school logo below standardized header');
+        const logoMaxWidth = options.logoMaxWidth || 40;
+        const logoMaxHeight = options.logoMaxHeight || 40;
         
         const logoDimensions = this.calculateImageDimensions(
           schoolLogo.width,
@@ -463,9 +431,9 @@ export class ComprehensiveBulletinGenerator {
           logoMaxHeight
         );
         
-        // Draw school logo
+        // Position logo below standardized header
         const logoX = width - logoDimensions.width - 40; // Right-aligned with margin
-        const logoY = currentY - logoDimensions.height + 10;
+        const logoY = currentY - logoDimensions.height - 5;
         
         page.drawImage(schoolLogo, {
           x: logoX,
@@ -474,46 +442,10 @@ export class ComprehensiveBulletinGenerator {
           height: logoDimensions.height
         });
         
-        // Adjust text position to avoid overlap with logo
-        schoolInfoStartX = logoX - 20; // Leave space between text and logo
+        // Adjust currentY to account for logo space
+        currentY = logoY - 10;
         
-        console.log(`[COMPREHENSIVE_PDF] 🖼️ Logo positioned at (${logoX}, ${logoY}) size: ${logoDimensions.width}x${logoDimensions.height}`);
-      }
-      
-      // School name and information
-      const schoolNameWidth = helveticaBold.widthOfTextAtSize(schoolInfo.name, 14);
-      const schoolNameX = schoolInfoStartX - schoolNameWidth; // Right-align text
-      
-      drawText(schoolInfo.name, schoolNameX, currentY, { 
-        font: helveticaBold, 
-        size: 14, 
-        color: primaryColor 
-      });
-      
-      if (schoolInfo.address) {
-        const addressWidth = helvetica.widthOfTextAtSize(schoolInfo.address, 9);
-        drawText(schoolInfo.address, schoolInfoStartX - addressWidth, currentY - 18, { 
-          font: helvetica, 
-          size: 9, 
-          color: textColor 
-        });
-      }
-      if (schoolInfo.phone) {
-        const phoneText = `Tél: ${schoolInfo.phone}`;
-        const phoneWidth = helvetica.widthOfTextAtSize(phoneText, 9);
-        drawText(phoneText, schoolInfoStartX - phoneWidth, currentY - 32, { 
-          font: helvetica, 
-          size: 9, 
-          color: textColor 
-        });
-      }
-      if (schoolInfo.email) {
-        const emailWidth = helvetica.widthOfTextAtSize(schoolInfo.email, 9);
-        drawText(schoolInfo.email, schoolInfoStartX - emailWidth, currentY - 46, { 
-          font: helvetica, 
-          size: 9, 
-          color: textColor 
-        });
+        console.log(`[COMPREHENSIVE_PDF] ✅ Custom logo positioned at (${logoX}, ${logoY})`);
       }
       
       currentY -= 100;
@@ -951,9 +883,7 @@ export class ComprehensiveBulletinGenerator {
         schoolId: schoolInfo.id,
         term: studentData.term,
         academicYear: studentData.academicYear || schoolInfo.academicYear || '2024-2025',
-        generalAverage: overallAverage.toFixed(2),
-        schoolName: schoolInfo.name,
-        regionaleMinisterielle: schoolInfo.regionaleMinisterielle || 'Non définie'
+        generalAverage: overallAverage.toFixed(2)
       });
       
       // Create QR code data - verification URL

@@ -6,7 +6,138 @@ export interface DocumentData {
   content?: string;
 }
 
+export interface CameroonOfficialHeaderData {
+  schoolName: string;
+  region?: string;
+  department?: string;
+  educationLevel?: 'base' | 'secondary'; // Éducation de Base ou Enseignements Secondaires
+  logoUrl?: string;
+  phone?: string;
+  email?: string;
+  postalBox?: string;
+}
+
 export class PDFGenerator {
+
+  /**
+   * Generate standardized Cameroonian official header for all PDF documents
+   * This header follows the official Cameroonian government document format
+   * and is required for all educational documents
+   */
+  static async generateCameroonOfficialHeader(doc: any, headerData: CameroonOfficialHeaderData): Promise<number> {
+    try {
+      console.log('[PDF_HEADER] 📋 Generating standardized Cameroonian official header...');
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 15;
+      let yPosition = 15;
+      
+      // Définir les positions des 3 colonnes
+      const leftColX = margin;
+      const centerX = pageWidth / 2;
+      const rightColX = pageWidth - margin - 100;
+      
+      // Déterminer le ministère selon le niveau d'enseignement
+      const ministry = headerData.educationLevel === 'base' 
+        ? 'MINISTÈRE DE L\'ÉDUCATION DE BASE'
+        : 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES';
+      
+      const region = headerData.region || 'CENTRE';
+      const department = headerData.department || 'MFOUNDI';
+      
+      // === COLONNE GAUCHE: Informations officielles ===
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('RÉPUBLIQUE DU CAMEROUN', leftColX, yPosition);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.text('Paix - Travail - Patrie', leftColX, yPosition + 6);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(ministry, leftColX, yPosition + 14);
+      
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`DÉLÉGATION RÉGIONALE DU ${region}`, leftColX, yPosition + 22);
+      doc.text(`DÉLÉGATION DÉPARTEMENTALE DU ${department}`, leftColX, yPosition + 28);
+      
+      // === COLONNE DROITE: Même informations officielles (symétrie) ===
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('RÉPUBLIQUE DU CAMEROUN', rightColX, yPosition);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.text('Paix - Travail - Patrie', rightColX, yPosition + 6);
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text(ministry, rightColX, yPosition + 14);
+      
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`DÉLÉGATION RÉGIONALE DU ${region}`, rightColX, yPosition + 22);
+      doc.text(`DÉLÉGATION DÉPARTEMENTALE DU ${department}`, rightColX, yPosition + 28);
+      
+      // === COLONNE CENTRE: École et logo ===
+      // Placeholder pour logo (carré centré)
+      const logoSize = 25;
+      const logoX = centerX - (logoSize / 2);
+      const logoY = yPosition - 2;
+      
+      doc.setDrawColor(100, 100, 100);
+      doc.setLineWidth(0.8);
+      doc.rect(logoX, logoY, logoSize, logoSize);
+      
+      // Texte logo placeholder
+      doc.setFontSize(6);
+      doc.setTextColor(100, 100, 100);
+      doc.text('LOGO', centerX, logoY + 12, { align: 'center' });
+      doc.text('ÉCOLE', centerX, logoY + 17, { align: 'center' });
+      
+      // Nom de l'établissement (centré sous le logo)
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(headerData.schoolName.toUpperCase(), centerX, yPosition + 35, { align: 'center' });
+      
+      // Informations de contact (centrées)
+      if (headerData.phone) {
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Tél: ${headerData.phone}`, centerX, yPosition + 42, { align: 'center' });
+      }
+      
+      if (headerData.postalBox) {
+        doc.setFontSize(7);
+        doc.text(headerData.postalBox, centerX, yPosition + 48, { align: 'center' });
+      }
+      
+      if (headerData.email) {
+        doc.setFontSize(6);
+        doc.text(headerData.email, centerX, yPosition + 54, { align: 'center' });
+      }
+      
+      // Ligne de séparation officielle
+      const separatorY = yPosition + 65;
+      doc.setLineWidth(0.8);
+      doc.setDrawColor(0, 0, 0);
+      doc.line(margin, separatorY, pageWidth - margin, separatorY);
+      
+      console.log('[PDF_HEADER] ✅ Standardized Cameroonian official header generated successfully');
+      
+      return separatorY + 8; // Position pour le contenu suivant
+      
+    } catch (error: any) {
+      console.error('[PDF_HEADER] ❌ Error generating Cameroonian official header:', error.message);
+      // Return safe fallback position
+      return 80;
+    }
+  }
 
   /**
    * Universal QR Code generator for all school documents
@@ -61,7 +192,8 @@ export class PDFGenerator {
 
   /**
    * Add standardized school administrative header to all documents
-   * Optimized for mobile viewing
+   * Now uses the official Cameroonian government format
+   * @deprecated Use generateCameroonOfficialHeader() instead
    */
   static async addCompactSchoolHeader(doc: any, schoolData?: {
     schoolName?: string;
@@ -73,131 +205,68 @@ export class PDFGenerator {
     studentId?: string;
   }): Promise<number> {
     try {
-      let yPosition = 12;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 15;
-    
-    // === STRUCTURE EN 3 COLONNES ===
-    const leftColX = margin;
-    const centerX = pageWidth / 2;
-    const rightColX = pageWidth - margin - 80;
-    let startY = yPosition;
-    
-    // COLONNE GAUCHE - Informations officielles et école
-    let leftY = startY;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('RÉPUBLIQUE DU CAMEROUN', leftColX, leftY);
-    leftY += 4;
-    
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
-    doc.text('Paix - Travail - Patrie', leftColX, leftY);
-    leftY += 4;
-    
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', leftColX, leftY);
-    leftY += 4;
-    
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text('DÉLÉGATION RÉGIONALE DU CENTRE', leftColX, leftY);
-    leftY += 3;
-    doc.text('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', leftColX, leftY);
-    leftY += 5;
-    
-    // École et contact
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    if (schoolData?.schoolName) {
-      doc.text(schoolData.schoolName, leftColX, leftY);
-    }
-    leftY += 3;
-    
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Tél: +237 222 345 678', leftColX, leftY);
-    leftY += 3;
-    
-    if (schoolData?.boitePostale) {
-      doc.text(schoolData.boitePostale, leftColX, leftY);
-    }
-    
-    // COLONNE DROITE - Informations élève avec photo
-    let rightY = startY;
-    
-    // Photo élève (en haut à droite de la colonne droite)
-    doc.setDrawColor(150, 150, 150);
-    doc.setLineWidth(0.5);
-    doc.rect(pageWidth - margin - 25, rightY, 20, 20);
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    doc.text('PHOTO', pageWidth - margin - 15, rightY + 12, { align: 'center' });
-    
-    // Informations élève à côté de la photo
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    if (schoolData?.studentName) {
-      doc.text(`Élève: ${schoolData.studentName}`, rightColX, rightY + 4);
-    }
-    rightY += 8;
-    
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Classe: 3ème A', rightColX, rightY);
-    rightY += 3;
-    
-    // ✅ MATRICULE AJOUTÉ - Debug forcé
-    console.log('[MATRICULE_DEBUG] schoolData.matricule:', schoolData?.matricule);
-    console.log('[MATRICULE_DEBUG] schoolData.studentId:', schoolData?.studentId);
-    if (schoolData?.matricule || schoolData?.studentId) {
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Matricule: ${schoolData.matricule || schoolData.studentId}`, rightColX, rightY);
-      rightY += 3;
-      doc.setFont('helvetica', 'normal');
-      console.log('[MATRICULE_DEBUG] ✅ Matricule affiché:', schoolData.matricule || schoolData.studentId);
-    } else {
-      console.log('[MATRICULE_DEBUG] ❌ Aucun matricule trouvé dans schoolData');
-    }
-    
-    doc.text('Né(e) le: 15 Mars 2010', rightColX, rightY);
-    rightY += 3;
-    doc.text('Sexe: Féminin', rightColX, rightY);
-    rightY += 3;
-    doc.text('Lieu de naissance: Abidjan, Côte d\'Ivoire', rightColX, rightY);
-    
-    // CENTRE - Logo établissement (placeholder - taille réduite)
-    doc.setDrawColor(100, 100, 100);
-    doc.setLineWidth(0.5);
-    doc.rect(centerX - 10, startY, 20, 20);
-    doc.setFontSize(6);
-    doc.setTextColor(100, 100, 100);
-    doc.text('LOGO', centerX, startY + 12, { align: 'center' });
-    doc.text('ÉCOLE', centerX, startY + 17, { align: 'center' });
-    
-    // PÉRIODE CENTRÉE SOUS LE LOGO
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('Période: 1er Trimestre 2024-2025', centerX, startY + 30, { align: 'center' });
-    
-    
-    yPosition = startY + 50;
-    
-    yPosition += 8;
-    
-    // Ligne de séparation entre en-tête et contenu
-    doc.setLineWidth(0.3);
-    doc.setDrawColor(0, 0, 0);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 5;
-    
-    // PAS DE LOGO NI DUPLICATION - Comme dans le HTML
-    
-    return yPosition;
+      console.log('[PDF_HEADER] 📋 Using legacy addCompactSchoolHeader - migrating to standardized format...');
+      
+      // Migrate to new standardized header format
+      const headerData: CameroonOfficialHeaderData = {
+        schoolName: schoolData?.schoolName || 'ÉTABLISSEMENT SCOLAIRE',
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: '+237 222 345 678',
+        postalBox: schoolData?.boitePostale || 'B.P. 8524 Yaoundé'
+      };
+      
+      // Use the new standardized header
+      const headerEndY = await this.generateCameroonOfficialHeader(doc, headerData);
+      
+      // Add student information section if provided
+      if (schoolData?.studentName || schoolData?.matricule) {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 15;
+        let yPosition = headerEndY + 5;
+        
+        // Student info section
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('INFORMATIONS ÉLÈVE', margin, yPosition);
+        yPosition += 8;
+        
+        if (schoolData.studentName) {
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Élève: ${schoolData.studentName}`, margin, yPosition);
+          yPosition += 6;
+        }
+        
+        if (schoolData.matricule || schoolData.studentId) {
+          doc.setFontSize(9);
+          doc.text(`Matricule: ${schoolData.matricule || schoolData.studentId}`, margin, yPosition);
+          yPosition += 6;
+        }
+        
+        // Student photo placeholder
+        const photoSize = 20;
+        const photoX = pageWidth - margin - photoSize;
+        const photoY = headerEndY + 15;
+        
+        doc.setDrawColor(150, 150, 150);
+        doc.setLineWidth(0.5);
+        doc.rect(photoX, photoY, photoSize, photoSize);
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text('PHOTO', photoX + photoSize/2, photoY + photoSize/2 + 2, { align: 'center' });
+        
+        // Separator line
+        doc.setLineWidth(0.3);
+        doc.setDrawColor(0, 0, 0);
+        doc.line(margin, yPosition + 5, pageWidth - margin, yPosition + 5);
+        
+        return yPosition + 10;
+      }
+      
+      return headerEndY;
       
     } catch (error: any) {
       console.error('[PDF_HEADER] ❌ Error adding school header:', error.message);

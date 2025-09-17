@@ -1,7 +1,9 @@
 // GÉNÉRATEUR PDF SIMPLE ET FONCTIONNEL POUR LES BULLETINS EDUCAFRIC
+import { PDFGenerator, CameroonOfficialHeaderData } from './pdfGenerator';
+
 export class SimpleBulletinGenerator {
   
-  static async generateSimpleBulletin(): Promise<Buffer> {
+  static async generateSimpleBulletin(headerData?: CameroonOfficialHeaderData): Promise<Buffer> {
     try {
       const { jsPDF } = await import('jspdf');
       
@@ -11,31 +13,41 @@ export class SimpleBulletinGenerator {
       
       const doc = new jsPDF();
       
-      console.log('[SIMPLE_BULLETIN] ✅ Génération bulletin simple fonctionnel');
+      console.log('[SIMPLE_BULLETIN] ✅ Génération bulletin simple avec en-tête standardisé');
       
-      // **BULLETIN SIMPLE MAIS FONCTIONNEL**
-      doc.setFontSize(12);
-      doc.text('RÉPUBLIQUE DU CAMEROUN', 20, 20);
-      doc.setFontSize(10);  
-      doc.text('Paix - Travail - Patrie', 20, 30);
-      doc.text('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', 20, 40);
+      // ✅ USE STANDARDIZED CAMEROON OFFICIAL HEADER
+      const headerEndY = await PDFGenerator.generateCameroonOfficialHeader(doc, headerData || {
+        schoolName: 'École Saint-Joseph',
+        region: 'CENTRE',
+        department: 'MFOUNDI',
+        educationLevel: 'secondary',
+        phone: '+237 657 004 011',
+        postalBox: 'B.P. 8524 Yaoundé',
+        email: 'contact@educafric.com'
+      });
       
-      doc.setFontSize(14);
-      doc.text('École Saint-Joseph - Yaoundé', 20, 60);
+      // ✅ BULLETIN TITLE POSITIONED AFTER STANDARDIZED HEADER
+      let yPosition = headerEndY;
+      yPosition += 10;
       
       doc.setFontSize(16);
-      doc.text('BULLETIN DE NOTES', 70, 80);
+      doc.text('BULLETIN DE NOTES', 70, yPosition);
+      yPosition += 15;
       
-      // Informations élève
+      // ✅ STUDENT INFO POSITIONED AFTER HEADER AND TITLE
       doc.setFontSize(10);
-      doc.text('Élève: Jean Kamga', 20, 100);
-      doc.text('Classe: 6ème A', 20, 110); 
-      doc.text('Matricule: 1', 20, 120);
-      doc.text('Période: Premier Trimestre 2024-2025', 20, 130);
+      doc.text('Élève: Jean Kamga', 20, yPosition);
+      yPosition += 10;
+      doc.text('Classe: 6ème A', 20, yPosition); 
+      yPosition += 10;
+      doc.text('Matricule: 1', 20, yPosition);
+      yPosition += 10;
+      doc.text('Période: Premier Trimestre 2024-2025', 20, yPosition);
+      yPosition += 15;
       
-      // Notes avec vraies données importées
-      doc.text('MATIÈRES', 20, 150);
-      let y = 160;
+      // ✅ SUBJECTS TABLE POSITIONED DYNAMICALLY
+      doc.text('MATIÈRES', 20, yPosition);
+      yPosition += 10;
       
       // Notes réelles basées sur les logs d'importation
       const subjects = [
@@ -48,25 +60,31 @@ export class SimpleBulletinGenerator {
       ];
       
       subjects.forEach(subject => {
-        doc.text(`${subject.name}: ${subject.grade}/20 (Coef: ${subject.coef}) = ${subject.total} pts - ${subject.comment}`, 20, y);
-        y += 10;
+        doc.text(`${subject.name}: ${subject.grade}/20 (Coef: ${subject.coef}) = ${subject.total} pts - ${subject.comment}`, 20, yPosition);
+        yPosition += 10;
       });
       
-      // Résultats
-      doc.text('Moyenne générale: 17.49/20', 20, y + 10);
-      doc.text('Rang: 1/42', 20, y + 20);
-      doc.text('Conduite: Très bien', 20, y + 30);
+      // ✅ RESULTS POSITIONED DYNAMICALLY
+      yPosition += 10;
+      doc.text('Moyenne générale: 17.49/20', 20, yPosition);
+      yPosition += 10;
+      doc.text('Rang: 1/42', 20, yPosition);
+      yPosition += 10;
+      doc.text('Conduite: Très bien', 20, yPosition);
       
-      // Signatures
-      doc.text('Le Professeur Principal', 20, y + 50);
-      doc.text('Le Directeur', 120, y + 50);
-      doc.text('Mme Diallo', 20, y + 70);
-      doc.text('M. Directeur', 120, y + 70);
+      // ✅ SIGNATURES POSITIONED DYNAMICALLY
+      yPosition += 20;
+      doc.text('Le Professeur Principal', 20, yPosition);
+      doc.text('Le Directeur', 120, yPosition);
+      yPosition += 20;
+      doc.text('Mme Diallo', 20, yPosition);
+      doc.text('M. Directeur', 120, yPosition);
       
-      // Footer
+      // ✅ FOOTER POSITIONED AT BOTTOM
       doc.setFontSize(8);
-      doc.text('École Saint-Joseph - Douala, Cameroun - Tel: +237657004011', 20, 280);
-      doc.text('www.educafric.com', 20, 290);
+      const pageHeight = doc.internal.pageSize.getHeight();
+      doc.text('École Saint-Joseph - Douala, Cameroun - Tel: +237657004011', 20, pageHeight - 20);
+      doc.text('www.educafric.com', 20, pageHeight - 10);
       
       return Buffer.from(doc.output('arraybuffer'));
       

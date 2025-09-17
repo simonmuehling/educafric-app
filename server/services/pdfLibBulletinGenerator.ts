@@ -4,8 +4,132 @@ import {
   validatePdfData,
   PdfBulletinTemplateDataSchema
 } from '../../shared/pdfValidationSchemas';
+import { CameroonOfficialHeaderData } from './pdfGenerator';
 
 export class PdfLibBulletinGenerator {
+  
+  /**
+   * Génère l'en-tête officiel camerounais standardisé pour pdf-lib
+   * Now accepts configurable headerData parameters to match jsPDF implementation
+   */
+  static async generateStandardizedCameroonHeader(
+    page: any,
+    drawText: Function,
+    boldFont: any,
+    normalFont: any,
+    pageWidth: number,
+    pageHeight: number,
+    headerData?: CameroonOfficialHeaderData
+  ): Promise<number> {
+    try {
+      console.log('[PDF_LIB_HEADER] 📋 Génération en-tête officiel camerounais configurable...');
+      
+      // ✅ PROVIDE SENSIBLE DEFAULTS WHEN NO HEADER DATA PROVIDED
+      const safeHeaderData: CameroonOfficialHeaderData = {
+        schoolName: headerData?.schoolName || 'ÉTABLISSEMENT SCOLAIRE',
+        region: headerData?.region || 'CENTRE',
+        department: headerData?.department || 'MFOUNDI',
+        educationLevel: headerData?.educationLevel || 'secondary',
+        logoUrl: headerData?.logoUrl,
+        phone: headerData?.phone || '+237 222 345 678',
+        email: headerData?.email || 'contact@educafric.com',
+        postalBox: headerData?.postalBox || 'B.P. 8524 Yaoundé'
+      };
+      
+      const margin = 40;
+      let yPosition = pageHeight - 50;
+      
+      // Définir les positions des 3 colonnes
+      const leftColX = margin;
+      const centerX = pageWidth / 2;
+      const rightColX = pageWidth - margin - 150; // Ajusté pour éviter débordement
+      
+      // ✅ DETERMINE MINISTRY BASED ON EDUCATION LEVEL
+      const ministry = safeHeaderData.educationLevel === 'base' 
+        ? 'MINISTÈRE DE L\'ÉDUCATION DE BASE'
+        : 'MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES';
+      
+      // ✅ BUILD CONFIGURABLE REGIONAL AND DEPARTMENTAL DELEGATIONS
+      const regionalDelegation = `DÉLÉGATION RÉGIONALE DU ${safeHeaderData.region.toUpperCase()}`;
+      const departmentalDelegation = `DÉLÉGATION DÉPARTEMENTALE DU ${safeHeaderData.department.toUpperCase()}`;
+      
+      // === COLONNE GAUCHE: Informations officielles ===
+      drawText('RÉPUBLIQUE DU CAMEROUN', leftColX, yPosition, { font: boldFont, size: 10 });
+      drawText('Paix - Travail - Patrie', leftColX, yPosition - 18, { font: normalFont, size: 8 });
+      drawText(ministry, leftColX, yPosition - 32, { font: boldFont, size: 8 });
+      drawText(regionalDelegation, leftColX, yPosition - 46, { font: normalFont, size: 7 });
+      drawText(departmentalDelegation, leftColX, yPosition - 58, { font: normalFont, size: 7 });
+      
+      // === COLONNE DROITE: Mêmes informations officielles (symétrie) ===
+      drawText('RÉPUBLIQUE DU CAMEROUN', rightColX, yPosition, { font: boldFont, size: 10 });
+      drawText('Paix - Travail - Patrie', rightColX, yPosition - 18, { font: normalFont, size: 8 });
+      drawText(ministry, rightColX, yPosition - 32, { font: boldFont, size: 8 });
+      drawText(regionalDelegation, rightColX, yPosition - 46, { font: normalFont, size: 7 });
+      drawText(departmentalDelegation, rightColX, yPosition - 58, { font: normalFont, size: 7 });
+      
+      // === COLONNE CENTRE: École et logo ===
+      // Logo placeholder (carré centré)
+      const logoSize = 25;
+      const logoX = centerX - (logoSize / 2);
+      const logoY = yPosition - 5;
+      
+      // Dessiner le rectangle du logo
+      page.drawRectangle({
+        x: logoX,
+        y: logoY,
+        width: logoSize,
+        height: logoSize,
+        borderColor: rgb(0.6, 0.6, 0.6),
+        borderWidth: 1
+      });
+      
+      // Texte placeholder dans le logo
+      drawText('LOGO', centerX, logoY + 15, { 
+        font: normalFont, 
+        size: 6, 
+        color: rgb(0.6, 0.6, 0.6) 
+      });
+      drawText('ÉCOLE', centerX, logoY + 8, { 
+        font: normalFont, 
+        size: 6, 
+        color: rgb(0.6, 0.6, 0.6) 
+      });
+      
+      // ✅ CONFIGURABLE SCHOOL NAME
+      drawText(safeHeaderData.schoolName.toUpperCase(), centerX, logoY - 15, { font: boldFont, size: 10 });
+      
+      // ✅ CONFIGURABLE CONTACT INFORMATION
+      if (safeHeaderData.phone) {
+        drawText(`Tél: ${safeHeaderData.phone}`, centerX, logoY - 28, { font: normalFont, size: 7 });
+      }
+      
+      if (safeHeaderData.postalBox) {
+        drawText(safeHeaderData.postalBox, centerX, logoY - 38, { font: normalFont, size: 7 });
+      }
+      
+      if (safeHeaderData.email) {
+        drawText(safeHeaderData.email, centerX, logoY - 48, { font: normalFont, size: 6 });
+      }
+      
+      // Ligne de séparation officielle
+      const separatorY = yPosition - 85;
+      page.drawLine({
+        start: { x: margin, y: separatorY },
+        end: { x: pageWidth - margin, y: separatorY },
+        thickness: 1,
+        color: rgb(0, 0, 0)
+      });
+      
+      console.log('[PDF_LIB_HEADER] ✅ En-tête officiel camerounais généré avec succès (configurable)');
+      
+      return separatorY - 10; // Position pour le contenu suivant
+      
+    } catch (error: any) {
+      console.error('[PDF_LIB_HEADER] ❌ Erreur génération en-tête:', error.message);
+      // Position de sécurité
+      return pageHeight - 100;
+    }
+  }
   
   static async generateCleanBulletin(bulletinData?: any): Promise<Buffer> {
     try {
@@ -59,23 +183,36 @@ export class PdfLibBulletinGenerator {
         }
       };
       
-      // 5) Header officiel camerounais
-      drawText('RÉPUBLIQUE DU CAMEROUN', 40, height - 50, { font: timesBold, size: 12 });
-      drawText('Paix - Travail - Patrie', 40, height - 70, { font: times, size: 10 });
-      drawText('MINISTÈRE DES ENSEIGNEMENTS SECONDAIRES', 40, height - 90, { font: times, size: 10 });
-      drawText('DÉLÉGATION RÉGIONALE DU CENTRE', 40, height - 110, { font: times, size: 8 });
-      drawText('DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI', 40, height - 125, { font: times, size: 8 });
+      // 5) HEADER OFFICIEL CAMEROUNAIS STANDARDISÉ AVEC DONNÉES CONFIGURABLES
+      // Extract school data from bulletin if available, otherwise use defaults
+      const headerData: CameroonOfficialHeaderData | undefined = bulletinData?.school ? {
+        schoolName: bulletinData.school.schoolName || bulletinData.school.name,
+        region: bulletinData.school.region || 'CENTRE', 
+        department: bulletinData.school.department || 'MFOUNDI',
+        educationLevel: bulletinData.school.educationLevel || 'secondary',
+        logoUrl: bulletinData.school.logoUrl,
+        phone: bulletinData.school.phone,
+        email: bulletinData.school.email, 
+        postalBox: bulletinData.school.postalBox
+      } : undefined;
       
-      // École info (droite)
-      drawText('École Saint-Joseph', 350, height - 50, { font: timesBold, size: 12 });
-      drawText('Tél: +237657004011', 350, height - 70, { font: times, size: 10 });
-      drawText('Douala, Cameroun', 350, height - 90, { font: times, size: 10 });
+      const headerY = await this.generateStandardizedCameroonHeader(
+        page, drawText, timesBold, times, width, height, headerData
+      );
       
-      // 6) Titre principal
-      drawText('BULLETIN DE NOTES', 200, height - 160, { font: timesBold, size: 16, color: rgb(0, 0, 0.8) });
-      drawText('Période: 2024-2025', 220, height - 180, { font: times, size: 11 });
+      // 6) Titre principal (ajusté après le header standardisé)
+      const titleY = headerY - 15;
+      drawText('BULLETIN DE NOTES', width / 2, titleY, { 
+        font: timesBold, 
+        size: 16, 
+        color: rgb(0, 0, 0.8)
+      });
+      drawText('Période: 2024-2025', width / 2, titleY - 18, { 
+        font: times, 
+        size: 11
+      });
       
-      // 7) ✅ INFORMATIONS ÉLÈVE AVEC DONNÉES VALIDÉES
+      // 7) ✅ INFORMATIONS ÉLÈVE AVEC DONNÉES VALIDÉES (ajusté après le header)
       const safeStudentFirstName = bulletinData?.student?.firstName || 'Jean';
       const safeStudentLastName = bulletinData?.student?.lastName || 'Kamga';
       const safeClassName = bulletinData?.student?.className || '6ème A';
@@ -84,28 +221,30 @@ export class PdfLibBulletinGenerator {
       const safeGender = bulletinData?.student?.gender === 'Masculin' ? 'M' : bulletinData?.student?.gender === 'Féminin' ? 'F' : 'M';
       const safeBirthPlace = bulletinData?.student?.birthPlace || 'Yaoundé, Cameroun';
       
-      drawText(`Élève: ${safeStudentFirstName} ${safeStudentLastName}`, 40, height - 220, { font: times, size: 11 });
-      drawText(`Classe: ${safeClassName}`, 40, height - 240, { font: times, size: 11 });
-      drawText(`Matricule: ${safeMatricule}`, 40, height - 260, { font: times, size: 11 });
+      const studentInfoY = titleY - 50;
+      drawText(`Élève: ${safeStudentFirstName} ${safeStudentLastName}`, 40, studentInfoY, { font: times, size: 11 });
+      drawText(`Classe: ${safeClassName}`, 40, studentInfoY - 20, { font: times, size: 11 });
+      drawText(`Matricule: ${safeMatricule}`, 40, studentInfoY - 40, { font: times, size: 11 });
       
-      drawText(`Né(e) le: ${safeBirthDate}`, 300, height - 220, { font: times, size: 11 });
-      drawText(`Sexe: ${safeGender}`, 300, height - 240, { font: times, size: 11 });
-      drawText(`Lieu de naissance: ${safeBirthPlace}`, 300, height - 260, { font: times, size: 11 });
+      drawText(`Né(e) le: ${safeBirthDate}`, 300, studentInfoY, { font: times, size: 11 });
+      drawText(`Sexe: ${safeGender}`, 300, studentInfoY - 20, { font: times, size: 11 });
+      drawText(`Lieu de naissance: ${safeBirthPlace}`, 300, studentInfoY - 40, { font: times, size: 11 });
       
       // Période spécifique
-      drawText('Période: Premier Trimestre 2024-2025', 40, height - 290, { font: timesBold, size: 11 });
+      drawText('Période: Premier Trimestre 2024-2025', 40, studentInfoY - 70, { font: timesBold, size: 11 });
       
-      // 8) Tableau des matières - EN-TÊTE
-      const tableStartY = height - 340;
+      // 8) Tableau des matières - EN-TÊTE (ajusté après le header)
+      const tableStartY = studentInfoY - 110;
       drawText('MATIÈRES', 40, tableStartY, { font: timesBold, size: 11 });
       
-      // Colonnes
-      drawText('Matière', 40, tableStartY - 20, { font: timesBold, size: 9 });
-      drawText('T1/20', 200, tableStartY - 20, { font: timesBold, size: 9 });
-      drawText('T2/20', 240, tableStartY - 20, { font: timesBold, size: 9 });
-      drawText('T3/20', 280, tableStartY - 20, { font: timesBold, size: 9 });
-      drawText('Coef', 320, tableStartY - 20, { font: timesBold, size: 9 });
-      drawText('Total', 350, tableStartY - 20, { font: timesBold, size: 9 });
+      // Colonnes du tableau (ajustées)
+      const headerRowY = tableStartY - 20;
+      drawText('Matière', 40, headerRowY, { font: timesBold, size: 9 });
+      drawText('T1/20', 200, headerRowY, { font: timesBold, size: 9 });
+      drawText('T2/20', 240, headerRowY, { font: timesBold, size: 9 });
+      drawText('T3/20', 280, headerRowY, { font: timesBold, size: 9 });
+      drawText('Coef', 320, headerRowY, { font: timesBold, size: 9 });
+      drawText('Total', 350, headerRowY, { font: timesBold, size: 9 });
       drawText('Remark', 400, tableStartY - 20, { font: timesBold, size: 9 });
       drawText('Teacher', 480, tableStartY - 20, { font: timesBold, size: 9 });
       
