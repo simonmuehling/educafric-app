@@ -45,7 +45,7 @@ class FastModuleLoader {
       'teacher.help': () => import('@/components/help/HelpCenter'), // Role-namespaced
       'config-guide': () => import('@/components/director/modules/SchoolConfigurationGuide'),
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
-      'bulletin-management': () => import('@/components/help/HelpCenter'),
+      'bulletin-management': () => import('@/components/director/modules/SimplifiedBulletinManager'),
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       
       // =============================================
