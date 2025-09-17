@@ -94,6 +94,135 @@ export class OptimizedBulletinGenerator {
     if (termAverage >= 10) return langObs.average[Math.floor(Math.random() * langObs.average.length)];
     return langObs.poor[Math.floor(Math.random() * langObs.poor.length)];
   }
+
+  /**
+   * GENERATE COMPREHENSIVE SAMPLE DATA - All bulletin fields with realistic fictional data
+   */
+  static generateComprehensiveSampleData(termAverage: number, language: 'fr' | 'en') {
+    return {
+      // ===== ABSENCES & RETARDS =====
+      unjustifiedAbsenceHours: Math.floor(Math.random() * 8), // 0-7 heures
+      justifiedAbsenceHours: Math.floor(Math.random() * 4), // 0-3 heures
+      latenessCount: Math.floor(Math.random() * 6), // 0-5 fois
+      detentionHours: Math.floor(Math.random() * 3), // 0-2 heures de consignes
+      
+      // ===== SANCTIONS DISCIPLINAIRES =====
+      conductWarning: Math.random() < 0.15, // 15% chance d'avertissement
+      conductBlame: Math.random() < 0.08, // 8% chance de blâme
+      exclusionDays: Math.random() < 0.05 ? Math.floor(Math.random() * 3) + 1 : 0, // Rare: 1-3 jours
+      permanentExclusion: false, // Très rare, donc false pour les samples
+      
+      // ===== COEFFICIENT CODES (Par matière) =====
+      CTBA: (termAverage + (Math.random() - 0.5) * 2).toFixed(1), // ±1 point de variation
+      CBA: (termAverage + (Math.random() - 0.5) * 1.5).toFixed(1), // ±0.75 point
+      CA: (termAverage + (Math.random() - 0.5) * 2.5).toFixed(1), // ±1.25 point  
+      CMA: (termAverage + (Math.random() - 0.5) * 1.8).toFixed(1), // ±0.9 point
+      COTE: termAverage >= 16 ? 'A' : termAverage >= 14 ? 'B' : termAverage >= 12 ? 'C' : termAverage >= 10 ? 'D' : 'E',
+      CNA: termAverage < 10 ? (language === 'fr' ? 'Non acquis' : 'Not acquired') : '',
+      minGrade: Math.max(0, termAverage - 3).toFixed(1), // Min: moyenne -3
+      maxGrade: Math.min(20, termAverage + 2).toFixed(1), // Max: moyenne +2
+      
+      // ===== APPRÉCIATIONS DÉTAILLÉES =====
+      workAppreciation: this.generateDetailedAppreciation(termAverage, language),
+      generalComment: this.generateGeneralComment(termAverage, language),
+      
+      // ===== TOTAUX ET STATISTIQUES =====
+      totalGeneral: (termAverage * 9 * 2).toFixed(1), // 9 matières × coefficient moyen 2
+      numberOfAverages: 9, // Nombre standard de matières
+      successRate: Math.min(95, Math.max(20, 60 + (termAverage - 10) * 4)).toFixed(1), // Corrélé avec moyenne
+      classProfile: {
+        totalStudents: 35,
+        averageGrade: (13.5 + (Math.random() - 0.5) * 2).toFixed(1),
+        passRate: (78 + Math.random() * 15).toFixed(1),
+        topScore: (18 + Math.random() * 2).toFixed(1),
+        lowestScore: (6 + Math.random() * 4).toFixed(1)
+      }
+    };
+  }
+
+  /**
+   * GENERATE DETAILED APPRECIATION - Comprehensive work assessment
+   */
+  static generateDetailedAppreciation(termAverage: number, language: 'fr' | 'en'): string {
+    const appreciations = {
+      fr: {
+        excellent: [
+          "Excellent élève qui démontre une maîtrise remarquable des compétences. Points forts: rigueur, participation active, autonomie. Continue sur cette voie exemplaire.",
+          "Travail de très haute qualité. L'élève fait preuve d'une grande maturité intellectuelle et d'un sens critique développé. Félicitations pour ces résultats exceptionnels.",
+          "Performance remarquable dans toutes les disciplines. L'élève démontre une capacité d'analyse approfondie et une excellente méthode de travail."
+        ],
+        good: [
+          "Bon élève sérieux et appliqué. Points forts: régularité dans l'effort, bonne compréhension. À améliorer: participation orale et confiance en soi.",
+          "Travail satisfaisant avec des progrès constants. L'élève montre de bonnes capacités d'apprentissage. Encourager la prise d'initiative.",
+          "Résultats encourageants. L'élève progresse bien avec un travail méthodique. Quelques efforts supplémentaires en expression écrite."
+        ],
+        average: [
+          "Travail correct mais irrégulier. Points à améliorer: concentration, méthode de travail, révisions régulières. Potentiel à développer davantage.",
+          "L'élève doit fournir plus d'efforts soutenus. Capacités présentes mais insuffisamment exploitées. Accompagnement recommandé.",
+          "Résultats moyens nécessitant plus de rigueur. L'élève peut mieux faire avec davantage d'investissement personnel."
+        ],
+        poor: [
+          "Grandes difficultés nécessitant un accompagnement renforcé. Points d'amélioration urgents: assiduité, méthode, motivation. Soutien familial essentiel.",
+          "Résultats préoccupants. L'élève doit redoubler d'efforts dans toutes les matières. Un suivi personnalisé est indispensable.",
+          "Travail insuffisant. L'élève a besoin d'un encadrement strict et d'un soutien pédagogique adapté pour progresser."
+        ]
+      },
+      en: {
+        excellent: [
+          "Excellent student demonstrating remarkable mastery of skills. Strengths: rigor, active participation, autonomy. Continue this exemplary path.",
+          "Very high quality work. The student shows great intellectual maturity and developed critical thinking. Congratulations on these exceptional results.",
+          "Outstanding performance in all subjects. The student demonstrates deep analytical ability and excellent work methodology."
+        ],
+        good: [
+          "Good serious and diligent student. Strengths: consistent effort, good understanding. To improve: oral participation and self-confidence.",
+          "Satisfactory work with steady progress. The student shows good learning abilities. Encourage taking initiative.",
+          "Encouraging results. The student progresses well with methodical work. Some additional efforts needed in written expression."
+        ],
+        average: [
+          "Adequate but irregular work. Areas to improve: concentration, work method, regular reviews. Potential to develop further.",
+          "The student must provide more sustained efforts. Abilities present but insufficiently exploited. Support recommended.",
+          "Average results requiring more rigor. The student can do better with more personal investment."
+        ],
+        poor: [
+          "Major difficulties requiring enhanced support. Urgent improvement areas: attendance, method, motivation. Family support essential.",
+          "Concerning results. The student must redouble efforts in all subjects. Personalized follow-up is essential.",
+          "Insufficient work. The student needs strict supervision and adapted educational support to progress."
+        ]
+      }
+    };
+    
+    const langApp = appreciations[language];
+    if (termAverage >= 16) return langApp.excellent[Math.floor(Math.random() * langApp.excellent.length)];
+    if (termAverage >= 14) return langApp.good[Math.floor(Math.random() * langApp.good.length)];
+    if (termAverage >= 10) return langApp.average[Math.floor(Math.random() * langApp.average.length)];
+    return langApp.poor[Math.floor(Math.random() * langApp.poor.length)];
+  }
+
+  /**
+   * GENERATE GENERAL COMMENT - Term summary
+   */
+  static generateGeneralComment(termAverage: number, language: 'fr' | 'en'): string {
+    const comments = {
+      fr: {
+        excellent: ["Trimestre excellent. Résultats remarquables dans l'ensemble.", "Performance exceptionnelle. Maintenir ce niveau.", "Très bon trimestre. Félicitations."],
+        good: ["Bon trimestre avec des résultats satisfaisants.", "Travail sérieux. Continuer les efforts.", "Trimestre positif. Encouragements."],
+        average: ["Trimestre moyen. Peut mieux faire.", "Résultats corrects mais perfectibles.", "Efforts à intensifier."],
+        poor: ["Trimestre difficile. Redoublement d'efforts nécessaire.", "Résultats préoccupants. Suivi requis.", "Trimestre à améliorer."]
+      },
+      en: {
+        excellent: ["Excellent term. Outstanding overall results.", "Exceptional performance. Maintain this level.", "Very good term. Congratulations."],
+        good: ["Good term with satisfactory results.", "Serious work. Continue efforts.", "Positive term. Encouragement."],
+        average: ["Average term. Can do better.", "Adequate results but perfectible.", "Efforts to intensify."],
+        poor: ["Difficult term. Redoubled efforts needed.", "Concerning results. Follow-up required.", "Term to improve."]
+      }
+    };
+    
+    const langComments = comments[language];
+    if (termAverage >= 16) return langComments.excellent[Math.floor(Math.random() * langComments.excellent.length)];
+    if (termAverage >= 14) return langComments.good[Math.floor(Math.random() * langComments.good.length)];
+    if (termAverage >= 10) return langComments.average[Math.floor(Math.random() * langComments.average.length)];
+    return langComments.poor[Math.floor(Math.random() * langComments.poor.length)];
+  }
   
   /**
    * INTELLIGENT SPACING CALCULATOR - Prevents overlaps automatically
@@ -438,11 +567,12 @@ export class OptimizedBulletinGenerator {
         });
       }
       
-      // SAMPLE-MATCHED SUBJECT DATA - Exact format from user's sample
+      // COMPREHENSIVE SUBJECT DATA - Full sample with all fields
       const textY = currentY - 8;
       const subjectTotal = subject.termAverage * subject.coefficient;
       
-      // Generate realistic sample data matching the PDF
+      // Generate COMPREHENSIVE realistic sample data
+      const comprehensiveData = this.generateComprehensiveSampleData(subject.termAverage, options.language);
       const t1Grade = Math.floor(subject.termAverage + (Math.random() - 0.5) * 2);
       const t2Grade = Math.floor(subject.termAverage + (Math.random() - 0.5) * 2);
       const t3Grade = Math.floor(subject.termAverage + (Math.random() - 0.5) * 2);
@@ -492,11 +622,22 @@ export class OptimizedBulletinGenerator {
         size: 8, align: 'center', maxWidth: columns.observations.width 
       });
       
-      // Teacher name below subject (sample format)
+      // Teacher name below subject (sample format) - with COMPREHENSIVE data
       if (subject.teacherName) {
-        drawText(` Prof: ${subject.teacherName}`, columns.subject.x + 3, textY - 12, { 
+        const teacherLine = ` Prof: ${subject.teacherName}`;
+        // Add CTBA/CBA codes if space allows
+        const codesLine = `CTBA:${comprehensiveData.CTBA} CBA:${comprehensiveData.CBA} COTE:${comprehensiveData.COTE}`;
+        
+        drawText(teacherLine, columns.subject.x + 3, textY - 12, { 
           size: 8, color: COLORS.darkGray 
         });
+        
+        // Add coefficient codes on second line if subject row height allows
+        if (spacing.subjectRowHeight > 30) {
+          drawText(codesLine, columns.subject.x + 3, textY - 22, { 
+            size: 7, color: COLORS.mediumGray 
+          });
+        }
       }
       
       totalPoints += subjectTotal;
@@ -517,6 +658,9 @@ export class OptimizedBulletinGenerator {
     });
     
     const overallAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+    
+    // GENERATE COMPREHENSIVE SAMPLE DATA for bulletin
+    const comprehensiveData = this.generateComprehensiveSampleData(overallAverage, options.language);
     const summaryTextY = currentY - 15;
     
     drawText(options.language === 'fr' ? 'MOYENNE GÉNÉRALE' : 'OVERALL AVERAGE', 
