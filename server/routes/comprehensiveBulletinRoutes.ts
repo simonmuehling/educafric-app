@@ -89,8 +89,8 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
       maxScore: teacherGradeSubmissions.maxScore,
       subjectComments: teacherGradeSubmissions.subjectComments,
       studentRank: teacherGradeSubmissions.studentRank,
-      reviewStatus: teacherGradeSubmissions.reviewStatus,
-      reviewedAt: teacherGradeSubmissions.reviewedAt
+      isSubmitted: teacherGradeSubmissions.isSubmitted,
+      submittedAt: teacherGradeSubmissions.submittedAt
     })
     .from(teacherGradeSubmissions)
     .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
@@ -100,7 +100,6 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
       eq(teacherGradeSubmissions.term, term as string),
       eq(teacherGradeSubmissions.academicYear, academicYear as string),
       eq(teacherGradeSubmissions.schoolId, schoolId),
-      eq(teacherGradeSubmissions.reviewStatus, 'approved'),
       eq(teacherGradeSubmissions.isSubmitted, true)
     ));
 
@@ -243,7 +242,7 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
         eq(teacherGradeSubmissions.term, term as string),
         eq(teacherGradeSubmissions.academicYear, academicYear as string),
         eq(teacherGradeSubmissions.schoolId, schoolId),
-        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+        eq(teacherGradeSubmissions.isSubmitted, true)
       ));
 
     // Calculate class average
@@ -254,7 +253,7 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
         AND term = ${term as string}
         AND academic_year = ${academicYear as string}
         AND school_id = ${schoolId}
-        AND review_status = 'approved'
+        AND is_submitted = true
         AND term_average IS NOT NULL
     `);
 
@@ -398,7 +397,7 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
         eq(teacherGradeSubmissions.term, term as string),
         eq(teacherGradeSubmissions.academicYear, academicYear as string),
         eq(teacherGradeSubmissions.schoolId, schoolId),
-        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+        eq(teacherGradeSubmissions.isSubmitted, true)
       ));
 
       // If no approved grades found, try to get any submitted grades
