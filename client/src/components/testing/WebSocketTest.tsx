@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CheckCircle } from 'lucide-react';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -251,7 +252,7 @@ export const WebSocketTest = () => {
               <div className="space-y-2">
                 {connectedUsers.map((connectedUser, index) => (
                   <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <CheckCircle className="w-3 h-3 text-green-500" />
                     <span className="font-medium">{connectedUser.userName}</span>
                     <Badge variant="outline">{connectedUser.userRole}</Badge>
                     {connectedUser.currentModule && (

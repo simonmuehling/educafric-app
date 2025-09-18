@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, UserCheck, ArrowLeft, BarChart3 } from 'lucide-react';
+import { Users, UserCheck, ArrowLeft, BarChart3, CheckSquare, FileText, Shield, Search } from 'lucide-react';
 import { BulkImportManager } from '@/components/bulk/BulkImportManager';
 import { Link } from 'wouter';
 
@@ -112,19 +112,19 @@ export default function BulkManagement() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <CheckSquare className="w-3 h-3 text-green-500" />
                 <span>Gain de temps considérable</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <FileText className="w-3 h-3 text-blue-500" />
                 <span>Réduction des erreurs de saisie</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Shield className="w-3 h-3 text-purple-500" />
                 <span>Validation automatique des données</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <Search className="w-3 h-3 text-orange-500" />
                 <span>Détection des doublons</span>
               </div>
             </CardContent>
@@ -136,19 +136,19 @@ export default function BulkManagement() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <CheckSquare className="w-3 h-3 text-green-500" />
                 <span>Excel (.xlsx, .xls)</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <FileText className="w-3 h-3 text-blue-500" />
                 <span>CSV (.csv)</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Shield className="w-3 h-3 text-purple-500" />
                 <span>Validation en temps réel</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <Search className="w-3 h-3 text-orange-500" />
                 <span>Aperçu avant import</span>
               </div>
             </CardContent>
@@ -160,19 +160,19 @@ export default function BulkManagement() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <CheckSquare className="w-3 h-3 text-green-500" />
                 <span>Chiffrement des fichiers</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <FileText className="w-3 h-3 text-blue-500" />
                 <span>Mots de passe sécurisés</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Shield className="w-3 h-3 text-purple-500" />
                 <span>Conformité RGPD</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <Search className="w-3 h-3 text-orange-500" />
                 <span>Suppression automatique des fichiers</span>
               </div>
             </CardContent>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshCw, CheckCircle, Clock } from 'lucide-react';
+import { RefreshCw, CheckCircle, Clock, Settings } from 'lucide-react';
 import { useSandboxAutoscale } from '@/hooks/useSandboxAutoscale';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -59,7 +59,7 @@ export const SandboxAutoscaleIndicator: React.FC<SandboxAutoscaleIndicatorProps>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <Settings className="w-4 h-4 text-green-500 animate-pulse" />
               <span className="text-sm font-medium text-blue-900">
                 Sandbox Autoscale Actif
               </span>

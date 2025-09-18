@@ -385,7 +385,7 @@ export default function EducationalConnections() {
                     data-testid="button-search-user"
                   >
                     {searchUsersMutation.isPending ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                      <Search className="h-4 w-4 text-blue-600 animate-pulse" />
                     ) : (
                       <Search className="h-4 w-4" />
                     )}
@@ -572,7 +572,7 @@ export default function EducationalConnections() {
                         </div>
                         <div className="flex items-center gap-2">
                           {getConnectionIcon(connection.connectionType)}
-                          <div className={`w-2 h-2 rounded-full ${getConnectionStatusColor(connection.connectionStatus)}`}></div>
+                          <div className={`w-2 h-2 rounded-sm ${getConnectionStatusColor(connection.connectionStatus)}`}></div>
                         </div>
                       </div>
                     </CardHeader>

@@ -58,16 +58,22 @@ export default function EducafricHero() {
   // Don't return early - instead conditionally render content
   return !mounted ? (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="flex flex-col items-center space-y-4">
+        <BookOpen className="w-8 h-8 text-primary animate-pulse" />
+        <div className="w-48 bg-gray-200 rounded-lg h-2">
+          <div className="bg-primary h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+        </div>
+        <p className="text-sm text-gray-600 animate-pulse">Loading hero section...</p>
+      </div>
     </div>
   ) : (
     <section className="relative min-h-screen flex items-center justify-center gradient-hero overflow-hidden">
       {/* Background Patterns */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-20 h-20 african-orange-bg rounded-full blur-xl"></div>
-        <div className="absolute top-32 right-20 w-32 h-32 african-purple-bg rounded-full blur-2xl"></div>
-        <div className="absolute bottom-20 left-20 w-24 h-24 african-orange-bg rounded-full blur-xl"></div>
-        <div className="absolute bottom-32 right-10 w-16 h-16 african-purple-bg rounded-full blur-lg"></div>
+        <div className="absolute top-20 left-10 w-20 h-12 african-orange-bg rounded-lg blur-xl transform rotate-12"></div>
+        <div className="absolute top-32 right-20 w-32 h-20 african-purple-bg rounded-lg blur-2xl transform -rotate-6"></div>
+        <div className="absolute bottom-20 left-20 w-24 h-16 african-orange-bg rounded-lg blur-xl transform rotate-45"></div>
+        <div className="absolute bottom-32 right-10 w-16 h-12 african-purple-bg rounded-lg blur-lg transform -rotate-12"></div>
       </div>
       
       <div className="relative z-10 container mx-auto px-6 pt-20 pb-16 text-center">

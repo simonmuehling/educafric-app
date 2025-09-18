@@ -113,7 +113,7 @@ const ConsolidatedNotification: React.FC<ConsolidatedNotificationProps> = ({ not
               
               {/* Priority indicator */}
               {notification.priority === 'urgent' && (
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse ml-2 mt-1"></div>
+                <div className="w-2 h-2 bg-red-500 animate-pulse ml-2 mt-1"></div>
               )}
             </div>
             

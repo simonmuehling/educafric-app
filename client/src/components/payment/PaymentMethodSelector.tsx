@@ -164,8 +164,13 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mr-3" />
-            <span>{t.loading}</span>
+            <div className="flex flex-col items-center space-y-3">
+              <CreditCard className="w-6 h-6 text-blue-500 animate-pulse" />
+              <div className="w-32 bg-gray-200 rounded-lg h-2">
+                <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+              </div>
+              <span>{t.loading}</span>
+            </div>
           </div>
         </CardContent>
       </Card>

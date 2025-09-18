@@ -1,9 +1,15 @@
 import { lazy, Suspense } from 'react';
+import { BookOpen } from 'lucide-react';
 
 // Ultra-fast loading component optimized for speed
 const OptimizedLoading = () => (
   <div className="min-h-[200px] flex items-center justify-center">
-    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <div className="flex flex-col items-center space-y-3">
+      <BookOpen className="w-6 h-6 text-blue-600 animate-pulse" />
+      <div className="w-32 bg-gray-200 rounded-lg h-1.5">
+        <div className="bg-blue-600 h-1.5 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+      </div>
+    </div>
   </div>
 );
 

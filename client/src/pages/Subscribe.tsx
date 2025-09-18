@@ -219,7 +219,12 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
   if (!clientSecret) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex flex-col items-center space-y-2">
+          <CreditCard className="h-8 w-8 text-blue-500 animate-pulse" />
+          <div className="w-32 bg-gray-200 rounded-lg h-2">
+            <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+          </div>
+        </div>
         <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
       </div>
     );
@@ -254,7 +259,7 @@ const PaymentFormInner: React.FC<{ planId: string; plan: SubscriptionPlan; onSuc
       >
         {isProcessing ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <CreditCard className="mr-2 h-4 w-4 text-white animate-pulse" />
             {t('payment.subscription.processingPayment')}
           </>
         ) : (
@@ -370,7 +375,12 @@ const PaymentForm: React.FC<{ planId: string; plan: SubscriptionPlan; onSuccess:
   if (!clientSecret) {
     return (
       <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex flex-col items-center space-y-2">
+          <CreditCard className="h-8 w-8 text-blue-500 animate-pulse" />
+          <div className="w-32 bg-gray-200 rounded-lg h-2">
+            <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+          </div>
+        </div>
         <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
       </div>
     );
@@ -504,7 +514,7 @@ const Subscribe: React.FC = () => {
           </div>
           <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-green-200 dark:border-green-800">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <div className="mx-auto mb-4 w-16 h-16 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <CardTitle className="text-2xl text-green-800 dark:text-green-200">
@@ -587,7 +597,12 @@ const Subscribe: React.FC = () => {
                   </div>
                   {!stripeLoaded ? (
                     <div className="flex justify-center items-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <div className="flex flex-col items-center space-y-2">
+          <CreditCard className="h-8 w-8 text-blue-500 animate-pulse" />
+          <div className="w-32 bg-gray-200 rounded-lg h-2">
+            <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+          </div>
+        </div>
                       <span className="ml-2">{t('payment.subscription.loadingPayment')}</span>
                     </div>
                   ) : (
@@ -803,7 +818,12 @@ const Subscribe: React.FC = () => {
         {/* Plans d'abonnement */}
         {plansLoading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <div className="flex flex-col items-center space-y-2">
+          <CreditCard className="h-8 w-8 text-blue-500 animate-pulse" />
+          <div className="w-32 bg-gray-200 rounded-lg h-2">
+            <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+          </div>
+        </div>
             <span className="ml-2">{t('payment.subscription.preparingPayment')}</span>
           </div>
         ) : (
@@ -855,7 +875,7 @@ const Subscribe: React.FC = () => {
           <h2 className="text-2xl font-bold text-center mb-6">✨ Pourquoi choisir EDUCAFRIC Premium ?</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl mx-auto mb-4 flex items-center justify-center">
                 <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="font-semibold mb-2">Géolocalisation en temps réel</h3>
@@ -864,7 +884,7 @@ const Subscribe: React.FC = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl mx-auto mb-4 flex items-center justify-center">
                 <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <h3 className="font-semibold mb-2">Sécurité maximale</h3>
@@ -873,7 +893,7 @@ const Subscribe: React.FC = () => {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl mx-auto mb-4 flex items-center justify-center">
                 <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <h3 className="font-semibold mb-2">Support prioritaire</h3>

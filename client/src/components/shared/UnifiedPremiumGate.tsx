@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -63,7 +63,7 @@ const UnifiedPremiumGate: React.FC<UnifiedPremiumGateProps> = ({
             <ul className="space-y-2 text-sm text-gray-600">
               {features.map((feature, index) => (
                 <li key={index} className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                  <CheckCircle className="w-3 h-3 text-purple-500 mr-3" />
                   {feature}
                 </li>
               ))}

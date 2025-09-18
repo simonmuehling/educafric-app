@@ -134,7 +134,7 @@ export default function TeacherFreelanceFreemiumPlans() {
             <div className="space-y-3 mb-8">
               {(Array.isArray(t.features.free) ? t.features.free : []).map((feature, idx) => (
                 <div key={idx} className="flex items-start space-x-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                   <span className="text-gray-700 text-sm leading-relaxed">{feature}</span>
@@ -231,7 +231,7 @@ export default function TeacherFreelanceFreemiumPlans() {
             <div className="space-y-3 mb-8">
               {(Array.isArray(t.features.annual) ? t.features.annual : []).map((feature, idx) => (
                 <div key={idx} className="flex items-start space-x-3">
-                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                   <span className="text-gray-700 text-sm leading-relaxed font-medium">{feature}</span>

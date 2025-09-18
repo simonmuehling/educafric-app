@@ -107,7 +107,7 @@ class ModulePreloader {
           break;
         case 'BulletinValidation':
         case 'bulletin-validation':
-          componentImport = await import('@/components/director/modules/BulletinApprovalNew');
+          componentImport = await import('@/components/director/modules/BulletinManagementUnified');
           break;
         case 'AttendanceManagement':
         case 'attendance':
@@ -274,7 +274,7 @@ export const FastModuleLoader: React.FC<{
   return fallback || React.createElement('div', 
     { className: "flex items-center justify-center p-8" },
     React.createElement('div', {
-      className: "w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"
+      className: "flex flex-col items-center space-y-2"
     })
   );
 };

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, Lock, Crown, Star, BarChart3, MessageSquare, Calendar, BookOpen, TrendingUp } from 'lucide-react';
+import { Users, Lock, Crown, Star, BarChart3, MessageSquare, Calendar, BookOpen, TrendingUp, CheckCircle } from 'lucide-react';
 
 const MyStudents = () => {
   const { language } = useLanguage();
@@ -163,7 +163,7 @@ const MyStudents = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {t.features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <CheckCircle className="w-3 h-3 text-blue-500" />
                 <span className="text-gray-700">{feature}</span>
               </div>
             ))}

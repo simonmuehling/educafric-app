@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff, ArrowLeft, Home } from 'lucide-react';
+import { GraduationCap, Mail, Lock, Loader2, Eye, EyeOff, ArrowLeft, Home, BookOpen, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
@@ -249,9 +249,9 @@ export default function Login() {
       </div>
       
       {/* Subtle Floating Elements */}
-      <div className="absolute top-20 left-20 w-4 h-4 bg-blue-200/50 rounded-full animate-bounce delay-300"></div>
-      <div className="absolute top-40 right-32 w-6 h-6 bg-purple-200/50 rounded-full animate-bounce delay-700"></div>
-      <div className="absolute bottom-32 left-32 w-5 h-5 bg-pink-200/50 rounded-full animate-bounce delay-1000"></div>
+      <BookOpen className="absolute top-20 left-20 w-4 h-4 text-blue-400/60 animate-pulse delay-300" />
+      <GraduationCap className="absolute top-40 right-32 w-6 h-6 text-purple-400/60 animate-pulse delay-700" />
+      <Users className="absolute bottom-32 left-32 w-5 h-5 text-pink-400/60 animate-pulse delay-1000" />
 
       {/* Celebration Toast */}
       {showCelebration.show && (

@@ -313,7 +313,7 @@ export default function SubscriptionManagement() {
                           data-testid={`button-upgrade-${plan.id}`}
                         >
                           {upgradeLoading ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                            <CreditCard className="h-4 w-4 text-blue-600 animate-pulse" />
                           ) : (
                             <>
                               <CreditCard className="h-4 w-4 mr-2" />
@@ -390,7 +390,7 @@ export default function SubscriptionManagement() {
                           data-testid={`button-upgrade-${plan.id}`}
                         >
                           {upgradeLoading ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+                            <CreditCard className="h-4 w-4 text-blue-600 animate-pulse" />
                           ) : (
                             <>
                               <CreditCard className="h-4 w-4 mr-2" />

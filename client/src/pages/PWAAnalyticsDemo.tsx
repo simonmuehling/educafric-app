@@ -67,7 +67,12 @@ const PWAAnalyticsDemo: React.FC = () => {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               📱 Analyse PWA - Chargement...
             </h1>
-            <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+            <div className="flex flex-col items-center space-y-3">
+              <BarChart3 className="w-8 h-8 text-blue-500 animate-pulse" />
+              <div className="w-48 bg-gray-200 rounded-lg h-2">
+                <div className="bg-blue-500 h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

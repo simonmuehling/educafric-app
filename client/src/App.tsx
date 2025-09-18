@@ -11,6 +11,7 @@ import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
+import { BookOpen } from 'lucide-react';
 // EMERGENCY STOP: Now manual-only - no automatic execution
 // To trigger manually: import('@/utils/emergencyPollingStop').then(m => m.emergencyStopAllPolling())
 // RE-ENABLED: Safe health monitoring with conservative intervals (5+ min)
@@ -129,7 +130,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="flex flex-col items-center space-y-4">
+          <BookOpen className="w-8 h-8 text-primary animate-pulse" />
+          <div className="w-48 bg-gray-200 rounded-lg h-2">
+            <div className="bg-primary h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+          </div>
+          <p className="text-sm text-gray-600 animate-pulse">Loading educational content...</p>
+        </div>
       </div>
     );
   }

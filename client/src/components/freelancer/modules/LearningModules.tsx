@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { GraduationCap, Lock, Crown, BookOpen, FileText, Video, Image, Puzzle, BarChart3, Share2 } from 'lucide-react';
+import { GraduationCap, Lock, Crown, BookOpen, FileText, Video, Image, Puzzle, BarChart3, Share2, CheckCircle } from 'lucide-react';
 
 const LearningModules = () => {
   const { language } = useLanguage();
@@ -239,7 +239,7 @@ const LearningModules = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {t.features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                <CheckCircle className="w-3 h-3 text-teal-500" />
                 <span className="text-gray-700">{feature}</span>
               </div>
             ))}

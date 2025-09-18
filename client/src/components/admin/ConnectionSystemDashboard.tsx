@@ -203,7 +203,13 @@ const ConnectionSystemDashboard: React.FC<ConnectionSystemDashboardProps> = ({ l
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="flex flex-col items-center space-y-4">
+          <Users className="w-8 h-8 text-primary animate-pulse" />
+          <div className="w-48 bg-gray-200 rounded-lg h-2">
+            <div className="bg-primary h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+          </div>
+          <p className="text-sm text-gray-600 animate-pulse">Loading connection system...</p>
+        </div>
       </div>
     );
   }

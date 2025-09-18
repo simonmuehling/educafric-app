@@ -271,7 +271,7 @@ export default function GeolocationDeviceGuide() {
                     <ul className="space-y-2">
                       {guide.benefits.map((benefit, index) => (
                         <li key={index} className="flex items-center gap-2 text-gray-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                          <CheckCircle className="w-3 h-3 text-green-500" />
                           {benefit}
                         </li>
                       ))}
@@ -287,7 +287,7 @@ export default function GeolocationDeviceGuide() {
                     <ul className="space-y-2">
                       {guide.requirements.map((req, index) => (
                         <li key={index} className="flex items-center gap-2 text-gray-700">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                          <AlertTriangle className="w-3 h-3 text-orange-500" />
                           {req}
                         </li>
                       ))}

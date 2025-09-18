@@ -11,9 +11,9 @@ export default function ModernEducafricHero() {
     <div className="hero-section relative min-h-screen">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-3/4 right-1/4 w-24 h-24 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full opacity-20 animate-bounce delay-300"></div>
-        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-gradient-to-r from-green-400 to-yellow-400 rounded-full opacity-20 animate-ping delay-700"></div>
+        <div className="absolute top-1/4 left-1/4 w-32 h-20 bg-gradient-to-r from-pink-400 to-purple-400 rounded-lg opacity-20 animate-pulse transform rotate-12"></div>
+        <div className="absolute top-3/4 right-1/4 w-24 h-16 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-lg opacity-20 animate-bounce delay-300 transform -rotate-6"></div>
+        <div className="absolute top-1/2 left-1/3 w-16 h-12 bg-gradient-to-r from-green-400 to-yellow-400 rounded-lg opacity-20 animate-pulse delay-700 transform rotate-45"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-6 h-full flex items-center">

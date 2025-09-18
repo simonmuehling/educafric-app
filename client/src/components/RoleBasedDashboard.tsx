@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
+import { GraduationCap } from 'lucide-react';
 
 export default function RoleBasedDashboard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -13,7 +14,13 @@ export default function RoleBasedDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        <div className="flex flex-col items-center space-y-4">
+          <GraduationCap className="w-8 h-8 text-primary animate-pulse" />
+          <div className="w-48 bg-gray-200 rounded-lg h-2">
+            <div className="bg-primary h-2 rounded-lg animate-pulse" style={{ width: '60%' }}></div>
+          </div>
+          <p className="text-sm text-gray-600 animate-pulse">Loading dashboard...</p>
+        </div>
       </div>
     );
   }

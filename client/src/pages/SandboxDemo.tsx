@@ -12,7 +12,8 @@ import {
   TestTube,
   Eye,
   Play,
-  ArrowRight
+  ArrowRight,
+  CheckCircle
 } from 'lucide-react';
 
 export default function SandboxDemo() {
@@ -161,7 +162,7 @@ export default function SandboxDemo() {
                 <div className="space-y-2">
                   {(Array.isArray(role.features) ? role.features : []).map((feature, idx) => (
                     <div key={idx} className="flex items-center text-sm text-gray-700">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2 flex-shrink-0"></div>
+                      <CheckCircle className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" />
                       {feature}
                     </div>
                   ))}

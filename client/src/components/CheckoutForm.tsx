@@ -146,7 +146,7 @@ export default function CheckoutForm({
       >
         {processing ? (
           <div className="flex items-center space-x-2">
-            <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+            <CreditCard className="w-4 h-4 text-white animate-pulse" />
             <span>{t.processing}</span>
           </div>
         ) : (

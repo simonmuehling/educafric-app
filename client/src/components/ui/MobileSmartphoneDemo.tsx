@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Users, MessageSquare, BookOpen, CheckSquare, CreditCard, Calendar,
-  Bell, MapPin, Settings, HelpCircle, Trophy, Heart, Info, X
+  Bell, MapPin, Settings, HelpCircle, Trophy, Heart, Info, X, CheckCircle
 } from 'lucide-react';
 import { MobileCompactSearch, MobileInfoBubble, MobileOverlayInfo } from './MobileCompactSearch';
 import DashboardNavbar from '@/components/shared/DashboardNavbar';
@@ -180,25 +180,25 @@ const MobileSmartphoneDemo: React.FC = () => {
           </h3>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <CheckCircle className="w-3 h-3 text-green-500" />
               <span className="text-xs text-gray-600">
                 {language === 'fr' ? '3 colonnes maximum sur smartphone' : 'Maximum 3 columns on smartphone'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <CheckCircle className="w-3 h-3 text-green-500" />
               <span className="text-xs text-gray-600">
                 {language === 'fr' ? 'Icônes compactes (28px) avec text micro' : 'Compact icons (28px) with micro text'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <CheckCircle className="w-3 h-3 text-green-500" />
               <span className="text-xs text-gray-600">
                 {language === 'fr' ? 'Recherche en superposition pour économiser l\'espace' : 'Overlay search to save space'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <CheckCircle className="w-3 h-3 text-green-500" />
               <span className="text-xs text-gray-600">
                 {language === 'fr' ? 'Bulles d\'info courtes et contextuelle' : 'Short contextual info bubbles'}
               </span>

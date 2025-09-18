@@ -243,8 +243,13 @@ const CountryPaymentButtons: React.FC<CountryPaymentButtonsProps> = ({
       <Card className={className}>
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-4">
-            <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full mr-3" />
-            <span>{t.loadingMethods}</span>
+            <div className="flex flex-col items-center space-y-2">
+              <CreditCard className="w-5 h-5 text-blue-500 animate-pulse" />
+              <div className="w-24 bg-gray-200 rounded-lg h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+              </div>
+              <span>{t.loadingMethods}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -327,7 +332,7 @@ const CountryPaymentButtons: React.FC<CountryPaymentButtonsProps> = ({
                   
                   {selectedMethod === method.id && isProcessing ? (
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                      <CreditCard className="w-4 h-4 text-white animate-pulse" />
                       <span>{t.processing}</span>
                     </div>
                   ) : (
@@ -379,7 +384,7 @@ const CountryPaymentButtons: React.FC<CountryPaymentButtonsProps> = ({
                   
                   {selectedMethod === method.id && isProcessing ? (
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full" />
+                      <CreditCard className="w-4 h-4 text-gray-600 animate-pulse" />
                     </div>
                   ) : (
                     <ArrowRight className="w-4 h-4" />

@@ -239,7 +239,7 @@ const Demo = () => {
                     </div>
                     
                     <div className="text-center relative z-10">
-                      <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 mx-auto hover:bg-white/30 hover:scale-110 transition-all duration-300 border-2 border-white/30">
+                      <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-6 mx-auto hover:bg-white/30 hover:scale-110 transition-all duration-300 border-2 border-white/30">
                         <Play className="w-12 h-12 text-white ml-1 drop-shadow-lg" />
                       </div>
                       <p className="text-white text-xl font-bold mb-2 drop-shadow-lg">
@@ -248,8 +248,8 @@ const Demo = () => {
                       <p className="text-white/90 text-base mb-4 drop-shadow-lg">
                         {language === 'fr' ? 'Présentation complète de la plateforme' : 'Comprehensive platform walkthrough'}
                       </p>
-                      <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30">
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/30">
+                        <div className="w-2 h-2 bg-red-500 animate-pulse"></div>
                         <span className="text-white text-sm font-medium">
                           {language === 'fr' ? 'Cliquez pour regarder' : 'Click to watch'}
                         </span>
@@ -602,7 +602,7 @@ const Demo = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center p-8 bg-background rounded-xl border border-border">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+              <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
                 <Shield className="w-8 h-8 text-primary" />
               </div>
               <h3 className="h4 mb-4 text-black dark:text-foreground">
@@ -617,7 +617,7 @@ const Demo = () => {
             </div>
 
             <div className="text-center p-8 bg-background rounded-xl border border-border">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+              <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
                 <Tablet className="w-8 h-8 text-primary" />
               </div>
               <h3 className="h4 mb-4 text-black dark:text-foreground">
@@ -632,7 +632,7 @@ const Demo = () => {
             </div>
 
             <div className="text-center p-8 bg-background rounded-xl border border-border">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+              <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6 mx-auto">
                 <CheckCircle className="w-8 h-8 text-primary" />
               </div>
               <h3 className="h4 mb-4 text-black dark:text-foreground">

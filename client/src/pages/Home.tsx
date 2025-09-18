@@ -11,6 +11,7 @@ const ModernStatsSection = lazy(() => import('@/components/ModernStatsSection'))
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'wouter';
 import EducafricFooter from '@/components/EducafricFooter';
+import { BookOpen, BarChart3 } from 'lucide-react';
 
 export default function Home() {
   const { language } = useLanguage();
@@ -46,12 +47,12 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="w-12 h-12 mx-auto border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div></div></div>}>
+      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="flex flex-col items-center space-y-4"><BookOpen className="w-12 h-12 mx-auto text-purple-600 animate-pulse" /><div className="w-48 bg-gray-200 rounded-lg h-2"><div className="bg-purple-600 h-2 rounded-lg animate-pulse" style={{ width: '65%' }}></div></div><p className="text-sm text-gray-600">Loading features...</p></div></div></div>}>
         <ModernFeatureSlider />
       </Suspense>
 
       {/* Stats Section */}
-      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="w-12 h-12 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div></div></div>}>
+      <Suspense fallback={<div className="py-20 bg-white"><div className="container mx-auto px-6 text-center"><div className="flex flex-col items-center space-y-4"><BarChart3 className="w-12 h-12 mx-auto text-blue-600 animate-pulse" /><div className="w-48 bg-gray-200 rounded-lg h-2"><div className="bg-blue-600 h-2 rounded-lg animate-pulse" style={{ width: '80%' }}></div></div><p className="text-sm text-gray-600">Loading statistics...</p></div></div></div>}>
         <ModernStatsSection />
       </Suspense>
 

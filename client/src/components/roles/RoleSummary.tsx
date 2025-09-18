@@ -21,7 +21,8 @@ import {
   Target,
   BarChart3,
   Settings,
-  Shield
+  Shield,
+  CheckCircle
 } from 'lucide-react';
 
 interface RoleFeature {
@@ -187,7 +188,7 @@ export default function RoleSummary() {
                 <div className="space-y-2">
                   {(Array.isArray(role.capabilities) ? role.capabilities : []).map((capability, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <CheckCircle className="w-3 h-3 text-green-500" />
                       <span className="text-sm text-slate-600 dark:text-slate-300">{capability}</span>
                     </div>
                   ))}

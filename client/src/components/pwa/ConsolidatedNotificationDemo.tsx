@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useUnifiedNotifications } from './ConsolidatedNotificationSystem';
 import { unifiedNotificationService } from '@/services/unifiedNotificationService';
 import { runNotificationTests } from '@/utils/notificationTest';
-import { Bell, BookOpen, Users, AlertTriangle, CheckCircle, Zap, Play, Shield, Settings, TestTube } from 'lucide-react';
+import { Bell, BookOpen, Users, AlertTriangle, CheckCircle, Zap, Play, Shield, Settings, TestTube, Eye } from 'lucide-react';
 
 const ConsolidatedNotificationDemo = () => {
   const { language } = useLanguage();
@@ -309,7 +309,7 @@ const ConsolidatedNotificationDemo = () => {
             </h4>
             <div className="space-y-2 text-sm text-gray-700">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <CheckCircle className="w-3 h-3 text-green-500" />
                 <span>
                   {language === 'fr' ? 
                     'Service unifié - UnifiedNotificationService singleton pattern' :
@@ -318,7 +318,7 @@ const ConsolidatedNotificationDemo = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <Settings className="w-3 h-3 text-blue-500" />
                 <span>
                   {language === 'fr' ? 
                     'Dual delivery - In-app toasts + PWA push avec vibration' :
@@ -327,7 +327,7 @@ const ConsolidatedNotificationDemo = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <Eye className="w-3 h-3 text-purple-500" />
                 <span>
                   {language === 'fr' ? 
                     'Optimisation africaine - Persistance offline + priorités urgentes' :
@@ -336,7 +336,7 @@ const ConsolidatedNotificationDemo = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <Zap className="w-3 h-3 text-orange-500" />
                 <span>
                   {language === 'fr' ? 
                     'Support complet - TypeScript, React Context, Service Worker' :

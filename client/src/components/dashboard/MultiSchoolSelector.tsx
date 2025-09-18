@@ -101,7 +101,12 @@ export function MultiSchoolSelector({ userId, onSchoolChange }: MultiSchoolSelec
       <Card>
         <CardContent className="py-4">
           <div className="flex items-center justify-center">
-            <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+            <div className="flex flex-col items-center space-y-2">
+              <Building className="w-6 h-6 text-primary animate-pulse" />
+              <div className="w-24 bg-gray-200 rounded-lg h-1.5">
+                <div className="bg-primary h-1.5 rounded-lg animate-pulse" style={{ width: '70%' }}></div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

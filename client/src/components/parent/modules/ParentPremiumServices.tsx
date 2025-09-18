@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Button } from '@/components/ui/button';
-import { Target, Lock, Star, TrendingUp } from 'lucide-react';
+import { Target, Lock, Star, TrendingUp, CheckCircle } from 'lucide-react';
 
 export const ParentPremiumServices = () => {
   const { language } = useLanguage();
@@ -51,7 +51,7 @@ export const ParentPremiumServices = () => {
         </div>
       </div>
 
-      <ModernCard gradient="default" className="relative">
+      <ModernCard className="relative">
         <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center z-10">
           <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mb-4">
             <Lock className="w-8 h-8 text-white" />
@@ -63,23 +63,23 @@ export const ParentPremiumServices = () => {
             <h4 className="font-semibold text-gray-800 mb-4">{t.features}:</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                <CheckCircle className="w-3 h-3 text-emerald-500 mr-3" />
                 {t.feature1}
               </li>
               <li className="flex items-center">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                <CheckCircle className="w-3 h-3 text-emerald-500 mr-3" />
                 {t.feature2}
               </li>
               <li className="flex items-center">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                <CheckCircle className="w-3 h-3 text-emerald-500 mr-3" />
                 {t.feature3}
               </li>
               <li className="flex items-center">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                <CheckCircle className="w-3 h-3 text-emerald-500 mr-3" />
                 {t.feature4}
               </li>
               <li className="flex items-center">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                <CheckCircle className="w-3 h-3 text-emerald-500 mr-3" />
                 {t.feature5}
               </li>
             </ul>

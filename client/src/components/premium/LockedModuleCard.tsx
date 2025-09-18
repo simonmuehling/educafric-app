@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Crown, Sparkles } from 'lucide-react';
+import { Lock, Crown, Sparkles, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,7 +68,7 @@ const LockedModuleCard: React.FC<LockedModuleCardProps> = ({
           <div className="space-y-2 mb-4">
             {premiumFeatures.slice(0, 3).map((feature, index) => (
               <div key={index} className="flex items-center text-sm text-gray-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                 {feature}
               </div>
             ))}
@@ -80,10 +80,10 @@ const LockedModuleCard: React.FC<LockedModuleCardProps> = ({
           <div className="text-center p-4">
             {/* Icône de verrouillage avec animation */}
             <div className="relative mb-4">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg animate-bounce">
                 <Lock className="w-8 h-8 text-white" />
               </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center animate-pulse">
+              <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-500 rounded-lg flex items-center justify-center animate-pulse">
                 <Sparkles className="w-3 h-3 text-white" />
               </div>
             </div>

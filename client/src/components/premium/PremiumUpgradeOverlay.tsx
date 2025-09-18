@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Crown, Zap, Star, ArrowRight } from 'lucide-react';
+import { Lock, Crown, Zap, Star, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -122,7 +122,7 @@ const PremiumUpgradeOverlay: React.FC<PremiumUpgradeOverlayProps> = ({
             <ul className="space-y-1">
               {upgradeInfo.benefits.map((benefit, index) => (
                 <li key={index} className="flex items-start text-sm text-gray-700">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <CheckCircle className="w-3 h-3 text-green-500 mt-2 mr-2 flex-shrink-0" />
                   {benefit}
                 </li>
               ))}

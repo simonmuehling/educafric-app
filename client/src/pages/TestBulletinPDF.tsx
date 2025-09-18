@@ -167,7 +167,7 @@ const TestBulletinPDF: React.FC = () => {
               >
                 {downloading ? (
                   <>
-                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                    <FileText className="w-5 h-5 text-white animate-pulse mr-2" />
                     Génération en cours...
                   </>
                 ) : (
