@@ -6532,6 +6532,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TEST ENDPOINT FOR A4 BULLETIN - NO AUTH REQUIRED  
+  app.get('/api/test-bulletin-a4', async (req, res) => {
+    try {
+      console.log('[TEST_BULLETIN] 🧪 Generating A4 test bulletin...');
+      
+      // Import the generator
+      const { ComprehensiveBulletinGenerator } = await import('./services/comprehensiveBulletinGenerator.js');
+      
+      // Test student data with photo
+      const testStudentData = {
+        studentId: 1,
+        firstName: "Marie",
+        lastName: "Fosso",
+        matricule: "001",
+        birthDate: "2010-01-01",
+        photo: "marie-fosso-profile.svg", // Test photo path
+        classId: 1,
+        className: "CP1 A",
+        subjects: [
+          {
+            subjectId: 1,
+            subjectName: "Mathématiques",
+            teacherId: 1,
+            teacherName: "M. Koné",
+            firstEvaluation: 17,
+            secondEvaluation: 16, 
+            thirdEvaluation: 16,
+            termAverage: 16.3,
+            coefficient: 4,
+            maxScore: 20,
+            comments: "Excellent travail",
+            category: "general" as const
+          },
+          {
+            subjectId: 2,
+            subjectName: "Français",
+            teacherId: 2,
+            teacherName: "Mme Diallo",
+            firstEvaluation: 14,
+            secondEvaluation: 15,
+            thirdEvaluation: 15,
+            termAverage: 14.7,
+            coefficient: 4,
+            maxScore: 20,
+            comments: "Bien",
+            category: "general" as const
+          }
+        ],
+        overallAverage: 15.5,
+        classRank: 3,
+        totalStudents: 35,
+        conductGrade: 18,
+        absences: 2,
+        term: "T3",
+        academicYear: "2024-2025"
+      };
+
+      // Test school data
+      const testSchoolInfo = {
+        id: 1,
+        name: "École Saint-Joseph",
+        address: "Douala, Cameroun",
+        phone: "+237657004011",
+        email: "info@saint-joseph.cm",
+        logoUrl: "lycee-bilingue-yaounde-logo.svg",
+        regionaleMinisterielle: "DÉLÉGATION RÉGIONALE DU CENTRE",
+        delegationDepartementale: "DÉLÉGATION DÉPARTEMENTALE DU MFOUNDI"
+      };
+
+      // A4 optimized options  
+      const testOptions = {
+        includeComments: true,
+        includeRankings: true,
+        includeStatistics: true,
+        includePerformanceLevels: true,
+        language: 'fr' as const,
+        format: 'A4' as const,
+        orientation: 'portrait' as const,
+        includeQRCode: true
+      };
+
+      console.log('[TEST_BULLETIN] 📝 Generating with data:', {
+        student: `${testStudentData.firstName} ${testStudentData.lastName}`,
+        subjects: testStudentData.subjects.length,
+        school: testSchoolInfo.name,
+        photo: testStudentData.photo
+      });
+
+      // Generate the bulletin PDF
+      const pdfBuffer = await ComprehensiveBulletinGenerator.generateProfessionalBulletin(
+        testStudentData,
+        testSchoolInfo,
+        testOptions
+      );
+
+      console.log('[TEST_BULLETIN] ✅ PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+
+      // Set headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="test-bulletin-a4.pdf"');
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      // Send the PDF
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      console.error('[TEST_BULLETIN] ❌ Error generating test bulletin:', error);
+      res.status(500).json({
+        error: 'Failed to generate test bulletin',
+        details: error.message
+      });
+    }
+  });
+
   // API 404 handler - must be after all API routes
   app.use('/api/*', (req, res) => {
     res.status(404).json({ 
