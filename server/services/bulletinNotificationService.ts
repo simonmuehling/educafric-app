@@ -2,6 +2,13 @@ import { RefactoredNotificationService, NotificationRecipient, NotificationPaylo
 import { hostingerMailService } from './hostingerMailService';
 import { SMS_TEMPLATES } from './notifications/smsTemplates';
 import { EMAIL_TEMPLATES } from './notifications/emailTemplates';
+import { 
+  BulletinTemplateGenerator, 
+  TemplateVariables,
+  BULLETIN_SMS_TEMPLATES,
+  BULLETIN_EMAIL_TEMPLATES,
+  BULLETIN_WHATSAPP_TEMPLATES 
+} from './notificationTemplates';
 
 export interface BulletinNotificationData {
   studentId: number;
@@ -34,6 +41,8 @@ export interface BulletinRecipient {
   role: 'Parent' | 'Student';
   preferredLanguage: 'en' | 'fr';
   relationToStudent?: string; // 'mother', 'father', 'guardian', etc.
+  schoolName?: string;
+  schoolContact?: string;
 }
 
 export class BulletinNotificationService {
@@ -169,7 +178,32 @@ export class BulletinNotificationService {
   }
 
   /**
-   * Send SMS bulletin notification
+   * Convert bulletin data to template variables
+   */
+  private createTemplateVariables(
+    bulletinData: BulletinNotificationData,
+    recipient: BulletinRecipient
+  ): TemplateVariables {
+    return {
+      studentName: bulletinData.studentName,
+      className: bulletinData.className,
+      term: bulletinData.period,
+      academicYear: bulletinData.academicYear,
+      schoolName: recipient.schoolName || 'École EDUCAFRIC',
+      parentName: recipient.name,
+      schoolContact: recipient.schoolContact || 'info@educafric.com',
+      downloadLink: bulletinData.downloadUrl,
+      generalAverage: bulletinData.generalAverage,
+      classRank: bulletinData.classRank,
+      totalStudentsInClass: bulletinData.totalStudentsInClass,
+      teacherComments: bulletinData.teacherComments,
+      directorComments: bulletinData.directorComments,
+      qrCode: bulletinData.qrCode
+    };
+  }
+
+  /**
+   * Send SMS bulletin notification using new template system
    */
   private async sendBulletinSMS(
     bulletinData: BulletinNotificationData,
@@ -178,32 +212,24 @@ export class BulletinNotificationService {
     language: 'en' | 'fr'
   ): Promise<any> {
     try {
-      const smsTemplate = (SMS_TEMPLATES as any)[template][language];
-      let message = '';
-
-      switch (template) {
-        case 'BULLETIN_EXCELLENT':
-          message = smsTemplate(
-            bulletinData.studentName,
-            bulletinData.period,
-            bulletinData.generalAverage.toString(),
-            bulletinData.classRank.toString()
-          );
-          break;
-        case 'BULLETIN_NEEDS_IMPROVEMENT':
-          message = smsTemplate(
-            bulletinData.studentName,
-            bulletinData.period,
-            bulletinData.generalAverage.toString()
-          );
-          break;
-        default: // BULLETIN_AVAILABLE
-          message = smsTemplate(
-            bulletinData.studentName,
-            bulletinData.period,
-            bulletinData.generalAverage.toString()
-          );
+      // Create template variables
+      const templateVars = this.createTemplateVariables(bulletinData, recipient);
+      
+      // Validate template variables
+      const validation = BulletinTemplateGenerator.validateVariables(templateVars);
+      if (!validation.valid) {
+        console.warn('[BULLETIN_SMS] Missing template variables:', validation.missing);
       }
+      
+      // Auto-select template type based on average
+      const templateType = BulletinTemplateGenerator.selectSMSTemplateType(bulletinData.generalAverage);
+      
+      // Generate SMS message using new template system
+      const message = BulletinTemplateGenerator.generateSMSTemplate(
+        templateVars,
+        templateType,
+        language
+      );
 
       // Mock SMS sending - replace with actual SMS service
       console.log(`[BULLETIN_SMS] 📱 Sending to ${recipient.phone}: ${message}`);
@@ -214,10 +240,12 @@ export class BulletinNotificationService {
         recipientId: recipient.id,
         recipientName: recipient.name,
         message,
+        templateType,
         sentAt: new Date().toISOString()
       };
 
     } catch (error) {
+      console.error('[BULLETIN_SMS] Error generating SMS:', error);
       return {
         success: false,
         type: 'sms',
@@ -228,7 +256,7 @@ export class BulletinNotificationService {
   }
 
   /**
-   * Send Email bulletin notification
+   * Send Email bulletin notification using new template system
    */
   private async sendBulletinEmail(
     bulletinData: BulletinNotificationData,
@@ -236,16 +264,19 @@ export class BulletinNotificationService {
     language: 'en' | 'fr'
   ): Promise<any> {
     try {
-      const emailTemplate = EMAIL_TEMPLATES.BULLETIN_AVAILABLE[language];
-      const subject = emailTemplate.subject(bulletinData.studentName, bulletinData.period);
-      const body = emailTemplate.body(
-        bulletinData.studentName,
-        bulletinData.period,
-        bulletinData.generalAverage,
-        bulletinData.classRank,
-        bulletinData.totalStudentsInClass,
-        bulletinData.subjects,
-        bulletinData.qrCode
+      // Create template variables
+      const templateVars = this.createTemplateVariables(bulletinData, recipient);
+      
+      // Validate template variables
+      const validation = BulletinTemplateGenerator.validateVariables(templateVars);
+      if (!validation.valid) {
+        console.warn('[BULLETIN_EMAIL] Missing template variables:', validation.missing);
+      }
+      
+      // Generate email using new comprehensive template system
+      const { subject, body } = BulletinTemplateGenerator.generateEmailTemplate(
+        templateVars,
+        language
       );
 
       const emailResult = await hostingerMailService.sendEmail({
@@ -262,10 +293,12 @@ export class BulletinNotificationService {
         recipientId: recipient.id,
         recipientName: recipient.name,
         subject,
+        templateUsed: 'BULLETIN_NOTIFICATION',
         sentAt: new Date().toISOString()
       };
 
     } catch (error) {
+      console.error('[BULLETIN_EMAIL] Error generating email:', error);
       return {
         success: false,
         type: 'email',
@@ -276,7 +309,7 @@ export class BulletinNotificationService {
   }
 
   /**
-   * Send WhatsApp bulletin notification
+   * Send WhatsApp bulletin notification using new template system
    */
   private async sendBulletinWhatsApp(
     bulletinData: BulletinNotificationData,
@@ -284,21 +317,20 @@ export class BulletinNotificationService {
     language: 'en' | 'fr'
   ): Promise<any> {
     try {
-      // Create WhatsApp message with bulletin summary
-      const emoji = bulletinData.generalAverage >= 16 ? '🏆' : bulletinData.generalAverage >= 12 ? '📋' : '📚';
-      const message = language === 'en' 
-        ? `${emoji} *${bulletinData.studentName}* - ${bulletinData.period} Report Card Ready!\n\n` +
-          `📊 *Average:* ${bulletinData.generalAverage}/20\n` +
-          `🎯 *Class Rank:* ${bulletinData.classRank}/${bulletinData.totalStudentsInClass}\n` +
-          `📱 *Download:* Open EDUCAFRIC app\n` +
-          `🔍 *Verify with QR:* ${bulletinData.qrCode}\n\n` +
-          `_This bulletin is digitally signed and secured with QR code verification._`
-        : `${emoji} *${bulletinData.studentName}* - Bulletin ${bulletinData.period} Disponible!\n\n` +
-          `📊 *Moyenne:* ${bulletinData.generalAverage}/20\n` +
-          `🎯 *Rang:* ${bulletinData.classRank}/${bulletinData.totalStudentsInClass}\n` +
-          `📱 *Télécharger:* Ouvrez l'app EDUCAFRIC\n` +
-          `🔍 *Vérification QR:* ${bulletinData.qrCode}\n\n` +
-          `_Ce bulletin est signé numériquement et sécurisé avec code QR._`;
+      // Create template variables
+      const templateVars = this.createTemplateVariables(bulletinData, recipient);
+      
+      // Validate template variables
+      const validation = BulletinTemplateGenerator.validateVariables(templateVars);
+      if (!validation.valid) {
+        console.warn('[BULLETIN_WHATSAPP] Missing template variables:', validation.missing);
+      }
+      
+      // Generate WhatsApp message using new comprehensive template system
+      const message = BulletinTemplateGenerator.generateWhatsAppTemplate(
+        templateVars,
+        language
+      );
 
       // Mock WhatsApp sending - replace with actual WhatsApp service
       console.log(`[BULLETIN_WHATSAPP] 💬 Sending to ${recipient.whatsapp}:`, message);
@@ -309,10 +341,12 @@ export class BulletinNotificationService {
         recipientId: recipient.id,
         recipientName: recipient.name,
         message,
+        templateUsed: 'BULLETIN_NOTIFICATION',
         sentAt: new Date().toISOString()
       };
 
     } catch (error) {
+      console.error('[BULLETIN_WHATSAPP] Error generating WhatsApp message:', error);
       return {
         success: false,
         type: 'whatsapp',

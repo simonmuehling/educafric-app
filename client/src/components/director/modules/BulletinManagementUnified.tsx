@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { 
   FileText, 
   Eye, 
@@ -1177,8 +1179,8 @@ export default function BulletinManagementUnified() {
           description: "Le bulletin a été approuvé et est prêt pour envoi",
         });
         
-        // Recharger les bulletins pour mettre à jour les statuts
-        await loadPendingBulletins();
+        // FIXED: Invalidate cache instead of manual reload
+        queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
       } else {
         const error = await response.json();
         throw new Error(error.message || 'Erreur lors de l\'approbation');
@@ -1252,8 +1254,8 @@ export default function BulletinManagementUnified() {
         // Réinitialiser la sélection
         setSelectedBulletins([]);
         
-        // Recharger les bulletins pour voir les nouveaux statuts
-        await loadPendingBulletins();
+        // FIXED: Invalidate cache instead of manual reload
+        queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
         
       } else {
         const notifError = await notificationResponse.json();
@@ -1271,34 +1273,27 @@ export default function BulletinManagementUnified() {
     }
   };
 
-  // Send bulletins to parents via notifications (Email + SMS + WhatsApp)
-  const sendToParents = async (bulletinIds: number[]) => {
-    try {
-      setLoading(true);
-      
+  // Initialize query client for cache invalidation
+  const queryClient = useQueryClient();
+
+  // Send bulletins to parents via notifications (Email + SMS + WhatsApp) - FIXED WITH TANSTACK QUERY
+  const sendToParentsMutation = useMutation({
+    mutationFn: async (bulletinIds: number[]) => {
       console.log('[BULLETIN_PARENT_DISTRIBUTION] 📮 Starting parent notification for:', bulletinIds.length, 'bulletins');
       
-      const response = await fetch('/api/comprehensive-bulletins/send-to-parents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          bulletinIds
-        })
+      const response = await apiRequest('POST', '/api/comprehensive-bulletins/send-to-parents', {
+        bulletinIds
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send bulletins to parents');
-      }
-
-      const result = await response.json();
+      
+      return response;
+    },
+    onSuccess: (result) => {
       console.log('[BULLETIN_PARENT_DISTRIBUTION] ✅ Distribution completed:', result);
-
+      
       if (result.success) {
         const summary = result.data.summary;
         
-        // Success notification with statistics
+        // Success notification with detailed statistics
         toast({
           title: "📧 " + t.sendToParentsSuccess,
           description: `${summary.successfulBulletins}/${summary.totalBulletins} bulletins envoyés • ${summary.totalEmailsSent} emails • ${summary.totalSmsSent} SMS • ${summary.totalWhatsAppSent} WhatsApp`,
@@ -1307,22 +1302,25 @@ export default function BulletinManagementUnified() {
         // Reset selection
         setSelectedBulletins([]);
         
-        // Reload bulletins to see updated status
-        await loadPendingBulletins();
+        // FIXED: Invalidate cache instead of manual reload
+        queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
       } else {
         throw new Error(result.message || 'Distribution failed');
       }
-      
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       console.error('[BULLETIN_PARENT_DISTRIBUTION] ❌ Error:', error);
       toast({
         title: t.sendToParentsError,
         description: error.message || 'Une erreur est survenue lors de l\'envoi aux parents',
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+  });
+
+  // Wrapper function for backward compatibility
+  const sendToParents = (bulletinIds: number[]) => {
+    sendToParentsMutation.mutate(bulletinIds);
   };
 
   // Voir les détails d'un bulletin - vraie logique
@@ -2402,8 +2400,8 @@ export default function BulletinManagementUnified() {
           window.open(result.downloadUrl, '_blank');
         }
         
-        // Recharger les bulletins pour voir le nouveau bulletin dans la liste
-        await loadPendingBulletins();
+        // FIXED: Invalidate cache instead of manual reload
+        queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
         
         // ✅ NE PAS réinitialiser les IDs pour permettre l'aperçu immédiat
         // setSelectedStudentId('');
@@ -3474,9 +3472,10 @@ export default function BulletinManagementUnified() {
                     <Button
                       onClick={() => sendToParents(selectedBulletins.length > 0 ? selectedBulletins : approvedBulletins.map(b => b.id))}
                       className="bg-purple-600 hover:bg-purple-700"
-                      disabled={loading || approvedBulletins.length === 0}
+                      disabled={sendToParentsMutation.isPending || approvedBulletins.length === 0}
+                      data-testid="button-send-to-parents"
                     >
-                      {loading ? (
+                      {sendToParentsMutation.isPending ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                           {t.sendingToParents}
