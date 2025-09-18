@@ -4051,7 +4051,7 @@ export default function ComprehensiveBulletinGenerator() {
                     <Card>
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                          <BarChart className="h-4 w-4" />
+                          <BarChart3 className="h-4 w-4" />
                           Taux de Réussite par Canal
                         </CardTitle>
                       </CardHeader>
