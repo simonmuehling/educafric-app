@@ -2559,8 +2559,8 @@ router.get('/preview', requireAuth, async (req, res) => {
       
       coefficient: teacherGradeSubmissions.coefficient,
       subjectComments: teacherGradeSubmissions.subjectComments,
-      reviewStatus: teacherGradeSubmissions.reviewStatus,
-      reviewedAt: teacherGradeSubmissions.reviewedAt
+      isSubmitted: teacherGradeSubmissions.isSubmitted,
+      submittedAt: teacherGradeSubmissions.submittedAt
     })
     .from(teacherGradeSubmissions)
     .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
@@ -2589,8 +2589,8 @@ router.get('/preview', requireAuth, async (req, res) => {
         coefficient: parseInt(grade.coefficient as string) || 1,
         points: termGrade ? parseFloat(termGrade as string) * (parseInt(grade.coefficient as string) || 1) : 0,
         comments: grade.subjectComments || '',
-        reviewStatus: grade.reviewStatus,
-        isApproved: grade.reviewStatus === 'approved'
+        isSubmitted: grade.isSubmitted,
+        isApproved: grade.isSubmitted === true
       };
     });
 
@@ -2615,7 +2615,6 @@ router.get('/preview', requireAuth, async (req, res) => {
         AND class_id = ${parseInt(classId as string)}
         AND term = ${term}
         AND academic_year = ${academicYear}
-        AND review_status = 'approved'
         AND is_submitted = true
     `);
 

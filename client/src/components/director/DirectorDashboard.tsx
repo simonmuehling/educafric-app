@@ -464,13 +464,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       component: createDynamicModule('school-settings')
     },
     {
-      id: 'bulletin-management',
-      label: t.bulletins,
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-emerald-500',
-      component: createDynamicModule('bulletin-management')
-    },
-    {
       id: 'comprehensive-bulletins',
       label: language === 'fr' ? 'Générateur de Bulletins' : 'Bulletin Generator',
       icon: <Award className="w-6 h-6" />,
