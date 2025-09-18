@@ -128,9 +128,9 @@ export class TranscriptGenerator {
       } = options;
       
       let adjustedX = x;
-      if (align === 'center' && maxWidth) {
+      if (align === 'center') {
         const textWidth = font.widthOfTextAtSize(text, size);
-        adjustedX = x + (maxWidth - textWidth) / 2;
+        adjustedX = maxWidth ? x + (maxWidth - textWidth) / 2 : x - textWidth / 2;
       } else if (align === 'right' && maxWidth) {
         const textWidth = font.widthOfTextAtSize(text, size);
         adjustedX = x + maxWidth - textWidth;
@@ -191,8 +191,7 @@ export class TranscriptGenerator {
       font: timesBold,
       size: 18,
       color: colors.primary,
-      align: 'center',
-      maxWidth: width
+      align: 'center'
     });
     
     currentY -= 40;
