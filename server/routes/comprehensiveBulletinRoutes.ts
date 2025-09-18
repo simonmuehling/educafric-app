@@ -298,67 +298,174 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
     if (!studentId || !classId || !term || !academicYear) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required parameters'
+        message: 'Missing required parameters: studentId, classId, term, academicYear'
       });
     }
 
-    console.log('[BULLETIN_PREVIEW] 🔍 Generating preview for student:', studentId);
+    console.log('[BULLETIN_PREVIEW] 🔍 Generating preview for student:', { studentId, user: user.email });
 
-    // Get student info
-    const studentInfo = await db.select({
-      id: users.id,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      matricule: sql<string>`${users.id}::text`,
-      birthDate: users.dateOfBirth,
-      className: classes.name
-    })
-    .from(users)
-    .leftJoin(classes, eq(classes.id, parseInt(classId as string)))
-    .where(eq(users.id, parseInt(studentId as string)))
-    .limit(1);
+    // Check if this is a sandbox user
+    const isSandboxUser = user.email && user.email.includes('sandbox.');
+    
+    if (isSandboxUser) {
+      console.log('[BULLETIN_PREVIEW] 🎯 Sandbox user detected - returning mock preview data');
+      
+      // Return realistic sandbox preview data
+      const mockPreviewData = {
+        student: {
+          id: parseInt(studentId as string),
+          firstName: studentId === '1' ? 'Emma' : studentId === '2' ? 'Paul' : studentId === '3' ? 'Marie' : 'Jean',
+          lastName: studentId === '1' ? 'Talla' : studentId === '2' ? 'Ngono' : studentId === '3' ? 'Fosso' : 'Kamga',
+          matricule: `STU${studentId}`,
+          birthDate: '2010-05-15',
+          className: classId === '1' ? '6ème A' : classId === '2' ? '5ème B' : '4ème C'
+        },
+        subjects: [
+          { name: 'Français', grade: 14.5, coefficient: 5, comments: 'Bon travail, continuez ainsi' },
+          { name: 'Anglais', grade: 13.0, coefficient: 4, comments: 'Progrès notables en expression orale' },
+          { name: 'Mathématiques', grade: 15.5, coefficient: 5, comments: 'Excellent niveau en algèbre' },
+          { name: 'Sciences Physiques', grade: 12.5, coefficient: 3, comments: 'Bonne compréhension des concepts' },
+          { name: 'Sciences Naturelles', grade: 13.8, coefficient: 3, comments: 'Participation active en classe' },
+          { name: 'Histoire-Géographie', grade: 14.0, coefficient: 4, comments: 'Très bonnes connaissances historiques' },
+          { name: 'Education Civique', grade: 15.0, coefficient: 2, comments: 'Excellente citoyenneté' },
+          { name: 'Education Physique', grade: 16.0, coefficient: 2, comments: 'Très sportif, bon esprit d\'équipe' }
+        ],
+        overallAverage: 14.2,
+        term,
+        academicYear,
+        isMockData: true
+      };
 
-    if (!studentInfo.length) {
+      return res.json({
+        success: true,
+        data: mockPreviewData
+      });
+    }
+
+    // For real users, try to get student info first with better error handling
+    let studentInfo;
+    try {
+      studentInfo = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        matricule: sql<string>`${users.id}::text`,
+        birthDate: users.dateOfBirth,
+        className: classes.name
+      })
+      .from(users)
+      .leftJoin(classes, eq(classes.id, parseInt(classId as string)))
+      .where(eq(users.id, parseInt(studentId as string)))
+      .limit(1);
+    } catch (dbError: any) {
+      console.error('[BULLETIN_PREVIEW] ❌ Database error getting student info:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Database error accessing student information',
+        error: dbError.message
+      });
+    }
+
+    if (!studentInfo || !studentInfo.length) {
       return res.status(404).json({
         success: false,
         message: 'Student not found'
       });
     }
 
-    // Get approved grades for this student
-    const approvedGrades = await db.select({
-      subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.name,
-      firstEvaluation: teacherGradeSubmissions.firstEvaluation,
-      secondEvaluation: teacherGradeSubmissions.secondEvaluation,
-      thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
-      termAverage: teacherGradeSubmissions.termAverage,
-      coefficient: teacherGradeSubmissions.coefficient,
-      subjectComments: teacherGradeSubmissions.subjectComments
-    })
-    .from(teacherGradeSubmissions)
-    .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
-    .where(and(
-      eq(teacherGradeSubmissions.studentId, parseInt(studentId as string)),
-      eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
-      eq(teacherGradeSubmissions.term, term as string),
-      eq(teacherGradeSubmissions.academicYear, academicYear as string),
-      eq(teacherGradeSubmissions.schoolId, schoolId),
-      eq(teacherGradeSubmissions.reviewStatus, 'approved')
-    ));
+    // Try to get approved grades first, then fall back to any grades
+    let approvedGrades;
+    try {
+      approvedGrades = await db.select({
+        subjectId: teacherGradeSubmissions.subjectId,
+        subjectName: sql<string>`COALESCE(${subjects.name}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
+        firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+        secondEvaluation: teacherGradeSubmissions.secondEvaluation,
+        thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
+        termAverage: teacherGradeSubmissions.termAverage,
+        coefficient: sql<number>`COALESCE(${teacherGradeSubmissions.coefficient}, 1)`,
+        subjectComments: teacherGradeSubmissions.subjectComments
+      })
+      .from(teacherGradeSubmissions)
+      .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+      .where(and(
+        eq(teacherGradeSubmissions.studentId, parseInt(studentId as string)),
+        eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+        eq(teacherGradeSubmissions.term, term as string),
+        eq(teacherGradeSubmissions.academicYear, academicYear as string),
+        eq(teacherGradeSubmissions.schoolId, schoolId),
+        eq(teacherGradeSubmissions.reviewStatus, 'approved')
+      ));
 
-    // Calculate overall average
+      // If no approved grades found, try to get any submitted grades
+      if (!approvedGrades || approvedGrades.length === 0) {
+        console.log('[BULLETIN_PREVIEW] 📋 No approved grades found, trying any submitted grades');
+        
+        approvedGrades = await db.select({
+          subjectId: teacherGradeSubmissions.subjectId,
+          subjectName: sql<string>`COALESCE(${subjects.name}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
+          firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+          secondEvaluation: teacherGradeSubmissions.secondEvaluation,
+          thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
+          termAverage: teacherGradeSubmissions.termAverage,
+          coefficient: sql<number>`COALESCE(${teacherGradeSubmissions.coefficient}, 1)`,
+          subjectComments: teacherGradeSubmissions.subjectComments
+        })
+        .from(teacherGradeSubmissions)
+        .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+        .where(and(
+          eq(teacherGradeSubmissions.studentId, parseInt(studentId as string)),
+          eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+          eq(teacherGradeSubmissions.academicYear, academicYear as string),
+          eq(teacherGradeSubmissions.schoolId, schoolId)
+        ));
+      }
+    } catch (dbError: any) {
+      console.error('[BULLETIN_PREVIEW] ❌ Database error getting grades:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: 'Database error accessing student grades',
+        error: dbError.message
+      });
+    }
+
+    // If still no grades found, return empty preview with student info
+    if (!approvedGrades || approvedGrades.length === 0) {
+      console.log('[BULLETIN_PREVIEW] 📝 No grades found, returning empty preview');
+      
+      const emptyPreviewData = {
+        student: {
+          ...studentInfo[0],
+          className: studentInfo[0].className || 'Classe non définie'
+        },
+        subjects: [],
+        overallAverage: 0,
+        term,
+        academicYear,
+        message: 'Aucune note trouvée pour cet élève dans ce trimestre'
+      };
+
+      return res.json({
+        success: true,
+        data: emptyPreviewData
+      });
+    }
+
+    // Calculate overall average with proper error handling
     let totalPoints = 0;
     let totalCoefficients = 0;
     
     approvedGrades.forEach(grade => {
-      if (grade.termAverage) {
-        totalPoints += parseFloat(grade.termAverage.toString()) * grade.coefficient;
-        totalCoefficients += grade.coefficient;
+      const termAvg = grade.termAverage ? parseFloat(grade.termAverage.toString()) : 0;
+      const coeff = grade.coefficient || 1;
+      
+      if (termAvg > 0) {
+        totalPoints += termAvg * coeff;
+        totalCoefficients += coeff;
       }
     });
     
-    const overallAverage = totalCoefficients > 0 ? totalPoints / totalCoefficients : 0;
+    const overallAverage = totalCoefficients > 0 ? Math.round((totalPoints / totalCoefficients) * 100) / 100 : 0;
 
     const previewData = {
       student: {
@@ -367,16 +474,21 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
       },
       subjects: approvedGrades.map(grade => ({
         name: grade.subjectName || `Matière ${grade.subjectId}`,
-        grade: grade.termAverage ? parseFloat(grade.termAverage.toString()) : 0,
-        coefficient: grade.coefficient,
-        comments: grade.subjectComments
+        grade: grade.termAverage ? Math.round(parseFloat(grade.termAverage.toString()) * 100) / 100 : 0,
+        coefficient: grade.coefficient || 1,
+        comments: grade.subjectComments || ''
       })),
       overallAverage,
       term,
       academicYear
     };
 
-    console.log('[BULLETIN_PREVIEW] ✅ Preview generated:', { studentId, subjectCount: approvedGrades.length });
+    console.log('[BULLETIN_PREVIEW] ✅ Preview generated:', { 
+      studentId, 
+      studentName: `${studentInfo[0].firstName} ${studentInfo[0].lastName}`,
+      subjectCount: approvedGrades.length,
+      overallAverage 
+    });
 
     res.json({
       success: true,
@@ -384,11 +496,12 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
     });
 
   } catch (error: any) {
-    console.error('[BULLETIN_PREVIEW] ❌ Error:', error);
+    console.error('[BULLETIN_PREVIEW] ❌ Error generating preview:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to generate preview',
-      error: error.message
+      error: error.message,
+      stack: error.stack
     });
   }
 });

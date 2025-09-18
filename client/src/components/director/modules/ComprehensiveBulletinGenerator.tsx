@@ -963,7 +963,7 @@ export default function ComprehensiveBulletinGenerator() {
       if (!previewStudentId) return null;
       
       const response = await apiRequest('GET', 
-        `/api/bulletins/preview?studentId=${previewStudentId}&classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/preview?studentId=${previewStudentId}&classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
