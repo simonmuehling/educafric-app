@@ -1494,13 +1494,14 @@ export default function ComprehensiveBulletinGenerator() {
               <div className="space-y-4">
                 <Label>{t.selectStudentForEntry}</Label>
                 <Select 
-                  value={selectedStudentForEntry?.toString() || ''} 
-                  onValueChange={(value) => setSelectedStudentForEntry(parseInt(value))}
+                  value={selectedStudentForEntry?.toString() || 'none'} 
+                  onValueChange={(value) => setSelectedStudentForEntry(value === 'none' ? null : parseInt(value))}
                 >
                   <SelectTrigger data-testid="student-select-manual">
                     <SelectValue placeholder={t.selectStudentForEntry} />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">-- {t.selectStudentForEntry} --</SelectItem>
                     {filteredStudents.map((student) => (
                       <SelectItem key={student.id} value={student.id.toString()}>
                         {student.firstName} {student.lastName} - {student.matricule}
@@ -1910,7 +1911,7 @@ export default function ComprehensiveBulletinGenerator() {
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Select
-                                              value={subjectCoefficients[grade.subjectId]?.COTE || ''}
+                                              value={subjectCoefficients[grade.subjectId]?.COTE || 'none'}
                                               onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'COTE', value)}
                                             >
                                               <SelectTrigger className="h-8 text-xs" data-testid={`cote-${grade.subjectId}`}>
