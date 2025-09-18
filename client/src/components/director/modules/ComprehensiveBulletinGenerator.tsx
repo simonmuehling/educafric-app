@@ -1370,18 +1370,25 @@ export default function ComprehensiveBulletinGenerator() {
       {/* Main Interface */}
       <Tabs defaultValue="class-selection" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="class-selection">{t.classSelection}</TabsTrigger>
-          <TabsTrigger value="student-management" disabled={!selectedClass}>
-            {t.studentManagement}
+          <TabsTrigger value="class-selection" className="flex items-center justify-center gap-1 sm:gap-2">
+            <School className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.classSelection}</span>
           </TabsTrigger>
-          <TabsTrigger value="manual-data-entry" disabled={!selectedClass}>
-            {t.manualDataEntry}
+          <TabsTrigger value="student-management" disabled={!selectedClass} className="flex items-center justify-center gap-1 sm:gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.studentManagement}</span>
           </TabsTrigger>
-          <TabsTrigger value="generation-options" disabled={!selectedClass}>
-            {t.generationOptions}
+          <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center justify-center gap-1 sm:gap-2">
+            <Edit3 className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.manualDataEntry}</span>
           </TabsTrigger>
-          <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0}>
-            {t.bulkOperations}
+          <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center justify-center gap-1 sm:gap-2">
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.generationOptions}</span>
+          </TabsTrigger>
+          <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0} className="flex items-center justify-center gap-1 sm:gap-2">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.bulkOperations}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -2302,17 +2309,82 @@ export default function ComprehensiveBulletinGenerator() {
                         className={`transition-all ${isSelected ? 'ring-2 ring-blue-500' : ''} ${!hasApprovedGrades ? 'opacity-50' : ''}`}
                       >
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={(checked) => handleStudentSelection(student.id, !!checked)}
-                                disabled={!hasApprovedGrades}
-                                data-testid={`student-checkbox-${student.id}`}
-                              />
+                          <div className="space-y-3">
+                            {/* Desktop Layout - Ligne complète */}
+                            <div className="hidden sm:flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => handleStudentSelection(student.id, !!checked)}
+                                  disabled={!hasApprovedGrades}
+                                  data-testid={`student-checkbox-${student.id}`}
+                                />
+                                <div className="flex items-center gap-3">
+                                  <User className="h-8 w-8 text-gray-400" />
+                                  <div>
+                                    <div className="font-medium">
+                                      {student.firstName} {student.lastName}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {student.matricule} • {student.className}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
                               <div className="flex items-center gap-3">
+                                {/* Quality Status */}
+                                <div className={`flex items-center gap-1 ${qualityStatus.color}`}>
+                                  <qualityStatus.icon className="h-4 w-4" />
+                                  <span className="text-sm">
+                                    {student.approvedGrades.length} matières
+                                  </span>
+                                </div>
+                                
+                                {/* Average */}
+                                {student.overallAverage && (
+                                  <Badge variant="outline">
+                                    {student.overallAverage.toFixed(1)}/20
+                                  </Badge>
+                                )}
+                                
+                                {/* Ranking */}
+                                {student.classRank && (
+                                  <Badge variant="secondary">
+                                    #{student.classRank}/{student.totalStudents}
+                                  </Badge>
+                                )}
+                                
+                                {/* Preview Button */}
+                                {hasApprovedGrades && (
+                                  <Button
+                                    onClick={() => {
+                                      setPreviewStudentId(student.id);
+                                      setShowPreviewDialog(true);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    data-testid={`preview-button-${student.id}`}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    {t.previewBulletin}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Mobile Layout - Disposition verticale */}
+                            <div className="sm:hidden space-y-3">
+                              {/* Ligne 1: Checkbox + Info élève */}
+                              <div className="flex items-center gap-3">
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) => handleStudentSelection(student.id, !!checked)}
+                                  disabled={!hasApprovedGrades}
+                                  data-testid={`student-checkbox-${student.id}`}
+                                />
                                 <User className="h-8 w-8 text-gray-400" />
-                                <div>
+                                <div className="flex-1">
                                   <div className="font-medium">
                                     {student.firstName} {student.lastName}
                                   </div>
@@ -2321,46 +2393,50 @@ export default function ComprehensiveBulletinGenerator() {
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-3">
-                              {/* Quality Status */}
-                              <div className={`flex items-center gap-1 ${qualityStatus.color}`}>
-                                <qualityStatus.icon className="h-4 w-4" />
-                                <span className="text-sm">
-                                  {student.approvedGrades.length} matières
-                                </span>
+
+                              {/* Ligne 2: Stats + Bouton Aperçu */}
+                              <div className="pl-11 space-y-2">
+                                <div className="flex items-center gap-3">
+                                  {/* Quality Status */}
+                                  <div className={`flex items-center gap-1 ${qualityStatus.color}`}>
+                                    <qualityStatus.icon className="h-4 w-4" />
+                                    <span className="text-sm">
+                                      {student.approvedGrades.length} matières
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Average */}
+                                  {student.overallAverage && (
+                                    <Badge variant="outline">
+                                      {student.overallAverage.toFixed(1)}/20
+                                    </Badge>
+                                  )}
+                                  
+                                  {/* Ranking */}
+                                  {student.classRank && (
+                                    <Badge variant="secondary">
+                                      #{student.classRank}/{student.totalStudents}
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {/* Aperçu Bulletin - Sous le nom sur mobile */}
+                                {hasApprovedGrades && (
+                                  <Button
+                                    onClick={() => {
+                                      setPreviewStudentId(student.id);
+                                      setShowPreviewDialog(true);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    data-testid={`preview-button-${student.id}`}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    {t.previewBulletin}
+                                  </Button>
+                                )}
                               </div>
-                              
-                              {/* Average */}
-                              {student.overallAverage && (
-                                <Badge variant="outline">
-                                  {student.overallAverage.toFixed(1)}/20
-                                </Badge>
-                              )}
-                              
-                              {/* Ranking */}
-                              {student.classRank && (
-                                <Badge variant="secondary">
-                                  #{student.classRank}/{student.totalStudents}
-                                </Badge>
-                              )}
-                              
-                              {/* Preview Button */}
-                              {hasApprovedGrades && (
-                                <Button
-                                  onClick={() => {
-                                    setPreviewStudentId(student.id);
-                                    setShowPreviewDialog(true);
-                                  }}
-                                  variant="outline"
-                                  size="sm"
-                                  data-testid={`preview-button-${student.id}`}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  {t.previewBulletin}
-                                </Button>
-                              )}
                             </div>
                           </div>
                         </CardContent>
