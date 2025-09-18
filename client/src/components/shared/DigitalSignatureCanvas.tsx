@@ -43,6 +43,8 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
   const [selectedTab, setSelectedTab] = useState<string>('draw');
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [savedSignatures, setSavedSignatures] = useState<Array<{id: string, url: string, name: string, date: string}>>([]);
+  const [undoStack, setUndoStack] = useState<ImageData[]>([]);
+  const [canUndo, setCanUndo] = useState(false);
 
   const text = {
     fr: {
@@ -160,17 +162,64 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
     }
   }, []);
 
-  // Mouse event handlers for drawing
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Save current state to undo stack
+  const saveToUndoStack = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    setUndoStack(prev => {
+      const newStack = [...prev, imageData];
+      // Keep only last 10 states to manage memory
+      if (newStack.length > 10) {
+        newStack.shift();
+      }
+      return newStack;
+    });
+    setCanUndo(true);
+  };
+
+  // Get coordinates from mouse or touch event
+  const getEventCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    
+    // Handle touch events
+    if ('touches' in e) {
+      const touch = e.touches[0] || e.changedTouches[0];
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    }
+    
+    // Handle mouse events
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
+  // Unified drawing start handler for mouse and touch
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling on touch
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const { x, y } = getEventCoordinates(e);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Save state before drawing for undo functionality
+    if (!isDrawing) {
+      saveToUndoStack();
+    }
 
     setIsDrawing(true);
     setIsEmpty(false);
@@ -179,16 +228,16 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // Unified drawing handler for mouse and touch
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault(); // Prevent scrolling on touch
+    
     if (!isDrawing) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+    const { x, y } = getEventCoordinates(e);
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -196,7 +245,12 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
     ctx.stroke();
   };
 
-  const stopDrawing = () => {
+  // Unified drawing stop handler for mouse and touch
+  const stopDrawing = (e?: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (e) {
+      e.preventDefault(); // Prevent scrolling on touch
+    }
+    
     if (!isDrawing) return;
     setIsDrawing(false);
     
@@ -208,6 +262,63 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
     }
   };
 
+  // Undo last stroke
+  const undoLastStroke = () => {
+    if (undoStack.length === 0) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Get the last saved state
+    const lastState = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    
+    if (undoStack.length === 1) {
+      setCanUndo(false);
+    }
+
+    // Restore the canvas state
+    ctx.putImageData(lastState, 0, 0);
+
+    // Update signature data
+    const signatureData = canvas.toDataURL('image/png');
+    onSignatureChange(signatureData);
+
+    // Check if canvas is now empty
+    const isCanvasEmpty = checkIfCanvasEmpty();
+    setIsEmpty(isCanvasEmpty);
+  };
+
+  // Check if canvas is empty (only contains background or placeholder)
+  const checkIfCanvasEmpty = (): boolean => {
+    const canvas = canvasRef.current;
+    if (!canvas) return true;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return true;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+
+    // Check if all pixels are white (255,255,255) or the placeholder color
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      const a = pixels[i + 3];
+
+      // If we find any non-white pixel with opacity, canvas is not empty
+      if ((r !== 255 || g !== 255 || b !== 255) && a > 0) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   // Clear canvas
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -215,6 +326,9 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // Save current state before clearing
+    saveToUndoStack();
 
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -227,6 +341,8 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
 
     setIsEmpty(true);
     setUploadedImageUrl(null);
+    setUndoStack([]);
+    setCanUndo(false);
     onSignatureChange(null);
   };
 
@@ -401,17 +517,38 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
               <canvas
                 ref={canvasRef}
+                // Mouse events
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
-                className="border border-gray-300 rounded bg-white cursor-crosshair w-full"
-                style={{ maxWidth: '400px', height: '200px' }}
+                // Touch events for mobile/tablet support
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+                onTouchCancel={stopDrawing}
+                className="border border-gray-300 rounded bg-white cursor-crosshair w-full touch-none"
+                style={{ 
+                  maxWidth: '400px', 
+                  height: '200px',
+                  touchAction: 'none' // Prevent default touch behaviors like scrolling
+                }}
                 data-testid="signature-canvas"
               />
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={undoLastStroke}
+                disabled={!canUndo}
+                data-testid="button-undo-signature"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                {t.undo}
+              </Button>
+              
               <Button 
                 variant="outline" 
                 size="sm" 

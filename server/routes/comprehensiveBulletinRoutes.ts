@@ -5,6 +5,9 @@ import { Router } from 'express';
 import { storage } from '../storage';
 import { db } from '../db';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { z } from 'zod';
 import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator';
 import { 
   teacherGradeSubmissions, 
@@ -2684,6 +2687,1183 @@ router.get('/signed-bulletins', requireAuth, requireDirectorAuth, async (req, re
     res.status(500).json({
       success: false,
       message: 'Failed to fetch signed bulletins',
+      error: error.message
+    });
+  }
+});
+
+// ===== BULK SIGNATURE ENDPOINT WITH COMPLETE SECURITY VALIDATION =====
+
+// Zod schema for bulk signature validation
+const bulkSignatureSchema = z.object({
+  bulletinIds: z.array(z.number().int().positive("Bulletin ID must be a positive integer"))
+    .min(1, "At least one bulletin ID is required")
+    .max(100, "Maximum 100 bulletins can be signed at once"),
+  signature: z.string()
+    .min(1, "Signature data is required")
+    .refine((val) => {
+      // Validate base64 format
+      const base64Regex = /^data:image\/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+      return base64Regex.test(val);
+    }, "Invalid base64 image format"),
+  signerName: z.string()
+    .min(1, "Signer name is required")
+    .max(100, "Signer name must be less than 100 characters")
+    .refine((val) => {
+      // Sanitize signer name - only allow letters, numbers, spaces, and common punctuation
+      const allowedChars = /^[a-zA-Z0-9\s\-.'àáâäåèéêëìíîïòóôöùúûü]+$/;
+      return allowedChars.test(val);
+    }, "Signer name contains invalid characters")
+});
+
+// Helper function to validate and decode base64 signature
+const validateAndDecodeSignature = (signatureBase64: string): { buffer: Buffer; mimeType: string; size: number } => {
+  try {
+    // Extract MIME type and data
+    const matches = signatureBase64.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+    if (!matches) {
+      throw new Error('Invalid base64 image format');
+    }
+
+    const mimeType = `image/${matches[1].toLowerCase()}`;
+    const base64Data = matches[2];
+    
+    // Validate MIME type
+    const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'];
+    if (!allowedMimeTypes.includes(mimeType)) {
+      throw new Error(`Unsupported image type. Allowed: ${allowedMimeTypes.join(', ')}`);
+    }
+
+    // Decode base64
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Validate size (2MB limit)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (buffer.length > maxSize) {
+      throw new Error(`Signature file too large. Maximum size: ${maxSize / (1024 * 1024)}MB`);
+    }
+
+    // Validate minimum size (prevent empty files)
+    if (buffer.length < 100) {
+      throw new Error('Signature file too small or corrupted');
+    }
+
+    return { buffer, mimeType, size: buffer.length };
+
+  } catch (error: any) {
+    throw new Error(`Signature validation failed: ${error.message}`);
+  }
+};
+
+// Helper function to sanitize and generate secure file path
+const generateSecureSignaturePath = (userId: number, schoolId: number): string => {
+  const timestamp = Date.now();
+  const randomHash = crypto.randomBytes(16).toString('hex');
+  
+  // Sanitize IDs
+  const cleanUserId = Math.abs(parseInt(userId.toString()));
+  const cleanSchoolId = Math.abs(parseInt(schoolId.toString()));
+  
+  // Create secure filename with timestamp and hash
+  const filename = `signature_${cleanSchoolId}_${cleanUserId}_${timestamp}_${randomHash}.png`;
+  
+  // Create directory structure
+  const signatureDir = path.join('public', 'uploads', 'signatures');
+  const fullPath = path.join(signatureDir, filename);
+  
+  // Ensure directory exists
+  if (!fs.existsSync(signatureDir)) {
+    fs.mkdirSync(signatureDir, { recursive: true });
+  }
+  
+  return fullPath;
+};
+
+// Helper function to save signature file securely
+const saveSignatureFile = async (signatureBuffer: Buffer, userId: number, schoolId: number): Promise<string> => {
+  try {
+    const filePath = generateSecureSignaturePath(userId, schoolId);
+    
+    // Write file with proper permissions
+    fs.writeFileSync(filePath, signatureBuffer);
+    fs.chmodSync(filePath, 0o644); // Read-write for owner, read for others
+    
+    // Return URL path (relative to public directory)
+    const urlPath = filePath.replace(/^public\//, '/');
+    
+    console.log('[SIGNATURE_FILE] ✅ Signature saved:', { 
+      path: filePath, 
+      url: urlPath, 
+      size: signatureBuffer.length,
+      userId,
+      schoolId 
+    });
+    
+    return urlPath;
+    
+  } catch (error: any) {
+    console.error('[SIGNATURE_FILE] ❌ Error saving signature file:', error);
+    throw new Error(`Failed to save signature file: ${error.message}`);
+  }
+};
+
+// Bulk signature endpoint with complete security validation
+router.post('/bulk-sign', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const userId = user.id;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[BULK_SIGN] 🖊️  Processing bulk signature request:', {
+      userId,
+      schoolId,
+      requestSize: JSON.stringify(req.body).length
+    });
+
+    // Validate request body with Zod
+    const validationResult = bulkSignatureSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      console.log('[BULK_SIGN] ❌ Validation failed:', validationResult.error.errors);
+      return res.status(400).json({
+        success: false,
+        message: 'Request validation failed',
+        errors: validationResult.error.errors
+      });
+    }
+
+    const { bulletinIds, signature, signerName } = validationResult.data;
+
+    // Validate and decode signature
+    let signatureData: { buffer: Buffer; mimeType: string; size: number };
+    try {
+      signatureData = validateAndDecodeSignature(signature);
+    } catch (error: any) {
+      console.log('[BULK_SIGN] ❌ Signature validation failed:', error.message);
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    // Verify bulletins exist and belong to the user's school (CRITICAL SECURITY CHECK)
+    const bulletinsToSign = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      schoolId: bulletinComprehensive.schoolId,
+      status: bulletinComprehensive.status,
+      headmasterVisa: bulletinComprehensive.headmasterVisa
+    })
+      .from(bulletinComprehensive)
+      .where(and(
+        inArray(bulletinComprehensive.id, bulletinIds),
+        eq(bulletinComprehensive.schoolId, schoolId), // CRITICAL: Scope by school
+        eq(bulletinComprehensive.status, 'approved') // Only approved bulletins can be signed
+      ));
+
+    // Security check: Ensure all requested bulletins exist and belong to school
+    if (bulletinsToSign.length !== bulletinIds.length) {
+      const foundIds = bulletinsToSign.map(b => b.id);
+      const missingIds = bulletinIds.filter(id => !foundIds.includes(id));
+      
+      console.log('[BULK_SIGN] 🚫 Security violation - invalid bulletin IDs:', {
+        requestedIds: bulletinIds,
+        foundIds,
+        missingIds,
+        schoolId,
+        userId
+      });
+      
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: Some bulletins do not exist or do not belong to your school',
+        invalidIds: missingIds
+      });
+    }
+
+    // Check if any bulletins are already signed
+    const alreadySigned = bulletinsToSign.filter(b => b.headmasterVisa !== null);
+    if (alreadySigned.length > 0) {
+      console.log('[BULK_SIGN] ⚠️  Some bulletins already signed:', alreadySigned.map(b => b.id));
+    }
+
+    // Save signature file
+    let signatureUrl: string;
+    try {
+      signatureUrl = await saveSignatureFile(signatureData.buffer, userId, schoolId);
+    } catch (error: any) {
+      console.error('[BULK_SIGN] ❌ Error saving signature file:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save signature file',
+        error: error.message
+      });
+    }
+
+    // Prepare signature visa data (using 'date' to match existing schema)
+    const signatureVisa = {
+      name: signerName,
+      date: new Date().toISOString(),
+      signatureUrl: signatureUrl
+    };
+
+    // Update all bulletins with signature
+    const updateResult = await db.update(bulletinComprehensive)
+      .set({
+        headmasterVisa: signatureVisa,
+        status: 'signed', // Update status to signed
+        updatedAt: new Date()
+      })
+      .where(inArray(bulletinComprehensive.id, bulletinIds))
+      .returning({ id: bulletinComprehensive.id });
+
+    const signedCount = updateResult.length;
+
+    console.log('[BULK_SIGN] ✅ Bulk signature completed:', {
+      totalRequested: bulletinIds.length,
+      signedCount,
+      alreadySignedCount: alreadySigned.length,
+      signatureUrl,
+      signerName,
+      userId,
+      schoolId
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully signed ${signedCount} bulletins`,
+      data: {
+        signedBulletinIds: updateResult.map(r => r.id),
+        totalSigned: signedCount,
+        alreadySigned: alreadySigned.length,
+        signature: {
+          signerName,
+          signedAt: signatureVisa.date,
+          signatureUrl
+        },
+        summary: {
+          requested: bulletinIds.length,
+          newlySigned: signedCount - alreadySigned.length,
+          previouslySigned: alreadySigned.length,
+          failed: bulletinIds.length - signedCount
+        }
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULK_SIGN] ❌ Bulk signature error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process bulk signature',
+      error: error.message
+    });
+  }
+});
+
+// ===== REPORTING ROUTES =====
+// Comprehensive reporting system for bulletin distribution and history tracking
+
+// Get comprehensive overview of bulletin system
+router.get('/reports/overview', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { term, academicYear, classId, startDate, endDate } = req.query;
+
+    console.log('[REPORTS_OVERVIEW] 📊 Generating overview report:', { 
+      schoolId, 
+      filters: { term, academicYear, classId, startDate, endDate } 
+    });
+
+    // Base query conditions
+    let whereConditions = [eq(bulletinComprehensive.schoolId, schoolId)];
+    
+    if (term) whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    if (academicYear) whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    if (classId) whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    if (startDate && endDate) {
+      whereConditions.push(
+        sql`${bulletinComprehensive.createdAt} >= ${startDate}::timestamp`,
+        sql`${bulletinComprehensive.createdAt} <= ${endDate}::timestamp`
+      );
+    }
+
+    // Get bulletin status counts
+    const statusCounts = await db.select({
+      status: bulletinComprehensive.status,
+      count: sql<number>`COUNT(*)`
+    })
+    .from(bulletinComprehensive)
+    .where(and(...whereConditions))
+    .groupBy(bulletinComprehensive.status);
+
+    // Get distribution success rates
+    const distributionStats = await db.select({
+      bulletinId: bulletinComprehensive.id,
+      status: bulletinComprehensive.status,
+      notificationsSent: bulletinComprehensive.notificationsSent,
+      sentAt: bulletinComprehensive.sentAt,
+      createdAt: bulletinComprehensive.createdAt,
+      approvedAt: bulletinComprehensive.approvedAt
+    })
+    .from(bulletinComprehensive)
+    .where(and(...whereConditions));
+
+    // Calculate metrics
+    const totalBulletins = distributionStats.length;
+    const statusBreakdown = {
+      draft: statusCounts.find(s => s.status === 'draft')?.count || 0,
+      submitted: statusCounts.find(s => s.status === 'submitted')?.count || 0,
+      approved: statusCounts.find(s => s.status === 'approved')?.count || 0,
+      signed: statusCounts.find(s => s.status === 'signed')?.count || 0,
+      sent: statusCounts.find(s => s.status === 'sent')?.count || 0,
+    };
+
+    // Calculate distribution success rates
+    let emailSuccess = 0, smsSuccess = 0, whatsappSuccess = 0;
+    let totalEmailAttempts = 0, totalSmsAttempts = 0, totalWhatsappAttempts = 0;
+    let totalProcessingTime = 0;
+    let processedBulletins = 0;
+
+    distributionStats.forEach(bulletin => {
+      // Parse notification data
+      const notifications = bulletin.notificationsSent as any;
+      
+      if (notifications?.summary) {
+        emailSuccess += notifications.summary.emailSuccessCount || 0;
+        smsSuccess += notifications.summary.smsSuccessCount || 0;
+        whatsappSuccess += notifications.summary.whatsappSuccessCount || 0;
+        totalEmailAttempts += (notifications.summary.emailSuccessCount || 0) + (notifications.summary.emailFailedCount || 0);
+        totalSmsAttempts += (notifications.summary.smsSuccessCount || 0) + (notifications.summary.smsFailedCount || 0);
+        totalWhatsappAttempts += (notifications.summary.whatsappSuccessCount || 0) + (notifications.summary.whatsappFailedCount || 0);
+      }
+
+      // Calculate processing time (approved to sent)
+      if (bulletin.approvedAt && bulletin.sentAt) {
+        const processingTime = new Date(bulletin.sentAt).getTime() - new Date(bulletin.approvedAt).getTime();
+        totalProcessingTime += processingTime;
+        processedBulletins++;
+      }
+    });
+
+    const averageProcessingTime = processedBulletins > 0 ? totalProcessingTime / processedBulletins : 0;
+
+    // Get class performance data
+    const classTerm = term as string || 'T1';
+    const classYear = academicYear as string || '2024-2025';
+    
+    const classPerformance = await db.execute(sql`
+      SELECT 
+        bc.class_id,
+        c.name as class_name,
+        COUNT(*) as total_bulletins,
+        COUNT(CASE WHEN bc.status = 'sent' THEN 1 END) as sent_bulletins,
+        AVG(bc.general_average) as average_grade,
+        COUNT(CASE WHEN bc.status = 'draft' THEN 1 END) as draft_count,
+        COUNT(CASE WHEN bc.status = 'approved' THEN 1 END) as pending_count
+      FROM bulletin_comprehensive bc
+      LEFT JOIN classes c ON c.id = bc.class_id
+      WHERE bc.school_id = ${schoolId}
+        ${term ? sql`AND bc.term = ${classTerm}` : sql``}
+        ${academicYear ? sql`AND bc.academic_year = ${classYear}` : sql``}
+      GROUP BY bc.class_id, c.name
+      ORDER BY total_bulletins DESC
+    `);
+
+    // Recent activity (last 7 days)
+    const recentActivity = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      status: bulletinComprehensive.status,
+      createdAt: bulletinComprehensive.createdAt,
+      approvedAt: bulletinComprehensive.approvedAt,
+      sentAt: bulletinComprehensive.sentAt,
+      lastModifiedBy: bulletinComprehensive.lastModifiedBy
+    })
+    .from(bulletinComprehensive)
+    .where(and(
+      eq(bulletinComprehensive.schoolId, schoolId),
+      sql`${bulletinComprehensive.updatedAt} >= NOW() - INTERVAL '7 days'`
+    ))
+    .orderBy(sql`${bulletinComprehensive.updatedAt} DESC`)
+    .limit(20);
+
+    const overviewData = {
+      totalBulletins,
+      statusBreakdown,
+      distributionRates: {
+        email: totalEmailAttempts > 0 ? Math.round((emailSuccess / totalEmailAttempts) * 100) : 0,
+        sms: totalSmsAttempts > 0 ? Math.round((smsSuccess / totalSmsAttempts) * 100) : 0,
+        whatsapp: totalWhatsappAttempts > 0 ? Math.round((whatsappSuccess / totalWhatsappAttempts) * 100) : 0,
+        overall: (totalEmailAttempts + totalSmsAttempts + totalWhatsappAttempts) > 0 
+          ? Math.round(((emailSuccess + smsSuccess + whatsappSuccess) / (totalEmailAttempts + totalSmsAttempts + totalWhatsappAttempts)) * 100)
+          : 0
+      },
+      averageProcessingTime: Math.round(averageProcessingTime / (1000 * 60 * 60)), // Hours
+      classPerformance: classPerformance.rows,
+      recentActivity,
+      generatedAt: new Date().toISOString()
+    };
+
+    console.log('[REPORTS_OVERVIEW] ✅ Overview report generated:', {
+      totalBulletins,
+      classCount: classPerformance.rows.length,
+      recentActivityCount: recentActivity.length
+    });
+
+    res.json({
+      success: true,
+      data: overviewData
+    });
+
+  } catch (error: any) {
+    console.error('[REPORTS_OVERVIEW] ❌ Error generating overview:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate overview report',
+      error: error.message
+    });
+  }
+});
+
+// Get detailed distribution statistics
+router.get('/reports/distribution-stats', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { term, academicYear, classId, channel } = req.query;
+
+    console.log('[DISTRIBUTION_STATS] 📈 Generating distribution statistics:', { 
+      schoolId, 
+      filters: { term, academicYear, classId, channel } 
+    });
+
+    // Base query conditions
+    let whereConditions = [
+      eq(bulletinComprehensive.schoolId, schoolId),
+      sql`${bulletinComprehensive.status} IN ('approved', 'signed', 'sent')`
+    ];
+    
+    if (term) whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    if (academicYear) whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    if (classId) whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+
+    // Get detailed distribution data
+    const distributionData = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      status: bulletinComprehensive.status,
+      notificationsSent: bulletinComprehensive.notificationsSent,
+      sentAt: bulletinComprehensive.sentAt,
+      approvedAt: bulletinComprehensive.approvedAt,
+      createdAt: bulletinComprehensive.createdAt,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear
+    })
+    .from(bulletinComprehensive)
+    .where(and(...whereConditions));
+
+    // Analyze distribution patterns
+    const channelStats = {
+      email: { sent: 0, failed: 0, pending: 0, totalAttempts: 0 },
+      sms: { sent: 0, failed: 0, pending: 0, totalAttempts: 0 },
+      whatsapp: { sent: 0, failed: 0, pending: 0, totalAttempts: 0 }
+    };
+
+    const dailyDistribution: { [key: string]: { sent: number; failed: number } } = {};
+    const classDistribution: { [key: string]: { sent: number; failed: number; total: number } } = {};
+    const errorAnalysis: { [key: string]: number } = {};
+
+    distributionData.forEach(bulletin => {
+      const notifications = bulletin.notificationsSent as any;
+      const day = bulletin.sentAt ? new Date(bulletin.sentAt).toISOString().split('T')[0] : 'pending';
+
+      // Initialize daily stats
+      if (!dailyDistribution[day]) {
+        dailyDistribution[day] = { sent: 0, failed: 0 };
+      }
+
+      // Initialize class stats
+      const classKey = `Class ${bulletin.classId}`;
+      if (!classDistribution[classKey]) {
+        classDistribution[classKey] = { sent: 0, failed: 0, total: 0 };
+      }
+      classDistribution[classKey].total++;
+
+      if (notifications?.summary) {
+        // Email stats
+        channelStats.email.sent += notifications.summary.emailSuccessCount || 0;
+        channelStats.email.failed += notifications.summary.emailFailedCount || 0;
+        channelStats.email.totalAttempts += (notifications.summary.emailSuccessCount || 0) + (notifications.summary.emailFailedCount || 0);
+
+        // SMS stats
+        channelStats.sms.sent += notifications.summary.smsSuccessCount || 0;
+        channelStats.sms.failed += notifications.summary.smsFailedCount || 0;
+        channelStats.sms.totalAttempts += (notifications.summary.smsSuccessCount || 0) + (notifications.summary.smsFailedCount || 0);
+
+        // WhatsApp stats
+        channelStats.whatsapp.sent += notifications.summary.whatsappSuccessCount || 0;
+        channelStats.whatsapp.failed += notifications.summary.whatsappFailedCount || 0;
+        channelStats.whatsapp.totalAttempts += (notifications.summary.whatsappSuccessCount || 0) + (notifications.summary.whatsappFailedCount || 0);
+
+        // Daily distribution
+        const totalSuccess = (notifications.summary.emailSuccessCount || 0) + (notifications.summary.smsSuccessCount || 0) + (notifications.summary.whatsappSuccessCount || 0);
+        const totalFailed = (notifications.summary.emailFailedCount || 0) + (notifications.summary.smsFailedCount || 0) + (notifications.summary.whatsappFailedCount || 0);
+        
+        if (bulletin.sentAt) {
+          dailyDistribution[day].sent += totalSuccess;
+          dailyDistribution[day].failed += totalFailed;
+          classDistribution[classKey].sent += totalSuccess > 0 ? 1 : 0;
+          classDistribution[classKey].failed += totalFailed > 0 ? 1 : 0;
+        }
+
+        // Error analysis
+        if (notifications.summary.failedRecipients) {
+          notifications.summary.failedRecipients.forEach((recipient: string) => {
+            errorAnalysis[`Failed recipient: ${recipient}`] = (errorAnalysis[`Failed recipient: ${recipient}`] || 0) + 1;
+          });
+        }
+
+        // Parse detailed recipient errors
+        if (notifications.perRecipient) {
+          Object.entries(notifications.perRecipient).forEach(([recipient, data]: [string, any]) => {
+            ['email', 'sms', 'whatsapp'].forEach(channel => {
+              if (data[channel]?.error) {
+                const errorKey = `${channel.toUpperCase()}: ${data[channel].error}`;
+                errorAnalysis[errorKey] = (errorAnalysis[errorKey] || 0) + 1;
+              }
+            });
+          });
+        }
+      } else if (bulletin.status === 'approved' || bulletin.status === 'signed') {
+        // Pending distribution
+        channelStats.email.pending++;
+        channelStats.sms.pending++;
+        channelStats.whatsapp.pending++;
+      }
+    });
+
+    // Calculate success rates
+    const successRates = {
+      email: channelStats.email.totalAttempts > 0 
+        ? Math.round((channelStats.email.sent / channelStats.email.totalAttempts) * 100) 
+        : 0,
+      sms: channelStats.sms.totalAttempts > 0 
+        ? Math.round((channelStats.sms.sent / channelStats.sms.totalAttempts) * 100) 
+        : 0,
+      whatsapp: channelStats.whatsapp.totalAttempts > 0 
+        ? Math.round((channelStats.whatsapp.sent / channelStats.whatsapp.totalAttempts) * 100) 
+        : 0
+    };
+
+    const distributionStatsData = {
+      channelStats,
+      successRates,
+      dailyDistribution: Object.entries(dailyDistribution)
+        .map(([date, stats]) => ({ date, ...stats }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+      classDistribution: Object.entries(classDistribution)
+        .map(([className, stats]) => ({ className, ...stats }))
+        .sort((a, b) => b.total - a.total),
+      errorAnalysis: Object.entries(errorAnalysis)
+        .map(([error, count]) => ({ error, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10), // Top 10 errors
+      summary: {
+        totalBulletins: distributionData.length,
+        totalSent: distributionData.filter(b => b.status === 'sent').length,
+        totalPending: distributionData.filter(b => ['approved', 'signed'].includes(b.status || '')).length,
+        overallSuccessRate: distributionData.length > 0 
+          ? Math.round((distributionData.filter(b => b.status === 'sent').length / distributionData.length) * 100)
+          : 0
+      },
+      generatedAt: new Date().toISOString()
+    };
+
+    console.log('[DISTRIBUTION_STATS] ✅ Distribution statistics generated:', {
+      totalBulletins: distributionData.length,
+      channelsAnalyzed: Object.keys(channelStats).length,
+      errorTypesFound: Object.keys(errorAnalysis).length
+    });
+
+    res.json({
+      success: true,
+      data: distributionStatsData
+    });
+
+  } catch (error: any) {
+    console.error('[DISTRIBUTION_STATS] ❌ Error generating distribution stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate distribution statistics',
+      error: error.message
+    });
+  }
+});
+
+// Get timeline of actions for bulletins
+router.get('/reports/timeline', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { 
+      bulletinId, 
+      studentId, 
+      classId, 
+      term, 
+      academicYear, 
+      startDate, 
+      endDate,
+      limit = '50',
+      offset = '0'
+    } = req.query;
+
+    console.log('[TIMELINE_REPORT] 📅 Generating timeline report:', { 
+      schoolId, 
+      filters: { bulletinId, studentId, classId, term, academicYear, startDate, endDate }
+    });
+
+    // Base query conditions
+    let whereConditions = [eq(bulletinComprehensive.schoolId, schoolId)];
+    
+    if (bulletinId) whereConditions.push(eq(bulletinComprehensive.id, parseInt(bulletinId as string)));
+    if (studentId) whereConditions.push(eq(bulletinComprehensive.studentId, parseInt(studentId as string)));
+    if (classId) whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    if (term) whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    if (academicYear) whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    
+    if (startDate && endDate) {
+      whereConditions.push(
+        sql`${bulletinComprehensive.createdAt} >= ${startDate}::timestamp`,
+        sql`${bulletinComprehensive.createdAt} <= ${endDate}::timestamp`
+      );
+    }
+
+    // Get bulletin data with user information for timeline
+    const timelineData = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      createdAt: bulletinComprehensive.createdAt,
+      submittedAt: bulletinComprehensive.submittedAt,
+      approvedAt: bulletinComprehensive.approvedAt,
+      sentAt: bulletinComprehensive.sentAt,
+      updatedAt: bulletinComprehensive.updatedAt,
+      approvedBy: bulletinComprehensive.approvedBy,
+      enteredBy: bulletinComprehensive.enteredBy,
+      lastModifiedBy: bulletinComprehensive.lastModifiedBy,
+      headmasterVisa: bulletinComprehensive.headmasterVisa,
+      notificationsSent: bulletinComprehensive.notificationsSent
+    })
+    .from(bulletinComprehensive)
+    .where(and(...whereConditions))
+    .orderBy(sql`${bulletinComprehensive.updatedAt} DESC`)
+    .limit(parseInt(limit as string))
+    .offset(parseInt(offset as string));
+
+    // Get user names for timeline events
+    const userIds = [...new Set([
+      ...timelineData.map(b => b.enteredBy).filter(id => id),
+      ...timelineData.map(b => b.approvedBy).filter(id => id),
+      ...timelineData.map(b => b.lastModifiedBy).filter(id => id)
+    ])];
+
+    const usersInfo = userIds.length > 0 ? await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      role: users.role
+    })
+    .from(users)
+    .where(inArray(users.id, userIds)) : [];
+
+    const userMap = usersInfo.reduce((map, user) => {
+      map[user.id] = `${user.firstName} ${user.lastName} (${user.role})`;
+      return map;
+    }, {} as { [key: number]: string });
+
+    // Transform data into timeline events
+    const timeline = [];
+
+    for (const bulletin of timelineData) {
+      const events = [];
+
+      // Creation event
+      events.push({
+        bulletinId: bulletin.id,
+        studentId: bulletin.studentId,
+        classId: bulletin.classId,
+        term: bulletin.term,
+        action: 'created',
+        status: 'draft',
+        timestamp: bulletin.createdAt,
+        userId: bulletin.enteredBy,
+        userName: bulletin.enteredBy ? userMap[bulletin.enteredBy] : 'System',
+        description: 'Bulletin créé'
+      });
+
+      // Submission event
+      if (bulletin.submittedAt) {
+        events.push({
+          bulletinId: bulletin.id,
+          studentId: bulletin.studentId,
+          classId: bulletin.classId,
+          term: bulletin.term,
+          action: 'submitted',
+          status: 'submitted',
+          timestamp: bulletin.submittedAt,
+          userId: bulletin.lastModifiedBy,
+          userName: bulletin.lastModifiedBy ? userMap[bulletin.lastModifiedBy] : 'System',
+          description: 'Bulletin soumis pour approbation'
+        });
+      }
+
+      // Approval event
+      if (bulletin.approvedAt) {
+        events.push({
+          bulletinId: bulletin.id,
+          studentId: bulletin.studentId,
+          classId: bulletin.classId,
+          term: bulletin.term,
+          action: 'approved',
+          status: 'approved',
+          timestamp: bulletin.approvedAt,
+          userId: bulletin.approvedBy,
+          userName: bulletin.approvedBy ? userMap[bulletin.approvedBy] : 'System',
+          description: 'Bulletin approuvé par le directeur'
+        });
+      }
+
+      // Signature event
+      if (bulletin.headmasterVisa) {
+        const visa = bulletin.headmasterVisa as any;
+        events.push({
+          bulletinId: bulletin.id,
+          studentId: bulletin.studentId,
+          classId: bulletin.classId,
+          term: bulletin.term,
+          action: 'signed',
+          status: 'signed',
+          timestamp: visa.date || bulletin.updatedAt,
+          userId: null,
+          userName: visa.name || 'Chef d\'établissement',
+          description: `Bulletin signé par ${visa.name || 'le chef d\'établissement'}`
+        });
+      }
+
+      // Distribution events
+      if (bulletin.sentAt && bulletin.notificationsSent) {
+        const notifications = bulletin.notificationsSent as any;
+        
+        if (notifications.summary) {
+          const successCount = (notifications.summary.emailSuccessCount || 0) + 
+                             (notifications.summary.smsSuccessCount || 0) + 
+                             (notifications.summary.whatsappSuccessCount || 0);
+          const failedCount = (notifications.summary.emailFailedCount || 0) + 
+                            (notifications.summary.smsFailedCount || 0) + 
+                            (notifications.summary.whatsappFailedCount || 0);
+
+          events.push({
+            bulletinId: bulletin.id,
+            studentId: bulletin.studentId,
+            classId: bulletin.classId,
+            term: bulletin.term,
+            action: 'distributed',
+            status: 'sent',
+            timestamp: bulletin.sentAt,
+            userId: null,
+            userName: 'Système de notification',
+            description: `Bulletin envoyé - Réussies: ${successCount}, Échecs: ${failedCount}`,
+            metadata: {
+              successCount,
+              failedCount,
+              channels: {
+                email: {
+                  success: notifications.summary.emailSuccessCount || 0,
+                  failed: notifications.summary.emailFailedCount || 0
+                },
+                sms: {
+                  success: notifications.summary.smsSuccessCount || 0,
+                  failed: notifications.summary.smsFailedCount || 0
+                },
+                whatsapp: {
+                  success: notifications.summary.whatsappSuccessCount || 0,
+                  failed: notifications.summary.whatsappFailedCount || 0
+                }
+              }
+            }
+          });
+        }
+      }
+
+      timeline.push(...events);
+    }
+
+    // Sort all events by timestamp
+    timeline.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    // Get total count for pagination
+    const totalCount = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(bulletinComprehensive)
+      .where(and(...whereConditions));
+
+    const timelineReport = {
+      timeline,
+      pagination: {
+        total: totalCount[0]?.count || 0,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        hasMore: (parseInt(offset as string) + parseInt(limit as string)) < (totalCount[0]?.count || 0)
+      },
+      summary: {
+        totalEvents: timeline.length,
+        bulletinsAnalyzed: timelineData.length,
+        actionTypes: [...new Set(timeline.map(t => t.action))],
+        dateRange: {
+          earliest: timeline.length > 0 ? timeline[timeline.length - 1].timestamp : null,
+          latest: timeline.length > 0 ? timeline[0].timestamp : null
+        }
+      },
+      generatedAt: new Date().toISOString()
+    };
+
+    console.log('[TIMELINE_REPORT] ✅ Timeline report generated:', {
+      totalEvents: timeline.length,
+      bulletinsAnalyzed: timelineData.length,
+      usersInvolved: usersInfo.length
+    });
+
+    res.json({
+      success: true,
+      data: timelineReport
+    });
+
+  } catch (error: any) {
+    console.error('[TIMELINE_REPORT] ❌ Error generating timeline:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate timeline report',
+      error: error.message
+    });
+  }
+});
+
+// Export reports in CSV or PDF format
+router.get('/reports/export', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { 
+      format = 'csv', 
+      reportType = 'overview',
+      term,
+      academicYear,
+      classId,
+      startDate,
+      endDate
+    } = req.query;
+
+    console.log('[EXPORT_REPORT] 📤 Exporting report:', { 
+      schoolId, 
+      format, 
+      reportType,
+      filters: { term, academicYear, classId, startDate, endDate }
+    });
+
+    if (!['csv', 'pdf'].includes(format as string)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid export format. Must be csv or pdf'
+      });
+    }
+
+    if (!['overview', 'distribution', 'timeline'].includes(reportType as string)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid report type. Must be overview, distribution, or timeline'
+      });
+    }
+
+    // Base query conditions
+    let whereConditions = [eq(bulletinComprehensive.schoolId, schoolId)];
+    
+    if (term) whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    if (academicYear) whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    if (classId) whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    if (startDate && endDate) {
+      whereConditions.push(
+        sql`${bulletinComprehensive.createdAt} >= ${startDate}::timestamp`,
+        sql`${bulletinComprehensive.createdAt} <= ${endDate}::timestamp`
+      );
+    }
+
+    // Get data based on report type
+    let reportData: any[] = [];
+    let headers: string[] = [];
+    let filename = '';
+
+    if (reportType === 'overview') {
+      const data = await db.select({
+        id: bulletinComprehensive.id,
+        studentId: bulletinComprehensive.studentId,
+        classId: bulletinComprehensive.classId,
+        term: bulletinComprehensive.term,
+        academicYear: bulletinComprehensive.academicYear,
+        status: bulletinComprehensive.status,
+        generalAverage: bulletinComprehensive.generalAverage,
+        createdAt: bulletinComprehensive.createdAt,
+        approvedAt: bulletinComprehensive.approvedAt,
+        sentAt: bulletinComprehensive.sentAt,
+        notificationsSent: bulletinComprehensive.notificationsSent
+      })
+      .from(bulletinComprehensive)
+      .where(and(...whereConditions))
+      .orderBy(bulletinComprehensive.createdAt);
+
+      headers = [
+        'ID Bulletin', 'ID Étudiant', 'Classe', 'Trimestre', 'Année Scolaire',
+        'Statut', 'Moyenne Générale', 'Date Création', 'Date Approbation', 'Date Envoi',
+        'Email Réussi', 'SMS Réussi', 'WhatsApp Réussi'
+      ];
+
+      reportData = data.map(bulletin => {
+        const notifications = bulletin.notificationsSent as any;
+        const emailSuccess = notifications?.summary?.emailSuccessCount || 0;
+        const smsSuccess = notifications?.summary?.smsSuccessCount || 0;
+        const whatsappSuccess = notifications?.summary?.whatsappSuccessCount || 0;
+
+        return [
+          bulletin.id,
+          bulletin.studentId,
+          bulletin.classId,
+          bulletin.term,
+          bulletin.academicYear,
+          bulletin.status,
+          bulletin.generalAverage || '',
+          bulletin.createdAt?.toISOString().split('T')[0] || '',
+          bulletin.approvedAt?.toISOString().split('T')[0] || '',
+          bulletin.sentAt?.toISOString().split('T')[0] || '',
+          emailSuccess,
+          smsSuccess,
+          whatsappSuccess
+        ];
+      });
+
+      filename = `bulletin_overview_${new Date().toISOString().split('T')[0]}`;
+
+    } else if (reportType === 'distribution') {
+      const data = await db.select({
+        id: bulletinComprehensive.id,
+        studentId: bulletinComprehensive.studentId,
+        classId: bulletinComprehensive.classId,
+        status: bulletinComprehensive.status,
+        sentAt: bulletinComprehensive.sentAt,
+        notificationsSent: bulletinComprehensive.notificationsSent
+      })
+      .from(bulletinComprehensive)
+      .where(and(...whereConditions, sql`${bulletinComprehensive.status} IN ('approved', 'signed', 'sent')`))
+      .orderBy(bulletinComprehensive.sentAt);
+
+      headers = [
+        'ID Bulletin', 'ID Étudiant', 'Classe', 'Statut', 'Date Envoi',
+        'Email Tentatives', 'Email Réussies', 'SMS Tentatives', 'SMS Réussies',
+        'WhatsApp Tentatives', 'WhatsApp Réussies', 'Destinataires Échoués'
+      ];
+
+      reportData = data.map(bulletin => {
+        const notifications = bulletin.notificationsSent as any;
+        const emailSuccess = notifications?.summary?.emailSuccessCount || 0;
+        const emailFailed = notifications?.summary?.emailFailedCount || 0;
+        const smsSuccess = notifications?.summary?.smsSuccessCount || 0;
+        const smsFailed = notifications?.summary?.smsFailedCount || 0;
+        const whatsappSuccess = notifications?.summary?.whatsappSuccessCount || 0;
+        const whatsappFailed = notifications?.summary?.whatsappFailedCount || 0;
+        const failedRecipients = notifications?.summary?.failedRecipients?.length || 0;
+
+        return [
+          bulletin.id,
+          bulletin.studentId,
+          bulletin.classId,
+          bulletin.status,
+          bulletin.sentAt?.toISOString().split('T')[0] || '',
+          emailSuccess + emailFailed,
+          emailSuccess,
+          smsSuccess + smsFailed,
+          smsSuccess,
+          whatsappSuccess + whatsappFailed,
+          whatsappSuccess,
+          failedRecipients
+        ];
+      });
+
+      filename = `distribution_stats_${new Date().toISOString().split('T')[0]}`;
+
+    } else if (reportType === 'timeline') {
+      // Get timeline data similar to timeline endpoint
+      const data = await db.select({
+        id: bulletinComprehensive.id,
+        studentId: bulletinComprehensive.studentId,
+        classId: bulletinComprehensive.classId,
+        term: bulletinComprehensive.term,
+        status: bulletinComprehensive.status,
+        createdAt: bulletinComprehensive.createdAt,
+        submittedAt: bulletinComprehensive.submittedAt,
+        approvedAt: bulletinComprehensive.approvedAt,
+        sentAt: bulletinComprehensive.sentAt,
+        enteredBy: bulletinComprehensive.enteredBy,
+        approvedBy: bulletinComprehensive.approvedBy
+      })
+      .from(bulletinComprehensive)
+      .where(and(...whereConditions))
+      .orderBy(bulletinComprehensive.createdAt);
+
+      headers = [
+        'ID Bulletin', 'ID Étudiant', 'Classe', 'Trimestre', 'Action',
+        'Statut', 'Date Action', 'Utilisateur'
+      ];
+
+      reportData = [];
+      data.forEach(bulletin => {
+        // Creation event
+        reportData.push([
+          bulletin.id,
+          bulletin.studentId,
+          bulletin.classId,
+          bulletin.term,
+          'Création',
+          'draft',
+          bulletin.createdAt?.toISOString().split('T')[0] || '',
+          bulletin.enteredBy || 'System'
+        ]);
+
+        // Submission event
+        if (bulletin.submittedAt) {
+          reportData.push([
+            bulletin.id,
+            bulletin.studentId,
+            bulletin.classId,
+            bulletin.term,
+            'Soumission',
+            'submitted',
+            bulletin.submittedAt?.toISOString().split('T')[0] || '',
+            'Enseignant'
+          ]);
+        }
+
+        // Approval event
+        if (bulletin.approvedAt) {
+          reportData.push([
+            bulletin.id,
+            bulletin.studentId,
+            bulletin.classId,
+            bulletin.term,
+            'Approbation',
+            'approved',
+            bulletin.approvedAt?.toISOString().split('T')[0] || '',
+            bulletin.approvedBy || 'Directeur'
+          ]);
+        }
+
+        // Distribution event
+        if (bulletin.sentAt) {
+          reportData.push([
+            bulletin.id,
+            bulletin.studentId,
+            bulletin.classId,
+            bulletin.term,
+            'Distribution',
+            'sent',
+            bulletin.sentAt?.toISOString().split('T')[0] || '',
+            'Système'
+          ]);
+        }
+      });
+
+      filename = `timeline_report_${new Date().toISOString().split('T')[0]}`;
+    }
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvContent = [
+        headers.join(','),
+        ...reportData.map(row => 
+          row.map((cell: any) => 
+            typeof cell === 'string' && cell.includes(',') ? `"${cell}"` : cell
+          ).join(',')
+        )
+      ].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
+      res.send(csvContent);
+
+    } else if (format === 'pdf') {
+      // For PDF, we would need a PDF library like jsPDF or puppeteer
+      // For now, return a simple response indicating PDF generation would be implemented
+      res.json({
+        success: false,
+        message: 'PDF export not yet implemented. Use CSV format for now.',
+        suggestedFormat: 'csv'
+      });
+    }
+
+    console.log('[EXPORT_REPORT] ✅ Report exported:', {
+      format,
+      reportType,
+      recordCount: reportData.length,
+      filename: `${filename}.${format}`
+    });
+
+  } catch (error: any) {
+    console.error('[EXPORT_REPORT] ❌ Error exporting report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export report',
       error: error.message
     });
   }
