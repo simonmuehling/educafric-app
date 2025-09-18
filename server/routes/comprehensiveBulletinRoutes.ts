@@ -1479,7 +1479,7 @@ router.get('/approved', requireAuth, requireDirectorAuth, async (req, res) => {
     .from(bulletinComprehensive)
     .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
     .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
-    .leftJoin(sql`users approver`, sql`${bulletinComprehensive.approvedBy} = approver.id`)
+    .leftJoin(sql`users AS approver`, sql`approver.id = ${bulletinComprehensive.approvedBy}`)
     .where(and(
       eq(bulletinComprehensive.schoolId, schoolId),
       eq(bulletinComprehensive.status, 'approved')
@@ -1547,7 +1547,7 @@ router.get('/sent', requireAuth, requireDirectorAuth, async (req, res) => {
     .from(bulletinComprehensive)
     .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
     .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
-    .leftJoin(sql`users approver`, sql`${bulletinComprehensive.approvedBy} = approver.id`)
+    .leftJoin(sql`users AS approver`, sql`approver.id = ${bulletinComprehensive.approvedBy}`)
     .where(and(
       eq(bulletinComprehensive.schoolId, schoolId),
       eq(bulletinComprehensive.status, 'sent')
@@ -1640,18 +1640,19 @@ router.post('/bulk-approve', requireAuth, requireDirectorAuth, async (req, res) 
     // Perform bulk approval - update status, approvedBy, and approvedAt
     const approvedAt = new Date();
     
-    const updateResult = await db.update(bulletinComprehensive)
-      .set({
-        status: 'approved' as const,
-        approvedBy: userId,
-        approvedAt: approvedAt,
-        updatedAt: new Date()
-      })
-      .where(and(
-        inArray(bulletinComprehensive.id, bulletinIds.map(id => parseInt(id.toString()))),
-        eq(bulletinComprehensive.schoolId, schoolId),
-        eq(bulletinComprehensive.status, 'submitted')
-      ));
+    // Perform bulk approval with proper tenant security - using raw SQL to avoid TypeScript issues
+    const bulletinIdsArray = bulletinIds.map(id => parseInt(id.toString()));
+    
+    await db.execute(sql`
+      UPDATE bulletin_comprehensive 
+      SET status = 'approved', 
+          approved_by = ${userId},
+          approved_at = ${approvedAt},
+          updated_at = ${new Date()}
+      WHERE id = ANY(${bulletinIdsArray})
+        AND school_id = ${schoolId}
+        AND status = 'submitted'
+    `);
 
     console.log('[COMPREHENSIVE_WORKFLOW] ✅ Bulk approval completed:', {
       approvedCount: validBulletins.length,
@@ -1659,12 +1660,15 @@ router.post('/bulk-approve', requireAuth, requireDirectorAuth, async (req, res) 
       approvedAt: approvedAt.toISOString()
     });
 
-    // Return success with details of approved bulletins
+    // Return success with details of approved bulletins including updatedCount and updatedIds
+    const updatedIds = validBulletins.map(bulletin => bulletin.id);
+    
     res.json({
       success: true,
       message: `Successfully approved ${validBulletins.length} bulletins`,
       data: {
-        approvedCount: validBulletins.length,
+        updatedCount: validBulletins.length,
+        updatedIds: updatedIds,
         approvedBy: userId,
         approvedAt: approvedAt.toISOString(),
         approvedBulletins: validBulletins.map(bulletin => ({

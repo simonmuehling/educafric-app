@@ -580,7 +580,25 @@ export default function ComprehensiveBulletinGenerator() {
       teacherVisaNameField: 'Nom professeur principal',
       teacherVisaDateField: 'Date visa professeur',
       headmasterVisaNameField: 'Nom chef d\'établissement',
-      headmasterVisaDateField: 'Date visa chef'
+      headmasterVisaDateField: 'Date visa chef',
+      
+      // Workflow Tabs
+      pendingBulletins: 'En Attente d\'Approbation',
+      approvedBulletins: 'Bulletins Approuvés',
+      sentBulletins: 'Bulletins Envoyés',
+      
+      // Workflow Actions
+      waitingApproval: 'En attente d\'approbation',
+      approved: 'Approuvé',
+      sentToParents: 'Envoyé aux parents',
+      approve: 'Approuver',
+      send: 'Envoyer',
+      viewDetails: 'Voir détails',
+      
+      // Counts
+      pendingCount: 'bulletins en attente',
+      approvedCount: 'bulletins approuvés',
+      sentCount: 'bulletins envoyés'
     },
     en: {
       title: 'Comprehensive Bulletin Generator',
@@ -791,7 +809,25 @@ export default function ComprehensiveBulletinGenerator() {
       teacherVisaNameField: 'Main teacher name',
       teacherVisaDateField: 'Teacher visa date',
       headmasterVisaNameField: 'School head name',
-      headmasterVisaDateField: 'Headmaster visa date'
+      headmasterVisaDateField: 'Headmaster visa date',
+      
+      // Workflow Tabs
+      pendingBulletins: 'Pending Approval',
+      approvedBulletins: 'Approved Bulletins',
+      sentBulletins: 'Sent Bulletins',
+      
+      // Workflow Actions
+      waitingApproval: 'Waiting for approval',
+      approved: 'Approved',
+      sentToParents: 'Sent to parents',
+      approve: 'Approve',
+      send: 'Send',
+      viewDetails: 'View details',
+      
+      // Counts
+      pendingCount: 'pending bulletins',
+      approvedCount: 'approved bulletins',
+      sentCount: 'sent bulletins'
     }
   };
 
@@ -1195,6 +1231,34 @@ export default function ComprehensiveBulletinGenerator() {
     enabled: !!previewStudentId && showPreviewDialog
   });
 
+  // Workflow bulletins queries
+  const { data: pendingBulletins, isLoading: loadingPending, refetch: refetchPending } = useQuery({
+    queryKey: ['comprehensive-bulletins', 'pending'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/pending');
+      const data = await response.json();
+      return data.success ? data.bulletins : [];
+    }
+  });
+
+  const { data: approvedBulletins, isLoading: loadingApproved, refetch: refetchApproved } = useQuery({
+    queryKey: ['comprehensive-bulletins', 'approved'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/approved');
+      const data = await response.json();
+      return data.success ? data.bulletins : [];
+    }
+  });
+
+  const { data: sentBulletins, isLoading: loadingSent, refetch: refetchSent } = useQuery({
+    queryKey: ['comprehensive-bulletins', 'sent'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/comprehensive-bulletins/sent');
+      const data = await response.json();
+      return data.success ? data.bulletins : [];
+    }
+  });
+
   // Bulletin generation mutation
   const generateMutation = useMutation({
     mutationFn: async (request: BulletinGenerationRequest) => {
@@ -1369,7 +1433,7 @@ export default function ComprehensiveBulletinGenerator() {
 
       {/* Main Interface */}
       <Tabs defaultValue="class-selection" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="class-selection" className="flex items-center justify-center gap-1 sm:gap-2">
             <School className="h-4 w-4" />
             <span className="hidden sm:inline">{t.classSelection}</span>
@@ -1389,6 +1453,18 @@ export default function ComprehensiveBulletinGenerator() {
           <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0} className="flex items-center justify-center gap-1 sm:gap-2">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">{t.bulkOperations}</span>
+          </TabsTrigger>
+          <TabsTrigger value="pending-bulletins" className="flex items-center justify-center gap-1 sm:gap-2">
+            <Clock className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.pendingBulletins}</span>
+          </TabsTrigger>
+          <TabsTrigger value="approved-bulletins" className="flex items-center justify-center gap-1 sm:gap-2">
+            <CheckCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.approvedBulletins}</span>
+          </TabsTrigger>
+          <TabsTrigger value="sent-bulletins" className="flex items-center justify-center gap-1 sm:gap-2">
+            <FileDown className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.sentBulletins}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -2914,6 +2990,211 @@ export default function ComprehensiveBulletinGenerator() {
                   {t.generateAll}
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Pending Bulletins Tab */}
+        <TabsContent value="pending-bulletins" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-500" />
+                {t.pendingBulletins} ({pendingBulletins?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingPending ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>{t.loading}</span>
+                </div>
+              ) : !pendingBulletins || pendingBulletins.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucun bulletin en attente d'approbation</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingBulletins.map((bulletin: any) => (
+                    <Card key={bulletin.id} className="border-l-4 border-l-orange-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold">
+                              {bulletin.studentFirstName} {bulletin.studentLastName}
+                            </h4>
+                            <div className="text-sm text-muted-foreground">
+                              <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                            </div>
+                            <Badge variant="outline" className="text-orange-600 border-orange-200">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {t.waitingApproval}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              data-testid={`approve-bulletin-${bulletin.id}`}
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              {t.approve}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              data-testid={`view-bulletin-${bulletin.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {t.viewDetails}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Approved Bulletins Tab */}
+        <TabsContent value="approved-bulletins" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                {t.approvedBulletins} ({approvedBulletins?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingApproved ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>{t.loading}</span>
+                </div>
+              ) : !approvedBulletins || approvedBulletins.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucun bulletin approuvé</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {approvedBulletins.map((bulletin: any) => (
+                    <Card key={bulletin.id} className="border-l-4 border-l-green-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold">
+                              {bulletin.studentFirstName} {bulletin.studentLastName}
+                            </h4>
+                            <div className="text-sm text-muted-foreground">
+                              <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                            </div>
+                            <Badge variant="outline" className="text-green-600 border-green-200">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              {t.approved}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                              data-testid={`send-bulletin-${bulletin.id}`}
+                            >
+                              <FileDown className="h-4 w-4 mr-1" />
+                              {t.send}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              data-testid={`view-approved-bulletin-${bulletin.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {t.viewDetails}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Sent Bulletins Tab */}
+        <TabsContent value="sent-bulletins" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileDown className="h-5 w-5 text-blue-500" />
+                {t.sentBulletins} ({sentBulletins?.length || 0})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingSent ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>{t.loading}</span>
+                </div>
+              ) : !sentBulletins || sentBulletins.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileDown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucun bulletin envoyé</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sentBulletins.map((bulletin: any) => (
+                    <Card key={bulletin.id} className="border-l-4 border-l-blue-500">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold">
+                              {bulletin.studentFirstName} {bulletin.studentLastName}
+                            </h4>
+                            <div className="text-sm text-muted-foreground">
+                              <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                              {bulletin.sentAt && (
+                                <div className="text-xs mt-1">
+                                  Envoyé le: {new Date(bulletin.sentAt).toLocaleDateString('fr-FR')}
+                                </div>
+                              )}
+                            </div>
+                            <Badge variant="outline" className="text-blue-600 border-blue-200">
+                              <FileDown className="h-3 w-3 mr-1" />
+                              {t.sentToParents}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              data-testid={`view-sent-bulletin-${bulletin.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              {t.viewDetails}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              data-testid={`download-bulletin-${bulletin.id}`}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              PDF
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
