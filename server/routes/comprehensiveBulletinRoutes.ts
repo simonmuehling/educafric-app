@@ -3869,4 +3869,595 @@ router.get('/reports/export', requireAuth, requireDirectorAuth, async (req, res)
   }
 });
 
+// ===== REPORTING ROUTES =====
+// Routes pour les rapports et statistiques du système de bulletins
+
+// Route pour les statistiques overview (vue d'ensemble)
+router.get('/reports/overview', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+    
+    const { term, academicYear, classId, startDate, endDate } = req.query;
+
+    console.log('[COMPREHENSIVE_REPORTS] 📊 Fetching overview report:', { 
+      term, academicYear, classId, schoolId 
+    });
+
+    // Récupérer le total des bulletins générés
+    const totalBulletinsQuery = await db.execute(sql`
+      SELECT COUNT(*) as total
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      ${classId ? sql`AND class_id = ${parseInt(classId as string)}` : sql``}
+      ${startDate ? sql`AND created_at >= ${startDate as string}` : sql``}
+      ${endDate ? sql`AND created_at <= ${endDate as string}` : sql``}
+    `);
+
+    // Répartition par statut
+    const statusBreakdownQuery = await db.execute(sql`
+      SELECT 
+        COALESCE(status, 'draft') as status,
+        COUNT(*) as count
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      ${classId ? sql`AND class_id = ${parseInt(classId as string)}` : sql``}
+      GROUP BY status
+    `);
+
+    // Calcul des taux de distribution par canal
+    const distributionRatesQuery = await db.execute(sql`
+      SELECT 
+        COALESCE(distribution_channel, 'none') as channel,
+        COUNT(*) as sent,
+        AVG(CASE WHEN distribution_status = 'delivered' THEN 1 ELSE 0 END) * 100 as delivery_rate
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId} 
+        AND distribution_status IS NOT NULL
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      GROUP BY distribution_channel
+    `);
+
+    // Performance par classe
+    const classPerformanceQuery = await db.execute(sql`
+      SELECT 
+        c.name as class_name,
+        c.id as class_id,
+        COUNT(bc.id) as bulletins_generated,
+        COALESCE(AVG(bc.overall_average), 0) as avg_grade,
+        COUNT(CASE WHEN bc.distribution_status = 'delivered' THEN 1 END) as distributed
+      FROM classes c
+      LEFT JOIN bulletin_comprehensive bc ON c.id = bc.class_id 
+        AND bc.school_id = ${schoolId}
+        ${term ? sql`AND bc.term = ${term as string}` : sql``}
+        ${academicYear ? sql`AND bc.academic_year = ${academicYear as string}` : sql``}
+      WHERE c.school_id = ${schoolId}
+      GROUP BY c.id, c.name
+      HAVING COUNT(bc.id) > 0
+      ORDER BY bulletins_generated DESC
+      LIMIT 10
+    `);
+
+    // Temps moyen de traitement
+    const processingTimeQuery = await db.execute(sql`
+      SELECT COALESCE(AVG(
+        EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600
+      ), 0) as avg_processing_hours
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId} 
+        AND status IN ('completed', 'distributed')
+        AND updated_at > created_at
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+    `);
+
+    const totalBulletins = parseInt(totalBulletinsQuery.rows[0]?.total || '0');
+    
+    const statusBreakdown = statusBreakdownQuery.rows.reduce((acc: any, row: any) => {
+      acc[row.status || 'draft'] = parseInt(row.count);
+      return acc;
+    }, {});
+
+    // Assurer des valeurs par défaut pour statusBreakdown
+    statusBreakdown.draft = statusBreakdown.draft || 0;
+    statusBreakdown.completed = statusBreakdown.completed || 0;
+    statusBreakdown.sent = statusBreakdown.sent || 0;
+    statusBreakdown.distributed = statusBreakdown.distributed || 0;
+
+    const distributionRates = {
+      overall: distributionRatesQuery.rows.length > 0 
+        ? Math.round(distributionRatesQuery.rows.reduce((acc: number, row: any) => 
+            acc + parseFloat(row.delivery_rate || '0'), 0) / distributionRatesQuery.rows.length)
+        : 0,
+      email: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'email')?.delivery_rate || '0')),
+      sms: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'sms')?.delivery_rate || '0')),
+      whatsapp: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'whatsapp')?.delivery_rate || '0'))
+    };
+
+    const averageProcessingTime = Math.round(
+      parseFloat(processingTimeQuery.rows[0]?.avg_processing_hours || '0') * 10) / 10;
+
+    const classPerformance = classPerformanceQuery.rows.map((row: any) => ({
+      className: row.class_name,
+      classId: row.class_id,
+      bulletinsGenerated: parseInt(row.bulletins_generated || '0'),
+      averageGrade: Math.round(parseFloat(row.avg_grade || '0') * 100) / 100,
+      distributed: parseInt(row.distributed || '0')
+    }));
+
+    const overviewData = {
+      totalBulletins,
+      statusBreakdown,
+      distributionRates,
+      averageProcessingTime,
+      classPerformance
+    };
+
+    console.log('[COMPREHENSIVE_REPORTS] ✅ Overview report generated:', {
+      totalBulletins,
+      statusCount: Object.keys(statusBreakdown).length,
+      classCount: classPerformance.length
+    });
+
+    res.json({
+      success: true,
+      data: overviewData
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_REPORTS] ❌ Error generating overview report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate overview report',
+      error: error.message
+    });
+  }
+});
+
+// Route pour les statistiques de distribution
+router.get('/reports/distribution-stats', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+    
+    const { term, academicYear, classId, channel } = req.query;
+
+    console.log('[COMPREHENSIVE_REPORTS] 📨 Fetching distribution stats:', { 
+      term, academicYear, classId, channel, schoolId 
+    });
+
+    // Distribution par canal
+    const channelStatsQuery = await db.execute(sql`
+      SELECT 
+        COALESCE(distribution_channel, 'none') as channel,
+        COUNT(*) as total_sent,
+        COUNT(CASE WHEN distribution_status = 'delivered' THEN 1 END) as delivered,
+        COUNT(CASE WHEN distribution_status = 'failed' THEN 1 END) as failed,
+        COUNT(CASE WHEN distribution_status = 'pending' THEN 1 END) as pending
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+        AND distribution_channel IS NOT NULL
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      ${classId ? sql`AND class_id = ${parseInt(classId as string)}` : sql``}
+      ${channel ? sql`AND distribution_channel = ${channel as string}` : sql``}
+      GROUP BY distribution_channel
+    `);
+
+    // Distribution quotidienne (7 derniers jours)
+    const dailyDistributionQuery = await db.execute(sql`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as bulletins_sent,
+        COUNT(CASE WHEN distribution_status = 'delivered' THEN 1 END) as delivered
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+        AND created_at >= CURRENT_DATE - INTERVAL '7 days'
+        AND distribution_channel IS NOT NULL
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+    `);
+
+    // Temps de distribution par canal
+    const distributionTimeQuery = await db.execute(sql`
+      SELECT 
+        COALESCE(distribution_channel, 'none') as channel,
+        AVG(EXTRACT(EPOCH FROM (distribution_sent_at - created_at)) / 60) as avg_time_minutes
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+        AND distribution_sent_at IS NOT NULL
+        AND distribution_status = 'delivered'
+        AND distribution_sent_at > created_at
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+      GROUP BY distribution_channel
+    `);
+
+    const channelStats = channelStatsQuery.rows.map((row: any) => ({
+      channel: row.channel,
+      totalSent: parseInt(row.total_sent),
+      delivered: parseInt(row.delivered || '0'),
+      failed: parseInt(row.failed || '0'),
+      pending: parseInt(row.pending || '0'),
+      successRate: row.total_sent > 0 
+        ? Math.round((parseInt(row.delivered || '0') / parseInt(row.total_sent)) * 100)
+        : 0
+    }));
+
+    const dailyDistribution = dailyDistributionQuery.rows.map((row: any) => ({
+      date: row.date,
+      bulletinsSent: parseInt(row.bulletins_sent),
+      delivered: parseInt(row.delivered || '0')
+    }));
+
+    const distributionTimes = distributionTimeQuery.rows.reduce((acc: any, row: any) => {
+      acc[row.channel] = Math.round(parseFloat(row.avg_time_minutes || '0') * 10) / 10;
+      return acc;
+    }, {});
+
+    const distributionStatsData = {
+      channelStats,
+      dailyDistribution,
+      distributionTimes
+    };
+
+    console.log('[COMPREHENSIVE_REPORTS] ✅ Distribution stats generated:', {
+      channels: channelStats.length,
+      dailyData: dailyDistribution.length
+    });
+
+    res.json({
+      success: true,
+      data: distributionStatsData
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_REPORTS] ❌ Error generating distribution stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate distribution stats',
+      error: error.message
+    });
+  }
+});
+
+// Route pour la timeline des événements
+router.get('/reports/timeline', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+    
+    const { term, academicYear, limit = '50', offset = '0' } = req.query;
+
+    console.log('[COMPREHENSIVE_REPORTS] 🕐 Fetching timeline:', { 
+      term, academicYear, limit, offset, schoolId 
+    });
+
+    // Timeline des événements récents
+    const timelineQuery = await db.execute(sql`
+      SELECT 
+        bc.id,
+        COALESCE(bc.student_name, 'Élève inconnu') as student_name,
+        COALESCE(bc.class_name, 'Classe inconnue') as class_name,
+        COALESCE(bc.status, 'draft') as status,
+        bc.distribution_channel,
+        bc.distribution_status,
+        bc.created_at,
+        bc.updated_at,
+        bc.distribution_sent_at,
+        COALESCE(u.first_name, '') as created_by_first_name,
+        COALESCE(u.last_name, '') as created_by_last_name
+      FROM bulletin_comprehensive bc
+      LEFT JOIN users u ON bc.created_by = u.id
+      WHERE bc.school_id = ${schoolId}
+      ${term ? sql`AND bc.term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND bc.academic_year = ${academicYear as string}` : sql``}
+      ORDER BY bc.created_at DESC
+      LIMIT ${parseInt(limit as string)}
+      OFFSET ${parseInt(offset as string)}
+    `);
+
+    // Compter le total pour la pagination
+    const totalCountQuery = await db.execute(sql`
+      SELECT COUNT(*) as total
+      FROM bulletin_comprehensive
+      WHERE school_id = ${schoolId}
+      ${term ? sql`AND term = ${term as string}` : sql``}
+      ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
+    `);
+
+    const totalEvents = parseInt(totalCountQuery.rows[0]?.total || '0');
+    const limitNum = parseInt(limit as string);
+    const offsetNum = parseInt(offset as string);
+    
+    const timeline = timelineQuery.rows.map((row: any) => {
+      const events = [];
+      
+      // Événement de création
+      events.push({
+        type: 'created',
+        timestamp: row.created_at,
+        description: `Bulletin créé pour ${row.student_name} (${row.class_name})`,
+        actor: `${row.created_by_first_name || ''} ${row.created_by_last_name || ''}`.trim() || 'Système'
+      });
+      
+      // Événement de finalisation
+      if (row.status === 'completed' && row.updated_at && row.updated_at !== row.created_at) {
+        events.push({
+          type: 'completed',
+          timestamp: row.updated_at,
+          description: `Bulletin finalisé pour ${row.student_name}`,
+          actor: 'Système'
+        });
+      }
+      
+      // Événement de distribution
+      if (row.distribution_sent_at) {
+        events.push({
+          type: 'distributed',
+          timestamp: row.distribution_sent_at,
+          description: `Bulletin distribué via ${row.distribution_channel || 'canal inconnu'} (${row.distribution_status || 'statut inconnu'})`,
+          actor: 'Système de distribution'
+        });
+      }
+      
+      return {
+        bulletinId: row.id,
+        studentName: row.student_name,
+        className: row.class_name,
+        status: row.status,
+        events: events.sort((a, b) => 
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        )
+      };
+    });
+
+    const timelineData = {
+      timeline,
+      pagination: {
+        total: totalEvents,
+        limit: limitNum,
+        offset: offsetNum,
+        hasMore: offsetNum + limitNum < totalEvents
+      }
+    };
+
+    console.log('[COMPREHENSIVE_REPORTS] ✅ Timeline generated:', {
+      items: timeline.length,
+      total: totalEvents
+    });
+
+    res.json({
+      success: true,
+      data: timelineData
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_REPORTS] ❌ Error generating timeline:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate timeline',
+      error: error.message
+    });
+  }
+});
+
+// Route pour l'export des données
+router.get('/reports/export', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+    
+    const { format = 'csv', reportType = 'overview', term, academicYear, classId } = req.query;
+
+    console.log('[COMPREHENSIVE_REPORTS] 📤 Exporting report:', { 
+      format, reportType, term, academicYear, classId, schoolId 
+    });
+
+    if (format !== 'csv') {
+      return res.status(400).json({
+        success: false,
+        message: 'Seul le format CSV est actuellement supporté'
+      });
+    }
+
+    // Récupérer les données selon le type de rapport
+    let exportData: any[] = [];
+    let filename = `rapport-bulletins-${new Date().toISOString().split('T')[0]}.csv`;
+    let headers: string[] = [];
+
+    if (reportType === 'overview') {
+      const dataQuery = await db.execute(sql`
+        SELECT 
+          bc.id,
+          COALESCE(bc.student_name, 'Élève inconnu') as student_name,
+          COALESCE(bc.class_name, 'Classe inconnue') as class_name,
+          COALESCE(bc.term, '') as term,
+          COALESCE(bc.academic_year, '') as academic_year,
+          COALESCE(bc.overall_average, 0) as overall_average,
+          COALESCE(bc.class_rank, 0) as class_rank,
+          COALESCE(bc.status, 'draft') as status,
+          COALESCE(bc.distribution_channel, '') as distribution_channel,
+          COALESCE(bc.distribution_status, '') as distribution_status,
+          bc.created_at,
+          bc.distribution_sent_at
+        FROM bulletin_comprehensive bc
+        WHERE bc.school_id = ${schoolId}
+        ${term ? sql`AND bc.term = ${term as string}` : sql``}
+        ${academicYear ? sql`AND bc.academic_year = ${academicYear as string}` : sql``}
+        ${classId ? sql`AND bc.class_id = ${parseInt(classId as string)}` : sql``}
+        ORDER BY bc.created_at DESC
+      `);
+
+      headers = [
+        'ID', 'Élève', 'Classe', 'Trimestre', 'Année Scolaire', 
+        'Moyenne Générale', 'Rang', 'Statut', 'Canal Distribution', 
+        'Statut Distribution', 'Date Création', 'Date Distribution'
+      ];
+      
+      exportData = dataQuery.rows.map((row: any) => [
+        row.id,
+        row.student_name,
+        row.class_name,
+        row.term,
+        row.academic_year,
+        row.overall_average || '',
+        row.class_rank || '',
+        row.status,
+        row.distribution_channel || '',
+        row.distribution_status || '',
+        row.created_at || '',
+        row.distribution_sent_at || ''
+      ]);
+      
+      filename = `rapport-vue-ensemble-${new Date().toISOString().split('T')[0]}.csv`;
+      
+    } else if (reportType === 'distribution') {
+      const dataQuery = await db.execute(sql`
+        SELECT 
+          bc.id,
+          COALESCE(bc.student_name, 'Élève inconnu') as student_name,
+          COALESCE(bc.class_name, 'Classe inconnue') as class_name,
+          COALESCE(bc.distribution_channel, 'none') as distribution_channel,
+          COALESCE(bc.distribution_status, 'none') as distribution_status,
+          bc.distribution_sent_at,
+          COALESCE(EXTRACT(EPOCH FROM (bc.distribution_sent_at - bc.created_at)) / 60, 0) as processing_time_minutes
+        FROM bulletin_comprehensive bc
+        WHERE bc.school_id = ${schoolId}
+          AND bc.distribution_channel IS NOT NULL
+        ${term ? sql`AND bc.term = ${term as string}` : sql``}
+        ${academicYear ? sql`AND bc.academic_year = ${academicYear as string}` : sql``}
+        ORDER BY bc.distribution_sent_at DESC NULLS LAST
+      `);
+
+      headers = [
+        'ID Bulletin', 'Élève', 'Classe', 'Canal', 'Statut', 
+        'Date Distribution', 'Temps Traitement (min)'
+      ];
+      
+      exportData = dataQuery.rows.map((row: any) => [
+        row.id,
+        row.student_name,
+        row.class_name,
+        row.distribution_channel,
+        row.distribution_status,
+        row.distribution_sent_at || '',
+        Math.round(parseFloat(row.processing_time_minutes || '0'))
+      ]);
+      
+      filename = `rapport-distribution-${new Date().toISOString().split('T')[0]}.csv`;
+    
+    } else if (reportType === 'timeline') {
+      const dataQuery = await db.execute(sql`
+        SELECT 
+          bc.id,
+          COALESCE(bc.student_name, 'Élève inconnu') as student_name,
+          COALESCE(bc.class_name, 'Classe inconnue') as class_name,
+          COALESCE(bc.status, 'draft') as status,
+          bc.created_at,
+          bc.updated_at,
+          bc.distribution_sent_at,
+          COALESCE(u.first_name, '') as created_by_first_name,
+          COALESCE(u.last_name, '') as created_by_last_name
+        FROM bulletin_comprehensive bc
+        LEFT JOIN users u ON bc.created_by = u.id
+        WHERE bc.school_id = ${schoolId}
+        ${term ? sql`AND bc.term = ${term as string}` : sql``}
+        ${academicYear ? sql`AND bc.academic_year = ${academicYear as string}` : sql``}
+        ORDER BY bc.created_at DESC
+      `);
+
+      headers = [
+        'ID Bulletin', 'Élève', 'Classe', 'Statut', 'Date Création', 
+        'Date Mise à Jour', 'Date Distribution', 'Créé Par'
+      ];
+      
+      exportData = dataQuery.rows.map((row: any) => [
+        row.id,
+        row.student_name,
+        row.class_name,
+        row.status,
+        row.created_at || '',
+        row.updated_at || '',
+        row.distribution_sent_at || '',
+        `${row.created_by_first_name} ${row.created_by_last_name}`.trim() || 'Système'
+      ]);
+      
+      filename = `rapport-timeline-${new Date().toISOString().split('T')[0]}.csv`;
+    }
+
+    // Générer le CSV avec BOM pour l'encoding UTF-8
+    const BOM = '\uFEFF';
+    const csvHeader = headers.join(',') + '\n';
+    const csvRows = exportData.map(row => 
+      row.map((cell: any) => {
+        const cellStr = String(cell || '');
+        // Échapper les guillemets et encapsuler si nécessaire
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(',')
+    ).join('\n');
+    
+    const csvContent = BOM + csvHeader + csvRows;
+
+    // Définir les headers pour le téléchargement
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', Buffer.byteLength(csvContent, 'utf8'));
+
+    console.log('[COMPREHENSIVE_REPORTS] ✅ CSV export generated:', {
+      reportType,
+      rows: exportData.length,
+      filename
+    });
+
+    res.send(csvContent);
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_REPORTS] ❌ Error exporting report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export report',
+      error: error.message
+    });
+  }
+});
+
 export default router;

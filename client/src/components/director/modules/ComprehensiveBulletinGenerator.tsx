@@ -79,7 +79,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import BulkSignatureModal from '@/components/shared/BulkSignatureModal';
-import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart as RBarChart, Bar, PieChart as RPieChart, Pie, Cell, LineChart as RLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import {
   Dialog,
   DialogContent,
@@ -4024,7 +4024,7 @@ export default function ComprehensiveBulletinGenerator() {
                       </CardHeader>
                       <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
-                          <PieChart>
+                          <RPieChart>
                             <Pie
                               data={Object.entries(overviewReport.statusBreakdown || {}).map(([status, count]) => ({
                                 name: status,
@@ -4043,7 +4043,7 @@ export default function ComprehensiveBulletinGenerator() {
                             </Pie>
                             <Tooltip />
                             <Legend />
-                          </PieChart>
+                          </RPieChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
@@ -4057,7 +4057,7 @@ export default function ComprehensiveBulletinGenerator() {
                       </CardHeader>
                       <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={[
+                          <RBarChart data={[
                             { channel: 'Email', rate: overviewReport.distributionRates?.email || 0, fill: channelColors.email },
                             { channel: 'SMS', rate: overviewReport.distributionRates?.sms || 0, fill: channelColors.sms },
                             { channel: 'WhatsApp', rate: overviewReport.distributionRates?.whatsapp || 0, fill: channelColors.whatsapp }
@@ -4067,7 +4067,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <YAxis />
                             <Tooltip formatter={(value) => [`${value}%`, 'Taux de réussite']} />
                             <Bar dataKey="rate" />
-                          </BarChart>
+                          </RBarChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
@@ -4220,7 +4220,7 @@ export default function ComprehensiveBulletinGenerator() {
                       </CardHeader>
                       <CardContent>
                         <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={distributionStats.dailyDistribution}>
+                          <RLineChart data={distributionStats.dailyDistribution}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" />
                             <YAxis />
@@ -4228,7 +4228,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <Legend />
                             <Line type="monotone" dataKey="sent" stroke="#10b981" name="Réussies" />
                             <Line type="monotone" dataKey="failed" stroke="#ef4444" name="Échecs" />
-                          </LineChart>
+                          </RLineChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
