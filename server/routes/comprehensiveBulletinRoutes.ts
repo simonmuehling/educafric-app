@@ -1735,7 +1735,6 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
       id: bulletinComprehensive.id,
       studentId: bulletinComprehensive.studentId,
       status: bulletinComprehensive.status,
-      pdfPath: bulletinComprehensive.pdfPath,
       classId: bulletinComprehensive.classId,
       term: bulletinComprehensive.term,
       academicYear: bulletinComprehensive.academicYear,
@@ -1764,6 +1763,19 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
         message: `${nonApprovedBulletins.length} bulletins are not in 'approved' status and cannot be sent`
       });
     }
+
+    // Get school information for language preferences and contact details
+    const schoolInfo = await db.select()
+      .from(schools)
+      .where(eq(schools.id, schoolId))
+      .limit(1);
+
+    const school = schoolInfo[0] || { 
+      name: 'École', 
+      email: null, 
+      phone: null, 
+      settings: null 
+    };
 
     // Get parent relationships and contact information for all students
     const studentIds = validBulletins.map(b => b.studentId);
