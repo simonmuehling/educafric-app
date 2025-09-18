@@ -1066,7 +1066,14 @@ export default function ComprehensiveBulletinGenerator() {
       
       console.log('[MANUAL_SAVE] 💾 Saving comprehensive data:', comprehensiveData);
       
-      return apiRequest('POST', '/api/comprehensive-bulletins/save', comprehensiveData);
+      // Fix: Ensure proper parameter order and types for apiRequest
+      const method = 'POST';
+      const url = '/api/comprehensive-bulletins/save';
+      const requestData = comprehensiveData;
+      
+      console.log('[MANUAL_SAVE] 🔧 API Request parameters:', { method, url, dataType: typeof requestData });
+      
+      return apiRequest(method, url, requestData);
     },
     onSuccess: () => {
       toast({
