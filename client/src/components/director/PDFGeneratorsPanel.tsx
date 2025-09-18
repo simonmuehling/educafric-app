@@ -323,9 +323,9 @@ export function PDFGeneratorsPanel() {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Generator Selection */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 order-2 lg:order-1">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Types de Documents</CardTitle>
@@ -358,7 +358,7 @@ export function PDFGeneratorsPanel() {
         </div>
 
         {/* Configuration Panel */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 order-1 lg:order-2">
           {selectedGenerator === 'comprehensive-bulletin' ? (
             /* Manual Data Entry Interface for Comprehensive Bulletins */
             <SimpleBulletinEntry />
@@ -375,7 +375,7 @@ export function PDFGeneratorsPanel() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Basic Options */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="language">Langue</Label>
                     <Select
@@ -442,7 +442,7 @@ export function PDFGeneratorsPanel() {
                 {showAdvanced && currentGenerator.specificOptions && (
                   <>
                     <Separator />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                       {currentGenerator.specificOptions.map(option => {
                         if (option.type === 'select' && option.options) {
                           return (

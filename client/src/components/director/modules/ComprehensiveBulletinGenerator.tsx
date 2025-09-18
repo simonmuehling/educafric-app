@@ -1355,7 +1355,7 @@ export default function ComprehensiveBulletinGenerator() {
   ) || [];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6" data-testid="comprehensive-bulletin-generator">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6" data-testid="comprehensive-bulletin-generator">
       {/* Header */}
       <Card>
         <CardHeader className="text-center">
@@ -1395,7 +1395,7 @@ export default function ComprehensiveBulletinGenerator() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {/* Class Selection */}
                 <div className="space-y-2">
                   <Label htmlFor="class-select">{t.selectClass}</Label>
@@ -1748,7 +1748,7 @@ export default function ComprehensiveBulletinGenerator() {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <CardContent className="pt-0 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                               <FormField
                                 control={manualDataForm.control}
                                 name="totalGeneral"
@@ -1836,6 +1836,33 @@ export default function ComprehensiveBulletinGenerator() {
                                 <p className="text-sm text-muted-foreground mb-4">
                                   {t.subjectCoefficientsDescription}
                                 </p>
+                                
+                                {/* Explications des acronymes en français et anglais */}
+                                <div className="bg-blue-50 p-4 rounded-lg mb-4 space-y-3">
+                                  <h4 className="font-semibold text-blue-900 mb-3">
+                                    📝 Significations / Meanings:
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-blue-800">🇫🇷 Français:</h5>
+                                      <p><strong>CTBA:</strong> Contrôle de Travaux et Bilan d'Apprentissage</p>
+                                      <p><strong>CBA:</strong> Contrôle de Bilan d'Apprentissage</p>
+                                      <p><strong>CA:</strong> Contrôle d'Apprentissage</p>
+                                      <p><strong>CMA:</strong> Contrôle de Mi-Apprentissage</p>
+                                      <p><strong>COTE:</strong> Cote d'appréciation (A-F)</p>
+                                      <p><strong>CNA:</strong> Compétence Non Acquise</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                      <h5 className="font-medium text-blue-800">🇺🇸 English:</h5>
+                                      <p><strong>CTBA:</strong> Continuous Test & Balanced Assessment</p>
+                                      <p><strong>CBA:</strong> Competency-Based Assessment</p>
+                                      <p><strong>CA:</strong> Continuous Assessment</p>
+                                      <p><strong>CMA:</strong> Continuous Monitoring Assessment</p>
+                                      <p><strong>COTE:</strong> Achievement Grade (A-F)</p>
+                                      <p><strong>CNA:</strong> Competency Not Acquired</p>
+                                    </div>
+                                  </div>
+                                </div>
                                 <div className="overflow-x-auto">
                                   <table className="w-full border-collapse border border-gray-300">
                                     <thead>
