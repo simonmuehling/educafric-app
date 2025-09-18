@@ -173,6 +173,7 @@ const PDF_GENERATORS: PDFGeneratorConfig[] = [
       { value: 'minimal', label: 'Minimal', description: 'Design épuré noir et blanc' }
     ],
     specificOptions: [
+      { key: 'classId', label: 'Classe', type: 'select', options: [] }, // Will be populated with classes
       { key: 'showTeacherNames', label: 'Afficher noms enseignants', type: 'boolean' },
       { key: 'showRooms', label: 'Afficher salles', type: 'boolean' },
       { key: 'includeBreaks', label: 'Inclure pauses', type: 'boolean' },
@@ -194,16 +195,16 @@ export function PDFGeneratorsPanel() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Récupération des classes de l'école pour la feuille de synthèse
+  // Récupération des classes de l'école pour la feuille de synthèse et l'emploi du temps
   const { data: classesData } = useQuery({
     queryKey: ['/api/director/classes'],
-    enabled: selectedGenerator === 'master-sheet' || showAdvanced
+    enabled: selectedGenerator === 'master-sheet' || selectedGenerator === 'timetable' || showAdvanced
   });
 
   // Créer une copie modifiée du générateur avec les classes disponibles
   const currentGenerator = (() => {
     const generator = PDF_GENERATORS.find(g => g.id === selectedGenerator)!;
-    if (generator.id === 'master-sheet' && classesData?.success) {
+    if ((generator.id === 'master-sheet' || generator.id === 'timetable') && classesData?.success) {
       const classes = classesData.classes || [];
       const classOptions = classes.map((cls: any) => `${cls.id}:${cls.name}`);
       

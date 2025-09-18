@@ -76,7 +76,8 @@ import {
   CalendarDays,
   Timer,
   Users2,
-  TrendingDown
+  TrendingDown,
+  Plus
 } from 'lucide-react';
 import BulkSignatureModal from '@/components/shared/BulkSignatureModal';
 import { BarChart as RBarChart, Bar, PieChart as RPieChart, Pie, Cell, LineChart as RLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
