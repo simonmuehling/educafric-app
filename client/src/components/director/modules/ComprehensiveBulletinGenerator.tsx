@@ -1974,7 +1974,11 @@ export default function ComprehensiveBulletinGenerator() {
                                     type="button" 
                                     variant="outline" 
                                     size="sm" 
-                                    onClick={fillDefaultCoefficients}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      fillDefaultCoefficients();
+                                    }}
                                     data-testid="fill-default-coefficients"
                                   >
                                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -1984,7 +1988,11 @@ export default function ComprehensiveBulletinGenerator() {
                                     type="button" 
                                     variant="outline" 
                                     size="sm" 
-                                    onClick={clearAllCoefficients}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      clearAllCoefficients();
+                                    }}
                                     data-testid="clear-coefficients"
                                   >
                                     <X className="h-4 w-4 mr-2" />
