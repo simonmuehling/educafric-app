@@ -169,7 +169,7 @@ export default function ParentFreemiumPlans() {
                   <span className="text-lg text-gray-600 ml-2">{t.monthlyPrice}</span>
                 </div>
                 <div className="text-sm text-green-600">
-                  12,000 CFA{t.annualPrice} • {t.annualSavings}
+                  12,000 CFA{t.annualPrice} ✓ {t.annualSavings}
                 </div>
               </div>
             </div>

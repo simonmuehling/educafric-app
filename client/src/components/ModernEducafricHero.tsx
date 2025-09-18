@@ -82,10 +82,10 @@ export default function ModernEducafricHero() {
                       {language === 'fr' ? '100% Numérique' : '100% Digital'}
                     </span>
                     <span>
-                      {language === 'fr' ? '• 8,500+ Arbres Protégés' : '• 8,500+ Trees Protected'}
+                      {language === 'fr' ? '✓ 8,500+ Arbres Protégés' : '✓ 8,500+ Trees Protected'}
                     </span>
                     <span>
-                      {language === 'fr' ? '• Zéro Papier' : '• Zero Paper'}
+                      {language === 'fr' ? '✓ Zéro Papier' : '✓ Zero Paper'}
                     </span>
                   </div>
                 </div>

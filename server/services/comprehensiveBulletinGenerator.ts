@@ -986,13 +986,13 @@ export class ComprehensiveBulletinGenerator {
         if (options.includeStatistics) {
           const classAverage = grandTotalAverage; // Use the calculated grand total average
           const statsText = options.language === 'fr' 
-            ? `Moy. classe: ${classAverage.toFixed(2)}/20 • Effectif: ${studentData.totalStudents}`
-            : `Class avg: ${classAverage.toFixed(2)}/20 • Total: ${studentData.totalStudents}`;
+            ? `Moy. classe: ${classAverage.toFixed(2)}/20 ✓ Effectif: ${studentData.totalStudents}`
+            : `Class avg: ${classAverage.toFixed(2)}/20 ✓ Total: ${studentData.totalStudents}`;
           rowContent.push(statsText);
         }
         
         // Draw all content in one compact row
-        const combinedText = rowContent.join(' • ');
+        const combinedText = rowContent.join(' | ');
         drawText(combinedText, tableStartX, currentY, { 
           font: helvetica, 
           size: 8, // DRASTICALLY REDUCED: From 11 to 8

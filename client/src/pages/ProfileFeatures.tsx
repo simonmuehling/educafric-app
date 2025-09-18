@@ -236,7 +236,7 @@ export default function ProfileFeatures() {
                   {language === 'fr' ? 'Gestion du Profil' : 'Profile Management'}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300">
-                  {user?.firstName} {user?.lastName} • {user?.role}
+                  {user?.firstName} {user?.lastName} | {user?.role}
                 </p>
               </div>
             </div>

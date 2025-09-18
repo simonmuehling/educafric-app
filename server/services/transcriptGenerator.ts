@@ -460,7 +460,7 @@ export class TranscriptGenerator {
         currentY -= 15;
         
         for (const award of data.overallStatistics.awards) {
-          drawText(`• ${award}`, margin + 10, currentY, { font: helvetica, size: 9 });
+          drawText(`* ${award}`, margin + 10, currentY, { font: helvetica, size: 9 });
           currentY -= 12;
         }
       }
@@ -484,7 +484,7 @@ export class TranscriptGenerator {
       
       for (const cert of data.certifications) {
         const certText = `${cert.name} (${cert.year}) - ${cert.institution}${cert.grade ? ` - ${cert.grade}` : ''}`;
-        drawText(`• ${certText}`, margin + 10, currentY, { font: helvetica, size: 10 });
+        drawText(`- ${certText}`, margin + 10, currentY, { font: helvetica, size: 10 });
         currentY -= 15;
       }
     }
@@ -558,7 +558,8 @@ export class TranscriptGenerator {
         summaryBackground: rgb(0.95, 0.97, 1),
         evenRow: rgb(0.97, 0.97, 0.97),
         border: rgb(0.7, 0.7, 0.7),
-        headerText: rgb(0.2, 0.2, 0.2)
+        headerText: rgb(0.2, 0.2, 0.2),
+        lightGray: rgb(0.95, 0.95, 0.95)
       },
       modern: {
         primary: rgb(0.2, 0.4, 0.6),
@@ -569,7 +570,8 @@ export class TranscriptGenerator {
         summaryBackground: rgb(0.96, 0.98, 1),
         evenRow: rgb(0.96, 0.96, 0.96),
         border: rgb(0.75, 0.75, 0.75),
-        headerText: rgb(0.1, 0.1, 0.1)
+        headerText: rgb(0.1, 0.1, 0.1),
+        lightGray: rgb(0.94, 0.94, 0.94)
       },
       classic: {
         primary: rgb(0.3, 0.2, 0.1),
@@ -580,7 +582,8 @@ export class TranscriptGenerator {
         summaryBackground: rgb(0.97, 0.95, 0.92),
         evenRow: rgb(0.98, 0.97, 0.95),
         border: rgb(0.7, 0.65, 0.6),
-        headerText: rgb(0.2, 0.15, 0.1)
+        headerText: rgb(0.2, 0.15, 0.1),
+        lightGray: rgb(0.96, 0.95, 0.94)
       }
     };
     

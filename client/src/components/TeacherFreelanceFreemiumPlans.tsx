@@ -358,8 +358,8 @@ export default function TeacherFreelanceFreemiumPlans() {
           </p>
           <p className="text-gray-600">
             {language === 'fr' 
-              ? 'Aucune obligation d\'engagement • Accès complet à toutes les fonctionnalités • Support technique inclus • Formation gratuite pour la prise en main'
-              : 'No commitment required • Full access to all features • Technical support included • Free training for getting started'
+              ? 'Aucune obligation d\'engagement ✓ Accès complet à toutes les fonctionnalités ✓ Support technique inclus ✓ Formation gratuite pour la prise en main'
+              : 'No commitment required ✓ Full access to all features ✓ Technical support included ✓ Free training for getting started'
             }
           </p>
         </div>

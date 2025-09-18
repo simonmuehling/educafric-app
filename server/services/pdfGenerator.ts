@@ -632,13 +632,13 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const etapeSteps = [
-      '• Connexion en tant qu\'enseignant (rôle Teacher)',
-      '• Accès au module de création de bulletins',
-      '• Sélection de l\'élève et de la classe',
-      '• Saisie des notes par matière avec coefficients',
-      '• Ajout de commentaires personnalisés par matière',
-      '• Calcul automatique de la moyenne générale',
-      '• Sauvegarde en mode "brouillon"'
+      '> Connexion en tant qu\'enseignant (rôle Teacher)',
+      '> Accès au module de création de bulletins',
+      '> Sélection de l\'élève et de la classe',
+      '> Saisie des notes par matière avec coefficients',
+      '> Ajout de commentaires personnalisés par matière',
+      '> Calcul automatique de la moyenne générale',
+      '> Sauvegarde en mode "brouillon"'
     ];
     
     etapeSteps.forEach(step => {
@@ -675,12 +675,12 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const validationSteps = [
-      '• Revue par le directeur (rôle Director)',
-      '• Signature numérique du directeur',
-      '• Application du cachet officiel de l\'école',
-      '• Génération du code QR de vérification',
-      '• Création du hash cryptographique anti-falsification',
-      '• Publication officielle du bulletin'
+      '> Revue par le directeur (rôle Director)',
+      '> Signature numérique du directeur',
+      '> Application du cachet officiel de l\'école',
+      '> Génération du code QR de vérification',
+      '> Création du hash cryptographique anti-falsification',
+      '> Publication officielle du bulletin'
     ];
     
     validationSteps.forEach(step => {
@@ -701,15 +701,15 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const pdfFeatures = [
-      '• Logo de l\'école intégré automatiquement',
-      '• Photo de l\'élève (si disponible)',
-      '• Format officiel conforme aux standards camerounais',
-      '• Support bilingue (Français/Anglais)',
-      '• Code QR de vérification authentique',
-      '• Signatures numériques visibles',
-      '• Cachet officiel de l\'école',
-      '• Filigrane de sécurité',
-      '• Métadonnées cryptographiques'
+      '- Logo de l\'école intégré automatiquement',
+      '- Photo de l\'élève (si disponible)',
+      '- Format officiel conforme aux standards camerounais',
+      '- Support bilingue (Français/Anglais)',
+      '- Code QR de vérification authentique',
+      '- Signatures numériques visibles',
+      '- Cachet officiel de l\'école',
+      '- Filigrane de sécurité',
+      '- Métadonnées cryptographiques'
     ];
     
     pdfFeatures.forEach(feature => {
@@ -728,12 +728,12 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const notificationSteps = [
-      '• SMS automatique aux parents et élèves',
-      '• Email avec bulletin PDF en pièce jointe',
-      '• Message WhatsApp formaté avec détails',
-      '• Notifications push dans l\'application mobile',
-      '• Tracking des livraisons pour chaque canal',
-      '• Gestion des échecs et reprises automatiques'
+      '> SMS automatique aux parents et élèves',
+      '> Email avec bulletin PDF en pièce jointe',
+      '> Message WhatsApp formaté avec détails',
+      '> Notifications push dans l\'application mobile',
+      '> Tracking des livraisons pour chaque canal',
+      '> Gestion des échecs et reprises automatiques'
     ];
     
     notificationSteps.forEach(step => {
@@ -768,12 +768,12 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const securityFeatures = [
-      '• Code QR unique pour chaque bulletin',
-      '• Hash cryptographique SHA-256',
-      '• Signatures numériques vérifiables',
-      '• Protection anti-falsification',
-      '• Traçabilité complète des modifications',
-      '• Vérification en ligne disponible 24h/24'
+      '- Code QR unique pour chaque bulletin',
+      '- Hash cryptographique SHA-256',
+      '- Signatures numériques vérifiables',
+      '- Protection anti-falsification',
+      '- Traçabilité complète des modifications',
+      '- Vérification en ligne disponible 24h/24'
     ];
     
     securityFeatures.forEach(feature => {
@@ -792,14 +792,14 @@ export class PDFGenerator {
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     const results = [
-      '• Temps total du processus: < 2 minutes',
-      '• Taux de réussite notifications: 100%',
-      '• SMS envoyés: 2/2 ✓',
-      '• Emails envoyés: 2/2 ✓',
-      '• Messages WhatsApp: 2/2 ✓',
-      '• PDF généré avec succès',
-      '• Signatures appliquées',
-      '• Code QR fonctionnel'
+      '- Temps total du processus: < 2 minutes',
+      '- Taux de réussite notifications: 100%',
+      '- SMS envoyés: 2/2',
+      '- Emails envoyés: 2/2',
+      '- Messages WhatsApp: 2/2',
+      '- PDF généré avec succès',
+      '- Signatures appliquées',
+      '- Code QR fonctionnel'
     ];
     
     results.forEach(result => {

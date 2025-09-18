@@ -282,7 +282,7 @@ const Demo = () => {
                             {language === 'fr' ? 'Démo Complète' : 'Complete Demo'}
                           </h4>
                           <p className="text-xs text-black dark:text-muted-foreground">
-                            11.5 MB • {language === 'fr' ? 'Toutes fonctionnalités' : 'All features'}
+                            11.5 MB | {language === 'fr' ? 'Toutes fonctionnalités' : 'All features'}
                           </p>
                         </div>
                       </div>
@@ -302,7 +302,7 @@ const Demo = () => {
                             {language === 'fr' ? 'Démo Complète' : 'Complete Demo'}
                           </h4>
                           <p className="text-xs text-black dark:text-muted-foreground">
-                            16.0 MB • {language === 'fr' ? 'Version étendue' : 'Extended version'}
+                            16.0 MB | {language === 'fr' ? 'Version étendue' : 'Extended version'}
                           </p>
                         </div>
                       </div>

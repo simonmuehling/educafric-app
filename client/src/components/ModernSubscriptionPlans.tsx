@@ -257,8 +257,8 @@ export default function ModernSubscriptionPlans() {
           </h3>
           <p className="text-blue-100 mb-4">
             {language === 'fr' 
-              ? 'Suivi en temps réel • Zones de sécurité • Notifications d\'urgence • Optimisé pour les réseaux africains'
-              : 'Real-time tracking • Safety zones • Emergency alerts • Optimized for African networks'
+              ? 'Suivi en temps réel ✓ Zones de sécurité ✓ Notifications d\'urgence ✓ Optimisé pour les réseaux africains'
+              : 'Real-time tracking ✓ Safety zones ✓ Emergency alerts ✓ Optimized for African networks'
             }
           </p>
           <a 

@@ -112,10 +112,10 @@ export const SandboxAutoscaleIndicator: React.FC<SandboxAutoscaleIndicatorProps>
         <div className="mt-3 text-xs text-blue-600">
           <strong>Fonctionnalités Autoscale:</strong>
           <ul className="ml-4 mt-1 space-y-0.5">
-            <li>• Actualisation automatique toutes les 5 minutes</li>
-            <li>• Prévention des duplications de logs</li>
-            <li>• Nettoyage automatique du cache sandbox</li>
-            <li>• Synchronisation des données en temps réel</li>
+            <li>✓ Actualisation automatique toutes les 5 minutes</li>
+            <li>✓ Prévention des duplications de logs</li>
+            <li>✓ Nettoyage automatique du cache sandbox</li>
+            <li>✓ Synchronisation des données en temps réel</li>
           </ul>
         </div>
       </CardContent>

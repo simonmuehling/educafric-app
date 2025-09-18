@@ -105,7 +105,7 @@ export default function GeolocationPricing() {
         email: 'Email',
         phone: 'Téléphone',
         website: 'Site Web',
-        footer: 'Document généré le : juillet 2025 • Educafric - Plateforme Éducative Africaine'
+        footer: 'Document généré le : juillet 2025 | Educafric - Plateforme Éducative Africaine'
       }
     },
     
@@ -196,7 +196,7 @@ export default function GeolocationPricing() {
         email: 'Email',
         phone: 'Phone',
         website: 'Website',
-        footer: 'Document generated: July 2025 • Educafric - African Educational Platform'
+        footer: 'Document generated: July 2025 | Educafric - African Educational Platform'
       }
     }
   };
@@ -329,11 +329,11 @@ export default function GeolocationPricing() {
           {/* Pricing */}
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl text-center mb-6">
             <h3 className="text-2xl font-bold mb-2">💰 {t?.pricing?.title}</h3>
-            <div className="text-xl mb-2">{t?.pricing?.monthly} • {t?.pricing?.yearly}</div>
+            <div className="text-xl mb-2">{t?.pricing?.monthly} | {t?.pricing?.yearly}</div>
             <div className="text-sm opacity-90 mb-4">{t?.pricing?.description}</div>
             <div className="bg-white bg-opacity-20 rounded-lg p-3 text-sm">
               <strong>{language === 'fr' ? 'PROMOTION LANCEMENT' : 'LAUNCH PROMOTION'}</strong><br/>
-              {language === 'fr' ? 'Valable jusqu\'au 31 décembre 2025 • Cameroun' : 'Valid until December 31, 2025 • Cameroon'}
+              {language === 'fr' ? 'Valable jusqu\'au 31 décembre 2025 | Cameroun' : 'Valid until December 31, 2025 | Cameroon'}
             </div>
           </div>
 
@@ -367,10 +367,10 @@ export default function GeolocationPricing() {
                   {language === 'fr' ? 'Smartphones' : 'Smartphones'}
                 </h5>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• Android 8.0+</li>
-                  <li>• iOS 12.0+</li>
-                  <li>• GPS intégré</li>
-                  <li>• {language === 'fr' ? 'Mode économie batterie' : 'Battery saving mode'}</li>
+                  <li>✓ Android 8.0+</li>
+                  <li>✓ iOS 12.0+</li>
+                  <li>✓ GPS intégré</li>
+                  <li>✓ {language === 'fr' ? 'Mode économie batterie' : 'Battery saving mode'}</li>
                 </ul>
               </div>
               <div className="bg-green-50 p-4 rounded-lg">
@@ -378,10 +378,10 @@ export default function GeolocationPricing() {
                   {language === 'fr' ? 'Montres Connectées' : 'Smart Watches'}
                 </h5>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• GPS + 4G/LTE</li>
-                  <li>• {language === 'fr' ? 'Bouton SOS' : 'SOS Button'}</li>
-                  <li>• {language === 'fr' ? 'Résistant à l\'eau' : 'Water resistant'}</li>
-                  <li>• {language === 'fr' ? 'Autonomie 48h' : '48h battery life'}</li>
+                  <li>✓ GPS + 4G/LTE</li>
+                  <li>✓ {language === 'fr' ? 'Bouton SOS' : 'SOS Button'}</li>
+                  <li>✓ {language === 'fr' ? 'Résistant à l\'eau' : 'Water resistant'}</li>
+                  <li>✓ {language === 'fr' ? 'Autonomie 48h' : '48h battery life'}</li>
                 </ul>
               </div>
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -389,10 +389,10 @@ export default function GeolocationPricing() {
                   {language === 'fr' ? 'Tablettes Scolaires' : 'School Tablets'}
                 </h5>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• Android/iPad</li>
-                  <li>• {language === 'fr' ? 'Mode classe' : 'Classroom mode'}</li>
-                  <li>• {language === 'fr' ? 'Géolocalisation passive' : 'Passive geolocation'}</li>
-                  <li>• {language === 'fr' ? 'Contrôle présence' : 'Attendance control'}</li>
+                  <li>✓ Android/iPad</li>
+                  <li>✓ {language === 'fr' ? 'Mode classe' : 'Classroom mode'}</li>
+                  <li>✓ {language === 'fr' ? 'Géolocalisation passive' : 'Passive geolocation'}</li>
+                  <li>✓ {language === 'fr' ? 'Contrôle présence' : 'Attendance control'}</li>
                 </ul>
               </div>
             </div>

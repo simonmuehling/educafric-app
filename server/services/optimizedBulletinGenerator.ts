@@ -954,7 +954,7 @@ export class OptimizedBulletinGenerator {
       }
       
       if (conductInfo.length > 0) {
-        drawText(conductInfo.join(' • '), A4_DIMENSIONS.margin, currentY, { size: 10 });
+        drawText(conductInfo.join(' | '), A4_DIMENSIONS.margin, currentY, { size: 10 });
         currentY -= spacing.conductHeight + spacing.minSpacing;
       }
       
