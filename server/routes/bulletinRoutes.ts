@@ -2762,7 +2762,7 @@ router.post('/generate-comprehensive', requireAuth, async (req, res) => {
     // Verify all students have approved grades
     const approvedCheck = await db.select({
       studentId: teacherGradeSubmissions.studentId,
-      approvedCount: sql<number>`COUNT(CASE WHEN review_status = 'approved' THEN 1 END)`,
+      approvedCount: sql<number>`COUNT(CASE WHEN ${teacherGradeSubmissions.reviewStatus} = 'approved' THEN 1 END)`,
       totalCount: sql<number>`COUNT(*)`
     })
     .from(teacherGradeSubmissions)
