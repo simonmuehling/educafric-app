@@ -2759,10 +2759,10 @@ router.post('/generate-comprehensive', requireAuth, async (req, res) => {
       });
     }
 
-    // Verify all students have approved grades
-    const approvedCheck = await db.select({
+    // Verify all students have submitted grades  
+    const submittedCheck = await db.select({
       studentId: teacherGradeSubmissions.studentId,
-      approvedCount: sql<number>`COUNT(CASE WHEN ${teacherGradeSubmissions.reviewStatus} = 'approved' THEN 1 END)`,
+      submittedCount: sql<number>`COUNT(CASE WHEN ${teacherGradeSubmissions.isSubmitted} = true THEN 1 END)`,
       totalCount: sql<number>`COUNT(*)`
     })
     .from(teacherGradeSubmissions)
@@ -2771,24 +2771,23 @@ router.post('/generate-comprehensive', requireAuth, async (req, res) => {
       eq(teacherGradeSubmissions.classId, parseInt(classId)),
       eq(teacherGradeSubmissions.term, term),
       eq(teacherGradeSubmissions.academicYear, academicYear),
-      eq(teacherGradeSubmissions.isSubmitted, true),
       inArray(teacherGradeSubmissions.studentId, studentIds.map(id => parseInt(id)))
     ))
     .groupBy(teacherGradeSubmissions.studentId);
 
-    const studentsWithoutApprovedGrades = studentIds.filter(studentId => {
-      const studentCheck = approvedCheck.find(check => check.studentId === parseInt(studentId));
-      return !studentCheck || studentCheck.approvedCount === 0;
+    const studentsWithoutSubmittedGrades = studentIds.filter(studentId => {
+      const studentCheck = submittedCheck.find(check => check.studentId === parseInt(studentId));
+      return !studentCheck || studentCheck.submittedCount === 0;
     });
 
-    if (studentsWithoutApprovedGrades.length > 0) {
+    if (studentsWithoutSubmittedGrades.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Some students have no approved grades',
+        message: 'Some students have no submitted grades',
         data: {
-          studentsWithoutApprovedGrades,
+          studentsWithoutSubmittedGrades,
           totalRequested: studentIds.length,
-          studentsWithApprovedGrades: studentIds.length - studentsWithoutApprovedGrades.length
+          studentsWithSubmittedGrades: studentIds.length - studentsWithoutSubmittedGrades.length
         }
       });
     }
