@@ -66,7 +66,16 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: timestamp("updated_at").defaultNow(),
+  
+  // ===== SECTION WORKFLOW & VALIDATION =====
+  // Bulletin workflow status and validation tracking
+  status: text("status").default("draft"), // 'draft', 'submitted', 'approved', 'sent' - État du workflow du bulletin
+  submittedAt: timestamp("submitted_at"), // Date et heure de soumission par l'enseignant
+  approvedAt: timestamp("approved_at"), // Date et heure d'approbation par le directeur
+  sentAt: timestamp("sent_at"), // Date et heure d'envoi aux parents
+  approvedBy: integer("approved_by"), // ID de l'utilisateur (directeur) qui a approuvé le bulletin
+  notificationsSent: jsonb("notifications_sent") // Statut des notifications envoyées {sms: boolean, email: boolean, whatsapp: boolean}
 });
 
 // ===== SUBJECT-SPECIFIC COEFFICIENTS & CODES =====
@@ -118,14 +127,10 @@ const classProfileSchema = z.object({
 }).optional();
 
 // Comprehensive bulletin insert schema - simplified  
-export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive, {
-  conductWarning: z.boolean().optional(),
-  conductBlame: z.boolean().optional(), 
-  permanentExclusion: z.boolean().optional()
-}).omit({ 
+export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive).omit({ 
   id: true, 
   createdAt: true, 
-  updatedAt: true 
+  updatedAt: true
 });
 
 // Additional validation schema
@@ -156,6 +161,15 @@ export const bulletinComprehensiveValidationSchema = z.object({
   // Text validations
   workAppreciation: z.string().max(500, "Maximum 500 characters").optional(),
   generalComment: z.string().max(300, "Maximum 300 characters").optional(),
+  
+  // Workflow validations
+  status: z.enum(["draft", "submitted", "approved", "sent"]).optional(),
+  approvedBy: z.number().int().positive().optional(),
+  notificationsSent: z.object({
+    sms: z.boolean().optional(),
+    email: z.boolean().optional(),
+    whatsapp: z.boolean().optional()
+  }).optional(),
   
   // Signature fields
   parentVisaName: z.string().optional(),
@@ -256,6 +270,14 @@ export function generateSampleComprehensiveData(studentId: number, classId: numb
       passRate: 78.5,
       topScore: 19.2,
       lowestScore: 8.1
+    },
+    
+    // Workflow fields - initialized with default values
+    status: "draft" as const,
+    notificationsSent: {
+      sms: false,
+      email: false,
+      whatsapp: false
     },
     
     dataSource: "generated"
