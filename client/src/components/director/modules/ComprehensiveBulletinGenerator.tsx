@@ -264,6 +264,10 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Bulk selection state for bulletins
+  const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  
   // Generation options
   const [includeComments, setIncludeComments] = useState(true);
   const [includeRankings, setIncludeRankings] = useState(true);
@@ -1237,7 +1241,7 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/pending');
       const data = await response.json();
-      return data.success ? data.bulletins : [];
+      return data.success ? data.data : [];
     }
   });
 
@@ -1246,7 +1250,7 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/approved');
       const data = await response.json();
-      return data.success ? data.bulletins : [];
+      return data.success ? data.data : [];
     }
   });
 
@@ -1255,7 +1259,7 @@ export default function ComprehensiveBulletinGenerator() {
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/sent');
       const data = await response.json();
-      return data.success ? data.bulletins : [];
+      return data.success ? data.data : [];
     }
   });
 
@@ -1287,6 +1291,35 @@ export default function ComprehensiveBulletinGenerator() {
     }
   });
 
+  // Bulk approve mutation
+  const bulkApproveMutation = useMutation({
+    mutationFn: (bulletinIds: number[]) => 
+      apiRequest('POST', '/api/comprehensive-bulletins/bulk-approve', {
+        bulletinIds
+      }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
+      setSelectedBulletins([]);
+      setSelectAll(false);
+      const count = selectedBulletins.length;
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? `${count} bulletin${count > 1 ? 's' : ''} approuvé${count > 1 ? 's' : ''} avec succès`
+          : `${count} bulletin${count > 1 ? 's' : ''} approved successfully`,
+        variant: 'default'
+      });
+    },
+    onError: (error: any) => {
+      console.error('Bulk approve error:', error);
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Erreur lors de l\'approbation en lot' : 'Bulk approval error'),
+        variant: 'destructive'
+      });
+    }
+  });
+
   // Helper functions
   const handleClassChange = (classId: string) => {
     setSelectedClass(classId);
@@ -1313,6 +1346,56 @@ export default function ComprehensiveBulletinGenerator() {
       setSelectedStudents([]);
     } else {
       setSelectedStudents(eligibleStudents.map((s: StudentData) => s.id));
+    }
+  };
+
+  // Handlers pour la sélection de bulletins en lot
+  const handleBulletinSelectAll = () => {
+    if (!pendingBulletins) return;
+    
+    if (selectAll) {
+      setSelectedBulletins([]);
+      setSelectAll(false);
+    } else {
+      setSelectedBulletins(pendingBulletins.map((bulletin: any) => bulletin.id));
+      setSelectAll(true);
+    }
+  };
+
+  const handleBulletinSelect = (bulletinId: number) => {
+    const isSelected = selectedBulletins.includes(bulletinId);
+    
+    if (isSelected) {
+      const newSelected = selectedBulletins.filter(id => id !== bulletinId);
+      setSelectedBulletins(newSelected);
+      if (selectAll) setSelectAll(false);
+    } else {
+      const newSelected = [...selectedBulletins, bulletinId];
+      setSelectedBulletins(newSelected);
+      if (pendingBulletins && newSelected.length === pendingBulletins.length) {
+        setSelectAll(true);
+      }
+    }
+  };
+
+  const handleBulkApprove = () => {
+    if (selectedBulletins.length === 0) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Veuillez sélectionner au moins un bulletin' : 'Please select at least one bulletin',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Confirmation dialog
+    const count = selectedBulletins.length;
+    const confirmMessage = language === 'fr' 
+      ? `Approuver ${count} bulletin${count > 1 ? 's' : ''} sélectionné${count > 1 ? 's' : ''} ?`
+      : `Approve ${count} selected bulletin${count > 1 ? 's' : ''}?`;
+
+    if (window.confirm(confirmMessage)) {
+      bulkApproveMutation.mutate(selectedBulletins);
     }
   };
 
@@ -2998,10 +3081,44 @@ export default function ComprehensiveBulletinGenerator() {
         <TabsContent value="pending-bulletins" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-500" />
-                {t.pendingBulletins} ({pendingBulletins?.length || 0})
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-500" />
+                  {t.pendingBulletins} ({pendingBulletins?.length || 0})
+                </CardTitle>
+                
+                {pendingBulletins && pendingBulletins.length > 0 && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="select-all-bulletins"
+                        checked={selectAll}
+                        onCheckedChange={handleBulletinSelectAll}
+                        data-testid="select-all-bulletins"
+                      />
+                      <Label htmlFor="select-all-bulletins" className="text-sm font-medium">
+                        {language === 'fr' ? 'Sélectionner tout' : 'Select all'}
+                      </Label>
+                    </div>
+                    
+                    {selectedBulletins.length > 0 && (
+                      <Button
+                        onClick={handleBulkApprove}
+                        disabled={bulkApproveMutation.isPending}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        data-testid="bulk-approve-button"
+                      >
+                        {bulkApproveMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                        )}
+                        {language === 'fr' ? 'Approuver la sélection' : 'Approve selection'} ({selectedBulletins.length})
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {loadingPending ? (
@@ -3016,45 +3133,67 @@ export default function ComprehensiveBulletinGenerator() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pendingBulletins.map((bulletin: any) => (
-                    <Card key={bulletin.id} className="border-l-4 border-l-orange-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <h4 className="font-semibold">
-                              {bulletin.studentFirstName} {bulletin.studentLastName}
-                            </h4>
-                            <div className="text-sm text-muted-foreground">
-                              <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                  {pendingBulletins.map((bulletin: any) => {
+                    const isSelected = selectedBulletins.includes(bulletin.id);
+                    return (
+                      <Card 
+                        key={bulletin.id} 
+                        className={`border-l-4 border-l-orange-500 transition-colors ${
+                          isSelected ? 'bg-orange-50 border-orange-300' : ''
+                        }`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            {/* Checkbox de sélection */}
+                            <Checkbox
+                              id={`select-bulletin-${bulletin.id}`}
+                              checked={isSelected}
+                              onCheckedChange={() => handleBulletinSelect(bulletin.id)}
+                              data-testid={`select-bulletin-${bulletin.id}`}
+                              className="flex-shrink-0"
+                            />
+                            
+                            {/* Contenu du bulletin */}
+                            <div className="flex-1 flex items-center justify-between">
+                              <div className="space-y-1">
+                                <h4 className="font-semibold">
+                                  {bulletin.studentFirstName} {bulletin.studentLastName}
+                                </h4>
+                                <div className="text-sm text-muted-foreground">
+                                  <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                                </div>
+                                <Badge variant="outline" className="text-orange-600 border-orange-200">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {t.waitingApproval}
+                                </Badge>
+                              </div>
+                              
+                              {/* Boutons d'action */}
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  data-testid={`approve-bulletin-${bulletin.id}`}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  {t.approve}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`view-bulletin-${bulletin.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  {t.viewDetails}
+                                </Button>
+                              </div>
                             </div>
-                            <Badge variant="outline" className="text-orange-600 border-orange-200">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {t.waitingApproval}
-                            </Badge>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                              data-testid={`approve-bulletin-${bulletin.id}`}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              {t.approve}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`view-bulletin-${bulletin.id}`}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t.viewDetails}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
