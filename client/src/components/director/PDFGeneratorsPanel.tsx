@@ -30,6 +30,16 @@ interface PDFGeneratorOptions {
   [key: string]: any;
 }
 
+interface ClassData {
+  id: number;
+  name: string;
+}
+
+interface ClassesResponse {
+  success: boolean;
+  classes: ClassData[];
+}
+
 interface PDFGeneratorConfig {
   id: string;
   title: string;
@@ -196,17 +206,28 @@ export function PDFGeneratorsPanel() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Récupération des classes de l'école pour la feuille de synthèse et l'emploi du temps
-  const { data: classesData } = useQuery({
+  const { data: classesData } = useQuery<ClassesResponse>({
     queryKey: ['/api/director/classes'],
     enabled: selectedGenerator === 'master-sheet' || selectedGenerator === 'timetable' || showAdvanced
   });
 
+  // Helper function to check if classesData is valid
+  const isValidClassesData = (data: unknown): data is ClassesResponse => {
+    return data !== null && 
+           data !== undefined && 
+           typeof data === 'object' && 
+           'success' in data && 
+           'classes' in data &&
+           typeof (data as ClassesResponse).success === 'boolean' &&
+           Array.isArray((data as ClassesResponse).classes);
+  };
+
   // Créer une copie modifiée du générateur avec les classes disponibles
   const currentGenerator = (() => {
     const generator = PDF_GENERATORS.find(g => g.id === selectedGenerator)!;
-    if ((generator.id === 'master-sheet' || generator.id === 'timetable') && classesData?.success) {
+    if ((generator.id === 'master-sheet' || generator.id === 'timetable') && isValidClassesData(classesData) && classesData.success) {
       const classes = classesData.classes || [];
-      const classOptions = classes.map((cls: any) => `${cls.id}:${cls.name}`);
+      const classOptions = classes.map((cls: ClassData) => `${cls.id}:${cls.name}`);
       
       return {
         ...generator,
