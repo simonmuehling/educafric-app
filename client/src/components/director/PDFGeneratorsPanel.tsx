@@ -115,8 +115,8 @@ const PDF_GENERATORS: PDFGeneratorConfig[] = [
   },
   {
     id: 'transcript',
-    title: 'Relevé de Notes',
-    description: 'Transcription académique complète multi-trimestres',
+    title: 'Relevé de Résultats',
+    description: 'Document officiel présentant l\'ensemble du parcours scolaire avec validation officielle (pour inscriptions, bourses)',
     icon: GraduationCap,
     endpoint: '/api/transcripts/generate',
     demoEndpoint: '/api/transcripts/demo',
