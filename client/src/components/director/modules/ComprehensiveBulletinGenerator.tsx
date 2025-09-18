@@ -378,6 +378,13 @@ export default function ComprehensiveBulletinGenerator() {
       generationOptions: 'Options de Génération',
       bulkOperations: 'Opérations Groupées',
       
+      // Subject Coefficients Section
+      subjectCoefficientsSection: 'Coefficients par Matière',
+      subjectCoefficientsDescription: 'Configurez les coefficients et codes pour chaque matière de cet élève.',
+      fillDefaultValues: 'Valeurs par défaut',
+      clearAll: 'Effacer tout',
+      selectStudentToConfigureCoefficients: 'Sélectionnez un élève pour configurer les coefficients par matière.',
+      
       // Class selection
       selectClass: 'Sélectionner une classe',
       selectTerm: 'Trimestre',
@@ -545,6 +552,13 @@ export default function ComprehensiveBulletinGenerator() {
       studentManagement: 'Student Management',
       generationOptions: 'Generation Options',
       bulkOperations: 'Bulk Operations',
+      
+      // Subject Coefficients Section
+      subjectCoefficientsSection: 'Subject Coefficients',
+      subjectCoefficientsDescription: 'Configure coefficients and codes for each subject of this student.',
+      fillDefaultValues: 'Default Values',
+      clearAll: 'Clear All',
+      selectStudentToConfigureCoefficients: 'Select a student to configure subject coefficients.',
       
       // Class selection
       selectClass: 'Select a class',
@@ -877,13 +891,7 @@ export default function ComprehensiveBulletinGenerator() {
       
       console.log('[MANUAL_SAVE] 💾 Saving comprehensive data:', comprehensiveData);
       
-      return apiRequest('/api/comprehensive-bulletins/save', {
-        method: 'POST',
-        body: JSON.stringify(comprehensiveData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return apiRequest('POST', '/api/comprehensive-bulletins/save', comprehensiveData);
     },
     onSuccess: () => {
       toast({

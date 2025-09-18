@@ -1042,11 +1042,18 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
       });
     }
 
-    const { subjectCoefficients, ...bulletinData } = validationResult.data;
+    const validatedData = validationResult.data;
+    const { subjectCoefficients, parentVisaName, parentVisaDate, teacherVisaName, teacherVisaDate, headmasterVisaName, headmasterVisaDate, totalGeneral, successRate, ...bulletinData } = validatedData;
 
     // Prepare data for database
     const comprehensiveData = {
       ...bulletinData,
+      // Include required fields
+      studentId: validatedData.studentId,
+      classId: validatedData.classId,
+      term: validatedData.term,
+      academicYear: validatedData.academicYear,
+      // Metadata
       schoolId,
       enteredBy: user.id,
       lastModifiedBy: user.id,
@@ -1054,28 +1061,28 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
       unjustifiedAbsenceHours: bulletinData.unjustifiedAbsenceHours ? parseFloat(bulletinData.unjustifiedAbsenceHours).toString() : "0.00",
       justifiedAbsenceHours: bulletinData.justifiedAbsenceHours ? parseFloat(bulletinData.justifiedAbsenceHours).toString() : "0.00",
       detentionHours: bulletinData.detentionHours ? parseFloat(bulletinData.detentionHours).toString() : "0.00",
-      totalGeneral: bulletinData.totalGeneral ? parseFloat(bulletinData.totalGeneral).toString() : null,
-      successRate: bulletinData.successRate ? parseFloat(bulletinData.successRate).toString() : null,
+      totalGeneral: totalGeneral ? parseFloat(totalGeneral).toString() : null,
+      successRate: successRate ? parseFloat(successRate).toString() : null,
       // Convert signature data to JSON format
-      parentVisa: bulletinData.parentVisaName || bulletinData.parentVisaDate ? {
-        name: bulletinData.parentVisaName || '',
-        date: bulletinData.parentVisaDate || ''
+      parentVisa: parentVisaName || parentVisaDate ? {
+        name: parentVisaName || '',
+        date: parentVisaDate || ''
       } : null,
-      teacherVisa: bulletinData.teacherVisaName || bulletinData.teacherVisaDate ? {
-        name: bulletinData.teacherVisaName || '',
-        date: bulletinData.teacherVisaDate || ''
+      teacherVisa: teacherVisaName || teacherVisaDate ? {
+        name: teacherVisaName || '',
+        date: teacherVisaDate || ''
       } : null,
-      headmasterVisa: bulletinData.headmasterVisaName || bulletinData.headmasterVisaDate ? {
-        name: bulletinData.headmasterVisaName || '',
-        date: bulletinData.headmasterVisaDate || ''
+      headmasterVisa: headmasterVisaName || headmasterVisaDate ? {
+        name: headmasterVisaName || '',
+        date: headmasterVisaDate || ''
       } : null
     };
 
     console.log('[COMPREHENSIVE_SAVE] 💾 Saving bulletin data:', {
-      studentId: comprehensiveData.studentId,
-      classId: comprehensiveData.classId,
-      term: comprehensiveData.term,
-      academicYear: comprehensiveData.academicYear,
+      studentId: validatedData.studentId,
+      classId: validatedData.classId,
+      term: validatedData.term,
+      academicYear: validatedData.academicYear,
       subjectCoefficientsCount: subjectCoefficients ? Object.keys(subjectCoefficients).length : 0
     });
 
@@ -1083,10 +1090,10 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
     const existingRecord = await db.select()
       .from(bulletinComprehensive)
       .where(and(
-        eq(bulletinComprehensive.studentId, comprehensiveData.studentId),
-        eq(bulletinComprehensive.classId, comprehensiveData.classId),
-        eq(bulletinComprehensive.term, comprehensiveData.term),
-        eq(bulletinComprehensive.academicYear, comprehensiveData.academicYear),
+        eq(bulletinComprehensive.studentId, validatedData.studentId),
+        eq(bulletinComprehensive.classId, validatedData.classId),
+        eq(bulletinComprehensive.term, validatedData.term),
+        eq(bulletinComprehensive.academicYear, validatedData.academicYear),
         eq(bulletinComprehensive.schoolId, schoolId)
       ))
       .limit(1);
@@ -1096,10 +1103,7 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
     if (existingRecord.length > 0) {
       // Update existing record
       await db.update(bulletinComprehensive)
-        .set({
-          ...comprehensiveData,
-          updatedAt: new Date()
-        })
+        .set(comprehensiveData)
         .where(eq(bulletinComprehensive.id, existingRecord[0].id));
       
       bulletinComprehensiveId = existingRecord[0].id;
@@ -1107,7 +1111,7 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
     } else {
       // Insert new record
       const insertResult = await db.insert(bulletinComprehensive)
-        .values(comprehensiveData)
+        .values([comprehensiveData])
         .returning({ id: bulletinComprehensive.id });
       
       bulletinComprehensiveId = insertResult[0].id;
@@ -1126,7 +1130,7 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
         if (coefficients && typeof coefficients === 'object') {
           const subjectCodeData = {
             bulletinComprehensiveId,
-            studentId: comprehensiveData.studentId,
+            studentId: validatedData.studentId,
             subjectId: parseInt(subjectId),
             subjectName: `Subject ${subjectId}`, // This should be fetched from subjects table in production
             CTBA: coefficients.CTBA ? parseFloat(coefficients.CTBA).toString() : null,
@@ -1230,12 +1234,12 @@ router.get('/load/:studentId/:classId/:term/:academicYear', requireAuth, require
     const responseData = {
       ...bulletin,
       // Transform JSON visa data to separate fields for form
-      parentVisaName: bulletin.parentVisa?.name || '',
-      parentVisaDate: bulletin.parentVisa?.date || '',
-      teacherVisaName: bulletin.teacherVisa?.name || '',
-      teacherVisaDate: bulletin.teacherVisa?.date || '',
-      headmasterVisaName: bulletin.headmasterVisa?.name || '',
-      headmasterVisaDate: bulletin.headmasterVisa?.date || '',
+      parentVisaName: (bulletin.parentVisa as any)?.name || '',
+      parentVisaDate: (bulletin.parentVisa as any)?.date || '',
+      teacherVisaName: (bulletin.teacherVisa as any)?.name || '',
+      teacherVisaDate: (bulletin.teacherVisa as any)?.date || '',
+      headmasterVisaName: (bulletin.headmasterVisa as any)?.name || '',
+      headmasterVisaDate: (bulletin.headmasterVisa as any)?.date || '',
       // Add subject coefficients
       subjectCoefficients
     };

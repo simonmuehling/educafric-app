@@ -117,28 +117,65 @@ const classProfileSchema = z.object({
   lowestScore: z.number().min(0).max(20)
 }).optional();
 
-// Comprehensive bulletin insert schema - simplified
-export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive).omit({ 
+// Comprehensive bulletin insert schema - simplified  
+export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive, {
+  conductWarning: z.boolean().optional(),
+  conductBlame: z.boolean().optional(), 
+  permanentExclusion: z.boolean().optional()
+}).omit({ 
   id: true, 
   createdAt: true, 
   updatedAt: true 
 });
 
 // Additional validation schema
-export const bulletinComprehensiveValidationSchema = insertBulletinComprehensiveSchema.extend({
+export const bulletinComprehensiveValidationSchema = z.object({
+  // Required fields
+  studentId: z.number().int().positive("Student ID is required"),
+  classId: z.number().int().positive("Class ID is required"),
+  term: z.string().min(1, "Term is required"),
+  academicYear: z.string().min(1, "Academic year is required"),
+  
   // Attendance validations
   unjustifiedAbsenceHours: z.string().optional(),
   justifiedAbsenceHours: z.string().optional(),
   latenessCount: z.number().min(0, "Must be >= 0").optional(),
   detentionHours: z.string().optional(),
   
-  // Academic validations  
+  // Disciplinary sanctions
+  conductWarning: z.boolean().optional(),
+  conductBlame: z.boolean().optional(),
   exclusionDays: z.number().min(0, "Must be >= 0").optional(),
+  permanentExclusion: z.boolean().optional(),
+  
+  // Academic validations  
+  totalGeneral: z.string().optional(),
   numberOfAverages: z.number().min(0, "Must be >= 0").optional(),
+  successRate: z.string().optional(),
   
   // Text validations
   workAppreciation: z.string().max(500, "Maximum 500 characters").optional(),
-  generalComment: z.string().max(300, "Maximum 300 characters").optional()
+  generalComment: z.string().max(300, "Maximum 300 characters").optional(),
+  
+  // Signature fields
+  parentVisaName: z.string().optional(),
+  parentVisaDate: z.string().optional(),
+  teacherVisaName: z.string().optional(),
+  teacherVisaDate: z.string().optional(),
+  headmasterVisaName: z.string().optional(),
+  headmasterVisaDate: z.string().optional(),
+  
+  // Subject coefficients
+  subjectCoefficients: z.record(z.object({
+    CTBA: z.string().optional(),
+    CBA: z.string().optional(),
+    CA: z.string().optional(),
+    CMA: z.string().optional(),
+    COTE: z.enum(["A", "B", "C", "D", "E", "F", ""]).optional(),
+    CNA: z.string().max(50).optional(),
+    minGrade: z.string().optional(),
+    maxGrade: z.string().optional()
+  })).optional()
 });
 
 // Subject codes insert schema - simplified
