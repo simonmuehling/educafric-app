@@ -24,20 +24,21 @@ import {
   type InsertBulletinSubjectCodes
 } from '../../shared/schemas/bulletinComprehensiveSchema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
+import { requireAuth, requireAnyRole } from '../middleware/auth';
 
 const router = Router();
 
-// Authentication and authorization middleware
-const requireAuth = (req: any, res: any, next: any) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: 'Authentication required' });
-  }
-  next();
-};
 
+// Authorization middleware for Director/Admin access
 const requireDirectorAuth = (req: any, res: any, next: any) => {
   const user = req.user as any;
   if (!user || !['Director', 'Admin'].includes(user.role)) {
+    console.log('[AUTH] 🚫 Access denied for user:', { 
+      userId: user?.id, 
+      role: user?.role, 
+      email: user?.email,
+      path: req.path 
+    });
     return res.status(403).json({ 
       success: false, 
       message: 'Access denied. Director or Admin role required.' 
@@ -2021,10 +2022,168 @@ router.get('/:bulletinId/distribution-status', requireAuth, requireDirectorAuth,
 
     const bulletinData = bulletin[0];
 
-    // Analyser les données de tracking des notifications
+    // CORRECTION CRITIQUE : Analyser les données de tracking avec nouveau format par destinataire
     const notificationsTracking = bulletinData.notificationsSent as any;
+    console.log('[BULLETIN_DISTRIBUTION_STATUS] Analyzing tracking data:', JSON.stringify(notificationsTracking, null, 2));
     
-    // Créer un statut détaillé avec les informations de tracking
+    // Supporter les deux formats : nouveau (perRecipient) et legacy
+    const isNewFormat = notificationsTracking?.perRecipient && notificationsTracking?.summary;
+    console.log('[BULLETIN_DISTRIBUTION_STATUS] Using format:', isNewFormat ? 'new (perRecipient)' : 'legacy');
+    
+    // Calculer les agrégats précis par canal et par destinataire
+    let aggregatedChannels = {
+      email: {
+        configured: false,
+        totalRecipients: 0,
+        successCount: 0,
+        failedCount: 0,
+        pendingCount: 0,
+        successRate: 0,
+        recipients: [] as any[]
+      },
+      sms: {
+        configured: false,
+        totalRecipients: 0,
+        successCount: 0,
+        failedCount: 0,
+        pendingCount: 0,
+        successRate: 0,
+        recipients: [] as any[]
+      },
+      whatsapp: {
+        configured: false,
+        totalRecipients: 0,
+        successCount: 0,
+        failedCount: 0,
+        pendingCount: 0,
+        successRate: 0,
+        recipients: [] as any[]
+      }
+    };
+    
+    if (isNewFormat) {
+      // NOUVEAU FORMAT : Utiliser les données par destinataire
+      const perRecipient = notificationsTracking.perRecipient || {};
+      
+      // Parcourir chaque destinataire et agréger les résultats
+      Object.entries(perRecipient).forEach(([recipientId, recipientData]: [string, any]) => {
+        // Analyser email pour ce destinataire
+        if (recipientData.email) {
+          aggregatedChannels.email.configured = true;
+          aggregatedChannels.email.totalRecipients++;
+          
+          if (recipientData.email.sent && recipientData.email.status === 'sent') {
+            aggregatedChannels.email.successCount++;
+          } else if (recipientData.email.error || recipientData.email.status === 'failed') {
+            aggregatedChannels.email.failedCount++;
+          } else {
+            aggregatedChannels.email.pendingCount++;
+          }
+          
+          aggregatedChannels.email.recipients.push({
+            recipientId,
+            sent: recipientData.email.sent,
+            status: recipientData.email.status,
+            sentAt: recipientData.email.sentAt,
+            error: recipientData.email.error,
+            attempts: recipientData.email.attempts || 0,
+            canRetry: (recipientData.email.retryCount || 0) < (recipientData.email.maxRetries || 3)
+          });
+        }
+        
+        // Analyser SMS pour ce destinataire
+        if (recipientData.sms) {
+          aggregatedChannels.sms.configured = true;
+          aggregatedChannels.sms.totalRecipients++;
+          
+          if (recipientData.sms.sent && recipientData.sms.status === 'sent') {
+            aggregatedChannels.sms.successCount++;
+          } else if (recipientData.sms.error || recipientData.sms.status === 'failed') {
+            aggregatedChannels.sms.failedCount++;
+          } else {
+            aggregatedChannels.sms.pendingCount++;
+          }
+          
+          aggregatedChannels.sms.recipients.push({
+            recipientId,
+            sent: recipientData.sms.sent,
+            status: recipientData.sms.status,
+            sentAt: recipientData.sms.sentAt,
+            error: recipientData.sms.error,
+            attempts: recipientData.sms.attempts || 0,
+            canRetry: (recipientData.sms.retryCount || 0) < (recipientData.sms.maxRetries || 3)
+          });
+        }
+        
+        // Analyser WhatsApp pour ce destinataire
+        if (recipientData.whatsapp) {
+          aggregatedChannels.whatsapp.configured = true;
+          aggregatedChannels.whatsapp.totalRecipients++;
+          
+          if (recipientData.whatsapp.sent && recipientData.whatsapp.status === 'sent') {
+            aggregatedChannels.whatsapp.successCount++;
+          } else if (recipientData.whatsapp.error || recipientData.whatsapp.status === 'failed') {
+            aggregatedChannels.whatsapp.failedCount++;
+          } else {
+            aggregatedChannels.whatsapp.pendingCount++;
+          }
+          
+          aggregatedChannels.whatsapp.recipients.push({
+            recipientId,
+            sent: recipientData.whatsapp.sent,
+            status: recipientData.whatsapp.status,
+            sentAt: recipientData.whatsapp.sentAt,
+            error: recipientData.whatsapp.error,
+            attempts: recipientData.whatsapp.attempts || 0,
+            canRetry: (recipientData.whatsapp.retryCount || 0) < (recipientData.whatsapp.maxRetries || 3)
+          });
+        }
+      });
+    } else if (notificationsTracking) {
+      // FORMAT LEGACY : Compatibilité descendante
+      console.log('[BULLETIN_DISTRIBUTION_STATUS] Using legacy format compatibility mode');
+      
+      if (notificationsTracking.email) {
+        aggregatedChannels.email.configured = true;
+        aggregatedChannels.email.totalRecipients = 1;
+        if (notificationsTracking.email.sent) {
+          aggregatedChannels.email.successCount = 1;
+        } else {
+          aggregatedChannels.email.failedCount = 1;
+        }
+      }
+      
+      if (notificationsTracking.sms) {
+        aggregatedChannels.sms.configured = true;
+        aggregatedChannels.sms.totalRecipients = 1;
+        if (notificationsTracking.sms.sent) {
+          aggregatedChannels.sms.successCount = 1;
+        } else {
+          aggregatedChannels.sms.failedCount = 1;
+        }
+      }
+      
+      if (notificationsTracking.whatsapp) {
+        aggregatedChannels.whatsapp.configured = true;
+        aggregatedChannels.whatsapp.totalRecipients = 1;
+        if (notificationsTracking.whatsapp.sent) {
+          aggregatedChannels.whatsapp.successCount = 1;
+        } else {
+          aggregatedChannels.whatsapp.failedCount = 1;
+        }
+      }
+    }
+    
+    // Calculer les taux de succès pour chaque canal
+    Object.keys(aggregatedChannels).forEach(channel => {
+      const channelData = aggregatedChannels[channel as keyof typeof aggregatedChannels];
+      const totalAttempts = channelData.successCount + channelData.failedCount;
+      channelData.successRate = totalAttempts > 0 
+        ? Math.round((channelData.successCount / totalAttempts) * 100)
+        : 0;
+    });
+    
+    // Créer un statut détaillé avec agrégats précis
     const distributionStatus = {
       bulletinInfo: {
         id: bulletinData.id,
@@ -2038,67 +2197,33 @@ router.get('/:bulletinId/distribution-status', requireAuth, requireDirectorAuth,
         sentAt: bulletinData.sentAt
       },
       distributionTracking: {
+        format: isNewFormat ? 'perRecipient' : 'legacy',
         hasNotifications: !!notificationsTracking,
-        lastUpdated: notificationsTracking?.lastUpdated || null,
-        totalAttempts: notificationsTracking?.totalAttempts || 0,
-        channels: {
-          email: {
-            configured: !!notificationsTracking?.email,
-            sent: notificationsTracking?.email?.sent || false,
-            sentAt: notificationsTracking?.email?.sentAt || null,
-            status: notificationsTracking?.email?.status || 'not_sent',
-            attempts: notificationsTracking?.email?.attempts || 0,
-            retryCount: notificationsTracking?.email?.retryCount || 0,
-            maxRetries: notificationsTracking?.email?.maxRetries || 3,
-            lastAttemptAt: notificationsTracking?.email?.lastAttemptAt || null,
-            error: notificationsTracking?.email?.error || null,
-            canRetry: (notificationsTracking?.email?.retryCount || 0) < (notificationsTracking?.email?.maxRetries || 3),
-            nextRetryAt: notificationsTracking?.email?.error ? 
-              new Date(Date.now() + Math.pow(2, notificationsTracking?.email?.retryCount || 0) * 1000).toISOString() : null
-          },
-          sms: {
-            configured: !!notificationsTracking?.sms,
-            sent: notificationsTracking?.sms?.sent || false,
-            sentAt: notificationsTracking?.sms?.sentAt || null,
-            status: notificationsTracking?.sms?.status || 'not_sent',
-            attempts: notificationsTracking?.sms?.attempts || 0,
-            retryCount: notificationsTracking?.sms?.retryCount || 0,
-            maxRetries: notificationsTracking?.sms?.maxRetries || 3,
-            lastAttemptAt: notificationsTracking?.sms?.lastAttemptAt || null,
-            error: notificationsTracking?.sms?.error || null,
-            canRetry: (notificationsTracking?.sms?.retryCount || 0) < (notificationsTracking?.sms?.maxRetries || 3),
-            nextRetryAt: notificationsTracking?.sms?.error ? 
-              new Date(Date.now() + Math.pow(2, notificationsTracking?.sms?.retryCount || 0) * 1000).toISOString() : null
-          },
-          whatsapp: {
-            configured: !!notificationsTracking?.whatsapp,
-            sent: notificationsTracking?.whatsapp?.sent || false,
-            sentAt: notificationsTracking?.whatsapp?.sentAt || null,
-            status: notificationsTracking?.whatsapp?.status || 'not_sent',
-            attempts: notificationsTracking?.whatsapp?.attempts || 0,
-            retryCount: notificationsTracking?.whatsapp?.retryCount || 0,
-            maxRetries: notificationsTracking?.whatsapp?.maxRetries || 3,
-            lastAttemptAt: notificationsTracking?.whatsapp?.lastAttemptAt || null,
-            error: notificationsTracking?.whatsapp?.error || null,
-            canRetry: (notificationsTracking?.whatsapp?.retryCount || 0) < (notificationsTracking?.whatsapp?.maxRetries || 3),
-            nextRetryAt: notificationsTracking?.whatsapp?.error ? 
-              new Date(Date.now() + Math.pow(2, notificationsTracking?.whatsapp?.retryCount || 0) * 1000).toISOString() : null
-          }
-        },
-        summary: {
-          totalChannels: Object.keys(notificationsTracking || {}).filter(key => key !== 'lastUpdated' && key !== 'totalAttempts').length,
-          successfulChannels: Object.values(notificationsTracking || {})
-            .filter((channel: any) => typeof channel === 'object' && channel?.sent === true).length,
-          failedChannels: Object.values(notificationsTracking || {})
-            .filter((channel: any) => typeof channel === 'object' && channel?.error).length,
-          pendingRetries: Object.values(notificationsTracking || {})
-            .filter((channel: any) => typeof channel === 'object' && channel?.error && 
-              (channel?.retryCount || 0) < (channel?.maxRetries || 3)).length
-        }
+        lastUpdated: isNewFormat 
+          ? notificationsTracking.summary?.lastUpdated 
+          : notificationsTracking?.lastUpdated || null,
+        
+        // Agrégats précis par canal
+        channels: aggregatedChannels,
+        
+        // Summary global du nouveau format si disponible
+        globalSummary: isNewFormat ? {
+          totalRecipients: notificationsTracking.summary?.totalRecipients || 0,
+          totalNotificationsSent: notificationsTracking.summary?.totalNotificationsSent || 0,
+          totalNotificationsFailed: notificationsTracking.summary?.totalNotificationsFailed || 0,
+          overallSuccessRate: notificationsTracking.summary?.overallSuccessRate || 0,
+          failedRecipients: notificationsTracking.summary?.failedRecipients || []
+        } : null,
+        
+        // Détails par destinataire (nouveau format uniquement)
+        recipientDetails: isNewFormat ? notificationsTracking.perRecipient : null
       }
     };
 
     console.log('[BULLETIN_DISTRIBUTION_STATUS] ✅ Distribution status retrieved for bulletin:', bulletinId);
+    console.log('[BULLETIN_DISTRIBUTION_STATUS] Aggregated channels:', Object.keys(aggregatedChannels)
+      .map(channel => `${channel}: ${aggregatedChannels[channel as keyof typeof aggregatedChannels].successCount}/${aggregatedChannels[channel as keyof typeof aggregatedChannels].totalRecipients} (${aggregatedChannels[channel as keyof typeof aggregatedChannels].successRate}%)`)
+      .join(', '));
 
     res.json({
       success: true,
@@ -2279,6 +2404,286 @@ router.get('/distribution-statistics', requireAuth, requireDirectorAuth, async (
     res.status(500).json({
       success: false,
       message: 'Failed to fetch distribution statistics',
+      error: error.message
+    });
+  }
+});
+
+// ===== BULK DIGITAL SIGNATURE ROUTE =====
+// Route: POST /api/comprehensive-bulletins/bulk-sign
+// Purpose: Allow directors to digitally sign multiple approved bulletins at once
+// Input: array of bulletin IDs + signature data (base64 or URL)
+// Output: Updates headmasterVisa field with signature and timestamp
+router.post('/bulk-sign', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { bulletinIds, signature, signerName } = req.body;
+
+    console.log('[BULK_SIGNATURE] 🖊️ Processing bulk signature request:', { 
+      bulletinCount: bulletinIds?.length, 
+      signerId: user.id, 
+      signerName: signerName || user.email,
+      school: schoolId 
+    });
+
+    // Validation
+    if (!bulletinIds || !Array.isArray(bulletinIds) || bulletinIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bulletin IDs array is required and cannot be empty'
+      });
+    }
+
+    if (!signature || typeof signature !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Signature data is required (base64 string or URL)'
+      });
+    }
+
+    // Verify all bulletins exist and belong to the school
+    const existingBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      status: bulletinComprehensive.status,
+      headmasterVisa: bulletinComprehensive.headmasterVisa
+    })
+      .from(bulletinComprehensive)
+      .where(and(
+        inArray(bulletinComprehensive.id, bulletinIds.map(id => parseInt(id))),
+        eq(bulletinComprehensive.schoolId, schoolId),
+        eq(bulletinComprehensive.status, 'approved') // Only sign approved bulletins
+      ));
+
+    console.log('[BULK_SIGNATURE] 📋 Found bulletins to sign:', existingBulletins.length);
+
+    if (existingBulletins.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No approved bulletins found for signing'
+      });
+    }
+
+    // Prepare signature data
+    const signatureData = {
+      name: signerName || `${user.firstName} ${user.lastName}` || user.email,
+      date: new Date().toISOString(),
+      signatureUrl: signature,
+      signedAt: new Date().toISOString(),
+      signedBy: user.id
+    };
+
+    console.log('[BULK_SIGNATURE] ✍️ Signature data prepared:', {
+      signerName: signatureData.name,
+      signatureLength: signature.length,
+      bulletinsToSign: existingBulletins.length
+    });
+
+    // Update all bulletins with signature
+    const updateResults = [];
+    const errors = [];
+
+    for (const bulletin of existingBulletins) {
+      try {
+        // Update headmasterVisa field with signature
+        const result = await db.update(bulletinComprehensive)
+          .set({
+            headmasterVisa: signatureData,
+            lastModifiedBy: user.id,
+            updatedAt: new Date()
+          })
+          .where(eq(bulletinComprehensive.id, bulletin.id))
+          .returning({
+            id: bulletinComprehensive.id,
+            studentId: bulletinComprehensive.studentId,
+            headmasterVisa: bulletinComprehensive.headmasterVisa
+          });
+
+        if (result.length > 0) {
+          updateResults.push({
+            bulletinId: bulletin.id,
+            studentId: bulletin.studentId,
+            status: 'signed',
+            signedAt: signatureData.signedAt
+          });
+          
+          console.log(`[BULK_SIGNATURE] ✅ Signed bulletin ${bulletin.id} for student ${bulletin.studentId}`);
+        } else {
+          errors.push(`Failed to sign bulletin ${bulletin.id}`);
+        }
+
+      } catch (error: any) {
+        console.error(`[BULK_SIGNATURE] ❌ Error signing bulletin ${bulletin.id}:`, error);
+        errors.push(`Bulletin ${bulletin.id}: ${error.message}`);
+      }
+    }
+
+    // Calculate success statistics
+    const successCount = updateResults.length;
+    const totalRequested = bulletinIds.length;
+    const foundCount = existingBulletins.length;
+    const successRate = foundCount > 0 ? Math.round((successCount / foundCount) * 100) : 0;
+
+    console.log('[BULK_SIGNATURE] 📊 Bulk signature completed:', {
+      requested: totalRequested,
+      found: foundCount,
+      signed: successCount,
+      errors: errors.length,
+      successRate: `${successRate}%`
+    });
+
+    // Return comprehensive response
+    res.json({
+      success: true,
+      message: `Successfully signed ${successCount} bulletins`,
+      data: {
+        summary: {
+          totalRequested,
+          bulletsFound: foundCount,
+          successfullySigned: successCount,
+          errorCount: errors.length,
+          successRate
+        },
+        signedBulletins: updateResults,
+        signature: {
+          signerName: signatureData.name,
+          signedAt: signatureData.signedAt,
+          signaturePreview: signature.substring(0, 50) + '...' // Preview only
+        },
+        errors: errors.length > 0 ? errors : undefined
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULK_SIGNATURE] ❌ Critical error in bulk signature:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process bulk signature',
+      error: error.message
+    });
+  }
+});
+
+// Get signed bulletins for a director (with signature status)
+router.get('/signed-bulletins', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { classId, term, academicYear, page = 1, limit = 50 } = req.query;
+
+    console.log('[SIGNED_BULLETINS] 📋 Fetching signed bulletins:', { 
+      classId, 
+      term, 
+      academicYear, 
+      schoolId,
+      pagination: { page, limit }
+    });
+
+    // Build query conditions
+    const whereConditions = [
+      eq(bulletinComprehensive.schoolId, schoolId),
+      eq(bulletinComprehensive.status, 'approved'),
+      sql`${bulletinComprehensive.headmasterVisa} IS NOT NULL` // Only bulletins with signature
+    ];
+
+    if (classId) {
+      whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    }
+    if (term) {
+      whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    }
+    if (academicYear) {
+      whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    }
+
+    // Get signed bulletins with student info
+    const signedBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      headmasterVisa: bulletinComprehensive.headmasterVisa,
+      createdAt: bulletinComprehensive.createdAt,
+      updatedAt: bulletinComprehensive.updatedAt,
+      // Student info
+      studentFirstName: users.firstName,
+      studentLastName: users.lastName,
+      // Class info
+      className: classes.name
+    })
+      .from(bulletinComprehensive)
+      .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+      .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+      .where(and(...whereConditions))
+      .orderBy(sql`${bulletinComprehensive.updatedAt} DESC`)
+      .limit(parseInt(limit as string))
+      .offset((parseInt(page as string) - 1) * parseInt(limit as string));
+
+    // Get total count for pagination
+    const totalCount = await db.select({ count: sql<number>`COUNT(*)` })
+      .from(bulletinComprehensive)
+      .where(and(...whereConditions));
+
+    // Format response data
+    const formattedBulletins = signedBulletins.map(bulletin => ({
+      id: bulletin.id,
+      studentId: bulletin.studentId,
+      studentName: `${bulletin.studentFirstName || ''} ${bulletin.studentLastName || ''}`.trim(),
+      classId: bulletin.classId,
+      className: bulletin.className,
+      term: bulletin.term,
+      academicYear: bulletin.academicYear,
+      status: bulletin.status,
+      signature: bulletin.headmasterVisa,
+      signedAt: bulletin.headmasterVisa ? (bulletin.headmasterVisa as any).signedAt : bulletin.updatedAt,
+      createdAt: bulletin.createdAt,
+      updatedAt: bulletin.updatedAt
+    }));
+
+    console.log('[SIGNED_BULLETINS] ✅ Retrieved signed bulletins:', formattedBulletins.length);
+
+    res.json({
+      success: true,
+      data: {
+        bulletins: formattedBulletins,
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          total: totalCount[0]?.count || 0,
+          totalPages: Math.ceil((totalCount[0]?.count || 0) / parseInt(limit as string))
+        },
+        filters: {
+          classId: classId ? parseInt(classId as string) : null,
+          term: term || null,
+          academicYear: academicYear || null
+        }
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[SIGNED_BULLETINS] ❌ Error fetching signed bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch signed bulletins',
       error: error.message
     });
   }

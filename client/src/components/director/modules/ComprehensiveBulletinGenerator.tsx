@@ -62,6 +62,7 @@ import {
   Settings,
   BookMarked
 } from 'lucide-react';
+import BulkSignatureModal from '@/components/shared/BulkSignatureModal';
 import {
   Dialog,
   DialogContent,
@@ -268,6 +269,10 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   
+  // Bulk signature modal state
+  const [showBulkSignatureModal, setShowBulkSignatureModal] = useState(false);
+  const [selectedBulletinsForSigning, setSelectedBulletinsForSigning] = useState<any[]>([]);
+  
   // Generation options
   const [includeComments, setIncludeComments] = useState(true);
   const [includeRankings, setIncludeRankings] = useState(true);
@@ -331,6 +336,74 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedBulletinForDistribution, setSelectedBulletinForDistribution] = useState<number | null>(null);
   const [distributionStatus, setDistributionStatus] = useState<any>(null);
   const [loadingDistributionStatus, setLoadingDistributionStatus] = useState(false);
+  
+  // NOUVEAU : Handle distribution status viewing
+  const handleViewDistributionStatus = async (bulletinId: number) => {
+    try {
+      setSelectedBulletinForDistribution(bulletinId);
+      setLoadingDistributionStatus(true);
+      setShowDistributionDialog(true);
+      
+      console.log('[DISTRIBUTION_STATUS] Fetching status for bulletin:', bulletinId);
+      
+      const response = await apiRequest(`/api/comprehensive-bulletins/${bulletinId}/distribution-status`);
+      
+      if (response.success) {
+        setDistributionStatus(response.data);
+        console.log('[DISTRIBUTION_STATUS] Status loaded:', response.data);
+        
+        toast({
+          title: 'Statut de distribution chargé',
+          description: 'Les détails de distribution ont été chargés avec succès.',
+        });
+      } else {
+        throw new Error(response.message || 'Erreur lors du chargement du statut');
+      }
+    } catch (error: any) {
+      console.error('[DISTRIBUTION_STATUS] Error loading status:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible de charger le statut de distribution',
+        variant: 'destructive'
+      });
+      setShowDistributionDialog(false);
+    } finally {
+      setLoadingDistributionStatus(false);
+    }
+  };
+  
+  // Helper function to render recipient status badge
+  const renderRecipientStatusBadge = (status: string, sent: boolean, error?: string) => {
+    if (sent && status === 'sent') {
+      return (
+        <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Envoyé ✅
+        </Badge>
+      );
+    } else if (error || status === 'failed') {
+      return (
+        <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+          <X className="h-3 w-3 mr-1" />
+          Échec ❌
+        </Badge>
+      );
+    } else if (status === 'retrying') {
+      return (
+        <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50">
+          <RefreshCw className="h-3 w-3 mr-1" />
+          Retry 🔄
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">
+          <Clock className="h-3 w-3 mr-1" />
+          En attente ⏳
+        </Badge>
+      );
+    }
+  };
   
   // Generation tracking
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
@@ -3213,13 +3286,62 @@ export default function ComprehensiveBulletinGenerator() {
           </Card>
         </TabsContent>
 
-        {/* Approved Bulletins Tab */}
+        {/* Approved Bulletins Tab - Enhanced with Bulk Signature System */}
         <TabsContent value="approved-bulletins" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                {t.approvedBulletins} ({approvedBulletins?.length || 0})
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  {t.approvedBulletins} ({approvedBulletins?.length || 0})
+                </div>
+                
+                {/* Bulk Signature Controls */}
+                {approvedBulletins && approvedBulletins.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    {selectedBulletins.length > 0 && (
+                      <>
+                        <Badge variant="secondary">
+                          {selectedBulletins.length} sélectionné{selectedBulletins.length > 1 ? 's' : ''}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            const bulletinsForSigning = approvedBulletins
+                              .filter((b: any) => selectedBulletins.includes(b.id))
+                              .map((b: any) => ({
+                                id: b.id,
+                                studentId: b.studentId,
+                                studentName: `${b.studentFirstName} ${b.studentLastName}`,
+                                className: b.className,
+                                term: b.term,
+                                academicYear: b.academicYear,
+                                hasSignature: !!(b.headmasterVisa && (b.headmasterVisa as any).signatureUrl)
+                              }));
+                            setSelectedBulletinsForSigning(bulletinsForSigning);
+                            setShowBulkSignatureModal(true);
+                          }}
+                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                          data-testid="button-bulk-sign"
+                        >
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          Signer la Sélection
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedBulletins([]);
+                            setSelectAll(false);
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Désélectionner
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -3235,45 +3357,159 @@ export default function ComprehensiveBulletinGenerator() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {approvedBulletins.map((bulletin: any) => (
-                    <Card key={bulletin.id} className="border-l-4 border-l-green-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-1">
-                            <h4 className="font-semibold">
-                              {bulletin.studentFirstName} {bulletin.studentLastName}
-                            </h4>
-                            <div className="text-sm text-muted-foreground">
-                              <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                  {/* Select All Checkbox */}
+                  <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
+                    <Checkbox
+                      checked={selectAll}
+                      onCheckedChange={(checked) => {
+                        setSelectAll(!!checked);
+                        if (checked) {
+                          setSelectedBulletins(approvedBulletins.map((b: any) => b.id));
+                        } else {
+                          setSelectedBulletins([]);
+                        }
+                      }}
+                      data-testid="checkbox-select-all-approved"
+                    />
+                    <Label className="text-sm font-medium cursor-pointer">
+                      Sélectionner tous ({approvedBulletins.length})
+                    </Label>
+                    {selectedBulletins.length > 0 && (
+                      <Badge variant="outline" className="ml-auto">
+                        {selectedBulletins.length}/{approvedBulletins.length} sélectionnés
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Bulletins List */}
+                  {approvedBulletins.map((bulletin: any) => {
+                    const hasSignature = !!(bulletin.headmasterVisa && (bulletin.headmasterVisa as any).signatureUrl);
+                    const signatureData = bulletin.headmasterVisa as any;
+                    
+                    return (
+                      <Card key={bulletin.id} className={`border-l-4 ${hasSignature ? 'border-l-purple-500' : 'border-l-green-500'}`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            {/* Selection Checkbox */}
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                checked={selectedBulletins.includes(bulletin.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedBulletins(prev => [...prev, bulletin.id]);
+                                  } else {
+                                    setSelectedBulletins(prev => prev.filter(id => id !== bulletin.id));
+                                    setSelectAll(false);
+                                  }
+                                }}
+                                data-testid={`checkbox-bulletin-${bulletin.id}`}
+                              />
+                              
+                              <div className="space-y-2">
+                                <h4 className="font-semibold">
+                                  {bulletin.studentFirstName} {bulletin.studentLastName}
+                                </h4>
+                                <div className="text-sm text-muted-foreground">
+                                  <span>{bulletin.className} - {bulletin.term} - {bulletin.academicYear}</span>
+                                </div>
+                                
+                                {/* Status Badges */}
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge variant="outline" className="text-green-600 border-green-200">
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    {t.approved}
+                                  </Badge>
+                                  
+                                  {/* Signature Status Badge */}
+                                  {hasSignature ? (
+                                    <Badge variant="outline" className="text-purple-600 border-purple-200 bg-purple-50">
+                                      <FileSignature className="h-3 w-3 mr-1" />
+                                      Signé
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-orange-600 border-orange-200 bg-orange-50">
+                                      <AlertTriangle className="h-3 w-3 mr-1" />
+                                      Non Signé
+                                    </Badge>
+                                  )}
+                                </div>
+                                
+                                {/* Signature Details */}
+                                {hasSignature && signatureData && (
+                                  <div className="text-xs text-purple-600 bg-purple-50 p-2 rounded border">
+                                    <div className="flex items-center gap-2">
+                                      <FileSignature className="h-3 w-3" />
+                                      <span>
+                                        Signé par: <strong>{signatureData.name}</strong>
+                                      </span>
+                                    </div>
+                                    {signatureData.signedAt && (
+                                      <div className="mt-1 text-gray-600">
+                                        Le: {new Date(signatureData.signedAt).toLocaleDateString('fr-FR', {
+                                          day: '2-digit',
+                                          month: '2-digit', 
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <Badge variant="outline" className="text-green-600 border-green-200">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              {t.approved}
-                            </Badge>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                                  data-testid={`send-bulletin-${bulletin.id}`}
+                                >
+                                  <FileDown className="h-4 w-4 mr-1" />
+                                  {t.send}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`view-approved-bulletin-${bulletin.id}`}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  {t.viewDetails}
+                                </Button>
+                              </div>
+                              
+                              {/* Individual Signature Button */}
+                              <Button
+                                size="sm"
+                                variant={hasSignature ? "secondary" : "outline"}
+                                className={hasSignature ? "text-purple-600" : "text-orange-600 border-orange-200 hover:bg-orange-50"}
+                                onClick={() => {
+                                  const bulletinForSigning = [{
+                                    id: bulletin.id,
+                                    studentId: bulletin.studentId,
+                                    studentName: `${bulletin.studentFirstName} ${bulletin.studentLastName}`,
+                                    className: bulletin.className,
+                                    term: bulletin.term,
+                                    academicYear: bulletin.academicYear,
+                                    hasSignature
+                                  }];
+                                  setSelectedBulletinsForSigning(bulletinForSigning);
+                                  setShowBulkSignatureModal(true);
+                                }}
+                                data-testid={`individual-sign-bulletin-${bulletin.id}`}
+                              >
+                                <FileSignature className="h-4 w-4 mr-1" />
+                                {hasSignature ? 'Re-signer' : 'Signer'}
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="bg-blue-600 hover:bg-blue-700 text-white"
-                              data-testid={`send-bulletin-${bulletin.id}`}
-                            >
-                              <FileDown className="h-4 w-4 mr-1" />
-                              {t.send}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`view-approved-bulletin-${bulletin.id}`}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t.viewDetails}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -3648,6 +3884,364 @@ export default function ComprehensiveBulletinGenerator() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* NOUVEAU : Distribution Status Details Dialog */}
+      <Dialog open={showDistributionDialog} onOpenChange={setShowDistributionDialog}>
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Détails de Distribution - Bulletin #{selectedBulletinForDistribution}
+            </DialogTitle>
+            <DialogDescription>
+              Statut détaillé des envois de notifications par destinataire et par canal
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingDistributionStatus ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin mr-3" />
+              <span className="text-lg">Chargement du statut de distribution...</span>
+            </div>
+          ) : distributionStatus ? (
+            <div className="space-y-6">
+              {/* Bulletin Info Header */}
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="font-semibold text-blue-800">Étudiant:</span>
+                    <div className="text-blue-700">{distributionStatus.bulletinInfo.studentName}</div>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-blue-800">Classe:</span>
+                    <div className="text-blue-700">{distributionStatus.bulletinInfo.className}</div>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-blue-800">Période:</span>
+                    <div className="text-blue-700">{distributionStatus.bulletinInfo.term} {distributionStatus.bulletinInfo.academicYear}</div>
+                  </div>
+                  <div>
+                    <span className="font-semibold text-blue-800">Moyenne:</span>
+                    <div className="text-blue-700">{distributionStatus.bulletinInfo.generalAverage}/20</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Global Summary - Nouveau Format */}
+              {distributionStatus.distributionTracking.format === 'perRecipient' && distributionStatus.distributionTracking.globalSummary && (
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h3 className="font-semibold text-green-800 mb-3">📊 Résumé Global (Format Amélioré)</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{distributionStatus.distributionTracking.globalSummary.totalRecipients}</div>
+                      <div className="text-green-700">Destinataires</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{distributionStatus.distributionTracking.globalSummary.totalNotificationsSent}</div>
+                      <div className="text-green-700">Envois Réussis</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-600">{distributionStatus.distributionTracking.globalSummary.totalNotificationsFailed}</div>
+                      <div className="text-red-700">Envois Échoués</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{distributionStatus.distributionTracking.globalSummary.overallSuccessRate}%</div>
+                      <div className="text-blue-700">Taux de Succès</div>
+                    </div>
+                  </div>
+                  {distributionStatus.distributionTracking.globalSummary.failedRecipients.length > 0 && (
+                    <div className="mt-3 p-2 bg-red-100 rounded">
+                      <span className="text-red-800 font-semibold">Destinataires en échec: </span>
+                      <span className="text-red-700">{distributionStatus.distributionTracking.globalSummary.failedRecipients.join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Channel Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Email Channel */}
+                <Card className="border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Database className="h-4 w-4 text-blue-600" />
+                      📧 Email
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Configuré:</span>
+                        <span className={distributionStatus.distributionTracking.channels.email.configured ? 'text-green-600' : 'text-gray-500'}>
+                          {distributionStatus.distributionTracking.channels.email.configured ? '✅' : '➖'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total:</span>
+                        <span>{distributionStatus.distributionTracking.channels.email.totalRecipients}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Réussis:</span>
+                        <span className="text-green-600 font-semibold">{distributionStatus.distributionTracking.channels.email.successCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Échoués:</span>
+                        <span className="text-red-600 font-semibold">{distributionStatus.distributionTracking.channels.email.failedCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Taux:</span>
+                        <span className="font-semibold">{distributionStatus.distributionTracking.channels.email.successRate}%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* SMS Channel */}
+                <Card className="border-orange-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Database className="h-4 w-4 text-orange-600" />
+                      📱 SMS
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Configuré:</span>
+                        <span className={distributionStatus.distributionTracking.channels.sms.configured ? 'text-green-600' : 'text-gray-500'}>
+                          {distributionStatus.distributionTracking.channels.sms.configured ? '✅' : '➖'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total:</span>
+                        <span>{distributionStatus.distributionTracking.channels.sms.totalRecipients}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Réussis:</span>
+                        <span className="text-green-600 font-semibold">{distributionStatus.distributionTracking.channels.sms.successCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Échoués:</span>
+                        <span className="text-red-600 font-semibold">{distributionStatus.distributionTracking.channels.sms.failedCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Taux:</span>
+                        <span className="font-semibold">{distributionStatus.distributionTracking.channels.sms.successRate}%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* WhatsApp Channel */}
+                <Card className="border-green-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Database className="h-4 w-4 text-green-600" />
+                      💬 WhatsApp
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Configuré:</span>
+                        <span className={distributionStatus.distributionTracking.channels.whatsapp.configured ? 'text-green-600' : 'text-gray-500'}>
+                          {distributionStatus.distributionTracking.channels.whatsapp.configured ? '✅' : '➖'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total:</span>
+                        <span>{distributionStatus.distributionTracking.channels.whatsapp.totalRecipients}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Réussis:</span>
+                        <span className="text-green-600 font-semibold">{distributionStatus.distributionTracking.channels.whatsapp.successCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Échoués:</span>
+                        <span className="text-red-600 font-semibold">{distributionStatus.distributionTracking.channels.whatsapp.failedCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Taux:</span>
+                        <span className="font-semibold">{distributionStatus.distributionTracking.channels.whatsapp.successRate}%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Detailed Recipients Status - Nouveau Format */}
+              {distributionStatus.distributionTracking.format === 'perRecipient' && distributionStatus.distributionTracking.recipientDetails && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold text-lg">📋 Statuts par Destinataire (Nouveau Format Détaillé)</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {Object.entries(distributionStatus.distributionTracking.recipientDetails).map(([recipientId, recipientData]: [string, any]) => (
+                      <Card key={recipientId} className="border-purple-200">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm flex items-center justify-between">
+                            <span className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-purple-600" />
+                              Destinataire: {recipientId}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Dernière mise à jour: {recipientData.lastUpdated ? new Date(recipientData.lastUpdated).toLocaleString('fr-FR') : 'N/A'}
+                            </span>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Email Status for this recipient */}
+                            {recipientData.email && (
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-semibold text-blue-600">📧 Email</h4>
+                                <div className="space-y-1">
+                                  {renderRecipientStatusBadge(recipientData.email.status, recipientData.email.sent, recipientData.email.error)}
+                                  {recipientData.email.sentAt && (
+                                    <div className="text-xs text-gray-600">Envoyé: {new Date(recipientData.email.sentAt).toLocaleString('fr-FR')}</div>
+                                  )}
+                                  {recipientData.email.attempts > 0 && (
+                                    <div className="text-xs text-gray-600">Tentatives: {recipientData.email.attempts}</div>
+                                  )}
+                                  {recipientData.email.error && (
+                                    <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Erreur: {recipientData.email.error}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* SMS Status for this recipient */}
+                            {recipientData.sms && (
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-semibold text-orange-600">📱 SMS</h4>
+                                <div className="space-y-1">
+                                  {renderRecipientStatusBadge(recipientData.sms.status, recipientData.sms.sent, recipientData.sms.error)}
+                                  {recipientData.sms.sentAt && (
+                                    <div className="text-xs text-gray-600">Envoyé: {new Date(recipientData.sms.sentAt).toLocaleString('fr-FR')}</div>
+                                  )}
+                                  {recipientData.sms.attempts > 0 && (
+                                    <div className="text-xs text-gray-600">Tentatives: {recipientData.sms.attempts}</div>
+                                  )}
+                                  {recipientData.sms.error && (
+                                    <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Erreur: {recipientData.sms.error}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* WhatsApp Status for this recipient */}
+                            {recipientData.whatsapp && (
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-semibold text-green-600">💬 WhatsApp</h4>
+                                <div className="space-y-1">
+                                  {renderRecipientStatusBadge(recipientData.whatsapp.status, recipientData.whatsapp.sent, recipientData.whatsapp.error)}
+                                  {recipientData.whatsapp.sentAt && (
+                                    <div className="text-xs text-gray-600">Envoyé: {new Date(recipientData.whatsapp.sentAt).toLocaleString('fr-FR')}</div>
+                                  )}
+                                  {recipientData.whatsapp.attempts > 0 && (
+                                    <div className="text-xs text-gray-600">Tentatives: {recipientData.whatsapp.attempts}</div>
+                                  )}
+                                  {recipientData.whatsapp.error && (
+                                    <div className="text-xs text-red-600 bg-red-50 p-1 rounded">Erreur: {recipientData.whatsapp.error}</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Recipient Summary */}
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="text-xs text-gray-600">
+                              Total tentatives pour ce destinataire: {recipientData.totalAttempts || 0}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Legacy Format Compatibility */}
+              {distributionStatus.distributionTracking.format === 'legacy' && (
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <span className="font-semibold text-yellow-800">Mode de Compatibilité Legacy</span>
+                  </div>
+                  <p className="text-yellow-700 text-sm mb-3">
+                    Ce bulletin utilise l'ancien format de tracking. Les détails par destinataire ne sont pas disponibles.
+                  </p>
+                  <div className="text-sm text-yellow-700">
+                    Format détaillé sera disponible après migration vers le nouveau système de tracking.
+                  </div>
+                </div>
+              )}
+
+              {/* Technical Info */}
+              <div className="bg-gray-50 p-3 rounded-lg text-xs text-gray-600">
+                <div className="flex items-center gap-2 mb-2">
+                  <Settings className="h-3 w-3" />
+                  <span className="font-semibold">Informations Techniques</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>Format: {distributionStatus.distributionTracking.format}</div>
+                  <div>Dernière mise à jour: {distributionStatus.distributionTracking.lastUpdated ? new Date(distributionStatus.distributionTracking.lastUpdated).toLocaleString('fr-FR') : 'N/A'}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>Aucune donnée de distribution disponible</p>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button 
+              onClick={() => {
+                setShowDistributionDialog(false);
+                setDistributionStatus(null);
+                setSelectedBulletinForDistribution(null);
+              }}
+              className="w-full"
+            >
+              Fermer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Signature Modal */}
+      <BulkSignatureModal
+        isOpen={showBulkSignatureModal}
+        onClose={() => {
+          setShowBulkSignatureModal(false);
+          setSelectedBulletinsForSigning([]);
+        }}
+        selectedBulletins={selectedBulletinsForSigning}
+        onSignatureComplete={(results) => {
+          console.log('[BULK_SIGNATURE_COMPLETED] ✅ Signature results:', results);
+          
+          // Refresh the approved bulletins query to show updated signature status
+          queryClient.invalidateQueries({ queryKey: ['/api/comprehensive-bulletins/approved-students'] });
+          
+          // Clear selection after successful signature
+          setSelectedBulletins([]);
+          setSelectAll(false);
+          setSelectedBulletinsForSigning([]);
+          setShowBulkSignatureModal(false);
+          
+          // Show success message
+          toast({
+            title: 'Signatures appliquées',
+            description: `${results.summary?.successfullySigned || 0} bulletin(s) signé(s) avec succès`,
+          });
+        }}
+        directorName={`Director`} // You can customize this based on user data
+      />
     </div>
   );
 }

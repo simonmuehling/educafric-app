@@ -133,6 +133,54 @@ export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComp
   updatedAt: true
 });
 
+// ===== NOUVEAU FORMAT TRACKING DÉTAILLÉ PAR DESTINATAIRE =====
+// Schema pour le statut de notification par canal et par destinataire
+const notificationChannelStatusSchema = z.object({
+  sent: z.boolean(),
+  sentAt: z.string().datetime().optional(),
+  status: z.enum(['delivered', 'sent', 'pending', 'failed', 'retrying']).optional(),
+  attempts: z.number().min(0).optional(),
+  lastAttemptAt: z.string().datetime().optional(),
+  error: z.string().optional(),
+  deliveredAt: z.string().datetime().optional(),
+  retryCount: z.number().min(0).optional(),
+  maxRetries: z.number().min(0).optional()
+});
+
+// Schema pour les détails par destinataire  
+const recipientNotificationStatusSchema = z.object({
+  email: notificationChannelStatusSchema.optional(),
+  sms: notificationChannelStatusSchema.optional(),
+  whatsapp: notificationChannelStatusSchema.optional(),
+  lastUpdated: z.string().datetime().optional(),
+  totalAttempts: z.number().min(0).optional()
+});
+
+// Schema complet pour le nouveau format notificationsSent
+const comprehensiveNotificationsSchema = z.object({
+  perRecipient: z.record(z.string(), recipientNotificationStatusSchema).optional(),
+  summary: z.object({
+    totalRecipients: z.number().min(0),
+    emailSuccessCount: z.number().min(0),
+    smsSuccessCount: z.number().min(0),
+    whatsappSuccessCount: z.number().min(0),
+    emailFailedCount: z.number().min(0),
+    smsFailedCount: z.number().min(0),
+    whatsappFailedCount: z.number().min(0),
+    failedRecipients: z.array(z.string()),
+    lastUpdated: z.string().datetime(),
+    totalNotificationsSent: z.number().min(0),
+    totalNotificationsFailed: z.number().min(0),
+    overallSuccessRate: z.number().min(0).max(100)
+  }).optional(),
+  // Compatibilité descendante avec l'ancien format
+  legacy: z.object({
+    sms: z.boolean().optional(),
+    email: z.boolean().optional(),
+    whatsapp: z.boolean().optional()
+  }).optional()
+}).optional();
+
 // Additional validation schema
 export const bulletinComprehensiveValidationSchema = z.object({
   // Required fields
@@ -165,11 +213,9 @@ export const bulletinComprehensiveValidationSchema = z.object({
   // Workflow validations
   status: z.enum(["draft", "submitted", "approved", "sent"]).optional(),
   approvedBy: z.number().int().positive().optional(),
-  notificationsSent: z.object({
-    sms: z.boolean().optional(),
-    email: z.boolean().optional(),
-    whatsapp: z.boolean().optional()
-  }).optional(),
+  
+  // NOUVEAU: Schema de tracking détaillé par destinataire
+  notificationsSent: comprehensiveNotificationsSchema,
   
   // Signature fields
   parentVisaName: z.string().optional(),
@@ -191,6 +237,13 @@ export const bulletinComprehensiveValidationSchema = z.object({
     maxGrade: z.string().optional()
   })).optional()
 });
+
+// Exporter les schemas de tracking pour utilisation externe
+export const notificationTrackingSchemas = {
+  channelStatus: notificationChannelStatusSchema,
+  recipientStatus: recipientNotificationStatusSchema,
+  comprehensive: comprehensiveNotificationsSchema
+};
 
 // Subject codes insert schema - simplified
 export const insertBulletinSubjectCodesSchema = createInsertSchema(bulletinSubjectCodes).omit({ 
@@ -275,9 +328,27 @@ export function generateSampleComprehensiveData(studentId: number, classId: numb
     // Workflow fields - initialized with default values
     status: "draft" as const,
     notificationsSent: {
-      sms: false,
-      email: false,
-      whatsapp: false
+      perRecipient: {},
+      summary: {
+        totalRecipients: 0,
+        emailSuccessCount: 0,
+        smsSuccessCount: 0,
+        whatsappSuccessCount: 0,
+        emailFailedCount: 0,
+        smsFailedCount: 0,
+        whatsappFailedCount: 0,
+        failedRecipients: [],
+        lastUpdated: new Date().toISOString(),
+        totalNotificationsSent: 0,
+        totalNotificationsFailed: 0,
+        overallSuccessRate: 0
+      },
+      // Compatibilité descendante
+      legacy: {
+        sms: false,
+        email: false,
+        whatsapp: false
+      }
     },
     
     dataSource: "generated"

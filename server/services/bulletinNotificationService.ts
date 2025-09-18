@@ -21,12 +21,37 @@ export interface NotificationTrackingStatus {
   maxRetries?: number;
 }
 
+// NOUVEAU FORMAT DE TRACKING AVEC PAR-DESTINATAIRE
 export interface DetailedNotificationTracking {
-  email?: NotificationTrackingStatus;
-  sms?: NotificationTrackingStatus;
-  whatsapp?: NotificationTrackingStatus;
-  lastUpdated?: string;
-  totalAttempts?: number;
+  perRecipient?: Record<string, {
+    email?: NotificationTrackingStatus;
+    sms?: NotificationTrackingStatus;
+    whatsapp?: NotificationTrackingStatus;
+    lastUpdated?: string;
+    totalAttempts?: number;
+  }>;
+  summary?: {
+    totalRecipients: number;
+    emailSuccessCount: number;
+    smsSuccessCount: number;
+    whatsappSuccessCount: number;
+    emailFailedCount: number;
+    smsFailedCount: number;
+    whatsappFailedCount: number;
+    failedRecipients: string[];
+    lastUpdated: string;
+    totalNotificationsSent: number;
+    totalNotificationsFailed: number;
+    overallSuccessRate: number;
+  };
+  // Compatibilité descendante
+  legacy?: {
+    email?: NotificationTrackingStatus;
+    sms?: NotificationTrackingStatus;
+    whatsapp?: NotificationTrackingStatus;
+    lastUpdated?: string;
+    totalAttempts?: number;
+  };
 }
 
 export interface BulletinNotificationData {
@@ -230,7 +255,7 @@ export class BulletinNotificationService {
 
   /**
    * Send bulletin notifications with detailed tracking
-   * NOUVELLE VERSION AVEC TRACKING COMPLET
+   * NOUVELLE VERSION AVEC TRACKING COMPLET PAR DESTINATAIRE
    */
   async sendBulletinNotificationsWithTracking(
     bulletinData: BulletinNotificationData,
@@ -265,10 +290,27 @@ export class BulletinNotificationService {
         failed: 0
       };
 
-      // Initialiser le tracking détaillé
+      // NOUVEAU : Initialiser le tracking avec le format par destinataire
       const detailedTracking: DetailedNotificationTracking = {
-        lastUpdated: new Date().toISOString(),
-        totalAttempts: 0
+        perRecipient: {},
+        summary: {
+          totalRecipients: recipients.length,
+          emailSuccessCount: 0,
+          smsSuccessCount: 0,
+          whatsappSuccessCount: 0,
+          emailFailedCount: 0,
+          smsFailedCount: 0,
+          whatsappFailedCount: 0,
+          failedRecipients: [],
+          lastUpdated: new Date().toISOString(),
+          totalNotificationsSent: 0,
+          totalNotificationsFailed: 0,
+          overallSuccessRate: 0
+        },
+        legacy: {
+          lastUpdated: new Date().toISOString(),
+          totalAttempts: 0
+        }
       };
 
       // Determine notification template based on average
@@ -279,15 +321,24 @@ export class BulletinNotificationService {
         smsTemplate = 'BULLETIN_NEEDS_IMPROVEMENT';
       }
 
-      // Process each recipient with tracking
+      // CORRECTION CRITIQUE : Process each recipient with accumulation
       for (const recipient of recipients) {
         const recipientResults: any[] = [];
         const recipientLanguage = recipient.preferredLanguage || language;
+        const recipientId = recipient.id;
 
-        // Send SMS notification avec tracking
+        // Initialiser le tracking pour ce destinataire
+        if (!detailedTracking.perRecipient![recipientId]) {
+          detailedTracking.perRecipient![recipientId] = {
+            lastUpdated: new Date().toISOString(),
+            totalAttempts: 0
+          };
+        }
+
+        // Send SMS notification avec tracking par destinataire
         if (notificationTypes.includes('sms') && recipient.phone) {
           try {
-            console.log('[BULLETIN_TRACKING] 📱 Sending SMS to:', recipient.phone);
+            console.log(`[BULLETIN_TRACKING] 📱 Sending SMS to ${recipient.name} (${recipient.phone})`);
             const smsResult = await this.sendBulletinSMSWithTracking(
               bulletinData,
               recipient,
@@ -297,25 +348,49 @@ export class BulletinNotificationService {
             );
             
             recipientResults.push(smsResult);
+            
+            // ACCUMULER au lieu d'écraser - par destinataire
+            const smsStatus = this.createNotificationStatus(
+              smsResult.success, 
+              smsResult.success ? 'sent' : 'failed', 
+              smsResult.error
+            );
+            detailedTracking.perRecipient![recipientId].sms = smsStatus;
+            detailedTracking.perRecipient![recipientId].totalAttempts! += 1;
+            detailedTracking.perRecipient![recipientId].lastUpdated = new Date().toISOString();
+            
+            // Mettre à jour les compteurs du summary
             if (smsResult.success) {
               summary.successfulSMS++;
-              detailedTracking.sms = this.createNotificationStatus(true, 'sent');
+              detailedTracking.summary!.smsSuccessCount++;
+              detailedTracking.summary!.totalNotificationsSent++;
             } else {
               summary.failed++;
-              detailedTracking.sms = this.createNotificationStatus(false, 'failed', smsResult.error);
+              detailedTracking.summary!.smsFailedCount++;
+              detailedTracking.summary!.totalNotificationsFailed++;
+              if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+                detailedTracking.summary!.failedRecipients.push(recipientId);
+              }
             }
-            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
           } catch (error) {
             console.error('[BULLETIN_NOTIFICATIONS_TRACKING] SMS failed for:', recipient.name, error);
             summary.failed++;
-            detailedTracking.sms = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+            detailedTracking.summary!.smsFailedCount++;
+            detailedTracking.summary!.totalNotificationsFailed++;
+            
+            detailedTracking.perRecipient![recipientId].sms = this.createNotificationStatus(
+              false, 'failed', error instanceof Error ? error.message : 'Unknown error'
+            );
+            if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+              detailedTracking.summary!.failedRecipients.push(recipientId);
+            }
           }
         }
 
-        // Send Email notification avec tracking
+        // Send Email notification avec tracking par destinataire
         if (notificationTypes.includes('email') && recipient.email) {
           try {
-            console.log('[BULLETIN_TRACKING] 📧 Sending Email to:', recipient.email);
+            console.log(`[BULLETIN_TRACKING] 📧 Sending Email to ${recipient.name} (${recipient.email})`);
             const emailResult = await this.sendBulletinEmailWithTracking(
               bulletinData,
               recipient,
@@ -324,25 +399,49 @@ export class BulletinNotificationService {
             );
             
             recipientResults.push(emailResult);
+            
+            // ACCUMULER au lieu d'écraser - par destinataire
+            const emailStatus = this.createNotificationStatus(
+              emailResult.success, 
+              emailResult.success ? 'sent' : 'failed', 
+              emailResult.error
+            );
+            detailedTracking.perRecipient![recipientId].email = emailStatus;
+            detailedTracking.perRecipient![recipientId].totalAttempts! += 1;
+            detailedTracking.perRecipient![recipientId].lastUpdated = new Date().toISOString();
+            
+            // Mettre à jour les compteurs du summary
             if (emailResult.success) {
               summary.successfulEmails++;
-              detailedTracking.email = this.createNotificationStatus(true, 'sent');
+              detailedTracking.summary!.emailSuccessCount++;
+              detailedTracking.summary!.totalNotificationsSent++;
             } else {
               summary.failed++;
-              detailedTracking.email = this.createNotificationStatus(false, 'failed', emailResult.error);
+              detailedTracking.summary!.emailFailedCount++;
+              detailedTracking.summary!.totalNotificationsFailed++;
+              if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+                detailedTracking.summary!.failedRecipients.push(recipientId);
+              }
             }
-            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
           } catch (error) {
             console.error('[BULLETIN_NOTIFICATIONS_TRACKING] Email failed for:', recipient.name, error);
             summary.failed++;
-            detailedTracking.email = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+            detailedTracking.summary!.emailFailedCount++;
+            detailedTracking.summary!.totalNotificationsFailed++;
+            
+            detailedTracking.perRecipient![recipientId].email = this.createNotificationStatus(
+              false, 'failed', error instanceof Error ? error.message : 'Unknown error'
+            );
+            if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+              detailedTracking.summary!.failedRecipients.push(recipientId);
+            }
           }
         }
 
-        // Send WhatsApp notification avec tracking
+        // Send WhatsApp notification avec tracking par destinataire
         if (notificationTypes.includes('whatsapp') && recipient.whatsapp) {
           try {
-            console.log('[BULLETIN_TRACKING] 📱 Sending WhatsApp to:', recipient.whatsapp);
+            console.log(`[BULLETIN_TRACKING] 📱 Sending WhatsApp to ${recipient.name} (${recipient.whatsapp})`);
             const whatsappResult = await this.sendBulletinWhatsAppWithTracking(
               bulletinData,
               recipient,
@@ -351,34 +450,67 @@ export class BulletinNotificationService {
             );
             
             recipientResults.push(whatsappResult);
+            
+            // ACCUMULER au lieu d'écraser - par destinataire
+            const whatsappStatus = this.createNotificationStatus(
+              whatsappResult.success, 
+              whatsappResult.success ? 'sent' : 'failed', 
+              whatsappResult.error
+            );
+            detailedTracking.perRecipient![recipientId].whatsapp = whatsappStatus;
+            detailedTracking.perRecipient![recipientId].totalAttempts! += 1;
+            detailedTracking.perRecipient![recipientId].lastUpdated = new Date().toISOString();
+            
+            // Mettre à jour les compteurs du summary
             if (whatsappResult.success) {
               summary.successfulWhatsApp++;
-              detailedTracking.whatsapp = this.createNotificationStatus(true, 'sent');
+              detailedTracking.summary!.whatsappSuccessCount++;
+              detailedTracking.summary!.totalNotificationsSent++;
             } else {
               summary.failed++;
-              detailedTracking.whatsapp = this.createNotificationStatus(false, 'failed', whatsappResult.error);
+              detailedTracking.summary!.whatsappFailedCount++;
+              detailedTracking.summary!.totalNotificationsFailed++;
+              if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+                detailedTracking.summary!.failedRecipients.push(recipientId);
+              }
             }
-            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
           } catch (error) {
             console.error('[BULLETIN_NOTIFICATIONS_TRACKING] WhatsApp failed for:', recipient.name, error);
             summary.failed++;
-            detailedTracking.whatsapp = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+            detailedTracking.summary!.whatsappFailedCount++;
+            detailedTracking.summary!.totalNotificationsFailed++;
+            
+            detailedTracking.perRecipient![recipientId].whatsapp = this.createNotificationStatus(
+              false, 'failed', error instanceof Error ? error.message : 'Unknown error'
+            );
+            if (!detailedTracking.summary!.failedRecipients.includes(recipientId)) {
+              detailedTracking.summary!.failedRecipients.push(recipientId);
+            }
           }
         }
 
         results[recipient.id] = recipientResults;
       }
 
-      // Persister le tracking complet
+      // Calculer le taux de succès global
+      const totalAttempts = detailedTracking.summary!.totalNotificationsSent + detailedTracking.summary!.totalNotificationsFailed;
+      detailedTracking.summary!.overallSuccessRate = totalAttempts > 0 
+        ? Math.round((detailedTracking.summary!.totalNotificationsSent / totalAttempts) * 100)
+        : 0;
+      
+      detailedTracking.summary!.lastUpdated = new Date().toISOString();
+
+      // Persister le tracking complet avec nouveau format
       try {
         await this.persistNotificationTracking(trackingContext, detailedTracking);
       } catch (trackingError) {
         console.error('[BULLETIN_NOTIFICATIONS_TRACKING] Failed to persist tracking:', trackingError);
       }
 
-      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] ✅ Completed bulletin notifications with tracking');
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] ✅ Completed bulletin notifications with per-recipient tracking');
       console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Summary:', summary);
-      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Detailed tracking:', detailedTracking);
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Per-recipient tracking entries:', Object.keys(detailedTracking.perRecipient!).length);
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Overall success rate:', detailedTracking.summary!.overallSuccessRate + '%');
 
       return {
         success: true,
@@ -400,8 +532,25 @@ export class BulletinNotificationService {
           failed: recipients.length
         },
         detailedTracking: {
-          lastUpdated: new Date().toISOString(),
-          totalAttempts: 0
+          perRecipient: {},
+          summary: {
+            totalRecipients: recipients.length,
+            emailSuccessCount: 0,
+            smsSuccessCount: 0,
+            whatsappSuccessCount: 0,
+            emailFailedCount: 0,
+            smsFailedCount: 0,
+            whatsappFailedCount: 0,
+            failedRecipients: [],
+            lastUpdated: new Date().toISOString(),
+            totalNotificationsSent: 0,
+            totalNotificationsFailed: recipients.length,
+            overallSuccessRate: 0
+          },
+          legacy: {
+            lastUpdated: new Date().toISOString(),
+            totalAttempts: 0
+          }
         }
       };
     }
