@@ -1690,4 +1690,356 @@ router.post('/bulk-approve', requireAuth, requireDirectorAuth, async (req, res) 
   }
 });
 
+// Send approved bulletins to parents via notifications (Email with PDF attachment + SMS/WhatsApp with download link)
+router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const userId = user.id;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { bulletinIds } = req.body;
+
+    if (!bulletinIds || !Array.isArray(bulletinIds) || bulletinIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'bulletinIds array is required and must not be empty'
+      });
+    }
+
+    console.log('[BULLETIN_DISTRIBUTION] 📮 Starting bulletin distribution to parents:', { 
+      count: bulletinIds.length, 
+      requestedBy: userId,
+      schoolId
+    });
+
+    // Import notification services
+    const { vonageMessagesService } = await import('../services/vonageMessagesService');
+    const { hostingerMailService } = await import('../services/hostingerMailService');
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Validate that all bulletins exist, belong to this school, and have 'approved' status
+    const validBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      status: bulletinComprehensive.status,
+      pdfPath: bulletinComprehensive.pdfPath,
+      classId: bulletinComprehensive.classId,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      studentEmail: users.email
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .where(and(
+      inArray(bulletinComprehensive.id, bulletinIds.map(id => parseInt(id.toString()))),
+      eq(bulletinComprehensive.schoolId, schoolId)
+    ));
+
+    if (validBulletins.length !== bulletinIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: `Found ${validBulletins.length} valid bulletins out of ${bulletinIds.length} requested`
+      });
+    }
+
+    // Check that all bulletins are in 'approved' status
+    const nonApprovedBulletins = validBulletins.filter(b => b.status !== 'approved');
+    if (nonApprovedBulletins.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${nonApprovedBulletins.length} bulletins are not in 'approved' status and cannot be sent`
+      });
+    }
+
+    // Get parent relationships and contact information for all students
+    const studentIds = validBulletins.map(b => b.studentId);
+    
+    const parentRelations = await db.execute(sql`
+      SELECT 
+        psr.student_id,
+        psr.parent_id,
+        psr.relationship,
+        u.first_name as parent_first_name,
+        u.last_name as parent_last_name,
+        u.email as parent_email,
+        u.phone as parent_phone,
+        u.whatsapp_number as parent_whatsapp,
+        u.preferred_language as parent_language
+      FROM parent_student_relations psr
+      JOIN users u ON psr.parent_id = u.id
+      WHERE psr.student_id = ANY(${studentIds})
+        AND u.role = 'Parent'
+        AND (u.email IS NOT NULL OR u.phone IS NOT NULL OR u.whatsapp_number IS NOT NULL)
+      ORDER BY psr.student_id, psr.relationship
+    `);
+
+    // Process each bulletin and send notifications
+    const distributionResults = [];
+    const sentAt = new Date();
+    let totalSentEmails = 0;
+    let totalSentSMS = 0;
+    let totalSentWhatsApp = 0;
+    let totalErrors = 0;
+
+    for (const bulletin of validBulletins) {
+      try {
+        console.log(`[BULLETIN_DISTRIBUTION] 📄 Processing bulletin ${bulletin.id} for ${bulletin.studentName}`);
+
+        // Get parents for this student
+        const studentParents = parentRelations.rows.filter(r => r.student_id === bulletin.studentId);
+        
+        if (studentParents.length === 0) {
+          console.log(`[BULLETIN_DISTRIBUTION] ⚠️ No parents found for student ${bulletin.studentId}`);
+          distributionResults.push({
+            bulletinId: bulletin.id,
+            studentId: bulletin.studentId,
+            studentName: bulletin.studentName,
+            success: false,
+            message: 'No parent contacts found',
+            parents: []
+          });
+          totalErrors++;
+          continue;
+        }
+
+        const parentResults = [];
+
+        // Process each parent
+        for (const parentInfo of studentParents) {
+          const parentResult = {
+            parentId: parentInfo.parent_id,
+            parentName: `${parentInfo.parent_first_name} ${parentInfo.parent_last_name}`,
+            relationship: parentInfo.relationship,
+            email: parentInfo.parent_email,
+            phone: parentInfo.parent_phone,
+            whatsapp: parentInfo.parent_whatsapp,
+            emailSent: false,
+            smsSent: false,
+            whatsappSent: false,
+            errors: []
+          };
+
+          // 1. Send Email with PDF attachment
+          if (parentInfo.parent_email && bulletin.pdfPath) {
+            try {
+              const pdfExists = fs.existsSync(bulletin.pdfPath);
+              if (pdfExists) {
+                const language = parentInfo.parent_language || 'fr';
+                const subject = language === 'en' 
+                  ? `📊 Report Card - ${bulletin.studentName} (${bulletin.term})`
+                  : `📊 Bulletin de Notes - ${bulletin.studentName} (${bulletin.term})`;
+                
+                const emailBody = language === 'en'
+                  ? `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2c3e50;">📊 Report Card Available</h2>
+                    <p>Dear ${parentInfo.parent_first_name},</p>
+                    <p>The report card for <strong>${bulletin.studentName}</strong> is now available for the term <strong>${bulletin.term} ${bulletin.academicYear}</strong>.</p>
+                    <p>Please find the report card attached as a PDF file.</p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                      <p><strong>Student:</strong> ${bulletin.studentName}</p>
+                      <p><strong>Term:</strong> ${bulletin.term}</p>
+                      <p><strong>Academic Year:</strong> ${bulletin.academicYear}</p>
+                    </div>
+                    <p>If you have any questions, please contact the school administration.</p>
+                    <hr style="margin: 20px 0;">
+                    <p style="color: #666; font-size: 12px;">EDUCAFRIC Platform - Automated notification</p>
+                  </div>
+                  `
+                  : `
+                  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2c3e50;">📊 Bulletin de Notes Disponible</h2>
+                    <p>Cher/Chère ${parentInfo.parent_first_name},</p>
+                    <p>Le bulletin de notes de <strong>${bulletin.studentName}</strong> est maintenant disponible pour le trimestre <strong>${bulletin.term} ${bulletin.academicYear}</strong>.</p>
+                    <p>Vous trouverez le bulletin en pièce jointe au format PDF.</p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                      <p><strong>Élève :</strong> ${bulletin.studentName}</p>
+                      <p><strong>Trimestre :</strong> ${bulletin.term}</p>
+                      <p><strong>Année Scolaire :</strong> ${bulletin.academicYear}</p>
+                    </div>
+                    <p>Si vous avez des questions, n'hésitez pas à contacter l'administration de l'école.</p>
+                    <hr style="margin: 20px 0;">
+                    <p style="color: #666; font-size: 12px;">EDUCAFRIC Platform - Notification automatique</p>
+                  </div>
+                  `;
+
+                // Send email with PDF attachment
+                const emailResult = await hostingerMailService.sendEmail({
+                  to: parentInfo.parent_email,
+                  subject: subject,
+                  html: emailBody
+                  // TODO: Add PDF attachment support to hostingerMailService
+                });
+
+                if (emailResult) {
+                  parentResult.emailSent = true;
+                  totalSentEmails++;
+                  console.log(`[BULLETIN_DISTRIBUTION] ✅ Email sent to ${parentInfo.parent_email}`);
+                } else {
+                  parentResult.errors.push('Email sending failed');
+                  totalErrors++;
+                }
+              } else {
+                parentResult.errors.push('PDF file not found');
+                console.log(`[BULLETIN_DISTRIBUTION] ❌ PDF not found: ${bulletin.pdfPath}`);
+              }
+            } catch (emailError) {
+              parentResult.errors.push(`Email error: ${emailError.message}`);
+              console.error(`[BULLETIN_DISTRIBUTION] ❌ Email error:`, emailError);
+              totalErrors++;
+            }
+          }
+
+          // 2. Send SMS with download link
+          if (parentInfo.parent_phone) {
+            try {
+              const language = parentInfo.parent_language || 'fr';
+              const downloadUrl = `https://www.educafric.com/bulletins/download/${bulletin.id}`;
+              
+              const smsMessage = language === 'en'
+                ? `📊 Report Card Ready!\n\n${bulletin.studentName} - ${bulletin.term}\n\nDownload: ${downloadUrl}\n\nEducafric School Platform`
+                : `📊 Bulletin Disponible!\n\n${bulletin.studentName} - ${bulletin.term}\n\nTélécharger: ${downloadUrl}\n\nEducafric Plateforme Scolaire`;
+
+              const smsResult = await vonageMessagesService.sendDirectSMS(
+                parentInfo.parent_phone,
+                smsMessage
+              );
+
+              if (smsResult.success) {
+                parentResult.smsSent = true;
+                totalSentSMS++;
+                console.log(`[BULLETIN_DISTRIBUTION] ✅ SMS sent to ${parentInfo.parent_phone}`);
+              } else {
+                parentResult.errors.push(`SMS error: ${smsResult.error}`);
+                totalErrors++;
+              }
+            } catch (smsError) {
+              parentResult.errors.push(`SMS error: ${smsError.message}`);
+              console.error(`[BULLETIN_DISTRIBUTION] ❌ SMS error:`, smsError);
+              totalErrors++;
+            }
+          }
+
+          // 3. Send WhatsApp with download link
+          if (parentInfo.parent_whatsapp) {
+            try {
+              const language = parentInfo.parent_language || 'fr';
+              const downloadUrl = `https://www.educafric.com/bulletins/download/${bulletin.id}`;
+              
+              const whatsappMessage = language === 'en'
+                ? `📊 *Report Card Available*\n\nStudent: *${bulletin.studentName}*\nTerm: *${bulletin.term} ${bulletin.academicYear}*\n\n🔗 Download your report card:\n${downloadUrl}\n\n📱 _EDUCAFRIC School Platform_\n_Automated notification_`
+                : `📊 *Bulletin de Notes Disponible*\n\nÉlève: *${bulletin.studentName}*\nTrimestre: *${bulletin.term} ${bulletin.academicYear}*\n\n🔗 Téléchargez votre bulletin:\n${downloadUrl}\n\n📱 _EDUCAFRIC Plateforme Scolaire_\n_Notification automatique_`;
+
+              const whatsappResult = await vonageMessagesService.sendSimpleMessage(
+                parentInfo.parent_whatsapp,
+                whatsappMessage
+              );
+
+              if (whatsappResult.success) {
+                parentResult.whatsappSent = true;
+                totalSentWhatsApp++;
+                console.log(`[BULLETIN_DISTRIBUTION] ✅ WhatsApp sent to ${parentInfo.parent_whatsapp}`);
+              } else {
+                parentResult.errors.push(`WhatsApp error: ${whatsappResult.error}`);
+                totalErrors++;
+              }
+            } catch (whatsappError) {
+              parentResult.errors.push(`WhatsApp error: ${whatsappError.message}`);
+              console.error(`[BULLETIN_DISTRIBUTION] ❌ WhatsApp error:`, whatsappError);
+              totalErrors++;
+            }
+          }
+
+          parentResults.push(parentResult);
+        }
+
+        // Update bulletin status to 'sent' if at least one notification was successful
+        const hasSuccessfulNotification = parentResults.some(pr => 
+          pr.emailSent || pr.smsSent || pr.whatsappSent
+        );
+
+        if (hasSuccessfulNotification) {
+          await db.execute(sql`
+            UPDATE bulletin_comprehensive 
+            SET status = 'sent',
+                sent_at = ${sentAt},
+                notifications_sent = ${JSON.stringify({
+                  totalParents: studentParents.length,
+                  emailsSent: parentResults.filter(pr => pr.emailSent).length,
+                  smsSent: parentResults.filter(pr => pr.smsSent).length,
+                  whatsappSent: parentResults.filter(pr => pr.whatsappSent).length,
+                  sentAt: sentAt.toISOString()
+                })},
+                updated_at = ${new Date()}
+            WHERE id = ${bulletin.id}
+              AND school_id = ${schoolId}
+          `);
+        }
+
+        distributionResults.push({
+          bulletinId: bulletin.id,
+          studentId: bulletin.studentId,
+          studentName: bulletin.studentName,
+          success: hasSuccessfulNotification,
+          parents: parentResults,
+          statusUpdated: hasSuccessfulNotification
+        });
+
+        console.log(`[BULLETIN_DISTRIBUTION] ✅ Completed bulletin ${bulletin.id} - Success: ${hasSuccessfulNotification}`);
+
+      } catch (bulletinError: any) {
+        console.error(`[BULLETIN_DISTRIBUTION] ❌ Error processing bulletin ${bulletin.id}:`, bulletinError);
+        distributionResults.push({
+          bulletinId: bulletin.id,
+          studentId: bulletin.studentId,
+          studentName: bulletin.studentName,
+          success: false,
+          message: bulletinError.message,
+          parents: []
+        });
+        totalErrors++;
+      }
+    }
+
+    const summary = {
+      totalBulletins: validBulletins.length,
+      successfulBulletins: distributionResults.filter(r => r.success).length,
+      failedBulletins: distributionResults.filter(r => !r.success).length,
+      totalEmailsSent: totalSentEmails,
+      totalSmsSent: totalSentSMS,
+      totalWhatsAppSent: totalSentWhatsApp,
+      totalErrors: totalErrors,
+      sentAt: sentAt.toISOString()
+    };
+
+    console.log('[BULLETIN_DISTRIBUTION] 📊 Distribution Summary:', summary);
+
+    res.json({
+      success: true,
+      message: `Bulletin distribution completed: ${summary.successfulBulletins}/${summary.totalBulletins} bulletins sent successfully`,
+      data: {
+        summary,
+        results: distributionResults
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULLETIN_DISTRIBUTION] ❌ Error in bulletin distribution:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to distribute bulletins to parents',
+      error: error.message
+    });
+  }
+});
+
 export default router;

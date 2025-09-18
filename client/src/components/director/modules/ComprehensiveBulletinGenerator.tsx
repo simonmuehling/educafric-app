@@ -1263,6 +1263,12 @@ export default function ComprehensiveBulletinGenerator() {
     }
   });
 
+  // Reset selection when pendingBulletins change
+  useEffect(() => {
+    setSelectedBulletins([]);
+    setSelectAll(false);
+  }, [pendingBulletins]);
+
   // Bulletin generation mutation
   const generateMutation = useMutation({
     mutationFn: async (request: BulletinGenerationRequest) => {
@@ -1297,11 +1303,12 @@ export default function ComprehensiveBulletinGenerator() {
       apiRequest('POST', '/api/comprehensive-bulletins/bulk-approve', {
         bulletinIds
       }),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      // Calculer le count AVANT de vider la sélection
+      const count = variables.length;
       queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
       setSelectedBulletins([]);
       setSelectAll(false);
-      const count = selectedBulletins.length;
       toast({
         title: language === 'fr' ? 'Succès' : 'Success',
         description: language === 'fr' 

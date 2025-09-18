@@ -282,6 +282,15 @@ export default function BulletinManagementUnified() {
       bulletinsApproved: 'Bulletins Approuvés',
       bulletinsSent: 'Bulletins Envoyés',
       
+      // Parent notification actions
+      sendToParents: 'Envoyer aux Parents',
+      sendToParentsAll: 'Envoyer à Tous les Parents',
+      sendingToParents: 'Envoi aux parents...',
+      sendToParentsSuccess: 'Bulletins envoyés aux parents',
+      sendToParentsError: 'Erreur lors de l\'envoi aux parents',
+      parentNotification: 'Notification Parents',
+      emailSmsWhatsapp: 'Email + SMS + WhatsApp',
+      
       // Toast messages
       studentSelected: 'Élève sélectionné',
       infoAutoLoaded: 'Informations automatiquement chargées pour',
@@ -492,6 +501,15 @@ export default function BulletinManagementUnified() {
       bulletinsPending: 'Bulletins Pending Approval',
       bulletinsApproved: 'Approved Bulletins',
       bulletinsSent: 'Sent Bulletins',
+      
+      // Parent notification actions
+      sendToParents: 'Send to Parents',
+      sendToParentsAll: 'Send to All Parents',
+      sendingToParents: 'Sending to parents...',
+      sendToParentsSuccess: 'Bulletins sent to parents',
+      sendToParentsError: 'Error sending to parents',
+      parentNotification: 'Parent Notification',
+      emailSmsWhatsapp: 'Email + SMS + WhatsApp',
       
       // Toast messages
       studentSelected: 'Student selected',
@@ -1246,6 +1264,60 @@ export default function BulletinManagementUnified() {
       toast({
         title: t.error,
         description: error.message || t.processError,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Send bulletins to parents via notifications (Email + SMS + WhatsApp)
+  const sendToParents = async (bulletinIds: number[]) => {
+    try {
+      setLoading(true);
+      
+      console.log('[BULLETIN_PARENT_DISTRIBUTION] 📮 Starting parent notification for:', bulletinIds.length, 'bulletins');
+      
+      const response = await fetch('/api/comprehensive-bulletins/send-to-parents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          bulletinIds
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to send bulletins to parents');
+      }
+
+      const result = await response.json();
+      console.log('[BULLETIN_PARENT_DISTRIBUTION] ✅ Distribution completed:', result);
+
+      if (result.success) {
+        const summary = result.data.summary;
+        
+        // Success notification with statistics
+        toast({
+          title: "📧 " + t.sendToParentsSuccess,
+          description: `${summary.successfulBulletins}/${summary.totalBulletins} bulletins envoyés • ${summary.totalEmailsSent} emails • ${summary.totalSmsSent} SMS • ${summary.totalWhatsAppSent} WhatsApp`,
+        });
+        
+        // Reset selection
+        setSelectedBulletins([]);
+        
+        // Reload bulletins to see updated status
+        await loadPendingBulletins();
+      } else {
+        throw new Error(result.message || 'Distribution failed');
+      }
+      
+    } catch (error: any) {
+      console.error('[BULLETIN_PARENT_DISTRIBUTION] ❌ Error:', error);
+      toast({
+        title: t.sendToParentsError,
+        description: error.message || 'Une erreur est survenue lors de l\'envoi aux parents',
         variant: "destructive",
       });
     } finally {
@@ -3399,9 +3471,35 @@ export default function BulletinManagementUnified() {
                       )}
                     </Button>
                     
+                    <Button
+                      onClick={() => sendToParents(selectedBulletins.length > 0 ? selectedBulletins : approvedBulletins.map(b => b.id))}
+                      className="bg-purple-600 hover:bg-purple-700"
+                      disabled={loading || approvedBulletins.length === 0}
+                    >
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          {t.sendingToParents}
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4 mr-1" />
+                          {selectedBulletins.length > 0 
+                            ? `${t.sendToParents} (${selectedBulletins.length})`
+                            : `${t.sendToParentsAll} (${approvedBulletins.length})`
+                          }
+                        </>
+                      )}
+                    </Button>
+                    
                     <div className="text-sm text-gray-600 flex items-center">
                       <Shield className="w-4 h-4 mr-1" />
                       Signature numérique + Notifications
+                    </div>
+                    
+                    <div className="text-sm text-purple-600 flex items-center">
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      {t.emailSmsWhatsapp}
                     </div>
                   </div>
                 )}
