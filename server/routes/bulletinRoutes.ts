@@ -6,7 +6,7 @@ import { PDFGenerator } from '../services/pdfGenerator';
 import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
 import { PdfLibBulletinGenerator } from '../services/pdfLibBulletinGenerator';
 import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
-import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, subjects, users } from '../../shared/schema';
+import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, subjects, users, classes, schools } from '../../shared/schema';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import { 
   importStudentGradesFromDB, 
@@ -177,7 +177,7 @@ router.get('/teacher-appreciations/:studentId/:classId/:academicYear/:term', req
     // Récupérer toutes les appréciations des enseignants pour cet élève
     const appreciations = await db.select({
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.nameFr,
+      subjectName: subjects.name,
       teacherId: teacherGradeSubmissions.teacherId,
       teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
       subjectComments: teacherGradeSubmissions.subjectComments,
@@ -2549,7 +2549,7 @@ router.get('/preview', requireAuth, async (req, res) => {
     // Get approved grades for the student
     const grades = await db.select({
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.nameFr,
+      subjectName: subjects.name,
       teacherId: teacherGradeSubmissions.teacherId,
       teacherName: sql<string>`CONCAT(teacher.first_name, ' ', teacher.last_name)`.as('teacherName'),
       
@@ -2573,7 +2573,7 @@ router.get('/preview', requireAuth, async (req, res) => {
       eq(teacherGradeSubmissions.academicYear, academicYear as string),
       eq(teacherGradeSubmissions.isSubmitted, true)
     ))
-    .orderBy(subjects.nameFr);
+    .orderBy(subjects.name);
 
     // Format grades for preview
     const formattedGrades = grades.map(grade => {
@@ -2619,7 +2619,7 @@ router.get('/preview', requireAuth, async (req, res) => {
     `);
 
     const classAverage = classAverages.rows[0]?.class_average ? 
-      parseFloat(classAverages.rows[0].class_average).toFixed(2) : '0.00';
+      parseFloat(String(classAverages.rows[0].class_average)).toFixed(2) : '0.00';
 
     // Determine rank (simplified - real ranking would require more complex calculation)
     const classRank = overallAverage > parseFloat(classAverage) ? 
