@@ -2881,7 +2881,7 @@ export default function ComprehensiveBulletinGenerator() {
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white dark:bg-gray-900 border shadow-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>{t.confirmGeneration}</AlertDialogTitle>
             <AlertDialogDescription>
