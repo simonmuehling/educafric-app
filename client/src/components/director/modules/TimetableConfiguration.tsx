@@ -35,6 +35,8 @@ const TimetableConfiguration: React.FC = () => {
     className: '',
     day: '',
     timeSlot: '',
+    startTime: '',
+    endTime: '',
     subject: '',
     teacher: '',
     room: ''
@@ -121,10 +123,55 @@ const TimetableConfiguration: React.FC = () => {
     { value: 'Samedi', label: language === 'fr' ? 'Samedi' : 'Saturday' }
   ];
 
-  const timeSlots = [
-    '07:30 - 08:20', '08:20 - 09:10', '09:10 - 10:00', '10:20 - 11:10',
-    '11:10 - 12:00', '12:00 - 12:50', '14:00 - 14:50', '14:50 - 15:40', '15:40 - 16:30'
-  ];
+  // Time validation and formatting functions
+  const formatTimeSlot = (startTime: string, endTime: string): string => {
+    if (!startTime || !endTime) return '';
+    return `${startTime} - ${endTime}`;
+  };
+
+  const parseTimeSlot = (timeSlot: string): { startTime: string; endTime: string } => {
+    if (!timeSlot.includes(' - ')) return { startTime: '', endTime: '' };
+    const [startTime, endTime] = timeSlot.split(' - ');
+    return { startTime: startTime.trim(), endTime: endTime.trim() };
+  };
+
+  const validateTimeFormat = (time: string): boolean => {
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+  };
+
+  const validateTimeSlot = (startTime: string, endTime: string): string | null => {
+    if (!startTime || !endTime) {
+      return language === 'fr' ? 'Veuillez saisir l\'heure de début et de fin' : 'Please enter start and end time';
+    }
+    
+    if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
+      return language === 'fr' ? 'Format d\'heure invalide (HH:MM)' : 'Invalid time format (HH:MM)';
+    }
+    
+    const start = new Date(`2000-01-01 ${startTime}:00`);
+    const end = new Date(`2000-01-01 ${endTime}:00`);
+    
+    if (start >= end) {
+      return language === 'fr' ? 'L\'heure de fin doit être après l\'heure de début' : 'End time must be after start time';
+    }
+    
+    return null;
+  };
+
+  // Update timeSlot when start or end time changes
+  const updateTimeSlot = (newStartTime?: string, newEndTime?: string) => {
+    const startTime = newStartTime !== undefined ? newStartTime : formData.startTime;
+    const endTime = newEndTime !== undefined ? newEndTime : formData.endTime;
+    const timeSlot = formatTimeSlot(startTime, endTime);
+    
+    setFormData(prev => ({
+      ...prev,
+      startTime,
+      endTime,
+      timeSlot
+    }));
+  };
 
   // Load timetables
   useEffect(() => {
@@ -172,7 +219,8 @@ const TimetableConfiguration: React.FC = () => {
   const handleSubmit = useStableCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.className || !formData.day || !formData.timeSlot || !formData.subject || !formData.teacher || !formData.room) {
+    // Validate required fields
+    if (!formData.className || !formData.day || !formData.subject || !formData.teacher || !formData.room) {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: language === 'fr' ? 'Tous les champs sont requis' : 'All fields are required',
@@ -181,6 +229,23 @@ const TimetableConfiguration: React.FC = () => {
       return;
     }
 
+    // Validate time slot
+    const timeValidationError = validateTimeSlot(formData.startTime, formData.endTime);
+    if (timeValidationError) {
+      toast({
+        title: language === 'fr' ? 'Erreur de temps' : 'Time Error',
+        description: timeValidationError,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Ensure timeSlot is formatted correctly
+    const finalFormData = {
+      ...formData,
+      timeSlot: formatTimeSlot(formData.startTime, formData.endTime)
+    };
+
     try {
       const method = editingEntry ? 'PATCH' : 'POST';
       const url = editingEntry ? `/api/timetables/${editingEntry.id}` : '/api/timetables';
@@ -188,7 +253,7 @@ const TimetableConfiguration: React.FC = () => {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(finalFormData)
       });
 
       if (response.ok) {
@@ -215,10 +280,13 @@ const TimetableConfiguration: React.FC = () => {
 
   const handleEdit = (entry: TimetableEntry) => {
     setEditingEntry(entry);
+    const { startTime, endTime } = parseTimeSlot(entry.timeSlot);
     setFormData({
       className: entry.className,
       day: entry.day,
       timeSlot: entry.timeSlot,
+      startTime,
+      endTime,
       subject: entry.subject,
       teacher: entry.teacher,
       room: entry.room
@@ -246,7 +314,7 @@ const TimetableConfiguration: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFormData({ className: '', day: '', timeSlot: '', subject: '', teacher: '', room: '' });
+    setFormData({ className: '', day: '', timeSlot: '', startTime: '', endTime: '', subject: '', teacher: '', room: '' });
     setEditingEntry(null);
     setShowCreateForm(false);
   };
@@ -515,24 +583,65 @@ const TimetableConfiguration: React.FC = () => {
                   </Select>
                 </div>
 
-                {/* Time Slot */}
-                <div>
+                {/* Custom Time Slot - Start and End Time */}
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    {language === 'fr' ? 'Horaire' : 'Time Slot'}
+                    {language === 'fr' ? 'Horaire personnalisé' : 'Custom Time Slot'}
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+                      {language === 'fr' ? 'Flexible' : 'Flexible'}
+                    </Badge>
                   </label>
-                  <Select value={formData.timeSlot} onValueChange={(value) => setFormData(prev => ({ ...prev, timeSlot: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={language === 'fr' ? 'Choisir un horaire' : 'Choose time slot'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.map((slot) => (
-                        <SelectItem key={slot} value={slot}>
-                          {slot}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Start Time */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        {language === 'fr' ? 'Heure de début' : 'Start Time'}
+                      </label>
+                      <Input
+                        type="time"
+                        value={formData.startTime}
+                        onChange={(e) => updateTimeSlot(e.target.value, undefined)}
+                        placeholder="08:00"
+                        className="w-full"
+                        data-testid="input-start-time"
+                      />
+                    </div>
+                    {/* End Time */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        {language === 'fr' ? 'Heure de fin' : 'End Time'}
+                      </label>
+                      <Input
+                        type="time"
+                        value={formData.endTime}
+                        onChange={(e) => updateTimeSlot(undefined, e.target.value)}
+                        placeholder="09:00"
+                        className="w-full"
+                        data-testid="input-end-time"
+                      />
+                    </div>
+                  </div>
+                  {/* Time Preview */}
+                  {formData.startTime && formData.endTime && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-800">
+                          {language === 'fr' ? 'Aperçu:' : 'Preview:'}
+                        </span>
+                        <span className="text-sm text-blue-600 font-mono bg-white px-2 py-1 rounded border">
+                          {formatTimeSlot(formData.startTime, formData.endTime)}
+                        </span>
+                      </div>
+                      {validateTimeSlot(formData.startTime, formData.endTime) && (
+                        <div className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                          <span>⚠️</span>
+                          <span>{validateTimeSlot(formData.startTime, formData.endTime)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Subject Selection - Based on Class */}
@@ -638,11 +747,24 @@ const TimetableConfiguration: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
                 <Button 
                   onClick={handleSubmit}
-                  disabled={!formData.className || !formData.day || !formData.timeSlot || !formData.subject || !formData.teacher}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  disabled={
+                    !formData.className || 
+                    !formData.day || 
+                    !formData.startTime || 
+                    !formData.endTime || 
+                    !formData.subject || 
+                    !formData.teacher || 
+                    !formData.room ||
+                    !!validateTimeSlot(formData.startTime, formData.endTime)
+                  }
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid="button-create-timeslot"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Créer le Créneau' : 'Create Timeslot'}
+                  {editingEntry 
+                    ? (language === 'fr' ? 'Modifier le Créneau' : 'Update Timeslot')
+                    : (language === 'fr' ? 'Créer le Créneau' : 'Create Timeslot')
+                  }
                 </Button>
                 <Button 
                   onClick={() => {
