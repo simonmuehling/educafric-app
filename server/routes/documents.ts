@@ -7,6 +7,7 @@ import {
   GenerateDocumentPdfRequestSchema,
   validatePdfData
 } from '../../shared/pdfValidationSchemas';
+import { PDFGenerator } from '../services/pdfGenerator';
 
 const router = Router();
 
@@ -561,6 +562,43 @@ router.get('/list', (req, res) => {
   } catch (error) {
     console.error('[DOCUMENTS] List error:', error);
     res.status(500).json({ error: 'Failed to list documents' });
+  }
+});
+
+// API endpoint to generate bulletin creation guide PDF
+router.post('/generate-bulletin-guide-pdf', async (req, res) => {
+  try {
+    console.log('[DOCUMENTS] 📋 Generating bulletin creation guide PDF...');
+    
+    // Generate PDF using the PDFGenerator service
+    const pdfBuffer = await PDFGenerator.generateBulletinCreationGuide();
+    
+    // Save PDF to documents directory
+    const pdfPath = path.join(process.cwd(), 'public', 'documents', 'guide-creation-bulletins-scolaires.pdf');
+    fs.writeFileSync(pdfPath, pdfBuffer);
+    
+    console.log('[DOCUMENTS] ✅ Bulletin creation guide PDF saved successfully:', pdfPath);
+    
+    // Refresh document mapping to include the new PDF
+    const newMapping = generateDocumentMapping();
+    Object.keys(documentMapping).forEach(key => delete (documentMapping as any)[key]);
+    Object.assign(documentMapping, newMapping);
+    
+    res.json({
+      success: true,
+      message: 'Bulletin creation guide PDF generated and saved successfully',
+      filename: 'guide-creation-bulletins-scolaires.pdf',
+      path: '/public/documents/guide-creation-bulletins-scolaires.pdf',
+      size: pdfBuffer.length
+    });
+    
+  } catch (error: any) {
+    console.error('[DOCUMENTS] ❌ Error generating bulletin guide PDF:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to generate bulletin creation guide PDF',
+      message: error.message 
+    });
   }
 });
 

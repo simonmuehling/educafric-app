@@ -5882,7 +5882,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Génération du bulletin optimisé
       const pdfBuffer = await OptimizedBulletinGenerator.generateOptimizedBulletin(
-        studentData,
+        {
+          ...studentData,
+          studentId: studentData.id,
+          classId: 1,
+          overallAverage: studentData.subjects.reduce((sum, subject) => sum + subject.termAverage, 0) / studentData.subjects.length
+        },
         schoolInfo,
         bulletinOptions
       );
@@ -5919,8 +5924,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           language,
           student: {
             name: `${studentData.firstName} ${studentData.lastName}`,
-            class: studentData.class,
-            rank: studentData.rank
+            class: studentData.className,
+            rank: studentData.classRank
           },
           features: {
             totalSubjects: studentData.subjects.length,

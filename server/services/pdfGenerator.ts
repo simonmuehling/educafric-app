@@ -3965,4 +3965,61 @@ export class PDFGenerator {
       throw new Error(`Failed to generate School Partnership Contract 2025 PDF: ${error.message}`);
     }
   }
+
+  /**
+   * Generate Bulletin Creation Guide PDF from HTML
+   * Converts the French bulletin creation guide to PDF format for Cameroon schools
+   */
+  static async generateBulletinCreationGuide(): Promise<Buffer> {
+    try {
+      const puppeteer = await import('puppeteer');
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      console.log('[PDF_GENERATOR] 📋 Starting bulletin creation guide PDF generation...');
+      
+      // Read the HTML file
+      const htmlPath = path.join(process.cwd(), 'public/documents/guide-creation-bulletins-scolaires.html');
+      let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+      
+      // Launch browser with security settings
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+      });
+      
+      const page = await browser.newPage();
+      
+      // Set content with timeout for stability
+      await page.setContent(htmlContent, {
+        waitUntil: 'networkidle0',
+        timeout: 30000
+      });
+      
+      // Generate PDF with A4 format optimized for the guide content
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '1.5cm',
+          bottom: '1.5cm',
+          left: '1cm',
+          right: '1cm'
+        },
+        displayHeaderFooter: true,
+        headerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">EDUCAFRIC - Guide de Création des Bulletins Scolaires</div>',
+        footerTemplate: '<div style="font-size: 10px; width: 100%; text-align: center; color: #666;">Page <span class="pageNumber"></span> de <span class="totalPages"></span> - Guide Pratique pour les Écoles Camerounaises</div>',
+        preferCSSPageSize: true
+      });
+      
+      await browser.close();
+      
+      console.log('[PDF_GENERATOR] ✅ Bulletin creation guide PDF generated successfully');
+      return Buffer.from(pdfBuffer);
+      
+    } catch (error) {
+      console.error('[PDF_GENERATOR] ❌ Error generating bulletin creation guide PDF:', error);
+      throw new Error(`Failed to generate bulletin creation guide PDF: ${error.message}`);
+    }
+  }
 }
