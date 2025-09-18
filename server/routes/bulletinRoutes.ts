@@ -7,7 +7,7 @@ import { SimpleBulletinGenerator } from '../services/simpleBulletinGenerator';
 import { PdfLibBulletinGenerator } from '../services/pdfLibBulletinGenerator';
 import { bulletinNotificationService, BulletinNotificationData, BulletinRecipient } from '../services/bulletinNotificationService';
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, subjects, users } from '../../shared/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { 
   importStudentGradesFromDB, 
   generateCompleteBulletin, 
