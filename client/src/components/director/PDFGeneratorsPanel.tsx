@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -82,8 +83,8 @@ const PDF_GENERATORS: PDFGeneratorConfig[] = [
   },
   {
     id: 'master-sheet',
-    title: 'Feuille de Maître',
-    description: 'Vue d\'ensemble complète des notes de classe pour les enseignants',
+    title: 'Feuille de Synthèse',
+    description: 'Document central regroupant les informations importantes des élèves par classe (notes, absences, données administratives)',
     icon: FileSpreadsheet,
     endpoint: '/api/master-sheets/generate',
     demoEndpoint: '/api/master-sheets/demo',
@@ -106,6 +107,7 @@ const PDF_GENERATORS: PDFGeneratorConfig[] = [
       { value: 'blue', label: 'Bleu', description: 'Thème bleu professionnel' }
     ],
     specificOptions: [
+      { key: 'classId', label: 'Classe', type: 'select', options: [] }, // Will be populated with classes
       { key: 'includeStatistics', label: 'Inclure statistiques', type: 'boolean' },
       { key: 'includeAbsences', label: 'Inclure absences', type: 'boolean' },
       { key: 'showRankings', label: 'Afficher classements', type: 'boolean' }
@@ -192,7 +194,30 @@ export function PDFGeneratorsPanel() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const currentGenerator = PDF_GENERATORS.find(g => g.id === selectedGenerator)!;
+  // Récupération des classes de l'école pour la feuille de synthèse
+  const { data: classesData } = useQuery({
+    queryKey: ['/api/director/classes'],
+    enabled: selectedGenerator === 'master-sheet' || showAdvanced
+  });
+
+  // Créer une copie modifiée du générateur avec les classes disponibles
+  const currentGenerator = (() => {
+    const generator = PDF_GENERATORS.find(g => g.id === selectedGenerator)!;
+    if (generator.id === 'master-sheet' && classesData?.success) {
+      const classes = classesData.classes || [];
+      const classOptions = classes.map((cls: any) => `${cls.id}:${cls.name}`);
+      
+      return {
+        ...generator,
+        specificOptions: generator.specificOptions?.map(option => 
+          option.key === 'classId' 
+            ? { ...option, options: classOptions }
+            : option
+        ) || []
+      };
+    }
+    return generator;
+  })();
   const currentOptions = options[selectedGenerator];
 
   const updateOption = (key: string, value: any) => {
@@ -453,16 +478,27 @@ export function PDFGeneratorsPanel() {
                             <div key={option.key} className="space-y-2">
                               <Label htmlFor={option.key}>{option.label}</Label>
                               <Select
-                                value={currentOptions[option.key] || option.options[0]}
+                                value={currentOptions[option.key] || (option.options.length > 0 ? option.options[0] : '')}
                                 onValueChange={(value) => updateOption(option.key, value)}
                               >
                                 <SelectTrigger>
-                                  <SelectValue />
+                                  <SelectValue placeholder={option.key === 'classId' ? 'Sélectionner une classe...' : 'Sélectionner...'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {option.options.map(opt => (
-                                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                  ))}
+                                  {option.options.map(opt => {
+                                    if (option.key === 'classId') {
+                                      // Pour les classes, afficher seulement le nom (après les ":")
+                                      const [id, name] = opt.split(':');
+                                      return (
+                                        <SelectItem key={opt} value={opt}>
+                                          {name || opt}
+                                        </SelectItem>
+                                      );
+                                    }
+                                    return (
+                                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                    );
+                                  })}
                                 </SelectContent>
                               </Select>
                             </div>
