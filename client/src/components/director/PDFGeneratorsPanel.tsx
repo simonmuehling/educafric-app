@@ -208,17 +208,18 @@ export function PDFGeneratorsPanel() {
   const handleGenerateDemo = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest(currentGenerator.demoEndpoint, {
-        method: 'POST',
-        body: JSON.stringify({
+      const response = await apiRequest(
+        'POST',
+        currentGenerator.demoEndpoint,
+        {
           language: currentOptions.language,
           colorScheme: currentOptions.colorScheme,
           ...(selectedGenerator === 'timetable' && { includeSaturday: currentOptions.includeSaturday })
-        })
-      });
+        }
+      );
 
       // Create blob and download
-      const blob = new Blob([response], { type: 'application/pdf' });
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
