@@ -317,7 +317,10 @@ export default function ComprehensiveBulletinGenerator() {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showLoadDraftDialog, setShowLoadDraftDialog] = useState(false);
+  const [showResetConfirmDialog, setShowResetConfirmDialog] = useState(false);
   const [previewStudentId, setPreviewStudentId] = useState<number | null>(null);
+  const [availableDrafts, setAvailableDrafts] = useState<Array<{key: string, studentName: string, date: string, classId: string, term: string}>>([]);
   
   // Generation tracking
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
@@ -511,9 +514,16 @@ export default function ComprehensiveBulletinGenerator() {
       saveDraft: 'Sauvegarder le brouillon',
       loadDraft: 'Charger le brouillon',
       resetForm: 'Réinitialiser le formulaire',
-      draftSaved: 'Brouillon sauvegardé',
-      draftLoaded: 'Brouillon chargé',
+      draftSaved: 'Brouillon sauvegardé avec succès',
+      draftLoaded: 'Brouillon chargé avec succès',
       formReset: 'Formulaire réinitialisé',
+      noDraftsFound: 'Aucun brouillon trouvé pour cet élève',
+      selectDraftToLoad: 'Sélectionnez un brouillon à charger',
+      availableDrafts: 'Brouillons disponibles',
+      resetConfirmTitle: 'Confirmer la réinitialisation',
+      resetConfirmMessage: 'Êtes-vous sûr de vouloir réinitialiser le formulaire ? Toutes les données non sauvegardées seront perdues.',
+      loadDraftDialogTitle: 'Charger un brouillon',
+      loadDraftDialogDescription: 'Choisissez le brouillon que vous souhaitez charger pour cet élève.',
       
       // Form sections
       absencesLateness: 'Absences & Retards',
@@ -686,9 +696,16 @@ export default function ComprehensiveBulletinGenerator() {
       saveDraft: 'Save Draft',
       loadDraft: 'Load Draft',
       resetForm: 'Reset Form',
-      draftSaved: 'Draft saved',
-      draftLoaded: 'Draft loaded',
+      draftSaved: 'Draft saved successfully',
+      draftLoaded: 'Draft loaded successfully',
       formReset: 'Form reset',
+      noDraftsFound: 'No drafts found for this student',
+      selectDraftToLoad: 'Select a draft to load',
+      availableDrafts: 'Available drafts',
+      resetConfirmTitle: 'Confirm Reset',
+      resetConfirmMessage: 'Are you sure you want to reset the form? All unsaved data will be lost.',
+      loadDraftDialogTitle: 'Load Draft',
+      loadDraftDialogDescription: 'Choose the draft you want to load for this student.',
       
       // Form sections
       absencesLateness: 'Absences & Lateness',
@@ -780,69 +797,169 @@ export default function ComprehensiveBulletinGenerator() {
   };
   
   const saveDraftData = () => {
-    if (!selectedStudentForEntry) return;
+    if (!selectedStudentForEntry || !selectedClass) {
+      toast({
+        title: t.error,
+        description: 'Veuillez sélectionner un élève et une classe',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const currentData = manualDataForm.getValues();
-    const draftKey = `${selectedStudentForEntry}-${selectedTerm}-${academicYear}`;
+    const draftKey = `bulletin_draft_${selectedStudentForEntry}_${selectedClass}_${selectedTerm}_${academicYear}`;
     
-    setSavedDrafts(prev => ({
-      ...prev,
-      [draftKey]: currentData
-    }));
-    
-    // Store in localStorage for persistence
-    localStorage.setItem(`educafric-bulletin-drafts`, JSON.stringify({
-      ...savedDrafts,
-      [draftKey]: currentData
-    }));
-    
-    toast({
-      title: t.success,
-      description: t.draftSaved
-    });
+    try {
+      // Get existing drafts from localStorage
+      const existingDrafts = JSON.parse(localStorage.getItem('educafric-bulletin-drafts') || '{}');
+      
+      // Add current draft with timestamp
+      const draftWithTimestamp = {
+        ...currentData,
+        savedAt: new Date().toISOString(),
+        studentId: selectedStudentForEntry,
+        classId: selectedClass,
+        term: selectedTerm,
+        academicYear: academicYear
+      };
+      
+      const updatedDrafts = {
+        ...existingDrafts,
+        [draftKey]: draftWithTimestamp
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('educafric-bulletin-drafts', JSON.stringify(updatedDrafts));
+      
+      // Update state
+      setSavedDrafts(updatedDrafts);
+      
+      toast({
+        title: t.success,
+        description: t.draftSaved
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        title: t.error,
+        description: 'Erreur lors de la sauvegarde du brouillon',
+        variant: 'destructive'
+      });
+    }
   };
   
   const loadDraftData = () => {
     if (!selectedStudentForEntry) return;
     
-    const draftKey = `${selectedStudentForEntry}-${selectedTerm}-${academicYear}`;
-    
-    // First check in-memory drafts
-    let draftData = savedDrafts[draftKey];
-    
-    // If not found, check localStorage
-    if (!draftData) {
-      const storedDrafts = localStorage.getItem('educafric-bulletin-drafts');
-      if (storedDrafts) {
-        const parsedDrafts = JSON.parse(storedDrafts);
-        draftData = parsedDrafts[draftKey];
-        if (draftData) {
-          setSavedDrafts(parsedDrafts);
-        }
-      }
-    }
-    
-    if (draftData) {
-      manualDataForm.reset(draftData);
-      toast({
-        title: t.success,
-        description: t.draftLoaded
+    try {
+      // Get all drafts from localStorage
+      const storedDrafts = JSON.parse(localStorage.getItem('educafric-bulletin-drafts') || '{}');
+      
+      // Filter drafts for current context (student/class/term/year)
+      const contextualDrafts = Object.entries(storedDrafts).filter(([key, draft]: [string, any]) => {
+        const keyParts = key.split('_');
+        if (keyParts.length !== 6) return false; // bulletin_draft_studentId_classId_term_year
+        
+        const [prefix1, prefix2, studentId, classId, term, year] = keyParts;
+        return prefix1 === 'bulletin' && prefix2 === 'draft' && 
+               parseInt(studentId) === selectedStudentForEntry &&
+               classId === selectedClass &&
+               term === selectedTerm &&
+               year === academicYear;
+      }).map(([key, draft]: [string, any]) => {
+        const student = filteredStudents.find(s => s.id === selectedStudentForEntry);
+        return {
+          key,
+          studentName: student ? `${student.firstName} ${student.lastName}` : 'Élève inconnu',
+          date: draft.savedAt ? new Date(draft.savedAt).toLocaleString('fr-FR') : 'Date inconnue',
+          classId: selectedClass || '',
+          term: selectedTerm
+        };
       });
-    } else {
+      
+      if (contextualDrafts.length === 0) {
+        toast({
+          title: t.error,
+          description: t.noDraftsFound,
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      // If only one draft, load it directly
+      if (contextualDrafts.length === 1) {
+        const draftData = storedDrafts[contextualDrafts[0].key];
+        manualDataForm.reset(draftData);
+        toast({
+          title: t.success,
+          description: t.draftLoaded
+        });
+        return;
+      }
+      
+      // Multiple drafts - show selection modal
+      setAvailableDrafts(contextualDrafts);
+      setShowLoadDraftDialog(true);
+      
+    } catch (error) {
+      console.error('Error loading drafts:', error);
       toast({
         title: t.error,
-        description: 'Aucun brouillon trouvé pour cet élève',
+        description: 'Erreur lors du chargement des brouillons',
         variant: 'destructive'
       });
     }
   };
   
   const resetFormData = () => {
-    manualDataForm.reset();
-    toast({
-      title: t.success,
-      description: t.formReset
-    });
+    setShowResetConfirmDialog(true);
+  };
+  
+  const confirmResetFormData = () => {
+    try {
+      manualDataForm.reset();
+      setShowResetConfirmDialog(false);
+      toast({
+        title: t.success,
+        description: t.formReset
+      });
+    } catch (error) {
+      console.error('Error resetting form:', error);
+      toast({
+        title: t.error,
+        description: 'Erreur lors de la réinitialisation du formulaire',
+        variant: 'destructive'
+      });
+    }
+  };
+  
+  const handleLoadSelectedDraft = (draftKey: string) => {
+    try {
+      const storedDrafts = JSON.parse(localStorage.getItem('educafric-bulletin-drafts') || '{}');
+      const draftData = storedDrafts[draftKey];
+      
+      if (draftData) {
+        manualDataForm.reset(draftData);
+        setShowLoadDraftDialog(false);
+        toast({
+          title: t.success,
+          description: t.draftLoaded
+        });
+      } else {
+        toast({
+          title: t.error,
+          description: 'Brouillon introuvable',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading selected draft:', error);
+      toast({
+        title: t.error,
+        description: 'Erreur lors du chargement du brouillon',
+        variant: 'destructive'
+      });
+    }
   };
   
   // Save manual data mutation
@@ -2709,6 +2826,81 @@ export default function ComprehensiveBulletinGenerator() {
           <AlertDialogFooter>
             <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmGeneration} data-testid="confirm-generation">
+              {t.confirm}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Load Draft Dialog */}
+      <Dialog open={showLoadDraftDialog} onOpenChange={setShowLoadDraftDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t.loadDraftDialogTitle}</DialogTitle>
+            <DialogDescription>
+              {t.loadDraftDialogDescription}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {availableDrafts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileDown className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>{t.noDraftsFound}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>{t.selectDraftToLoad}</Label>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {availableDrafts.map((draft, index) => (
+                    <Card
+                      key={draft.key}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleLoadSelectedDraft(draft.key)}
+                      data-testid={`draft-option-${index}`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-sm">
+                              {draft.studentName}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {draft.term} - {draft.classId}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {draft.date}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLoadDraftDialog(false)}>
+              {t.cancel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Form Confirmation Dialog */}
+      <AlertDialog open={showResetConfirmDialog} onOpenChange={setShowResetConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t.resetConfirmTitle}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t.resetConfirmMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmResetFormData} data-testid="confirm-reset">
               {t.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>
