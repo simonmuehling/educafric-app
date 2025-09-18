@@ -298,10 +298,30 @@ const TimetableView: React.FC = () => {
 
   // Days of the week
   const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00'
-  ];
+  
+  // Generate flexible time slots based on actual timetable data
+  const getFlexibleTimeSlots = () => {
+    const slots = new Set<string>();
+    
+    // Add times from existing timetable data
+    (Array.isArray(timetableData) ? timetableData : []).forEach(slot => {
+      slots.add(slot.startTime);
+    });
+    
+    // If no data, provide a default range with 30-minute intervals from 8:00 to 18:00
+    if (slots.size === 0) {
+      for (let hour = 8; hour <= 18; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          slots.add(time);
+        }
+      }
+    }
+    
+    return Array.from(slots).sort();
+  };
+  
+  const timeSlots = getFlexibleTimeSlots();
 
   // Organize timetable data by day and time
   const organizedTimetable = useMemo(() => {

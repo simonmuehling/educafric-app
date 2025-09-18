@@ -18,6 +18,14 @@ const TeacherTimetable = () => {
   const [selectedClass, setSelectedClass] = useState('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    subject: '',
+    className: '',
+    room: '',
+    startTime: '',
+    endTime: '',
+    timeSlot: ''
+  });
 
   const text = {
     fr: {
@@ -37,6 +45,12 @@ const TeacherTimetable = () => {
       duration: 'Durée',
       save: 'Enregistrer',
       cancel: 'Annuler',
+      startTime: 'Heure de début',
+      endTime: 'Heure de fin',
+      timeError: 'Erreur de temps',
+      timeValidation: 'Veuillez saisir l\'heure de début et de fin',
+      invalidTimeFormat: 'Format d\'heure invalide (HH:MM)',
+      endTimeAfterStart: 'L\'heure de fin doit être après l\'heure de début',
       monday: 'Lundi',
       tuesday: 'Mardi',
       wednesday: 'Mercredi',
@@ -64,6 +78,12 @@ const TeacherTimetable = () => {
       duration: 'Duration',
       save: 'Save',
       cancel: 'Cancel',
+      startTime: 'Start time',
+      endTime: 'End time',
+      timeError: 'Time Error',
+      timeValidation: 'Please enter start and end time',
+      invalidTimeFormat: 'Invalid time format (HH:MM)',
+      endTimeAfterStart: 'End time must be after start time',
       monday: 'Monday',
       tuesday: 'Tuesday',
       wednesday: 'Wednesday',
@@ -87,11 +107,50 @@ const TeacherTimetable = () => {
     { id: 'saturday', name: t.saturday, short: 'Sam' }
   ];
 
-  const timeSlots = [
-    '08:00-09:00', '09:00-10:00', '10:00-11:00', '11:00-12:00',
-    '12:00-13:00', '13:00-14:00', '14:00-15:00', '15:00-16:00',
-    '16:00-17:00', '17:00-18:00'
-  ];
+  // Time validation and formatting functions for flexible time slots
+  const formatTimeSlot = (startTime: string, endTime: string): string => {
+    if (!startTime || !endTime) return '';
+    return `${startTime}-${endTime}`;
+  };
+
+  const parseTimeSlot = (timeSlot: string): { startTime: string; endTime: string } => {
+    if (!timeSlot.includes('-')) return { startTime: '', endTime: '' };
+    const [startTime, endTime] = timeSlot.split('-');
+    return { startTime: startTime.trim(), endTime: endTime.trim() };
+  };
+
+  const validateTimeFormat = (time: string): boolean => {
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    return timeRegex.test(time);
+  };
+
+  const validateTimeSlot = (startTime: string, endTime: string): string | null => {
+    if (!startTime || !endTime) {
+      return t.timeValidation;
+    }
+    
+    if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
+      return t.invalidTimeFormat;
+    }
+    
+    const start = new Date(`2000-01-01 ${startTime}:00`);
+    const end = new Date(`2000-01-01 ${endTime}:00`);
+    
+    if (start >= end) {
+      return t.endTimeAfterStart;
+    }
+    
+    return null;
+  };
+
+  // Generate unique time slots from schedule data for display
+  const timeSlots = () => {
+    const slots = new Set<string>();
+    Object.values(schedule).flat().forEach((slot: any) => {
+      slots.add(slot.time);
+    });
+    return Array.from(slots).sort();
+  };
 
   const classes = [
     { id: '6eme-a', name: '6ème A', students: 32 },
@@ -153,8 +212,49 @@ const TeacherTimetable = () => {
   };
 
   const handleSlotClick = (day: string, slot: any) => {
+    const parsedTime = parseTimeSlot(slot.time);
     setCurrentSlot({ ...slot, day });
+    setFormData({
+      subject: slot.subject || '',
+      className: slot.class || '',
+      room: slot.room || '',
+      startTime: parsedTime.startTime,
+      endTime: parsedTime.endTime,
+      timeSlot: slot.time || ''
+    });
     setIsEditDialogOpen(true);
+  };
+
+  const updateTimeSlot = (newStartTime?: string, newEndTime?: string) => {
+    const startTime = newStartTime !== undefined ? newStartTime : formData.startTime;
+    const endTime = newEndTime !== undefined ? newEndTime : formData.endTime;
+    const timeSlot = formatTimeSlot(startTime, endTime);
+    
+    setFormData(prev => ({
+      ...prev,
+      startTime,
+      endTime,
+      timeSlot
+    }));
+  };
+
+  const handleSaveSlot = () => {
+    // Validate time slot
+    const timeValidationError = validateTimeSlot(formData.startTime, formData.endTime);
+    if (timeValidationError) {
+      toast({
+        title: t.timeError,
+        description: timeValidationError,
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    toast({
+      title: language === 'fr' ? 'Créneaux modifié' : 'Slot updated',
+      description: language === 'fr' ? 'Les modifications ont été sauvegardées' : 'Changes have been saved'
+    });
+    setIsEditDialogOpen(false);
   };
 
   const handleExportPdf = () => {
@@ -276,7 +376,7 @@ const TeacherTimetable = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(Array.isArray(timeSlots) ? timeSlots : []).map(timeSlot => (
+                  {timeSlots().map(timeSlot => (
                     <tr key={timeSlot} className="border-t">
                       <td className="p-3 text-sm font-medium text-gray-600 bg-gray-50">
                         {timeSlot}
@@ -341,43 +441,68 @@ const TeacherTimetable = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">{t.subject}</label>
-              <Input defaultValue={currentSlot?.subject || ''} placeholder="Mathématiques" />
+              <Input 
+                value={formData.subject}
+                onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                placeholder="Mathématiques" 
+              />
             </div>
             
             <div>
               <label className="block text-sm font-medium mb-2">{t.class}</label>
-              <select className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select 
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.className}
+                onChange={(e) => setFormData(prev => ({ ...prev, className: e.target.value }))}
+              >
+                <option value="">Sélectionner une classe</option>
                 {(Array.isArray(classes) ? classes : []).map(cls => (
-                  <option key={cls.id} value={cls.id}>{cls.name || ''}</option>
+                  <option key={cls.id} value={cls.name}>{cls.name || ''}</option>
                 ))}
               </select>
             </div>
             
             <div>
               <label className="block text-sm font-medium mb-2">{t.room}</label>
-              <Input defaultValue={currentSlot?.room || ''} placeholder="Salle 12" />
+              <Input 
+                value={formData.room}
+                onChange={(e) => setFormData(prev => ({ ...prev, room: e.target.value }))}
+                placeholder="Salle 12" 
+              />
             </div>
             
-            <div>
-              <label className="block text-sm font-medium mb-2">{t.time}</label>
-              <select className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                {(Array.isArray(timeSlots) ? timeSlots : []).map(slot => (
-                  <option key={slot} value={slot}>{slot}</option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.startTime}</label>
+                <Input 
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => updateTimeSlot(e.target.value, undefined)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">{t.endTime}</label>
+                <Input 
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => updateTimeSlot(undefined, e.target.value)}
+                  className="w-full"
+                />
+              </div>
             </div>
+            
+            {formData.timeSlot && (
+              <div className="text-sm text-gray-600 text-center p-2 bg-gray-50 rounded">
+                Créneau: {formData.timeSlot}
+              </div>
+            )}
 
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 {t.cancel}
               </Button>
-              <Button onClick={() => {
-                toast({
-                  title: language === 'fr' ? 'Créneaux modifié' : 'Slot updated',
-                  description: language === 'fr' ? 'Les modifications ont été sauvegardées' : 'Changes have been saved'
-                });
-                setIsEditDialogOpen(false);
-              }}>
+              <Button onClick={handleSaveSlot}>
                 <Save className="w-4 h-4 mr-2" />
                 {t.save}
               </Button>
