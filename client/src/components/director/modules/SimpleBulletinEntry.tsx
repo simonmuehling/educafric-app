@@ -129,17 +129,64 @@ const SimpleBulletinEntry: React.FC = () => {
   const handleGeneratePDF = async () => {
     setIsGenerating(true);
     try {
-      // Mock PDF generation - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Préparer les données pour l'API
+      const pdfData = {
+        studentInfo: {
+          name: bulletinData.studentName,
+          class: bulletinData.className,
+          term: bulletinData.term,
+          academicYear: bulletinData.academicYear
+        },
+        absences: bulletinData.absences,
+        sanctions: bulletinData.sanctions,
+        grades: bulletinData.grades,
+        appreciation: bulletinData.appreciation,
+        comments: bulletinData.comments,
+        signatures: bulletinData.signatures,
+        options: {
+          language: 'fr',
+          format: 'A4',
+          colorScheme: 'standard',
+          includeAbsences: true,
+          includeSanctions: true,
+          includeAppreciations: true
+        }
+      };
+
+      // Appel vers l'API de génération de bulletins complets
+      const response = await fetch('/api/comprehensive-bulletins/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(pdfData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      // Télécharger le PDF généré
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `bulletin-${bulletinData.studentName}-${bulletinData.term}-${bulletinData.academicYear}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
       toast({
-        title: "PDF Généré",
-        description: "Le bulletin a été généré avec vos données manuelles",
+        title: "PDF Généré avec succès",
+        description: `Le bulletin de ${bulletinData.studentName} a été téléchargé`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[SIMPLE_BULLETIN] ❌ Erreur génération PDF:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de générer le PDF",
+        title: "Erreur de génération",
+        description: error.message || "Impossible de générer le PDF",
         variant: "destructive"
       });
     } finally {

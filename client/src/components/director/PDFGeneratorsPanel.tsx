@@ -337,16 +337,20 @@ export function PDFGeneratorsPanel() {
                   <Button
                     key={generator.id}
                     variant={selectedGenerator === generator.id ? "default" : "outline"}
-                    className="w-full justify-start h-auto p-4"
+                    className="w-full justify-start h-auto p-3 min-h-[80px]"
                     onClick={() => setSelectedGenerator(generator.id)}
                     data-testid={`select-generator-${generator.id}`}
                   >
-                    <div className="flex items-start gap-3 text-left">
+                    <div className="flex items-start gap-3 text-left w-full">
                       <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">{generator.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {generator.description}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm sm:text-base leading-tight mb-1 break-words">
+                          {generator.title}
+                        </div>
+                        <div className="text-xs sm:text-sm text-muted-foreground leading-tight break-words hyphens-auto overflow-hidden">
+                          <span className="line-clamp-2 sm:line-clamp-3">
+                            {generator.description}
+                          </span>
                         </div>
                       </div>
                     </div>
