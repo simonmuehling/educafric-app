@@ -1378,4 +1378,312 @@ router.get('/load/:studentId/:classId/:term/:academicYear', requireAuth, require
   }
 });
 
+// ===== WORKFLOW ROUTES FOR BULLETIN STATUS MANAGEMENT =====
+
+// Get bulletins with status='submitted' (pending approval)
+router.get('/pending', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[COMPREHENSIVE_WORKFLOW] 📋 Fetching pending bulletins for school:', schoolId);
+
+    // Get bulletins with status='submitted' including student and class info
+    const pendingBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      classId: bulletinComprehensive.classId,
+      className: classes.name,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      submittedAt: bulletinComprehensive.submittedAt,
+      generalAverage: bulletinComprehensive.generalAverage,
+      workAppreciation: bulletinComprehensive.workAppreciation,
+      createdAt: bulletinComprehensive.createdAt,
+      updatedAt: bulletinComprehensive.updatedAt
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .where(and(
+      eq(bulletinComprehensive.schoolId, schoolId),
+      eq(bulletinComprehensive.status, 'submitted')
+    ))
+    .orderBy(sql`${bulletinComprehensive.submittedAt} DESC`);
+
+    console.log('[COMPREHENSIVE_WORKFLOW] ✅ Found pending bulletins:', pendingBulletins.length);
+
+    res.json({
+      success: true,
+      data: pendingBulletins.map(bulletin => ({
+        ...bulletin,
+        studentName: bulletin.studentName || `Élève ${bulletin.studentId}`,
+        className: bulletin.className || `Classe ${bulletin.classId}`,
+        generalAverage: bulletin.generalAverage ? parseFloat(bulletin.generalAverage.toString()) : null
+      }))
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_WORKFLOW] ❌ Error fetching pending bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending bulletins',
+      error: error.message
+    });
+  }
+});
+
+// Get bulletins with status='approved' (approved by director)
+router.get('/approved', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[COMPREHENSIVE_WORKFLOW] 📋 Fetching approved bulletins for school:', schoolId);
+
+    // Get bulletins with status='approved' including student, class, and approver info
+    const approvedBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      classId: bulletinComprehensive.classId,
+      className: classes.name,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      submittedAt: bulletinComprehensive.submittedAt,
+      approvedAt: bulletinComprehensive.approvedAt,
+      approvedBy: bulletinComprehensive.approvedBy,
+      approverName: sql<string>`CONCAT(approver.first_name, ' ', approver.last_name)`,
+      generalAverage: bulletinComprehensive.generalAverage,
+      workAppreciation: bulletinComprehensive.workAppreciation,
+      createdAt: bulletinComprehensive.createdAt,
+      updatedAt: bulletinComprehensive.updatedAt
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .leftJoin(sql`users approver`, sql`${bulletinComprehensive.approvedBy} = approver.id`)
+    .where(and(
+      eq(bulletinComprehensive.schoolId, schoolId),
+      eq(bulletinComprehensive.status, 'approved')
+    ))
+    .orderBy(sql`${bulletinComprehensive.approvedAt} DESC`);
+
+    console.log('[COMPREHENSIVE_WORKFLOW] ✅ Found approved bulletins:', approvedBulletins.length);
+
+    res.json({
+      success: true,
+      data: approvedBulletins.map(bulletin => ({
+        ...bulletin,
+        studentName: bulletin.studentName || `Élève ${bulletin.studentId}`,
+        className: bulletin.className || `Classe ${bulletin.classId}`,
+        approverName: bulletin.approverName || `Directeur ${bulletin.approvedBy}`,
+        generalAverage: bulletin.generalAverage ? parseFloat(bulletin.generalAverage.toString()) : null
+      }))
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_WORKFLOW] ❌ Error fetching approved bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch approved bulletins',
+      error: error.message
+    });
+  }
+});
+
+// Get bulletins with status='sent' (sent to parents)
+router.get('/sent', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[COMPREHENSIVE_WORKFLOW] 📋 Fetching sent bulletins for school:', schoolId);
+
+    // Get bulletins with status='sent' including student, class, and notification info
+    const sentBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      classId: bulletinComprehensive.classId,
+      className: classes.name,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      submittedAt: bulletinComprehensive.submittedAt,
+      approvedAt: bulletinComprehensive.approvedAt,
+      sentAt: bulletinComprehensive.sentAt,
+      approvedBy: bulletinComprehensive.approvedBy,
+      approverName: sql<string>`CONCAT(approver.first_name, ' ', approver.last_name)`,
+      generalAverage: bulletinComprehensive.generalAverage,
+      notificationsSent: bulletinComprehensive.notificationsSent,
+      createdAt: bulletinComprehensive.createdAt,
+      updatedAt: bulletinComprehensive.updatedAt
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .leftJoin(sql`users approver`, sql`${bulletinComprehensive.approvedBy} = approver.id`)
+    .where(and(
+      eq(bulletinComprehensive.schoolId, schoolId),
+      eq(bulletinComprehensive.status, 'sent')
+    ))
+    .orderBy(sql`${bulletinComprehensive.sentAt} DESC`);
+
+    console.log('[COMPREHENSIVE_WORKFLOW] ✅ Found sent bulletins:', sentBulletins.length);
+
+    res.json({
+      success: true,
+      data: sentBulletins.map(bulletin => ({
+        ...bulletin,
+        studentName: bulletin.studentName || `Élève ${bulletin.studentId}`,
+        className: bulletin.className || `Classe ${bulletin.classId}`,
+        approverName: bulletin.approverName || `Directeur ${bulletin.approvedBy}`,
+        generalAverage: bulletin.generalAverage ? parseFloat(bulletin.generalAverage.toString()) : null,
+        notificationsSent: bulletin.notificationsSent || { sms: false, email: false, whatsapp: false }
+      }))
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_WORKFLOW] ❌ Error fetching sent bulletins:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch sent bulletins',
+      error: error.message
+    });
+  }
+});
+
+// Bulk approve multiple bulletins
+router.post('/bulk-approve', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const userId = user.id;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { bulletinIds } = req.body;
+
+    if (!bulletinIds || !Array.isArray(bulletinIds) || bulletinIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'bulletinIds array is required and must not be empty'
+      });
+    }
+
+    console.log('[COMPREHENSIVE_WORKFLOW] 🎯 Bulk approving bulletins:', { 
+      count: bulletinIds.length, 
+      approvedBy: userId,
+      schoolId
+    });
+
+    // Validate that all bulletins exist, belong to this school, and have 'submitted' status
+    const validBulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      status: bulletinComprehensive.status,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .where(and(
+      inArray(bulletinComprehensive.id, bulletinIds.map(id => parseInt(id.toString()))),
+      eq(bulletinComprehensive.schoolId, schoolId)
+    ));
+
+    if (validBulletins.length !== bulletinIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: `Found ${validBulletins.length} valid bulletins out of ${bulletinIds.length} requested`
+      });
+    }
+
+    // Check that all bulletins are in 'submitted' status
+    const nonSubmittedBulletins = validBulletins.filter(b => b.status !== 'submitted');
+    if (nonSubmittedBulletins.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${nonSubmittedBulletins.length} bulletins are not in 'submitted' status and cannot be approved`
+      });
+    }
+
+    // Perform bulk approval - update status, approvedBy, and approvedAt
+    const approvedAt = new Date();
+    
+    const updateResult = await db.update(bulletinComprehensive)
+      .set({
+        status: 'approved' as const,
+        approvedBy: userId,
+        approvedAt: approvedAt,
+        updatedAt: new Date()
+      })
+      .where(and(
+        inArray(bulletinComprehensive.id, bulletinIds.map(id => parseInt(id.toString()))),
+        eq(bulletinComprehensive.schoolId, schoolId),
+        eq(bulletinComprehensive.status, 'submitted')
+      ));
+
+    console.log('[COMPREHENSIVE_WORKFLOW] ✅ Bulk approval completed:', {
+      approvedCount: validBulletins.length,
+      approvedBy: userId,
+      approvedAt: approvedAt.toISOString()
+    });
+
+    // Return success with details of approved bulletins
+    res.json({
+      success: true,
+      message: `Successfully approved ${validBulletins.length} bulletins`,
+      data: {
+        approvedCount: validBulletins.length,
+        approvedBy: userId,
+        approvedAt: approvedAt.toISOString(),
+        approvedBulletins: validBulletins.map(bulletin => ({
+          id: bulletin.id,
+          studentId: bulletin.studentId,
+          studentName: bulletin.studentName || `Élève ${bulletin.studentId}`,
+          status: 'approved'
+        }))
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[COMPREHENSIVE_WORKFLOW] ❌ Error in bulk approval:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve bulletins',
+      error: error.message
+    });
+  }
+});
+
 export default router;
