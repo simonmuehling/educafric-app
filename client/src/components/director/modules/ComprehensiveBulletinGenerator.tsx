@@ -817,10 +817,33 @@ export default function ComprehensiveBulletinGenerator() {
   };
   
   const fillDefaultCoefficients = () => {
-    if (!selectedStudentForEntry) return;
+    console.log('[COEFFICIENTS] 🔧 Fill default coefficients called');
+    console.log('[COEFFICIENTS] 📋 Selected student ID:', selectedStudentForEntry);
+    console.log('[COEFFICIENTS] 👥 Filtered students:', filteredStudents);
+    
+    if (!selectedStudentForEntry) {
+      console.log('[COEFFICIENTS] ❌ No student selected');
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un élève d'abord",
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const student = filteredStudents.find(s => s.id === selectedStudentForEntry);
-    if (!student?.approvedGrades) return;
+    console.log('[COEFFICIENTS] 🎯 Found student:', student);
+    console.log('[COEFFICIENTS] 📊 Student approved grades:', student?.approvedGrades);
+    
+    if (!student?.approvedGrades) {
+      console.log('[COEFFICIENTS] ❌ No approved grades found');
+      toast({
+        title: "Erreur",
+        description: "Aucune note approuvée trouvée pour cet élève",
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const defaultCoefficients: Record<number, any> = {};
     student.approvedGrades.forEach(grade => {
