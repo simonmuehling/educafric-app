@@ -277,10 +277,12 @@ router.get('/:filename', async (req, res) => {
   }
 });
 
-// Generate PDF from MD files
+// Generate PDF from MD files using clean jsPDF (no Puppeteer)
+// ✅ ROUTE CLEANUP: Removed Puppeteer remnants for clean single-path PDF generation
 router.get('/:filename/pdf', async (req, res) => {
-  let browser = null;
   try {
+    console.log('[DOCUMENT_PDF] 🔤 Generating PDF with Unicode font support - no Puppeteer');
+    
     // ✅ VALIDATE FILENAME PARAMETER
     const filename = req.params.filename;
     if (!filename || typeof filename !== 'string' || filename.trim() === '') {
@@ -290,11 +292,11 @@ router.get('/:filename/pdf', async (req, res) => {
       });
     }
     
-    // ✅ VALIDATE FILE EXTENSION
-    if (!filename.endsWith('.md')) {
+    // ✅ VALIDATE FILE EXTENSION - Support both .md and .html files
+    if (!filename.endsWith('.md') && !filename.endsWith('.html')) {
       return res.status(400).json({ 
         error: 'Invalid file type', 
-        message: 'PDF generation only available for .md files' 
+        message: 'PDF generation only available for .md and .html files' 
       });
     }
     
@@ -351,113 +353,57 @@ router.get('/:filename/pdf', async (req, res) => {
       });
     }
 
-    // ✅ GENERATE HTML WITH ERROR HANDLING
+    // ✅ GENERATE HTML WITH ERROR HANDLING - Support both .md and .html files
     let htmlContent;
-    try {
-      htmlContent = marked(content);
-    } catch (markdownError: any) {
-      console.error('[DOCUMENT_PDF] ❌ Markdown parsing error:', markdownError);
-      return res.status(500).json({ 
-        error: 'Markdown parsing failed', 
-        message: 'Unable to parse document content' 
-      });
+    let isHtmlFile = filename.endsWith('.html');
+    
+    if (isHtmlFile) {
+      // For HTML files, use content directly and extract body content
+      try {
+        // Extract content between body tags or use full content if no body tags
+        const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        htmlContent = bodyMatch ? bodyMatch[1] : content;
+        console.log('[DOCUMENT_PDF] 📄 Processing HTML file directly');
+      } catch (htmlError: any) {
+        console.error('[DOCUMENT_PDF] ❌ HTML processing error:', htmlError);
+        return res.status(500).json({ 
+          error: 'HTML processing failed', 
+          message: 'Unable to process HTML content' 
+        });
+      }
+    } else {
+      // For Markdown files, convert to HTML
+      try {
+        htmlContent = marked(content);
+        console.log('[DOCUMENT_PDF] 📝 Converted Markdown to HTML');
+      } catch (markdownError: any) {
+        console.error('[DOCUMENT_PDF] ❌ Markdown parsing error:', markdownError);
+        return res.status(500).json({ 
+          error: 'Markdown parsing failed', 
+          message: 'Unable to parse document content' 
+        });
+      }
     }
     
-    // ✅ SAFE FILENAME FOR DISPLAY
-    const safeFilename = validatedRequest.filename
-      .replace(/[<>:"|\/\\*?]/g, '_')
-      .substring(0, 100); // Limit length
-    
-    const htmlPage = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${safeFilename} - EDUCAFRIC</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        h1, h2, h3 { color: #2c5530; }
-        .header { 
-            border-bottom: 2px solid #2c5530; 
-            padding-bottom: 10px; 
-            margin-bottom: 20px; 
-        }
-        .footer { 
-            border-top: 1px solid #ddd; 
-            padding-top: 20px; 
-            margin-top: 40px; 
-            text-align: center; 
-            font-size: 0.9em; 
-            color: #666; 
-        }
-        pre { 
-            background: #f5f5f5; 
-            padding: 10px; 
-            border-radius: 4px; 
-        }
-        blockquote { 
-            border-left: 4px solid #2c5530; 
-            margin: 0; 
-            padding-left: 20px; 
-            font-style: italic; 
-        }
-        @media print {
-            body { margin: 0; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>📄 ${safeFilename}</h1>
-        <p><strong>EDUCAFRIC Platform</strong> - Document officiel</p>
-    </div>
-    
-    ${htmlContent}
-    
-    <div class="footer">
-        <p>Document généré automatiquement par EDUCAFRIC</p>
-        <p>Plateforme éducative pour l'Afrique - ${new Date().getFullYear()}</p>
-    </div>
-</body>
-</html>`;
+    // ✅ CONTENT VERIFICATION: Validate word count and coverage
+    const contentVerification = PDFGenerator.verifyContentCoverage(content, htmlContent);
+    if (!contentVerification.meetsRequirement) {
+      console.warn(`[DOCUMENT_PDF] ⚠️ Content verification: ${contentVerification.statistics}`);
+    } else {
+      console.log(`[DOCUMENT_PDF] ✅ Content verification passed: ${contentVerification.statistics}`);
+    }
 
-    // ✅ GENERATE PDF WITH PROPER ERROR HANDLING
+    // ✅ GENERATE PDF WITH JSPDF AND UNICODE SUPPORT (NO PUPPETEER)
     let pdfBuffer;
     try {
-      // Dynamic import for puppeteer with validation
-      const puppeteer = await import('puppeteer');
-      if (!puppeteer || !puppeteer.default) {
-        throw new Error('Puppeteer is not available');
-      }
-
-      browser = await puppeteer.default.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-      });
+      console.log('[DOCUMENT_PDF] 📝 Generating PDF with jsPDF and Unicode font...');
       
-      const page = await browser.newPage();
-      await page.setContent(htmlPage, { 
-        waitUntil: 'networkidle0', 
-        timeout: 30000 
-      });
-      
-      pdfBuffer = await page.pdf({
-        format: validatedRequest.format as any,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        },
-        printBackground: true,
-        timeout: 30000
+      // Use PDFGenerator service instead of Puppeteer
+      pdfBuffer = await PDFGenerator.generateMarkdownToPdf(content, {
+        filename: validatedRequest.filename,
+        format: validatedRequest.format,
+        language: validatedRequest.language,
+        contentVerification
       });
       
       // ✅ VALIDATE PDF BUFFER
@@ -465,54 +411,37 @@ router.get('/:filename/pdf', async (req, res) => {
         throw new Error('Generated PDF is empty or invalid');
       }
       
+      console.log('[DOCUMENT_PDF] ✅ PDF generated successfully with jsPDF and Unicode support');
+      
     } catch (pdfError: any) {
       console.error('[DOCUMENT_PDF] ❌ PDF generation error:', pdfError);
       return res.status(500).json({ 
         error: 'PDF generation failed', 
         message: 'Unable to generate PDF from document' 
       });
-    } finally {
-      // ✅ ENSURE BROWSER CLEANUP
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.error('[DOCUMENT_PDF] ❌ Error closing browser:', closeError);
-        }
-        browser = null;
-      }
     }
     
-    // ✅ GENERATE SAFE PDF FILENAME
+    // ✅ GENERATE SAFE PDF FILENAME - Handle both .md and .html extensions
     const pdfFilename = validatedRequest.filename
-      .replace('.md', '.pdf')
+      .replace(/\.(md|html)$/, '.pdf')
       .replace(/[^a-zA-Z0-9._-]/g, '_')
       .substring(0, 100); // Limit length
     
-    // ✅ SET HEADERS ONLY AFTER SUCCESSFUL PDF GENERATION
+    // ✅ SET PROPER CACHE HEADERS AND RESPONSE
     res.status(200);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${pdfFilename}"`);
     res.setHeader('Content-Length', pdfBuffer.length);
-    res.setHeader('Cache-Control', 'private, no-cache');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache for production
+    res.setHeader('X-PDF-Generator', 'EDUCAFRIC-jsPDF-Unicode');
     
-    console.log('[DOCUMENT_PDF] ✅ PDF generated successfully:', pdfFilename, `(${pdfBuffer.length} bytes)`);
+    console.log('[DOCUMENT_PDF] ✅ Clean PDF generated:', pdfFilename, `(${pdfBuffer.length} bytes)`, 'Content verified:', contentVerification.meetsRequirement);
     
     // ✅ SEND VALIDATED PDF BUFFER
     res.end(Buffer.from(pdfBuffer));
     
   } catch (error: any) {
     console.error('[DOCUMENT_PDF] ❌ Unexpected error:', error);
-    
-    // ✅ ENSURE BROWSER CLEANUP
-    if (browser) {
-      try {
-        await browser.close();
-      } catch (closeError) {
-        console.error('[DOCUMENT_PDF] ❌ Error closing browser in catch:', closeError);
-      }
-    }
-    
     res.status(500).json({ 
       error: 'Internal server error', 
       message: 'Unable to generate PDF. Please try again later.' 
