@@ -508,6 +508,35 @@ export default function ComprehensiveBulletinGenerator() {
       error: 'Erreur',
       success: 'Succès',
       
+      // Bulk Operations specific
+      generationSummary: 'Résumé de la génération',
+      selectedClass: 'Classe sélectionnée',
+      term: 'Trimestre',
+      academicYearLabel: 'Année scolaire',
+      selectedStudentsLabel: 'Élèves sélectionnés',
+      format: 'Format',
+      options: 'Options',
+      comments: 'Commentaires',
+      rankings: 'Classements',
+      statistics: 'Statistiques',
+      performanceLevels: 'Niveaux de rendement',
+      
+      // Preview Dialog
+      previewTitle: 'Aperçu du bulletin',
+      previewDescription: 'Aperçu du bulletin pour l\'élève sélectionné',
+      loadingPreview: 'Chargement de l\'aperçu...',
+      studentInfo: 'Informations élève',
+      name: 'Nom',
+      class: 'Classe',
+      studentId: 'Matricule',
+      average: 'Moyenne',
+      noPreviewData: 'Aucune donnée d\'aperçu disponible',
+      
+      // Progress Dialog
+      errors: 'Erreurs',
+      downloadsReady: 'Téléchargements prêts',
+      downloadBulletin: 'Télécharger bulletin',
+      
       // Manual data entry
       manualDataEntry: 'Saisie Manuelle',
       selectStudentForEntry: 'Sélectionner un élève pour la saisie',
@@ -689,6 +718,35 @@ export default function ComprehensiveBulletinGenerator() {
       loading: 'Loading...',
       error: 'Error',
       success: 'Success',
+      
+      // Bulk Operations specific
+      generationSummary: 'Generation Summary',
+      selectedClass: 'Selected class',
+      term: 'Term',
+      academicYearLabel: 'Academic year',
+      selectedStudentsLabel: 'Selected students',
+      format: 'Format',
+      options: 'Options',
+      comments: 'Comments',
+      rankings: 'Rankings',
+      statistics: 'Statistics',
+      performanceLevels: 'Performance levels',
+      
+      // Preview Dialog
+      previewTitle: 'Bulletin Preview',
+      previewDescription: 'Preview of the bulletin for the selected student',
+      loadingPreview: 'Loading preview...',
+      studentInfo: 'Student Information',
+      name: 'Name',
+      class: 'Class',
+      studentId: 'Student ID',
+      average: 'Average',
+      noPreviewData: 'No preview data available',
+      
+      // Progress Dialog
+      errors: 'Errors',
+      downloadsReady: 'Downloads ready',
+      downloadBulletin: 'Download bulletin',
       
       // Manual data entry
       manualDataEntry: 'Manual Data Entry',
@@ -2652,14 +2710,14 @@ export default function ComprehensiveBulletinGenerator() {
             <CardContent className="space-y-6">
               {/* Generation Summary */}
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold mb-2">Résumé de la génération</h3>
+                <h3 className="font-semibold mb-2">{t.generationSummary}</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>Classe sélectionnée: {classes?.find((c: any) => c.id.toString() === selectedClass)?.name}</div>
-                  <div>Trimestre: {selectedTerm}</div>
-                  <div>Année scolaire: {academicYear}</div>
-                  <div>Élèves sélectionnés: {selectedStudents.length}</div>
-                  <div>Format: {generationFormat === 'pdf' ? t.individualPdf : t.batchPdf}</div>
-                  <div>Options: {[includeComments && 'Commentaires', includeRankings && 'Classements', includeStatistics && 'Statistiques', includePerformanceLevels && 'Niveaux de rendement'].filter(Boolean).join(', ')}</div>
+                  <div>{t.selectedClass}: {classes?.find((c: any) => c.id.toString() === selectedClass)?.name}</div>
+                  <div>{t.term}: {selectedTerm}</div>
+                  <div>{t.academicYearLabel}: {academicYear}</div>
+                  <div>{t.selectedStudentsLabel}: {selectedStudents.length}</div>
+                  <div>{t.format}: {generationFormat === 'pdf' ? t.individualPdf : t.batchPdf}</div>
+                  <div>{t.options}: {[includeComments && t.comments, includeRankings && t.rankings, includeStatistics && t.statistics, includePerformanceLevels && t.performanceLevels].filter(Boolean).join(', ')}</div>
                 </div>
               </div>
 
@@ -2704,33 +2762,33 @@ export default function ComprehensiveBulletinGenerator() {
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Aperçu du bulletin</DialogTitle>
+            <DialogTitle>{t.previewTitle}</DialogTitle>
             <DialogDescription>
-              Aperçu du bulletin pour l'élève sélectionné
+              {t.previewDescription}
             </DialogDescription>
           </DialogHeader>
           
           {loadingPreview ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>Chargement de l'aperçu...</span>
+              <span>{t.loadingPreview}</span>
             </div>
           ) : previewData ? (
             <div className="space-y-4">
               {/* Student Info */}
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-semibold">Informations élève</h3>
+                <h3 className="font-semibold">{t.studentInfo}</h3>
                 <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                  <div>Nom: {previewData.student.firstName} {previewData.student.lastName}</div>
-                  <div>Classe: {previewData.student.className}</div>
-                  <div>Matricule: {previewData.student.matricule}</div>
-                  <div>Moyenne: {previewData.overallAverage?.toFixed(2)}/20</div>
+                  <div>{t.name}: {previewData.student.firstName} {previewData.student.lastName}</div>
+                  <div>{t.class}: {previewData.student.className}</div>
+                  <div>{t.studentId}: {previewData.student.matricule}</div>
+                  <div>{t.average}: {previewData.overallAverage?.toFixed(2)}/20</div>
                 </div>
               </div>
               
               {/* Grades Preview */}
               <div className="space-y-2">
-                <h3 className="font-semibold">Notes approuvées</h3>
+                <h3 className="font-semibold">{t.approvedGrades}</h3>
                 <div className="space-y-1">
                   {previewData.subjects?.map((subject: any, index: number) => (
                     <div key={index} className="flex justify-between text-sm p-2 bg-gray-50 rounded">
@@ -2743,7 +2801,7 @@ export default function ComprehensiveBulletinGenerator() {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              Aucune donnée d'aperçu disponible
+              {t.noPreviewData}
             </div>
           )}
           
@@ -2777,7 +2835,7 @@ export default function ComprehensiveBulletinGenerator() {
               
               {generationProgress.errors.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-red-600">Erreurs:</h4>
+                  <h4 className="text-sm font-semibold text-red-600">{t.errors}:</h4>
                   {generationProgress.errors.map((error, index) => (
                     <div key={index} className="text-sm text-red-600 bg-red-50 p-2 rounded">
                       {error}
@@ -2788,7 +2846,7 @@ export default function ComprehensiveBulletinGenerator() {
               
               {generationProgress.downloadUrls.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-green-600">Téléchargements prêts:</h4>
+                  <h4 className="text-sm font-semibold text-green-600">{t.downloadsReady}:</h4>
                   {generationProgress.downloadUrls.map((url, index) => (
                     <Button
                       key={index}
@@ -2798,7 +2856,7 @@ export default function ComprehensiveBulletinGenerator() {
                       className="w-full"
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Télécharger bulletin {index + 1}
+                      {t.downloadBulletin} {index + 1}
                     </Button>
                   ))}
                 </div>
