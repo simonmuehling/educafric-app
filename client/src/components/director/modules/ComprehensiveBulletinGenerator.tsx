@@ -1066,15 +1066,33 @@ export default function ComprehensiveBulletinGenerator() {
       
       console.log('[MANUAL_SAVE] 💾 Saving comprehensive data:', comprehensiveData);
       
-      // CRITICAL FIX: Direct parameter passing to prevent object confusion
-      console.log('[MANUAL_SAVE] 🔧 Making API request to:', '/api/comprehensive-bulletins/save');
-      console.log('[MANUAL_SAVE] 📤 Request data type:', typeof comprehensiveData);
+      // CRITICAL FIX: Explicit parameter isolation to prevent mixing
+      const httpMethod = 'POST';
+      const apiEndpoint = '/api/comprehensive-bulletins/save';
+      const requestPayload = comprehensiveData;
       
-      return await apiRequest(
-        'POST', 
-        '/api/comprehensive-bulletins/save', 
-        comprehensiveData
-      );
+      // Strict validation before API call
+      if (typeof httpMethod !== 'string') {
+        throw new Error('HTTP method must be a string');
+      }
+      if (typeof apiEndpoint !== 'string') {
+        throw new Error('API endpoint must be a string');
+      }
+      if (!requestPayload || typeof requestPayload !== 'object') {
+        throw new Error('Request payload must be an object');
+      }
+      
+      console.log('[MANUAL_SAVE] 🔧 Validated parameters:', {
+        method: httpMethod,
+        url: apiEndpoint,
+        payloadType: typeof requestPayload,
+        hasPayload: !!requestPayload
+      });
+      
+      // Call apiRequest with explicit, validated parameters
+      const response = await apiRequest(httpMethod, apiEndpoint, requestPayload);
+      console.log('[MANUAL_SAVE] ✅ API request successful');
+      return response;
     },
     onSuccess: () => {
       toast({
