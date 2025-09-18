@@ -116,6 +116,7 @@ export interface BulletinOptions {
 export class ComprehensiveBulletinGenerator {
   
   // Enhanced method to embed images with comprehensive error handling
+  // 🔧 CRITICAL FIX: Enhanced image embedding with comprehensive debugging and A4-optimized sizing
   static async embedImage(pdfDoc: PDFDocument, imagePath: string, imageType: 'logo' | 'photo' | 'signature' = 'photo'): Promise<PDFImage | null> {
     try {
       if (!imagePath || imagePath.trim() === '') {
@@ -124,6 +125,7 @@ export class ComprehensiveBulletinGenerator {
       }
 
       console.log(`[PDF_IMAGES] 🔄 Attempting to embed ${imageType} from: ${imagePath}`);
+      console.log(`[PDF_IMAGES] 📊 Image type: ${imageType}, Path type: ${imagePath.startsWith('http') ? 'URL' : 'Local'}`);
       
       // Check if image exists and read it
       let imageBytes: Uint8Array;
@@ -228,10 +230,16 @@ export class ComprehensiveBulletinGenerator {
         }
       } catch (embedError: any) {
         console.error(`[PDF_IMAGES] ❌ Failed to embed ${imageType} in PDF: ${embedError.message}`);
+        console.error(`[PDF_IMAGES] 🔍 Debug info - Image type: ${detectedImageType}, Bytes length: ${imageBytes?.length || 0}`);
+        console.error(`[PDF_IMAGES] 📝 Suggestion: Check if ${imageType} format is supported (PNG/JPEG only)`);
         return null;
       }
       
+      // ✅ CRITICAL SUCCESS - Log detailed embedding info for A4 optimization
       console.log(`[PDF_IMAGES] ✅ Successfully embedded ${imageType} (${detectedImageType}, ${imageBytes.length} bytes) from ${imageSource}`);
+      console.log(`[PDF_IMAGES] 📏 Image dimensions: ${embeddedImage.width}x${embeddedImage.height} pixels`);
+      console.log(`[PDF_IMAGES] 🎯 Ready for A4-optimized rendering`);
+      
       return embeddedImage;
       
     } catch (error: any) {
@@ -402,12 +410,40 @@ export class ComprehensiveBulletinGenerator {
         console.log(`[COMPREHENSIVE_PDF] ℹ️ No school logo URL available in database`);
       }
       
-      // Embed student photo if available (real database field)
+      // 🔧 CRITICAL FIX: Enhanced student photo embedding with multiple fallback paths
       let studentPhoto: PDFImage | null = null;
       if (studentData.photo) {
+        console.log(`[COMPREHENSIVE_PDF] 🔄 Attempting to embed student photo from: ${studentData.photo}`);
         studentPhoto = await this.embedImage(pdfDoc, studentData.photo, 'photo');
+        
+        if (studentPhoto) {
+          console.log(`[COMPREHENSIVE_PDF] ✅ Student photo successfully embedded`);
+        } else {
+          console.warn(`[COMPREHENSIVE_PDF] ⚠️ Failed to embed student photo, will show placeholder`);
+        }
       } else {
-        console.log(`[COMPREHENSIVE_PDF] ℹ️ No student photo available in database`);
+        // Try common photo field alternatives
+        const alternativePhotoFields = [
+          (studentData as any).photoURL,
+          (studentData as any).profilePictureUrl, 
+          (studentData as any).photoUrl,
+          (studentData as any).studentPhoto
+        ];
+        
+        for (const altPhoto of alternativePhotoFields) {
+          if (altPhoto) {
+            console.log(`[COMPREHENSIVE_PDF] 🔄 Trying alternative photo field: ${altPhoto}`);
+            studentPhoto = await this.embedImage(pdfDoc, altPhoto, 'photo');
+            if (studentPhoto) {
+              console.log(`[COMPREHENSIVE_PDF] ✅ Student photo embedded from alternative field`);
+              break;
+            }
+          }
+        }
+        
+        if (!studentPhoto) {
+          console.log(`[COMPREHENSIVE_PDF] ℹ️ No student photo available in any field - will show professional placeholder`);
+        }
       }
       
       // Embed principal teacher signature if available
@@ -500,12 +536,20 @@ export class ComprehensiveBulletinGenerator {
         postalBox: schoolInfo.boitePostale || schoolInfo.address
       };
       
-      // 🔧 CRITICAL FIX 1: Define content frame constants
+      // 🔧 CRITICAL FIX 1: A4-Optimized content frame with proper print margins
+      // Standard A4: 210 × 297 mm = 595.276 × 841.89 points
+      // Professional margins: 30mm (~85 points) for A4 print compatibility
+      const A4_PRINT_MARGIN = 30; // Professional A4 print margin in points
       const content = {
-        left: 40,
-        right: width - 40,
-        width: width - 80
+        left: A4_PRINT_MARGIN,
+        right: width - A4_PRINT_MARGIN,
+        width: width - (2 * A4_PRINT_MARGIN),
+        top: height - A4_PRINT_MARGIN,
+        bottom: A4_PRINT_MARGIN
       };
+      
+      console.log(`[A4_LAYOUT] 📏 A4 Page: ${width}x${height}pts (${(width/72*25.4).toFixed(1)}x${(height/72*25.4).toFixed(1)}mm)`);
+      console.log(`[A4_LAYOUT] 📝 Content area: ${content.width}x${content.top - content.bottom}pts with ${A4_PRINT_MARGIN}pt margins`);
       
       console.log(`[LAYOUT_DEBUG] Content frame: left=${content.left}, width=${content.width}, right=${content.right}`);
       
@@ -619,13 +663,32 @@ export class ComprehensiveBulletinGenerator {
           borderWidth: 1
         });
         
-        // Draw student photo
-        page.drawImage(studentPhoto, {
-          x: photoX,
-          y: photoY,
-          width: photoDimensions.width,
-          height: photoDimensions.height
-        });
+        // 🔧 CRITICAL FIX: Enhanced photo rendering with proper error handling
+        try {
+          page.drawImage(studentPhoto, {
+            x: photoX,
+            y: photoY,
+            width: photoDimensions.width,
+            height: photoDimensions.height
+          });
+          
+          console.log(`[COMPREHENSIVE_PDF] ✅ Student photo rendered successfully at (${photoX}, ${photoY})`);
+        } catch (photoRenderError: any) {
+          console.error(`[COMPREHENSIVE_PDF] ❌ Error rendering student photo: ${photoRenderError.message}`);
+          
+          // Fallback: Draw professional placeholder instead
+          const studentInitial = studentData.firstName ? studentData.firstName.charAt(0).toUpperCase() : 'E';
+          drawText('Eleve', photoX + (photoDimensions.width - helvetica.widthOfTextAtSize('Eleve', 7)) / 2, photoY + photoDimensions.height - 12, {
+            font: helvetica,
+            size: 7,
+            color: rgb(0.4, 0.4, 0.4)
+          });
+          drawText(studentInitial, photoX + (photoDimensions.width - helveticaBold.widthOfTextAtSize(studentInitial, 14)) / 2, photoY + photoDimensions.height / 2 + 2, {
+            font: helveticaBold,
+            size: 14,
+            color: rgb(0.5, 0.5, 0.5)
+          });
+        }
         
         photoWidth = photoDimensions.width;
         photoSpace = photoWidth + 20; // Photo width + margins
@@ -712,7 +775,7 @@ export class ComprehensiveBulletinGenerator {
         });
       }
       
-      // Add photo placeholder if no photo available but space is reserved
+      // 🔧 CRITICAL FIX: Enhanced photo placeholder that properly matches example PDF format
       if (!studentPhoto && options.photoMaxWidth) {
         const placeholderWidth = options.photoMaxWidth || 50;
         const placeholderX = content.right - placeholderWidth - 10; // Use content frame
@@ -726,23 +789,35 @@ export class ComprehensiveBulletinGenerator {
         // Update photoSpace for placeholder
         photoSpace = placeholderWidth + 20;
         
-        // Draw placeholder rectangle
+        // Draw placeholder rectangle with professional styling matching example
         drawRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight, {
-          color: rgb(0.98, 0.98, 0.98),
+          color: whiteColor,
           borderColor: borderColor,
           borderWidth: 1
         });
         
-        // Add placeholder text
-        const placeholderText = options.language === 'fr' ? 'Photo' : 'Photo';
-        const textWidth = helvetica.widthOfTextAtSize(placeholderText, 8);
-        drawText(placeholderText, placeholderX + (placeholderWidth - textWidth) / 2, placeholderY + placeholderHeight / 2 - 4, {
+        // ✅ FIXED PLACEHOLDER TEXT - Match example PDF format exactly
+        // Draw "Eleve" and student initial instead of just "Photo"
+        const studentInitial = studentData.firstName ? studentData.firstName.charAt(0).toUpperCase() : 'E';
+        
+        // Line 1: "Eleve" (centered, smaller font)
+        const eleveText = 'Eleve';
+        const eleveWidth = helvetica.widthOfTextAtSize(eleveText, 7);
+        drawText(eleveText, placeholderX + (placeholderWidth - eleveWidth) / 2, placeholderY + placeholderHeight - 12, {
           font: helvetica,
-          size: 8,
-          color: rgb(0.6, 0.6, 0.6)
+          size: 7,
+          color: rgb(0.4, 0.4, 0.4)
         });
         
-        console.log(`[LAYOUT_DEBUG] Photo placeholder positioned at (${placeholderX}, ${placeholderY}) size: ${placeholderWidth}x${placeholderHeight}`);
+        // Line 2: Student initial (centered, larger)
+        const initialWidth = helveticaBold.widthOfTextAtSize(studentInitial, 14);
+        drawText(studentInitial, placeholderX + (placeholderWidth - initialWidth) / 2, placeholderY + placeholderHeight / 2 + 2, {
+          font: helveticaBold,
+          size: 14,
+          color: rgb(0.5, 0.5, 0.5)
+        });
+        
+        console.log(`[LAYOUT_DEBUG] ✅ FIXED: Photo placeholder positioned at (${placeholderX}, ${placeholderY}) size: ${placeholderWidth}x${placeholderHeight} with format "Eleve ${studentInitial}"`);
       }
       
       // 🔧 CRITICAL FIX: Guarantee vertical flow without overlap
@@ -752,17 +827,21 @@ export class ComprehensiveBulletinGenerator {
       // Set currentY to the safe position for next section
       currentY = sectionBottomY - 20; // Increased margin to prevent overlap
       
-      // 4. PROFESSIONAL SECTIONED GRADES TABLE - MATCHING EXAMPLE PDF
-      const tableStartX = 40;
-      const tableWidth = width - 80;
+      // 4. PROFESSIONAL SECTIONED GRADES TABLE - A4-OPTIMIZED MATCHING EXAMPLE PDF
+      const tableStartX = content.left;
+      const tableWidth = content.width;
+      
+      console.log(`[A4_LAYOUT] 📏 Table: ${tableWidth}pts wide, starting at x=${tableStartX}`);
       
       // New column structure matching example: SUBJECTS | C | T1 | T2 | T3 | COMP | TEACHER
       const tableHeaders = options.language === 'fr' 
         ? ['MATIÈRES', 'C', 'T1', 'T2', 'T3', 'COMP', 'ENSEIGNANT']
         : ['SUBJECTS', 'C', 'T1', 'T2', 'T3', 'COMP', 'TEACHER'];
       
-      // Optimized column widths for professional compact look
-      const tableColWidths = [140, 20, 30, 30, 30, 35, 85];
+      // 🔧 A4-Optimized column widths for perfect print fit (total: 455pts fits in A4 content)
+      const tableColWidths = [180, 25, 35, 35, 35, 45, 100]; // Total: 455pts (fits in A4 content)
+      
+      console.log(`[A4_LAYOUT] 📏 Column widths total: ${tableColWidths.reduce((a,b) => a+b, 0)}pts (content: ${tableWidth}pts)`);
       
       // Organize subjects into professional sections with comprehensive debugging
       console.log(`[SECTIONED_DEBUG] 📊 Processing ${studentData.subjects.length} subjects for sectioning:`);
