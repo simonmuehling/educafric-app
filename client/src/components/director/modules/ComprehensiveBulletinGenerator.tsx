@@ -1917,7 +1917,7 @@ export default function ComprehensiveBulletinGenerator() {
                                                 <SelectValue placeholder="-" />
                                               </SelectTrigger>
                                               <SelectContent>
-                                                <SelectItem value="">-</SelectItem>
+                                                <SelectItem value="none">-</SelectItem>
                                                 <SelectItem value="A">A</SelectItem>
                                                 <SelectItem value="B">B</SelectItem>
                                                 <SelectItem value="C">C</SelectItem>
@@ -1933,7 +1933,7 @@ export default function ComprehensiveBulletinGenerator() {
                                               placeholder="-"
                                               className="h-8 text-center text-xs"
                                               maxLength={50}
-                                              value={subjectCoefficients[grade.subjectId]?.CNA || ''}
+                                              value={subjectCoefficients[grade.subjectId]?.CNA || 'none'}
                                               onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CNA', e.target.value)}
                                               data-testid={`cna-${grade.subjectId}`}
                                             />
