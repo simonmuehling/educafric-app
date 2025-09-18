@@ -1,14 +1,33 @@
+import crypto from 'crypto';
 import { RefactoredNotificationService, NotificationRecipient, NotificationPayload } from './refactoredNotificationService';
-import { hostingerMailService } from './hostingerMailService';
-import { SMS_TEMPLATES } from './notifications/smsTemplates';
-import { EMAIL_TEMPLATES } from './notifications/emailTemplates';
 import { 
   BulletinTemplateGenerator, 
-  TemplateVariables,
-  BULLETIN_SMS_TEMPLATES,
-  BULLETIN_EMAIL_TEMPLATES,
-  BULLETIN_WHATSAPP_TEMPLATES 
+  TemplateVariables
 } from './notificationTemplates';
+import { db } from '../db';
+import { bulletinComprehensive } from '../../shared/schema';
+import { eq, and } from 'drizzle-orm';
+
+// Interface pour le tracking détaillé des notifications
+export interface NotificationTrackingStatus {
+  sent: boolean;
+  sentAt?: string;
+  status?: 'delivered' | 'sent' | 'pending' | 'failed' | 'retrying';
+  attempts?: number;
+  lastAttemptAt?: string;
+  error?: string;
+  deliveredAt?: string;
+  retryCount?: number;
+  maxRetries?: number;
+}
+
+export interface DetailedNotificationTracking {
+  email?: NotificationTrackingStatus;
+  sms?: NotificationTrackingStatus;
+  whatsapp?: NotificationTrackingStatus;
+  lastUpdated?: string;
+  totalAttempts?: number;
+}
 
 export interface BulletinNotificationData {
   studentId: number;
@@ -45,6 +64,15 @@ export interface BulletinRecipient {
   schoolContact?: string;
 }
 
+export interface BulletinTrackingContext {
+  bulletinComprehensiveId: number;
+  studentId: number;
+  classId: number;
+  term: string;
+  academicYear: string;
+  schoolId: number;
+}
+
 export class BulletinNotificationService {
   private notificationService: RefactoredNotificationService;
 
@@ -53,8 +81,335 @@ export class BulletinNotificationService {
   }
 
   /**
+   * Persiste les résultats de notification dans la base de données
+   */
+  private async persistNotificationTracking(
+    trackingContext: BulletinTrackingContext,
+    notificationTracking: DetailedNotificationTracking
+  ): Promise<void> {
+    try {
+      console.log('[BULLETIN_TRACKING] 💾 Persisting notification tracking for bulletin:', trackingContext.bulletinComprehensiveId);
+
+      // Mettre à jour le champ notificationsSent avec le timestamp
+      const trackingData = {
+        ...notificationTracking,
+        lastUpdated: new Date().toISOString()
+      };
+
+      await db.update(bulletinComprehensive)
+        .set({ 
+          notificationsSent: trackingData,
+          updatedAt: new Date()
+        })
+        .where(eq(bulletinComprehensive.id, trackingContext.bulletinComprehensiveId));
+
+      console.log('[BULLETIN_TRACKING] ✅ Notification tracking persisted successfully');
+    } catch (error) {
+      console.error('[BULLETIN_TRACKING] ❌ Error persisting notification tracking:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère le contexte de tracking d'un bulletin
+   */
+  async getBulletinTrackingContext(
+    studentId: number,
+    classId: number,
+    term: string,
+    academicYear: string,
+    schoolId: number
+  ): Promise<BulletinTrackingContext | null> {
+    try {
+      const bulletin = await db.select({
+        id: bulletinComprehensive.id,
+        studentId: bulletinComprehensive.studentId,
+        classId: bulletinComprehensive.classId,
+        term: bulletinComprehensive.term,
+        academicYear: bulletinComprehensive.academicYear,
+        schoolId: bulletinComprehensive.schoolId,
+        notificationsSent: bulletinComprehensive.notificationsSent
+      })
+      .from(bulletinComprehensive)
+      .where(and(
+        eq(bulletinComprehensive.studentId, studentId),
+        eq(bulletinComprehensive.classId, classId),
+        eq(bulletinComprehensive.term, term),
+        eq(bulletinComprehensive.academicYear, academicYear),
+        eq(bulletinComprehensive.schoolId, schoolId)
+      ))
+      .limit(1);
+
+      if (bulletin.length === 0) {
+        console.warn('[BULLETIN_TRACKING] Bulletin not found for context:', { studentId, classId, term, academicYear });
+        return null;
+      }
+
+      return {
+        bulletinComprehensiveId: bulletin[0].id,
+        studentId: bulletin[0].studentId,
+        classId: bulletin[0].classId,
+        term: bulletin[0].term,
+        academicYear: bulletin[0].academicYear,
+        schoolId: bulletin[0].schoolId
+      };
+    } catch (error) {
+      console.error('[BULLETIN_TRACKING] ❌ Error getting tracking context:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Gère les retry automatiques en cas d'échec temporaire
+   */
+  private async handleNotificationRetry(
+    trackingContext: BulletinTrackingContext,
+    notificationType: 'email' | 'sms' | 'whatsapp',
+    currentTracking: DetailedNotificationTracking,
+    maxRetries: number = 3
+  ): Promise<boolean> {
+    try {
+      const typeTracking = currentTracking[notificationType];
+      
+      if (!typeTracking || !typeTracking.error) {
+        return false; // Pas d'erreur à traiter
+      }
+
+      const retryCount = typeTracking.retryCount || 0;
+      if (retryCount >= maxRetries) {
+        console.log(`[BULLETIN_RETRY] Max retries reached for ${notificationType}`);
+        return false;
+      }
+
+      // Attendre avant le retry (exponential backoff)
+      const delay = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s, 8s...
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      console.log(`[BULLETIN_RETRY] Attempting retry ${retryCount + 1}/${maxRetries} for ${notificationType}`);
+
+      // Mettre à jour le tracking avec la tentative de retry
+      const updatedTracking: DetailedNotificationTracking = {
+        ...currentTracking,
+        [notificationType]: {
+          ...typeTracking,
+          status: 'retrying',
+          attempts: (typeTracking.attempts || 0) + 1,
+          retryCount: retryCount + 1,
+          lastAttemptAt: new Date().toISOString()
+        }
+      };
+
+      await this.persistNotificationTracking(trackingContext, updatedTracking);
+      return true;
+    } catch (error) {
+      console.error('[BULLETIN_RETRY] ❌ Error handling retry:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Crée un statut de tracking initial pour une notification
+   */
+  private createNotificationStatus(
+    success: boolean,
+    status: 'delivered' | 'sent' | 'pending' | 'failed',
+    error?: string,
+    attempts: number = 1
+  ): NotificationTrackingStatus {
+    return {
+      sent: success,
+      sentAt: new Date().toISOString(),
+      status,
+      attempts,
+      lastAttemptAt: new Date().toISOString(),
+      error,
+      retryCount: 0,
+      maxRetries: 3
+    };
+  }
+
+  /**
+   * Send bulletin notifications with detailed tracking
+   * NOUVELLE VERSION AVEC TRACKING COMPLET
+   */
+  async sendBulletinNotificationsWithTracking(
+    bulletinData: BulletinNotificationData,
+    recipients: BulletinRecipient[],
+    trackingContext: BulletinTrackingContext,
+    notificationTypes: string[] = ['sms', 'email', 'whatsapp'],
+    language: 'en' | 'fr' = 'fr'
+  ): Promise<{
+    success: boolean;
+    results: Record<string, any>;
+    summary: {
+      totalRecipients: number;
+      successfulSMS: number;
+      successfulEmails: number;
+      successfulWhatsApp: number;
+      failed: number;
+    };
+    detailedTracking: DetailedNotificationTracking;
+  }> {
+    try {
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] 📋 Starting bulletin notifications with tracking...');
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Student:', bulletinData.studentName);
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Recipients:', recipients.length);
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Channels:', notificationTypes);
+
+      const results: Record<string, any> = {};
+      const summary = {
+        totalRecipients: recipients.length,
+        successfulSMS: 0,
+        successfulEmails: 0,
+        successfulWhatsApp: 0,
+        failed: 0
+      };
+
+      // Initialiser le tracking détaillé
+      const detailedTracking: DetailedNotificationTracking = {
+        lastUpdated: new Date().toISOString(),
+        totalAttempts: 0
+      };
+
+      // Determine notification template based on average
+      let smsTemplate = 'BULLETIN_AVAILABLE';
+      if (bulletinData.generalAverage >= 16) {
+        smsTemplate = 'BULLETIN_EXCELLENT';
+      } else if (bulletinData.generalAverage < 10) {
+        smsTemplate = 'BULLETIN_NEEDS_IMPROVEMENT';
+      }
+
+      // Process each recipient with tracking
+      for (const recipient of recipients) {
+        const recipientResults: any[] = [];
+        const recipientLanguage = recipient.preferredLanguage || language;
+
+        // Send SMS notification avec tracking
+        if (notificationTypes.includes('sms') && recipient.phone) {
+          try {
+            console.log('[BULLETIN_TRACKING] 📱 Sending SMS to:', recipient.phone);
+            const smsResult = await this.sendBulletinSMSWithTracking(
+              bulletinData,
+              recipient,
+              smsTemplate,
+              recipientLanguage,
+              trackingContext
+            );
+            
+            recipientResults.push(smsResult);
+            if (smsResult.success) {
+              summary.successfulSMS++;
+              detailedTracking.sms = this.createNotificationStatus(true, 'sent');
+            } else {
+              summary.failed++;
+              detailedTracking.sms = this.createNotificationStatus(false, 'failed', smsResult.error);
+            }
+            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
+          } catch (error) {
+            console.error('[BULLETIN_NOTIFICATIONS_TRACKING] SMS failed for:', recipient.name, error);
+            summary.failed++;
+            detailedTracking.sms = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+          }
+        }
+
+        // Send Email notification avec tracking
+        if (notificationTypes.includes('email') && recipient.email) {
+          try {
+            console.log('[BULLETIN_TRACKING] 📧 Sending Email to:', recipient.email);
+            const emailResult = await this.sendBulletinEmailWithTracking(
+              bulletinData,
+              recipient,
+              recipientLanguage,
+              trackingContext
+            );
+            
+            recipientResults.push(emailResult);
+            if (emailResult.success) {
+              summary.successfulEmails++;
+              detailedTracking.email = this.createNotificationStatus(true, 'sent');
+            } else {
+              summary.failed++;
+              detailedTracking.email = this.createNotificationStatus(false, 'failed', emailResult.error);
+            }
+            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
+          } catch (error) {
+            console.error('[BULLETIN_NOTIFICATIONS_TRACKING] Email failed for:', recipient.name, error);
+            summary.failed++;
+            detailedTracking.email = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+          }
+        }
+
+        // Send WhatsApp notification avec tracking
+        if (notificationTypes.includes('whatsapp') && recipient.whatsapp) {
+          try {
+            console.log('[BULLETIN_TRACKING] 📱 Sending WhatsApp to:', recipient.whatsapp);
+            const whatsappResult = await this.sendBulletinWhatsAppWithTracking(
+              bulletinData,
+              recipient,
+              recipientLanguage,
+              trackingContext
+            );
+            
+            recipientResults.push(whatsappResult);
+            if (whatsappResult.success) {
+              summary.successfulWhatsApp++;
+              detailedTracking.whatsapp = this.createNotificationStatus(true, 'sent');
+            } else {
+              summary.failed++;
+              detailedTracking.whatsapp = this.createNotificationStatus(false, 'failed', whatsappResult.error);
+            }
+            detailedTracking.totalAttempts = (detailedTracking.totalAttempts || 0) + 1;
+          } catch (error) {
+            console.error('[BULLETIN_NOTIFICATIONS_TRACKING] WhatsApp failed for:', recipient.name, error);
+            summary.failed++;
+            detailedTracking.whatsapp = this.createNotificationStatus(false, 'failed', error instanceof Error ? error.message : 'Unknown error');
+          }
+        }
+
+        results[recipient.id] = recipientResults;
+      }
+
+      // Persister le tracking complet
+      try {
+        await this.persistNotificationTracking(trackingContext, detailedTracking);
+      } catch (trackingError) {
+        console.error('[BULLETIN_NOTIFICATIONS_TRACKING] Failed to persist tracking:', trackingError);
+      }
+
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] ✅ Completed bulletin notifications with tracking');
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Summary:', summary);
+      console.log('[BULLETIN_NOTIFICATIONS_TRACKING] Detailed tracking:', detailedTracking);
+
+      return {
+        success: true,
+        results,
+        summary,
+        detailedTracking
+      };
+
+    } catch (error) {
+      console.error('[BULLETIN_NOTIFICATIONS_TRACKING] ❌ Error in bulletin notifications with tracking:', error);
+      return {
+        success: false,
+        results: {},
+        summary: {
+          totalRecipients: recipients.length,
+          successfulSMS: 0,
+          successfulEmails: 0,
+          successfulWhatsApp: 0,
+          failed: recipients.length
+        },
+        detailedTracking: {
+          lastUpdated: new Date().toISOString(),
+          totalAttempts: 0
+        }
+      };
+    }
+  }
+
+  /**
    * Send bulletin notifications to students and parents
-   * Supports SMS, Email, WhatsApp, and Push notifications
+   * LEGACY VERSION - maintenue pour compatibilité
    */
   async sendBulletinNotifications(
     bulletinData: BulletinNotificationData,
@@ -231,17 +586,33 @@ export class BulletinNotificationService {
         language
       );
 
-      // Mock SMS sending - replace with actual SMS service
-      console.log(`[BULLETIN_SMS] 📱 Sending to ${recipient.phone}: ${message}`);
+      // Use the refactored notification service for SMS sending
+      const notificationPayload: NotificationPayload = {
+        id: crypto.randomUUID(),
+        type: 'bulletin_sms',
+        recipientId: recipient.id,
+        data: {
+          to: recipient.phone!,
+          message,
+          bulletinData,
+          language,
+          templateType
+        },
+        priority: 'high',
+        scheduledFor: new Date()
+      };
+
+      const smsResult = await this.notificationService.sendNotification(notificationPayload);
       
       return {
-        success: true,
+        success: smsResult.success,
         type: 'sms',
         recipientId: recipient.id,
         recipientName: recipient.name,
         message,
         templateType,
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        details: smsResult
       };
 
     } catch (error) {
@@ -279,22 +650,35 @@ export class BulletinNotificationService {
         language
       );
 
-      const emailResult = await hostingerMailService.sendEmail({
-        to: recipient.email!,
-        subject,
-        html: body
-      });
+      // Use the refactored notification service for email sending
+      const notificationPayload: NotificationPayload = {
+        id: crypto.randomUUID(),
+        type: 'bulletin_email',
+        recipientId: recipient.id,
+        data: {
+          to: recipient.email!,
+          subject,
+          html: body,
+          bulletinData,
+          language
+        },
+        priority: 'high',
+        scheduledFor: new Date()
+      };
+
+      const emailResult = await this.notificationService.sendNotification(notificationPayload);
 
       console.log(`[BULLETIN_EMAIL] 📧 Email sent to ${recipient.email}: ${subject}`);
 
       return {
-        success: emailResult,
+        success: emailResult.success,
         type: 'email',
         recipientId: recipient.id,
         recipientName: recipient.name,
         subject,
         templateUsed: 'BULLETIN_NOTIFICATION',
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        details: emailResult
       };
 
     } catch (error) {
@@ -332,17 +716,32 @@ export class BulletinNotificationService {
         language
       );
 
-      // Mock WhatsApp sending - replace with actual WhatsApp service
-      console.log(`[BULLETIN_WHATSAPP] 💬 Sending to ${recipient.whatsapp}:`, message);
+      // Use the refactored notification service for WhatsApp sending
+      const notificationPayload: NotificationPayload = {
+        id: crypto.randomUUID(),
+        type: 'bulletin_whatsapp',
+        recipientId: recipient.id,
+        data: {
+          to: recipient.whatsapp!,
+          message,
+          bulletinData,
+          language
+        },
+        priority: 'high',
+        scheduledFor: new Date()
+      };
+
+      const whatsappResult = await this.notificationService.sendNotification(notificationPayload);
 
       return {
-        success: true,
+        success: whatsappResult.success,
         type: 'whatsapp',
         recipientId: recipient.id,
         recipientName: recipient.name,
         message,
         templateUsed: 'BULLETIN_NOTIFICATION',
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        details: whatsappResult
       };
 
     } catch (error) {
@@ -373,28 +772,8 @@ export class BulletinNotificationService {
 
     for (const bulletin of bulletins) {
       try {
-        // Mock recipients - in real implementation, get from database
-        const recipients: BulletinRecipient[] = [
-          {
-            id: `student_${bulletin.studentId}`,
-            name: bulletin.studentName,
-            email: `student${bulletin.studentId}@test.educafric.com`,
-            phone: `+237650000${String(bulletin.studentId).padStart(3, '0')}`,
-            whatsapp: `+237650000${String(bulletin.studentId).padStart(3, '0')}`,
-            role: 'Student',
-            preferredLanguage: language
-          },
-          {
-            id: `parent_${bulletin.studentId}`,
-            name: `Parent of ${bulletin.studentName}`,
-            email: `parent${bulletin.studentId}@test.educafric.com`,
-            phone: `+237651000${String(bulletin.studentId).padStart(3, '0')}`,
-            whatsapp: `+237651000${String(bulletin.studentId).padStart(3, '0')}`,
-            role: 'Parent',
-            preferredLanguage: language,
-            relationToStudent: 'parent'
-          }
-        ];
+        // Get real recipients from database - parents and student
+        const recipients = await this.getRealBulletinRecipients(bulletin.studentId, language);
 
         const result = await this.sendBulletinNotifications(
           bulletin,
@@ -429,6 +808,115 @@ export class BulletinNotificationService {
       failed: totalFailed,
       results
     };
+  }
+
+  /**
+   * Get real bulletin recipients (parents and student) from database
+   */
+  private async getRealBulletinRecipients(
+    studentId: number, 
+    defaultLanguage: 'en' | 'fr' = 'fr'
+  ): Promise<BulletinRecipient[]> {
+    try {
+      const { db } = await import('../db');
+      const { users, parentStudentRelations, schools } = await import('../../shared/schema');
+      const { eq, and, sql } = await import('drizzle-orm');
+      
+      const recipients: BulletinRecipient[] = [];
+      
+      // Get student info
+      const student = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        whatsappNumber: users.whatsappNumber,
+        preferredLanguage: sql<string>`COALESCE(${users.preferredLanguage}, '${defaultLanguage}')`,
+        schoolId: users.schoolId
+      })
+      .from(users)
+      .where(eq(users.id, studentId))
+      .limit(1);
+      
+      if (student.length > 0) {
+        const studentData = student[0];
+        
+        // Add student as recipient if has contact info
+        if (studentData.email || studentData.phone) {
+          recipients.push({
+            id: `student_${studentData.id}`,
+            name: `${studentData.firstName} ${studentData.lastName}`,
+            email: studentData.email,
+            phone: studentData.phone,
+            whatsapp: studentData.whatsappNumber,
+            role: 'Student',
+            preferredLanguage: (studentData.preferredLanguage as 'en' | 'fr') || defaultLanguage
+          });
+        }
+        
+        // Get school default language as fallback
+        let schoolDefaultLanguage = defaultLanguage;
+        if (studentData.schoolId) {
+          const schoolInfo = await db.select({
+            defaultLanguage: sql<string>`COALESCE(${schools.defaultLanguage}, '${defaultLanguage}')`
+          })
+          .from(schools)
+          .where(eq(schools.id, studentData.schoolId))
+          .limit(1);
+          
+          if (schoolInfo.length > 0) {
+            schoolDefaultLanguage = (schoolInfo[0].defaultLanguage as 'en' | 'fr') || defaultLanguage;
+          }
+        }
+        
+        // Get parent relationships and parent info
+        const parentsData = await db.select({
+          parentId: parentStudentRelations.parentId,
+          relationshipType: parentStudentRelations.relationshipType,
+          parentFirstName: sql<string>`parent_users.first_name`,
+          parentLastName: sql<string>`parent_users.last_name`,
+          parentEmail: sql<string>`parent_users.email`,
+          parentPhone: sql<string>`parent_users.phone`,
+          parentWhatsapp: sql<string>`parent_users.whatsapp_number`,
+          parentPreferredLanguage: sql<string>`COALESCE(parent_users.preferred_language, '${schoolDefaultLanguage}')`
+        })
+        .from(parentStudentRelations)
+        .leftJoin(sql`users AS parent_users`, sql`parent_users.id = ${parentStudentRelations.parentId}`)
+        .where(eq(parentStudentRelations.studentId, studentId));
+        
+        // Add parents as recipients
+        parentsData.forEach(parent => {
+          if (parent.parentEmail || parent.parentPhone) {
+            recipients.push({
+              id: `parent_${parent.parentId}`,
+              name: `${parent.parentFirstName} ${parent.parentLastName}`,
+              email: parent.parentEmail,
+              phone: parent.parentPhone,
+              whatsapp: parent.parentWhatsapp,
+              role: 'Parent',
+              preferredLanguage: (parent.parentPreferredLanguage as 'en' | 'fr') || schoolDefaultLanguage,
+              relationToStudent: parent.relationshipType
+            });
+          }
+        });
+      }
+      
+      console.log(`[BULLETIN_RECIPIENTS] 👥 Found ${recipients.length} recipients for student ${studentId}`);
+      return recipients;
+      
+    } catch (error) {
+      console.error('[BULLETIN_RECIPIENTS] ❌ Error getting real recipients:', error);
+      // Fallback to basic recipient info
+      return [{
+        id: `student_${studentId}`,
+        name: `Student ${studentId}`,
+        email: `student${studentId}@educafric.com`,
+        phone: '+237600000000',
+        role: 'Student',
+        preferredLanguage: defaultLanguage
+      }];
+    }
   }
 }
 

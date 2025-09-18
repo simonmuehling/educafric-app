@@ -326,6 +326,12 @@ export default function ComprehensiveBulletinGenerator() {
   const [previewStudentId, setPreviewStudentId] = useState<number | null>(null);
   const [availableDrafts, setAvailableDrafts] = useState<Array<{key: string, studentName: string, date: string, classId: string, term: string}>>([]);
   
+  // Distribution tracking states
+  const [showDistributionDialog, setShowDistributionDialog] = useState(false);
+  const [selectedBulletinForDistribution, setSelectedBulletinForDistribution] = useState<number | null>(null);
+  const [distributionStatus, setDistributionStatus] = useState<any>(null);
+  const [loadingDistributionStatus, setLoadingDistributionStatus] = useState(false);
+  
   // Generation tracking
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -3316,23 +3322,113 @@ export default function ComprehensiveBulletinGenerator() {
                               <FileDown className="h-3 w-3 mr-1" />
                               {t.sentToParents}
                             </Badge>
+                            
+                            {/* Statut Distribution - Badges colorés pour chaque canal */}
+                            <div className="mt-2">
+                              <div className="text-xs text-muted-foreground mb-1">Statut Distribution:</div>
+                              <div className="flex flex-wrap gap-1">
+                                {/* Email Status Badge */}
+                                {bulletin.notificationsSent?.email ? (
+                                  bulletin.notificationsSent.email.sent ? (
+                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Email ✅
+                                    </Badge>
+                                  ) : bulletin.notificationsSent.email.error ? (
+                                    <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+                                      <X className="h-3 w-3 mr-1" />
+                                      Email ❌
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      Email ⏳
+                                    </Badge>
+                                  )
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500 border-gray-200">
+                                    Email -
+                                  </Badge>
+                                )}
+                                
+                                {/* SMS Status Badge */}
+                                {bulletin.notificationsSent?.sms ? (
+                                  bulletin.notificationsSent.sms.sent ? (
+                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      SMS ✅
+                                    </Badge>
+                                  ) : bulletin.notificationsSent.sms.error ? (
+                                    <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+                                      <X className="h-3 w-3 mr-1" />
+                                      SMS ❌
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      SMS ⏳
+                                    </Badge>
+                                  )
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500 border-gray-200">
+                                    SMS -
+                                  </Badge>
+                                )}
+                                
+                                {/* WhatsApp Status Badge */}
+                                {bulletin.notificationsSent?.whatsapp ? (
+                                  bulletin.notificationsSent.whatsapp.sent ? (
+                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      WhatsApp ✅
+                                    </Badge>
+                                  ) : bulletin.notificationsSent.whatsapp.error ? (
+                                    <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+                                      <X className="h-3 w-3 mr-1" />
+                                      WhatsApp ❌
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">
+                                      <Clock className="h-3 w-3 mr-1" />
+                                      WhatsApp ⏳
+                                    </Badge>
+                                  )
+                                ) : (
+                                  <Badge variant="outline" className="text-gray-500 border-gray-200">
+                                    WhatsApp -
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col gap-2">
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`view-sent-bulletin-${bulletin.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                {t.viewDetails}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`download-bulletin-${bulletin.id}`}
+                              >
+                                <Download className="h-4 w-4 mr-1" />
+                                PDF
+                              </Button>
+                            </div>
                             <Button
                               size="sm"
                               variant="outline"
-                              data-testid={`view-sent-bulletin-${bulletin.id}`}
+                              className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                              onClick={() => handleViewDistributionStatus(bulletin.id)}
+                              data-testid={`view-distribution-status-${bulletin.id}`}
                             >
-                              <Eye className="h-4 w-4 mr-1" />
-                              {t.viewDetails}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`download-bulletin-${bulletin.id}`}
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              PDF
+                              <BarChart3 className="h-4 w-4 mr-1" />
+                              Voir Détails Distribution
                             </Button>
                           </div>
                         </div>

@@ -1833,7 +1833,14 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
             verificationUrl: `https://verify.educafric.com/bulletin/${bulletin.id}`
           };
 
-          // Prepare recipients for notification service
+          // Get school default language for fallback
+          let schoolDefaultLanguage: 'en' | 'fr' = 'fr';
+          if (school.settings && typeof school.settings === 'object') {
+            const settings = school.settings as any;
+            schoolDefaultLanguage = (settings.defaultLanguage as 'en' | 'fr') || 'fr';
+          }
+          
+          // Prepare recipients for notification service with proper language selection
           const recipients = studentParents.map(parent => ({
             id: parent.parent_id.toString(),
             name: `${parent.parent_first_name} ${parent.parent_last_name}`,
@@ -1841,16 +1848,28 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
             phone: parent.parent_phone,
             whatsapp: parent.parent_whatsapp,
             role: 'Parent' as const,
-            preferredLanguage: (parent.parent_language || 'fr') as 'en' | 'fr',
-            relationToStudent: parent.relationship
+            // Use parent's preferred language, fall back to school default, then 'fr'
+            preferredLanguage: (
+              parent.parent_preferred_language || 
+              parent.parent_language || 
+              schoolDefaultLanguage
+            ) as 'en' | 'fr',
+            relationToStudent: parent.relationship,
+            schoolName: school.name,
+            schoolContact: school.email || school.phone || 'info@educafric.com'
           }));
 
-          // FIXED: Use consolidated BulletinNotificationService
+          // Use dynamic language selection - determine primary language from recipients
+          const primaryLanguage = recipients.length > 0 
+            ? recipients[0].preferredLanguage 
+            : schoolDefaultLanguage;
+
+          // FIXED: Use consolidated BulletinNotificationService with proper language selection
           const notificationResult = await bulletinNotificationService.sendBulletinNotifications(
             bulletinData,
             recipients,
             ['sms', 'email', 'whatsapp'], // All notification types
-            'fr' // Default language
+            primaryLanguage // Dynamic language selection from parent profiles
           );
 
           // Update counters
@@ -1938,6 +1957,328 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
     res.status(500).json({
       success: false,
       message: 'Failed to distribute bulletins to parents',
+      error: error.message
+    });
+  }
+});
+
+// ===== ROUTE API DE TRACKING DES NOTIFICATIONS =====
+// GET /api/comprehensive-bulletins/:bulletinId/distribution-status
+// Retourner statut détaillé des envois pour un bulletin spécifique
+router.get('/:bulletinId/distribution-status', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const bulletinId = parseInt(req.params.bulletinId);
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    if (!bulletinId || isNaN(bulletinId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid bulletinId is required'
+      });
+    }
+
+    console.log('[BULLETIN_DISTRIBUTION_STATUS] 📊 Fetching distribution status for bulletin:', bulletinId);
+
+    // Récupérer le bulletin avec les données de tracking
+    const bulletin = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      classId: bulletinComprehensive.classId,
+      className: classes.name,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      sentAt: bulletinComprehensive.sentAt,
+      notificationsSent: bulletinComprehensive.notificationsSent,
+      generalAverage: bulletinComprehensive.generalAverage,
+      createdAt: bulletinComprehensive.createdAt,
+      updatedAt: bulletinComprehensive.updatedAt
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(users, eq(bulletinComprehensive.studentId, users.id))
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .where(and(
+      eq(bulletinComprehensive.id, bulletinId),
+      eq(bulletinComprehensive.schoolId, schoolId)
+    ))
+    .limit(1);
+
+    if (bulletin.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bulletin not found or access denied'
+      });
+    }
+
+    const bulletinData = bulletin[0];
+
+    // Analyser les données de tracking des notifications
+    const notificationsTracking = bulletinData.notificationsSent as any;
+    
+    // Créer un statut détaillé avec les informations de tracking
+    const distributionStatus = {
+      bulletinInfo: {
+        id: bulletinData.id,
+        studentId: bulletinData.studentId,
+        studentName: bulletinData.studentName,
+        className: bulletinData.className,
+        term: bulletinData.term,
+        academicYear: bulletinData.academicYear,
+        generalAverage: bulletinData.generalAverage,
+        status: bulletinData.status,
+        sentAt: bulletinData.sentAt
+      },
+      distributionTracking: {
+        hasNotifications: !!notificationsTracking,
+        lastUpdated: notificationsTracking?.lastUpdated || null,
+        totalAttempts: notificationsTracking?.totalAttempts || 0,
+        channels: {
+          email: {
+            configured: !!notificationsTracking?.email,
+            sent: notificationsTracking?.email?.sent || false,
+            sentAt: notificationsTracking?.email?.sentAt || null,
+            status: notificationsTracking?.email?.status || 'not_sent',
+            attempts: notificationsTracking?.email?.attempts || 0,
+            retryCount: notificationsTracking?.email?.retryCount || 0,
+            maxRetries: notificationsTracking?.email?.maxRetries || 3,
+            lastAttemptAt: notificationsTracking?.email?.lastAttemptAt || null,
+            error: notificationsTracking?.email?.error || null,
+            canRetry: (notificationsTracking?.email?.retryCount || 0) < (notificationsTracking?.email?.maxRetries || 3),
+            nextRetryAt: notificationsTracking?.email?.error ? 
+              new Date(Date.now() + Math.pow(2, notificationsTracking?.email?.retryCount || 0) * 1000).toISOString() : null
+          },
+          sms: {
+            configured: !!notificationsTracking?.sms,
+            sent: notificationsTracking?.sms?.sent || false,
+            sentAt: notificationsTracking?.sms?.sentAt || null,
+            status: notificationsTracking?.sms?.status || 'not_sent',
+            attempts: notificationsTracking?.sms?.attempts || 0,
+            retryCount: notificationsTracking?.sms?.retryCount || 0,
+            maxRetries: notificationsTracking?.sms?.maxRetries || 3,
+            lastAttemptAt: notificationsTracking?.sms?.lastAttemptAt || null,
+            error: notificationsTracking?.sms?.error || null,
+            canRetry: (notificationsTracking?.sms?.retryCount || 0) < (notificationsTracking?.sms?.maxRetries || 3),
+            nextRetryAt: notificationsTracking?.sms?.error ? 
+              new Date(Date.now() + Math.pow(2, notificationsTracking?.sms?.retryCount || 0) * 1000).toISOString() : null
+          },
+          whatsapp: {
+            configured: !!notificationsTracking?.whatsapp,
+            sent: notificationsTracking?.whatsapp?.sent || false,
+            sentAt: notificationsTracking?.whatsapp?.sentAt || null,
+            status: notificationsTracking?.whatsapp?.status || 'not_sent',
+            attempts: notificationsTracking?.whatsapp?.attempts || 0,
+            retryCount: notificationsTracking?.whatsapp?.retryCount || 0,
+            maxRetries: notificationsTracking?.whatsapp?.maxRetries || 3,
+            lastAttemptAt: notificationsTracking?.whatsapp?.lastAttemptAt || null,
+            error: notificationsTracking?.whatsapp?.error || null,
+            canRetry: (notificationsTracking?.whatsapp?.retryCount || 0) < (notificationsTracking?.whatsapp?.maxRetries || 3),
+            nextRetryAt: notificationsTracking?.whatsapp?.error ? 
+              new Date(Date.now() + Math.pow(2, notificationsTracking?.whatsapp?.retryCount || 0) * 1000).toISOString() : null
+          }
+        },
+        summary: {
+          totalChannels: Object.keys(notificationsTracking || {}).filter(key => key !== 'lastUpdated' && key !== 'totalAttempts').length,
+          successfulChannels: Object.values(notificationsTracking || {})
+            .filter((channel: any) => typeof channel === 'object' && channel?.sent === true).length,
+          failedChannels: Object.values(notificationsTracking || {})
+            .filter((channel: any) => typeof channel === 'object' && channel?.error).length,
+          pendingRetries: Object.values(notificationsTracking || {})
+            .filter((channel: any) => typeof channel === 'object' && channel?.error && 
+              (channel?.retryCount || 0) < (channel?.maxRetries || 3)).length
+        }
+      }
+    };
+
+    console.log('[BULLETIN_DISTRIBUTION_STATUS] ✅ Distribution status retrieved for bulletin:', bulletinId);
+
+    res.json({
+      success: true,
+      message: 'Distribution status retrieved successfully',
+      data: distributionStatus
+    });
+
+  } catch (error: any) {
+    console.error('[BULLETIN_DISTRIBUTION_STATUS] ❌ Error fetching distribution status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch distribution status',
+      error: error.message
+    });
+  }
+});
+
+// ===== ROUTE STATISTIQUES DE DISTRIBUTION =====
+// GET /api/comprehensive-bulletins/distribution-statistics
+// Retourner les statistiques globales de distribution par école/classe/trimestre
+router.get('/distribution-statistics', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { classId, term, academicYear } = req.query;
+
+    console.log('[BULLETIN_DISTRIBUTION_STATS] 📊 Fetching distribution statistics for school:', schoolId);
+
+    // Construire les conditions WHERE
+    let whereConditions = [eq(bulletinComprehensive.schoolId, schoolId)];
+    
+    if (classId) {
+      whereConditions.push(eq(bulletinComprehensive.classId, parseInt(classId as string)));
+    }
+    if (term) {
+      whereConditions.push(eq(bulletinComprehensive.term, term as string));
+    }
+    if (academicYear) {
+      whereConditions.push(eq(bulletinComprehensive.academicYear, academicYear as string));
+    }
+
+    // Récupérer tous les bulletins avec données de tracking
+    const bulletins = await db.select({
+      id: bulletinComprehensive.id,
+      studentId: bulletinComprehensive.studentId,
+      classId: bulletinComprehensive.classId,
+      className: classes.name,
+      term: bulletinComprehensive.term,
+      academicYear: bulletinComprehensive.academicYear,
+      status: bulletinComprehensive.status,
+      notificationsSent: bulletinComprehensive.notificationsSent,
+      sentAt: bulletinComprehensive.sentAt,
+      createdAt: bulletinComprehensive.createdAt
+    })
+    .from(bulletinComprehensive)
+    .leftJoin(classes, eq(bulletinComprehensive.classId, classes.id))
+    .where(and(...whereConditions));
+
+    // Analyser les statistiques de distribution
+    const totalBulletins = bulletins.length;
+    let distributionStats = {
+      totalBulletins,
+      bulletinsWithNotifications: 0,
+      emailStats: {
+        totalSent: 0,
+        totalFailed: 0,
+        totalPending: 0,
+        successRate: 0
+      },
+      smsStats: {
+        totalSent: 0,
+        totalFailed: 0,
+        totalPending: 0,
+        successRate: 0
+      },
+      whatsappStats: {
+        totalSent: 0,
+        totalFailed: 0,
+        totalPending: 0,
+        successRate: 0
+      },
+      overallStats: {
+        totalNotificationsSent: 0,
+        totalNotificationsFailed: 0,
+        overallSuccessRate: 0
+      }
+    };
+
+    // Analyser chaque bulletin
+    bulletins.forEach(bulletin => {
+      const tracking = bulletin.notificationsSent as any;
+      
+      if (tracking) {
+        distributionStats.bulletinsWithNotifications++;
+        
+        // Analyser email
+        if (tracking.email) {
+          if (tracking.email.sent) {
+            distributionStats.emailStats.totalSent++;
+            distributionStats.overallStats.totalNotificationsSent++;
+          } else if (tracking.email.error) {
+            distributionStats.emailStats.totalFailed++;
+            distributionStats.overallStats.totalNotificationsFailed++;
+          } else {
+            distributionStats.emailStats.totalPending++;
+          }
+        }
+        
+        // Analyser SMS
+        if (tracking.sms) {
+          if (tracking.sms.sent) {
+            distributionStats.smsStats.totalSent++;
+            distributionStats.overallStats.totalNotificationsSent++;
+          } else if (tracking.sms.error) {
+            distributionStats.smsStats.totalFailed++;
+            distributionStats.overallStats.totalNotificationsFailed++;
+          } else {
+            distributionStats.smsStats.totalPending++;
+          }
+        }
+        
+        // Analyser WhatsApp
+        if (tracking.whatsapp) {
+          if (tracking.whatsapp.sent) {
+            distributionStats.whatsappStats.totalSent++;
+            distributionStats.overallStats.totalNotificationsSent++;
+          } else if (tracking.whatsapp.error) {
+            distributionStats.whatsappStats.totalFailed++;
+            distributionStats.overallStats.totalNotificationsFailed++;
+          } else {
+            distributionStats.whatsappStats.totalPending++;
+          }
+        }
+      }
+    });
+
+    // Calculer les taux de réussite
+    const totalEmailAttempts = distributionStats.emailStats.totalSent + distributionStats.emailStats.totalFailed;
+    const totalSmsAttempts = distributionStats.smsStats.totalSent + distributionStats.smsStats.totalFailed;
+    const totalWhatsappAttempts = distributionStats.whatsappStats.totalSent + distributionStats.whatsappStats.totalFailed;
+    const totalOverallAttempts = distributionStats.overallStats.totalNotificationsSent + distributionStats.overallStats.totalNotificationsFailed;
+
+    distributionStats.emailStats.successRate = totalEmailAttempts > 0 ? 
+      Math.round((distributionStats.emailStats.totalSent / totalEmailAttempts) * 100) : 0;
+    distributionStats.smsStats.successRate = totalSmsAttempts > 0 ? 
+      Math.round((distributionStats.smsStats.totalSent / totalSmsAttempts) * 100) : 0;
+    distributionStats.whatsappStats.successRate = totalWhatsappAttempts > 0 ? 
+      Math.round((distributionStats.whatsappStats.totalSent / totalWhatsappAttempts) * 100) : 0;
+    distributionStats.overallStats.overallSuccessRate = totalOverallAttempts > 0 ? 
+      Math.round((distributionStats.overallStats.totalNotificationsSent / totalOverallAttempts) * 100) : 0;
+
+    console.log('[BULLETIN_DISTRIBUTION_STATS] ✅ Distribution statistics calculated:', distributionStats);
+
+    res.json({
+      success: true,
+      message: 'Distribution statistics retrieved successfully',
+      data: {
+        filters: {
+          schoolId,
+          classId: classId ? parseInt(classId as string) : null,
+          term: term || null,
+          academicYear: academicYear || null
+        },
+        statistics: distributionStats
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULLETIN_DISTRIBUTION_STATS] ❌ Error fetching distribution statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch distribution statistics',
       error: error.message
     });
   }
