@@ -82,6 +82,34 @@ interface ComprehensiveManualData {
   }>;
 }
 
+// Utility function for wrapping text
+function wrapText(text: string, maxLength: number): string[] {
+  if (!text) return [];
+  
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+  
+  for (const word of words) {
+    if ((currentLine + ' ' + word).length <= maxLength) {
+      currentLine = currentLine ? currentLine + ' ' + word : word;
+    } else {
+      if (currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        lines.push(word);
+      }
+    }
+  }
+  
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  
+  return lines;
+}
+
 export class OptimizedBulletinGenerator {
   
   /**
@@ -937,7 +965,7 @@ export class OptimizedBulletinGenerator {
         currentY -= 15;
         
         // Split long text into multiple lines
-        const appreciationLines = this.wrapText(usedData.workAppreciation, 70);
+        const appreciationLines = wrapText(usedData.workAppreciation, 70);
         appreciationLines.forEach(line => {
           drawText(line, A4_DIMENSIONS.margin, currentY, { size: 9 });
           currentY -= 12;

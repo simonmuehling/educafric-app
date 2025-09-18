@@ -208,36 +208,94 @@ export function PDFGeneratorsPanel() {
   const handleGenerateDemo = async () => {
     setIsGenerating(true);
     try {
-      const response = await apiRequest(
-        'POST',
-        currentGenerator.demoEndpoint,
-        {
+      // Runtime guards for validation
+      if (!currentGenerator) {
+        throw new Error('No generator selected');
+      }
+      
+      if (!currentOptions) {
+        throw new Error('No options configured');
+      }
+
+      console.log('[PDF_GENERATORS] 🚀 Generating demo for:', selectedGenerator);
+      
+      // Use fetch directly for better PDF handling
+      const response = await fetch(currentGenerator.demoEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           language: currentOptions.language,
           colorScheme: currentOptions.colorScheme,
           ...(selectedGenerator === 'timetable' && { includeSaturday: currentOptions.includeSaturday })
+        }),
+        credentials: 'include', // Include cookies for authentication
+      });
+
+      // Enhanced error handling with runtime guards
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('[PDF_GENERATORS] ❌ HTTP Error:', response.status, errorText);
+        
+        if (response.status === 401) {
+          throw new Error('Authentication requise - veuillez vous connecter');
+        } else if (response.status === 403) {
+          throw new Error('Accès refusé - vérifiez vos permissions');
+        } else if (response.status === 500) {
+          throw new Error(`Erreur serveur: ${errorText}`);
+        } else {
+          throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
         }
-      );
+      }
+
+      // Check if response is actually a PDF
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/pdf')) {
+        console.warn('[PDF_GENERATORS] ⚠️ Response is not a PDF, content-type:', contentType);
+      }
 
       // Create blob and download
       const blob = await response.blob();
+      
+      // Runtime guard for blob size
+      if (blob.size === 0) {
+        throw new Error('Le PDF généré est vide');
+      }
+      
+      console.log('[PDF_GENERATORS] ✅ PDF blob created:', blob.size, 'bytes');
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${selectedGenerator}-demo-${currentOptions.language}.pdf`;
+      
+      // Ensure element is properly attached
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      
+      // Clean up resources
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
 
       toast({
         title: "PDF Généré",
-        description: `${currentGenerator.title} de démonstration téléchargé avec succès`,
+        description: `${currentGenerator.title} de démonstration téléchargé avec succès (${(blob.size / 1024).toFixed(1)} KB)`,
       });
-    } catch (error) {
-      console.error('Error generating demo PDF:', error);
+      
+      console.log('[PDF_GENERATORS] ✅ Demo generated successfully for:', selectedGenerator);
+      
+    } catch (error: any) {
+      console.error('[PDF_GENERATORS] ❌ Error generating demo PDF:', error);
+      
+      // Enhanced error reporting
+      const errorMessage = error?.message || 'Erreur inconnue lors de la génération du PDF';
+      
       toast({
-        title: "Erreur",
-        description: "Impossible de générer le PDF de démonstration",
+        title: "Erreur de génération",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
