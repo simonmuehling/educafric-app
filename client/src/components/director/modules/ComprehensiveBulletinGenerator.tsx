@@ -2400,17 +2400,17 @@ export default function ComprehensiveBulletinGenerator() {
                                               value={subjectCoefficients[grade.subjectId]?.cote || 'none'}
                                               onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value)}
                                             >
-                                              <SelectTrigger className="h-8 text-xs bg-white text-gray-900 border-gray-300 data-[placeholder]:text-gray-400" data-testid={`cote-${grade.subjectId}`}>
-                                                <SelectValue placeholder="-" />
+                                              <SelectTrigger className="h-8 text-xs bg-white text-black border-gray-300 focus:border-blue-500" data-testid={`cote-${grade.subjectId}`} style={{color: '#000000', backgroundColor: '#ffffff'}}>
+                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}} />
                                               </SelectTrigger>
-                                              <SelectContent className="bg-white text-gray-900">
-                                                <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
-                                                <SelectItem value="A" className="text-gray-900 hover:bg-gray-100">A</SelectItem>
-                                                <SelectItem value="B" className="text-gray-900 hover:bg-gray-100">B</SelectItem>
-                                                <SelectItem value="C" className="text-gray-900 hover:bg-gray-100">C</SelectItem>
-                                                <SelectItem value="D" className="text-gray-900 hover:bg-gray-100">D</SelectItem>
-                                                <SelectItem value="E" className="text-gray-900 hover:bg-gray-100">E</SelectItem>
-                                                <SelectItem value="F" className="text-gray-900 hover:bg-gray-100">F</SelectItem>
+                                              <SelectContent className="bg-white border border-gray-300" style={{backgroundColor: '#ffffff'}}>
+                                                <SelectItem value="none" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>-</SelectItem>
+                                                <SelectItem value="A" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>A</SelectItem>
+                                                <SelectItem value="B" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>B</SelectItem>
+                                                <SelectItem value="C" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>C</SelectItem>
+                                                <SelectItem value="D" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>D</SelectItem>
+                                                <SelectItem value="E" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>E</SelectItem>
+                                                <SelectItem value="F" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>F</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </td>
@@ -2419,16 +2419,16 @@ export default function ComprehensiveBulletinGenerator() {
                                               value={subjectCoefficients[grade.subjectId]?.remarks || 'none'}
                                               onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value)}
                                             >
-                                              <SelectTrigger className="h-8 text-xs bg-white text-gray-900 border-gray-300 data-[placeholder]:text-gray-400" data-testid={`remarks-${grade.subjectId}`}>
-                                                <SelectValue placeholder="-" />
+                                              <SelectTrigger className="h-8 text-xs bg-white text-black border-gray-300 focus:border-blue-500" data-testid={`remarks-${grade.subjectId}`} style={{color: '#000000', backgroundColor: '#ffffff'}}>
+                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}} />
                                               </SelectTrigger>
-                                              <SelectContent className="bg-white text-gray-900">
-                                                <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
-                                                <SelectItem value="CVWA" className="text-gray-900 hover:bg-gray-100">CVWA - Competences Very Well Acquired</SelectItem>
-                                                <SelectItem value="CWA" className="text-gray-900 hover:bg-gray-100">CWA - Competences Well Acquired</SelectItem>
-                                                <SelectItem value="CA" className="text-gray-900 hover:bg-gray-100">CA - Competences Acquired</SelectItem>
-                                                <SelectItem value="CAA" className="text-gray-900 hover:bg-gray-100">CAA - Competences Averagely Acquired</SelectItem>
-                                                <SelectItem value="CNA" className="text-gray-900 hover:bg-gray-100">CNA - Competences Not Acquired</SelectItem>
+                                              <SelectContent className="bg-white border border-gray-300" style={{backgroundColor: '#ffffff'}}>
+                                                <SelectItem value="none" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>-</SelectItem>
+                                                <SelectItem value="CVWA" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>CVWA - Competences Very Well Acquired</SelectItem>
+                                                <SelectItem value="CWA" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>CWA - Competences Well Acquired</SelectItem>
+                                                <SelectItem value="CA" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>CA - Competences Acquired</SelectItem>
+                                                <SelectItem value="CAA" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>CAA - Competences Averagely Acquired</SelectItem>
+                                                <SelectItem value="CNA" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>CNA - Competences Not Acquired</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </td>
