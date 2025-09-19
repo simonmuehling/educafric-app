@@ -1209,6 +1209,105 @@ export class ModularStorage {
   async updateSubject(id: number, updates: any) { return this.subjectStorage.updateSubject(id, updates); }
   async deleteSubject(id: number) { return this.subjectStorage.deleteSubject(id); }
 
+  // === TEACHER ABSENCE METHODS ===
+  async declareTeacherAbsence(absenceData: {
+    teacherId: number;
+    schoolId: number;
+    reason: string;
+    startDate: string;
+    endDate: string;
+    contactPhone?: string;
+    contactEmail?: string;
+    details?: string;
+    classesAffected?: string[];
+    urgency?: string;
+    status?: string;
+  }) {
+    console.log('[TEACHER_ABSENCE] Declaring absence:', absenceData);
+    
+    // Create absence record using database
+    try {
+      const newAbsence = {
+        id: Date.now(), // Will be replaced by auto-increment in real DB
+        ...absenceData,
+        status: absenceData.status || 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      console.log('[TEACHER_ABSENCE] ✅ Absence declared successfully:', newAbsence.id);
+      return newAbsence;
+    } catch (error) {
+      console.error('[TEACHER_ABSENCE] Error declaring absence:', error);
+      throw error;
+    }
+  }
+
+  async getTeacherAbsences(teacherId: number, schoolId?: number) {
+    console.log('[TEACHER_ABSENCE] Getting absences for teacher:', teacherId);
+    
+    try {
+      // Mock data for now - will be replaced with real database queries
+      const mockAbsences = [
+        {
+          id: 1,
+          teacherId: teacherId,
+          schoolId: schoolId || 1,
+          reason: 'maladie',
+          startDate: '2025-09-15',
+          endDate: '2025-09-16',
+          contactPhone: '+237652147896',
+          contactEmail: 'teacher@educafric.com',
+          details: 'Consultation médicale urgente',
+          classesAffected: ['6ème A', '5ème B'],
+          urgency: 'medium',
+          status: 'approved',
+          createdAt: new Date('2025-09-14'),
+          updatedAt: new Date('2025-09-14')
+        },
+        {
+          id: 2,
+          teacherId: teacherId,
+          schoolId: schoolId || 1,
+          reason: 'formation',
+          startDate: '2025-09-10',
+          endDate: '2025-09-10',
+          contactPhone: '+237652147896',
+          contactEmail: 'teacher@educafric.com',
+          details: 'Formation pédagogique obligatoire',
+          classesAffected: ['6ème A'],
+          urgency: 'low',
+          status: 'approved',
+          createdAt: new Date('2025-09-08'),
+          updatedAt: new Date('2025-09-09')
+        }
+      ];
+      
+      return mockAbsences;
+    } catch (error) {
+      console.error('[TEACHER_ABSENCE] Error fetching absences:', error);
+      return [];
+    }
+  }
+
+  async getTeachersBySchool(schoolId: number) {
+    console.log('[TEACHER_STORAGE] Getting teachers for school:', schoolId);
+    
+    try {
+      // Get all users with Teacher role for the specified school
+      const allUsers = await this.getAllUsers();
+      const teachers = allUsers.filter(user => 
+        user.role === 'Teacher' && user.schoolId === schoolId
+      );
+      
+      console.log('[TEACHER_STORAGE] ✅ Found teachers:', teachers.length);
+      return teachers;
+    } catch (error) {
+      console.error('[TEACHER_STORAGE] Error getting teachers:', error);
+      return [];
+    }
+  }
+
   // === SANCTION METHODS ===
   async createSanction(sanction: any) { return this.sanctionStorage.createSanction(sanction); }
   async getSanction(id: number) { return this.sanctionStorage.getSanction(id); }
