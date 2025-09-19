@@ -2758,11 +2758,12 @@ router.post('/generate-comprehensive', requireAuth, async (req, res) => {
       });
     }
 
-    // Verify all students have submitted grades  
-    const submittedCheck = await db.select({
+    // Verify students have grades (submitted or available for sandbox/testing)
+    const gradesCheck = await db.select({
       studentId: teacherGradeSubmissions.studentId,
       submittedCount: sql<number>`COUNT(CASE WHEN ${teacherGradeSubmissions.isSubmitted} = true THEN 1 END)`,
-      totalCount: sql<number>`COUNT(*)`
+      totalCount: sql<number>`COUNT(*)`,
+      hasGrades: sql<number>`COUNT(CASE WHEN ${teacherGradeSubmissions.firstEvaluation} IS NOT NULL OR ${teacherGradeSubmissions.secondEvaluation} IS NOT NULL OR ${teacherGradeSubmissions.thirdEvaluation} IS NOT NULL THEN 1 END)`
     })
     .from(teacherGradeSubmissions)
     .where(and(
@@ -2774,20 +2775,60 @@ router.post('/generate-comprehensive', requireAuth, async (req, res) => {
     ))
     .groupBy(teacherGradeSubmissions.studentId);
 
+    // Check if user is in sandbox/testing environment
+    const isSandboxUser = user.email && (
+      user.email.includes('test.educafric.com') || 
+      user.email.includes('demo') || 
+      user.email.includes('sandbox')
+    );
+
+    const studentsWithoutAnyGrades = studentIds.filter(studentId => {
+      const studentCheck = gradesCheck.find(check => check.studentId === parseInt(studentId));
+      // For sandbox users, allow generation if any grades exist (even if not submitted)
+      // For production users, require submitted grades
+      if (isSandboxUser) {
+        return !studentCheck || (studentCheck.hasGrades === 0 && studentCheck.totalCount === 0);
+      } else {
+        return !studentCheck || studentCheck.submittedCount === 0;
+      }
+    });
+
     const studentsWithoutSubmittedGrades = studentIds.filter(studentId => {
-      const studentCheck = submittedCheck.find(check => check.studentId === parseInt(studentId));
+      const studentCheck = gradesCheck.find(check => check.studentId === parseInt(studentId));
       return !studentCheck || studentCheck.submittedCount === 0;
     });
 
-    if (studentsWithoutSubmittedGrades.length > 0) {
+    // Log information about grades status
+    console.log('[BULLETIN_COMPREHENSIVE] 📊 Grades status check:', {
+      isSandboxUser,
+      totalStudents: studentIds.length,
+      studentsWithSubmittedGrades: studentIds.length - studentsWithoutSubmittedGrades.length,
+      studentsWithAnyGrades: studentIds.length - studentsWithoutAnyGrades.length,
+      userEmail: user.email
+    });
+
+    if (studentsWithoutAnyGrades.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Some students have no submitted grades',
+        message: isSandboxUser ? 'Some students have no grades data' : 'Some students have no submitted grades',
         data: {
-          studentsWithoutSubmittedGrades,
+          studentsWithoutGrades: studentsWithoutAnyGrades,
+          studentsWithoutSubmittedGrades: studentsWithoutSubmittedGrades,
           totalRequested: studentIds.length,
-          studentsWithSubmittedGrades: studentIds.length - studentsWithoutSubmittedGrades.length
+          studentsWithAvailableGrades: studentIds.length - studentsWithoutAnyGrades.length,
+          isSandboxMode: isSandboxUser,
+          message: isSandboxUser 
+            ? 'In sandbox mode, any available grades can be used for bulletin generation'
+            : 'Production mode requires explicitly submitted grades'
         }
+      });
+    }
+
+    // For sandbox users with unsubmitted grades, log a warning but continue
+    if (isSandboxUser && studentsWithoutSubmittedGrades.length > 0) {
+      console.log('[BULLETIN_COMPREHENSIVE] ⚠️ Sandbox mode: generating bulletins with unsubmitted grades:', {
+        studentsWithUnsubmittedGrades: studentsWithoutSubmittedGrades.length,
+        totalStudents: studentIds.length
       });
     }
 
