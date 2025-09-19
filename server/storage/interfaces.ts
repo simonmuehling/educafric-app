@@ -96,3 +96,34 @@ export interface ISanctionStorage {
   appealSanction(id: number, appealReason: string): Promise<any>;
   expireSanctions(): Promise<void>; // For batch processing of expired sanctions
 }
+
+export interface ILibraryStorage {
+  // Book management
+  getBooks(filters?: {
+    subjectIds?: number[];
+    departmentIds?: number[];
+    recommendedLevel?: string;
+    schoolId?: number;
+  }): Promise<any[]>;
+  getBook(id: number): Promise<any | null>;
+  createBook(bookData: any): Promise<any>;
+  updateBook(id: number, updates: any): Promise<any>;
+  deleteBook(id: number): Promise<void>;
+  
+  // Recommendation management
+  getRecommendations(filters?: {
+    teacherId?: number;
+    audienceType?: string;
+    audienceIds?: number[];
+    schoolId?: number;
+  }): Promise<any[]>;
+  getRecommendation(id: number): Promise<any | null>;
+  createRecommendation(recommendationData: any): Promise<any>;
+  updateRecommendation(id: number, updates: any): Promise<any>;
+  deleteRecommendation(id: number): Promise<void>;
+  
+  // Combined queries
+  getRecommendedBooksForStudent(studentId: number, schoolId: number): Promise<any[]>;
+  getRecommendedBooksForParent(parentId: number, schoolId: number): Promise<any[]>;
+  getTeacherRecommendations(teacherId: number, schoolId: number): Promise<any[]>;
+}

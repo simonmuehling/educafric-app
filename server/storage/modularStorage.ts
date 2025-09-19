@@ -11,6 +11,7 @@ import { BulletinStorage } from "./bulletinStorage";
 import { SubjectStorage } from "./subjectStorage";
 import { AcademicStorage } from "./academicStorage";
 import { SanctionStorage } from "./sanctionsStorage";
+import { LibraryStorage } from "./libraryStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 
 // Main storage class combining all modules
@@ -25,6 +26,7 @@ export class ModularStorage {
   private subjectStorage: SubjectStorage;
   private academicStorage: AcademicStorage;
   private sanctionStorage: SanctionStorage;
+  private libraryStorage: LibraryStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -37,6 +39,7 @@ export class ModularStorage {
     this.subjectStorage = new SubjectStorage();
     this.academicStorage = new AcademicStorage();
     this.sanctionStorage = new SanctionStorage();
+    this.libraryStorage = new LibraryStorage();
   }
 
   // === USER METHODS ===
@@ -1320,4 +1323,19 @@ export class ModularStorage {
   async revokeSanction(id: number, revokedBy: number, reason: string) { return this.sanctionStorage.revokeSanction(id, revokedBy, reason); }
   async appealSanction(id: number, appealReason: string) { return this.sanctionStorage.appealSanction(id, appealReason); }
   async expireSanctions() { return this.sanctionStorage.expireSanctions(); }
+
+  // === LIBRARY METHODS ===
+  async getBooks(filters?: any) { return this.libraryStorage.getBooks(filters); }
+  async getBook(id: number) { return this.libraryStorage.getBook(id); }
+  async createBook(bookData: any) { return this.libraryStorage.createBook(bookData); }
+  async updateBook(id: number, updates: any) { return this.libraryStorage.updateBook(id, updates); }
+  async deleteBook(id: number) { return this.libraryStorage.deleteBook(id); }
+  async getRecommendations(filters?: any) { return this.libraryStorage.getRecommendations(filters); }
+  async getRecommendation(id: number) { return this.libraryStorage.getRecommendation(id); }
+  async createRecommendation(recommendationData: any) { return this.libraryStorage.createRecommendation(recommendationData); }
+  async updateRecommendation(id: number, updates: any) { return this.libraryStorage.updateRecommendation(id, updates); }
+  async deleteRecommendation(id: number) { return this.libraryStorage.deleteRecommendation(id); }
+  async getRecommendedBooksForStudent(studentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForStudent(studentId, schoolId); }
+  async getRecommendedBooksForParent(parentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForParent(parentId, schoolId); }
+  async getTeacherRecommendations(teacherId: number, schoolId: number) { return this.libraryStorage.getTeacherRecommendations(teacherId, schoolId); }
 }
