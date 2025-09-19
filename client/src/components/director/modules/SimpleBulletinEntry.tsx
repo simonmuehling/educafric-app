@@ -129,29 +129,53 @@ const SimpleBulletinEntry: React.FC = () => {
   const handleGeneratePDF = async () => {
     setIsGenerating(true);
     try {
-      // Préparer les données pour l'API
+      // Validation des données requises
+      if (!bulletinData.studentName.trim()) {
+        throw new Error('Le nom de l\'élève est requis');
+      }
+      
+      if (!bulletinData.className.trim()) {
+        throw new Error('Le nom de la classe est requis');
+      }
+
+      // Préparer les données dans le format exact attendu par l'API
       const pdfData = {
-        studentInfo: {
-          name: bulletinData.studentName,
-          class: bulletinData.className,
-          term: bulletinData.term,
-          academicYear: bulletinData.academicYear
-        },
-        absences: bulletinData.absences,
-        sanctions: bulletinData.sanctions,
-        grades: bulletinData.grades,
-        appreciation: bulletinData.appreciation,
-        comments: bulletinData.comments,
-        signatures: bulletinData.signatures,
-        options: {
-          language: 'fr',
-          format: 'A4',
-          colorScheme: 'standard',
-          includeAbsences: true,
-          includeSanctions: true,
-          includeAppreciations: true
+        // L'API attend un array de studentIds, pour une saisie manuelle on crée un ID temporaire
+        studentIds: [999999], // ID temporaire pour saisie manuelle
+        
+        // L'API attend un classId numérique, on utilise un hash du nom de classe
+        classId: Math.abs(bulletinData.className.split('').reduce((a, b) => {
+          a = ((a << 5) - a) + b.charCodeAt(0);
+          return a & a;
+        }, 0)) || 1,
+        
+        // Ces paramètres sont envoyés directement au niveau racine
+        term: bulletinData.term,
+        academicYear: bulletinData.academicYear,
+        
+        // Options de génération
+        includeComments: true,
+        includeRankings: true,
+        includeStatistics: true,
+        includeAbsences: true,
+        includeSanctions: true,
+        includeAppreciations: true,
+        format: 'pdf',
+        
+        // Données manuelles pour l'étudiant temporaire
+        manualData: {
+          studentName: bulletinData.studentName,
+          className: bulletinData.className,
+          absences: bulletinData.absences,
+          sanctions: bulletinData.sanctions,
+          grades: bulletinData.grades,
+          appreciation: bulletinData.appreciation,
+          comments: bulletinData.comments,
+          signatures: bulletinData.signatures
         }
       };
+
+      console.log('[SIMPLE_BULLETIN] 📤 Envoi des données corrigées:', pdfData);
 
       // Appel vers l'API de génération de bulletins complets
       const response = await fetch('/api/comprehensive-bulletins/generate-comprehensive', {
