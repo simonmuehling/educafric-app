@@ -209,9 +209,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       gradeReview: 'Révision des Notes',
       gradeReviewQueue: 'File de Révision',
       pdfGenerators: 'Générateurs PDF',
-      
-      // Bulletin Template System
-      bulletinTemplates: 'Modèles de Bulletins',
 
       finances: 'Finances',
       reports: 'Rapports', 
@@ -241,9 +238,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       gradeReview: 'Grade Review',
       gradeReviewQueue: 'Review Queue',
       pdfGenerators: 'PDF Generators',
-      
-      // Bulletin Template System
-      bulletinTemplates: 'Bulletin Templates',
 
       finances: 'Finances',
       reports: 'Reports',
@@ -486,27 +480,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
           ]}
         >
           {createDynamicModule('comprehensive-bulletins')}
-        </PremiumFeatureGate>
-      )
-    },
-    {
-      id: 'bulletin-templates',
-      label: t.bulletinTemplates,
-      icon: <FileText className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-blue-500 to-indigo-500',
-      component: (
-        <PremiumFeatureGate
-          featureName="Gestionnaire de Modèles de Bulletins"
-          userType="School"
-          features={[
-            "Création de modèles personnalisés",
-            "Sauvegarde automatique des modifications",
-            "Export/Import de modèles",
-            "Gestion des versions et duplications",
-            "Templates par défaut inclus"
-          ]}
-        >
-          {createDynamicModule('bulletin-templates')}
         </PremiumFeatureGate>
       )
     },
