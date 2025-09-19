@@ -13,6 +13,7 @@ export * from "./schemas/bulletinComprehensiveSchema"; // NEW: Comprehensive bul
 export * from "./schemas/bulletinVerificationSchema"; // NEW: Bulletin verification system
 export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment for RBAC security
 export * from "./schemas/sanctionsSchema"; // NEW: Disciplinary sanctions management
+export * from "./schemas/librarySchema"; // NEW: Library books and recommendations management
 
 // Import existing schema modules
 export * from "./tutorialSchema";
