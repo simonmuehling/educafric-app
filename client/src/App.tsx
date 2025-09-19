@@ -330,7 +330,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
-      <Route path="/director">
+      <Route path="/director/:module?">
         <ProtectedRoute>
           <LazyDirectorPage />
         </ProtectedRoute>
