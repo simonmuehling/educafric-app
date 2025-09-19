@@ -6825,63 +6825,150 @@ export default function ComprehensiveBulletinGenerator() {
                     {t.noPreviewData}
                   </div>
                 )}
+                <DragOverlay>
+                    {draggedElement ? (
+                      <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
+                        {getElementDisplayName(draggedElement)}
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
 
-                {/* Properties Panel */}
-                <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <Settings className="h-4 w-4" />
-                        {t.elementProperties}
-                      </h3>
-                      
-                      {selectedElement ? (
-                        <div className="space-y-4">
-                          {(() => {
-                            const element = templateElements.find(el => el.id === selectedElement);
-                            if (!element) return null;
-                            
-                            return (
-                              <>
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.position}</Label>
-                                  <div className="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                      <Label className="text-xs">X</Label>
-                                      <Input
-                                        type="number"
-                                        value={Math.round(element.position.x)}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, x: parseInt(e.target.value) || 0 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs">Y</Label>
-                                      <Input
-                                        type="number"
-                                        value={Math.round(element.position.y)}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, y: parseInt(e.target.value) || 0 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.size}</Label>
-                                  <div className="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                      <Label className="text-xs">{t.width}</Label>
-                                      <Input
-                                        type="number"
-                                        value={element.position.width}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, width: parseInt(e.target.value) || 100 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
+                {/* Template Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleNewTemplate} data-testid="new-template-btn">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t.createNewTemplate}
+                    </Button>
+                    <Button variant="outline" onClick={handleLoadTemplate} data-testid="load-template-btn">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Charger modèle
+                    </Button>
+                    {/* Undo/Redo buttons */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleUndo} 
+                      disabled={historyIndex <= 0}
+                      data-testid="undo-btn"
+                      title="Annuler (Ctrl+Z)"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRedo} 
+                      disabled={historyIndex >= templateHistory.length - 1}
+                      data-testid="redo-btn"
+                      title="Refaire (Ctrl+Y)"
+                    >
+                      <RotateCcw className="h-4 w-4 scale-x-[-1]" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handlePreviewTemplate} data-testid="preview-template-btn">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Aperçu
+                    </Button>
+                    <Button onClick={handleSaveTemplate} data-testid="save-template-btn">
+                      <Save className="h-4 w-4 mr-2" />
+                      {t.saveTemplate}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* ===== REPORTS TAB ===== */}
+        {mountedTabs.has('reports') && (
+          <TabsContent value="reports" className="space-y-4">
+            <Suspense fallback={
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Rapports et Statistiques
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Chargement des rapports et statistiques...
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="animate-pulse bg-gray-200 rounded-lg flex items-center justify-center" style={{ height: 400 }}>
+                    <div className="text-gray-500 flex items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      <span>Chargement des rapports...</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            }>
+              <ReportsTab
+                reportFilters={reportFilters}
+                handleFilterChange={handleFilterChange}
+                classes={classes}
+                overviewReport={overviewReport}
+                distributionStats={distributionStats}
+                timelineReport={timelineReport}
+                loadingOverview={loadingOverview}
+                loadingDistribution={loadingDistribution}
+                loadingTimelineReport={loadingTimelineReport}
+                exportingReport={exportingReport}
+                handleExportReport={handleExportReport}
+              />
+            </Suspense>
+          </TabsContent>
+        )}
+
+        {/* ===== STATISTICS TAB ===== */}
+        {mountedTabs.has('statistics') && (
+          <TabsContent value="statistics" className="space-y-4">
+            <Suspense fallback={
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Rapports et Statistiques
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Chargement des rapports et statistiques...
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="animate-pulse bg-gray-200 rounded-lg flex items-center justify-center" style={{ height: 400 }}>
+                    <div className="text-gray-500 flex items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      <span>Chargement des rapports...</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            }>
+              <ReportsTab
+                reportFilters={reportFilters}
+                handleFilterChange={handleFilterChange}
+                classes={classes}
+                overviewReport={overviewReport}
+                distributionStats={distributionStats}
+                timelineReport={timelineReport}
+                loadingOverview={loadingOverview}
+                loadingDistribution={loadingDistribution}
+                loadingTimelineReport={loadingTimelineReport}
+                exportingReport={exportingReport}
+                handleExportReport={handleExportReport}
+              />
+            </Suspense>
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
+  );
+};
                                     </div>
                                     <div>
                                       <Label className="text-xs">{t.height}</Label>
