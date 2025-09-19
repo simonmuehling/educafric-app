@@ -73,34 +73,16 @@ export const libraryBookDescriptionSchema = z.object({
   en: z.string().optional()
 }).optional();
 
-// Zod schemas for validation
-export const insertLibraryBookSchema = createInsertSchema(libraryBooks).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
+// Zod schemas for validation  
+export const insertLibraryBookSchema = createInsertSchema(libraryBooks);
 
-export const insertLibraryRecommendationSchema = createInsertSchema(libraryRecommendations).omit({
-  id: true,
-  createdAt: true,
-  recommendedAt: true
-});
+export const insertLibraryRecommendationSchema = createInsertSchema(libraryRecommendations);
 
-export const insertLibraryRecommendationAudienceSchema = createInsertSchema(libraryRecommendationAudience).omit({
-  id: true,
-  createdAt: true
-});
+export const insertLibraryRecommendationAudienceSchema = createInsertSchema(libraryRecommendationAudience);
 
-export const insertLibraryRecommendationDispatchSchema = createInsertSchema(libraryRecommendationDispatch).omit({
-  id: true,
-  createdAt: true
-});
+export const insertLibraryRecommendationDispatchSchema = createInsertSchema(libraryRecommendationDispatch);
 
-export const insertWebpushSubscriptionSchema = createInsertSchema(webpushSubscriptions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
+export const insertWebpushSubscriptionSchema = createInsertSchema(webpushSubscriptions);
 
 export const audienceTypeSchema = z.enum(["student", "class", "department"]);
 export const notificationChannelSchema = z.enum(["email", "push", "sms", "whatsapp"]);
