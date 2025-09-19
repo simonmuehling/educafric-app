@@ -620,6 +620,8 @@ const TeacherTimetable = () => {
           ))}
         </div>
       </ModernCard>
+        </>
+      )}
 
       {/* Dialog Modifier Créneaux */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
