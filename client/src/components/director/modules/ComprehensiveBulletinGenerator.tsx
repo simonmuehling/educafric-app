@@ -2400,10 +2400,10 @@ export default function ComprehensiveBulletinGenerator() {
                                               value={subjectCoefficients[grade.subjectId]?.cote || 'none'}
                                               onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value)}
                                             >
-                                              <SelectTrigger className="h-8 text-xs" data-testid={`cote-${grade.subjectId}`}>
+                                              <SelectTrigger className="h-8 text-xs bg-white text-gray-900 border-gray-300 data-[placeholder]:text-gray-400" data-testid={`cote-${grade.subjectId}`}>
                                                 <SelectValue placeholder="-" />
                                               </SelectTrigger>
-                                              <SelectContent>
+                                              <SelectContent className="bg-white text-gray-900">
                                                 <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
                                                 <SelectItem value="A" className="text-gray-900 hover:bg-gray-100">A</SelectItem>
                                                 <SelectItem value="B" className="text-gray-900 hover:bg-gray-100">B</SelectItem>
@@ -2419,10 +2419,10 @@ export default function ComprehensiveBulletinGenerator() {
                                               value={subjectCoefficients[grade.subjectId]?.remarks || 'none'}
                                               onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value)}
                                             >
-                                              <SelectTrigger className="h-8 text-xs" data-testid={`remarks-${grade.subjectId}`}>
+                                              <SelectTrigger className="h-8 text-xs bg-white text-gray-900 border-gray-300 data-[placeholder]:text-gray-400" data-testid={`remarks-${grade.subjectId}`}>
                                                 <SelectValue placeholder="-" />
                                               </SelectTrigger>
-                                              <SelectContent>
+                                              <SelectContent className="bg-white text-gray-900">
                                                 <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
                                                 <SelectItem value="CVWA" className="text-gray-900 hover:bg-gray-100">CVWA - Competences Very Well Acquired</SelectItem>
                                                 <SelectItem value="CWA" className="text-gray-900 hover:bg-gray-100">CWA - Competences Well Acquired</SelectItem>
