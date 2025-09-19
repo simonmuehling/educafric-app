@@ -468,6 +468,10 @@ export default function ComprehensiveBulletinGenerator() {
   // Subject coefficients data state
   const [subjectCoefficients, setSubjectCoefficients] = useState<Record<string, any>>({});
   
+  // API optimization: Control data loading manually
+  const [dataLoadingEnabled, setDataLoadingEnabled] = useState(false);
+  const [hasValidSelection, setHasValidSelection] = useState(false);
+  
   // React Hook Form setup for manual data entry
   const manualDataForm = useForm<ManualDataForm>({
     resolver: zodResolver(manualDataValidationSchema),
@@ -1300,14 +1304,15 @@ export default function ComprehensiveBulletinGenerator() {
     saveManualDataMutation.mutate(data);
   };
 
-  // Load classes on component mount
+  // Load classes on component mount (only when data loading is enabled)
   const { data: classes, isLoading: loadingClasses } = useQuery({
     queryKey: ['director-classes'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/director/classes');
       const data = await response.json();
       return data.success ? data.classes : [];
-    }
+    },
+    enabled: dataLoadingEnabled
   });
 
   // Load students with approved grades for selected class
@@ -1322,7 +1327,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: !!selectedClass
+    enabled: dataLoadingEnabled && !!selectedClass && hasValidSelection
   });
 
   // Class statistics
@@ -1332,12 +1337,12 @@ export default function ComprehensiveBulletinGenerator() {
       if (!selectedClass) return null;
       
       const response = await apiRequest('GET', 
-        `/api/grade-review/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/grade-review/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: !!selectedClass
+    enabled: dataLoadingEnabled && !!selectedClass && hasValidSelection
   });
 
   // Preview bulletin data
@@ -1362,7 +1367,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/pending');
       const data = await response.json();
       return data.success ? data.data : [];
-    }
+    },
+    enabled: dataLoadingEnabled
   });
 
   const { data: approvedBulletins, isLoading: loadingApproved, refetch: refetchApproved } = useQuery({
@@ -1371,7 +1377,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/approved');
       const data = await response.json();
       return data.success ? data.data : [];
-    }
+    },
+    enabled: dataLoadingEnabled
   });
 
   const { data: sentBulletins, isLoading: loadingSent, refetch: refetchSent } = useQuery({
@@ -1380,7 +1387,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', '/api/comprehensive-bulletins/sent');
       const data = await response.json();
       return data.success ? data.data : [];
-    }
+    },
+    enabled: dataLoadingEnabled
   });
 
   // ===== REPORTING QUERIES =====
@@ -1399,7 +1407,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', `/api/comprehensive-bulletins/reports/overview?${params.toString()}`);
       const data = await response.json();
       return data.success ? data.data : null;
-    }
+    },
+    enabled: dataLoadingEnabled
   });
   
   // Distribution statistics data
@@ -1415,7 +1424,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', `/api/comprehensive-bulletins/reports/distribution-stats?${params.toString()}`);
       const data = await response.json();
       return data.success ? data.data : null;
-    }
+    },
+    enabled: dataLoadingEnabled
   });
   
   // Timeline data  
@@ -1434,7 +1444,8 @@ export default function ComprehensiveBulletinGenerator() {
       const response = await apiRequest('GET', `/api/comprehensive-bulletins/reports/timeline?${params.toString()}`);
       const data = await response.json();
       return data.success ? data.data : null;
-    }
+    },
+    enabled: dataLoadingEnabled
   });
 
   // Reset selection when pendingBulletins change
@@ -1442,6 +1453,52 @@ export default function ComprehensiveBulletinGenerator() {
     setSelectedBulletins([]);
     setSelectAll(false);
   }, [pendingBulletins]);
+  
+  // Check if user has made valid selection for data loading
+  useEffect(() => {
+    const isValidSelection = selectedClass && selectedTerm && academicYear;
+    setHasValidSelection(!!isValidSelection);
+    
+    // Reset data loading state when selection changes
+    if (!isValidSelection) {
+      setDataLoadingEnabled(false);
+    }
+  }, [selectedClass, selectedTerm, academicYear]);
+  
+  // Manual data loading functions
+  const handleLoadData = () => {
+    if (!hasValidSelection) {
+      toast({
+        title: 'Sélection incomplète',
+        description: 'Veuillez sélectionner une classe, un trimestre et une année scolaire avant de charger les données.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setDataLoadingEnabled(true);
+    toast({
+      title: 'Chargement des données',
+      description: 'Les données sont en cours de chargement...',
+    });
+  };
+  
+  const handleResetData = () => {
+    setDataLoadingEnabled(false);
+    setSelectedStudents([]);
+    setSelectedBulletins([]);
+    setSelectAll(false);
+    queryClient.invalidateQueries({ queryKey: ['director-classes'] });
+    queryClient.invalidateQueries({ queryKey: ['approved-grades-students'] });
+    queryClient.invalidateQueries({ queryKey: ['class-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
+    queryClient.invalidateQueries({ queryKey: ['comprehensive-reports'] });
+    
+    toast({
+      title: 'Données réinitialisées',
+      description: 'Toutes les données ont été effacées du cache.',
+    });
+  };
 
   // Bulletin generation mutation
   const generateMutation = useMutation({
@@ -1879,9 +1936,80 @@ export default function ComprehensiveBulletinGenerator() {
                   />
                 </div>
               </div>
+              
+              {/* Data Loading Control Section */}
+              <div className="space-y-4">
+                <Separator />
+                
+                {!dataLoadingEnabled && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Database className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <h4 className="font-medium text-blue-900">Chargement des données requis</h4>
+                        <p className="text-sm text-blue-700">
+                          Sélectionnez une classe, un trimestre et une année, puis cliquez sur "Charger les données" pour commencer.
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            onClick={handleLoadData}
+                            disabled={!hasValidSelection}
+                            className="bg-blue-600 hover:bg-blue-700"
+                            data-testid="load-data-button"
+                          >
+                            <Database className="h-4 w-4 mr-2" />
+                            Charger les données
+                          </Button>
+                          {hasValidSelection && (
+                            <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Sélection complète
+                            </Badge>
+                          )}
+                          {!hasValidSelection && (
+                            <Badge variant="outline" className="text-orange-700 border-orange-200 bg-orange-50">
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              Sélection incomplète
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {dataLoadingEnabled && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <h4 className="font-medium text-green-900">Données chargées avec succès</h4>
+                        <p className="text-sm text-green-700">
+                          Les données sont disponibles. Vous pouvez maintenant naviguer entre les onglets.
+                        </p>
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            onClick={handleResetData}
+                            variant="outline"
+                            size="sm"
+                            data-testid="reset-data-button"
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Réinitialiser les données
+                          </Button>
+                          <Badge variant="outline" className="text-green-700 border-green-200 bg-green-100">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Données actives
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Class Statistics */}
-              {classStats && (
+              {classStats && dataLoadingEnabled && (
                 <div className="mt-6">
                   <h3 className="text-lg font-semibold mb-3">{t.classStatistics}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
