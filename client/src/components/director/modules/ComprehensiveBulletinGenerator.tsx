@@ -6825,6 +6825,7 @@ export default function ComprehensiveBulletinGenerator() {
                     {t.noPreviewData}
                   </div>
                 )}
+                <>
                 <DragOverlay>
                     {draggedElement ? (
                       <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
@@ -6879,6 +6880,7 @@ export default function ComprehensiveBulletinGenerator() {
                     </Button>
                   </div>
                 </div>
+                </>
               </CardContent>
             </Card>
           </TabsContent>
@@ -7115,6 +7117,7 @@ export default function ComprehensiveBulletinGenerator() {
                     </Button>
                   </div>
                 </div>
+                </>
               </CardContent>
             </Card>
           </TabsContent>
