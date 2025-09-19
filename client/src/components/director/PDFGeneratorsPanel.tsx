@@ -351,8 +351,60 @@ export function PDFGeneratorsPanel() {
   };
 
   const handleViewSample = (language: 'fr' | 'en') => {
-    const sampleUrl = currentGenerator.sampleFiles[language];
-    window.open(sampleUrl, '_blank');
+    try {
+      const sampleUrl = currentGenerator.sampleFiles[language];
+      
+      // Enhanced logging for debugging
+      console.log('[PDF_SAMPLE] 🔍 Attempting to open sample:', { 
+        generator: selectedGenerator, 
+        language, 
+        url: sampleUrl 
+      });
+
+      // Open window immediately to preserve user activation (no await before this!)
+      const newWindow = window.open(sampleUrl, '_blank', 'noopener,noreferrer');
+      
+      // Check if the window was successfully opened
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        // Pop-up was likely blocked, try alternative method immediately (still synchronous)
+        console.log('[PDF_SAMPLE] ⚠️ Pop-up blocked, trying alternative method');
+        
+        // Create a temporary link and click it immediately
+        const link = document.createElement('a');
+        link.href = sampleUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        
+        // Add to DOM temporarily and click immediately
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Aperçu ouvert",
+          description: `Aperçu ${language.toUpperCase()} de "${currentGenerator.title}" ouvert dans un nouvel onglet.`,
+        });
+      } else {
+        // Success message for successful pop-up
+        toast({
+          title: "Aperçu ouvert",
+          description: `Aperçu ${language.toUpperCase()} de "${currentGenerator.title}" ouvert avec succès.`,
+        });
+      }
+      
+      console.log('[PDF_SAMPLE] ✅ Sample opened successfully');
+      
+    } catch (error: any) {
+      console.error('[PDF_SAMPLE] ❌ Error opening sample:', error);
+      
+      const errorMessage = error?.message || 'Erreur inconnue lors de l\'ouverture de l\'aperçu';
+      
+      toast({
+        title: "Erreur d'aperçu",
+        description: `Impossible d'ouvrir l'aperçu: ${errorMessage}. Vérifiez que votre navigateur autorise les pop-ups.`,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
