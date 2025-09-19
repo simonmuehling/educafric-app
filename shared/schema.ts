@@ -31,8 +31,15 @@ import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotificat
 import { studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings } from "./schemas/bulletinExtensionsSchema";
 import { bulletinComprehensive, bulletinSubjectCodes } from "./schemas/bulletinComprehensiveSchema";
 import { sanctions } from "./schemas/sanctionsSchema";
+import { 
+  libraryBooks, 
+  libraryRecommendations, 
+  libraryRecommendationAudience, 
+  libraryRecommendationDispatch, 
+  webpushSubscriptions 
+} from "./schemas/librarySchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions, libraryBooks, libraryRecommendations, libraryRecommendationAudience, libraryRecommendationDispatch, webpushSubscriptions };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";
