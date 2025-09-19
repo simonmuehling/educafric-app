@@ -512,6 +512,12 @@ export default function ComprehensiveBulletinGenerator() {
   
   // ===== SANCTIONS DISCIPLINAIRES STATES =====
   const [selectedStudentForSanctions, setSelectedStudentForSanctions] = useState<number | null>(null);
+  const [sanctionsData, setSanctionsData] = useState({
+    conductWarnings: [],
+    conductBlames: [],
+    exclusions: [],
+    permanentExclusion: null
+  });
   
   // React Hook Form for sanctions - replaces sanctionsForm useState
   const sanctionsForm = useForm<SanctionForm>({
@@ -3248,7 +3254,6 @@ export default function ComprehensiveBulletinGenerator() {
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      <SelectItem value="">{t.selectMention}</SelectItem>
                                       <SelectItem value="Félicitations">{t.mentionFelicitations}</SelectItem>
                                       <SelectItem value="Encouragements">{t.mentionEncouragements}</SelectItem>
                                       <SelectItem value="Satisfaisant">{t.mentionSatisfaisant}</SelectItem>
