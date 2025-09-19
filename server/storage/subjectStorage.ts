@@ -20,7 +20,7 @@ export class SubjectStorage implements ISubjectStorage {
       console.log('[SUBJECT_STORAGE] 📚 Récupération matières école:', schoolId);
       
       // Try to get real data first
-      const realSubjects = await db.select().from(subjects).where(eq(subjects.schoolId, schoolId)).orderBy(subjects.name);
+      const realSubjects = await db.select().from(subjects).where(eq(subjects.schoolId, schoolId)).orderBy(subjects.nameFr);
       
       if (realSubjects.length > 0) {
         console.log(`[SUBJECT_STORAGE] ✅ ${realSubjects.length} matières trouvées en base`);
@@ -30,12 +30,12 @@ export class SubjectStorage implements ISubjectStorage {
       // If no subjects found, create default subjects for the school
       console.log('[SUBJECT_STORAGE] 🔧 Création matières par défaut pour école:', schoolId);
       const defaultSubjects = [
-        { name: 'Mathématiques', nameFr: 'Mathématiques', nameEn: 'Mathematics', coefficient: 4, classLevel: '6ème', schoolId, department: 'Sciences' },
-        { name: 'Français', nameFr: 'Français', nameEn: 'French', coefficient: 3, classLevel: '6ème', schoolId, department: 'Littéraire' },
-        { name: 'Anglais', nameFr: 'Anglais', nameEn: 'English', coefficient: 2, classLevel: '6ème', schoolId, department: 'Langues' },
-        { name: 'Histoire', nameFr: 'Histoire', nameEn: 'History', coefficient: 2, classLevel: '6ème', schoolId, department: 'Sciences Humaines' },
-        { name: 'Géographie', nameFr: 'Géographie', nameEn: 'Geography', coefficient: 2, classLevel: '6ème', schoolId, department: 'Sciences Humaines' },
-        { name: 'Sciences', nameFr: 'Sciences', nameEn: 'Science', coefficient: 3, classLevel: '6ème', schoolId, department: 'Sciences' }
+        { nameFr: 'Mathématiques', nameEn: 'Mathematics', code: 'MATH', coefficient: 4, schoolId },
+        { nameFr: 'Français', nameEn: 'French', code: 'FR', coefficient: 3, schoolId },
+        { nameFr: 'Anglais', nameEn: 'English', code: 'EN', coefficient: 2, schoolId },
+        { nameFr: 'Histoire', nameEn: 'History', code: 'HIST', coefficient: 2, schoolId },
+        { nameFr: 'Géographie', nameEn: 'Geography', code: 'GEO', coefficient: 2, schoolId },
+        { nameFr: 'Sciences', nameEn: 'Science', code: 'SCI', coefficient: 3, schoolId }
       ];
       
       try {
