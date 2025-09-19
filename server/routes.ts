@@ -2882,6 +2882,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= TEACHER LIBRARY API =============
+  
+  // Get library books with optional filters
+  app.get("/api/teacher/library/books", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { subjectIds, departmentIds, recommendedLevel } = req.query;
+      
+      console.log('[TEACHER_LIBRARY] GET /api/teacher/library/books for user:', user.id);
+      
+      const filters = {
+        schoolId: user.schoolId,
+        ...(subjectIds && { subjectIds: JSON.parse(subjectIds as string) }),
+        ...(departmentIds && { departmentIds: JSON.parse(departmentIds as string) }),
+        ...(recommendedLevel && { recommendedLevel: recommendedLevel as string })
+      };
+      
+      const books = await storage.getBooks(filters);
+      
+      res.json({ success: true, books });
+    } catch (error) {
+      console.error('[TEACHER_LIBRARY] Error fetching books:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch library books' });
+    }
+  });
+  
+  // Create a new book recommendation
+  app.post("/api/teacher/library/recommend", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { bookId, audienceType, audienceIds, note } = req.body;
+      
+      console.log('[TEACHER_LIBRARY] POST /api/teacher/library/recommend for user:', user.id);
+      
+      if (!bookId || !audienceType || !audienceIds || audienceIds.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: bookId, audienceType, and audienceIds' 
+        });
+      }
+      
+      const recommendationData = {
+        bookId,
+        teacherId: user.id,
+        audienceType,
+        audienceIds,
+        note: note || null
+      };
+      
+      const recommendation = await storage.createRecommendation(recommendationData);
+      
+      res.json({ 
+        success: true, 
+        recommendation,
+        message: 'Book recommendation created successfully' 
+      });
+    } catch (error) {
+      console.error('[TEACHER_LIBRARY] Error creating recommendation:', error);
+      res.status(500).json({ success: false, message: 'Failed to create book recommendation' });
+    }
+  });
+  
+  // Get teacher's recommendations
+  app.get("/api/teacher/library/recommendations", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log('[TEACHER_LIBRARY] GET /api/teacher/library/recommendations for user:', user.id);
+      
+      const recommendations = await storage.getTeacherRecommendations(user.id, user.schoolId);
+      
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('[TEACHER_LIBRARY] Error fetching recommendations:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch teacher recommendations' });
+    }
+  });
+  
+  // Add a new book to the library (admin function for teachers)
+  app.post("/api/teacher/library/books", requireAuth, requireAnyRole(['Teacher', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const bookData = req.body;
+      
+      console.log('[TEACHER_LIBRARY] POST /api/teacher/library/books for user:', user.id);
+      
+      if (!bookData.title?.fr || !bookData.title?.en || !bookData.author) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: title (French and English) and author' 
+        });
+      }
+      
+      const book = await storage.createBook(bookData);
+      
+      res.json({ 
+        success: true, 
+        book,
+        message: 'Book added to library successfully' 
+      });
+    } catch (error) {
+      console.error('[TEACHER_LIBRARY] Error adding book:', error);
+      res.status(500).json({ success: false, message: 'Failed to add book to library' });
+    }
+  });
+
   // ============= TEACHER ABSENCE DECLARATION API =============
 
   // Declare teacher absence - POST route for functional button
@@ -3857,6 +3963,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============= STUDENT LIBRARY API =============
+  
+  // Get recommended books for student
+  app.get("/api/student/library/recommendations", requireAuth, requireAnyRole(['Student', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log('[STUDENT_LIBRARY] GET /api/student/library/recommendations for user:', user.id);
+      
+      const recommendations = await storage.getRecommendedBooksForStudent(user.id, user.schoolId);
+      
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('[STUDENT_LIBRARY] Error fetching recommendations:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch book recommendations' });
+    }
+  });
+  
+  // Get all library books for browsing
+  app.get("/api/student/library/books", requireAuth, requireAnyRole(['Student', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { subjectIds, recommendedLevel } = req.query;
+      
+      console.log('[STUDENT_LIBRARY] GET /api/student/library/books for user:', user.id);
+      
+      const filters = {
+        schoolId: user.schoolId,
+        ...(subjectIds && { subjectIds: JSON.parse(subjectIds as string) }),
+        ...(recommendedLevel && { recommendedLevel: recommendedLevel as string })
+      };
+      
+      const books = await storage.getBooks(filters);
+      
+      res.json({ success: true, books });
+    } catch (error) {
+      console.error('[STUDENT_LIBRARY] Error fetching books:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch library books' });
+    }
+  });
+
   // Freelancer Messages
   app.get("/api/freelancer/messages", requireAuth, async (req, res) => {
     try {
@@ -4233,6 +4380,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[PARENT_SETTINGS_UPDATE] Error:', error);
       res.status(500).json({ success: false, message: 'Failed to update parent settings' });
+    }
+  });
+
+  // ============= PARENT LIBRARY API =============
+  
+  // Get recommended books for parent's children
+  app.get("/api/parent/library/recommendations", requireAuth, requireAnyRole(['Parent', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      console.log('[PARENT_LIBRARY] GET /api/parent/library/recommendations for user:', user.id);
+      
+      const recommendations = await storage.getRecommendedBooksForParent(user.id, user.schoolId);
+      
+      res.json({ success: true, recommendations });
+    } catch (error) {
+      console.error('[PARENT_LIBRARY] Error fetching recommendations:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch book recommendations for children' });
+    }
+  });
+  
+  // Get all library books for browsing
+  app.get("/api/parent/library/books", requireAuth, requireAnyRole(['Parent', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { subjectIds, recommendedLevel } = req.query;
+      
+      console.log('[PARENT_LIBRARY] GET /api/parent/library/books for user:', user.id);
+      
+      const filters = {
+        schoolId: user.schoolId,
+        ...(subjectIds && { subjectIds: JSON.parse(subjectIds as string) }),
+        ...(recommendedLevel && { recommendedLevel: recommendedLevel as string })
+      };
+      
+      const books = await storage.getBooks(filters);
+      
+      res.json({ success: true, books });
+    } catch (error) {
+      console.error('[PARENT_LIBRARY] Error fetching books:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch library books' });
     }
   });
 
