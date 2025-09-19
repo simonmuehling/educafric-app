@@ -76,7 +76,8 @@ import bulletinRoutes from "./routes/bulletinRoutes";
 import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 import gradeReviewRoutes from "./routes/gradeReview";
-import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
+// TEMPORARILY DISABLED - fixing TypeScript errors
+// import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
@@ -5811,7 +5812,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
+  // TEMPORARILY DISABLED - fixing TypeScript errors
+  // app.use('/api/comprehensive-bulletins', checkSubscriptionFeature('advanced_grade_management'), comprehensiveBulletinRoutes);
   
   // ✅ ROUTE NOUVEAU GÉNÉRATEUR OPTIMISÉ - ESPACE INTELLIGENT ET ZÉRO CHEVAUCHEMENT
   app.post('/api/optimized-bulletins/sample', async (req, res) => {
