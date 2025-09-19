@@ -3151,28 +3151,7 @@ export default function ComprehensiveBulletinGenerator() {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <CardContent className="pt-0 space-y-4">
-                            <FormField
-                              control={manualDataForm.control}
-                              name="workAppreciation"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t.workAppreciationField}</FormLabel>
-                                  <FormControl>
-                                    <Textarea 
-                                      {...field} 
-                                      placeholder="Entrez l'appréciation détaillée du travail de l'élève..."
-                                      className="min-h-[100px]"
-                                      maxLength={500}
-                                      data-testid="work-appreciation"
-                                    />
-                                  </FormControl>
-                                  <FormDescription>
-                                    {field.value?.length || 0}/500 caractères
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            {/* General Comment - SEUL CHAMP À GARDER */}
                             <FormField
                               control={manualDataForm.control}
                               name="generalComment"
