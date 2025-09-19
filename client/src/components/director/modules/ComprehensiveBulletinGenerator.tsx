@@ -6524,40 +6524,41 @@ export default function ComprehensiveBulletinGenerator() {
             </DialogDescription>
           </DialogHeader>
           
-          {loadingPreview ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>{t.loadingPreview}</span>
-            </div>
-          ) : previewData ? (
-            <div className="space-y-4">
-              {/* Student Info */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800 mb-2">Informations Étudiant</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="font-medium">Nom:</span> {previewData.studentName}</div>
-                  <div><span className="font-medium">Classe:</span> {previewData.className}</div>
-                  <div><span className="font-medium">Matricule:</span> {previewData.matricule}</div>
-                  <div><span className="font-medium">Période:</span> {previewData.term}</div>
+          <>
+            {loadingPreview ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>{t.loadingPreview}</span>
+              </div>
+            ) : previewData ? (
+              <div className="space-y-4">
+                {/* Student Info */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-800 mb-2">Informations Étudiant</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><span className="font-medium">Nom:</span> {previewData.studentName}</div>
+                    <div><span className="font-medium">Classe:</span> {previewData.className}</div>
+                    <div><span className="font-medium">Matricule:</span> {previewData.matricule}</div>
+                    <div><span className="font-medium">Période:</span> {previewData.term}</div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Zoom Controls */}
-              <div className="flex items-center gap-2 p-4 border-b">
-                <span className="text-sm font-medium">Zoom:</span>
-                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(Math.max(0.1, canvasZoom - 0.1))}>
-                  <span className="text-xs">-</span>
-                </Button>
-                <span className="text-sm min-w-[60px] text-center">{Math.round(canvasZoom * 100)}%</span>
-                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
-                  <span className="text-xs">+</span>
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
-                  <RotateCcw className="h-3 w-3" />
-                </Button>
-              </div>
-                      
-              <div 
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-2 p-4 border-b">
+                  <span className="text-sm font-medium">Zoom:</span>
+                  <Button variant="outline" size="sm" onClick={() => setCanvasZoom(Math.max(0.1, canvasZoom - 0.1))}>
+                    <span className="text-xs">-</span>
+                  </Button>
+                  <span className="text-sm min-w-[60px] text-center">{Math.round(canvasZoom * 100)}%</span>
+                  <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
+                    <span className="text-xs">+</span>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
+                </div>
+                        
+                <div 
                         className="w-full h-full overflow-auto p-8 pt-16"
                         style={{ 
                           backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
@@ -6825,6 +6826,7 @@ export default function ComprehensiveBulletinGenerator() {
                       )}
                     </div>
                   </div>
+                </>
 
                   {/* Drag Overlay */}
                   <DragOverlay>
