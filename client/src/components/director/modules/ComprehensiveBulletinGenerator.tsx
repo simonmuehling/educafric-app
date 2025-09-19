@@ -2397,11 +2397,13 @@ export default function ComprehensiveBulletinGenerator() {
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Select
-                                              value={subjectCoefficients[grade.subjectId]?.cote || 'none'}
-                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value)}
+                                              value={subjectCoefficients[grade.subjectId]?.cote || ''}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value === 'none' ? '' : value)}
                                             >
                                               <SelectTrigger className="h-8 text-xs bg-white text-black border-gray-300 focus:border-blue-500" data-testid={`cote-${grade.subjectId}`} style={{color: '#000000', backgroundColor: '#ffffff'}}>
-                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}} />
+                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}}>
+                                                  {subjectCoefficients[grade.subjectId]?.cote || '-'}
+                                                </SelectValue>
                                               </SelectTrigger>
                                               <SelectContent className="bg-white border border-gray-300" style={{backgroundColor: '#ffffff'}}>
                                                 <SelectItem value="none" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>-</SelectItem>
@@ -2416,11 +2418,13 @@ export default function ComprehensiveBulletinGenerator() {
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Select
-                                              value={subjectCoefficients[grade.subjectId]?.remarks || 'none'}
-                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value)}
+                                              value={subjectCoefficients[grade.subjectId]?.remarks || ''}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value === 'none' ? '' : value)}
                                             >
                                               <SelectTrigger className="h-8 text-xs bg-white text-black border-gray-300 focus:border-blue-500" data-testid={`remarks-${grade.subjectId}`} style={{color: '#000000', backgroundColor: '#ffffff'}}>
-                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}} />
+                                                <SelectValue placeholder="-" className="text-black" style={{color: '#000000'}}>
+                                                  {subjectCoefficients[grade.subjectId]?.remarks || '-'}
+                                                </SelectValue>
                                               </SelectTrigger>
                                               <SelectContent className="bg-white border border-gray-300" style={{backgroundColor: '#ffffff'}}>
                                                 <SelectItem value="none" className="text-black hover:bg-gray-100" style={{color: '#000000'}}>-</SelectItem>
