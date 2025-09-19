@@ -42,6 +42,19 @@ export const insertLibraryRecommendationSchema = createInsertSchema(libraryRecom
   recommendedAt: true
 });
 
+// Additional validation schemas for better type safety
+export const libraryBookTitleSchema = z.object({
+  fr: z.string().min(1, "French title is required"),
+  en: z.string().min(1, "English title is required")
+});
+
+export const libraryBookDescriptionSchema = z.object({
+  fr: z.string().optional(),
+  en: z.string().optional()
+}).optional();
+
+export const audienceTypeSchema = z.enum(["student", "class", "department"]);
+
 // TypeScript types
 export type LibraryBook = typeof libraryBooks.$inferSelect;
 export type InsertLibraryBook = z.infer<typeof insertLibraryBookSchema>;
