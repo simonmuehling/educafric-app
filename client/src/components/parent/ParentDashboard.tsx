@@ -8,7 +8,7 @@ import {
   Calendar, FileText, Clock, Bell, DollarSign,
   MapPin, Award, Users, Smartphone, User, GraduationCap,
   CheckCircle2, AlertCircle, Target, Star, CreditCard, HelpCircle,
-  ChevronDown, Mail, Heart
+  ChevronDown, Mail, Heart, BarChart3
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
