@@ -1682,9 +1682,9 @@ export class PDFGenerator {
     const results = [
       '• Total process time: < 2 minutes',
       '• Notification success rate: 100%',
-      '• SMS sent: 2/2 ✓',
-      '• Emails sent: 2/2 ✓',
-      '• WhatsApp messages: 2/2 ✓',
+      '• SMS sent: 2/2 [OK]',
+      '• Emails sent: 2/2 [OK]',
+      '• WhatsApp messages: 2/2 [OK]',
       '• PDF generated successfully',
       '• Signatures applied',
       '• QR code functional'

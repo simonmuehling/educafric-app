@@ -351,11 +351,11 @@ Hello {{contactName}},
 Thank you for your interest in the African educational platform Educafric. We're excited to support {{companyName}} in your digital transformation.
 
 🌟 Our solutions include:
-✓ Complete school management
-✓ Smart academic tracking  
-✓ Parent-school communication
-✓ Secure geolocation
-✓ Multilingual support (French/English)
+[OK] Complete school management
+[OK] Smart academic tracking  
+[OK] Parent-school communication
+[OK] Secure geolocation
+[OK] Multilingual support (French/English)
 
 📱 Personal demo: {{demoLink}}
 💬 Questions? Reply to this message
@@ -391,11 +391,11 @@ Bonjour {{contactName}},
 Merci de votre intérêt pour la plateforme éducative africaine Educafric. Nous sommes ravis d'accompagner {{companyName}} dans votre transformation numérique.
 
 🌟 Nos solutions incluent:
-✓ Gestion complète d'école
-✓ Suivi académique intelligent
-✓ Communication parents-école
-✓ Géolocalisation sécurisée
-✓ Support multilingue (Français/Anglais)
+[OK] Gestion complète d'école
+[OK] Suivi académique intelligent
+[OK] Communication parents-école
+[OK] Géolocalisation sécurisée
+[OK] Support multilingue (Français/Anglais)
 
 📱 Démo personnalisée: {{demoLink}}
 💬 Questions? Répondez à ce message
