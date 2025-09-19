@@ -257,38 +257,6 @@ const TeacherTimetable = () => {
     { id: '4eme-a', name: '4ème A', students: 27 }
   ];
 
-  const schedule = {
-    monday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
-      { time: '14:00-15:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' }
-    ],
-    tuesday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
-    ],
-    wednesday: [
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '14:00-15:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
-    ],
-    thursday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '16:00-17:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
-    ],
-    friday: [
-      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
-      { time: '11:00-12:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
-      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
-    ],
-    saturday: [
-      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
-      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' }
-    ]
-  };
 
   const getClassColor = (className: string) => {
     switch (className) {

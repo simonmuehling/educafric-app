@@ -141,8 +141,9 @@ router.get('/student-attendance', requireAuth, async (req, res) => {
       success: true,
       data: attendanceData
     });
+  }
   } catch (error) {
-    console.error('[TEACHER_API] Error fetching attendance:', error);
+    console.error('[TEACHER_API] Error in student-attendance route:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch student attendance'
