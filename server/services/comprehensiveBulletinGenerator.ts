@@ -111,6 +111,59 @@ export interface BulletinOptions {
   logoMaxHeight?: number;
   photoMaxWidth?: number;
   photoMaxHeight?: number;
+  
+  // ===== COMPREHENSIVE BULLETIN OPTIONS =====
+  
+  // Section Évaluation & Trimestre
+  includeFirstTrimester?: boolean;
+  includeDiscipline?: boolean;
+  includeStudentWork?: boolean;
+  includeClassProfile?: boolean;
+  
+  // Section Absences & Retards
+  includeUnjustifiedAbsences?: boolean;
+  includeJustifiedAbsences?: boolean;
+  includeLateness?: boolean;
+  includeDetentions?: boolean;
+  
+  // Section Sanctions Disciplinaires
+  includeConductWarning?: boolean;
+  includeConductBlame?: boolean;
+  includeExclusions?: boolean;
+  includePermanentExclusion?: boolean;
+  
+  // Section Moyennes & Totaux
+  includeTotalGeneral?: boolean;
+  includeAppreciations?: boolean;
+  includeGeneralAverage?: boolean;
+  includeTrimesterAverage?: boolean;
+  includeNumberOfAverages?: boolean;
+  includeSuccessRate?: boolean;
+  
+  // Section Coefficients & Codes
+  includeCoef?: boolean;
+  includeCTBA?: boolean;
+  includeMinMax?: boolean;
+  includeCBA?: boolean;
+  includeCA?: boolean;
+  includeCMA?: boolean;
+  includeCOTE?: boolean;
+  includeCNA?: boolean;
+  
+  // Section Appréciations & Signatures
+  includeWorkAppreciation?: boolean;
+  includeParentVisa?: boolean;
+  includeTeacherVisa?: boolean;
+  includeHeadmasterVisa?: boolean;
+  
+  // Section Conseil de Classe
+  includeClassCouncilDecisions?: boolean;
+  includeClassCouncilMentions?: boolean;
+  includeOrientationRecommendations?: boolean;
+  includeCouncilDate?: boolean;
+  
+  // Manual data entry
+  manualData?: any;
 }
 
 export class ComprehensiveBulletinGenerator {
@@ -1198,8 +1251,158 @@ export class ComprehensiveBulletinGenerator {
         performanceLevelsY = textY - 5; // DRASTICALLY COMPRESSED: From -20 to -5
       }
       
+      // 10.5. CLASS COUNCIL SECTION - CONDITIONAL RENDERING
+      let classCouncilY = performanceLevelsY;
+      
+      // Check if any class council options are enabled
+      const hasClassCouncilContent = options.includeClassCouncilDecisions || 
+                                    options.includeClassCouncilMentions || 
+                                    options.includeOrientationRecommendations || 
+                                    options.includeCouncilDate;
+      
+      if (hasClassCouncilContent) {
+        console.log('[COMPREHENSIVE_PDF] 📋 Including Class Council section');
+        
+        // Section title
+        const councilTitle = options.language === 'fr' ? 'CONSEIL DE CLASSE' : 'CLASS COUNCIL';
+        drawText(councilTitle, tableStartX, classCouncilY, { 
+          font: helveticaBold, 
+          size: 10, 
+          color: textColor 
+        });
+        classCouncilY -= 15;
+        
+        // Draw section border
+        const sectionHeight = 60; // Estimated height for council section
+        drawRect(tableStartX, classCouncilY - sectionHeight, tableWidth, sectionHeight, { 
+          color: lightGray, 
+          borderColor: borderColor, 
+          borderWidth: 1 
+        });
+        
+        let councilContentY = classCouncilY - 8;
+        
+        // Council decisions
+        if (options.includeClassCouncilDecisions && options.manualData?.classCouncilDecisions) {
+          const decisionsLabel = options.language === 'fr' ? 'Décisions:' : 'Decisions:';
+          drawText(decisionsLabel, tableStartX + 5, councilContentY, { 
+            font: helveticaBold, 
+            size: 8, 
+            color: textColor 
+          });
+          
+          // Wrap text for decisions
+          const decisions = options.manualData.classCouncilDecisions;
+          const maxWidth = tableWidth - 80;
+          const words = decisions.split(' ');
+          let currentLine = '';
+          let lineY = councilContentY - 12;
+          
+          for (const word of words) {
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            const testWidth = helvetica.widthOfTextAtSize(testLine, 8);
+            
+            if (testWidth <= maxWidth) {
+              currentLine = testLine;
+            } else {
+              if (currentLine) {
+                drawText(currentLine, tableStartX + 60, lineY, {
+                  font: helvetica,
+                  size: 8,
+                  color: textColor
+                });
+                lineY -= 10;
+              }
+              currentLine = word;
+            }
+          }
+          
+          // Draw the last line
+          if (currentLine) {
+            drawText(currentLine, tableStartX + 60, lineY, {
+              font: helvetica,
+              size: 8,
+              color: textColor
+            });
+            lineY -= 10;
+          }
+          
+          councilContentY = lineY - 5;
+        }
+        
+        // Council mentions
+        if (options.includeClassCouncilMentions && options.manualData?.classCouncilMentions) {
+          const mentionsLabel = options.language === 'fr' ? 'Mention:' : 'Mention:';
+          drawText(mentionsLabel, tableStartX + 5, councilContentY, { 
+            font: helveticaBold, 
+            size: 8, 
+            color: textColor 
+          });
+          
+          // Map mention values to display text
+          const mentionMap = {
+            'Félicitations': options.language === 'fr' ? 'Félicitations' : 'Congratulations',
+            'Encouragements': options.language === 'fr' ? 'Encouragements' : 'Encouragement',
+            'Satisfaisant': options.language === 'fr' ? 'Satisfaisant' : 'Satisfactory',
+            'Mise en garde': options.language === 'fr' ? 'Mise en garde' : 'Warning',
+            'Blâme': options.language === 'fr' ? 'Blâme' : 'Blame'
+          };
+          
+          const mentionText = mentionMap[options.manualData.classCouncilMentions as keyof typeof mentionMap] || 
+                             options.manualData.classCouncilMentions;
+          
+          drawText(mentionText, tableStartX + 60, councilContentY, { 
+            font: helvetica, 
+            size: 8, 
+            color: textColor 
+          });
+          councilContentY -= 15;
+        }
+        
+        // Orientation recommendations
+        if (options.includeOrientationRecommendations && options.manualData?.orientationRecommendations) {
+          const orientationLabel = options.language === 'fr' ? 'Orientation:' : 'Orientation:';
+          drawText(orientationLabel, tableStartX + 5, councilContentY, { 
+            font: helveticaBold, 
+            size: 8, 
+            color: textColor 
+          });
+          
+          drawText(options.manualData.orientationRecommendations, tableStartX + 80, councilContentY, { 
+            font: helvetica, 
+            size: 8, 
+            color: textColor 
+          });
+          councilContentY -= 15;
+        }
+        
+        // Council date
+        if (options.includeCouncilDate && options.manualData?.councilDate) {
+          const dateLabel = options.language === 'fr' ? 'Date du conseil:' : 'Council date:';
+          drawText(dateLabel, tableStartX + 5, councilContentY, { 
+            font: helveticaBold, 
+            size: 8, 
+            color: textColor 
+          });
+          
+          const formattedDate = new Date(options.manualData.councilDate).toLocaleDateString(
+            options.language === 'fr' ? 'fr-FR' : 'en-US'
+          );
+          
+          drawText(formattedDate, tableStartX + 100, councilContentY, { 
+            font: helvetica, 
+            size: 8, 
+            color: textColor 
+          });
+        }
+        
+        classCouncilY = councilContentY - 15;
+        console.log('[COMPREHENSIVE_PDF] ✅ Class Council section rendered successfully');
+      }
+      
       // 11. FOOTER WITH QR CODE AND VERIFICATION - DRASTICALLY COMPRESSED
-      const footerY = options.includePerformanceLevels ? Math.max(performanceLevelsY, 40) : 40; // DRASTICALLY COMPRESSED: From 80 to 40
+      const footerY = hasClassCouncilContent ? Math.max(classCouncilY, 40) : 
+                     (options.includePerformanceLevels ? Math.max(performanceLevelsY, 40) : 40); // DRASTICALLY COMPRESSED: From 80 to 40
       
       // Generate enhanced verification data with real school information
       const verificationCode = crypto.randomUUID();

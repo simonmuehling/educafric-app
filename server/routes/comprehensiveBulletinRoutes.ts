@@ -531,7 +531,58 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
       includeRankings = true, 
       includeStatistics = true,
       includePerformanceLevels = false,
-      format = 'pdf'
+      format = 'pdf',
+      
+      // Section Évaluation & Trimestre
+      includeFirstTrimester = false,
+      includeDiscipline = false,
+      includeStudentWork = false,
+      includeClassProfile = false,
+      
+      // Section Absences & Retards
+      includeUnjustifiedAbsences = false,
+      includeJustifiedAbsences = false,
+      includeLateness = false,
+      includeDetentions = false,
+      
+      // Section Sanctions Disciplinaires
+      includeConductWarning = false,
+      includeConductBlame = false,
+      includeExclusions = false,
+      includePermanentExclusion = false,
+      
+      // Section Moyennes & Totaux
+      includeTotalGeneral = false,
+      includeAppreciations = false,
+      includeGeneralAverage = false,
+      includeTrimesterAverage = false,
+      includeNumberOfAverages = false,
+      includeSuccessRate = false,
+      
+      // Section Coefficients & Codes
+      includeCoef = false,
+      includeCTBA = false,
+      includeMinMax = false,
+      includeCBA = false,
+      includeCA = false,
+      includeCMA = false,
+      includeCOTE = false,
+      includeCNA = false,
+      
+      // Section Appréciations & Signatures
+      includeWorkAppreciation = false,
+      includeParentVisa = false,
+      includeTeacherVisa = false,
+      includeHeadmasterVisa = false,
+      
+      // Section Conseil de Classe
+      includeClassCouncilDecisions = false,
+      includeClassCouncilMentions = false,
+      includeOrientationRecommendations = false,
+      includeCouncilDate = false,
+      
+      // Manual data entry
+      manualData = {}
     } = req.body;
 
     console.log('[COMPREHENSIVE_GENERATION] 🎯 Starting generation:', { 
@@ -641,7 +692,7 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
           continue;
         }
 
-        // Generate PDF
+        // Generate PDF with comprehensive options
         const options: BulletinOptions = {
           includeComments,
           includeRankings,
@@ -649,7 +700,48 @@ router.post('/generate-comprehensive', requireAuth, requireDirectorAuth, async (
           includePerformanceLevels,
           language: 'fr',
           format: 'A4',
-          orientation: 'portrait'
+          orientation: 'portrait',
+          
+          // Section flags for Class Council integration
+          includeClassCouncilDecisions,
+          includeClassCouncilMentions,
+          includeOrientationRecommendations,
+          includeCouncilDate,
+          
+          // All comprehensive section flags
+          includeFirstTrimester,
+          includeDiscipline,
+          includeStudentWork,
+          includeClassProfile,
+          includeUnjustifiedAbsences,
+          includeJustifiedAbsences,
+          includeLateness,
+          includeDetentions,
+          includeConductWarning,
+          includeConductBlame,
+          includeExclusions,
+          includePermanentExclusion,
+          includeTotalGeneral,
+          includeAppreciations,
+          includeGeneralAverage,
+          includeTrimesterAverage,
+          includeNumberOfAverages,
+          includeSuccessRate,
+          includeCoef,
+          includeCTBA,
+          includeMinMax,
+          includeCBA,
+          includeCA,
+          includeCMA,
+          includeCOTE,
+          includeCNA,
+          includeWorkAppreciation,
+          includeParentVisa,
+          includeTeacherVisa,
+          includeHeadmasterVisa,
+          
+          // Manual data for custom entries
+          manualData
         };
 
         const pdfBuffer = await ComprehensiveBulletinGenerator.generateProfessionalBulletin(

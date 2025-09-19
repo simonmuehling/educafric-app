@@ -226,6 +226,12 @@ interface BulletinGenerationRequest {
   includeParentVisa: boolean;
   includeTeacherVisa: boolean;
   includeHeadmasterVisa: boolean;
+  
+  // Section Conseil de Classe
+  includeClassCouncilDecisions: boolean;
+  includeClassCouncilMentions: boolean;
+  includeOrientationRecommendations: boolean;
+  includeCouncilDate: boolean;
 }
 
 interface GenerationProgress {
@@ -266,6 +272,13 @@ const manualDataValidationSchema = z.object({
   teacherVisaDate: z.string().optional(),
   headmasterVisaName: z.string().optional(),
   headmasterVisaDate: z.string().optional(),
+  
+  // Conseil de Classe
+  classCouncilDecisions: z.string().max(1000, "Maximum 1000 characters").optional(),
+  classCouncilMentions: z.enum(["Félicitations", "Encouragements", "Satisfaisant", "Mise en garde", "Blâme", ""]).optional(),
+  orientationRecommendations: z.string().max(1000, "Maximum 1000 characters").optional(),
+  councilDate: z.string().optional(),
+  councilParticipants: z.string().max(500, "Maximum 500 characters").optional(),
   
   // Subject Coefficients (dynamic fields will be added based on subjects)
   subjectCoefficients: z.record(z.object({
@@ -358,6 +371,12 @@ export default function ComprehensiveBulletinGenerator() {
   const [includeParentVisa, setIncludeParentVisa] = useState(false);
   const [includeTeacherVisa, setIncludeTeacherVisa] = useState(false);
   const [includeHeadmasterVisa, setIncludeHeadmasterVisa] = useState(false);
+  
+  // Section Conseil de Classe
+  const [includeClassCouncilDecisions, setIncludeClassCouncilDecisions] = useState(false);
+  const [includeClassCouncilMentions, setIncludeClassCouncilMentions] = useState(false);
+  const [includeOrientationRecommendations, setIncludeOrientationRecommendations] = useState(false);
+  const [includeCouncilDate, setIncludeCouncilDate] = useState(false);
   
   // Dialog states
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
@@ -482,6 +501,7 @@ export default function ComprehensiveBulletinGenerator() {
     totals: false,
     subjectCoefficients: false,
     appreciations: false,
+    classCouncil: false,
     signatures: false
   });
   
@@ -503,7 +523,7 @@ export default function ComprehensiveBulletinGenerator() {
       academicYear: academicYear || '2024-2025',
       term: selectedTerm || 'Premier Trimestre',
       studentId: selectedStudentForSanctions || 0,
-      classId: selectedClass?.id || 0,
+      classId: selectedClass ? parseInt(selectedClass) : 0,
       schoolId: user?.schoolId || 0,
       issueBy: user?.id || 0
     }
@@ -552,7 +572,12 @@ export default function ComprehensiveBulletinGenerator() {
       teacherVisaName: '',
       teacherVisaDate: new Date().toISOString().split('T')[0],
       headmasterVisaName: '',
-      headmasterVisaDate: new Date().toISOString().split('T')[0]
+      headmasterVisaDate: new Date().toISOString().split('T')[0],
+      classCouncilDecisions: '',
+      classCouncilMentions: '',
+      orientationRecommendations: '',
+      councilDate: new Date().toISOString().split('T')[0],
+      councilParticipants: ''
     }
   });
 
@@ -693,6 +718,37 @@ export default function ComprehensiveBulletinGenerator() {
       includeParentVisa: 'Visa du parent / Tuteur',
       includeTeacherVisa: 'Nom et visa du professeur principal',
       includeHeadmasterVisa: 'Le Chef d\'établissement',
+      
+      // Section Conseil de Classe
+      sectionClassCouncil: 'Conseil de Classe',
+      includeClassCouncilDecisions: 'Décisions du conseil',
+      includeClassCouncilMentions: 'Mentions du conseil',
+      includeOrientationRecommendations: 'Recommandations d\'orientation',
+      includeCouncilDate: 'Date du conseil',
+      classCouncilDecisions: 'Décisions du conseil de classe',
+      classCouncilMentions: 'Mentions du conseil de classe',
+      orientationRecommendations: 'Recommandations d\'orientation',
+      councilDate: 'Date du conseil de classe',
+      councilParticipants: 'Participants du conseil',
+      classCouncilMentions: 'Mentions',
+      orientationRecommendations: 'Recommandations d\'orientation',
+      councilDate: 'Date du conseil',
+      councilParticipants: 'Participants au conseil',
+      selectMention: 'Sélectionner une mention',
+      mentionFelicitations: 'Félicitations',
+      mentionEncouragements: 'Encouragements',
+      mentionSatisfaisant: 'Satisfaisant',
+      mentionMiseEnGarde: 'Mise en garde',
+      mentionBlame: 'Blâme',
+      classCouncilDecisionsPlaceholder: 'Saisissez les décisions prises par le conseil de classe...',
+      orientationRecommendationsPlaceholder: 'Saisissez les recommandations d\'orientation...',
+      councilParticipantsPlaceholder: 'Noms des participants au conseil (optionnel)...',
+      classCouncilSection: 'Conseil de Classe',
+      classCouncilDecisionsField: 'Décisions du conseil de classe',
+      classCouncilMentionsField: 'Mentions',
+      orientationRecommendationsField: 'Recommandations d\'orientation',
+      councilDateField: 'Date du conseil',
+      councilParticipantsField: 'Participants au conseil',
       
       // Actions
       previewBulletin: 'Aperçu du bulletin',
@@ -922,6 +978,48 @@ export default function ComprehensiveBulletinGenerator() {
       includeParentVisa: 'Parent/Guardian visa',
       includeTeacherVisa: 'Main teacher name and visa',
       includeHeadmasterVisa: 'The School Head',
+      
+      // Section Conseil de Classe
+      sectionClassCouncil: 'Class Council',
+      includeClassCouncilDecisions: 'Council decisions',
+      includeClassCouncilMentions: 'Mentions',
+      includeOrientationRecommendations: 'Orientation recommendations',
+      includeCouncilDate: 'Council date',
+      classCouncilDecisions: 'Class council decisions',
+      classCouncilMentions: 'Mentions',
+      orientationRecommendations: 'Orientation recommendations',
+      councilDate: 'Council date',
+      councilParticipants: 'Council participants',
+      selectMention: 'Select a mention',
+      mentionFelicitations: 'Congratulations',
+      mentionEncouragements: 'Encouragements',
+      mentionSatisfaisant: 'Satisfactory',
+      mentionMiseEnGarde: 'Warning',
+      mentionBlame: 'Blame',
+      classCouncilDecisionsPlaceholder: 'Enter the decisions made by the class council...',
+      orientationRecommendationsPlaceholder: 'Enter orientation recommendations...',
+      councilParticipantsPlaceholder: 'Names of council participants (optional)...',
+      classCouncilSection: 'Class Council',
+      classCouncilDecisionsField: 'Class council decisions',
+      classCouncilMentionsField: 'Mentions',
+      orientationRecommendationsField: 'Orientation recommendations',
+      councilDateField: 'Council date',
+      councilParticipantsField: 'Council participants',
+      
+      // Section Conseil de Classe - English
+      sectionClassCouncil: 'Class Council',
+      includeClassCouncilDecisions: 'Council decisions',
+      includeClassCouncilMentions: 'Council mentions',
+      includeOrientationRecommendations: 'Orientation recommendations',
+      includeCouncilDate: 'Council date',
+      classCouncilDecisions: 'Class council decisions',
+      classCouncilMentions: 'Class council mentions',
+      orientationRecommendations: 'Orientation recommendations',
+      councilDate: 'Class council date',
+      councilParticipants: 'Council participants',
+      classCouncilDecisionsPlaceholder: 'Enter the decisions made by the class council...',
+      orientationRecommendationsPlaceholder: 'Enter orientation recommendations...',
+      councilParticipantsPlaceholder: 'Names of council participants (optional)...',
       
       // Actions
       previewBulletin: 'Preview bulletin',
@@ -1354,7 +1452,7 @@ export default function ComprehensiveBulletinGenerator() {
       // Prepare comprehensive data with proper mapping
       const comprehensiveData = {
         studentId: selectedStudentForEntry,
-        classId: parseInt(selectedClass),
+        classId: selectedClass && selectedClass.trim() !== '' ? parseInt(selectedClass) : 0,
         term: selectedTerm,
         academicYear,
         
@@ -1758,7 +1856,7 @@ export default function ComprehensiveBulletinGenerator() {
 
     const request: BulletinGenerationRequest = {
       studentIds: selectedStudents,
-      classId: parseInt(selectedClass),
+      classId: selectedClass && selectedClass.trim() !== '' ? parseInt(selectedClass) : 0,
       term: selectedTerm,
       academicYear,
       includeComments,
@@ -1961,13 +2059,15 @@ export default function ComprehensiveBulletinGenerator() {
   
   // Memoize bulletin generation request object
   const generationRequest = useMemo(() => {
-    if (!selectedClass || !selectedTerm || !academicYear || selectedStudents.length === 0) {
+    // Guard against empty string, NaN, or missing classId
+    const classId = selectedClass && selectedClass.trim() !== '' ? parseInt(selectedClass) : null;
+    if (!classId || isNaN(classId) || !selectedTerm || !academicYear || selectedStudents.length === 0) {
       return null;
     }
     
     return {
       studentIds: selectedStudents,
-      classId: parseInt(selectedClass),
+      classId: classId,
       term: selectedTerm,
       academicYear,
       format: generationFormat,
@@ -3092,7 +3192,143 @@ export default function ComprehensiveBulletinGenerator() {
                       </Card>
                     </Collapsible>
                     
-                    {/* Section 6: Signatures */}
+                    {/* Section 6: Conseil de Classe */}
+                    <Collapsible open={openSections.classCouncil} onOpenChange={() => toggleSection('classCouncil')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Users className="h-5 w-5 text-indigo-600" />
+                                {t.classCouncilSection}
+                              </div>
+                              {openSections.classCouncil ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 space-y-6">
+                            {/* Décisions du conseil */}
+                            <FormField
+                              control={manualDataForm.control}
+                              name="classCouncilDecisions"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.classCouncilDecisionsField}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      {...field} 
+                                      placeholder={t.classCouncilDecisionsPlaceholder}
+                                      className="min-h-[120px]"
+                                      maxLength={1000}
+                                      data-testid="class-council-decisions"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value?.length || 0}/1000 caractères
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            {/* Mentions */}
+                            <FormField
+                              control={manualDataForm.control}
+                              name="classCouncilMentions"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.classCouncilMentionsField}</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="class-council-mentions">
+                                        <SelectValue placeholder={t.selectMention} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="">{t.selectMention}</SelectItem>
+                                      <SelectItem value="Félicitations">{t.mentionFelicitations}</SelectItem>
+                                      <SelectItem value="Encouragements">{t.mentionEncouragements}</SelectItem>
+                                      <SelectItem value="Satisfaisant">{t.mentionSatisfaisant}</SelectItem>
+                                      <SelectItem value="Mise en garde">{t.mentionMiseEnGarde}</SelectItem>
+                                      <SelectItem value="Blâme">{t.mentionBlame}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            {/* Recommandations d'orientation */}
+                            <FormField
+                              control={manualDataForm.control}
+                              name="orientationRecommendations"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.orientationRecommendationsField}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      {...field} 
+                                      placeholder={t.orientationRecommendationsPlaceholder}
+                                      className="min-h-[100px]"
+                                      maxLength={1000}
+                                      data-testid="orientation-recommendations"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value?.length || 0}/1000 caractères
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Date du conseil */}
+                              <FormField
+                                control={manualDataForm.control}
+                                name="councilDate"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.councilDateField}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} type="date" data-testid="council-date" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            {/* Participants au conseil (optionnel) */}
+                            <FormField
+                              control={manualDataForm.control}
+                              name="councilParticipants"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.councilParticipantsField}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      {...field} 
+                                      placeholder={t.councilParticipantsPlaceholder}
+                                      className="min-h-[80px]"
+                                      maxLength={500}
+                                      data-testid="council-participants"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value?.length || 0}/500 caractères
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 7: Signatures */}
                     <Collapsible open={openSections.signatures} onOpenChange={() => toggleSection('signatures')}>
                       <Card>
                         <CollapsibleTrigger asChild>
@@ -3596,7 +3832,7 @@ export default function ComprehensiveBulletinGenerator() {
                               const sanctionData = {
                                 ...data,
                                 studentId: selectedStudentForSanctions!,
-                                classId: selectedClass?.id || 0,
+                                classId: selectedClass ? parseInt(selectedClass) : 0,
                                 schoolId: user?.schoolId || 0,
                                 issueBy: user?.id || 0,
                                 academicYear: academicYear || '2024-2025',
@@ -4452,6 +4688,52 @@ export default function ComprehensiveBulletinGenerator() {
                         data-testid="include-headmaster-visa"
                       />
                       <Label htmlFor="include-headmaster-visa">{t.includeHeadmasterVisa}</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section Conseil de Classe */}
+                <div className="bg-indigo-50 dark:bg-indigo-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {t.sectionClassCouncil}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-class-council-decisions"
+                        checked={includeClassCouncilDecisions}
+                        onCheckedChange={(checked) => setIncludeClassCouncilDecisions(checked === true)}
+                        data-testid="include-class-council-decisions"
+                      />
+                      <Label htmlFor="include-class-council-decisions">{t.includeClassCouncilDecisions}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-class-council-mentions"
+                        checked={includeClassCouncilMentions}
+                        onCheckedChange={(checked) => setIncludeClassCouncilMentions(checked === true)}
+                        data-testid="include-class-council-mentions"
+                      />
+                      <Label htmlFor="include-class-council-mentions">{t.includeClassCouncilMentions}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-orientation-recommendations"
+                        checked={includeOrientationRecommendations}
+                        onCheckedChange={(checked) => setIncludeOrientationRecommendations(checked === true)}
+                        data-testid="include-orientation-recommendations"
+                      />
+                      <Label htmlFor="include-orientation-recommendations">{t.includeOrientationRecommendations}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-council-date"
+                        checked={includeCouncilDate}
+                        onCheckedChange={(checked) => setIncludeCouncilDate(checked === true)}
+                        data-testid="include-council-date"
+                      />
+                      <Label htmlFor="include-council-date">{t.includeCouncilDate}</Label>
                     </div>
                   </div>
                 </div>

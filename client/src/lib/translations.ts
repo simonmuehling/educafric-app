@@ -365,6 +365,43 @@ export const translations = {
       languageDescription: "Cette langue sera utilisée pour tous vos SMS, emails et notifications push",
       frequency: "Fréquence",
       channels: "Canaux de notification"
+    },
+
+    // 📝 Bulletin Generation - Class Council Section
+    bulletin: {
+      classCouncil: {
+        sectionTitle: "Conseil de Classe",
+        decisions: "Décisions du conseil",
+        mentionsLabel: "Mentions du conseil",
+        orientationRecommendations: "Recommandations d'orientation",
+        councilDate: "Date du conseil",
+        councilParticipants: "Participants du conseil",
+        decisionsField: "Décisions du conseil de classe",
+        mentionsField: "Mentions du conseil de classe",
+        orientationField: "Recommandations d'orientation",
+        councilDateField: "Date du conseil de classe",
+        participantsField: "Participants du conseil",
+        selectMention: "Sélectionner une mention",
+        mentions: {
+          felicitations: "Félicitations",
+          encouragements: "Encouragements",
+          satisfaisant: "Satisfaisant",
+          miseEnGarde: "Mise en garde",
+          blame: "Blâme",
+          none: "Aucune mention"
+        },
+        placeholders: {
+          decisions: "Entrez les décisions du conseil de classe...",
+          orientations: "Entrez les recommandations d'orientation...",
+          participants: "Liste des participants au conseil..."
+        },
+        includes: {
+          decisions: "Inclure les décisions du conseil",
+          mentions: "Inclure les mentions du conseil",
+          orientations: "Inclure les recommandations d'orientation",
+          date: "Inclure la date du conseil"
+        }
+      }
     }
   },
 
@@ -825,6 +862,43 @@ export const translations = {
       languageDescription: "This language will be used for all your SMS, email and push notifications",
       frequency: "Frequency",
       channels: "Notification Channels"
+    },
+
+    // 📝 Bulletin Generation - Class Council Section
+    bulletin: {
+      classCouncil: {
+        sectionTitle: "Class Council",
+        decisions: "Council decisions",
+        mentionsLabel: "Council mentions",
+        orientationRecommendations: "Orientation recommendations",
+        councilDate: "Council date",
+        councilParticipants: "Council participants",
+        decisionsField: "Class council decisions",
+        mentionsField: "Class council mentions",
+        orientationField: "Orientation recommendations",
+        councilDateField: "Class council date",
+        participantsField: "Council participants",
+        selectMention: "Select a mention",
+        mentions: {
+          felicitations: "Congratulations",
+          encouragements: "Encouragement",
+          satisfaisant: "Satisfactory",
+          miseEnGarde: "Warning",
+          blame: "Blame",
+          none: "No mention"
+        },
+        placeholders: {
+          decisions: "Enter class council decisions...",
+          orientations: "Enter orientation recommendations...",
+          participants: "List of council participants..."
+        },
+        includes: {
+          decisions: "Include council decisions",
+          mentions: "Include council mentions",
+          orientations: "Include orientation recommendations",
+          date: "Include council date"
+        }
+      }
     }
   }
 };

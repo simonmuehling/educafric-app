@@ -58,6 +58,14 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   teacherVisa: jsonb("teacher_visa"), // {name: string, date: string, signatureUrl?: string}  
   headmasterVisa: jsonb("headmaster_visa"), // {name: string, date: string, signatureUrl?: string}
   
+  // ===== SECTION CONSEIL DE CLASSE =====
+  // Class Council decisions and recommendations
+  classCouncilDecisions: text("class_council_decisions"), // Décisions du conseil de classe
+  classCouncilMentions: text("class_council_mentions"), // Mentions: "Félicitations", "Encouragements", "Satisfaisant", "Mise en garde", "Blâme"
+  orientationRecommendations: text("orientation_recommendations"), // Recommandations d'orientation
+  councilDate: text("council_date"), // Date du conseil de classe
+  councilParticipants: text("council_participants"), // Participants du conseil de classe
+  
   // ===== METADATA & TRACKING =====
   // Data entry and modification tracking
   enteredBy: integer("entered_by"), // User ID who entered the data
@@ -235,7 +243,15 @@ export const bulletinComprehensiveValidationSchema = z.object({
     CNA: z.string().max(50).optional(),
     minGrade: z.string().optional(),
     maxGrade: z.string().optional()
-  })).optional()
+  })).optional(),
+  
+  // ===== CONSEIL DE CLASSE VALIDATION =====
+  // Class Council fields validation
+  classCouncilDecisions: z.string().max(1000, "Maximum 1000 characters").optional(),
+  classCouncilMentions: z.enum(["Félicitations", "Encouragements", "Satisfaisant", "Mise en garde", "Blâme", ""]).optional(),
+  orientationRecommendations: z.string().max(1000, "Maximum 1000 characters").optional(),
+  councilDate: z.string().optional(),
+  councilParticipants: z.string().max(500, "Maximum 500 characters").optional()
 });
 
 // Exporter les schemas de tracking pour utilisation externe
