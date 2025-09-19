@@ -94,7 +94,7 @@ const FunctionalTeacherGrades: React.FC = () => {
         return data.grades;
       } else {
         console.error('[TEACHER_GRADES] Invalid response format:', data);
-        throw new Error('Invalid response format from server');
+        throw new Error(t.apiError);
       }
     },
     enabled: !!user,
@@ -133,15 +133,15 @@ const FunctionalTeacherGrades: React.FC = () => {
       setIsAddGradeOpen(false);
       setGradeForm({ studentId: '', subjectId: '', classId: '', grade: '', maxGrade: '20', total: '20', assignment: '', type: 'homework', comment: '' });
       toast({
-        title: language === 'fr' ? 'Note ajoutée' : 'Grade Added',
-        description: data.message || (language === 'fr' ? 'La note a été ajoutée avec succès.' : 'Grade added successfully.')
+        title: t.gradeAdded,
+        description: data.message || t.gradeAddedDesc
       });
     },
     onError: (error: Error) => {
       console.error('[TEACHER_GRADES] Grade submission error:', error);
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: error.message || (language === 'fr' ? 'Impossible d\'ajouter la note.' : 'Failed to add grade.'),
+        title: t.error,
+        description: error.message || t.failedToAdd,
         variant: 'destructive'
       });
     }
@@ -168,6 +168,24 @@ const FunctionalTeacherGrades: React.FC = () => {
       subtitle: 'Suivez et gérez les évaluations de tous vos élèves',
       loading: 'Chargement des notes...',
       noData: 'Aucune note enregistrée',
+      loadingError: 'Erreur de chargement',
+      failedToLoad: 'Impossible de charger les notes',
+      apiError: 'Format de réponse invalide du serveur',
+      retry: 'Réessayer',
+      gradeAdded: 'Note ajoutée',
+      gradeAddedDesc: 'La note a été ajoutée avec succès.',
+      error: 'Erreur',
+      failedToAdd: 'Impossible d\'ajouter la note.',
+      exportInProgress: 'Export en cours',
+      exportDesc: 'Les notes sont en cours d\'export...',
+      performanceOverview: 'Répartition des Performances',
+      addGradeSection: 'Ajouter une Note',
+      totalGrades: 'Total: {{count}} notes',
+      recentGrades: 'Notes Récentes',
+      emptyStateDesc: 'Commencez par ajouter des notes pour vos élèves.',
+      adding: 'Ajout...',
+      addGradeAction: 'Ajouter la Note',
+      cancel: 'Annuler',
       stats: {
         totalGrades: 'Notes Totales',
         avgGrade: 'Moyenne Générale',
@@ -179,6 +197,12 @@ const FunctionalTeacherGrades: React.FC = () => {
         good: 'Bien (14-15)',
         average: 'Moyen (12-13)',
         poor: 'Faible (<12)'
+      },
+      badges: {
+        excellent: 'Excellent',
+        good: 'Bien',
+        average: 'Moyen',
+        poor: 'Faible'
       },
       actions: {
         addGrade: 'Ajouter Note',
@@ -201,6 +225,41 @@ const FunctionalTeacherGrades: React.FC = () => {
         date: 'Date',
         comments: 'Commentaires',
         actions: 'Actions'
+      },
+      form: {
+        classLabel: 'Classe *',
+        studentLabel: 'Élève *',
+        subjectLabel: 'Matière *',
+        gradeLabel: 'Note',
+        totalLabel: 'Total',
+        evaluationLabel: 'Évaluation',
+        typeLabel: 'Type',
+        commentLabel: 'Commentaire',
+        selectClass: 'Sélectionner une classe',
+        selectStudent: 'Sélectionner un élève',
+        selectSubject: 'Sélectionner une matière',
+        gradePlaceholder: 'Ex: 15.5',
+        totalPlaceholder: 'Ex: 20',
+        evaluationPlaceholder: 'Ex: Devoir de mathématiques',
+        commentPlaceholder: 'Commentaire sur la note...',
+        typeExam: 'Examen',
+        typeHomework: 'Devoir maison',
+        typeQuiz: 'Interrogation',
+        typeParticipation: 'Participation'
+      },
+      subjects: {
+        math: 'Mathématiques',
+        french: 'Français',
+        science: 'Sciences'
+      },
+      classes: {
+        class6A: '6ème A',
+        class6B: '6ème B',
+        class5A: '5ème A'
+      },
+      units: {
+        students: 'élèves',
+        coeff: 'Coeff:'
       }
     },
     en: {
@@ -208,6 +267,24 @@ const FunctionalTeacherGrades: React.FC = () => {
       subtitle: 'Track and manage all your students evaluations',
       loading: 'Loading grades...',
       noData: 'No grades recorded',
+      loadingError: 'Loading Error',
+      failedToLoad: 'Failed to load grades',
+      apiError: 'Invalid response format from server',
+      retry: 'Retry',
+      gradeAdded: 'Grade Added',
+      gradeAddedDesc: 'Grade added successfully.',
+      error: 'Error',
+      failedToAdd: 'Failed to add grade.',
+      exportInProgress: 'Export in progress',
+      exportDesc: 'Grades are being exported...',
+      performanceOverview: 'Performance Overview',
+      addGradeSection: 'Add Grade',
+      totalGrades: 'Total: {{count}} grades',
+      recentGrades: 'Recent Grades',
+      emptyStateDesc: 'Start by adding grades for your students.',
+      adding: 'Adding...',
+      addGradeAction: 'Add Grade',
+      cancel: 'Cancel',
       stats: {
         totalGrades: 'Total Grades',
         avgGrade: 'Average Grade',
@@ -219,6 +296,12 @@ const FunctionalTeacherGrades: React.FC = () => {
         good: 'Good (14-15)',
         average: 'Average (12-13)',
         poor: 'Poor (<12)'
+      },
+      badges: {
+        excellent: 'Excellent',
+        good: 'Good',
+        average: 'Average',
+        poor: 'Poor'
       },
       actions: {
         addGrade: 'Add Grade',
@@ -241,6 +324,41 @@ const FunctionalTeacherGrades: React.FC = () => {
         date: 'Date',
         comments: 'Comments',
         actions: 'Actions'
+      },
+      form: {
+        classLabel: 'Class *',
+        studentLabel: 'Student *',
+        subjectLabel: 'Subject *',
+        gradeLabel: 'Grade',
+        totalLabel: 'Total',
+        evaluationLabel: 'Evaluation',
+        typeLabel: 'Type',
+        commentLabel: 'Comment',
+        selectClass: 'Select a class',
+        selectStudent: 'Select a student',
+        selectSubject: 'Select a subject',
+        gradePlaceholder: 'Ex: 15.5',
+        totalPlaceholder: 'Ex: 20',
+        evaluationPlaceholder: 'Ex: Math homework',
+        commentPlaceholder: 'Comment about the grade...',
+        typeExam: 'Exam',
+        typeHomework: 'Homework',
+        typeQuiz: 'Quiz',
+        typeParticipation: 'Participation'
+      },
+      subjects: {
+        math: 'Mathematics',
+        french: 'French',
+        science: 'Science'
+      },
+      classes: {
+        class6A: '6th Grade A',
+        class6B: '6th Grade B',
+        class5A: '5th Grade A'
+      },
+      units: {
+        students: 'students',
+        coeff: 'Coeff:'
       }
     }
   };
@@ -258,11 +376,10 @@ const FunctionalTeacherGrades: React.FC = () => {
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <h3 className="mt-2 text-sm font-medium text-gray-900">
-                {language === 'fr' ? 'Erreur de chargement' : 'Loading Error'}
+                {t.loadingError}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                {error instanceof Error ? error.message : 
-                  (language === 'fr' ? 'Impossible de charger les notes' : 'Failed to load grades')}
+                {error instanceof Error ? error.message : t.failedToLoad}
               </p>
               <div className="mt-4">
                 <Button
@@ -270,7 +387,7 @@ const FunctionalTeacherGrades: React.FC = () => {
                   variant="outline"
                   className="mr-2"
                 >
-                  {language === 'fr' ? 'Réessayer' : 'Retry'}
+                  {t.retry}
                 </Button>
               </div>
             </div>
@@ -337,10 +454,10 @@ const FunctionalTeacherGrades: React.FC = () => {
   };
 
   const getPerformanceBadge = (percentage: number) => {
-    if (percentage >= 80) return <Badge className="bg-green-100 text-green-800">Excellent</Badge>;
-    if (percentage >= 70) return <Badge className="bg-blue-100 text-blue-800">Bien</Badge>;
-    if (percentage >= 60) return <Badge className="bg-orange-100 text-orange-800">Moyen</Badge>;
-    return <Badge className="bg-red-100 text-red-800">Faible</Badge>;
+    if (percentage >= 80) return <Badge className="bg-green-100 text-green-800">{t.badges.excellent}</Badge>;
+    if (percentage >= 70) return <Badge className="bg-blue-100 text-blue-800">{t.badges.good}</Badge>;
+    if (percentage >= 60) return <Badge className="bg-orange-100 text-orange-800">{t.badges.average}</Badge>;
+    return <Badge className="bg-red-100 text-red-800">{t.badges.poor}</Badge>;
   };
 
   return (
@@ -356,8 +473,8 @@ const FunctionalTeacherGrades: React.FC = () => {
             variant="outline"
             onClick={() => {
               toast({
-                title: language === 'fr' ? 'Export en cours' : 'Export in progress',
-                description: language === 'fr' ? 'Les notes sont en cours d\'export...' : 'Grades are being exported...'
+                title: t.exportInProgress,
+                description: t.exportDesc
               });
             }}
             className="w-full sm:w-auto"
@@ -437,7 +554,7 @@ const FunctionalTeacherGrades: React.FC = () => {
       {/* Performance Overview */}
       <Card>
         <CardHeader>
-          <h3 className="text-lg font-semibold">Répartition des Performances</h3>
+          <h3 className="text-lg font-semibold">{t.performanceOverview}</h3>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -475,7 +592,7 @@ const FunctionalTeacherGrades: React.FC = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
               <Plus className="w-5 h-5 mr-2 inline" />
-              Ajouter une Note
+              {t.addGradeSection}
             </h3>
           </div>
         </CardHeader>
@@ -487,10 +604,10 @@ const FunctionalTeacherGrades: React.FC = () => {
               onClick={() => setIsAddGradeOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Ajouter une Note
+              {t.addGradeSection}
             </Button>
             <div className="text-sm text-gray-500 text-center sm:text-left">
-              Total: {grades.length} notes
+              {t.totalGrades.replace('{{count}}', grades.length.toString())}
             </div>
           </div>
         </CardContent>
@@ -500,10 +617,10 @@ const FunctionalTeacherGrades: React.FC = () => {
       {isAddGradeOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-4 sm:p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-4">Ajouter une Note</h3>
+            <h3 className="text-lg font-semibold mb-4">{t.addGradeSection}</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Classe *</label>
+                <label className="text-sm font-medium">{t.form.classLabel}</label>
                 <select
                   value={gradeForm.classId}
                   onChange={(e) => {
@@ -512,23 +629,23 @@ const FunctionalTeacherGrades: React.FC = () => {
                   className="w-full border rounded-md px-3 py-2"
                   disabled={classesLoading}
                 >
-                  <option value="">Sélectionner une classe</option>
+                  <option value="">{t.form.selectClass}</option>
                   {classes.map((cls: any) => (
                     <option key={cls.id} value={cls.id.toString()}>
-                      {cls.name} ({cls.studentCount || 0} élèves)
+                      {cls.name} ({cls.studentCount || 0} {t.units.students})
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Élève *</label>
+                <label className="text-sm font-medium">{t.form.studentLabel}</label>
                 <select
                   value={gradeForm.studentId}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, studentId: e.target.value }))}
                   className="w-full border rounded-md px-3 py-2"
                   disabled={studentsLoading || !gradeForm.classId}
                 >
-                  <option value="">Sélectionner un élève</option>
+                  <option value="">{t.form.selectStudent}</option>
                   {students.map((student: any) => (
                     <option key={student.id} value={student.id.toString()}>
                       {student.fullName} ({student.matricule})
@@ -537,73 +654,73 @@ const FunctionalTeacherGrades: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Matière *</label>
+                <label className="text-sm font-medium">{t.form.subjectLabel}</label>
                 <select
                   value={gradeForm.subjectId}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, subjectId: e.target.value }))}
                   className="w-full border rounded-md px-3 py-2"
                   disabled={subjectsLoading}
                 >
-                  <option value="">Sélectionner une matière</option>
+                  <option value="">{t.form.selectSubject}</option>
                   {subjects.map((subject: any) => (
                     <option key={subject.id} value={subject.id.toString()}>
-                      {subject.name || subject.nameFr} (Coeff: {subject.coefficient || 1})
+                      {subject.name || subject.nameFr} ({t.units.coeff} {subject.coefficient || 1})
                     </option>
                   ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-sm font-medium">Note</label>
+                  <label className="text-sm font-medium">{t.form.gradeLabel}</label>
                   <input
                     type="number"
                     step="0.5"
                     value={gradeForm.grade}
                     onChange={(e) => setGradeForm(prev => ({ ...prev, grade: e.target.value }))}
-                    placeholder="Ex: 15.5"
+                    placeholder={t.form.gradePlaceholder}
                     className="w-full border rounded-md px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Total</label>
+                  <label className="text-sm font-medium">{t.form.totalLabel}</label>
                   <input
                     type="number"
                     value={gradeForm.maxGrade}
                     onChange={(e) => setGradeForm(prev => ({ ...prev, maxGrade: e.target.value }))}
-                    placeholder="Ex: 20"
+                    placeholder={t.form.totalPlaceholder}
                     className="w-full border rounded-md px-3 py-2"
                   />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Évaluation</label>
+                <label className="text-sm font-medium">{t.form.evaluationLabel}</label>
                 <input
                   type="text"
                   value={gradeForm.assignment}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, assignment: e.target.value }))}
-                  placeholder="Ex: Devoir de mathématiques"
+                  placeholder={t.form.evaluationPlaceholder}
                   className="w-full border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Type</label>
+                <label className="text-sm font-medium">{t.form.typeLabel}</label>
                 <select
                   value={gradeForm.type}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, type: e.target.value }))}
                   className="w-full border rounded-md px-3 py-2"
                 >
-                  <option value="exam">Examen</option>
-                  <option value="homework">Devoir maison</option>
-                  <option value="quiz">Interrogation</option>
-                  <option value="participation">Participation</option>
+                  <option value="exam">{t.form.typeExam}</option>
+                  <option value="homework">{t.form.typeHomework}</option>
+                  <option value="quiz">{t.form.typeQuiz}</option>
+                  <option value="participation">{t.form.typeParticipation}</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Commentaire</label>
+                <label className="text-sm font-medium">{t.form.commentLabel}</label>
                 <textarea
                   value={gradeForm.comment}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, comment: e.target.value }))}
-                  placeholder="Commentaire sur la note..."
+                  placeholder={t.form.commentPlaceholder}
                   rows={3}
                   className="w-full border rounded-md px-3 py-2"
                 />
@@ -614,14 +731,14 @@ const FunctionalTeacherGrades: React.FC = () => {
                   disabled={addGradeMutation.isPending || !gradeForm.studentId || !gradeForm.subjectId || !gradeForm.classId || !gradeForm.grade || !gradeForm.assignment}
                   className="w-full sm:flex-1 bg-green-600 hover:bg-green-700"
                 >
-                  {addGradeMutation.isPending ? 'Ajout...' : 'Ajouter la Note'}
+                  {addGradeMutation.isPending ? t.adding : t.addGradeAction}
                 </Button>
                 <Button 
                   onClick={() => setIsAddGradeOpen(false)}
                   variant="outline"
                   className="w-full sm:w-auto"
                 >
-                  Annuler
+                  {t.cancel}
                 </Button>
               </div>
             </div>
@@ -633,7 +750,7 @@ const FunctionalTeacherGrades: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Notes Récentes</h3>
+            <h3 className="text-lg font-semibold">{t.recentGrades}</h3>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex items-center space-x-2">
                 <Filter className="w-4 h-4 text-gray-500" />
@@ -643,9 +760,9 @@ const FunctionalTeacherGrades: React.FC = () => {
                   className="border rounded-md px-3 py-1 text-sm w-full sm:w-auto"
                 >
                   <option value="all">{t?.filters?.all}</option>
-                  <option value="math">Mathématiques</option>
-                  <option value="french">Français</option>
-                  <option value="science">Sciences</option>
+                  <option value="math">{t.subjects.math}</option>
+                  <option value="french">{t.subjects.french}</option>
+                  <option value="science">{t.subjects.science}</option>
                 </select>
               </div>
               <div className="flex items-center space-x-2">
@@ -656,9 +773,9 @@ const FunctionalTeacherGrades: React.FC = () => {
                   className="border rounded-md px-3 py-1 text-sm w-full sm:w-auto"
                 >
                   <option value="all">{t?.filters?.all}</option>
-                  <option value="6A">6ème A</option>
-                  <option value="6B">6ème B</option>
-                  <option value="5A">5ème A</option>
+                  <option value="6A">{t.classes.class6A}</option>
+                  <option value="6B">{t.classes.class6B}</option>
+                  <option value="5A">{t.classes.class5A}</option>
                 </select>
               </div>
             </div>
@@ -676,7 +793,7 @@ const FunctionalTeacherGrades: React.FC = () => {
             <div className="text-center py-8">
               <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noData}</h3>
-              <p className="text-gray-600">Commencez par ajouter des notes pour vos élèves.</p>
+              <p className="text-gray-600">{t.emptyStateDesc}</p>
             </div>
           ) : (
             <div className="space-y-3">
