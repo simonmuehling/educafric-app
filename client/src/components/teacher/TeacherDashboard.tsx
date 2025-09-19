@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   Users, Calendar, CheckSquare, BarChart3, BookOpen, FileText,
-  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid
+  MessageSquare, User, Clock, Settings, HelpCircle, MapPin, Bell, Star, Mail, UserX, Grid, PenTool
 } from 'lucide-react';
 import UnifiedIconDashboard from '@/components/shared/UnifiedIconDashboard';
 // Optimized: Removed static imports - using dynamic loading only for better bundle size
@@ -258,9 +258,16 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
     {
       id: 'content',
       label: t.content,
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <PenTool className="w-6 h-6" />,
       color: 'bg-yellow-500',
       component: createDynamicModule('teacher-content')
+    },
+    {
+      id: 'library',
+      label: language === 'fr' ? 'Bibliothèque' : 'Library',
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'bg-emerald-500',
+      component: createDynamicModule('teacher-library')
     },
     {
       id: 'reports',

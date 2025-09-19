@@ -234,9 +234,16 @@ const StudentDashboard = ({ activeModule }: StudentDashboardProps) => {
     {
       id: 'bulletins',
       label: t.notes,
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <FileText className="w-6 h-6" />,
       color: 'bg-orange-500',
       component: createDynamicModule('bulletins')
+    },
+    {
+      id: 'library',
+      label: language === 'fr' ? 'Bibliothèque' : 'Library',
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'bg-emerald-500',
+      component: createDynamicModule('student-library')
     },
     {
       id: 'attendance',

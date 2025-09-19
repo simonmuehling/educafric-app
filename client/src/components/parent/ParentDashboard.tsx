@@ -233,7 +233,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     {
       id: 'grades',
       label: t.results,
-      icon: <BookOpen className="w-6 h-6" />,
+      icon: <BarChart3 className="w-6 h-6" />,
       color: 'bg-green-500',
       component: (
         <PremiumFeatureGate
@@ -249,6 +249,13 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
           {createDynamicModule('parent-grades')}
         </PremiumFeatureGate>
       )
+    },
+    {
+      id: 'library',
+      label: language === 'fr' ? 'Bibliothèque' : 'Library',
+      icon: <BookOpen className="w-6 h-6" />,
+      color: 'bg-purple-600',
+      component: createDynamicModule('parent-library')
     },
     {
       id: 'attendance',

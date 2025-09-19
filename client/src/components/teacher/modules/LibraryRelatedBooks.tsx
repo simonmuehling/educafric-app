@@ -171,21 +171,21 @@ const LibraryRelatedBooks: React.FC = () => {
     queryKey: ['/api/teacher/library/recommendations'],
     enabled: !!user && activeTab === 'recommendations'
   });
-  const recommendations = recommendationsData?.recommendations || [];
+  const recommendations = (recommendationsData as any)?.recommendations || [];
 
   // Fetch teacher classes for recommendations
   const { data: classesData } = useQuery({
     queryKey: ['/api/teacher/classes'],
     enabled: !!user
   });
-  const classes = classesData?.classes || [];
+  const classes = (classesData as any)?.classes || [];
 
   // Fetch teacher students for recommendations
   const { data: studentsData } = useQuery({
     queryKey: ['/api/teacher/students'],
     enabled: !!user
   });
-  const students = studentsData?.students || [];
+  const students = (studentsData as any)?.students || [];
 
   // Create book mutation
   const createBookMutation = useMutation({

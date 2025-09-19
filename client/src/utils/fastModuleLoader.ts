@@ -235,6 +235,27 @@ class FastModuleLoader {
       'settings': () => import('@/components/shared/UnifiedProfileManager'), // Legacy compatibility for generic settings only
       
       // =============================================
+      // 📚 LIBRARY MODULES - MISSING CRITICAL MAPPINGS  
+      // =============================================
+      // Library modules for Teacher, Student, and Parent dashboards
+      'library': () => import('@/components/teacher/modules/LibraryRelatedBooks'), // Teacher library by default
+      'teacher-library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      'student-library': () => import('@/components/student/modules/LibraryRelatedBooks'),
+      'parent-library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
+      
+      // Role-namespaced library modules
+      'teacher.library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      'student.library': () => import('@/components/student/modules/LibraryRelatedBooks'),
+      'parent.library': () => import('@/components/parent/modules/LibraryRelatedBooks'),
+      
+      // Alternative library module names
+      'LibraryRelatedBooks': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      'library-books': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      'book-library': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      'reading': () => import('@/components/student/modules/LibraryRelatedBooks'),
+      'books': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
+      
+      // =============================================
       // 🔧 GENERIC MODULE FALLBACKS - MISSING MAPPINGS FIX
       // =============================================
       // These were causing "Module X not found in mapping" errors
