@@ -33,6 +33,36 @@ import {
 } from '@shared/schemas/sanctionsSchema';
 import { useStudentSanctions, useCreateSanction, useDeleteSanction, useRevokeSanction } from '@/hooks/useSanctions';
 import { 
+  bulletinTemplateInsertSchema, 
+  templateElementSchema,
+  type BulletinTemplate,
+  type InsertBulletinTemplate,
+  type TemplateElement,
+  type ElementProperties,
+  ELEMENT_CATEGORIES,
+  ELEMENT_TYPES 
+} from '@shared/schemas/bulletinTemplateSchema';
+
+// Drag and Drop imports
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  DragOverEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { 
   FileText, 
   Download, 
   User, 
@@ -70,21 +100,31 @@ import {
   BookMarked,
   PieChart,
   LineChart,
-  Activity,
+  Plus,
+  Image,
+  Layout,
+  Palette,
+  Square,
+  RotateCcw,
+  Timer,
+  XCircle,
+  AlertCircle,
   Target,
+  Type,
+  PenTool,
+  Activity,
   Zap,
   Mail,
   MessageSquare,
   Phone,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
   History,
   CalendarDays,
-  Timer,
   Users2,
   TrendingDown,
-  Plus
+  Move,
+  Copy,
+  Grid
 } from 'lucide-react';
 
 // Lazy loaded components
@@ -508,6 +548,81 @@ export default function ComprehensiveBulletinGenerator() {
   // Subject coefficients data state
   const [subjectCoefficients, setSubjectCoefficients] = useState<Record<string, any>>({});
   
+  // ===== TEMPLATE CREATOR STATES =====
+  // Current template being edited
+  const [currentTemplate, setCurrentTemplate] = useState<BulletinTemplate | null>(null);
+  const [templateElements, setTemplateElements] = useState<TemplateElement[]>([]);
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [draggedElement, setDraggedElement] = useState<string | null>(null);
+  
+  // Advanced template editor states
+  const [snapToGrid, setSnapToGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
+  const [gridSize, setGridSize] = useState(10);
+  const [showGuides, setShowGuides] = useState(true);
+  const [alignmentGuides, setAlignmentGuides] = useState<Array<{x?: number, y?: number}>>([]);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const [activeElementTool, setActiveElementTool] = useState<'select' | 'move' | 'delete' | 'duplicate'>('select');
+  
+  // Template history for undo/redo
+  const [templateHistory, setTemplateHistory] = useState<TemplateElement[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  
+  // Preview and export states
+  const [templatePreviewDialog, setTemplatePreviewDialog] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Layers panel state
+  const [showLayersPanel, setShowLayersPanel] = useState(true);
+  const [layersExpanded, setLayersExpanded] = useState(true);
+  
+  // Template form state
+  const templateForm = useForm<InsertBulletinTemplate>({
+    resolver: zodResolver(bulletinTemplateInsertSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      templateType: 'custom',
+      pageFormat: 'A4',
+      orientation: 'portrait',
+      margins: { top: 20, right: 20, bottom: 20, left: 20 },
+      elements: [],
+      globalStyles: {
+        fontFamily: 'Arial',
+        fontSize: 12,
+        lineHeight: 1.4,
+        colors: {
+          primary: '#1f2937',
+          secondary: '#6b7280',
+          text: '#374151',
+          background: '#ffffff'
+        }
+      },
+      schoolId: 0, // Will be set dynamically
+      createdBy: 0, // Will be set dynamically
+      isActive: true,
+      isDefault: false,
+      version: 1
+    }
+  });
+  
+  // Drag and drop sensors with enhanced configuration
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+  
+  // Canvas dimensions and zoom
+  const [canvasZoom, setCanvasZoom] = useState(1);
+  const [canvasSize, setCanvasSize] = useState({ width: 794, height: 1123 }); // A4 size in pixels at 72 DPI
+  
   // ===== SANCTIONS DISCIPLINAIRES STATES =====
   const [selectedStudentForSanctions, setSelectedStudentForSanctions] = useState<number | null>(null);
   
@@ -591,6 +706,7 @@ export default function ComprehensiveBulletinGenerator() {
       studentManagement: 'Gestion des Élèves',
       generationOptions: 'Options de Génération',
       bulkOperations: 'Opérations Groupées',
+      templateCreator: 'Créateur de Modèles',
       
       // Subject Coefficients Section
       subjectCoefficientsSection: 'Coefficients par Matière',
@@ -725,6 +841,68 @@ export default function ComprehensiveBulletinGenerator() {
       includeClassCouncilMentions: 'Mentions du conseil',
       includeOrientationRecommendations: 'Recommandations d\'orientation',
       includeCouncilDate: 'Date du conseil',
+      
+      // Template Creator
+      templateCreatorTitle: 'Créateur de Modèles de Bulletins',
+      templateCreatorDescription: 'Concevez des modèles personnalisés de bulletins avec un éditeur drag-and-drop intuitif.',
+      createNewTemplate: 'Créer un nouveau modèle',
+      editTemplate: 'Modifier le modèle',
+      saveTemplate: 'Enregistrer le modèle',
+      templateName: 'Nom du modèle',
+      templateDescription: 'Description du modèle',
+      elementPalette: 'Palette d\'éléments',
+      designCanvas: 'Zone de conception',
+      elementProperties: 'Propriétés de l\'élément',
+      
+      // Element Categories
+      studentInfoCategory: 'Informations Élève',
+      gradesCategory: 'Notes et Moyennes',
+      attendanceCategory: 'Absences et Retards',
+      sanctionsCategory: 'Sanctions Disciplinaires',
+      classCouncilCategory: 'Conseil de Classe',
+      signaturesCategory: 'Signatures',
+      textCategory: 'Zones de Texte',
+      imagesCategory: 'Images et Logos',
+      layoutCategory: 'Éléments de Mise en Page',
+      
+      // Element Types
+      studentName: 'Nom de l\'élève',
+      studentMatricule: 'Matricule',
+      studentClass: 'Classe',
+      studentPhoto: 'Photo de l\'élève',
+      subjectGrades: 'Notes par matière',
+      generalAverage: 'Moyenne générale',
+      classRank: 'Rang de classe',
+      unjustifiedAbsences: 'Absences non justifiées',
+      justifiedAbsences: 'Absences justifiées',
+      latenessCount: 'Nombre de retards',
+      conductWarning: 'Avertissement de conduite',
+      parentSignature: 'Signature parent',
+      teacherSignature: 'Signature professeur',
+      headmasterSignature: 'Signature directeur',
+      freeText: 'Texte libre',
+      schoolLogo: 'Logo de l\'école',
+      
+      // Properties Panel
+      position: 'Position',
+      size: 'Taille',
+      style: 'Style',
+      content: 'Contenu',
+      font: 'Police',
+      color: 'Couleur',
+      backgroundColor: 'Couleur de fond',
+      border: 'Bordure',
+      alignment: 'Alignement',
+      left: 'Gauche',
+      center: 'Centre',
+      right: 'Droite',
+      width: 'Largeur',
+      height: 'Hauteur',
+      fontSize: 'Taille de police',
+      fontFamily: 'Police',
+      fontWeight: 'Poids de police',
+      padding: 'Espacement interne',
+      margin: 'Espacement externe',
       classCouncilDecisions: 'Décisions du conseil de classe',
       classCouncilMentions: 'Mentions du conseil de classe',
       orientationRecommendations: 'Recommandations d\'orientation',
@@ -899,6 +1077,7 @@ export default function ComprehensiveBulletinGenerator() {
       studentManagement: 'Student Management',
       generationOptions: 'Generation Options',
       bulkOperations: 'Bulk Operations',
+      templateCreator: 'Template Creator',
       
       // Subject Coefficients Section
       subjectCoefficientsSection: 'Subject Coefficients',
@@ -1207,11 +1386,656 @@ export default function ComprehensiveBulletinGenerator() {
       // Counts
       pendingCount: 'pending bulletins',
       approvedCount: 'approved bulletins',
-      sentCount: 'sent bulletins'
+      sentCount: 'sent bulletins',
+      
+      // Template Creator
+      templateCreatorTitle: 'Bulletin Template Creator',
+      templateCreatorDescription: 'Design custom bulletin templates with an intuitive drag-and-drop editor.',
+      createNewTemplate: 'Create new template',
+      editTemplate: 'Edit template',
+      saveTemplate: 'Save template',
+      templateName: 'Template name',
+      templateDescription: 'Template description',
+      elementPalette: 'Element Palette',
+      designCanvas: 'Design Canvas',
+      elementProperties: 'Element Properties',
+      
+      // Element Categories
+      studentInfoCategory: 'Student Information',
+      gradesCategory: 'Grades and Averages',
+      attendanceCategory: 'Attendance and Tardiness',
+      sanctionsCategory: 'Disciplinary Sanctions',
+      classCouncilCategory: 'Class Council',
+      signaturesCategory: 'Signatures',
+      textCategory: 'Text Zones',
+      imagesCategory: 'Images and Logos',
+      layoutCategory: 'Layout Elements',
+      
+      // Element Types
+      studentName: 'Student name',
+      studentMatricule: 'Student ID',
+      studentClass: 'Class',
+      studentPhoto: 'Student photo',
+      subjectGrades: 'Subject grades',
+      generalAverage: 'General average',
+      classRank: 'Class rank',
+      unjustifiedAbsences: 'Unjustified absences',
+      justifiedAbsences: 'Justified absences',
+      latenessCount: 'Tardiness count',
+      conductWarning: 'Conduct warning',
+      parentSignature: 'Parent signature',
+      teacherSignature: 'Teacher signature',
+      headmasterSignature: 'Principal signature',
+      freeText: 'Free text',
+      schoolLogo: 'School logo',
+      
+      // Properties Panel
+      position: 'Position',
+      size: 'Size',
+      style: 'Style',
+      content: 'Content',
+      font: 'Font',
+      color: 'Color',
+      backgroundColor: 'Background color',
+      border: 'Border',
+      alignment: 'Alignment',
+      left: 'Left',
+      center: 'Center',
+      right: 'Right',
+      width: 'Width',
+      height: 'Height',
+      fontSize: 'Font size',
+      fontFamily: 'Font family',
+      fontWeight: 'Font weight',
+      padding: 'Padding',
+      margin: 'Margin'
     }
   };
 
   const t = text[language as keyof typeof text];
+  
+  // ===== TEMPLATE CREATOR HELPER FUNCTIONS =====
+  
+  // Generate unique ID for new elements
+  const generateElementId = () => `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Snap position to grid
+  const snapToGridPosition = (x: number, y: number) => {
+    if (!snapToGrid) return { x, y };
+    return {
+      x: Math.round(x / gridSize) * gridSize,
+      y: Math.round(y / gridSize) * gridSize
+    };
+  };
+  
+  // Calculate alignment guides
+  const calculateAlignmentGuides = (element: TemplateElement, allElements: TemplateElement[]) => {
+    if (!showGuides || allElements.length <= 1) return [];
+    
+    const guides: Array<{x?: number, y?: number}> = [];
+    const threshold = 5; // Pixels tolerance for guide detection
+    
+    allElements.forEach(otherElement => {
+      if (otherElement.id === element.id) return;
+      
+      // Vertical alignment guides
+      if (Math.abs(element.position.x - otherElement.position.x) < threshold) {
+        guides.push({ x: otherElement.position.x });
+      }
+      if (Math.abs((element.position.x + element.position.width/2) - (otherElement.position.x + otherElement.position.width/2)) < threshold) {
+        guides.push({ x: otherElement.position.x + otherElement.position.width/2 });
+      }
+      if (Math.abs((element.position.x + element.position.width) - (otherElement.position.x + otherElement.position.width)) < threshold) {
+        guides.push({ x: otherElement.position.x + otherElement.position.width });
+      }
+      
+      // Horizontal alignment guides  
+      if (Math.abs(element.position.y - otherElement.position.y) < threshold) {
+        guides.push({ y: otherElement.position.y });
+      }
+      if (Math.abs((element.position.y + element.position.height/2) - (otherElement.position.y + otherElement.position.height/2)) < threshold) {
+        guides.push({ y: otherElement.position.y + otherElement.position.height/2 });
+      }
+      if (Math.abs((element.position.y + element.position.height) - (otherElement.position.y + otherElement.position.height)) < threshold) {
+        guides.push({ y: otherElement.position.y + otherElement.position.height });
+      }
+    });
+    
+    return guides;
+  };
+  
+  // Add to history for undo/redo
+  const addToHistory = (elements: TemplateElement[]) => {
+    const newHistory = templateHistory.slice(0, historyIndex + 1);
+    newHistory.push([...elements]);
+    setTemplateHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    
+    // Limit history size
+    if (newHistory.length > 50) {
+      setTemplateHistory(newHistory.slice(-50));
+      setHistoryIndex(49);
+    }
+  };
+  
+  // Undo/Redo functions
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setTemplateElements([...templateHistory[historyIndex - 1]]);
+      
+      toast({
+        title: 'Action annulée',
+        description: 'La dernière action a été annulée'
+      });
+    }
+  };
+  
+  const handleRedo = () => {
+    if (historyIndex < templateHistory.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setTemplateElements([...templateHistory[historyIndex + 1]]);
+      
+      toast({
+        title: 'Action rétablie',
+        description: 'L\'action a été rétablie'
+      });
+    }
+  };
+  
+  // Auto-save functionality
+  const autoSaveTemplate = useCallback(() => {
+    if (!autoSaveEnabled || templateElements.length === 0) return;
+    
+    const formData = templateForm.getValues();
+    if (!formData.name.trim()) return;
+    
+    try {
+      const templateData = {
+        ...formData,
+        elements: templateElements,
+        lastModified: new Date().toISOString()
+      };
+      
+      localStorage.setItem(
+        `template_autosave_${formData.name}`, 
+        JSON.stringify(templateData)
+      );
+      
+      setLastSaveTime(new Date());
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  }, [autoSaveEnabled, templateElements, templateForm]);
+  
+  // Auto-save effect
+  useEffect(() => {
+    if (autoSaveEnabled && templateElements.length > 0) {
+      const timer = setTimeout(autoSaveTemplate, 2000); // Auto-save after 2 seconds of inactivity
+      return () => clearTimeout(timer);
+    }
+  }, [templateElements, autoSaveTemplate]);
+  
+  // Duplicate element
+  const handleDuplicateElement = (elementId: string) => {
+    const element = templateElements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    const newElement: TemplateElement = {
+      ...element,
+      id: generateElementId(),
+      position: {
+        ...element.position,
+        x: element.position.x + 20,
+        y: element.position.y + 20
+      },
+      zIndex: Math.max(...templateElements.map(el => el.zIndex)) + 1
+    };
+    
+    const newElements = [...templateElements, newElement];
+    setTemplateElements(newElements);
+    addToHistory(newElements);
+    setSelectedElement(newElement.id);
+    
+    toast({
+      title: 'Élément dupliqué',
+      description: 'L\'élément a été dupliqué avec succès'
+    });
+  };
+  
+  // Render palette element
+  const renderPaletteElement = (type: string, label: string, IconComponent: any) => {
+    return (
+      <div
+        key={type}
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData('text/plain', type);
+          setDraggedElement(type);
+        }}
+        onDragEnd={() => setDraggedElement(null)}
+        className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded cursor-move hover:bg-gray-50 transition-colors"
+        data-testid={`palette-element-${type}`}
+      >
+        <IconComponent className="h-4 w-4 text-gray-600" />
+        <span className="text-sm truncate">{label}</span>
+      </div>
+    );
+  };
+  
+  // Get element display name
+  const getElementDisplayName = (type: string) => {
+    const elementMap: Record<string, string> = {
+      [ELEMENT_TYPES.STUDENT_NAME]: t.studentName,
+      [ELEMENT_TYPES.STUDENT_MATRICULE]: t.studentMatricule,
+      [ELEMENT_TYPES.STUDENT_CLASS]: t.studentClass,
+      [ELEMENT_TYPES.STUDENT_PHOTO]: t.studentPhoto,
+      [ELEMENT_TYPES.SUBJECT_GRADES]: t.subjectGrades,
+      [ELEMENT_TYPES.GENERAL_AVERAGE]: t.generalAverage,
+      [ELEMENT_TYPES.CLASS_RANK]: t.classRank,
+      [ELEMENT_TYPES.UNJUSTIFIED_ABSENCES]: t.unjustifiedAbsences,
+      [ELEMENT_TYPES.JUSTIFIED_ABSENCES]: t.justifiedAbsences,
+      [ELEMENT_TYPES.LATENESS_COUNT]: t.latenessCount,
+      [ELEMENT_TYPES.CONDUCT_WARNING]: t.conductWarning,
+      [ELEMENT_TYPES.PARENT_SIGNATURE]: t.parentSignature,
+      [ELEMENT_TYPES.TEACHER_SIGNATURE]: t.teacherSignature,
+      [ELEMENT_TYPES.HEADMASTER_SIGNATURE]: t.headmasterSignature,
+      [ELEMENT_TYPES.FREE_TEXT]: t.freeText,
+      [ELEMENT_TYPES.SCHOOL_LOGO]: t.schoolLogo,
+    };
+    return elementMap[type] || type;
+  };
+  
+  // SortableTemplateElement component
+  const SortableTemplateElement = ({ element, isSelected, onSelect, getElementDisplayName }: {
+    element: TemplateElement;
+    isSelected: boolean;
+    onSelect: () => void;
+    getElementDisplayName: (type: string) => string;
+  }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: element.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      left: element.position.x,
+      top: element.position.y,
+      width: element.position.width,
+      height: element.position.height,
+      fontSize: element.properties.fontSize,
+      fontFamily: element.properties.fontFamily,
+      color: element.properties.color,
+      backgroundColor: element.properties.backgroundColor,
+      zIndex: element.zIndex,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        className={`absolute border-2 cursor-move transition-all ${
+          isSelected 
+            ? 'border-blue-500 shadow-lg' 
+            : 'border-gray-300 hover:border-gray-400'
+        }`}
+        onClick={onSelect}
+        data-testid={`canvas-element-${element.id}`}
+      >
+        <div className="p-2 h-full flex items-center">
+          {element.properties.label || getElementDisplayName(element.type)}
+        </div>
+        {/* Selection handles */}
+        {isSelected && (
+          <>
+            <div className="absolute -top-1 -left-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></div>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  // Enhanced drag and drop event handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setDraggedElement(event.active.id as string);
+    
+    // Calculate alignment guides for the dragged element if it's already on canvas
+    const draggedEl = templateElements.find(el => el.id === event.active.id);
+    if (draggedEl) {
+      const guides = calculateAlignmentGuides(draggedEl, templateElements);
+      setAlignmentGuides(guides);
+    }
+  };
+  
+  const handleDragOver = (event: DragOverEvent) => {
+    // Real-time guide calculation during drag
+    if (event.over?.id === 'canvas-drop-zone') {
+      const draggedEl = templateElements.find(el => el.id === event.active.id);
+      if (draggedEl && event.delta) {
+        const updatedElement = {
+          ...draggedEl,
+          position: {
+            ...draggedEl.position,
+            x: draggedEl.position.x + event.delta.x,
+            y: draggedEl.position.y + event.delta.y
+          }
+        };
+        const guides = calculateAlignmentGuides(updatedElement, templateElements);
+        setAlignmentGuides(guides);
+      }
+    }
+  };
+  
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    setAlignmentGuides([]); // Clear guides
+    setDraggedElement(null);
+    
+    if (!over) {
+      return;
+    }
+    
+    // Handle element reordering within the same container
+    if (active.id !== over.id) {
+      const activeIndex = templateElements.findIndex(el => el.id === active.id);
+      const overIndex = templateElements.findIndex(el => el.id === over.id);
+      
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const newElements = arrayMove(templateElements, activeIndex, overIndex);
+        setTemplateElements(newElements);
+        addToHistory(newElements);
+        return;
+      }
+    }
+    
+    // Check if dropped on canvas
+    if (over.id === 'design-canvas' || over.id === 'canvas-drop-zone') {
+      const elementType = active.id as string;
+      
+      // Check if it's a new element from palette or existing element on canvas
+      const existingElement = templateElements.find(el => el.id === elementType);
+      
+      if (existingElement) {
+        // Moving existing element
+        const rect = document.getElementById('canvas-drop-zone')?.getBoundingClientRect();
+        if (rect) {
+          const rawX = (event.activatorEvent as any).clientX - rect.left;
+          const rawY = (event.activatorEvent as any).clientY - rect.top;
+          
+          // Apply snap to grid
+          const snappedPos = snapToGridPosition(rawX / canvasZoom, rawY / canvasZoom);
+          
+          const updatedElements = templateElements.map(el => 
+            el.id === elementType 
+              ? { ...el, position: { ...el.position, x: snappedPos.x, y: snappedPos.y } }
+              : el
+          );
+          
+          setTemplateElements(updatedElements);
+          addToHistory(updatedElements);
+        }
+      } else {
+        // Creating new element from palette
+        const rect = document.getElementById('canvas-drop-zone')?.getBoundingClientRect();
+        let dropX = 100, dropY = 100; // Default position
+        
+        if (rect && event.activatorEvent) {
+          const rawX = (event.activatorEvent as any).clientX - rect.left;
+          const rawY = (event.activatorEvent as any).clientY - rect.top;
+          const snappedPos = snapToGridPosition(rawX / canvasZoom, rawY / canvasZoom);
+          dropX = snappedPos.x;
+          dropY = snappedPos.y;
+        }
+        
+        const newElement: TemplateElement = {
+          id: generateElementId(),
+          type: elementType,
+          category: getCategoryForType(elementType),
+          position: {
+            x: dropX,
+            y: dropY,
+            width: 200,
+            height: 40
+          },
+          properties: {
+            fontSize: 12,
+            fontFamily: 'Arial',
+            color: '#374151',
+            backgroundColor: 'transparent',
+            label: getElementDisplayName(elementType),
+            visible: true
+          },
+          zIndex: templateElements.length + 1
+        };
+        
+        const newElements = [...templateElements, newElement];
+        setTemplateElements(newElements);
+        addToHistory(newElements);
+        setSelectedElement(newElement.id);
+        
+        toast({
+          title: 'Élément ajouté',
+          description: `${getElementDisplayName(elementType)} a été ajouté au modèle`
+        });
+      }
+    }
+    
+    setDraggedElement(null);
+  };
+  
+  // Get category for element type
+  const getCategoryForType = (type: string): string => {
+    if ([ELEMENT_TYPES.STUDENT_NAME, ELEMENT_TYPES.STUDENT_MATRICULE, ELEMENT_TYPES.STUDENT_CLASS, ELEMENT_TYPES.STUDENT_PHOTO].includes(type as any)) {
+      return ELEMENT_CATEGORIES.STUDENT_INFO;
+    }
+    if ([ELEMENT_TYPES.SUBJECT_GRADES, ELEMENT_TYPES.GENERAL_AVERAGE, ELEMENT_TYPES.CLASS_RANK].includes(type as any)) {
+      return ELEMENT_CATEGORIES.GRADES;
+    }
+    if ([ELEMENT_TYPES.UNJUSTIFIED_ABSENCES, ELEMENT_TYPES.JUSTIFIED_ABSENCES, ELEMENT_TYPES.LATENESS_COUNT].includes(type as any)) {
+      return ELEMENT_CATEGORIES.ATTENDANCE;
+    }
+    if ([ELEMENT_TYPES.CONDUCT_WARNING, ELEMENT_TYPES.CONDUCT_BLAME].includes(type as any)) {
+      return ELEMENT_CATEGORIES.SANCTIONS;
+    }
+    if ([ELEMENT_TYPES.PARENT_SIGNATURE, ELEMENT_TYPES.TEACHER_SIGNATURE, ELEMENT_TYPES.HEADMASTER_SIGNATURE].includes(type as any)) {
+      return ELEMENT_CATEGORIES.SIGNATURES;
+    }
+    if ([ELEMENT_TYPES.FREE_TEXT, ELEMENT_TYPES.TEXT_LABEL].includes(type as any)) {
+      return ELEMENT_CATEGORIES.TEXT;
+    }
+    if ([ELEMENT_TYPES.SCHOOL_LOGO].includes(type as any)) {
+      return ELEMENT_CATEGORIES.IMAGES;
+    }
+    return ELEMENT_CATEGORIES.LAYOUT;
+  };
+  
+  // Update element properties with history tracking
+  const handleUpdateElement = (elementId: string, updates: Partial<TemplateElement>) => {
+    const newElements = templateElements.map(el => 
+      el.id === elementId ? { ...el, ...updates } : el
+    );
+    setTemplateElements(newElements);
+    
+    // Add to history for significant changes
+    if (updates.position || updates.properties) {
+      addToHistory(newElements);
+    }
+  };
+  
+  // Resize handle functionality
+  const handleResizeStart = (elementId: string, handle: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setIsResizing(true);
+    setResizeHandle(handle);
+    setSelectedElement(elementId);
+  };
+  
+  const handleResizeEnd = () => {
+    setIsResizing(false);
+    setResizeHandle(null);
+  };
+  
+  // Element selection and manipulation
+  const handleElementClick = (elementId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setSelectedElement(elementId);
+    
+    // Double-click to edit text content
+    if (event.detail === 2) {
+      const element = templateElements.find(el => el.id === elementId);
+      if (element && [ELEMENT_TYPES.FREE_TEXT, ELEMENT_TYPES.TEXT_LABEL].includes(element.type as any)) {
+        // Enable inline editing
+        const newLabel = prompt('Nouveau texte:', element.properties.label || '');
+        if (newLabel !== null) {
+          handleUpdateElement(elementId, {
+            properties: { ...element.properties, label: newLabel }
+          });
+        }
+      }
+    }
+  };
+  
+  const handleCanvasClick = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget) {
+      setSelectedElement(null);
+    }
+  };
+  
+  // Layer management
+  const moveElementToFront = (elementId: string) => {
+    const maxZ = Math.max(...templateElements.map(el => el.zIndex));
+    handleUpdateElement(elementId, { zIndex: maxZ + 1 });
+  };
+  
+  const moveElementToBack = (elementId: string) => {
+    const minZ = Math.min(...templateElements.map(el => el.zIndex));
+    handleUpdateElement(elementId, { zIndex: minZ - 1 });
+  };
+  
+  const moveElementUp = (elementId: string) => {
+    const element = templateElements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    const higherElements = templateElements.filter(el => el.zIndex > element.zIndex);
+    if (higherElements.length > 0) {
+      const nextZ = Math.min(...higherElements.map(el => el.zIndex));
+      const swapElement = templateElements.find(el => el.zIndex === nextZ);
+      
+      if (swapElement) {
+        const newElements = templateElements.map(el => {
+          if (el.id === elementId) return { ...el, zIndex: nextZ };
+          if (el.id === swapElement.id) return { ...el, zIndex: element.zIndex };
+          return el;
+        });
+        setTemplateElements(newElements);
+        addToHistory(newElements);
+      }
+    }
+  };
+  
+  const moveElementDown = (elementId: string) => {
+    const element = templateElements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    const lowerElements = templateElements.filter(el => el.zIndex < element.zIndex);
+    if (lowerElements.length > 0) {
+      const prevZ = Math.max(...lowerElements.map(el => el.zIndex));
+      const swapElement = templateElements.find(el => el.zIndex === prevZ);
+      
+      if (swapElement) {
+        const newElements = templateElements.map(el => {
+          if (el.id === elementId) return { ...el, zIndex: prevZ };
+          if (el.id === swapElement.id) return { ...el, zIndex: element.zIndex };
+          return el;
+        });
+        setTemplateElements(newElements);
+        addToHistory(newElements);
+      }
+    }
+  };
+  
+  // Template management functions
+  const handleNewTemplate = () => {
+    setCurrentTemplate(null);
+    setTemplateElements([]);
+    setSelectedElement(null);
+    templateForm.reset();
+    
+    toast({
+      title: 'Nouveau modèle',
+      description: 'Un nouveau modèle vide a été créé'
+    });
+  };
+  
+  const handleLoadTemplate = () => {
+    // This would open a dialog to load existing templates
+    toast({
+      title: 'Charger modèle',
+      description: 'Fonctionnalité de chargement à implémenter'
+    });
+  };
+  
+  const handlePreviewTemplate = () => {
+    if (templateElements.length === 0) {
+      toast({
+        title: 'Aperçu impossible',
+        description: 'Ajoutez des éléments au modèle pour voir l\'aperçu',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    toast({
+      title: 'Aperçu du modèle',
+      description: 'Fonctionnalité d\'aperçu à implémenter'
+    });
+  };
+  
+  const handleSaveTemplate = () => {
+    const formData = templateForm.getValues();
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: 'Nom requis',
+        description: 'Veuillez donner un nom au modèle',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (templateElements.length === 0) {
+      toast({
+        title: 'Modèle vide',
+        description: 'Ajoutez des éléments au modèle avant de sauvegarder',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Here you would save to database via API
+    console.log('Saving template:', {
+      ...formData,
+      elements: templateElements
+    });
+    
+    toast({
+      title: 'Modèle sauvegardé',
+      description: `Le modèle "${formData.name}" a été sauvegardé avec succès`
+    });
+  };
   
   // Manual data entry utility functions - OPTIMIZED WITH useCallback below
   
@@ -2388,6 +3212,11 @@ export default function ComprehensiveBulletinGenerator() {
               <FileDown className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{t.sentBulletins}</span>
               <span className="sm:hidden">Envoyés</span>
+            </TabsTrigger>
+            <TabsTrigger value="template-creator" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+              <Edit3 className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Créateur de Modèles</span>
+              <span className="sm:hidden">Modèles</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <BarChart3 className="h-4 w-4 flex-shrink-0" />
@@ -4018,108 +4847,619 @@ export default function ComprehensiveBulletinGenerator() {
                 )}
               </CardContent>
             </Card>
-                                        variant="destructive" 
-                                        size="sm"
-                                        onClick={() => {
-                                          setSanctionsData(prev => ({
-                                            ...prev,
-                                            conductBlames: prev.conductBlames.filter((_, i) => i !== index)
-                                          }));
-                                          toast({ title: t.sanctionDeleted });
-                                        }}
-                                        data-testid={`delete-blame-${index}`}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                        {t.deleteSanction}
-                                      </Button>
-                                    </div>
+          </TabsContent>
+        )}
+
+        {/* ===== TEMPLATE CREATOR TAB ===== */}
+        {mountedTabs.has('template-creator') && (
+          <TabsContent value="template-creator" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit3 className="h-5 w-5" />
+                  {t.templateCreatorTitle}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {t.templateCreatorDescription}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Template Form */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="template-name">{t.templateName}</Label>
+                    <Input
+                      id="template-name"
+                      placeholder="Mon modèle de bulletin personnalisé"
+                      data-testid="template-name-input"
+                      {...templateForm.register('name')}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="template-description">{t.templateDescription}</Label>
+                    <Input
+                      id="template-description"
+                      placeholder="Description du modèle..."
+                      data-testid="template-description-input"
+                      {...templateForm.register('description')}
+                    />
+                  </div>
+                </div>
+
+                {/* Drag and Drop Context */}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[600px]">
+                    {/* Element Palette */}
+                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        {t.elementPalette}
+                      </h3>
+                      <div className="space-y-4 overflow-y-auto max-h-[500px]">
+                        {/* Student Information Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <User className="h-3 w-3" />
+                            {t.studentInfoCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_NAME, t.studentName, User)}
+                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_MATRICULE, t.studentMatricule, FileSignature)}
+                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_CLASS, t.studentClass, GraduationCap)}
+                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_PHOTO, t.studentPhoto, Image)}
+                          </div>
+                        </div>
+
+                        {/* Grades Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <BookOpen className="h-3 w-3" />
+                            {t.gradesCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.SUBJECT_GRADES, t.subjectGrades, BarChart3)}
+                            {renderPaletteElement(ELEMENT_TYPES.GENERAL_AVERAGE, t.generalAverage, TrendingUp)}
+                            {renderPaletteElement(ELEMENT_TYPES.CLASS_RANK, t.classRank, Star)}
+                            {renderPaletteElement(ELEMENT_TYPES.PERFORMANCE_LEVEL, 'Niveau de performance', Target)}
+                          </div>
+                        </div>
+
+                        {/* Attendance Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Clock className="h-3 w-3" />
+                            {t.attendanceCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.UNJUSTIFIED_ABSENCES, t.unjustifiedAbsences, XCircle)}
+                            {renderPaletteElement(ELEMENT_TYPES.JUSTIFIED_ABSENCES, t.justifiedAbsences, CheckCircle)}
+                            {renderPaletteElement(ELEMENT_TYPES.LATENESS_COUNT, t.latenessCount, Timer)}
+                            {renderPaletteElement(ELEMENT_TYPES.DETENTION_HOURS, 'Consignes', AlertTriangle)}
+                          </div>
+                        </div>
+
+                        {/* Sanctions Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <AlertTriangle className="h-3 w-3" />
+                            {t.sanctionsCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.CONDUCT_WARNING, t.conductWarning, AlertCircle)}
+                            {renderPaletteElement(ELEMENT_TYPES.CONDUCT_BLAME, 'Blâme de conduite', XCircle)}
+                            {renderPaletteElement(ELEMENT_TYPES.EXCLUSION_DAYS, 'Exclusions', X)}
+                          </div>
+                        </div>
+
+                        {/* Signatures Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <PenTool className="h-3 w-3" />
+                            {t.signaturesCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.PARENT_SIGNATURE, t.parentSignature, Users)}
+                            {renderPaletteElement(ELEMENT_TYPES.TEACHER_SIGNATURE, t.teacherSignature, UserCheck)}
+                            {renderPaletteElement(ELEMENT_TYPES.HEADMASTER_SIGNATURE, t.headmasterSignature, School)}
+                          </div>
+                        </div>
+
+                        {/* Text & Layout Category */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                            <Type className="h-3 w-3" />
+                            {t.textCategory}
+                          </h4>
+                          <div className="space-y-2">
+                            {renderPaletteElement(ELEMENT_TYPES.FREE_TEXT, t.freeText, Type)}
+                            {renderPaletteElement(ELEMENT_TYPES.TEXT_LABEL, 'Étiquette', Type)}
+                            {renderPaletteElement(ELEMENT_TYPES.SCHOOL_LOGO, t.schoolLogo, Image)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Design Canvas */}
+                    <div className="lg:col-span-2 border rounded-lg relative bg-white" id="design-canvas">
+                      <div className="absolute top-2 left-2 right-2 flex justify-between items-center z-10">
+                        <h3 className="font-semibold flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
+                          <Layout className="h-4 w-4" />
+                          {t.designCanvas}
+                        </h3>
+                        <div className="flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
+                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom - 0.1)}>
+                            <span className="text-xs">-</span>
+                          </Button>
+                          <span className="text-xs px-2">{Math.round(canvasZoom * 100)}%</span>
+                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
+                            <span className="text-xs">+</span>
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
+                            <RotateCcw className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className="w-full h-full overflow-auto p-8 pt-16"
+                        style={{ 
+                          backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
+                          backgroundSize: '20px 20px'
+                        }}
+                      >
+                        <div
+                          className="mx-auto bg-white shadow-lg border relative"
+                          style={{
+                            width: canvasSize.width * canvasZoom,
+                            height: canvasSize.height * canvasZoom,
+                            transform: `scale(${canvasZoom})`,
+                            transformOrigin: 'top left'
+                          }}
+                          data-testid="design-canvas-area"
+                        >
+                          {/* Canvas Drop Zone */}
+                          <div 
+                            id="canvas-drop-zone"
+                            className="w-full h-full relative"
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const elementType = e.dataTransfer.getData('text/plain');
+                              if (elementType) {
+                                // Calculate position relative to canvas
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = (e.clientX - rect.left) / canvasZoom;
+                                const y = (e.clientY - rect.top) / canvasZoom;
+                                
+                                const newElement: TemplateElement = {
+                                  id: generateElementId(),
+                                  type: elementType,
+                                  category: getCategoryForType(elementType),
+                                  position: { x, y, width: 200, height: 40 },
+                                  properties: {
+                                    fontSize: 12,
+                                    fontFamily: 'Arial',
+                                    color: '#374151',
+                                    backgroundColor: 'transparent',
+                                    label: getElementDisplayName(elementType),
+                                    visible: true
+                                  },
+                                  zIndex: templateElements.length + 1
+                                };
+                                
+                                setTemplateElements(prev => [...prev, newElement]);
+                                setSelectedElement(newElement.id);
+                              }
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                          >
+                            {/* Render template elements with SortableContext */}
+                            <SortableContext items={templateElements.map(el => el.id)} strategy={verticalListSortingStrategy}>
+                              {templateElements.map((element) => (
+                                <SortableTemplateElement
+                                  key={element.id}
+                                  element={element}
+                                  isSelected={selectedElement === element.id}
+                                  onSelect={() => setSelectedElement(element.id)}
+                                  getElementDisplayName={getElementDisplayName}
+                                />
+                              ))}
+                            </SortableContext>
+                            
+                            {/* Grid overlay */}
+                            {showGrid && (
+                              <div className="absolute inset-0 pointer-events-none opacity-20">
+                                <svg width="100%" height="100%">
+                                  <defs>
+                                    <pattern id="grid" width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
+                                      <path d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`} fill="none" stroke="#e5e5e5" strokeWidth="1"/>
+                                    </pattern>
+                                  </defs>
+                                  <rect width="100%" height="100%" fill="url(#grid)" />
+                                </svg>
+                              </div>
+                            )}
+                            
+                            {/* Alignment guides overlay */}
+                            {showGuides && alignmentGuides.length > 0 && (
+                              <div className="absolute inset-0 pointer-events-none">
+                                <svg width="100%" height="100%">
+                                  {alignmentGuides.map((guide, index) => (
+                                    <g key={index}>
+                                      {guide.x !== undefined && (
+                                        <line
+                                          x1={guide.x}
+                                          y1="0"
+                                          x2={guide.x}
+                                          y2="100%"
+                                          stroke="#3b82f6"
+                                          strokeWidth="1"
+                                          strokeDasharray="4,4"
+                                        />
+                                      )}
+                                      {guide.y !== undefined && (
+                                        <line
+                                          x1="0"
+                                          y1={guide.y}
+                                          x2="100%"
+                                          y2={guide.y}
+                                          stroke="#3b82f6"
+                                          strokeWidth="1"
+                                          strokeDasharray="4,4"
+                                        />
+                                      )}
+                                    </g>
                                   ))}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                          
-                          {/* Exclusions */}
-                          {sanctionsData.exclusions.length > 0 && (
-                            <Card className="border-red-200">
-                              <CardHeader className="pb-3">
-                                <h4 className="font-medium flex items-center gap-2 text-red-700">
-                                  <Timer className="h-4 w-4" />
-                                  {t.exclusionTemporary} ({sanctionsData.exclusions.length} {t.exclusionCount})
-                                </h4>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="space-y-2">
-                                  {sanctionsData.exclusions.map((exclusion, index) => (
-                                    <div key={exclusion.id} className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                                      <div>
-                                        <p className="font-medium">{exclusion.startDate} - {exclusion.endDate}</p>
-                                        <p className="text-sm font-semibold text-red-600">{exclusion.days} jours</p>
-                                        <p className="text-sm text-muted-foreground">{exclusion.reason}</p>
-                                      </div>
-                                      <Button 
-                                        variant="destructive" 
-                                        size="sm"
-                                        onClick={() => {
-                                          setSanctionsData(prev => ({
-                                            ...prev,
-                                            exclusions: prev.exclusions.filter((_, i) => i !== index)
-                                          }));
-                                          toast({ title: t.sanctionDeleted });
-                                        }}
-                                        data-testid={`delete-exclusion-${index}`}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                        {t.deleteSanction}
-                                      </Button>
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Properties Panel */}
+                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        {t.elementProperties}
+                      </h3>
+                      
+                      {selectedElement ? (
+                        <div className="space-y-4">
+                          {(() => {
+                            const element = templateElements.find(el => el.id === selectedElement);
+                            if (!element) return null;
+                            
+                            return (
+                              <>
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.position}</Label>
+                                  <div className="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">X</Label>
+                                      <Input
+                                        type="number"
+                                        value={Math.round(element.position.x)}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, x: parseInt(e.target.value) || 0 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
                                     </div>
-                                  ))}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                          
-                          {/* Permanent Exclusion */}
-                          {sanctionsData.permanentExclusion && (
-                            <Card className="border-red-600 bg-red-50">
-                              <CardHeader className="pb-3">
-                                <h4 className="font-medium flex items-center gap-2 text-red-800">
-                                  <X className="h-4 w-4" />
-                                  {t.exclusionPermanent} - {t.permanent}
-                                </h4>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="flex justify-between items-center p-3 bg-red-100 rounded-lg">
-                                  <div>
-                                    <p className="font-medium text-red-800">{sanctionsData.permanentExclusion.date}</p>
-                                    <p className="text-sm text-red-700">{sanctionsData.permanentExclusion.reason}</p>
+                                    <div>
+                                      <Label className="text-xs">Y</Label>
+                                      <Input
+                                        type="number"
+                                        value={Math.round(element.position.y)}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, y: parseInt(e.target.value) || 0 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
                                   </div>
-                                  <Button 
-                                    variant="destructive" 
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.size}</Label>
+                                  <div className="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">{t.width}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.position.width}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, width: parseInt(e.target.value) || 100 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">{t.height}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.position.height}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, height: parseInt(e.target.value) || 40 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.content}</Label>
+                                  <Input
+                                    value={element.properties.label || ''}
+                                    onChange={(e) => handleUpdateElement(element.id, {
+                                      properties: { ...element.properties, label: e.target.value }
+                                    })}
+                                    className="h-7 text-xs mt-1"
+                                    placeholder="Texte à afficher..."
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.style}</Label>
+                                  <div className="space-y-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">{t.fontSize}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.properties.fontSize || 12}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          properties: { ...element.properties, fontSize: parseInt(e.target.value) || 12 }
+                                        })}
+                                        className="h-7 text-xs"
+                                        min="8"
+                                        max="72"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">{t.color}</Label>
+                                      <Input
+                                        type="color"
+                                        value={element.properties.color || '#374151'}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          properties: { ...element.properties, color: e.target.value }
+                                        })}
+                                        className="h-7 w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="pt-2 border-t">
+                                  <Button
+                                    variant="destructive"
                                     size="sm"
                                     onClick={() => {
-                                      setSanctionsData(prev => ({
-                                        ...prev,
-                                        permanentExclusion: null
-                                      }));
-                                      toast({ title: t.sanctionDeleted });
+                                      setTemplateElements(prev => prev.filter(el => el.id !== element.id));
+                                      setSelectedElement(null);
+                                      
+                                      toast({
+                                        title: 'Élément supprimé',
+                                        description: 'L\'élément a été retiré du modèle'
+                                      });
                                     }}
-                                    data-testid="delete-permanent-exclusion"
+                                    className="w-full"
+                                    data-testid="delete-element-btn"
                                   >
-                                    <Trash2 className="h-4 w-4" />
-                                    {t.deleteSanction}
+                                    <Trash2 className="h-3 w-3 mr-2" />
+                                    Supprimer
                                   </Button>
                                 </div>
-                              </CardContent>
-                            </Card>
-                          )}
+                              </>
+                            );
+                          })()}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Square className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm">Sélectionnez un élément pour modifier ses propriétés</p>
                         </div>
                       )}
                     </div>
+                  </div>
 
+                  {/* Drag Overlay */}
+                  <DragOverlay>
+                    {draggedElement ? (
+                      <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
+                        {getElementDisplayName(draggedElement)}
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+
+                {/* Template Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleNewTemplate} data-testid="new-template-btn">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t.createNewTemplate}
+                    </Button>
+                    <Button variant="outline" onClick={handleLoadTemplate} data-testid="load-template-btn">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Charger modèle
+                    </Button>
+                    {/* Undo/Redo buttons */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleUndo} 
+                      disabled={historyIndex <= 0}
+                      data-testid="undo-btn"
+                      title="Annuler (Ctrl+Z)"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRedo} 
+                      disabled={historyIndex >= templateHistory.length - 1}
+                      data-testid="redo-btn"
+                      title="Refaire (Ctrl+Y)"
+                    >
+                      <RotateCcw className="h-4 w-4 scale-x-[-1]" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handlePreviewTemplate} data-testid="preview-template-btn">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Aperçu
+                    </Button>
+                    <Button onClick={handleSaveTemplate} data-testid="save-template-btn">
+                      <Save className="h-4 w-4 mr-2" />
+                      {t.saveTemplate}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* ===== REPORTS TAB ===== */}
+        {mountedTabs.has('reports') && (
+          <TabsContent value="reports" className="space-y-4">
+            <Suspense fallback={<LoadingSkeleton />}>
+              <ReportsTab 
+                reportFilters={reportFilters}
+                setReportFilters={setReportFilters}
+                reportData={reportData}
+                setReportData={setReportData}
+                loadingReportData={loadingReportData}
+                setLoadingReportData={setLoadingReportData}
+                reportError={reportError}
+                setReportError={setReportError}
+                timelineData={timelineData}
+                setTimelineData={setTimelineData}
+                loadingTimeline={loadingTimeline}
+                setLoadingTimeline={setLoadingTimeline}
+                exportingReport={exportingReport}
+                setExportingReport={setExportingReport}
+                selectedClass={selectedClass}
+                selectedTerm={selectedTerm}
+                academicYear={academicYear}
+              />
+            </Suspense>
+          </TabsContent>
+        )}
+
+        {/* ===== SANCTIONS DISCIPLINAIRES TAB ===== */}
+        {mountedTabs.has('sanctions-disciplinaires') && (
+          <TabsContent value="sanctions-disciplinaires" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  {t.sanctionsManagement}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Student Selection */}
+                <div className="space-y-3">
+                  <Label htmlFor="student-select-sanctions">{t.selectStudentForSanctions}</Label>
+                  <Select 
+                    value={selectedStudentForSanctions?.toString() || ''} 
+                    onValueChange={(value) => setSelectedStudentForSanctions(value ? parseInt(value) : null)}
+                  >
+                    <SelectTrigger id="student-select-sanctions" data-testid="student-select-sanctions">
+                      <SelectValue placeholder={t.selectStudentPlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredStudents.map((student) => (
+                        <SelectItem key={student.id} value={student.id.toString()}>
+                          {student.firstName} {student.lastName} - {student.matricule}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Student Sanctions Content */}
+                {selectedStudentForSanctions && (
+                  <div className="space-y-6">
+                    {/* Sanctions History */}
+                    {isLoadingSanctions ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span className="ml-2">Chargement des sanctions...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          <History className="h-5 w-5" />
+                          {t.sanctionHistory}
+                        </h3>
+                        
+                        {studentSanctions && studentSanctions.length > 0 ? (
+                          <div className="space-y-3">
+                            {studentSanctions.map((sanction) => (
+                              <Card key={sanction.id} className="border-orange-200">
+                                <CardContent className="pt-4">
+                                  <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline">{SANCTION_TYPES[sanction.sanctionType as keyof typeof SANCTION_TYPES]}</Badge>
+                                        <Badge variant={sanction.severity === 'high' ? 'destructive' : sanction.severity === 'medium' ? 'default' : 'secondary'}>
+                                          {SANCTION_SEVERITY[sanction.severity as keyof typeof SANCTION_SEVERITY]}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm font-medium">{sanction.description}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {new Date(sanction.date).toLocaleDateString('fr-FR')} - {sanction.term}
+                                      </p>
+                                    </div>
+                                    <div className="flex gap-1">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => revokeSanctionMutation.mutate(sanction.id)}
+                                        disabled={revokeSanctionMutation.isPending}
+                                      >
+                                        <RotateCcw className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => deleteSanctionMutation.mutate(sanction.id)}
+                                        disabled={deleteSanctionMutation.isPending}
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : (
+                          <Card className="bg-green-50 border-green-200">
+                            <CardContent className="pt-6">
+                              <div className="text-center text-green-700">
+                                <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+                                <p>Aucune sanction disciplinaire pour cet élève</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add New Sanction Form */}
                     <Separator />
-
-                    {/* Add New Sanction */}
+                    
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <Plus className="h-5 w-5" />
@@ -4128,158 +5468,136 @@ export default function ComprehensiveBulletinGenerator() {
                       
                       <Card className="border-2 border-dashed">
                         <CardContent className="pt-6">
-                          <div className="space-y-4">
-                            {/* Sanction Type */}
-                            <div className="space-y-2">
-                              <Label htmlFor="sanction-type">{t.sanctionType} *</Label>
-                              <Select 
-                                value={sanctionsForm.type} 
-                                onValueChange={(value) => setSanctionsForm(prev => ({ ...prev, type: value }))}
-                              >
-                                <SelectTrigger id="sanction-type" data-testid="sanction-type-select">
-                                  <SelectValue placeholder={t.pleaseSelectSanctionType} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="conductWarning">{t.conductWarning}</SelectItem>
-                                  <SelectItem value="conductBlame">{t.conductBlame}</SelectItem>
-                                  <SelectItem value="exclusionTemporary">{t.exclusionTemporary}</SelectItem>
-                                  <SelectItem value="exclusionPermanent">{t.exclusionPermanent}</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Sanction Date */}
-                            <div className="space-y-2">
-                              <Label htmlFor="sanction-date">{t.sanctionDate} *</Label>
-                              <Input
-                                id="sanction-date"
-                                type="date"
-                                value={sanctionsForm.date}
-                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, date: e.target.value }))}
-                                data-testid="sanction-date"
-                              />
-                            </div>
-
-                            {/* Exclusion Days (only for temporary exclusions) */}
-                            {sanctionsForm.type === 'exclusionTemporary' && (
-                              <div className="space-y-2">
-                                <Label htmlFor="exclusion-days">{t.exclusionDays} *</Label>
-                                <Input
-                                  id="exclusion-days"
-                                  type="number"
-                                  min="1"
-                                  max="30"
-                                  value={sanctionsForm.exclusionDays}
-                                  onChange={(e) => setSanctionsForm(prev => ({ ...prev, exclusionDays: parseInt(e.target.value) || 1 }))}
-                                  data-testid="exclusion-days"
-                                />
-                              </div>
-                            )}
-
-                            {/* Sanction Reason */}
-                            <div className="space-y-2">
-                              <Label htmlFor="sanction-reason">{t.sanctionReason} *</Label>
-                              <Textarea
-                                id="sanction-reason"
-                                placeholder={t.pleaseEnterReason}
-                                value={sanctionsForm.reason}
-                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, reason: e.target.value }))}
-                                className="min-h-[100px]"
-                                data-testid="sanction-reason"
-                              />
-                            </div>
-
-                            {/* Save Button */}
-                            <div className="flex justify-end pt-4">
-                              <Button 
-                                onClick={() => {
-                                  // Validation
-                                  if (!sanctionsForm.type) {
-                                    toast({ title: t.error, description: t.pleaseSelectSanctionType, variant: 'destructive' });
-                                    return;
-                                  }
-                                  if (!sanctionsForm.reason.trim()) {
-                                    toast({ title: t.error, description: t.pleaseEnterReason, variant: 'destructive' });
-                                    return;
-                                  }
-                                  
-                                  // Add sanction to the appropriate array
-                                  const newId = Date.now().toString();
-                                  const newCreatedAt = new Date().toISOString();
-                                  
-                                  setSanctionsData(prev => {
-                                    const updated = { ...prev };
-                                    
-                                    switch (sanctionsForm.type) {
-                                      case 'conductWarning':
-                                        updated.conductWarnings.push({
-                                          id: newId,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
-                                          createdAt: newCreatedAt
-                                        });
-                                        break;
-                                      case 'conductBlame':
-                                        updated.conductBlames.push({
-                                          id: newId,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
-                                          createdAt: newCreatedAt
-                                        });
-                                        break;
-                                      case 'exclusionTemporary':
-                                        const endDate = new Date(sanctionsForm.date);
-                                        endDate.setDate(endDate.getDate() + sanctionsForm.exclusionDays - 1);
-                                        updated.exclusions.push({
-                                          id: newId,
-                                          startDate: sanctionsForm.date,
-                                          endDate: endDate.toISOString().split('T')[0],
-                                          days: sanctionsForm.exclusionDays,
-                                          reason: sanctionsForm.reason,
-                                          createdAt: newCreatedAt
-                                        });
-                                        break;
-                                      case 'exclusionPermanent':
-                                        updated.permanentExclusion = {
-                                          isExcluded: true,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
-                                          createdAt: newCreatedAt
-                                        };
-                                        break;
-                                    }
-                                    
-                                    return updated;
-                                  });
-                                  
-                                  // Reset form
-                                  setSanctionsForm({
-                                    type: '',
-                                    date: new Date().toISOString().split('T')[0],
-                                    reason: '',
-                                    exclusionDays: 1
-                                  });
-                                  
+                          <Form {...sanctionsForm}>
+                            <form onSubmit={sanctionsForm.handleSubmit((data) => {
+                              createSanctionMutation.mutate(data, {
+                                onSuccess: () => {
                                   toast({ title: t.success, description: t.sanctionSaved });
-                                }}
-                                disabled={isSavingSanction}
-                                className="min-w-[150px]"
-                                data-testid="save-sanction"
-                              >
-                                {isSavingSanction ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    {t.loading}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    {t.saveSanction}
-                                  </>
+                                  sanctionsForm.reset();
+                                  refetchSanctions();
+                                },
+                                onError: (error: any) => {
+                                  toast({ 
+                                    title: t.error, 
+                                    description: error.message || 'Erreur lors de la sauvegarde', 
+                                    variant: 'destructive' 
+                                  });
+                                }
+                              });
+                            })} className="space-y-4">
+                              {/* Sanction Type */}
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="sanctionType"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.sanctionType} *</FormLabel>
+                                    <FormControl>
+                                      <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger data-testid="sanction-type-select">
+                                          <SelectValue placeholder={t.pleaseSelectSanctionType} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="conduct_warning">{t.conductWarning}</SelectItem>
+                                          <SelectItem value="conduct_blame">{t.conductBlame}</SelectItem>
+                                          <SelectItem value="temporary_exclusion">{t.exclusionTemporary}</SelectItem>
+                                          <SelectItem value="permanent_exclusion">{t.exclusionPermanent}</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
                                 )}
-                              </Button>
-                            </div>
-                          </div>
+                              />
+
+                              {/* Sanction Date */}
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="date"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.sanctionDate} *</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="date"
+                                        {...field}
+                                        data-testid="sanction-date"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              {/* Exclusion Days (only for temporary exclusions) */}
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="duration"
+                                render={({ field }) => {
+                                  const sanctionType = sanctionsForm.watch('sanctionType');
+                                  if (sanctionType !== 'temporary_exclusion') return null;
+                                  return (
+                                    <FormItem>
+                                      <FormLabel>{t.exclusionDays} *</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          min="1"
+                                          max="30"
+                                          {...field}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                                          data-testid="exclusion-days"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+
+                              {/* Sanction Reason */}
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="description"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.sanctionReason} *</FormLabel>
+                                    <FormControl>
+                                      <Textarea
+                                        placeholder={t.pleaseEnterReason}
+                                        className="min-h-[100px]"
+                                        data-testid="sanction-reason"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              {/* Submit Button */}
+                              <div className="flex justify-end pt-4">
+                                <Button 
+                                  type="submit"
+                                  disabled={createSanctionMutation.isPending}
+                                  className="min-w-[150px]"
+                                  data-testid="save-sanction"
+                                >
+                                  {createSanctionMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      {t.saving}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Save className="h-4 w-4 mr-2" />
+                                      {t.saveSanction}
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
                         </CardContent>
                       </Card>
                     </div>
@@ -5337,6 +6655,365 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
+          </TabsContent>
+        )}
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t.previewTitle}</DialogTitle>
+            <DialogDescription>
+              {t.previewDescription}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loadingPreview ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              <span>{t.loadingPreview}</span>
+            </div>
+          ) : previewData ? (
+            <div className="space-y-4">
+              {/* Student Info */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">Informations Étudiant</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div><span className="font-medium">Nom:</span> {previewData.studentName}</div>
+                  <div><span className="font-medium">Classe:</span> {previewData.className}</div>
+                  <div><span className="font-medium">Matricule:</span> {previewData.matricule}</div>
+                  <div><span className="font-medium">Période:</span> {previewData.term}</div>
+                </div>
+              </div>
+                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
+                            <span className="text-xs">+</span>
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
+                            <RotateCcw className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className="w-full h-full overflow-auto p-8 pt-16"
+                        style={{ 
+                          backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
+                          backgroundSize: '20px 20px'
+                        }}
+                      >
+                        <div
+                          className="mx-auto bg-white shadow-lg border relative"
+                          style={{
+                            width: canvasSize.width * canvasZoom,
+                            height: canvasSize.height * canvasZoom,
+                            transform: `scale(${canvasZoom})`,
+                            transformOrigin: 'top left'
+                          }}
+                          data-testid="design-canvas-area"
+                        >
+                          {/* Canvas Drop Zone */}
+                          <div 
+                            id="canvas-drop-zone"
+                            className="w-full h-full relative"
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const elementType = e.dataTransfer.getData('text/plain');
+                              if (elementType) {
+                                // Calculate position relative to canvas
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = (e.clientX - rect.left) / canvasZoom;
+                                const y = (e.clientY - rect.top) / canvasZoom;
+                                
+                                const newElement: TemplateElement = {
+                                  id: generateElementId(),
+                                  type: elementType,
+                                  category: getCategoryForType(elementType),
+                                  position: { x, y, width: 200, height: 40 },
+                                  properties: {
+                                    fontSize: 12,
+                                    fontFamily: 'Arial',
+                                    color: '#374151',
+                                    backgroundColor: 'transparent',
+                                    label: getElementDisplayName(elementType),
+                                    visible: true
+                                  },
+                                  zIndex: templateElements.length + 1
+                                };
+                                
+                                setTemplateElements(prev => [...prev, newElement]);
+                                setSelectedElement(newElement.id);
+                              }
+                            }}
+                            onDragOver={(e) => e.preventDefault()}
+                          >
+                            {/* Render template elements with SortableContext */}
+                            <SortableContext items={templateElements.map(el => el.id)} strategy={verticalListSortingStrategy}>
+                              {templateElements.map((element) => (
+                                <SortableTemplateElement
+                                  key={element.id}
+                                  element={element}
+                                  isSelected={selectedElement === element.id}
+                                  onSelect={() => setSelectedElement(element.id)}
+                                  getElementDisplayName={getElementDisplayName}
+                                />
+                              ))}
+                            </SortableContext>
+                            
+                            {/* Grid overlay */}
+                            {showGrid && (
+                              <div className="absolute inset-0 pointer-events-none opacity-20">
+                                <svg width="100%" height="100%">
+                                  <defs>
+                                    <pattern id="grid" width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
+                                      <path d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`} fill="none" stroke="#e5e5e5" strokeWidth="1"/>
+                                    </pattern>
+                                  </defs>
+                                  <rect width="100%" height="100%" fill="url(#grid)" />
+                                </svg>
+                              </div>
+                            )}
+                            
+                            {/* Alignment guides overlay */}
+                            {showGuides && alignmentGuides.length > 0 && (
+                              <div className="absolute inset-0 pointer-events-none">
+                                <svg width="100%" height="100%">
+                                  {alignmentGuides.map((guide, index) => (
+                                    <g key={index}>
+                                      {guide.x !== undefined && (
+                                        <line
+                                          x1={guide.x}
+                                          y1="0"
+                                          x2={guide.x}
+                                          y2="100%"
+                                          stroke="#3b82f6"
+                                          strokeWidth="1"
+                                          strokeDasharray="4,4"
+                                        />
+                                      )}
+                                      {guide.y !== undefined && (
+                                        <line
+                                          x1="0"
+                                          y1={guide.y}
+                                          x2="100%"
+                                          y2={guide.y}
+                                          stroke="#3b82f6"
+                                          strokeWidth="1"
+                                          strokeDasharray="4,4"
+                                        />
+                                      )}
+                                    </g>
+                                  ))}
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Properties Panel */}
+                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        {t.elementProperties}
+                      </h3>
+                      
+                      {selectedElement ? (
+                        <div className="space-y-4">
+                          {(() => {
+                            const element = templateElements.find(el => el.id === selectedElement);
+                            if (!element) return null;
+                            
+                            return (
+                              <>
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.position}</Label>
+                                  <div className="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">X</Label>
+                                      <Input
+                                        type="number"
+                                        value={Math.round(element.position.x)}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, x: parseInt(e.target.value) || 0 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">Y</Label>
+                                      <Input
+                                        type="number"
+                                        value={Math.round(element.position.y)}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, y: parseInt(e.target.value) || 0 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.size}</Label>
+                                  <div className="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">{t.width}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.position.width}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, width: parseInt(e.target.value) || 100 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">{t.height}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.position.height}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          position: { ...element.position, height: parseInt(e.target.value) || 40 }
+                                        })}
+                                        className="h-7 text-xs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.content}</Label>
+                                  <Input
+                                    value={element.properties.label || ''}
+                                    onChange={(e) => handleUpdateElement(element.id, {
+                                      properties: { ...element.properties, label: e.target.value }
+                                    })}
+                                    className="h-7 text-xs mt-1"
+                                    placeholder="Texte à afficher..."
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <Label className="text-xs font-semibold text-gray-700">{t.style}</Label>
+                                  <div className="space-y-2 mt-1">
+                                    <div>
+                                      <Label className="text-xs">{t.fontSize}</Label>
+                                      <Input
+                                        type="number"
+                                        value={element.properties.fontSize || 12}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          properties: { ...element.properties, fontSize: parseInt(e.target.value) || 12 }
+                                        })}
+                                        className="h-7 text-xs"
+                                        min="8"
+                                        max="72"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs">{t.color}</Label>
+                                      <Input
+                                        type="color"
+                                        value={element.properties.color || '#374151'}
+                                        onChange={(e) => handleUpdateElement(element.id, {
+                                          properties: { ...element.properties, color: e.target.value }
+                                        })}
+                                        className="h-7 w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="pt-2 border-t">
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => {
+                                      setTemplateElements(prev => prev.filter(el => el.id !== element.id));
+                                      setSelectedElement(null);
+                                      
+                                      toast({
+                                        title: 'Élément supprimé',
+                                        description: 'L\'élément a été retiré du modèle'
+                                      });
+                                    }}
+                                    className="w-full"
+                                    data-testid="delete-element-btn"
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-2" />
+                                    Supprimer
+                                  </Button>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Square className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm">Sélectionnez un élément pour modifier ses propriétés</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Drag Overlay */}
+                  <DragOverlay>
+                    {draggedElement ? (
+                      <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
+                        {getElementDisplayName(draggedElement)}
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+
+                {/* Template Actions */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleNewTemplate} data-testid="new-template-btn">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t.createNewTemplate}
+                    </Button>
+                    <Button variant="outline" onClick={handleLoadTemplate} data-testid="load-template-btn">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Charger modèle
+                    </Button>
+                    {/* Undo/Redo buttons */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleUndo} 
+                      disabled={historyIndex <= 0}
+                      data-testid="undo-btn"
+                      title="Annuler (Ctrl+Z)"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleRedo} 
+                      disabled={historyIndex >= templateHistory.length - 1}
+                      data-testid="redo-btn"
+                      title="Refaire (Ctrl+Y)"
+                    >
+                      <RotateCcw className="h-4 w-4 scale-x-[-1]" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handlePreviewTemplate} data-testid="preview-template-btn">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Aperçu
+                    </Button>
+                    <Button onClick={handleSaveTemplate} data-testid="save-template-btn">
+                      <Save className="h-4 w-4 mr-2" />
+                      {t.saveTemplate}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         )}
 
