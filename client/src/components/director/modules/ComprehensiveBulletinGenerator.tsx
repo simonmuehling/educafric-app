@@ -2404,13 +2404,13 @@ export default function ComprehensiveBulletinGenerator() {
                                                 <SelectValue placeholder="-" />
                                               </SelectTrigger>
                                               <SelectContent>
-                                                <SelectItem value="none">-</SelectItem>
-                                                <SelectItem value="A">A</SelectItem>
-                                                <SelectItem value="B">B</SelectItem>
-                                                <SelectItem value="C">C</SelectItem>
-                                                <SelectItem value="D">D</SelectItem>
-                                                <SelectItem value="E">E</SelectItem>
-                                                <SelectItem value="F">F</SelectItem>
+                                                <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
+                                                <SelectItem value="A" className="text-gray-900 hover:bg-gray-100">A</SelectItem>
+                                                <SelectItem value="B" className="text-gray-900 hover:bg-gray-100">B</SelectItem>
+                                                <SelectItem value="C" className="text-gray-900 hover:bg-gray-100">C</SelectItem>
+                                                <SelectItem value="D" className="text-gray-900 hover:bg-gray-100">D</SelectItem>
+                                                <SelectItem value="E" className="text-gray-900 hover:bg-gray-100">E</SelectItem>
+                                                <SelectItem value="F" className="text-gray-900 hover:bg-gray-100">F</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </td>
@@ -2423,12 +2423,12 @@ export default function ComprehensiveBulletinGenerator() {
                                                 <SelectValue placeholder="-" />
                                               </SelectTrigger>
                                               <SelectContent>
-                                                <SelectItem value="none">-</SelectItem>
-                                                <SelectItem value="CVWA">CVWA - Competences Very Well Acquired</SelectItem>
-                                                <SelectItem value="CWA">CWA - Competences Well Acquired</SelectItem>
-                                                <SelectItem value="CA">CA - Competences Acquired</SelectItem>
-                                                <SelectItem value="CAA">CAA - Competences Averagely Acquired</SelectItem>
-                                                <SelectItem value="CNA">CNA - Competences Not Acquired</SelectItem>
+                                                <SelectItem value="none" className="text-gray-900 hover:bg-gray-100">-</SelectItem>
+                                                <SelectItem value="CVWA" className="text-gray-900 hover:bg-gray-100">CVWA - Competences Very Well Acquired</SelectItem>
+                                                <SelectItem value="CWA" className="text-gray-900 hover:bg-gray-100">CWA - Competences Well Acquired</SelectItem>
+                                                <SelectItem value="CA" className="text-gray-900 hover:bg-gray-100">CA - Competences Acquired</SelectItem>
+                                                <SelectItem value="CAA" className="text-gray-900 hover:bg-gray-100">CAA - Competences Averagely Acquired</SelectItem>
+                                                <SelectItem value="CNA" className="text-gray-900 hover:bg-gray-100">CNA - Competences Not Acquired</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </td>
