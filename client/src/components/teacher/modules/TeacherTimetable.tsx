@@ -93,18 +93,14 @@ const TeacherTimetable = () => {
         affectedClasses: []
       });
       toast({
-        title: language === 'fr' ? 'Demande envoyée' : 'Request submitted',
-        description: language === 'fr' 
-          ? 'Votre demande de modification a été envoyée à l\'administration'
-          : 'Your change request has been sent to administration'
+        title: t.requestSent,
+        description: t.requestSentDesc
       });
     },
     onError: () => {
       toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' 
-          ? 'Impossible d\'envoyer la demande de modification'
-          : 'Failed to submit change request',
+        title: t.error,
+        description: t.requestError,
         variant: 'destructive'
       });
     }
@@ -157,7 +153,37 @@ const TeacherTimetable = () => {
       saturday: 'Samedi',
       totalHours: 'Total heures',
       freeSlots: 'Créneaux libres',
-      conflicts: 'Conflits'
+      conflicts: 'Conflits',
+      week: 'Semaine',
+      classLegend: 'Légende des classes',
+      editSlotDialog: 'Dialog Modifier Créneaux',
+      selectClass: 'Sélectionner une classe',
+      schedule: 'Horaire',
+      noCourses: 'Aucun cours',
+      classesLabel: 'Classes',
+      slotPrefix: 'Créneau:',
+      subjectPlaceholder: 'Mathématiques',
+      roomPlaceholder: 'Salle 12',
+      scheduleTab: 'Planning',
+      requestsTab: 'Demandes',
+      adminResponsesTab: 'Réponses Admin',
+      requestSent: 'Demande envoyée',
+      requestSentDesc: 'Votre demande de modification a été envoyée à l\'administration',
+      error: 'Erreur',
+      requestError: 'Impossible d\'envoyer la demande de modification',
+      slotUpdated: 'Créneaux modifié',
+      slotUpdatedDesc: 'Les modifications ont été sauvegardées',
+      exporting: 'Export en cours',
+      exportingDesc: 'Génération du PDF de l\'emploi du temps...',
+      missingInfo: 'Informations manquantes',
+      missingInfoDesc: 'Veuillez remplir tous les champs obligatoires',
+      pending: 'En attente',
+      approved: 'Approuvé',
+      rejected: 'Refusé',
+      revisionRequested: 'Révision demandée',
+      requestChange: 'Demande de modification',
+      editSlotDesc: 'Modifiez les détails de ce créneau d\'enseignement',
+      addSlotDesc: 'Ajoutez un nouveau créneau à votre emploi du temps'
     },
     en: {
       title: 'Timetable',
@@ -190,7 +216,37 @@ const TeacherTimetable = () => {
       saturday: 'Saturday',
       totalHours: 'Total hours',
       freeSlots: 'Free slots',
-      conflicts: 'Conflicts'
+      conflicts: 'Conflicts',
+      week: 'Week',
+      classLegend: 'Class Legend',
+      editSlotDialog: 'Edit Slot Dialog',
+      selectClass: 'Select a class',
+      schedule: 'Schedule',
+      noCourses: 'No courses',
+      classesLabel: 'Classes',
+      slotPrefix: 'Slot:',
+      subjectPlaceholder: 'Mathematics',
+      roomPlaceholder: 'Room 12',
+      scheduleTab: 'Schedule',
+      requestsTab: 'Requests',
+      adminResponsesTab: 'Admin Responses',
+      requestSent: 'Request submitted',
+      requestSentDesc: 'Your change request has been sent to administration',
+      error: 'Error',
+      requestError: 'Failed to submit change request',
+      slotUpdated: 'Slot updated',
+      slotUpdatedDesc: 'Changes have been saved',
+      exporting: 'Exporting',
+      exportingDesc: 'Generating timetable PDF...',
+      missingInfo: 'Missing information',
+      missingInfoDesc: 'Please fill in all required fields',
+      pending: 'Pending',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      revisionRequested: 'Revision requested',
+      requestChange: 'Request change',
+      editSlotDesc: 'Edit the details of this teaching slot',
+      addSlotDesc: 'Add a new slot to your timetable'
     }
   };
 
@@ -317,16 +373,16 @@ const TeacherTimetable = () => {
     }
 
     toast({
-      title: language === 'fr' ? 'Créneaux modifié' : 'Slot updated',
-      description: language === 'fr' ? 'Les modifications ont été sauvegardées' : 'Changes have been saved'
+      title: t.slotUpdated,
+      description: t.slotUpdatedDesc
     });
     setIsEditDialogOpen(false);
   };
 
   const handleExportPdf = () => {
     toast({
-      title: language === 'fr' ? 'Export en cours' : 'Exporting',
-      description: language === 'fr' ? 'Génération du PDF de l\'emploi du temps...' : 'Generating timetable PDF...'
+      title: t.exporting,
+      description: t.exportingDesc
     });
   };
 
@@ -371,10 +427,8 @@ const TeacherTimetable = () => {
   const handleSubmitChangeRequest = () => {
     if (!changeRequestData.changeType || !changeRequestData.reason) {
       toast({
-        title: language === 'fr' ? 'Informations manquantes' : 'Missing information',
-        description: language === 'fr' 
-          ? 'Veuillez remplir le type de changement et le motif'
-          : 'Please fill in change type and reason',
+        title: t.missingInfo,
+        description: t.missingInfoDesc,
         variant: 'destructive'
       });
       return;
@@ -396,10 +450,10 @@ const TeacherTimetable = () => {
     };
 
     const statusText: Record<string, string> = {
-      pending: language === 'fr' ? 'En attente' : 'Pending',
-      approved: language === 'fr' ? 'Approuvé' : 'Approved',
-      rejected: language === 'fr' ? 'Refusé' : 'Rejected',
-      revision_requested: language === 'fr' ? 'Révision demandée' : 'Revision requested'
+      pending: t.pending,
+      approved: t.approved,
+      rejected: t.rejected,
+      revision_requested: t.revisionRequested
     };
 
     return (
@@ -424,7 +478,7 @@ const TeacherTimetable = () => {
           </Button>
           <Button onClick={() => setIsChangeRequestOpen(true)} className="bg-blue-600 hover:bg-blue-700">
             <Send className="w-4 h-4 mr-2" />
-            {language === 'fr' ? 'Demande de modification' : 'Request change'}
+            {t.requestChange}
           </Button>
           <Button onClick={() => setIsEditDialogOpen(true)} variant="outline">
             <Plus className="w-4 h-4 mr-2" />
@@ -443,7 +497,7 @@ const TeacherTimetable = () => {
           data-testid="tab-schedule"
         >
           <Calendar className="w-4 h-4 mr-2" />
-          {language === 'fr' ? 'Planning' : 'Schedule'}
+          {t.scheduleTab}
         </Button>
         <Button
           variant={selectedTab === 'changes' ? "default" : "ghost"}
@@ -453,7 +507,7 @@ const TeacherTimetable = () => {
           data-testid="tab-changes"
         >
           <Edit className="w-4 h-4 mr-2" />
-          {language === 'fr' ? 'Demandes' : 'Requests'}
+          {t.requestsTab}
           {changeRequests.filter((req: any) => req.status === 'pending').length > 0 && (
             <Badge variant="secondary" className="ml-2 text-xs">
               {changeRequests.filter((req: any) => req.status === 'pending').length}
@@ -468,7 +522,7 @@ const TeacherTimetable = () => {
           data-testid="tab-responses"
         >
           <MessageSquare className="w-4 h-4 mr-2" />
-          {language === 'fr' ? 'Réponses Admin' : 'Admin Responses'}
+          {t.adminResponsesTab}
           {unreadResponsesCount > 0 && (
             <Badge variant="destructive" className="ml-2 text-xs">
               {unreadResponsesCount}
@@ -488,7 +542,7 @@ const TeacherTimetable = () => {
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-green">
           <div className="text-2xl font-bold text-gray-800">4</div>
-          <div className="text-sm text-gray-600">Classes</div>
+          <div className="text-sm text-gray-600">{t.classesLabel}</div>
         </ModernCard>
         <ModernCard className="p-4 text-center activity-card-purple">
           <div className="text-2xl font-bold text-gray-800">{40 - getTotalHours()}</div>
@@ -503,7 +557,7 @@ const TeacherTimetable = () => {
       {/* Contrôles */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Semaine</label>
+          <label className="block text-sm font-medium mb-2">{t.week}</label>
           <select 
             value={selectedWeek}
             onChange={(e) => setSelectedWeek(e?.target?.value)}
@@ -514,7 +568,7 @@ const TeacherTimetable = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Classe</label>
+          <label className="block text-sm font-medium mb-2">{t.class}</label>
           <select 
             value={selectedClass}
             onChange={(e) => setSelectedClass(e?.target?.value)}
@@ -550,7 +604,7 @@ const TeacherTimetable = () => {
                       </div>
                     )) || (
                       <div className="text-center text-gray-500 py-4">
-                        Aucun cours
+                        {t.noCourses}
                       </div>
                     )}
                   </div>
@@ -563,7 +617,7 @@ const TeacherTimetable = () => {
               <table className="min-w-full">
                 <thead>
                   <tr>
-                    <th className="w-24 p-3 text-left font-medium text-gray-700">Horaire</th>
+                    <th className="w-24 p-3 text-left font-medium text-gray-700">{t.time}</th>
                     {(Array.isArray(daysOfWeek) ? daysOfWeek : []).map(day => (
                       <th key={day.id} className="p-3 text-center font-medium text-gray-700">
                         {day.name || ''}
@@ -609,7 +663,7 @@ const TeacherTimetable = () => {
 
       {/* Legend */}
       <ModernCard className="p-4">
-        <h3 className="font-medium mb-3">Légende des classes</h3>
+        <h3 className="font-medium mb-3">{t.classLegend}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {(Array.isArray(classes) ? classes : []).map(cls => (
             <div key={cls.id} className="flex items-center gap-2">
@@ -623,7 +677,7 @@ const TeacherTimetable = () => {
         </>
       )}
 
-      {/* Dialog Modifier Créneaux */}
+      {/* {t.editSlotDialog} */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
@@ -632,8 +686,8 @@ const TeacherTimetable = () => {
             </DialogTitle>
             <DialogDescription>
               {currentSlot 
-                ? (language === 'fr' ? 'Modifiez les détails de ce créneau d\'enseignement' : 'Edit the details of this teaching slot')
-                : (language === 'fr' ? 'Ajoutez un nouveau créneau à votre emploi du temps' : 'Add a new slot to your timetable')}
+                ? t.editSlotDesc
+                : t.addSlotDesc}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -642,7 +696,7 @@ const TeacherTimetable = () => {
               <Input 
                 value={formData.subject}
                 onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                placeholder="Mathématiques" 
+                placeholder={t.subjectPlaceholder} 
               />
             </div>
             
@@ -653,7 +707,7 @@ const TeacherTimetable = () => {
                 value={formData.className}
                 onChange={(e) => setFormData(prev => ({ ...prev, className: e.target.value }))}
               >
-                <option value="">Sélectionner une classe</option>
+                <option value="">{t.selectClass}</option>
                 {(Array.isArray(classes) ? classes : []).map(cls => (
                   <option key={cls.id} value={cls.name}>{cls.name || ''}</option>
                 ))}
@@ -665,7 +719,7 @@ const TeacherTimetable = () => {
               <Input 
                 value={formData.room}
                 onChange={(e) => setFormData(prev => ({ ...prev, room: e.target.value }))}
-                placeholder="Salle 12" 
+                placeholder={t.roomPlaceholder} 
               />
             </div>
             
@@ -692,7 +746,7 @@ const TeacherTimetable = () => {
             
             {formData.timeSlot && (
               <div className="text-sm text-gray-600 text-center p-2 bg-gray-50 rounded">
-                Créneau: {formData.timeSlot}
+                {t.slotPrefix} {formData.timeSlot}
               </div>
             )}
 
