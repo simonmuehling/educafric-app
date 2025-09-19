@@ -18,6 +18,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   bulletinComprehensiveValidationSchema, 
@@ -299,6 +300,7 @@ export default function ComprehensiveBulletinGenerator() {
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // State management
   const [selectedClass, setSelectedClass] = useState<string>('');
