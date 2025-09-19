@@ -12,6 +12,7 @@ export * from "./schemas/bulletinExtensionsSchema";
 export * from "./schemas/bulletinComprehensiveSchema"; // NEW: Comprehensive bulletin data (absences, sanctions, appreciations)
 export * from "./schemas/bulletinVerificationSchema"; // NEW: Bulletin verification system
 export * from "./schemas/classEnrollmentSchema"; // CRITICAL: Class enrollment for RBAC security
+export * from "./schemas/sanctionsSchema"; // NEW: Disciplinary sanctions management
 
 // Import existing schema modules
 export * from "./tutorialSchema";
@@ -28,8 +29,9 @@ import { grades, attendance, homework, homeworkSubmissions } from "./schemas/aca
 import { bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications } from "./schemas/bulletinSchema";
 import { studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings } from "./schemas/bulletinExtensionsSchema";
 import { bulletinComprehensive, bulletinSubjectCodes } from "./schemas/bulletinComprehensiveSchema";
+import { sanctions } from "./schemas/sanctionsSchema";
 
-export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes };
+export { users, schools, classes, subjects, grades, attendance, homework, homeworkSubmissions, bulletins, teacherGradeSubmissions, bulletinWorkflow, bulletinNotifications, studentAcademicInfo, studentDiscipline, studentFees, termPerformance, subjectPerformanceDetails, bulletinSettings, bulletinComprehensive, bulletinSubjectCodes, sanctions };
 
 // Additional simplified tables for compatibility
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb, numeric, date, unique, foreignKey } from "drizzle-orm/pg-core";

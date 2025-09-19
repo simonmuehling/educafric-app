@@ -82,3 +82,17 @@ export interface IAcademicStorage {
   updateAcademicYear(schoolId: number, year: any, userId: number): Promise<any>;
   initializeNewAcademicYear(schoolId: number, year: any, promotionSettings: any, userId: number): Promise<any>;
 }
+
+export interface ISanctionStorage {
+  createSanction(sanction: any): Promise<any>;
+  getSanction(id: number): Promise<any | null>;
+  updateSanction(id: number, updates: any): Promise<any>;
+  deleteSanction(id: number): Promise<void>;
+  getStudentSanctions(studentId: number, filters?: any): Promise<any[]>;
+  getClassSanctions(classId: number, filters?: any): Promise<any[]>;
+  getSchoolSanctions(schoolId: number, filters?: any): Promise<any[]>;
+  getSanctionsByType(schoolId: number, sanctionType: string): Promise<any[]>;
+  revokeSanction(id: number, revokedBy: number, reason: string): Promise<any>;
+  appealSanction(id: number, appealReason: string): Promise<any>;
+  expireSanctions(): Promise<void>; // For batch processing of expired sanctions
+}

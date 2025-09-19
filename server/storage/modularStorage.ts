@@ -10,6 +10,7 @@ import { TimetableStorage } from "./timetableStorage";
 import { BulletinStorage } from "./bulletinStorage";
 import { SubjectStorage } from "./subjectStorage";
 import { AcademicStorage } from "./academicStorage";
+import { SanctionStorage } from "./sanctionsStorage";
 import type { NotificationPreferences, InsertNotificationPreferences } from "../../shared/schema";
 
 // Main storage class combining all modules
@@ -23,6 +24,7 @@ export class ModularStorage {
   private bulletinStorage: BulletinStorage;
   private subjectStorage: SubjectStorage;
   private academicStorage: AcademicStorage;
+  private sanctionStorage: SanctionStorage;
 
   constructor() {
     this.userStorage = new UserStorage();
@@ -34,6 +36,7 @@ export class ModularStorage {
     this.bulletinStorage = new BulletinStorage();
     this.subjectStorage = new SubjectStorage();
     this.academicStorage = new AcademicStorage();
+    this.sanctionStorage = new SanctionStorage();
   }
 
   // === USER METHODS ===
@@ -1087,4 +1090,17 @@ export class ModularStorage {
   async createSubject(subjectData: any) { return this.subjectStorage.createSubject(subjectData); }
   async updateSubject(id: number, updates: any) { return this.subjectStorage.updateSubject(id, updates); }
   async deleteSubject(id: number) { return this.subjectStorage.deleteSubject(id); }
+
+  // === SANCTION METHODS ===
+  async createSanction(sanction: any) { return this.sanctionStorage.createSanction(sanction); }
+  async getSanction(id: number) { return this.sanctionStorage.getSanction(id); }
+  async updateSanction(id: number, updates: any) { return this.sanctionStorage.updateSanction(id, updates); }
+  async deleteSanction(id: number) { return this.sanctionStorage.deleteSanction(id); }
+  async getStudentSanctions(studentId: number, filters?: any) { return this.sanctionStorage.getStudentSanctions(studentId, filters); }
+  async getClassSanctions(classId: number, filters?: any) { return this.sanctionStorage.getClassSanctions(classId, filters); }
+  async getSchoolSanctions(schoolId: number, filters?: any) { return this.sanctionStorage.getSchoolSanctions(schoolId, filters); }
+  async getSanctionsByType(schoolId: number, sanctionType: string) { return this.sanctionStorage.getSanctionsByType(schoolId, sanctionType); }
+  async revokeSanction(id: number, revokedBy: number, reason: string) { return this.sanctionStorage.revokeSanction(id, revokedBy, reason); }
+  async appealSanction(id: number, appealReason: string) { return this.sanctionStorage.appealSanction(id, appealReason); }
+  async expireSanctions() { return this.sanctionStorage.expireSanctions(); }
 }

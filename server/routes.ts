@@ -80,6 +80,7 @@ import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
+import sanctionRoutes from "./routes/sanctionRoutes";
 // Old duplicated imports removed - replaced by unified messaging system
 // import familyConnectionsRoutes from "./routes/familyConnections";
 // import teacherStudentConnections from "./routes/teacherStudentConnections";
@@ -5518,6 +5519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/bulletins', bulletinRoutes);
   app.use('/api/bulletins', bulletinVerificationRoutes);
+  app.use('/api/sanctions', sanctionRoutes);
   // Public route for comprehensive bulletin samples (no auth required)
   app.post('/api/comprehensive-bulletins/public-sample', async (req, res) => {
     try {

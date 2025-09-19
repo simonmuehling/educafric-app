@@ -26,6 +26,13 @@ import {
   type InsertBulletinSubjectCodes
 } from '@shared/schemas/bulletinComprehensiveSchema';
 import { 
+  sanctionFormSchema, 
+  SANCTION_TYPES, 
+  SANCTION_SEVERITY,
+  type SanctionForm 
+} from '@shared/schemas/sanctionsSchema';
+import { useStudentSanctions, useCreateSanction, useDeleteSanction, useRevokeSanction } from '@/hooks/useSanctions';
+import { 
   FileText, 
   Download, 
   User, 
@@ -481,6 +488,40 @@ export default function ComprehensiveBulletinGenerator() {
   // Subject coefficients data state
   const [subjectCoefficients, setSubjectCoefficients] = useState<Record<string, any>>({});
   
+  // ===== SANCTIONS DISCIPLINAIRES STATES =====
+  const [selectedStudentForSanctions, setSelectedStudentForSanctions] = useState<number | null>(null);
+  
+  // React Hook Form for sanctions - replaces sanctionsForm useState
+  const sanctionsForm = useForm<SanctionForm>({
+    resolver: zodResolver(sanctionFormSchema),
+    defaultValues: {
+      sanctionType: 'conduct_warning',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      severity: 'medium',
+      duration: 1,
+      academicYear: academicYear || '2024-2025',
+      term: selectedTerm || 'Premier Trimestre',
+      studentId: selectedStudentForSanctions || 0,
+      classId: selectedClass?.id || 0,
+      schoolId: user?.schoolId || 0,
+      issueBy: user?.id || 0
+    }
+  });
+  
+  // React Query hooks for sanctions
+  const { data: studentSanctions, isLoading: isLoadingSanctions, refetch: refetchSanctions } = useStudentSanctions(
+    selectedStudentForSanctions,
+    {
+      academicYear: academicYear,
+      term: selectedTerm
+    }
+  );
+  
+  const createSanctionMutation = useCreateSanction();
+  const deleteSanctionMutation = useDeleteSanction();
+  const revokeSanctionMutation = useRevokeSanction();
+  
   // API optimization: Control data loading manually
   const [dataLoadingEnabled, setDataLoadingEnabled] = useState(false);
   
@@ -532,6 +573,54 @@ export default function ComprehensiveBulletinGenerator() {
       fillDefaultValues: 'Valeurs par défaut',
       clearAll: 'Effacer tout',
       selectStudentToConfigureCoefficients: 'Sélectionnez un élève pour configurer les coefficients par matière.',
+      
+      // Sanctions Disciplinaires Tab
+      sanctionsDisciplinaires: 'Sanctions Disciplinaires',
+      sanctionsManagement: 'Gestion des Sanctions Disciplinaires',
+      sanctionsDescription: 'Gérez les sanctions disciplinaires pour chaque élève de la classe.',
+      selectStudentForSanctions: 'Sélectionner un élève',
+      selectStudentPlaceholder: 'Choisissez un élève...',
+      sanctionHistory: 'Historique des sanctions',
+      noSanctionsHistory: 'Aucune sanction enregistrée pour cet élève',
+      addNewSanction: 'Ajouter une nouvelle sanction',
+      sanctionType: 'Type de sanction',
+      sanctionDate: 'Date de la sanction',
+      sanctionReason: 'Motif de la sanction',
+      exclusionDays: 'Nombre de jours d\'exclusion',
+      conductWarning: 'Avertissement de conduite',
+      conductBlame: 'Blâme de conduite', 
+      exclusionTemporary: 'Exclusion temporaire',
+      exclusionPermanent: 'Exclusion définitive',
+      saveSanction: 'Enregistrer la sanction',
+      deleteSanction: 'Supprimer',
+      confirmDeleteSanction: 'Êtes-vous sûr de vouloir supprimer cette sanction ?',
+      sanctionSaved: 'Sanction enregistrée avec succès',
+      sanctionDeleted: 'Sanction supprimée avec succès',
+      sanctionError: 'Erreur lors de l\'enregistrement de la sanction',
+      pleaseSelectStudent: 'Veuillez sélectionner un élève',
+      pleaseSelectSanctionType: 'Veuillez sélectionner un type de sanction',
+      pleaseEnterReason: 'Veuillez saisir un motif',
+      warningCount: 'avertissement(s)',
+      blameCount: 'blâme(s)', 
+      exclusionCount: 'exclusion(s)',
+      permanent: 'Définitive',
+      
+      // New sanctions terms
+      severity: 'Gravité',
+      severityLow: 'Faible',
+      severityMedium: 'Moyenne',
+      severityHigh: 'Élevée',
+      severityCritical: 'Critique',
+      duration: 'Durée',
+      days: 'jour(s)',
+      revoke: 'Révoquer',
+      delete: 'Supprimer',
+      saving: 'Enregistrement...',
+      loading: 'Chargement...',
+      selectSanctionType: 'Sélectionnez un type de sanction',
+      sanctionReasonPlaceholder: 'Décrivez le motif de la sanction...',
+      sanctionReasonDescription: 'Description détaillée de la sanction (minimum 10 caractères)',
+      exclusionDaysDescription: 'Nombre de jours d\'exclusion (1-365 jours)',
       
       // Class selection
       selectClass: 'Sélectionner une classe',
@@ -918,6 +1007,54 @@ export default function ComprehensiveBulletinGenerator() {
       loadDraft: 'Load Draft',
       resetForm: 'Reset Form',
       draftSaved: 'Draft saved successfully',
+      
+      // Sanctions Disciplinaires Tab
+      sanctionsDisciplinaires: 'Disciplinary Sanctions',
+      sanctionsManagement: 'Disciplinary Sanctions Management',
+      sanctionsDescription: 'Manage disciplinary sanctions for each student in the class.',
+      selectStudentForSanctions: 'Select a student',
+      selectStudentPlaceholder: 'Choose a student...',
+      sanctionHistory: 'Sanctions history',
+      noSanctionsHistory: 'No sanctions recorded for this student',
+      addNewSanction: 'Add new sanction',
+      sanctionType: 'Sanction type',
+      sanctionDate: 'Sanction date',
+      sanctionReason: 'Sanction reason',
+      exclusionDays: 'Number of exclusion days',
+      conductWarning: 'Conduct warning',
+      conductBlame: 'Conduct blame', 
+      exclusionTemporary: 'Temporary exclusion',
+      exclusionPermanent: 'Permanent exclusion',
+      saveSanction: 'Save sanction',
+      deleteSanction: 'Delete',
+      confirmDeleteSanction: 'Are you sure you want to delete this sanction?',
+      sanctionSaved: 'Sanction saved successfully',
+      sanctionDeleted: 'Sanction deleted successfully',
+      sanctionError: 'Error saving sanction',
+      pleaseSelectStudent: 'Please select a student',
+      pleaseSelectSanctionType: 'Please select a sanction type',
+      pleaseEnterReason: 'Please enter a reason',
+      warningCount: 'warning(s)',
+      blameCount: 'blame(s)', 
+      exclusionCount: 'exclusion(s)',
+      permanent: 'Permanent',
+      
+      // New sanctions terms
+      severity: 'Severity',
+      severityLow: 'Low',
+      severityMedium: 'Medium',
+      severityHigh: 'High',
+      severityCritical: 'Critical',
+      duration: 'Duration',
+      days: 'day(s)',
+      revoke: 'Revoke',
+      delete: 'Delete',
+      saving: 'Saving...',
+      loading: 'Loading...',
+      selectSanctionType: 'Select a sanction type',
+      sanctionReasonPlaceholder: 'Describe the reason for the sanction...',
+      sanctionReasonDescription: 'Detailed description of the sanction (minimum 10 characters)',
+      exclusionDaysDescription: 'Number of exclusion days (1-365 days)',
       draftLoaded: 'Draft loaded successfully',
       formReset: 'Form reset',
       noDraftsFound: 'No drafts found for this student',
@@ -1838,6 +1975,93 @@ export default function ComprehensiveBulletinGenerator() {
     };
   }, [selectedClass, selectedTerm, academicYear, selectedStudents, generationFormat, generationOptions]);
 
+  // ===== SANCTIONS DISCIPLINAIRES FUNCTIONS =====
+  
+  const handleSanctionStudentChange = useCallback((studentId: number) => {
+    setSelectedStudentForSanctions(studentId);
+    // In a real implementation, this would load sanctions data from API
+    // For now, we initialize with empty data
+    setSanctionsData({
+      conductWarnings: [],
+      conductBlames: [],
+      exclusions: [],
+      permanentExclusion: null
+    });
+  }, []);
+  
+  const addSanction = useCallback((sanctionData: any) => {
+    const newId = Date.now().toString();
+    const newCreatedAt = new Date().toISOString();
+    
+    setSanctionsData(prev => {
+      const updated = { ...prev };
+      
+      switch (sanctionData.type) {
+        case 'conductWarning':
+          updated.conductWarnings.push({
+            id: newId,
+            date: sanctionData.date,
+            reason: sanctionData.reason,
+            createdAt: newCreatedAt
+          });
+          break;
+        case 'conductBlame':
+          updated.conductBlames.push({
+            id: newId,
+            date: sanctionData.date,
+            reason: sanctionData.reason,
+            createdAt: newCreatedAt
+          });
+          break;
+        case 'exclusionTemporary':
+          const endDate = new Date(sanctionData.date);
+          endDate.setDate(endDate.getDate() + sanctionData.exclusionDays - 1);
+          updated.exclusions.push({
+            id: newId,
+            startDate: sanctionData.date,
+            endDate: endDate.toISOString().split('T')[0],
+            days: sanctionData.exclusionDays,
+            reason: sanctionData.reason,
+            createdAt: newCreatedAt
+          });
+          break;
+        case 'exclusionPermanent':
+          updated.permanentExclusion = {
+            isExcluded: true,
+            date: sanctionData.date,
+            reason: sanctionData.reason,
+            createdAt: newCreatedAt
+          };
+          break;
+      }
+      
+      return updated;
+    });
+  }, []);
+  
+  const deleteSanction = useCallback((type: string, index?: number) => {
+    setSanctionsData(prev => {
+      const updated = { ...prev };
+      
+      switch (type) {
+        case 'conductWarning':
+          if (index !== undefined) updated.conductWarnings.splice(index, 1);
+          break;
+        case 'conductBlame':
+          if (index !== undefined) updated.conductBlames.splice(index, 1);
+          break;
+        case 'exclusionTemporary':
+          if (index !== undefined) updated.exclusions.splice(index, 1);
+          break;
+        case 'exclusionPermanent':
+          updated.permanentExclusion = null;
+          break;
+      }
+      
+      return updated;
+    });
+  }, []);
+
   // ===== MEMOIZED EVENT HANDLERS =====
   
   // Optimize handlers to prevent unnecessary re-renders of child components
@@ -1845,6 +2069,14 @@ export default function ComprehensiveBulletinGenerator() {
     setSelectedClass(classId);
     setSelectedStudents([]);
     setSearchQuery('');
+    // Reset sanctions selection when class changes
+    setSelectedStudentForSanctions(null);
+    setSanctionsData({
+      conductWarnings: [],
+      conductBlames: [],
+      exclusions: [],
+      permanentExclusion: null
+    });
   }, []);
 
   const handleStudentSelection = useCallback((studentId: number, selected: boolean) => {
@@ -2026,6 +2258,11 @@ export default function ComprehensiveBulletinGenerator() {
               <Edit3 className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{t.manualDataEntry}</span>
               <span className="sm:hidden">Saisie</span>
+            </TabsTrigger>
+            <TabsTrigger value="sanctions-disciplinaires" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{t.sanctionsDisciplinaires}</span>
+              <span className="sm:hidden">Sanctions</span>
             </TabsTrigger>
             <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Settings className="h-4 w-4 flex-shrink-0" />
@@ -3193,6 +3430,638 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
+          </TabsContent>
+        )}
+
+        {/* Sanctions Disciplinaires Tab */}
+        {mountedTabs.has('sanctions-disciplinaires') && (
+          <TabsContent value="sanctions-disciplinaires" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  {t.sanctionsManagement}
+                </CardTitle>
+                <p className="text-muted-foreground">{t.sanctionsDescription}</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Student Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="sanctions-student-select">{t.selectStudentForSanctions}</Label>
+                  <Select 
+                    value={selectedStudentForSanctions?.toString() || ''} 
+                    onValueChange={(value) => {
+                      const studentId = parseInt(value);
+                      setSelectedStudentForSanctions(studentId);
+                      // Update form with student ID
+                      sanctionsForm.setValue('studentId', studentId);
+                      // Refetch sanctions for new student
+                      if (studentId) {
+                        refetchSanctions();
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="sanctions-student-select" data-testid="sanctions-student-select">
+                      <SelectValue placeholder={t.selectStudentPlaceholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredStudents?.map((student: StudentData) => (
+                        <SelectItem key={student.id} value={student.id.toString()}>
+                          {student.firstName} {student.lastName} ({student.matricule})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedStudentForSanctions && (
+                  <div className="space-y-6">
+                    {/* Sanctions History */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        {t.sanctionHistory}
+                      </h3>
+                      
+                      {isLoadingSanctions ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin" />
+                          <span className="ml-2">{t.loading}</span>
+                        </div>
+                      ) : !studentSanctions || studentSanctions.length === 0 ? (
+                        <Card className="bg-green-50 border-green-200" data-testid="no-sanctions-card">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center gap-2 text-green-700">
+                              <CheckCircle className="h-5 w-5" />
+                              <p>{t.noSanctionsHistory}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <div className="space-y-4" data-testid="sanctions-list">
+                          {studentSanctions.map((sanction) => (
+                            <Card key={sanction.id} className={`border-l-4 ${
+                              sanction.sanctionType === 'conduct_warning' ? 'border-l-yellow-500 bg-yellow-50' :
+                              sanction.sanctionType === 'conduct_blame' ? 'border-l-orange-500 bg-orange-50' :
+                              sanction.sanctionType === 'exclusion_temporary' ? 'border-l-red-500 bg-red-50' :
+                              'border-l-gray-500 bg-gray-50'
+                            }`}>
+                              <CardContent className="pt-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      {sanction.sanctionType === 'conduct_warning' && <AlertCircle className="h-4 w-4 text-yellow-600" />}
+                                      {sanction.sanctionType === 'conduct_blame' && <XCircle className="h-4 w-4 text-orange-600" />}
+                                      {sanction.sanctionType === 'exclusion_temporary' && <X className="h-4 w-4 text-red-600" />}
+                                      {sanction.sanctionType === 'exclusion_permanent' && <X className="h-4 w-4 text-gray-600" />}
+                                      <span className="font-semibold capitalize">
+                                        {sanction.sanctionType.replace('_', ' ')}
+                                      </span>
+                                      <Badge variant={sanction.severity === 'high' || sanction.severity === 'critical' ? 'destructive' : 'secondary'}>
+                                        {sanction.severity}
+                                      </Badge>
+                                      <Badge variant={sanction.status === 'active' ? 'default' : 'secondary'}>
+                                        {sanction.status}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                      <strong>{t.sanctionDate}:</strong> {new Date(sanction.date).toLocaleDateString()}
+                                    </p>
+                                    {sanction.duration && (
+                                      <p className="text-sm text-muted-foreground">
+                                        <strong>{t.duration}:</strong> {sanction.duration} {t.days}
+                                      </p>
+                                    )}
+                                    <p className="text-sm">
+                                      <strong>{t.sanctionReason}:</strong> {sanction.description}
+                                    </p>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    {sanction.status === 'active' && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          revokeSanctionMutation.mutate({
+                                            id: sanction.id,
+                                            reason: "Révoquée par le directeur"
+                                          });
+                                        }}
+                                        disabled={revokeSanctionMutation.isPending}
+                                        data-testid={`revoke-sanction-${sanction.id}`}
+                                      >
+                                        <X className="h-4 w-4" />
+                                        {t.revoke}
+                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={() => {
+                                        deleteSanctionMutation.mutate({
+                                          id: sanction.id,
+                                          studentId: sanction.studentId,
+                                          classId: sanction.classId,
+                                          schoolId: sanction.schoolId
+                                        });
+                                      }}
+                                      disabled={deleteSanctionMutation.isPending}
+                                      data-testid={`delete-sanction-${sanction.id}`}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      {t.delete}
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Add New Sanction Form */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Plus className="h-5 w-5" />
+                          {t.addNewSanction}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Form {...sanctionsForm}>
+                          <form 
+                            onSubmit={sanctionsForm.handleSubmit((data) => {
+                              // Update form data with current context
+                              const sanctionData = {
+                                ...data,
+                                studentId: selectedStudentForSanctions!,
+                                classId: selectedClass?.id || 0,
+                                schoolId: user?.schoolId || 0,
+                                issueBy: user?.id || 0,
+                                academicYear: academicYear || '2024-2025',
+                                term: selectedTerm || 'Premier Trimestre'
+                              };
+                              
+                              createSanctionMutation.mutate(sanctionData, {
+                                onSuccess: () => {
+                                  sanctionsForm.reset({
+                                    sanctionType: 'conduct_warning',
+                                    date: new Date().toISOString().split('T')[0],
+                                    description: '',
+                                    severity: 'medium',
+                                    duration: 1
+                                  });
+                                }
+                              });
+                            })}
+                            className="space-y-4"
+                            data-testid="add-sanction-form"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="sanctionType"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.sanctionType}</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger data-testid="sanction-type-select">
+                                          <SelectValue placeholder={t.selectSanctionType} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="conduct_warning" data-testid="sanction-type-warning">
+                                          {t.conductWarning}
+                                        </SelectItem>
+                                        <SelectItem value="conduct_blame" data-testid="sanction-type-blame">
+                                          {t.conductBlame}
+                                        </SelectItem>
+                                        <SelectItem value="exclusion_temporary" data-testid="sanction-type-temp-exclusion">
+                                          {t.exclusionTemporary}
+                                        </SelectItem>
+                                        <SelectItem value="exclusion_permanent" data-testid="sanction-type-perm-exclusion">
+                                          {t.exclusionPermanent}
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="severity"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.severity}</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger data-testid="sanction-severity-select">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="low">{t.severityLow}</SelectItem>
+                                        <SelectItem value="medium">{t.severityMedium}</SelectItem>
+                                        <SelectItem value="high">{t.severityHigh}</SelectItem>
+                                        <SelectItem value="critical">{t.severityCritical}</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={sanctionsForm.control}
+                                name="date"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t.sanctionDate}</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="date" 
+                                        {...field} 
+                                        data-testid="sanction-date-input"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              {(sanctionsForm.watch('sanctionType') === 'exclusion_temporary') && (
+                                <FormField
+                                  control={sanctionsForm.control}
+                                  name="duration"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.exclusionDays}</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          type="number" 
+                                          min="1" 
+                                          max="365" 
+                                          {...field} 
+                                          value={field.value || ''}
+                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                          data-testid="sanction-duration-input"
+                                        />
+                                      </FormControl>
+                                      <FormDescription>
+                                        {t.exclusionDaysDescription}
+                                      </FormDescription>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              )}
+                            </div>
+                            
+                            <FormField
+                              control={sanctionsForm.control}
+                              name="description"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>{t.sanctionReason}</FormLabel>
+                                  <FormControl>
+                                    <Textarea 
+                                      placeholder={t.sanctionReasonPlaceholder} 
+                                      rows={3}
+                                      {...field} 
+                                      data-testid="sanction-description-textarea"
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {t.sanctionReasonDescription}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <div className="flex justify-end pt-4">
+                              <Button 
+                                type="submit" 
+                                disabled={createSanctionMutation.isPending}
+                                className="min-w-[150px]"
+                                data-testid="save-sanction-button"
+                              >
+                                {createSanctionMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    {t.saving}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    {t.saveSanction}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </form>
+                        </Form>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {!selectedStudentForSanctions && (
+                  <Card className="bg-muted" data-testid="select-student-prompt">
+                    <CardContent className="pt-6">
+                      <div className="text-center text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>{t.pleaseSelectStudent}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+                                        variant="destructive" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSanctionsData(prev => ({
+                                            ...prev,
+                                            conductBlames: prev.conductBlames.filter((_, i) => i !== index)
+                                          }));
+                                          toast({ title: t.sanctionDeleted });
+                                        }}
+                                        data-testid={`delete-blame-${index}`}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        {t.deleteSanction}
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                          
+                          {/* Exclusions */}
+                          {sanctionsData.exclusions.length > 0 && (
+                            <Card className="border-red-200">
+                              <CardHeader className="pb-3">
+                                <h4 className="font-medium flex items-center gap-2 text-red-700">
+                                  <Timer className="h-4 w-4" />
+                                  {t.exclusionTemporary} ({sanctionsData.exclusions.length} {t.exclusionCount})
+                                </h4>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-2">
+                                  {sanctionsData.exclusions.map((exclusion, index) => (
+                                    <div key={exclusion.id} className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+                                      <div>
+                                        <p className="font-medium">{exclusion.startDate} - {exclusion.endDate}</p>
+                                        <p className="text-sm font-semibold text-red-600">{exclusion.days} jours</p>
+                                        <p className="text-sm text-muted-foreground">{exclusion.reason}</p>
+                                      </div>
+                                      <Button 
+                                        variant="destructive" 
+                                        size="sm"
+                                        onClick={() => {
+                                          setSanctionsData(prev => ({
+                                            ...prev,
+                                            exclusions: prev.exclusions.filter((_, i) => i !== index)
+                                          }));
+                                          toast({ title: t.sanctionDeleted });
+                                        }}
+                                        data-testid={`delete-exclusion-${index}`}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        {t.deleteSanction}
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                          
+                          {/* Permanent Exclusion */}
+                          {sanctionsData.permanentExclusion && (
+                            <Card className="border-red-600 bg-red-50">
+                              <CardHeader className="pb-3">
+                                <h4 className="font-medium flex items-center gap-2 text-red-800">
+                                  <X className="h-4 w-4" />
+                                  {t.exclusionPermanent} - {t.permanent}
+                                </h4>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex justify-between items-center p-3 bg-red-100 rounded-lg">
+                                  <div>
+                                    <p className="font-medium text-red-800">{sanctionsData.permanentExclusion.date}</p>
+                                    <p className="text-sm text-red-700">{sanctionsData.permanentExclusion.reason}</p>
+                                  </div>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSanctionsData(prev => ({
+                                        ...prev,
+                                        permanentExclusion: null
+                                      }));
+                                      toast({ title: t.sanctionDeleted });
+                                    }}
+                                    data-testid="delete-permanent-exclusion"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    {t.deleteSanction}
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <Separator />
+
+                    {/* Add New Sanction */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Plus className="h-5 w-5" />
+                        {t.addNewSanction}
+                      </h3>
+                      
+                      <Card className="border-2 border-dashed">
+                        <CardContent className="pt-6">
+                          <div className="space-y-4">
+                            {/* Sanction Type */}
+                            <div className="space-y-2">
+                              <Label htmlFor="sanction-type">{t.sanctionType} *</Label>
+                              <Select 
+                                value={sanctionsForm.type} 
+                                onValueChange={(value) => setSanctionsForm(prev => ({ ...prev, type: value }))}
+                              >
+                                <SelectTrigger id="sanction-type" data-testid="sanction-type-select">
+                                  <SelectValue placeholder={t.pleaseSelectSanctionType} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="conductWarning">{t.conductWarning}</SelectItem>
+                                  <SelectItem value="conductBlame">{t.conductBlame}</SelectItem>
+                                  <SelectItem value="exclusionTemporary">{t.exclusionTemporary}</SelectItem>
+                                  <SelectItem value="exclusionPermanent">{t.exclusionPermanent}</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {/* Sanction Date */}
+                            <div className="space-y-2">
+                              <Label htmlFor="sanction-date">{t.sanctionDate} *</Label>
+                              <Input
+                                id="sanction-date"
+                                type="date"
+                                value={sanctionsForm.date}
+                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, date: e.target.value }))}
+                                data-testid="sanction-date"
+                              />
+                            </div>
+
+                            {/* Exclusion Days (only for temporary exclusions) */}
+                            {sanctionsForm.type === 'exclusionTemporary' && (
+                              <div className="space-y-2">
+                                <Label htmlFor="exclusion-days">{t.exclusionDays} *</Label>
+                                <Input
+                                  id="exclusion-days"
+                                  type="number"
+                                  min="1"
+                                  max="30"
+                                  value={sanctionsForm.exclusionDays}
+                                  onChange={(e) => setSanctionsForm(prev => ({ ...prev, exclusionDays: parseInt(e.target.value) || 1 }))}
+                                  data-testid="exclusion-days"
+                                />
+                              </div>
+                            )}
+
+                            {/* Sanction Reason */}
+                            <div className="space-y-2">
+                              <Label htmlFor="sanction-reason">{t.sanctionReason} *</Label>
+                              <Textarea
+                                id="sanction-reason"
+                                placeholder={t.pleaseEnterReason}
+                                value={sanctionsForm.reason}
+                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, reason: e.target.value }))}
+                                className="min-h-[100px]"
+                                data-testid="sanction-reason"
+                              />
+                            </div>
+
+                            {/* Save Button */}
+                            <div className="flex justify-end pt-4">
+                              <Button 
+                                onClick={() => {
+                                  // Validation
+                                  if (!sanctionsForm.type) {
+                                    toast({ title: t.error, description: t.pleaseSelectSanctionType, variant: 'destructive' });
+                                    return;
+                                  }
+                                  if (!sanctionsForm.reason.trim()) {
+                                    toast({ title: t.error, description: t.pleaseEnterReason, variant: 'destructive' });
+                                    return;
+                                  }
+                                  
+                                  // Add sanction to the appropriate array
+                                  const newId = Date.now().toString();
+                                  const newCreatedAt = new Date().toISOString();
+                                  
+                                  setSanctionsData(prev => {
+                                    const updated = { ...prev };
+                                    
+                                    switch (sanctionsForm.type) {
+                                      case 'conductWarning':
+                                        updated.conductWarnings.push({
+                                          id: newId,
+                                          date: sanctionsForm.date,
+                                          reason: sanctionsForm.reason,
+                                          createdAt: newCreatedAt
+                                        });
+                                        break;
+                                      case 'conductBlame':
+                                        updated.conductBlames.push({
+                                          id: newId,
+                                          date: sanctionsForm.date,
+                                          reason: sanctionsForm.reason,
+                                          createdAt: newCreatedAt
+                                        });
+                                        break;
+                                      case 'exclusionTemporary':
+                                        const endDate = new Date(sanctionsForm.date);
+                                        endDate.setDate(endDate.getDate() + sanctionsForm.exclusionDays - 1);
+                                        updated.exclusions.push({
+                                          id: newId,
+                                          startDate: sanctionsForm.date,
+                                          endDate: endDate.toISOString().split('T')[0],
+                                          days: sanctionsForm.exclusionDays,
+                                          reason: sanctionsForm.reason,
+                                          createdAt: newCreatedAt
+                                        });
+                                        break;
+                                      case 'exclusionPermanent':
+                                        updated.permanentExclusion = {
+                                          isExcluded: true,
+                                          date: sanctionsForm.date,
+                                          reason: sanctionsForm.reason,
+                                          createdAt: newCreatedAt
+                                        };
+                                        break;
+                                    }
+                                    
+                                    return updated;
+                                  });
+                                  
+                                  // Reset form
+                                  setSanctionsForm({
+                                    type: '',
+                                    date: new Date().toISOString().split('T')[0],
+                                    reason: '',
+                                    exclusionDays: 1
+                                  });
+                                  
+                                  toast({ title: t.success, description: t.sanctionSaved });
+                                }}
+                                disabled={isSavingSanction}
+                                className="min-w-[150px]"
+                                data-testid="save-sanction"
+                              >
+                                {isSavingSanction ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    {t.loading}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    {t.saveSanction}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {!selectedStudentForSanctions && (
+                  <Card className="bg-muted">
+                    <CardContent className="pt-6">
+                      <div className="text-center text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>{t.pleaseSelectStudent}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         )}
 
