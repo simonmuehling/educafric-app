@@ -557,12 +557,7 @@ export class ModularStorage {
   }
   
   // === TEACHER METHODS ===
-  async getTeachersBySchool(schoolId: number) {
-    return [
-      { id: 1, firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@school.com', phone: '+237123456789', role: 'Teacher', schoolId },
-      { id: 2, firstName: 'Jean', lastName: 'Kouame', email: 'jean.kouame@school.com', phone: '+237987654321', role: 'Teacher', schoolId }
-    ];
-  }
+  // getTeachersBySchool implementation moved to line 1296 to avoid duplication
   
   async getTeacher(teacherId: number) {
     return { id: teacherId, firstName: 'Marie', lastName: 'Dubois', email: 'marie.dubois@school.com', role: 'Teacher' };
@@ -780,95 +775,8 @@ export class ModularStorage {
   async getTeacherStudents(teacherId: number) { return []; }
   // Duplicate methods removed - using implementations from lines 63-64
   // === TEACHER ABSENCE METHODS ===
-  async getTeacherAbsences(schoolId?: number, teacherId?: number) {
-    console.log(`[STORAGE] Getting teacher absences for school ${schoolId}, teacher ${teacherId}`);
-    // Mock comprehensive teacher absence data
-    const mockAbsences = [
-      {
-        id: 1,
-        teacherId: 101,
-        teacherName: 'Marie Dubois',
-        schoolId: 1,
-        classId: 201,
-        className: '6ème A',
-        subjectId: 301,
-        subjectName: 'Mathématiques',
-        absenceDate: '2025-08-24',
-        startTime: '08:00',
-        endTime: '12:00',
-        reason: 'Maladie',
-        reasonCategory: 'health',
-        isPlanned: false,
-        status: 'pending',
-        priority: 'high',
-        totalAffectedStudents: 25,
-        affectedClasses: [{
-          classId: 201,
-          className: '6ème A',
-          subjectId: 301,
-          subjectName: 'Mathématiques',
-          period: 'Matinée'
-        }],
-        parentsNotified: false,
-        studentsNotified: false,
-        adminNotified: true,
-        replacementTeacherId: null,
-        substituteName: null,
-        substituteConfirmed: false,
-        substituteInstructions: '',
-        isResolved: false,
-        impactAssessment: 'high',
-        createdAt: '2025-08-24T06:30:00Z',
-        updatedAt: '2025-08-24T06:30:00Z'
-      },
-      {
-        id: 2,
-        teacherId: 102,
-        teacherName: 'Jean Kouam',
-        schoolId: 1,
-        classId: 202,
-        className: '5ème B',
-        subjectId: 302,
-        subjectName: 'Français',
-        absenceDate: '2025-08-25',
-        startTime: '14:00',
-        endTime: '16:00',
-        reason: 'Formation pédagogique',
-        reasonCategory: 'training',
-        isPlanned: true,
-        status: 'resolved',
-        priority: 'medium',
-        totalAffectedStudents: 22,
-        affectedClasses: [{
-          classId: 202,
-          className: '5ème B',
-          subjectId: 302,
-          subjectName: 'Français',
-          period: 'Après-midi'
-        }],
-        parentsNotified: true,
-        studentsNotified: true,
-        adminNotified: true,
-        replacementTeacherId: 103,
-        substituteName: 'Paul Martin',
-        substituteConfirmed: true,
-        substituteInstructions: 'Continuer le chapitre 3 du manuel',
-        isResolved: true,
-        impactAssessment: 'low',
-        createdAt: '2025-08-20T10:00:00Z',
-        updatedAt: '2025-08-24T09:15:00Z'
-      }
-    ];
-    
-    if (teacherId) {
-      return mockAbsences.filter(absence => absence.teacherId === teacherId);
-    }
-    if (schoolId) {
-      return mockAbsences.filter(absence => absence.schoolId === schoolId);
-    }
-    return mockAbsences;
-  }
-
+  // getTeacherAbsences implementation moved to line 1249 to avoid duplication
+  
   async getTeacherAbsenceStats(schoolId?: number) {
     console.log(`[STORAGE] Getting teacher absence stats for school ${schoolId}`);
     return {
