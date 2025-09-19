@@ -734,10 +734,6 @@ export default function ComprehensiveBulletinGenerator() {
       orientationRecommendations: 'Recommandations d\'orientation',
       councilDate: 'Date du conseil de classe',
       councilParticipants: 'Participants du conseil',
-      classCouncilMentions: 'Mentions',
-      orientationRecommendations: 'Recommandations d\'orientation',
-      councilDate: 'Date du conseil',
-      councilParticipants: 'Participants au conseil',
       selectMention: 'Sélectionner une mention',
       mentionFelicitations: 'Félicitations',
       mentionEncouragements: 'Encouragements',
@@ -798,7 +794,6 @@ export default function ComprehensiveBulletinGenerator() {
       cancel: 'Annuler',
       confirm: 'Confirmer',
       close: 'Fermer',
-      loading: 'Chargement...',
       error: 'Erreur',
       success: 'Succès',
       
@@ -1007,21 +1002,6 @@ export default function ComprehensiveBulletinGenerator() {
       orientationRecommendationsField: 'Orientation recommendations',
       councilDateField: 'Council date',
       councilParticipantsField: 'Council participants',
-      
-      // Section Conseil de Classe - English
-      sectionClassCouncil: 'Class Council',
-      includeClassCouncilDecisions: 'Council decisions',
-      includeClassCouncilMentions: 'Council mentions',
-      includeOrientationRecommendations: 'Orientation recommendations',
-      includeCouncilDate: 'Council date',
-      classCouncilDecisions: 'Class council decisions',
-      classCouncilMentions: 'Class council mentions',
-      orientationRecommendations: 'Orientation recommendations',
-      councilDate: 'Class council date',
-      councilParticipants: 'Council participants',
-      classCouncilDecisionsPlaceholder: 'Enter the decisions made by the class council...',
-      orientationRecommendationsPlaceholder: 'Enter orientation recommendations...',
-      councilParticipantsPlaceholder: 'Names of council participants (optional)...',
       
       // Actions
       previewBulletin: 'Preview bulletin',

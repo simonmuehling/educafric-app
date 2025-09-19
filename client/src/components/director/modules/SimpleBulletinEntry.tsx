@@ -154,7 +154,7 @@ const SimpleBulletinEntry: React.FC = () => {
       };
 
       // Appel vers l'API de génération de bulletins complets
-      const response = await fetch('/api/comprehensive-bulletins/generate', {
+      const response = await fetch('/api/comprehensive-bulletins/generate-comprehensive', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
