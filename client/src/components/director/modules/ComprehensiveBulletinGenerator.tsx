@@ -3216,7 +3216,7 @@ export default function ComprehensiveBulletinGenerator() {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <CardContent className="pt-0 space-y-6">
-                            {/* Décisions du conseil */}
+                            {/* Décisions du conseil - SEUL CHAMP À GARDER */}
                             <FormField
                               control={manualDataForm.control}
                               name="classCouncilDecisions"
@@ -3234,97 +3234,6 @@ export default function ComprehensiveBulletinGenerator() {
                                   </FormControl>
                                   <FormDescription>
                                     {field.value?.length || 0}/1000 caractères
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            {/* Mentions */}
-                            <FormField
-                              control={manualDataForm.control}
-                              name="classCouncilMentions"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t.classCouncilMentionsField}</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="class-council-mentions">
-                                        <SelectValue placeholder={t.selectMention} />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="Félicitations">{t.mentionFelicitations}</SelectItem>
-                                      <SelectItem value="Encouragements">{t.mentionEncouragements}</SelectItem>
-                                      <SelectItem value="Satisfaisant">{t.mentionSatisfaisant}</SelectItem>
-                                      <SelectItem value="Mise en garde">{t.mentionMiseEnGarde}</SelectItem>
-                                      <SelectItem value="Blâme">{t.mentionBlame}</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            {/* Recommandations d'orientation */}
-                            <FormField
-                              control={manualDataForm.control}
-                              name="orientationRecommendations"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t.orientationRecommendationsField}</FormLabel>
-                                  <FormControl>
-                                    <Textarea 
-                                      {...field} 
-                                      placeholder={t.orientationRecommendationsPlaceholder}
-                                      className="min-h-[100px]"
-                                      maxLength={1000}
-                                      data-testid="orientation-recommendations"
-                                    />
-                                  </FormControl>
-                                  <FormDescription>
-                                    {field.value?.length || 0}/1000 caractères
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {/* Date du conseil */}
-                              <FormField
-                                control={manualDataForm.control}
-                                name="councilDate"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>{t.councilDateField}</FormLabel>
-                                    <FormControl>
-                                      <Input {...field} type="date" data-testid="council-date" />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            {/* Participants au conseil (optionnel) */}
-                            <FormField
-                              control={manualDataForm.control}
-                              name="councilParticipants"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t.councilParticipantsField}</FormLabel>
-                                  <FormControl>
-                                    <Textarea 
-                                      {...field} 
-                                      placeholder={t.councilParticipantsPlaceholder}
-                                      className="min-h-[80px]"
-                                      maxLength={500}
-                                      data-testid="council-participants"
-                                    />
-                                  </FormControl>
-                                  <FormDescription>
-                                    {field.value?.length || 0}/500 caractères
                                   </FormDescription>
                                   <FormMessage />
                                 </FormItem>
