@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -79,8 +79,11 @@ import {
   TrendingDown,
   Plus
 } from 'lucide-react';
-import BulkSignatureModal from '@/components/shared/BulkSignatureModal';
-import { BarChart as RBarChart, Bar, PieChart as RPieChart, Pie, Cell, LineChart as RLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+
+// Lazy loaded components
+const BulkSignatureModal = lazy(() => import('@/components/shared/BulkSignatureModal'));
+const ReportsTab = lazy(() => import('./components/ReportsTab'));
+const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
 import {
   Dialog,
   DialogContent,
@@ -280,6 +283,10 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
+  
+  // Lazy loading state for tabs (mount-on-enter pattern)
+  const [activeTab, setActiveTab] = useState('class-selection');
+  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set(['class-selection']));
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -387,18 +394,19 @@ export default function ComprehensiveBulletinGenerator() {
       
       console.log('[DISTRIBUTION_STATUS] Fetching status for bulletin:', bulletinId);
       
-      const response = await apiRequest(`/api/comprehensive-bulletins/${bulletinId}/distribution-status`);
+      const response = await fetch(`/api/comprehensive-bulletins/${bulletinId}/distribution-status`);
+      const data = await response.json();
       
-      if (response.success) {
-        setDistributionStatus(response.data);
-        console.log('[DISTRIBUTION_STATUS] Status loaded:', response.data);
+      if (response.ok) {
+        setDistributionStatus(data);
+        console.log('[DISTRIBUTION_STATUS] Status loaded:', data);
         
         toast({
           title: 'Statut de distribution chargé',
           description: 'Les détails de distribution ont été chargés avec succès.',
         });
       } else {
-        throw new Error(response.message || 'Erreur lors du chargement du statut');
+        throw new Error(data.message || 'Erreur lors du chargement du statut');
       }
     } catch (error: any) {
       console.error('[DISTRIBUTION_STATUS] Error loading status:', error);
@@ -470,7 +478,15 @@ export default function ComprehensiveBulletinGenerator() {
   
   // API optimization: Control data loading manually
   const [dataLoadingEnabled, setDataLoadingEnabled] = useState(false);
-  const [hasValidSelection, setHasValidSelection] = useState(false);
+  
+  // Handler for tab changes with mount-on-enter pattern
+  const handleTabChange = (tabValue: string) => {
+    setActiveTab(tabValue);
+    setMountedTabs(prev => new Set([...Array.from(prev), tabValue]));
+  };
+  
+  // Derived boolean instead of state - fixes gating logic
+  const hasValidSelection = !!selectedClass && !!selectedTerm && !!academicYear;
   
   // React Hook Form setup for manual data entry
   const manualDataForm = useForm<ManualDataForm>({
@@ -1304,7 +1320,7 @@ export default function ComprehensiveBulletinGenerator() {
     saveManualDataMutation.mutate(data);
   };
 
-  // Load classes on component mount (only when data loading is enabled)
+  // Load classes on component mount automatically (not restricted by dataLoadingEnabled)
   const { data: classes, isLoading: loadingClasses } = useQuery({
     queryKey: ['director-classes'],
     queryFn: async () => {
@@ -1312,7 +1328,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.classes : [];
     },
-    enabled: dataLoadingEnabled
+    enabled: true
   });
 
   // Load students with approved grades for selected class
@@ -1327,7 +1343,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: dataLoadingEnabled && !!selectedClass && hasValidSelection
+    enabled: dataLoadingEnabled && hasValidSelection
   });
 
   // Class statistics
@@ -1337,12 +1353,12 @@ export default function ComprehensiveBulletinGenerator() {
       if (!selectedClass) return null;
       
       const response = await apiRequest('GET', 
-        `/api/grade-review/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear}`
+        `/api/grade-review/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: dataLoadingEnabled && !!selectedClass && hasValidSelection
+    enabled: dataLoadingEnabled && hasValidSelection
   });
 
   // Preview bulletin data
@@ -1357,7 +1373,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: !!previewStudentId && showPreviewDialog
+    enabled: !!previewStudentId && showPreviewDialog && hasValidSelection
   });
 
   // Workflow bulletins queries
@@ -1368,7 +1384,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : [];
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && hasValidSelection
   });
 
   const { data: approvedBulletins, isLoading: loadingApproved, refetch: refetchApproved } = useQuery({
@@ -1378,7 +1394,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : [];
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && hasValidSelection
   });
 
   const { data: sentBulletins, isLoading: loadingSent, refetch: refetchSent } = useQuery({
@@ -1388,10 +1404,13 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : [];
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && hasValidSelection
   });
 
   // ===== REPORTING QUERIES =====
+  
+  // Check if reportFilters are complete for reporting queries
+  const reportFiltersComplete = !!(reportFilters.reportType && reportFilters.term && reportFilters.academicYear);
   
   // Overview report data
   const { data: overviewReport, isLoading: loadingOverview, refetch: refetchOverview } = useQuery({
@@ -1408,7 +1427,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && reportFiltersComplete
   });
   
   // Distribution statistics data
@@ -1425,7 +1444,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && reportFiltersComplete
   });
   
   // Timeline data  
@@ -1445,7 +1464,7 @@ export default function ComprehensiveBulletinGenerator() {
       const data = await response.json();
       return data.success ? data.data : null;
     },
-    enabled: dataLoadingEnabled
+    enabled: dataLoadingEnabled && reportFiltersComplete
   });
 
   // Reset selection when pendingBulletins change
@@ -1454,16 +1473,12 @@ export default function ComprehensiveBulletinGenerator() {
     setSelectAll(false);
   }, [pendingBulletins]);
   
-  // Check if user has made valid selection for data loading
+  // Reset data loading state when selection changes
   useEffect(() => {
-    const isValidSelection = selectedClass && selectedTerm && academicYear;
-    setHasValidSelection(!!isValidSelection);
-    
-    // Reset data loading state when selection changes
-    if (!isValidSelection) {
+    if (!hasValidSelection) {
       setDataLoadingEnabled(false);
     }
-  }, [selectedClass, selectedTerm, academicYear]);
+  }, [hasValidSelection]);
   
   // Manual data loading functions
   const handleLoadData = () => {
@@ -1831,7 +1846,7 @@ export default function ComprehensiveBulletinGenerator() {
       </Card>
 
       {/* Main Interface */}
-      <Tabs defaultValue="class-selection" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <div className="w-full overflow-x-auto">
           <TabsList className="flex w-max min-w-full h-auto p-1 gap-1 bg-muted rounded-lg">
             <TabsTrigger value="class-selection" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
@@ -3998,560 +4013,46 @@ export default function ComprehensiveBulletinGenerator() {
         </TabsContent>
 
         {/* ===== REPORTS TAB ===== */}
-        <TabsContent value="reports" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
-                Rapports et Statistiques
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Vue d'ensemble complète des bulletins, distributions et historique des actions
-              </p>
-            </CardHeader>
-            
-            <CardContent className="space-y-6">
-              {/* Filtres de rapport */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtres
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label>Trimestre</Label>
-                    <Select value={reportFilters.term} onValueChange={(value) => handleFilterChange('term', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Tous" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Tous les trimestres</SelectItem>
-                        <SelectItem value="T1">Trimestre 1</SelectItem>
-                        <SelectItem value="T2">Trimestre 2</SelectItem>
-                        <SelectItem value="T3">Trimestre 3</SelectItem>
-                      </SelectContent>
-                    </Select>
+        {mountedTabs.has('reports') && (
+          <TabsContent value="reports" className="space-y-4">
+            <Suspense fallback={
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Rapports et Statistiques
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Chargement des rapports et statistiques...
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="animate-pulse bg-gray-200 rounded-lg flex items-center justify-center" style={{ height: 400 }}>
+                    <div className="text-gray-500 flex items-center gap-2">
+                      <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      <span>Chargement des rapports...</span>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Classe</Label>
-                    <Select value={reportFilters.classId} onValueChange={(value) => handleFilterChange('classId', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Toutes" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Toutes les classes</SelectItem>
-                        {classes?.map((cls: any) => (
-                          <SelectItem key={cls.id} value={cls.id.toString()}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Canal</Label>
-                    <Select value={reportFilters.channel} onValueChange={(value) => handleFilterChange('channel', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Tous" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Tous les canaux</SelectItem>
-                        <SelectItem value="email">Email</SelectItem>
-                        <SelectItem value="sms">SMS</SelectItem>
-                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Année Scolaire</Label>
-                    <Select value={reportFilters.academicYear} onValueChange={(value) => handleFilterChange('academicYear', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="2024-2025" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2024-2025">2024-2025</SelectItem>
-                        <SelectItem value="2023-2024">2023-2024</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Date de début</Label>
-                    <Input
-                      type="date"
-                      value={reportFilters.startDate}
-                      onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Date de fin</Label>
-                    <Input
-                      type="date"
-                      value={reportFilters.endDate}
-                      onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Vue d'ensemble - Métriques */}
-              {overviewReport && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Vue d'ensemble
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Total Bulletins</p>
-                            <p className="text-2xl font-bold">{overviewReport.totalBulletins}</p>
-                          </div>
-                          <FileText className="h-8 w-8 text-blue-500" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Envoyés</p>
-                            <p className="text-2xl font-bold text-green-600">{overviewReport.statusBreakdown?.sent || 0}</p>
-                          </div>
-                          <CheckCircle2 className="h-8 w-8 text-green-500" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Taux Réussite Global</p>
-                            <p className="text-2xl font-bold text-purple-600">{overviewReport.distributionRates?.overall || 0}%</p>
-                          </div>
-                          <TrendingUp className="h-8 w-8 text-purple-500" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Temps Moyen (h)</p>
-                            <p className="text-2xl font-bold text-orange-600">{overviewReport.averageProcessingTime || 0}</p>
-                          </div>
-                          <Timer className="h-8 w-8 text-orange-500" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Graphique des statuts */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <PieChart className="h-4 w-4" />
-                          Répartition par Statut
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <RPieChart>
-                            <Pie
-                              data={Object.entries(overviewReport.statusBreakdown || {}).map(([status, count]) => ({
-                                name: status,
-                                value: count,
-                                fill: statusColors[status as keyof typeof statusColors] || '#6b7280'
-                              }))}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={80}
-                              dataKey="value"
-                              label={({name, value}) => `${name}: ${value}`}
-                            >
-                              {Object.entries(overviewReport.statusBreakdown || {}).map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={statusColors[entry[0] as keyof typeof statusColors] || '#6b7280'} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                          </RPieChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <BarChart3 className="h-4 w-4" />
-                          Taux de Réussite par Canal
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <RBarChart data={[
-                            { channel: 'Email', rate: overviewReport.distributionRates?.email || 0, fill: channelColors.email },
-                            { channel: 'SMS', rate: overviewReport.distributionRates?.sms || 0, fill: channelColors.sms },
-                            { channel: 'WhatsApp', rate: overviewReport.distributionRates?.whatsapp || 0, fill: channelColors.whatsapp }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="channel" />
-                            <YAxis />
-                            <Tooltip formatter={(value) => [`${value}%`, 'Taux de réussite']} />
-                            <Bar dataKey="rate" />
-                          </RBarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Performance par classe */}
-                  {overviewReport.classPerformance && overviewReport.classPerformance.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users2 className="h-4 w-4" />
-                          Performance par Classe
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
-                            <thead>
-                              <tr className="border-b">
-                                <th className="text-left p-2">Classe</th>
-                                <th className="text-center p-2">Total Bulletins</th>
-                                <th className="text-center p-2">Envoyés</th>
-                                <th className="text-center p-2">Moyenne</th>
-                                <th className="text-center p-2">Brouillons</th>
-                                <th className="text-center p-2">En Attente</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {overviewReport.classPerformance.map((cls: any, index: number) => (
-                                <tr key={index} className="border-b">
-                                  <td className="p-2 font-medium">{cls.class_name || `Classe ${cls.class_id}`}</td>
-                                  <td className="text-center p-2">{cls.total_bulletins}</td>
-                                  <td className="text-center p-2">
-                                    <Badge variant="outline" className="text-green-600 border-green-200">
-                                      {cls.sent_bulletins}
-                                    </Badge>
-                                  </td>
-                                  <td className="text-center p-2">
-                                    {cls.average_grade ? parseFloat(cls.average_grade).toFixed(1) : 'N/A'}
-                                  </td>
-                                  <td className="text-center p-2">
-                                    <Badge variant="outline" className="text-gray-600">
-                                      {cls.draft_count || 0}
-                                    </Badge>
-                                  </td>
-                                  <td className="text-center p-2">
-                                    <Badge variant="outline" className="text-orange-600 border-orange-200">
-                                      {cls.pending_count || 0}
-                                    </Badge>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* Statistiques de distribution détaillées */}
-              {distributionStats && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Activity className="h-4 w-4" />
-                    Statistiques de Distribution
-                  </h3>
-
-                  {/* Statistiques par canal */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-blue-500" />
-                              <span className="text-sm font-medium">Email</span>
-                            </div>
-                            <p className="text-lg font-bold">{distributionStats.channelStats?.email?.sent || 0}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {distributionStats.channelStats?.email?.failed || 0} échecs
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-blue-600">
-                              {distributionStats.successRates?.email || 0}%
-                            </p>
-                            <p className="text-xs text-muted-foreground">Réussite</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-orange-500" />
-                              <span className="text-sm font-medium">SMS</span>
-                            </div>
-                            <p className="text-lg font-bold">{distributionStats.channelStats?.sms?.sent || 0}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {distributionStats.channelStats?.sms?.failed || 0} échecs
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-orange-600">
-                              {distributionStats.successRates?.sms || 0}%
-                            </p>
-                            <p className="text-xs text-muted-foreground">Réussite</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <MessageSquare className="h-4 w-4 text-green-500" />
-                              <span className="text-sm font-medium">WhatsApp</span>
-                            </div>
-                            <p className="text-lg font-bold">{distributionStats.channelStats?.whatsapp?.sent || 0}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {distributionStats.channelStats?.whatsapp?.failed || 0} échecs
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-green-600">
-                              {distributionStats.successRates?.whatsapp || 0}%
-                            </p>
-                            <p className="text-xs text-muted-foreground">Réussite</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Distribution quotidienne */}
-                  {distributionStats.dailyDistribution && distributionStats.dailyDistribution.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <LineChart className="h-4 w-4" />
-                          Distribution Quotidienne
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <RLineChart data={distributionStats.dailyDistribution}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Line type="monotone" dataKey="sent" stroke="#10b981" name="Réussies" />
-                            <Line type="monotone" dataKey="failed" stroke="#ef4444" name="Échecs" />
-                          </RLineChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Analyse des erreurs */}
-                  {distributionStats.errorAnalysis && distributionStats.errorAnalysis.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          Top 10 des Erreurs
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          {distributionStats.errorAnalysis.map((error: any, index: number) => (
-                            <div key={index} className="flex justify-between items-center p-2 bg-red-50 rounded">
-                              <span className="text-sm">{error.error}</span>
-                              <Badge variant="outline" className="text-red-600 border-red-200">
-                                {error.count}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* Timeline et historique */}
-              {timelineReport && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <History className="h-4 w-4" />
-                    Timeline et Historique
-                  </h3>
-
-                  {timelineReport.timeline && timelineReport.timeline.length > 0 ? (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="space-y-4">
-                          {timelineReport.timeline.map((event: any, index: number) => (
-                            <div key={index} className="flex items-start gap-4 p-3 border-l-2 border-blue-200 bg-gray-50 rounded-r">
-                              <div className="flex-shrink-0">
-                                {event.action === 'created' && <Plus className="h-4 w-4 text-blue-500" />}
-                                {event.action === 'submitted' && <CheckCircle className="h-4 w-4 text-orange-500" />}
-                                {event.action === 'approved' && <UserCheck className="h-4 w-4 text-green-500" />}
-                                {event.action === 'signed' && <FileSignature className="h-4 w-4 text-purple-500" />}
-                                {event.action === 'distributed' && <Zap className="h-4 w-4 text-yellow-500" />}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <p className="text-sm font-medium">{event.description}</p>
-                                  <Badge variant="outline">
-                                    Bulletin #{event.bulletinId}
-                                  </Badge>
-                                </div>
-                                <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                                  <span>Étudiant #{event.studentId}</span>
-                                  <span>Classe {event.classId}</span>
-                                  <span>{event.term}</span>
-                                  <span>{new Date(event.timestamp).toLocaleDateString()} {new Date(event.timestamp).toLocaleTimeString()}</span>
-                                </div>
-                                {event.userName && (
-                                  <p className="text-xs text-gray-600 mt-1">Par: {event.userName}</p>
-                                )}
-                                {event.metadata && (
-                                  <div className="flex gap-2 mt-2">
-                                    {event.metadata.channels?.email && (
-                                      <Badge variant="outline" className="text-xs">
-                                        Email: {event.metadata.channels.email.success}✓ {event.metadata.channels.email.failed}✗
-                                      </Badge>
-                                    )}
-                                    {event.metadata.channels?.sms && (
-                                      <Badge variant="outline" className="text-xs">
-                                        SMS: {event.metadata.channels.sms.success}✓ {event.metadata.channels.sms.failed}✗
-                                      </Badge>
-                                    )}
-                                    {event.metadata.channels?.whatsapp && (
-                                      <Badge variant="outline" className="text-xs">
-                                        WhatsApp: {event.metadata.channels.whatsapp.success}✓ {event.metadata.channels.whatsapp.failed}✗
-                                      </Badge>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Pagination de timeline */}
-                        {timelineReport.pagination && timelineReport.pagination.hasMore && (
-                          <div className="mt-4 text-center">
-                            <Button variant="outline" size="sm">
-                              <ChevronDown className="h-4 w-4 mr-2" />
-                              Charger plus d'événements
-                            </Button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card>
-                      <CardContent className="p-8 text-center text-muted-foreground">
-                        <History className="h-8 w-8 mx-auto mb-4 opacity-50" />
-                        <p>Aucun événement trouvé pour la période sélectionnée</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              )}
-
-              {/* Export et Actions */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold flex items-center gap-2 mb-4">
-                  <FileDown className="h-4 w-4" />
-                  Export et Actions
-                </h3>
-                
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => handleExportReport('csv', 'overview')}
-                    disabled={exportingReport}
-                    data-testid="export-overview-csv"
-                  >
-                    {exportingReport ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
-                    Vue d'ensemble CSV
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => handleExportReport('csv', 'distribution')}
-                    disabled={exportingReport}
-                    data-testid="export-distribution-csv"
-                  >
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Distribution CSV
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => handleExportReport('csv', 'timeline')}
-                    disabled={exportingReport}
-                    data-testid="export-timeline-csv"
-                  >
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Timeline CSV
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => refetchOverview()}
-                    disabled={loadingOverview}
-                    data-testid="refresh-reports"
-                  >
-                    {loadingOverview ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                    Actualiser
-                  </Button>
-                </div>
-                
-                <div className="mt-4 text-sm text-muted-foreground">
-                  <p>💡 <strong>Astuce:</strong> Utilisez les filtres ci-dessus pour personnaliser vos rapports avant l'export.</p>
-                  <p>📊 Les graphiques sont interactifs - cliquez sur les légendes pour masquer/afficher des éléments.</p>
-                </div>
-              </div>
-
-              {/* États de chargement */}
-              {(loadingOverview || loadingDistribution || loadingTimelineReport) && (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span>Chargement des données de rapport...</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            }>
+              <ReportsTab
+                reportFilters={reportFilters}
+                handleFilterChange={handleFilterChange}
+                classes={classes}
+                overviewReport={overviewReport}
+                distributionStats={distributionStats}
+                timelineReport={timelineReport}
+                loadingOverview={loadingOverview}
+                loadingDistribution={loadingDistribution}
+                loadingTimelineReport={loadingTimelineReport}
+                exportingReport={exportingReport}
+                handleExportReport={handleExportReport}
+                refetchOverview={refetchOverview}
+              />
+            </Suspense>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Preview Dialog */}
