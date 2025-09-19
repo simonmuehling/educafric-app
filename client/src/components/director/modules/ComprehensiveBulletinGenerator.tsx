@@ -2290,6 +2290,15 @@ export default function ComprehensiveBulletinGenerator() {
                                       <p><strong>Coef:</strong> Coefficient de la matière</p>
                                       <p><strong>M*Coef:</strong> Moyenne × Coefficient</p>
                                       <p><strong>Cote:</strong> Cote d'appréciation (A-F)</p>
+                                      <p><strong>Remarks:</strong> Niveau d'acquisition des compétences</p>
+                                      <div className="mt-3 p-2 bg-white rounded border">
+                                        <p className="text-xs font-medium mb-1">Niveaux de compétences :</p>
+                                        <p className="text-xs"><strong>CVWA:</strong> Compétences Très Bien Acquises</p>
+                                        <p className="text-xs"><strong>CWA:</strong> Compétences Bien Acquises</p>
+                                        <p className="text-xs"><strong>CA:</strong> Compétences Acquises</p>
+                                        <p className="text-xs"><strong>CAA:</strong> Compétences Moyennement Acquises</p>
+                                        <p className="text-xs"><strong>CNA:</strong> Compétences Non Acquises</p>
+                                      </div>
                                     </div>
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-blue-800">🇺🇸 English:</h5>
@@ -2298,6 +2307,15 @@ export default function ComprehensiveBulletinGenerator() {
                                       <p><strong>Coef:</strong> Subject coefficient</p>
                                       <p><strong>M*Coef:</strong> Average × Coefficient</p>
                                       <p><strong>Cote:</strong> Achievement Grade (A-F)</p>
+                                      <p><strong>Remarks:</strong> Competency acquisition level</p>
+                                      <div className="mt-3 p-2 bg-white rounded border">
+                                        <p className="text-xs font-medium mb-1">Competency levels:</p>
+                                        <p className="text-xs"><strong>CVWA:</strong> Competences Very Well Acquired</p>
+                                        <p className="text-xs"><strong>CWA:</strong> Competences Well Acquired</p>
+                                        <p className="text-xs"><strong>CA:</strong> Competences Acquired</p>
+                                        <p className="text-xs"><strong>CAA:</strong> Competences Averagely Acquired</p>
+                                        <p className="text-xs"><strong>CNA:</strong> Competences Not Acquired</p>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -2311,6 +2329,7 @@ export default function ComprehensiveBulletinGenerator() {
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Coef</th>
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M*Coef</th>
                                         <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Cote</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Remarks</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -2392,6 +2411,24 @@ export default function ComprehensiveBulletinGenerator() {
                                                 <SelectItem value="D">D</SelectItem>
                                                 <SelectItem value="E">E</SelectItem>
                                                 <SelectItem value="F">F</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Select
+                                              value={subjectCoefficients[grade.subjectId]?.remarks || 'none'}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value)}
+                                            >
+                                              <SelectTrigger className="h-8 text-xs" data-testid={`remarks-${grade.subjectId}`}>
+                                                <SelectValue placeholder="-" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="none">-</SelectItem>
+                                                <SelectItem value="CVWA">CVWA - Competences Very Well Acquired</SelectItem>
+                                                <SelectItem value="CWA">CWA - Competences Well Acquired</SelectItem>
+                                                <SelectItem value="CA">CA - Competences Acquired</SelectItem>
+                                                <SelectItem value="CAA">CAA - Competences Averagely Acquired</SelectItem>
+                                                <SelectItem value="CNA">CNA - Competences Not Acquired</SelectItem>
                                               </SelectContent>
                                             </Select>
                                           </td>
