@@ -2,13 +2,13 @@
 // Integrates with director-approved grades for professional bulletin generation
 
 import { Router } from 'express';
-import { storage } from '../storage';
-import { db } from '../db';
+import { storage } from '../storage.js';
+import { db } from '../db.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
-import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator';
+import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator.js';
 import { 
   teacherGradeSubmissions, 
   users, 
@@ -19,13 +19,13 @@ import {
   bulletinWorkflow,
   bulletinComprehensive,
   bulletinSubjectCodes
-} from '../../shared/schema';
+} from '../../shared/schema.js';
 import { 
   bulletinComprehensiveValidationSchema,
   insertBulletinSubjectCodesSchema,
   type InsertBulletinComprehensive,
   type InsertBulletinSubjectCodes
-} from '../../shared/schemas/bulletinComprehensiveSchema';
+} from '../../shared/schemas/bulletinComprehensiveSchema.js';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requireAuth, requireAnyRole } from '../middleware/auth';
 
@@ -1859,9 +1859,9 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
           const recipients = studentParents.map(parent => ({
             id: parent.parent_id.toString(),
             name: `${parent.parent_first_name} ${parent.parent_last_name}`,
-            email: parent.parent_email,
-            phone: parent.parent_phone,
-            whatsapp: parent.parent_whatsapp,
+            email: parent.parent_email as string,
+            phone: parent.parent_phone as string,
+            whatsapp: parent.parent_whatsapp as string,
             role: 'Parent' as const,
             // Use parent's preferred language, fall back to school default, then 'fr'
             preferredLanguage: (
@@ -1869,7 +1869,7 @@ router.post('/send-to-parents', requireAuth, requireDirectorAuth, async (req, re
               parent.parent_language || 
               schoolDefaultLanguage
             ) as 'en' | 'fr',
-            relationToStudent: parent.relationship,
+            relationToStudent: parent.relationship as string,
             schoolName: school.name,
             schoolContact: school.email || school.phone || 'info@educafric.com'
           }));
@@ -2511,10 +2511,10 @@ router.post('/bulk-sign', requireAuth, requireDirectorAuth, async (req, res) => 
         // Update headmasterVisa field with signature
         const result = await db.update(bulletinComprehensive)
           .set({
-            headmasterVisa: signatureData,
+            headmaster_visa: signatureData,
             lastModifiedBy: user.id,
             updatedAt: new Date()
-          })
+          } as any)
           .where(eq(bulletinComprehensive.id, bulletin.id))
           .returning({
             id: bulletinComprehensive.id,
@@ -2928,10 +2928,10 @@ router.post('/bulk-sign', requireAuth, requireDirectorAuth, async (req, res) => 
     // Update all bulletins with signature
     const updateResult = await db.update(bulletinComprehensive)
       .set({
-        headmasterVisa: signatureVisa,
+        headmaster_visa: signatureVisa,
         status: 'signed', // Update status to signed
         updatedAt: new Date()
-      })
+      } as any)
       .where(inArray(bulletinComprehensive.id, bulletinIds))
       .returning({ id: bulletinComprehensive.id });
 
@@ -3409,11 +3409,11 @@ router.get('/reports/timeline', requireAuth, requireDirectorAuth, async (req, re
     .offset(parseInt(offset as string));
 
     // Get user names for timeline events
-    const userIds = [...new Set([
+    const userIds = Array.from(new Set([
       ...timelineData.map(b => b.enteredBy).filter(id => id),
       ...timelineData.map(b => b.approvedBy).filter(id => id),
       ...timelineData.map(b => b.lastModifiedBy).filter(id => id)
-    ])];
+    ]));
 
     const usersInfo = userIds.length > 0 ? await db.select({
       id: users.id,
@@ -3566,7 +3566,7 @@ router.get('/reports/timeline', requireAuth, requireDirectorAuth, async (req, re
       summary: {
         totalEvents: timeline.length,
         bulletinsAnalyzed: timelineData.length,
-        actionTypes: [...new Set(timeline.map(t => t.action))],
+        actionTypes: Array.from(new Set(timeline.map(t => t.action))),
         dateRange: {
           earliest: timeline.length > 0 ? timeline[timeline.length - 1].timestamp : null,
           latest: timeline.length > 0 ? timeline[0].timestamp : null
@@ -3974,7 +3974,7 @@ router.get('/reports/overview', requireAuth, requireDirectorAuth, async (req, re
       ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
     `);
 
-    const totalBulletins = parseInt(totalBulletinsQuery.rows[0]?.total || '0');
+    const totalBulletins = parseInt((totalBulletinsQuery.rows[0]?.total as string) || '0');
     
     const statusBreakdown = statusBreakdownQuery.rows.reduce((acc: any, row: any) => {
       acc[row.status || 'draft'] = parseInt(row.count);
@@ -3992,13 +3992,13 @@ router.get('/reports/overview', requireAuth, requireDirectorAuth, async (req, re
         ? Math.round(distributionRatesQuery.rows.reduce((acc: number, row: any) => 
             acc + parseFloat(row.delivery_rate || '0'), 0) / distributionRatesQuery.rows.length)
         : 0,
-      email: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'email')?.delivery_rate || '0')),
-      sms: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'sms')?.delivery_rate || '0')),
-      whatsapp: Math.round(parseFloat(distributionRatesQuery.rows.find(r => r.channel === 'whatsapp')?.delivery_rate || '0'))
+      email: Math.round(parseFloat((distributionRatesQuery.rows.find(r => r.channel === 'email')?.delivery_rate as string) || '0')),
+      sms: Math.round(parseFloat((distributionRatesQuery.rows.find(r => r.channel === 'sms')?.delivery_rate as string) || '0')),
+      whatsapp: Math.round(parseFloat((distributionRatesQuery.rows.find(r => r.channel === 'whatsapp')?.delivery_rate as string) || '0'))
     };
 
     const averageProcessingTime = Math.round(
-      parseFloat(processingTimeQuery.rows[0]?.avg_processing_hours || '0') * 10) / 10;
+      parseFloat((processingTimeQuery.rows[0]?.avg_processing_hours as string) || '0') * 10) / 10;
 
     const classPerformance = classPerformanceQuery.rows.map((row: any) => ({
       className: row.class_name,
@@ -4205,7 +4205,7 @@ router.get('/reports/timeline', requireAuth, requireDirectorAuth, async (req, re
       ${academicYear ? sql`AND academic_year = ${academicYear as string}` : sql``}
     `);
 
-    const totalEvents = parseInt(totalCountQuery.rows[0]?.total || '0');
+    const totalEvents = parseInt((totalCountQuery.rows[0]?.total as string) || '0');
     const limitNum = parseInt(limit as string);
     const offsetNum = parseInt(offset as string);
     
