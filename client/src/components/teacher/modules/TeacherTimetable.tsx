@@ -1,23 +1,36 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Calendar, Clock, Users, Plus, Edit, Eye, Save, 
-  Download, Upload, Filter, Search, CheckSquare
+  Download, Upload, Filter, Search, CheckSquare,
+  Send, AlertTriangle, CheckCircle, XCircle, 
+  MessageSquare, Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 const TeacherTimetable = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [selectedWeek, setSelectedWeek] = useState('current');
   const [selectedClass, setSelectedClass] = useState('all');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
+  const [isAdminResponsesOpen, setIsAdminResponsesOpen] = useState(false);
   const [currentSlot, setCurrentSlot] = useState<any>(null);
+  const [selectedTab, setSelectedTab] = useState<'schedule' | 'changes' | 'responses'>('schedule');
+  
   const [formData, setFormData] = useState({
     subject: '',
     className: '',
@@ -25,6 +38,91 @@ const TeacherTimetable = () => {
     startTime: '',
     endTime: '',
     timeSlot: ''
+  });
+
+  const [changeRequestData, setChangeRequestData] = useState({
+    changeType: '',
+    slotId: null,
+    newTime: '',
+    newRoom: '',
+    reason: '',
+    urgency: 'normal',
+    affectedClasses: []
+  });
+
+  // Fetch teacher timetable from API
+  const { data: timetableData, isLoading: timetableLoading } = useQuery({
+    queryKey: ['/api/teacher/timetable'],
+    enabled: !!user
+  });
+
+  // Fetch timetable change requests
+  const { data: changeRequestsData, isLoading: changesLoading } = useQuery({
+    queryKey: ['/api/teacher/timetable/changes'],
+    enabled: !!user && selectedTab === 'changes'
+  });
+
+  // Fetch admin responses
+  const { data: adminResponsesData, isLoading: responsesLoading } = useQuery({
+    queryKey: ['/api/teacher/admin-responses'],
+    enabled: !!user && selectedTab === 'responses'
+  });
+
+  // Submit timetable change request
+  const submitChangeRequestMutation = useMutation({
+    mutationFn: async (requestData: any) => {
+      const response = await fetch('/api/teacher/timetable/change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to submit change request');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/timetable/changes'] });
+      setIsChangeRequestOpen(false);
+      setChangeRequestData({
+        changeType: '',
+        slotId: null,
+        newTime: '',
+        newRoom: '',
+        reason: '',
+        urgency: 'normal',
+        affectedClasses: []
+      });
+      toast({
+        title: language === 'fr' ? 'Demande envoyée' : 'Request submitted',
+        description: language === 'fr' 
+          ? 'Votre demande de modification a été envoyée à l\'administration'
+          : 'Your change request has been sent to administration'
+      });
+    },
+    onError: () => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' 
+          ? 'Impossible d\'envoyer la demande de modification'
+          : 'Failed to submit change request',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Mark admin response as read
+  const markResponseReadMutation = useMutation({
+    mutationFn: async (responseId: number) => {
+      const response = await fetch(`/api/teacher/admin-responses/${responseId}/read`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to mark response as read');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/admin-responses'] });
+    }
   });
 
   const text = {
@@ -264,6 +362,85 @@ const TeacherTimetable = () => {
     });
   };
 
+  // Use real data if available, otherwise fall back to mock data
+  const schedule = timetableData?.timetable?.schedule || {
+    monday: [
+      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
+      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
+      { time: '11:00-12:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
+      { time: '14:00-15:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' }
+    ],
+    tuesday: [
+      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
+      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
+      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
+    ],
+    wednesday: [
+      { time: '09:00-10:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
+      { time: '11:00-12:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
+      { time: '14:00-15:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
+    ],
+    thursday: [
+      { time: '08:00-09:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' },
+      { time: '10:00-11:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
+      { time: '16:00-17:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' }
+    ],
+    friday: [
+      { time: '09:00-10:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' },
+      { time: '11:00-12:00', subject: 'Mathématiques', class: '4ème A', room: 'Salle 10', color: 'purple' },
+      { time: '15:00-16:00', subject: 'Mathématiques', class: '5ème A', room: 'Salle 15', color: 'green' }
+    ],
+    saturday: [
+      { time: '08:00-09:00', subject: 'Mathématiques', class: '6ème A', room: 'Salle 12', color: 'blue' },
+      { time: '10:00-11:00', subject: 'Mathématiques', class: '6ème B', room: 'Salle 13', color: 'orange' }
+    ]
+  };
+
+  const changeRequests = changeRequestsData?.changeRequests || [];
+  const adminResponses = adminResponsesData?.responses || [];
+  const unreadResponsesCount = adminResponsesData?.unreadCount || 0;
+
+  const handleSubmitChangeRequest = () => {
+    if (!changeRequestData.changeType || !changeRequestData.reason) {
+      toast({
+        title: language === 'fr' ? 'Informations manquantes' : 'Missing information',
+        description: language === 'fr' 
+          ? 'Veuillez remplir le type de changement et le motif'
+          : 'Please fill in change type and reason',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    submitChangeRequestMutation.mutate(changeRequestData);
+  };
+
+  const handleMarkResponseRead = (responseId: number) => {
+    markResponseReadMutation.mutate(responseId);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, string> = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800',
+      revision_requested: 'bg-orange-100 text-orange-800'
+    };
+
+    const statusText: Record<string, string> = {
+      pending: language === 'fr' ? 'En attente' : 'Pending',
+      approved: language === 'fr' ? 'Approuvé' : 'Approved',
+      rejected: language === 'fr' ? 'Refusé' : 'Rejected',
+      revision_requested: language === 'fr' ? 'Révision demandée' : 'Revision requested'
+    };
+
+    return (
+      <Badge className={variants[status] || 'bg-gray-100 text-gray-800'}>
+        {statusText[status] || status}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -277,16 +454,67 @@ const TeacherTimetable = () => {
             <Download className="w-4 h-4 mr-2" />
             {t.exportPdf}
           </Button>
-          <Button onClick={() => setIsEditDialogOpen(true)}>
+          <Button onClick={() => setIsChangeRequestOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Send className="w-4 h-4 mr-2" />
+            {language === 'fr' ? 'Demande de modification' : 'Request change'}
+          </Button>
+          <Button onClick={() => setIsEditDialogOpen(true)} variant="outline">
             <Plus className="w-4 h-4 mr-2" />
             {t.addSlot}
           </Button>
         </div>
       </div>
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <ModernCard className="p-4 text-center activity-card-blue">
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        <Button
+          variant={selectedTab === 'schedule' ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setSelectedTab('schedule')}
+          className="flex-1"
+          data-testid="tab-schedule"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          {language === 'fr' ? 'Planning' : 'Schedule'}
+        </Button>
+        <Button
+          variant={selectedTab === 'changes' ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setSelectedTab('changes')}
+          className="flex-1"
+          data-testid="tab-changes"
+        >
+          <Edit className="w-4 h-4 mr-2" />
+          {language === 'fr' ? 'Demandes' : 'Requests'}
+          {changeRequests.filter((req: any) => req.status === 'pending').length > 0 && (
+            <Badge variant="secondary" className="ml-2 text-xs">
+              {changeRequests.filter((req: any) => req.status === 'pending').length}
+            </Badge>
+          )}
+        </Button>
+        <Button
+          variant={selectedTab === 'responses' ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setSelectedTab('responses')}
+          className="flex-1"
+          data-testid="tab-responses"
+        >
+          <MessageSquare className="w-4 h-4 mr-2" />
+          {language === 'fr' ? 'Réponses Admin' : 'Admin Responses'}
+          {unreadResponsesCount > 0 && (
+            <Badge variant="destructive" className="ml-2 text-xs">
+              {unreadResponsesCount}
+            </Badge>
+          )}
+        </Button>
+      </div>
+
+      {/* Tab Content */}
+      {selectedTab === 'schedule' && (
+        <>
+          {/* Statistiques */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <ModernCard className="p-4 text-center activity-card-blue">
           <div className="text-2xl font-bold text-gray-800">{getTotalHours()}</div>
           <div className="text-sm text-gray-600">{t.totalHours}</div>
         </ModernCard>
