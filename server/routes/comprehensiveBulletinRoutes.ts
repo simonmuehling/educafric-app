@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { ComprehensiveBulletinGenerator, type StudentGradeData, type SchoolInfo, type BulletinOptions } from '../services/comprehensiveBulletinGenerator.js';
+import { hostingerMailService } from '../services/hostingerMailService.js';
 import { 
   teacherGradeSubmissions, 
   users, 
@@ -4639,6 +4640,230 @@ router.get('/reports/export', requireAuth, requireDirectorAuth, async (req, res)
     res.status(500).json({
       success: false,
       message: 'Failed to export report',
+      error: error.message
+    });
+  }
+});
+
+// ============= BULLETIN EMAIL SHARING ROUTES =============
+
+// Send individual bulletin via email
+router.post('/send-email', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { 
+      bulletinId, 
+      studentName, 
+      studentClass, 
+      term, 
+      academicYear, 
+      schoolName, 
+      parentEmail,
+      bulletinPdfUrl,
+      schoolLogo,
+      teacherName,
+      directorName,
+      grades,
+      generalAppreciation,
+      rank,
+      totalStudents,
+      average,
+      classAverage
+    } = req.body;
+
+    console.log('[BULLETIN_EMAIL] 📧 Sending individual bulletin:', { 
+      bulletinId, 
+      studentName, 
+      parentEmail, 
+      schoolId 
+    });
+
+    // Validation
+    if (!studentName || !parentEmail || !term || !academicYear || !schoolName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: studentName, parentEmail, term, academicYear, schoolName'
+      });
+    }
+
+    // Send email using Hostinger service
+    const emailSent = await hostingerMailService.sendBulletin({
+      studentName,
+      studentClass: studentClass || 'Non spécifiée',
+      term,
+      academicYear,
+      schoolName,
+      parentEmail,
+      bulletinPdfUrl,
+      schoolLogo,
+      teacherName,
+      directorName,
+      grades,
+      generalAppreciation,
+      rank,
+      totalStudents,
+      average,
+      classAverage
+    });
+
+    if (emailSent) {
+      console.log('[BULLETIN_EMAIL] ✅ Individual bulletin email sent successfully:', { 
+        studentName, 
+        parentEmail 
+      });
+      
+      res.json({
+        success: true,
+        message: `Bulletin envoyé avec succès à ${parentEmail}`,
+        data: {
+          studentName,
+          parentEmail,
+          sentAt: new Date().toISOString()
+        }
+      });
+    } else {
+      console.error('[BULLETIN_EMAIL] ❌ Failed to send individual bulletin email:', { 
+        studentName, 
+        parentEmail 
+      });
+      
+      res.status(500).json({
+        success: false,
+        message: 'Échec de l\'envoi de l\'email. Veuillez réessayer.'
+      });
+    }
+
+  } catch (error: any) {
+    console.error('[BULLETIN_EMAIL] ❌ Error sending individual bulletin email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'envoi de l\'email',
+      error: error.message
+    });
+  }
+});
+
+// Send bulk bulletins via email
+router.post('/send-bulk-email', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    const { bulletins } = req.body;
+
+    console.log('[BULLETIN_EMAIL] 📧 Sending bulk bulletins:', { 
+      count: bulletins?.length, 
+      schoolId 
+    });
+
+    // Validation
+    if (!bulletins || !Array.isArray(bulletins) || bulletins.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bulletins array is required and cannot be empty'
+      });
+    }
+
+    // Validate each bulletin has required fields
+    const invalidBulletins = bulletins.filter(bulletin => 
+      !bulletin.studentName || !bulletin.parentEmail || !bulletin.term || !bulletin.academicYear || !bulletin.schoolName
+    );
+
+    if (invalidBulletins.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `${invalidBulletins.length} bulletin(s) have missing required fields`,
+        invalidBulletins: invalidBulletins.map((b, index) => ({ index, studentName: b.studentName }))
+      });
+    }
+
+    // Send bulk emails using Hostinger service
+    const result = await hostingerMailService.sendBulkBulletins(bulletins.map(bulletin => ({
+      studentName: bulletin.studentName,
+      studentClass: bulletin.studentClass || 'Non spécifiée',
+      term: bulletin.term,
+      academicYear: bulletin.academicYear,
+      schoolName: bulletin.schoolName,
+      parentEmail: bulletin.parentEmail,
+      bulletinPdfUrl: bulletin.bulletinPdfUrl,
+      schoolLogo: bulletin.schoolLogo,
+      teacherName: bulletin.teacherName,
+      directorName: bulletin.directorName,
+      grades: bulletin.grades,
+      generalAppreciation: bulletin.generalAppreciation,
+      rank: bulletin.rank,
+      totalStudents: bulletin.totalStudents,
+      average: bulletin.average,
+      classAverage: bulletin.classAverage
+    })));
+
+    console.log('[BULLETIN_EMAIL] ✅ Bulk bulletin emails processed:', { 
+      total: bulletins.length,
+      successful: result.success,
+      failed: result.failed
+    });
+
+    res.json({
+      success: true,
+      message: `Envoi terminé: ${result.success} réussis, ${result.failed} échecs`,
+      data: {
+        total: bulletins.length,
+        successful: result.success,
+        failed: result.failed,
+        results: result.results,
+        sentAt: new Date().toISOString()
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULLETIN_EMAIL] ❌ Error sending bulk bulletin emails:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'envoi des emails en masse',
+      error: error.message
+    });
+  }
+});
+
+// Get email sending status/history (optional - for future implementation)
+router.get('/email-status/:bulletinId', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const { bulletinId } = req.params;
+    
+    // For now, return a placeholder response
+    // In future, this could track email sending history in database
+    res.json({
+      success: true,
+      message: 'Email status retrieved',
+      data: {
+        bulletinId,
+        emailsSent: 0,
+        lastSentAt: null,
+        status: 'ready_to_send'
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[BULLETIN_EMAIL] ❌ Error getting email status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération du statut email',
       error: error.message
     });
   }

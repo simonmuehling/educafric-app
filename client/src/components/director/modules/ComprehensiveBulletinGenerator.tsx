@@ -880,6 +880,14 @@ export default function ComprehensiveBulletinGenerator() {
       sentToParents: 'Envoyé aux parents',
       approve: 'Approuver',
       send: 'Envoyer',
+      sendEmail: 'Envoyer par Email',
+      sendBulkEmail: 'Envoi Emails en Masse',
+      emailSent: 'Email envoyé avec succès',
+      emailFailed: 'Échec envoi email',
+      emailInProgress: 'Envoi en cours...',
+      selectStudentsForEmail: 'Sélectionnez des élèves pour l\'envoi email',
+      confirmEmailSend: 'Confirmer l\'envoi des emails',
+      emailBulletins: 'Envoyer les Bulletins par Email',
       viewDetails: 'Voir détails',
       
       // Counts
@@ -1181,6 +1189,14 @@ export default function ComprehensiveBulletinGenerator() {
       sentToParents: 'Sent to parents',
       approve: 'Approve',
       send: 'Send',
+      sendEmail: 'Send via Email',
+      sendBulkEmail: 'Send Bulk Emails',
+      emailSent: 'Email sent successfully',
+      emailFailed: 'Email sending failed',
+      emailInProgress: 'Sending emails...',
+      selectStudentsForEmail: 'Select students for email sending',
+      confirmEmailSend: 'Confirm email sending',
+      emailBulletins: 'Email Bulletins',
       viewDetails: 'View details',
       
       // Counts
@@ -1514,6 +1530,169 @@ export default function ComprehensiveBulletinGenerator() {
   
   const onManualDataSubmit = (data: ManualDataForm) => {
     saveManualDataMutation.mutate(data);
+  };
+
+  // ============= EMAIL SHARING MUTATIONS =============
+  
+  // Send individual bulletin via email
+  const sendBulletinEmailMutation = useMutation({
+    mutationFn: async (bulletinData: {
+      bulletinId?: number;
+      studentName: string;
+      studentClass: string;
+      term: string;
+      academicYear: string;
+      schoolName: string;
+      parentEmail: string;
+      bulletinPdfUrl?: string;
+      schoolLogo?: string;
+      teacherName?: string;
+      directorName?: string;
+      grades?: Array<{
+        subject: string;
+        grade: number;
+        coefficient: number;
+        appreciation?: string;
+      }>;
+      generalAppreciation?: string;
+      rank?: number;
+      totalStudents?: number;
+      average?: number;
+      classAverage?: number;
+    }) => {
+      const response = await apiRequest('POST', '/api/comprehensive-bulletins/send-email', bulletinData);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t.emailSent,
+        description: data.message || 'Email envoyé avec succès',
+      });
+      
+      // Optionally refresh bulletin data
+      queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
+    },
+    onError: (error: any) => {
+      console.error('[EMAIL] Error sending bulletin email:', error);
+      toast({
+        title: t.emailFailed,
+        description: error.message || 'Erreur lors de l\'envoi de l\'email',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Send bulk bulletins via email
+  const sendBulkEmailMutation = useMutation({
+    mutationFn: async (bulletins: Array<{
+      bulletinId?: number;
+      studentName: string;
+      studentClass: string;
+      term: string;
+      academicYear: string;
+      schoolName: string;
+      parentEmail: string;
+      bulletinPdfUrl?: string;
+      schoolLogo?: string;
+      teacherName?: string;
+      directorName?: string;
+      grades?: Array<{
+        subject: string;
+        grade: number;
+        coefficient: number;
+        appreciation?: string;
+      }>;
+      generalAppreciation?: string;
+      rank?: number;
+      totalStudents?: number;
+      average?: number;
+      classAverage?: number;
+    }>) => {
+      const response = await apiRequest('POST', '/api/comprehensive-bulletins/send-bulk-email', { bulletins });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: t.emailSent,
+        description: data.message || `${data.data?.successful || 0} emails envoyés avec succès`,
+      });
+      
+      // Refresh bulletin data
+      queryClient.invalidateQueries({ queryKey: ['comprehensive-bulletins'] });
+    },
+    onError: (error: any) => {
+      console.error('[EMAIL] Error sending bulk emails:', error);
+      toast({
+        title: t.emailFailed,
+        description: error.message || 'Erreur lors de l\'envoi des emails en masse',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Helper function to extract email data from bulletin
+  const extractEmailDataFromBulletin = (bulletin: any) => {
+    return {
+      bulletinId: bulletin.id,
+      studentName: bulletin.studentName || bulletin.student?.firstName + ' ' + bulletin.student?.lastName,
+      studentClass: bulletin.className || bulletin.class?.name || 'Non spécifiée',
+      term: bulletin.term || selectedTerm,
+      academicYear: bulletin.academicYear || academicYear,
+      schoolName: bulletin.schoolName || 'École',
+      parentEmail: bulletin.parentEmail || bulletin.student?.parentEmail || '',
+      bulletinPdfUrl: bulletin.pdfUrl,
+      schoolLogo: bulletin.schoolLogo,
+      teacherName: bulletin.teacherName,
+      directorName: bulletin.directorName,
+      grades: bulletin.grades,
+      generalAppreciation: bulletin.generalAppreciation,
+      rank: bulletin.rank,
+      totalStudents: bulletin.totalStudents,
+      average: bulletin.average,
+      classAverage: bulletin.classAverage
+    };
+  };
+
+  // Handle individual email send
+  const handleSendEmail = (bulletin: any) => {
+    const emailData = extractEmailDataFromBulletin(bulletin);
+    
+    if (!emailData.parentEmail) {
+      toast({
+        title: 'Email manquant',
+        description: 'Aucune adresse email trouvée pour ce parent',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    sendBulletinEmailMutation.mutate(emailData);
+  };
+
+  // Handle bulk email send
+  const handleSendBulkEmails = (bulletins: any[]) => {
+    const emailBulletins = bulletins
+      .map(extractEmailDataFromBulletin)
+      .filter(bulletin => bulletin.parentEmail); // Only include bulletins with email
+    
+    if (emailBulletins.length === 0) {
+      toast({
+        title: 'Aucun email',
+        description: 'Aucune adresse email trouvée pour les bulletins sélectionnés',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (emailBulletins.length !== bulletins.length) {
+      const missing = bulletins.length - emailBulletins.length;
+      toast({
+        title: 'Emails manquants',
+        description: `${missing} bulletin(s) n'ont pas d'adresse email et seront ignorés`,
+      });
+    }
+    
+    sendBulkEmailMutation.mutate(emailBulletins);
   };
 
   // Load classes on component mount automatically (not restricted by dataLoadingEnabled)
@@ -4811,6 +4990,23 @@ export default function ComprehensiveBulletinGenerator() {
                         </Button>
                         <Button
                           size="sm"
+                          onClick={() => {
+                            const selectedBulletinData = approvedBulletins.filter((b: any) => selectedBulletins.includes(b.id));
+                            handleSendBulkEmails(selectedBulletinData);
+                          }}
+                          disabled={sendBulkEmailMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                          data-testid="button-bulk-email"
+                        >
+                          {sendBulkEmailMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Mail className="h-4 w-4 mr-2" />
+                          )}
+                          {t.sendBulkEmail}
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
                             setSelectedBulletins([]);
@@ -4962,6 +5158,23 @@ export default function ComprehensiveBulletinGenerator() {
                                   {t.viewDetails}
                                 </Button>
                               </div>
+                              
+                              {/* Email Sharing Button */}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                                onClick={() => handleSendEmail(bulletin)}
+                                disabled={sendBulletinEmailMutation.isPending}
+                                data-testid={`email-bulletin-${bulletin.id}`}
+                              >
+                                {sendBulletinEmailMutation.isPending ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <Mail className="h-4 w-4 mr-1" />
+                                )}
+                                {t.sendEmail}
+                              </Button>
                               
                               {/* Individual Signature Button */}
                               <Button

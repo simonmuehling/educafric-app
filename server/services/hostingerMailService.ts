@@ -633,6 +633,457 @@ ${content}
 EDUCAFRIC Platform
     `;
   }
+
+  // ============= BULLETIN EMAIL SHARING =============
+  
+  /**
+   * Send bulletin via email with school branding
+   */
+  async sendBulletin(bulletinData: {
+    studentName: string;
+    studentClass: string;
+    term: string;
+    academicYear: string;
+    schoolName: string;
+    parentEmail: string;
+    bulletinPdfUrl?: string;
+    schoolLogo?: string;
+    teacherName?: string;
+    directorName?: string;
+    grades?: Array<{
+      subject: string;
+      grade: number;
+      coefficient: number;
+      appreciation?: string;
+    }>;
+    generalAppreciation?: string;
+    rank?: number;
+    totalStudents?: number;
+    average?: number;
+    classAverage?: number;
+  }): Promise<boolean> {
+    try {
+      console.log(`[HOSTINGER_MAIL] Sending bulletin for ${bulletinData.studentName} to ${bulletinData.parentEmail}`);
+      
+      const html = this.generateBulletinEmailHTML(bulletinData);
+      const text = this.generateBulletinEmailText(bulletinData);
+      
+      const success = await this.sendEmail({
+        to: bulletinData.parentEmail,
+        subject: `📋 Bulletin Scolaire - ${bulletinData.studentName} - ${bulletinData.term} ${bulletinData.academicYear} | ${bulletinData.schoolName}`,
+        html,
+        text
+      });
+      
+      console.log(`[HOSTINGER_MAIL] Bulletin email sent: ${success ? '✅' : '❌'}`);
+      return success;
+    } catch (error) {
+      console.error('[HOSTINGER_MAIL] Error sending bulletin:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send bulk bulletins to multiple parents
+   */
+  async sendBulkBulletins(bulletins: Array<{
+    studentName: string;
+    studentClass: string;
+    term: string;
+    academicYear: string;
+    schoolName: string;
+    parentEmail: string;
+    bulletinPdfUrl?: string;
+    schoolLogo?: string;
+    teacherName?: string;
+    directorName?: string;
+    grades?: Array<{
+      subject: string;
+      grade: number;
+      coefficient: number;
+      appreciation?: string;
+    }>;
+    generalAppreciation?: string;
+    rank?: number;
+    totalStudents?: number;
+    average?: number;
+    classAverage?: number;
+  }>): Promise<{ success: number; failed: number; results: boolean[] }> {
+    try {
+      console.log(`[HOSTINGER_MAIL] Sending bulk bulletins to ${bulletins.length} parents`);
+      
+      const promises = bulletins.map(bulletin => this.sendBulletin(bulletin));
+      const results = await Promise.all(promises);
+      
+      const success = results.filter(r => r).length;
+      const failed = results.filter(r => !r).length;
+      
+      console.log(`[HOSTINGER_MAIL] Bulk bulletin sending complete: ${success} successful, ${failed} failed`);
+      
+      return { success, failed, results };
+    } catch (error) {
+      console.error('[HOSTINGER_MAIL] Error sending bulk bulletins:', error);
+      return { success: 0, failed: bulletins.length, results: bulletins.map(() => false) };
+    }
+  }
+
+  /**
+   * Generate HTML template for bulletin email
+   */
+  private generateBulletinEmailHTML(data: {
+    studentName: string;
+    studentClass: string;
+    term: string;
+    academicYear: string;
+    schoolName: string;
+    parentEmail: string;
+    bulletinPdfUrl?: string;
+    schoolLogo?: string;
+    teacherName?: string;
+    directorName?: string;
+    grades?: Array<{
+      subject: string;
+      grade: number;
+      coefficient: number;
+      appreciation?: string;
+    }>;
+    generalAppreciation?: string;
+    rank?: number;
+    totalStudents?: number;
+    average?: number;
+    classAverage?: number;
+  }): string {
+    const timestamp = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' });
+    
+    return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bulletin Scolaire - ${data.studentName}</title>
+        <style>
+            body { 
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                margin: 0; 
+                padding: 0; 
+                background-color: #f5f7fa;
+                line-height: 1.6;
+            }
+            .container { 
+                max-width: 800px; 
+                margin: 0 auto; 
+                background: white; 
+                border-radius: 12px; 
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+                overflow: hidden;
+            }
+            .header { 
+                background: linear-gradient(135deg, #0079F2 0%, #00A8FF 100%); 
+                color: white; 
+                padding: 30px; 
+                text-align: center; 
+                position: relative;
+            }
+            .school-logo {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                margin: 0 auto 15px;
+                background: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                font-weight: bold;
+                color: #0079F2;
+            }
+            .header h1 { 
+                margin: 0; 
+                font-size: 28px; 
+                font-weight: 300; 
+                margin-bottom: 5px;
+            }
+            .header .school-name { 
+                font-size: 18px; 
+                opacity: 0.95; 
+                margin-bottom: 10px;
+                font-weight: 500;
+            }
+            .header .subtitle { 
+                font-size: 14px; 
+                opacity: 0.8; 
+            }
+            .content { 
+                padding: 40px 30px; 
+            }
+            .student-info {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 25px;
+                margin-bottom: 30px;
+                border-left: 5px solid #0079F2;
+            }
+            .student-info h2 {
+                margin: 0 0 15px 0;
+                color: #2c3e50;
+                font-size: 22px;
+            }
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            .info-item {
+                display: flex;
+                align-items: center;
+            }
+            .info-label {
+                font-weight: 600;
+                color: #555;
+                margin-right: 10px;
+                min-width: 80px;
+            }
+            .info-value {
+                color: #2c3e50;
+                font-weight: 500;
+            }
+            .performance-summary {
+                background: linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%);
+                border-radius: 10px;
+                padding: 25px;
+                margin: 30px 0;
+                text-align: center;
+            }
+            .performance-summary h3 {
+                margin: 0 0 20px 0;
+                color: #1976d2;
+                font-size: 20px;
+            }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 20px;
+                margin-top: 20px;
+            }
+            .stat-item {
+                text-align: center;
+            }
+            .stat-value {
+                font-size: 24px;
+                font-weight: bold;
+                color: #1976d2;
+                display: block;
+            }
+            .stat-label {
+                font-size: 12px;
+                color: #666;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-top: 5px;
+            }
+            .download-section {
+                background: #e8f5e8;
+                border: 1px solid #c8e6c9;
+                border-radius: 10px;
+                padding: 25px;
+                text-align: center;
+                margin: 30px 0;
+            }
+            .download-btn {
+                display: inline-block;
+                background: #4caf50;
+                color: white;
+                padding: 12px 30px;
+                border-radius: 25px;
+                text-decoration: none;
+                font-weight: 600;
+                margin-top: 15px;
+                transition: background 0.3s;
+            }
+            .footer { 
+                background: #2c3e50; 
+                color: white; 
+                padding: 25px; 
+                text-align: center; 
+            }
+            .footer-content {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+            .footer h4 {
+                margin: 0 0 15px 0;
+                font-size: 18px;
+            }
+            .footer p {
+                margin: 5px 0;
+                opacity: 0.9;
+            }
+            .footer .timestamp {
+                margin-top: 20px;
+                padding-top: 15px;
+                border-top: 1px solid #34495e;
+                font-size: 12px;
+                opacity: 0.7;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                ${data.schoolLogo ? 
+                    `<img src="${data.schoolLogo}" alt="Logo École" style="width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 15px;" />` : 
+                    `<div class="school-logo">🏫</div>`
+                }
+                <h1>📋 Bulletin Scolaire</h1>
+                <div class="school-name">${data.schoolName}</div>
+                <div class="subtitle">${data.term} - ${data.academicYear}</div>
+            </div>
+            
+            <div class="content">
+                <div class="student-info">
+                    <h2>👨‍🎓 Informations de l'Élève</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Nom :</span>
+                            <span class="info-value">${data.studentName}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Classe :</span>
+                            <span class="info-value">${data.studentClass}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Période :</span>
+                            <span class="info-value">${data.term}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Année :</span>
+                            <span class="info-value">${data.academicYear}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${data.average !== undefined || data.rank !== undefined ? `
+                <div class="performance-summary">
+                    <h3>📊 Résumé des Performances</h3>
+                    <div class="stats-grid">
+                        ${data.average !== undefined ? `
+                        <div class="stat-item">
+                            <span class="stat-value">${data.average.toFixed(2)}/20</span>
+                            <div class="stat-label">Moyenne Générale</div>
+                        </div>
+                        ` : ''}
+                        ${data.classAverage !== undefined ? `
+                        <div class="stat-item">
+                            <span class="stat-value">${data.classAverage.toFixed(2)}/20</span>
+                            <div class="stat-label">Moyenne Classe</div>
+                        </div>
+                        ` : ''}
+                        ${data.rank !== undefined && data.totalStudents !== undefined ? `
+                        <div class="stat-item">
+                            <span class="stat-value">${data.rank}/${data.totalStudents}</span>
+                            <div class="stat-label">Rang</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${data.generalAppreciation ? `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 20px; margin: 25px 0; border-left: 4px solid #fdcb6e;">
+                    <h4 style="margin: 0 0 10px 0; color: #856404;">💬 Appréciation Générale</h4>
+                    <p style="margin: 0; color: #856404; font-style: italic;">${data.generalAppreciation}</p>
+                </div>
+                ` : ''}
+
+                ${data.bulletinPdfUrl ? `
+                <div class="download-section">
+                    <h4>📄 Télécharger le Bulletin Complet</h4>
+                    <p>Cliquez sur le bouton ci-dessous pour télécharger la version PDF complète du bulletin scolaire.</p>
+                    <a href="${data.bulletinPdfUrl}" class="download-btn" target="_blank">
+                        📥 Télécharger le PDF
+                    </a>
+                </div>
+                ` : ''}
+
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 30px;">
+                    <h4 style="margin: 0 0 15px 0; color: #2c3e50;">📞 Contact École</h4>
+                    <p style="margin: 5px 0; color: #555;">
+                        <strong>École :</strong> ${data.schoolName}<br>
+                        ${data.teacherName ? `<strong>Enseignant(e) :</strong> ${data.teacherName}<br>` : ''}
+                        ${data.directorName ? `<strong>Directeur/Directrice :</strong> ${data.directorName}<br>` : ''}
+                        <strong>Email :</strong> <a href="mailto:info@educafric.com">info@educafric.com</a><br>
+                        <strong>Site Web :</strong> <a href="https://www.educafric.com">www.educafric.com</a>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <div class="footer-content">
+                    <h4>🎓 EDUCAFRIC Platform</h4>
+                    <p><strong>Système de Gestion Éducative Avancé</strong></p>
+                    <p>📧 Support : info@educafric.com | ☎️ +237 656 200 472</p>
+                    <p>🌐 www.educafric.com</p>
+                    <div class="timestamp">
+                        Email généré automatiquement le ${timestamp}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+  }
+
+  /**
+   * Generate plain text version for bulletin email
+   */
+  private generateBulletinEmailText(data: {
+    studentName: string;
+    studentClass: string;
+    term: string;
+    academicYear: string;
+    schoolName: string;
+    average?: number;
+    rank?: number;
+    totalStudents?: number;
+    grades?: Array<{
+      subject: string;
+      grade: number;
+      coefficient: number;
+    }>;
+    generalAppreciation?: string;
+  }): string {
+    const timestamp = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Douala' });
+    
+    return `
+📋 BULLETIN SCOLAIRE
+${data.schoolName}
+
+👨‍🎓 INFORMATIONS ÉLÈVE
+Nom: ${data.studentName}
+Classe: ${data.studentClass}
+Période: ${data.term}
+Année Scolaire: ${data.academicYear}
+
+${data.average !== undefined ? `📊 PERFORMANCES
+Moyenne Générale: ${data.average.toFixed(2)}/20
+${data.rank !== undefined && data.totalStudents !== undefined ? `Rang: ${data.rank}/${data.totalStudents}` : ''}` : ''}
+
+${data.generalAppreciation ? `💬 APPRÉCIATION GÉNÉRALE
+${data.generalAppreciation}` : ''}
+
+📞 CONTACT ÉCOLE
+École: ${data.schoolName}
+Email: info@educafric.com
+Site: www.educafric.com
+Téléphone: +237 656 200 472
+
+🎓 EDUCAFRIC Platform
+Email généré automatiquement le ${timestamp}
+    `.trim();
+  }
+
 }
 
 export const hostingerMailService = new HostingerMailService();
