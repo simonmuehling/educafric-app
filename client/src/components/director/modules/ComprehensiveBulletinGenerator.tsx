@@ -760,7 +760,7 @@ export default function ComprehensiveBulletinGenerator() {
           </div>
         </div>
         {/* Design Canvas */}
-        <div className="lg:col-span-2 border rounded-lg relative bg-white" id="design-canvas">
+        <div className="lg:col-span-1 border rounded-lg relative bg-white" id="design-canvas">
           <div className="absolute top-2 left-2 right-2 flex justify-between items-center z-10">
             <h3 className="font-semibold flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
               <Layout className="h-4 w-4" />
@@ -885,6 +885,151 @@ export default function ComprehensiveBulletinGenerator() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Properties Panel */}
+        <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            {t.elementProperties}
+          </h3>
+          
+          {selectedElement ? (
+            <div className="space-y-4">
+              {(() => {
+                const element = templateElements.find(el => el.id === selectedElement);
+                if (!element) return null;
+                
+                return (
+                  <>
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700">{t.position}</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                          <Label className="text-xs">X</Label>
+                          <Input
+                            type="number"
+                            value={Math.round(element.position.x)}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              position: { ...element.position, x: parseInt(e.target.value) || 0 }
+                            })}
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Y</Label>
+                          <Input
+                            type="number"
+                            value={Math.round(element.position.y)}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              position: { ...element.position, y: parseInt(e.target.value) || 0 }
+                            })}
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700">{t.size}</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div>
+                          <Label className="text-xs">{t.width}</Label>
+                          <Input
+                            type="number"
+                            value={element.position.width}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              position: { ...element.position, width: parseInt(e.target.value) || 100 }
+                            })}
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">{t.height}</Label>
+                          <Input
+                            type="number"
+                            value={element.position.height}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              position: { ...element.position, height: parseInt(e.target.value) || 40 }
+                            })}
+                            className="h-7 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700">{t.content}</Label>
+                      <Input
+                        value={element.properties.label || ''}
+                        onChange={(e) => handleUpdateElement(element.id, {
+                          properties: { ...element.properties, label: e.target.value }
+                        })}
+                        className="h-7 text-xs mt-1"
+                        placeholder="Texte à afficher..."
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs font-semibold text-gray-700">{t.style}</Label>
+                      <div className="space-y-2 mt-1">
+                        <div>
+                          <Label className="text-xs">{t.fontSize}</Label>
+                          <Input
+                            type="number"
+                            value={element.properties.fontSize || 12}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              properties: { ...element.properties, fontSize: parseInt(e.target.value) || 12 }
+                            })}
+                            className="h-7 text-xs"
+                            min="8"
+                            max="72"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">{t.color}</Label>
+                          <Input
+                            type="color"
+                            value={element.properties.color || '#374151'}
+                            onChange={(e) => handleUpdateElement(element.id, {
+                              properties: { ...element.properties, color: e.target.value }
+                            })}
+                            className="h-7 w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setTemplateElements(prev => prev.filter(el => el.id !== element.id));
+                          setSelectedElement(null);
+                          
+                          toast({
+                            title: 'Élément supprimé',
+                            description: 'L\'élément a été retiré du modèle'
+                          });
+                        }}
+                        className="w-full"
+                        data-testid="delete-element-btn"
+                      >
+                        <Trash2 className="h-3 w-3 mr-2" />
+                        Supprimer
+                      </Button>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Square className="h-12 w-12 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Sélectionnez un élément pour modifier ses propriétés</p>
+            </div>
+          )}
         </div>
       </div>
       {/* Drag Overlay */}
