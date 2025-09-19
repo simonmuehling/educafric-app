@@ -69,7 +69,7 @@ const TeacherGradebook: React.FC = () => {
   const [selectedColumns, setSelectedColumns] = useState<Set<number>>(new Set());
 
   // Fetch teacher classes
-  const { data: classes = [], isLoading: classesLoading } = useQuery({
+  const { data: classesData, isLoading: classesLoading } = useQuery({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
       const response = await fetch('/api/teacher/classes', {
@@ -78,10 +78,25 @@ const TeacherGradebook: React.FC = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch classes');
       const data = await response.json();
-      return data.classes || [];
+      return data;
     },
     enabled: !!user
   });
+
+  // Extract classes from the response data structure
+  const classes = React.useMemo(() => {
+    if (!classesData) return [];
+    // Handle different response structures
+    if (Array.isArray(classesData)) return classesData;
+    if (classesData.classes && Array.isArray(classesData.classes)) return classesData.classes;
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      // Flatten classes from all schools
+      return classesData.schoolsWithClasses.flatMap((school: any) => 
+        school.classes ? school.classes.map((cls: any) => ({ ...cls, schoolName: school.name })) : []
+      );
+    }
+    return [];
+  }, [classesData]);
 
   // Fetch students for selected class
   const { data: students = [], isLoading: studentsLoading } = useQuery({
