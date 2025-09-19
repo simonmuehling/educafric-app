@@ -18,7 +18,7 @@ import { MobileLanguageToggle } from '@/components/ui/LanguageToggle';
 
 export default function PasswordReset() {
   const [, setLocation] = useLocation();
-  const [match, params] = useRoute('/reset-password/:token');
+  const [match, params] = useRoute<{ token: string }>('/reset-password/:token');
   const { toast } = useToast();
   const { t, language, setLanguage } = useLanguage();
   const { getErrorMessage } = useErrorMessages();
@@ -103,7 +103,10 @@ export default function PasswordReset() {
 
     setIsResetLoading(true);
     try {
-      await resetPassword(params?.token || '', password, confirmPassword);
+      if (!params?.token) {
+        throw new Error('Token manquant');
+      }
+      await resetPassword(params.token, password, confirmPassword);
       
       toast({
         title: language === 'fr' ? 'Mot de passe réinitialisé' : 'Password reset successful',

@@ -7,6 +7,8 @@ import { storage } from '../storage';
 import { createUserSchema, loginSchema, passwordResetRequestSchema, passwordResetSchema, changePasswordSchema } from '@shared/schemas';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
+import { hostingerMailService } from '../services/hostingerMailService.js';
+import { vonageMessagesService } from '../services/vonageMessagesService.js';
 
 const router = Router();
 
@@ -673,6 +675,263 @@ router.get('/status', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to check authentication status'
+    });
+  }
+});
+
+// ============= PASSWORD RESET ENDPOINTS =============
+
+// POST /api/auth/forgot-password - Request password reset via email or SMS
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email, phoneNumber, method } = req.body;
+    
+    if (!method || !['email', 'sms'].includes(method)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Method must be either email or sms'
+      });
+    }
+
+    let user;
+    let identifier;
+
+    if (method === 'email') {
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required for email method'
+        });
+      }
+      identifier = email;
+      try {
+        user = await storage.getUserByEmail(email);
+      } catch (error) {
+        user = null;
+      }
+    } else {
+      if (!phoneNumber) {
+        return res.status(400).json({
+          success: false,
+          message: 'Phone number is required for SMS method'
+        });
+      }
+      identifier = phoneNumber;
+      try {
+        // Find user by phone number - using a query since getUserByPhone doesn't exist
+        const allUsers = await storage.getAllUsers();
+        user = allUsers.find((u: any) => u.phoneNumber === phoneNumber) || null;
+      } catch (error) {
+        user = null;
+      }
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Aucun compte trouvé avec cet identifiant'
+      });
+    }
+
+    // Generate reset token
+    const resetToken = nanoid(32);
+    const resetExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Store reset token in user (you may want to create a separate table for this)
+    await storage.updateUser(user.id, {
+      resetToken,
+      resetExpiry: resetExpiry.toISOString()
+    });
+
+    try {
+      if (method === 'email') {
+        // Send reset email
+        const resetUrl = `${process.env.FRONTEND_URL || 'https://educafric.com'}/reset-password/${resetToken}`;
+        
+        const emailSent = await hostingerMailService.sendEmail({
+          to: user.email,
+          subject: '🔐 Réinitialisation de votre mot de passe EDUCAFRIC',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #0079F2; margin: 0;">EDUCAFRIC</h1>
+                <p style="color: #666; margin: 5px 0;">Plateforme Éducative Africaine</p>
+              </div>
+              
+              <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; border-left: 4px solid #0079F2;">
+                <h2 style="color: #333; margin-top: 0;">🔐 Réinitialisation de mot de passe</h2>
+                
+                <p style="color: #555; line-height: 1.6;">Bonjour <strong>${user.firstName || user.name}</strong>,</p>
+                
+                <p style="color: #555; line-height: 1.6;">
+                  Vous avez demandé la réinitialisation de votre mot de passe pour votre compte EDUCAFRIC.
+                  Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${resetUrl}" 
+                     style="background: linear-gradient(135deg, #0079F2, #00A8E8); 
+                            color: white; 
+                            padding: 15px 30px; 
+                            text-decoration: none; 
+                            border-radius: 8px; 
+                            font-weight: bold;
+                            display: inline-block;">
+                    Réinitialiser mon mot de passe
+                  </a>
+                </div>
+                
+                <p style="color: #888; font-size: 14px; line-height: 1.6;">
+                  Ce lien expirera dans <strong>15 minutes</strong> pour votre sécurité.
+                  Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+                
+                <p style="color: #888; font-size: 12px; text-align: center;">
+                  EDUCAFRIC - Plateforme Éducative Africaine<br>
+                  support: info@educafric.com | +237 656 200 472
+                </p>
+              </div>
+            </div>
+          `
+        });
+
+        if (!emailSent) {
+          throw new Error('Failed to send email');
+        }
+
+      } else {
+        // Send SMS with reset code (6-digit code for SMS)
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Store the SMS code separately
+        await storage.updateUser(user.id, {
+          smsResetCode: resetCode,
+          smsResetExpiry: resetExpiry.toISOString()
+        });
+
+        const smsSent = await vonageMessagesService.sendWhatsAppMessage({
+          from: '14157386102',
+          to: user.phoneNumber,
+          text: `EDUCAFRIC: Votre code de réinitialisation est: ${resetCode}. Valide 15 minutes. Ne partagez pas ce code.`
+        });
+
+        if (!smsSent.success) {
+          throw new Error('Failed to send SMS');
+        }
+      }
+
+      console.log(`[PASSWORD_RESET] Reset ${method} sent successfully to ${identifier}`);
+      
+      res.json({
+        success: true,
+        message: method === 'email' 
+          ? 'Email de réinitialisation envoyé avec succès'
+          : 'SMS avec code de réinitialisation envoyé avec succès'
+      });
+
+    } catch (sendError) {
+      console.error(`[PASSWORD_RESET] Failed to send ${method}:`, sendError);
+      res.status(500).json({
+        success: false,
+        message: `Échec de l'envoi de l'${method === 'email' ? 'email' : 'SMS'} de réinitialisation`
+      });
+    }
+
+  } catch (error) {
+    console.error('[PASSWORD_RESET] Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la demande de réinitialisation'
+    });
+  }
+});
+
+// POST /api/auth/reset-password - Reset password with token or SMS code
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { token, smsCode, newPassword, confirmPassword } = req.body;
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nouveau mot de passe et confirmation requis'
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Les mots de passe ne correspondent pas'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Le mot de passe doit contenir au moins 8 caractères'
+      });
+    }
+
+    let user;
+
+    if (token) {
+      // Email reset with token
+      user = await storage.getUserByPasswordResetToken(token);
+      
+      if (!user || !user.resetExpiry || new Date(user.resetExpiry) < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Token de réinitialisation invalide ou expiré'
+        });
+      }
+    } else if (smsCode) {
+      // SMS reset with code - find user with matching SMS code
+      try {
+        const allUsers = await storage.getAllUsers();
+        user = allUsers.find((u: any) => u.smsResetCode === smsCode) || null;
+        
+        if (!user || !user.smsResetExpiry || new Date(user.smsResetExpiry) < new Date()) {
+          return res.status(400).json({
+            success: false,
+            message: 'Code SMS invalide ou expiré'
+          });
+        }
+      } catch (error) {
+        user = null;
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Token ou code SMS requis'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset tokens
+    await storage.updateUser(user.id, {
+      password: hashedPassword,
+      resetToken: null,
+      resetExpiry: null,
+      smsResetCode: null,
+      smsResetExpiry: null
+    });
+
+    console.log(`[PASSWORD_RESET] Password successfully reset for user ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Mot de passe réinitialisé avec succès'
+    });
+
+  } catch (error) {
+    console.error('[PASSWORD_RESET] Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la réinitialisation du mot de passe'
     });
   }
 });
