@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useMemo, useCallback, useDeferredValue } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -291,6 +291,10 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // ===== PERFORMANCE OPTIMIZATIONS =====
+  // Defer search query to avoid re-rendering on every keystroke
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  
   // Bulk selection state for bulletins
   const [selectedBulletins, setSelectedBulletins] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -480,11 +484,7 @@ export default function ComprehensiveBulletinGenerator() {
   // API optimization: Control data loading manually
   const [dataLoadingEnabled, setDataLoadingEnabled] = useState(false);
   
-  // Handler for tab changes with mount-on-enter pattern
-  const handleTabChange = (tabValue: string) => {
-    setActiveTab(tabValue);
-    setMountedTabs(prev => new Set([...Array.from(prev), tabValue]));
-  };
+  // Handler for tab changes with mount-on-enter pattern - OPTIMIZED WITH useCallback below
   
   // Derived boolean instead of state - fixes gating logic
   const hasValidSelection = !!selectedClass && !!selectedTerm && !!academicYear;
@@ -978,24 +978,7 @@ export default function ComprehensiveBulletinGenerator() {
 
   const t = text[language as keyof typeof text];
   
-  // Manual data entry utility functions
-  const toggleSection = (sectionKey: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
-  };
-  
-  // Subject coefficients helper functions
-  const updateSubjectCoefficient = (subjectId: number, field: string, value: string) => {
-    setSubjectCoefficients(prev => ({
-      ...prev,
-      [subjectId]: {
-        ...prev[subjectId],
-        [field]: value
-      }
-    }));
-  };
+  // Manual data entry utility functions - OPTIMIZED WITH useCallback below
   
   const fillDefaultCoefficients = () => {
     console.log('[COEFFICIENTS] 🔧 Fill default coefficients called');
@@ -1749,21 +1732,256 @@ export default function ComprehensiveBulletinGenerator() {
     generateMutation.mutate(request);
   };
 
-  const filteredStudents = studentsData?.students?.filter((student: StudentData) =>
-    student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.matricule.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
-
-  // ===== REPORTING FUNCTIONS =====
+  // ===== MEMOIZED COMPUTED VALUES =====
   
-  // Update report filters
-  const handleFilterChange = (key: string, value: string) => {
+  // Memoize filtered students to avoid re-filtering on every render
+  const filteredStudents = useMemo(() => {
+    if (!studentsData?.students) return [];
+    
+    if (!deferredSearchQuery.trim()) {
+      return studentsData.students;
+    }
+    
+    const query = deferredSearchQuery.toLowerCase();
+    return studentsData.students.filter((student: StudentData) =>
+      student.firstName.toLowerCase().includes(query) ||
+      student.lastName.toLowerCase().includes(query) ||
+      student.matricule.toLowerCase().includes(query)
+    );
+  }, [studentsData?.students, deferredSearchQuery]);
+  
+  // Memoize subject mappings based on filtered students
+  const subjectMappings = useMemo(() => {
+    if (!filteredStudents.length) return {};
+    
+    const mappings: Record<number, { id: number; name: string; coefficient: number }[]> = {};
+    filteredStudents.forEach(student => {
+      mappings[student.id] = student.approvedGrades.map(grade => ({
+        id: grade.subjectId,
+        name: grade.subjectName,
+        coefficient: grade.coefficient
+      }));
+    });
+    
+    return mappings;
+  }, [filteredStudents]);
+  
+  // Memoize class statistics with derived calculations
+  const memoizedClassStats = useMemo(() => {
+    if (!classStats || !filteredStudents.length) return null;
+    
+    const studentsWithGrades = filteredStudents.filter(s => s.approvedGrades.length > 0);
+    const totalAverage = studentsWithGrades.reduce((sum, s) => sum + (s.overallAverage || 0), 0) / (studentsWithGrades.length || 1);
+    const completionPercentage = (studentsWithGrades.length / filteredStudents.length) * 100;
+    
+    return {
+      ...classStats,
+      filtered: {
+        totalStudents: filteredStudents.length,
+        studentsWithGrades: studentsWithGrades.length,
+        averageGrade: totalAverage,
+        completionRate: completionPercentage
+      }
+    };
+  }, [classStats, filteredStudents]);
+  
+  // Memoize generation options object to prevent unnecessary recreation
+  const generationOptions = useMemo(() => ({
+    includeComments,
+    includeRankings,
+    includeStatistics,
+    includePerformanceLevels,
+    generationFormat,
+    includeFirstTrimester,
+    includeDiscipline,
+    includeStudentWork,
+    includeClassProfile,
+    includeUnjustifiedAbsences,
+    includeJustifiedAbsences,
+    includeLateness,
+    includeDetentions,
+    includeConductWarning,
+    includeConductBlame,
+    includeExclusions,
+    includePermanentExclusion,
+    includeTotalGeneral,
+    includeAppreciations,
+    includeGeneralAverage,
+    includeTrimesterAverage,
+    includeNumberOfAverages,
+    includeSuccessRate,
+    includeCoef,
+    includeCTBA,
+    includeMinMax,
+    includeCBA,
+    includeCA,
+    includeCMA,
+    includeCOTE,
+    includeCNA,
+    includeWorkAppreciation,
+    includeParentVisa,
+    includeTeacherVisa,
+    includeHeadmasterVisa
+  }), [
+    includeComments, includeRankings, includeStatistics, includePerformanceLevels,
+    generationFormat, includeFirstTrimester, includeDiscipline, includeStudentWork,
+    includeClassProfile, includeUnjustifiedAbsences, includeJustifiedAbsences,
+    includeLateness, includeDetentions, includeConductWarning, includeConductBlame,
+    includeExclusions, includePermanentExclusion, includeTotalGeneral,
+    includeAppreciations, includeGeneralAverage, includeTrimesterAverage,
+    includeNumberOfAverages, includeSuccessRate, includeCoef, includeCTBA,
+    includeMinMax, includeCBA, includeCA, includeCMA, includeCOTE, includeCNA,
+    includeWorkAppreciation, includeParentVisa, includeTeacherVisa, includeHeadmasterVisa
+  ]);
+
+  // ===== ADDITIONAL MEMOIZED TRANSFORMATIONS =====
+  
+  // Memoize form data for manual entry to avoid unnecessary recalculations
+  const memoizedFormData = useMemo(() => {
+    if (!selectedStudentForEntry || !filteredStudents.length) return null;
+    
+    const student = filteredStudents.find(s => s.id === selectedStudentForEntry);
+    if (!student) return null;
+    
+    return {
+      student,
+      subjects: student.approvedGrades.map(grade => ({
+        id: grade.subjectId,
+        name: grade.subjectName,
+        coefficient: grade.coefficient,
+        termAverage: grade.termAverage,
+        hasCoefficients: !!subjectCoefficients[grade.subjectId]
+      })),
+      hasSubjects: student.approvedGrades.length > 0
+    };
+  }, [selectedStudentForEntry, filteredStudents, subjectCoefficients]);
+  
+  // Memoize eligible students for bulk operations
+  const eligibleStudentsForGeneration = useMemo(() => {
+    return filteredStudents.filter(student => student.approvedGrades.length > 0);
+  }, [filteredStudents]);
+  
+  // Memoize selection state calculations
+  const selectionState = useMemo(() => {
+    const totalEligible = eligibleStudentsForGeneration.length;
+    const selectedCount = selectedStudents.length;
+    const allSelected = selectedCount === totalEligible && totalEligible > 0;
+    const someSelected = selectedCount > 0;
+    
+    return {
+      totalEligible,
+      selectedCount,
+      allSelected,
+      someSelected,
+      canGenerate: selectedCount > 0,
+      selectionPercentage: totalEligible > 0 ? Math.round((selectedCount / totalEligible) * 100) : 0
+    };
+  }, [eligibleStudentsForGeneration.length, selectedStudents.length]);
+  
+  // Memoize bulletin generation request object
+  const generationRequest = useMemo(() => {
+    if (!selectedClass || !selectedTerm || !academicYear || selectedStudents.length === 0) {
+      return null;
+    }
+    
+    return {
+      studentIds: selectedStudents,
+      classId: parseInt(selectedClass),
+      term: selectedTerm,
+      academicYear,
+      format: generationFormat,
+      ...generationOptions
+    };
+  }, [selectedClass, selectedTerm, academicYear, selectedStudents, generationFormat, generationOptions]);
+
+  // ===== MEMOIZED EVENT HANDLERS =====
+  
+  // Optimize handlers to prevent unnecessary re-renders of child components
+  const handleClassChange = useCallback((classId: string) => {
+    setSelectedClass(classId);
+    setSelectedStudents([]);
+    setSearchQuery('');
+  }, []);
+
+  const handleStudentSelection = useCallback((studentId: number, selected: boolean) => {
+    setSelectedStudents(prev => 
+      selected 
+        ? [...prev, studentId]
+        : prev.filter(id => id !== studentId)
+    );
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (!studentsData?.students) return;
+    
+    const eligibleStudents = studentsData.students.filter((student: StudentData) => 
+      student.approvedGrades.length > 0
+    );
+    
+    setSelectedStudents(prev => 
+      prev.length === eligibleStudents.length
+        ? []
+        : eligibleStudents.map((s: StudentData) => s.id)
+    );
+  }, [studentsData?.students]);
+
+  const handleTabChange = useCallback((tabValue: string) => {
+    setActiveTab(tabValue);
+    setMountedTabs(prev => new Set([...Array.from(prev), tabValue]));
+  }, []);
+
+  const toggleSection = useCallback((sectionKey: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  }, []);
+
+  const updateSubjectCoefficient = useCallback((subjectId: number, field: string, value: string) => {
+    setSubjectCoefficients(prev => ({
+      ...prev,
+      [subjectId]: {
+        ...prev[subjectId],
+        [field]: value
+      }
+    }));
+  }, []);
+
+  const handleFilterChange = useCallback((key: string, value: string) => {
     setReportFilters(prev => ({
       ...prev,
       [key]: value
     }));
-  };
+  }, []);
+
+  const handleBulletinSelectAll = useCallback(() => {
+    if (!pendingBulletins) return;
+    
+    setSelectedBulletins(prev => 
+      prev.length === pendingBulletins.length
+        ? []
+        : pendingBulletins.map((b: any) => b.id)
+    );
+    setSelectAll(prev => !prev);
+  }, [pendingBulletins]);
+
+  const handleBulletinSelect = useCallback((bulletinId: number) => {
+    setSelectedBulletins(prev => {
+      const isSelected = prev.includes(bulletinId);
+      const newSelection = isSelected
+        ? prev.filter(id => id !== bulletinId)
+        : [...prev, bulletinId];
+      
+      // Update selectAll state based on new selection
+      if (pendingBulletins) {
+        setSelectAll(newSelection.length === pendingBulletins.length);
+      }
+      
+      return newSelection;
+    });
+  }, [pendingBulletins]);
+
+  // ===== REPORTING FUNCTIONS =====
 
   // Export report function
   const handleExportReport = async (format: 'csv' | 'pdf', reportType: string) => {
