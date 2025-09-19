@@ -120,7 +120,7 @@ const ParentDashboard = ({ activeModule }: ParentDashboardProps) => {
     const ModuleComponent = getModule(moduleName);
     
     if (ModuleComponent) {
-      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments'].includes(moduleName);
+      const isCritical = ['children', 'parent-grades', 'parent-attendance', 'parent-messages', 'payments', 'parent-library'].includes(moduleName);
       if (isCritical) {
         console.log(`[PARENT_DASHBOARD] 🚀 ${moduleName} served INSTANTLY - Module + Data PRELOADED!`);
       }

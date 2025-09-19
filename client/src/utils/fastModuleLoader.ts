@@ -401,7 +401,7 @@ class FastModuleLoader {
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole', 'library',
       
       // Parent modules
-      'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance',
+      'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance', 'parent-library',
       
       // Teacher modules
       'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-content', 'teacher-reports', 'teacher-communications', 'teacher-absence-declaration', 'absence-declaration',
