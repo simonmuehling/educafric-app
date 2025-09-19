@@ -77,6 +77,8 @@ const LibraryRelatedBooks: React.FC = () => {
     departmentIds: [] as number[]
   });
 
+  const [selectedBookLanguage, setSelectedBookLanguage] = useState<'fr' | 'en'>('fr');
+
   // Centralized translation text following FunctionalTeacherGrades pattern
   const t = {
     title: {
@@ -111,7 +113,8 @@ const LibraryRelatedBooks: React.FC = () => {
       recommendedLevel: { fr: 'Niveau recommandé', en: 'Recommended Level' },
       audienceType: { fr: 'Type d\'audience', en: 'Audience Type' },
       note: { fr: 'Note (optionnelle)', en: 'Note (optional)' },
-      selectAudience: { fr: 'Sélectionner l\'audience', en: 'Select Audience' }
+      selectAudience: { fr: 'Sélectionner l\'audience', en: 'Select Audience' },
+      bookLanguage: { fr: 'Langue du livre', en: 'Book Language' }
     },
     levels: {
       all: { fr: 'Tous niveaux', en: 'All Levels' },
@@ -211,6 +214,7 @@ const LibraryRelatedBooks: React.FC = () => {
         titleFr: '', titleEn: '', author: '', descriptionFr: '', descriptionEn: '',
         linkUrl: '', coverUrl: '', recommendedLevel: '', subjectIds: [], departmentIds: []
       });
+      setSelectedBookLanguage('fr');
       toast({
         title: t.messages.bookAdded[language],
         description: language === 'fr' 
@@ -267,22 +271,30 @@ const LibraryRelatedBooks: React.FC = () => {
   });
 
   const handleBookSubmit = () => {
-    if (!bookForm.titleFr || !bookForm.titleEn || !bookForm.author) {
+    const titleField = selectedBookLanguage === 'fr' ? bookForm.titleFr : bookForm.titleEn;
+    
+    if (!titleField || !bookForm.author) {
       toast({
         title: language === 'fr' ? 'Champs requis' : 'Required Fields',
         description: language === 'fr' 
-          ? 'Veuillez remplir le titre (français et anglais) et l\'auteur' 
-          : 'Please fill in the title (French and English) and author',
+          ? 'Veuillez remplir le titre et l\'auteur' 
+          : 'Please fill in the title and author',
         variant: 'destructive'
       });
       return;
     }
 
+    const descriptionField = selectedBookLanguage === 'fr' ? bookForm.descriptionFr : bookForm.descriptionEn;
+
     const bookData = {
-      title: { fr: bookForm.titleFr, en: bookForm.titleEn },
+      title: selectedBookLanguage === 'fr' 
+        ? { fr: bookForm.titleFr, en: bookForm.titleFr } // Use same title for both if only one language
+        : { fr: bookForm.titleEn, en: bookForm.titleEn },
       author: bookForm.author,
-      description: bookForm.descriptionFr || bookForm.descriptionEn 
-        ? { fr: bookForm.descriptionFr, en: bookForm.descriptionEn }
+      description: descriptionField 
+        ? (selectedBookLanguage === 'fr' 
+            ? { fr: bookForm.descriptionFr, en: bookForm.descriptionFr }
+            : { fr: bookForm.descriptionEn, en: bookForm.descriptionEn })
         : undefined,
       linkUrl: bookForm.linkUrl || undefined,
       coverUrl: bookForm.coverUrl || undefined,
@@ -511,27 +523,38 @@ const LibraryRelatedBooks: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="titleFr">{t.form.titleFr[language]} *</Label>
-                <Input
-                  id="titleFr"
-                  value={bookForm.titleFr}
-                  onChange={(e) => setBookForm({ ...bookForm, titleFr: e.target.value })}
-                  placeholder={t.placeholders.enterTitle[language]}
-                  data-testid="input-title-fr"
-                />
-              </div>
-              <div>
-                <Label htmlFor="titleEn">{t.form.titleEn[language]} *</Label>
-                <Input
-                  id="titleEn"
-                  value={bookForm.titleEn}
-                  onChange={(e) => setBookForm({ ...bookForm, titleEn: e.target.value })}
-                  placeholder={t.placeholders.enterTitle[language]}
-                  data-testid="input-title-en"
-                />
-              </div>
+            {/* Language Selection */}
+            <div>
+              <Label htmlFor="bookLanguage">{t.form.bookLanguage[language]} *</Label>
+              <Select 
+                value={selectedBookLanguage} 
+                onValueChange={(value: 'fr' | 'en') => setSelectedBookLanguage(value)}
+              >
+                <SelectTrigger data-testid="select-book-language">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fr">Français</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Title Field - Show only selected language */}
+            <div>
+              <Label htmlFor="title">
+                {selectedBookLanguage === 'fr' ? t.form.titleFr[language] : t.form.titleEn[language]} *
+              </Label>
+              <Input
+                id="title"
+                value={selectedBookLanguage === 'fr' ? bookForm.titleFr : bookForm.titleEn}
+                onChange={(e) => setBookForm({ 
+                  ...bookForm, 
+                  [selectedBookLanguage === 'fr' ? 'titleFr' : 'titleEn']: e.target.value 
+                })}
+                placeholder={t.placeholders.enterTitle[language]}
+                data-testid="input-title"
+              />
             </div>
             
             <div>
@@ -545,27 +568,21 @@ const LibraryRelatedBooks: React.FC = () => {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="descriptionFr">{t.form.descriptionFr[language]}</Label>
-                <Textarea
-                  id="descriptionFr"
-                  value={bookForm.descriptionFr}
-                  onChange={(e) => setBookForm({ ...bookForm, descriptionFr: e.target.value })}
-                  data-testid="textarea-description-fr"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="descriptionEn">{t.form.descriptionEn[language]}</Label>
-                <Textarea
-                  id="descriptionEn"
-                  value={bookForm.descriptionEn}
-                  onChange={(e) => setBookForm({ ...bookForm, descriptionEn: e.target.value })}
-                  data-testid="textarea-description-en"
-                  rows={3}
-                />
-              </div>
+            {/* Description Field - Show only selected language */}
+            <div>
+              <Label htmlFor="description">
+                {selectedBookLanguage === 'fr' ? t.form.descriptionFr[language] : t.form.descriptionEn[language]}
+              </Label>
+              <Textarea
+                id="description"
+                value={selectedBookLanguage === 'fr' ? bookForm.descriptionFr : bookForm.descriptionEn}
+                onChange={(e) => setBookForm({ 
+                  ...bookForm, 
+                  [selectedBookLanguage === 'fr' ? 'descriptionFr' : 'descriptionEn']: e.target.value 
+                })}
+                data-testid="textarea-description"
+                rows={3}
+              />
             </div>
             
             <div>
