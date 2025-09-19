@@ -1130,7 +1130,6 @@ export default function ComprehensiveBulletinGenerator() {
       revoke: 'Revoke',
       delete: 'Delete',
       saving: 'Saving...',
-      loading: 'Loading...',
       selectSanctionType: 'Select a sanction type',
       sanctionReasonPlaceholder: 'Describe the reason for the sanction...',
       sanctionReasonDescription: 'Detailed description of the sanction (minimum 10 characters)',
@@ -1883,7 +1882,13 @@ export default function ComprehensiveBulletinGenerator() {
       includeWorkAppreciation,
       includeParentVisa,
       includeTeacherVisa,
-      includeHeadmasterVisa
+      includeHeadmasterVisa,
+      
+      // Section Conseil de Classe
+      includeClassCouncilDecisions,
+      includeClassCouncilMentions,
+      includeOrientationRecommendations,
+      includeCouncilDate
     };
 
     generateMutation.mutate(request);
@@ -3954,8 +3959,8 @@ export default function ComprehensiveBulletinGenerator() {
                             <div className="space-y-2">
                               <Label htmlFor="sanction-type">{t.sanctionType} *</Label>
                               <Select 
-                                value={sanctionsForm.type} 
-                                onValueChange={(value) => setSanctionsForm(prev => ({ ...prev, type: value }))}
+                                value={sanctionsForm.watch('sanctionType')} 
+                                onValueChange={(value) => sanctionsForm.setValue('sanctionType', value)}
                               >
                                 <SelectTrigger id="sanction-type" data-testid="sanction-type-select">
                                   <SelectValue placeholder={t.pleaseSelectSanctionType} />
@@ -3975,14 +3980,14 @@ export default function ComprehensiveBulletinGenerator() {
                               <Input
                                 id="sanction-date"
                                 type="date"
-                                value={sanctionsForm.date}
-                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, date: e.target.value }))}
+                                value={sanctionsForm.watch('date')}
+                                onChange={(e) => sanctionsForm.setValue('date', e.target.value)}
                                 data-testid="sanction-date"
                               />
                             </div>
 
                             {/* Exclusion Days (only for temporary exclusions) */}
-                            {sanctionsForm.type === 'exclusionTemporary' && (
+                            {sanctionsForm.watch('sanctionType') === 'exclusion_temporary' && (
                               <div className="space-y-2">
                                 <Label htmlFor="exclusion-days">{t.exclusionDays} *</Label>
                                 <Input
@@ -3990,8 +3995,8 @@ export default function ComprehensiveBulletinGenerator() {
                                   type="number"
                                   min="1"
                                   max="30"
-                                  value={sanctionsForm.exclusionDays}
-                                  onChange={(e) => setSanctionsForm(prev => ({ ...prev, exclusionDays: parseInt(e.target.value) || 1 }))}
+                                  value={sanctionsForm.watch('duration')}
+                                  onChange={(e) => sanctionsForm.setValue('duration', parseInt(e.target.value) || 1)}
                                   data-testid="exclusion-days"
                                 />
                               </div>
@@ -4003,8 +4008,8 @@ export default function ComprehensiveBulletinGenerator() {
                               <Textarea
                                 id="sanction-reason"
                                 placeholder={t.pleaseEnterReason}
-                                value={sanctionsForm.reason}
-                                onChange={(e) => setSanctionsForm(prev => ({ ...prev, reason: e.target.value }))}
+                                value={sanctionsForm.watch('description')}
+                                onChange={(e) => sanctionsForm.setValue('description', e.target.value)}
                                 className="min-h-[100px]"
                                 data-testid="sanction-reason"
                               />
@@ -4015,11 +4020,12 @@ export default function ComprehensiveBulletinGenerator() {
                               <Button 
                                 onClick={() => {
                                   // Validation
-                                  if (!sanctionsForm.type) {
+                                  const formData = sanctionsForm.getValues();
+                                  if (!formData.sanctionType) {
                                     toast({ title: t.error, description: t.pleaseSelectSanctionType, variant: 'destructive' });
                                     return;
                                   }
-                                  if (!sanctionsForm.reason.trim()) {
+                                  if (!formData.description?.trim()) {
                                     toast({ title: t.error, description: t.pleaseEnterReason, variant: 'destructive' });
                                     return;
                                   }
@@ -4031,40 +4037,40 @@ export default function ComprehensiveBulletinGenerator() {
                                   setSanctionsData(prev => {
                                     const updated = { ...prev };
                                     
-                                    switch (sanctionsForm.type) {
-                                      case 'conductWarning':
+                                    switch (formData.sanctionType) {
+                                      case 'conduct_warning':
                                         updated.conductWarnings.push({
                                           id: newId,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
+                                          date: formData.date,
+                                          reason: formData.description,
                                           createdAt: newCreatedAt
                                         });
                                         break;
-                                      case 'conductBlame':
+                                      case 'conduct_blame':
                                         updated.conductBlames.push({
                                           id: newId,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
+                                          date: formData.date,
+                                          reason: formData.description,
                                           createdAt: newCreatedAt
                                         });
                                         break;
-                                      case 'exclusionTemporary':
-                                        const endDate = new Date(sanctionsForm.date);
-                                        endDate.setDate(endDate.getDate() + sanctionsForm.exclusionDays - 1);
+                                      case 'exclusion_temporary':
+                                        const endDate = new Date(formData.date);
+                                        endDate.setDate(endDate.getDate() + formData.duration - 1);
                                         updated.exclusions.push({
                                           id: newId,
-                                          startDate: sanctionsForm.date,
+                                          startDate: formData.date,
                                           endDate: endDate.toISOString().split('T')[0],
-                                          days: sanctionsForm.exclusionDays,
-                                          reason: sanctionsForm.reason,
+                                          days: formData.duration,
+                                          reason: formData.description,
                                           createdAt: newCreatedAt
                                         });
                                         break;
-                                      case 'exclusionPermanent':
+                                      case 'exclusion_permanent':
                                         updated.permanentExclusion = {
                                           isExcluded: true,
-                                          date: sanctionsForm.date,
-                                          reason: sanctionsForm.reason,
+                                          date: formData.date,
+                                          reason: formData.description,
                                           createdAt: newCreatedAt
                                         };
                                         break;
@@ -4074,20 +4080,20 @@ export default function ComprehensiveBulletinGenerator() {
                                   });
                                   
                                   // Reset form
-                                  setSanctionsForm({
-                                    type: '',
+                                  sanctionsForm.reset({
+                                    sanctionType: 'conduct_warning',
                                     date: new Date().toISOString().split('T')[0],
-                                    reason: '',
-                                    exclusionDays: 1
+                                    description: '',
+                                    duration: 1
                                   });
                                   
                                   toast({ title: t.success, description: t.sanctionSaved });
                                 }}
-                                disabled={isSavingSanction}
+                                disabled={createSanctionMutation.isPending}
                                 className="min-w-[150px]"
                                 data-testid="save-sanction"
                               >
-                                {isSavingSanction ? (
+                                {createSanctionMutation.isPending ? (
                                   <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                     {t.loading}
