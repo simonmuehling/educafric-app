@@ -83,7 +83,8 @@ import {
 // Lazy loaded components
 const BulkSignatureModal = lazy(() => import('@/components/shared/BulkSignatureModal'));
 const ReportsTab = lazy(() => import('./components/ReportsTab'));
-const LoadingSkeleton = lazy(() => import('./components/LoadingSkeleton'));
+// LoadingSkeleton is NOT lazy to avoid waterfalls when used as Suspense fallback
+import LoadingSkeleton from './components/LoadingSkeleton';
 import {
   Dialog,
   DialogContent,
@@ -2064,7 +2065,8 @@ export default function ComprehensiveBulletinGenerator() {
         </TabsContent>
 
         {/* Manual Data Entry Tab */}
-        <TabsContent value="manual-data-entry" className="space-y-4">
+        {mountedTabs.has('manual-data-entry') && (
+          <TabsContent value="manual-data-entry" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -2829,10 +2831,12 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
         
         {/* Student Management Tab */}
-        <TabsContent value="student-management" className="space-y-4">
+        {mountedTabs.has('student-management') && (
+          <TabsContent value="student-management" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
@@ -3027,10 +3031,12 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Generation Options Tab */}
-        <TabsContent value="generation-options" className="space-y-4">
+        {mountedTabs.has('generation-options') && (
+          <TabsContent value="generation-options" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -3437,10 +3443,12 @@ export default function ComprehensiveBulletinGenerator() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Bulk Operations Tab */}
-        <TabsContent value="bulk-operations" className="space-y-4">
+        {mountedTabs.has('bulk-operations') && (
+          <TabsContent value="bulk-operations" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -3496,10 +3504,12 @@ export default function ComprehensiveBulletinGenerator() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Pending Bulletins Tab */}
-        <TabsContent value="pending-bulletins" className="space-y-4">
+        {mountedTabs.has('pending-bulletins') && (
+          <TabsContent value="pending-bulletins" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -3619,10 +3629,12 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Approved Bulletins Tab - Enhanced with Bulk Signature System */}
-        <TabsContent value="approved-bulletins" className="space-y-4">
+        {mountedTabs.has('approved-bulletins') && (
+          <TabsContent value="approved-bulletins" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -3849,10 +3861,12 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* Sent Bulletins Tab */}
-        <TabsContent value="sent-bulletins" className="space-y-4">
+        {mountedTabs.has('sent-bulletins') && (
+          <TabsContent value="sent-bulletins" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -4010,7 +4024,8 @@ export default function ComprehensiveBulletinGenerator() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        )}
 
         {/* ===== REPORTS TAB ===== */}
         {mountedTabs.has('reports') && (
