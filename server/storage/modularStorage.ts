@@ -8,6 +8,7 @@ import { StudentStorage } from "./studentStorage";
 import { PWAStorage } from "./pwaStorage";
 import { TimetableStorage } from "./timetableStorage";
 import { BulletinStorage } from "./bulletinStorage";
+import { BulletinTemplateStorage } from "./bulletinTemplateStorage";
 import { SubjectStorage } from "./subjectStorage";
 import { AcademicStorage } from "./academicStorage";
 import { SanctionStorage } from "./sanctionsStorage";
@@ -22,6 +23,7 @@ export class ModularStorage {
   private pwaStorage: PWAStorage;
   private timetableStorage: TimetableStorage;
   private bulletinStorage: BulletinStorage;
+  private bulletinTemplateStorage: BulletinTemplateStorage;
   private subjectStorage: SubjectStorage;
   private academicStorage: AcademicStorage;
   private sanctionStorage: SanctionStorage;
@@ -34,6 +36,7 @@ export class ModularStorage {
     this.pwaStorage = new PWAStorage();
     this.timetableStorage = new TimetableStorage();
     this.bulletinStorage = new BulletinStorage();
+    this.bulletinTemplateStorage = new BulletinTemplateStorage();
     this.subjectStorage = new SubjectStorage();
     this.academicStorage = new AcademicStorage();
     this.sanctionStorage = new SanctionStorage();
@@ -1103,4 +1106,39 @@ export class ModularStorage {
   async revokeSanction(id: number, revokedBy: number, reason: string) { return this.sanctionStorage.revokeSanction(id, revokedBy, reason); }
   async appealSanction(id: number, appealReason: string) { return this.sanctionStorage.appealSanction(id, appealReason); }
   async expireSanctions() { return this.sanctionStorage.expireSanctions(); }
+
+  // === BULLETIN TEMPLATE METHODS ===
+  async createTemplate(template: any) { return this.bulletinTemplateStorage.createTemplate(template); }
+  async getTemplate(id: number) { return this.bulletinTemplateStorage.getTemplate(id); }
+  async updateTemplate(id: number, updates: any) { return this.bulletinTemplateStorage.updateTemplate(id, updates); }
+  async deleteTemplate(id: number) { return this.bulletinTemplateStorage.deleteTemplate(id); }
+  async listTemplates(schoolId: number, filters?: any) { return this.bulletinTemplateStorage.listTemplates(schoolId, filters); }
+  
+  // Template version management
+  async createTemplateVersion(templateId: number, version: any) { return this.bulletinTemplateStorage.createTemplateVersion(templateId, version); }
+  async getTemplateVersions(templateId: number) { return this.bulletinTemplateStorage.getTemplateVersions(templateId); }
+  async getTemplateVersion(templateId: number, version: number) { return this.bulletinTemplateStorage.getTemplateVersion(templateId, version); }
+  
+  // Template element types
+  async getElementTypes() { return this.bulletinTemplateStorage.getElementTypes(); }
+  async getElementTypesByCategory(category: string) { return this.bulletinTemplateStorage.getElementTypesByCategory(category); }
+  
+  // Template usage tracking
+  async incrementUsageCount(templateId: number) { return this.bulletinTemplateStorage.incrementUsageCount(templateId); }
+  async getTemplateUsageStats(schoolId: number) { return this.bulletinTemplateStorage.getTemplateUsageStats(schoolId); }
+  
+  // Default templates
+  async getDefaultTemplates() { return this.bulletinTemplateStorage.getDefaultTemplates(); }
+  async createDefaultTemplate(template: any) { return this.bulletinTemplateStorage.createDefaultTemplate(template); }
+  
+  // Template duplication
+  async duplicateTemplate(templateId: number, newName: string, schoolId: number, createdBy: number) { 
+    return this.bulletinTemplateStorage.duplicateTemplate(templateId, newName, schoolId, createdBy); 
+  }
+  
+  // Template export/import
+  async exportTemplate(templateId: number) { return this.bulletinTemplateStorage.exportTemplate(templateId); }
+  async importTemplate(templateData: any, schoolId: number, createdBy: number) { 
+    return this.bulletinTemplateStorage.importTemplate(templateData, schoolId, createdBy); 
+  }
 }

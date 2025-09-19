@@ -47,6 +47,7 @@ class FastModuleLoader {
       'document-management': () => import('@/components/admin/modules/DocumentManagement'),
       'bulletin-management': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
       'comprehensive-bulletins': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'),
+      'bulletin-templates': () => import('@/components/director/modules/BulletinTemplateManager'),
       'content-approval': () => import('@/components/director/modules/EducationalContentApproval'),
       'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       
@@ -372,6 +373,7 @@ class FastModuleLoader {
       // Director modules
       'timetable', 'director-timetable', 'settings', 'overview', 'notifications', 'help',
       'teachers', 'students', 'classes', 'school-administrators', 'reports',
+      'bulletin-templates', 'bulletin-management', 'comprehensive-bulletins',
       
       // Student modules  
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',

@@ -78,6 +78,7 @@ import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
 import gradeReviewRoutes from "./routes/gradeReview";
 import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
+import bulletinTemplateRoutes from "./routes/bulletinTemplateRoutes";
 import trackingRoutes from "./routes/tracking";
 import { tutorialRoutes } from "./routes/tutorialRoutes";
 import sanctionRoutes from "./routes/sanctionRoutes";
@@ -6120,6 +6121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   app.use('/api/bulletin-validation', bulletinValidationRoutes);
+  app.use('/api/director/bulletin-templates', bulletinTemplateRoutes);
   trackingRoutes(app);
   app.use('/api/tutorials', tutorialRoutes);
 

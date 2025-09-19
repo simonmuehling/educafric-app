@@ -96,3 +96,36 @@ export interface ISanctionStorage {
   appealSanction(id: number, appealReason: string): Promise<any>;
   expireSanctions(): Promise<void>; // For batch processing of expired sanctions
 }
+
+export interface IBulletinTemplateStorage {
+  // Template CRUD operations
+  createTemplate(template: any): Promise<any>;
+  getTemplate(id: number): Promise<any | null>;
+  updateTemplate(id: number, updates: any): Promise<any>;
+  deleteTemplate(id: number): Promise<boolean>;
+  listTemplates(schoolId: number, filters?: any): Promise<{ templates: any[]; total: number }>;
+
+  // Template version management
+  createTemplateVersion(templateId: number, version: any): Promise<any>;
+  getTemplateVersions(templateId: number): Promise<any[]>;
+  getTemplateVersion(templateId: number, version: number): Promise<any | null>;
+
+  // Template element types
+  getElementTypes(): Promise<any[]>;
+  getElementTypesByCategory(category: string): Promise<any[]>;
+
+  // Template usage tracking
+  incrementUsageCount(templateId: number): Promise<void>;
+  getTemplateUsageStats(schoolId: number): Promise<any[]>;
+
+  // Default templates
+  getDefaultTemplates(): Promise<any[]>;
+  createDefaultTemplate(template: any): Promise<any>;
+
+  // Template duplication
+  duplicateTemplate(templateId: number, newName: string, schoolId: number, createdBy: number): Promise<any>;
+
+  // Template export/import
+  exportTemplate(templateId: number): Promise<any>;
+  importTemplate(templateData: any, schoolId: number, createdBy: number): Promise<any>;
+}

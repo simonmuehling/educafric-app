@@ -665,6 +665,239 @@ export default function ComprehensiveBulletinGenerator() {
   // Derived boolean instead of state - fixes gating logic
   const hasValidSelection = !!selectedClass && !!selectedTerm && !!academicYear;
   
+  // Composant CanvasArea local pour encapsuler entièrement DndContext
+  const CanvasArea = () => (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+        {/* Element Palette */}
+        <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            {t.elementPalette}
+          </h3>
+          <div className="space-y-4 overflow-y-auto max-h-[500px]">
+            {/* Student Information Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <User className="h-3 w-3" />
+                {t.studentInfoCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.STUDENT_NAME, t.studentName, User)}
+                {renderPaletteElement(ELEMENT_TYPES.STUDENT_MATRICULE, t.studentMatricule, FileSignature)}
+                {renderPaletteElement(ELEMENT_TYPES.STUDENT_CLASS, t.studentClass, GraduationCap)}
+                {renderPaletteElement(ELEMENT_TYPES.STUDENT_PHOTO, t.studentPhoto, Image)}
+              </div>
+            </div>
+            {/* Grades Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <BookOpen className="h-3 w-3" />
+                {t.gradesCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.SUBJECT_GRADES, t.subjectGrades, BarChart3)}
+                {renderPaletteElement(ELEMENT_TYPES.GENERAL_AVERAGE, t.generalAverage, TrendingUp)}
+                {renderPaletteElement(ELEMENT_TYPES.CLASS_RANK, t.classRank, Star)}
+                {renderPaletteElement(ELEMENT_TYPES.PERFORMANCE_LEVEL, 'Niveau de performance', Target)}
+              </div>
+            </div>
+            {/* Attendance Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Clock className="h-3 w-3" />
+                {t.attendanceCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.UNJUSTIFIED_ABSENCES, t.unjustifiedAbsences, XCircle)}
+                {renderPaletteElement(ELEMENT_TYPES.JUSTIFIED_ABSENCES, t.justifiedAbsences, CheckCircle)}
+                {renderPaletteElement(ELEMENT_TYPES.LATENESS_COUNT, t.latenessCount, Timer)}
+                {renderPaletteElement(ELEMENT_TYPES.DETENTION_HOURS, 'Consignes', AlertTriangle)}
+              </div>
+            </div>
+            {/* Sanctions Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <AlertTriangle className="h-3 w-3" />
+                {t.sanctionsCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.CONDUCT_WARNING, t.conductWarning, AlertCircle)}
+                {renderPaletteElement(ELEMENT_TYPES.CONDUCT_BLAME, 'Blâme de conduite', XCircle)}
+                {renderPaletteElement(ELEMENT_TYPES.EXCLUSION_DAYS, 'Exclusions', X)}
+              </div>
+            </div>
+            {/* Signatures Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <PenTool className="h-3 w-3" />
+                {t.signaturesCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.PARENT_SIGNATURE, t.parentSignature, Users)}
+                {renderPaletteElement(ELEMENT_TYPES.TEACHER_SIGNATURE, t.teacherSignature, UserCheck)}
+                {renderPaletteElement(ELEMENT_TYPES.HEADMASTER_SIGNATURE, t.headmasterSignature, School)}
+              </div>
+            </div>
+            {/* Text & Layout Category */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Type className="h-3 w-3" />
+                {t.textCategory}
+              </h4>
+              <div className="space-y-2">
+                {renderPaletteElement(ELEMENT_TYPES.FREE_TEXT, t.freeText, Type)}
+                {renderPaletteElement(ELEMENT_TYPES.TEXT_LABEL, 'Étiquette', Type)}
+                {renderPaletteElement(ELEMENT_TYPES.SCHOOL_LOGO, t.schoolLogo, Image)}
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Design Canvas */}
+        <div className="lg:col-span-2 border rounded-lg relative bg-white" id="design-canvas">
+          <div className="absolute top-2 left-2 right-2 flex justify-between items-center z-10">
+            <h3 className="font-semibold flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
+              <Layout className="h-4 w-4" />
+              {t.designCanvas}
+            </h3>
+            <div className="flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
+              <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom - 0.1)}>
+                <span className="text-xs">-</span>
+              </Button>
+              <span className="text-xs px-2">{Math.round(canvasZoom * 100)}%</span>
+              <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
+                <span className="text-xs">+</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
+                <RotateCcw className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+          <div 
+            className="w-full h-full overflow-auto p-8 pt-16"
+            style={{ 
+              backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
+              backgroundSize: '20px 20px'
+            }}
+          >
+            <div
+              className="mx-auto bg-white shadow-lg border relative"
+              style={{
+                width: canvasSize.width * canvasZoom,
+                height: canvasSize.height * canvasZoom,
+                transform: `scale(${canvasZoom})`,
+                transformOrigin: 'top left'
+              }}
+              data-testid="design-canvas-area"
+            >
+              <div 
+                id="canvas-drop-zone"
+                className="w-full h-full relative"
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const elementType = e.dataTransfer.getData('text/plain');
+                  if (elementType) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / canvasZoom;
+                    const y = (e.clientY - rect.top) / canvasZoom;
+                    const newElement: TemplateElement = {
+                      id: generateElementId(),
+                      type: elementType,
+                      category: getCategoryForType(elementType),
+                      position: { x, y, width: 200, height: 40 },
+                      properties: {
+                        fontSize: 12,
+                        fontFamily: 'Arial',
+                        color: '#374151',
+                        backgroundColor: 'transparent',
+                        label: getElementDisplayName(elementType),
+                        visible: true
+                      },
+                      zIndex: templateElements.length + 1
+                    };
+                    setTemplateElements(prev => [...prev, newElement]);
+                    setSelectedElement(newElement.id);
+                  }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <SortableContext items={templateElements.map(el => el.id)} strategy={verticalListSortingStrategy}>
+                  {templateElements.map((element) => (
+                    <SortableTemplateElement
+                      key={element.id}
+                      element={element}
+                      isSelected={selectedElement === element.id}
+                      onSelect={() => setSelectedElement(element.id)}
+                      getElementDisplayName={getElementDisplayName}
+                    />
+                  ))}
+                </SortableContext>
+                {showGrid && (
+                  <div className="absolute inset-0 pointer-events-none opacity-20">
+                    <svg width="100%" height="100%">
+                      <defs>
+                        <pattern id="grid" width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
+                          <path d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`} fill="none" stroke="#e5e5e5" strokeWidth="1"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+                    </svg>
+                  </div>
+                )}
+                {showGuides && alignmentGuides.length > 0 && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <svg width="100%" height="100%">
+                      {alignmentGuides.map((guide, index) => (
+                        <g key={index}>
+                          {guide.x !== undefined && (
+                            <line
+                              x1={guide.x}
+                              y1="0"
+                              x2={guide.x}
+                              y2="100%"
+                              stroke="#3b82f6"
+                              strokeWidth="1"
+                              strokeDasharray="4,4"
+                            />
+                          )}
+                          {guide.y !== undefined && (
+                            <line
+                              x1="0"
+                              y1={guide.y}
+                              x2="100%"
+                              y2={guide.y}
+                              stroke="#3b82f6"
+                              strokeWidth="1"
+                              strokeDasharray="4,4"
+                            />
+                          )}
+                        </g>
+                      ))}
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Drag Overlay */}
+      <DragOverlay>
+        {draggedElement ? (
+          <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
+            {getElementDisplayName(draggedElement)}
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+  
   // React Hook Form setup for manual data entry
   const manualDataForm = useForm<ManualDataForm>({
     resolver: zodResolver(manualDataValidationSchema),
@@ -4886,398 +5119,14 @@ export default function ComprehensiveBulletinGenerator() {
                   </div>
                 </div>
 
-                {/* Drag and Drop Context */}
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={handleDragOver}
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[600px]">
-                    {/* Element Palette */}
-                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <Palette className="h-4 w-4" />
-                        {t.elementPalette}
-                      </h3>
-                      <div className="space-y-4 overflow-y-auto max-h-[500px]">
-                        {/* Student Information Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <User className="h-3 w-3" />
-                            {t.studentInfoCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_NAME, t.studentName, User)}
-                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_MATRICULE, t.studentMatricule, FileSignature)}
-                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_CLASS, t.studentClass, GraduationCap)}
-                            {renderPaletteElement(ELEMENT_TYPES.STUDENT_PHOTO, t.studentPhoto, Image)}
-                          </div>
-                        </div>
-
-                        {/* Grades Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <BookOpen className="h-3 w-3" />
-                            {t.gradesCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.SUBJECT_GRADES, t.subjectGrades, BarChart3)}
-                            {renderPaletteElement(ELEMENT_TYPES.GENERAL_AVERAGE, t.generalAverage, TrendingUp)}
-                            {renderPaletteElement(ELEMENT_TYPES.CLASS_RANK, t.classRank, Star)}
-                            {renderPaletteElement(ELEMENT_TYPES.PERFORMANCE_LEVEL, 'Niveau de performance', Target)}
-                          </div>
-                        </div>
-
-                        {/* Attendance Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Clock className="h-3 w-3" />
-                            {t.attendanceCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.UNJUSTIFIED_ABSENCES, t.unjustifiedAbsences, XCircle)}
-                            {renderPaletteElement(ELEMENT_TYPES.JUSTIFIED_ABSENCES, t.justifiedAbsences, CheckCircle)}
-                            {renderPaletteElement(ELEMENT_TYPES.LATENESS_COUNT, t.latenessCount, Timer)}
-                            {renderPaletteElement(ELEMENT_TYPES.DETENTION_HOURS, 'Consignes', AlertTriangle)}
-                          </div>
-                        </div>
-
-                        {/* Sanctions Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <AlertTriangle className="h-3 w-3" />
-                            {t.sanctionsCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.CONDUCT_WARNING, t.conductWarning, AlertCircle)}
-                            {renderPaletteElement(ELEMENT_TYPES.CONDUCT_BLAME, 'Blâme de conduite', XCircle)}
-                            {renderPaletteElement(ELEMENT_TYPES.EXCLUSION_DAYS, 'Exclusions', X)}
-                          </div>
-                        </div>
-
-                        {/* Signatures Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <PenTool className="h-3 w-3" />
-                            {t.signaturesCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.PARENT_SIGNATURE, t.parentSignature, Users)}
-                            {renderPaletteElement(ELEMENT_TYPES.TEACHER_SIGNATURE, t.teacherSignature, UserCheck)}
-                            {renderPaletteElement(ELEMENT_TYPES.HEADMASTER_SIGNATURE, t.headmasterSignature, School)}
-                          </div>
-                        </div>
-
-                        {/* Text & Layout Category */}
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <Type className="h-3 w-3" />
-                            {t.textCategory}
-                          </h4>
-                          <div className="space-y-2">
-                            {renderPaletteElement(ELEMENT_TYPES.FREE_TEXT, t.freeText, Type)}
-                            {renderPaletteElement(ELEMENT_TYPES.TEXT_LABEL, 'Étiquette', Type)}
-                            {renderPaletteElement(ELEMENT_TYPES.SCHOOL_LOGO, t.schoolLogo, Image)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Design Canvas */}
-                    <div className="lg:col-span-2 border rounded-lg relative bg-white" id="design-canvas">
-                      <div className="absolute top-2 left-2 right-2 flex justify-between items-center z-10">
-                        <h3 className="font-semibold flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
-                          <Layout className="h-4 w-4" />
-                          {t.designCanvas}
-                        </h3>
-                        <div className="flex items-center gap-2 bg-white px-2 py-1 rounded shadow-sm">
-                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom - 0.1)}>
-                            <span className="text-xs">-</span>
-                          </Button>
-                          <span className="text-xs px-2">{Math.round(canvasZoom * 100)}%</span>
-                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
-                            <span className="text-xs">+</span>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
-                            <RotateCcw className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div 
-                        className="w-full h-full overflow-auto p-8 pt-16"
-                        style={{ 
-                          backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
-                          backgroundSize: '20px 20px'
-                        }}
-                      >
-                        <div
-                          className="mx-auto bg-white shadow-lg border relative"
-                          style={{
-                            width: canvasSize.width * canvasZoom,
-                            height: canvasSize.height * canvasZoom,
-                            transform: `scale(${canvasZoom})`,
-                            transformOrigin: 'top left'
-                          }}
-                          data-testid="design-canvas-area"
-                        >
-                          {/* Canvas Drop Zone */}
-                          <div 
-                            id="canvas-drop-zone"
-                            className="w-full h-full relative"
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const elementType = e.dataTransfer.getData('text/plain');
-                              if (elementType) {
-                                // Calculate position relative to canvas
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = (e.clientX - rect.left) / canvasZoom;
-                                const y = (e.clientY - rect.top) / canvasZoom;
-                                
-                                const newElement: TemplateElement = {
-                                  id: generateElementId(),
-                                  type: elementType,
-                                  category: getCategoryForType(elementType),
-                                  position: { x, y, width: 200, height: 40 },
-                                  properties: {
-                                    fontSize: 12,
-                                    fontFamily: 'Arial',
-                                    color: '#374151',
-                                    backgroundColor: 'transparent',
-                                    label: getElementDisplayName(elementType),
-                                    visible: true
-                                  },
-                                  zIndex: templateElements.length + 1
-                                };
-                                
-                                setTemplateElements(prev => [...prev, newElement]);
-                                setSelectedElement(newElement.id);
-                              }
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                          >
-                            {/* Render template elements with SortableContext */}
-                            <SortableContext items={templateElements.map(el => el.id)} strategy={verticalListSortingStrategy}>
-                              {templateElements.map((element) => (
-                                <SortableTemplateElement
-                                  key={element.id}
-                                  element={element}
-                                  isSelected={selectedElement === element.id}
-                                  onSelect={() => setSelectedElement(element.id)}
-                                  getElementDisplayName={getElementDisplayName}
-                                />
-                              ))}
-                            </SortableContext>
-                            
-                            {/* Grid overlay */}
-                            {showGrid && (
-                              <div className="absolute inset-0 pointer-events-none opacity-20">
-                                <svg width="100%" height="100%">
-                                  <defs>
-                                    <pattern id="grid" width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
-                                      <path d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`} fill="none" stroke="#e5e5e5" strokeWidth="1"/>
-                                    </pattern>
-                                  </defs>
-                                  <rect width="100%" height="100%" fill="url(#grid)" />
-                                </svg>
-                              </div>
-                            )}
-                            
-                            {/* Alignment guides overlay */}
-                            {showGuides && alignmentGuides.length > 0 && (
-                              <div className="absolute inset-0 pointer-events-none">
-                                <svg width="100%" height="100%">
-                                  {alignmentGuides.map((guide, index) => (
-                                    <g key={index}>
-                                      {guide.x !== undefined && (
-                                        <line
-                                          x1={guide.x}
-                                          y1="0"
-                                          x2={guide.x}
-                                          y2="100%"
-                                          stroke="#3b82f6"
-                                          strokeWidth="1"
-                                          strokeDasharray="4,4"
-                                        />
-                                      )}
-                                      {guide.y !== undefined && (
-                                        <line
-                                          x1="0"
-                                          y1={guide.y}
-                                          x2="100%"
-                                          y2={guide.y}
-                                          stroke="#3b82f6"
-                                          strokeWidth="1"
-                                          strokeDasharray="4,4"
-                                        />
-                                      )}
-                                    </g>
-                                  ))}
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Properties Panel */}
-                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <Settings className="h-4 w-4" />
-                        {t.elementProperties}
-                      </h3>
-                      
-                      {selectedElement ? (
-                        <div className="space-y-4">
-                          {(() => {
-                            const element = templateElements.find(el => el.id === selectedElement);
-                            if (!element) return null;
-                            
-                            return (
-                              <>
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.position}</Label>
-                                  <div className="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                      <Label className="text-xs">X</Label>
-                                      <Input
-                                        type="number"
-                                        value={Math.round(element.position.x)}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, x: parseInt(e.target.value) || 0 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs">Y</Label>
-                                      <Input
-                                        type="number"
-                                        value={Math.round(element.position.y)}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, y: parseInt(e.target.value) || 0 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.size}</Label>
-                                  <div className="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                      <Label className="text-xs">{t.width}</Label>
-                                      <Input
-                                        type="number"
-                                        value={element.position.width}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, width: parseInt(e.target.value) || 100 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs">{t.height}</Label>
-                                      <Input
-                                        type="number"
-                                        value={element.position.height}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          position: { ...element.position, height: parseInt(e.target.value) || 40 }
-                                        })}
-                                        className="h-7 text-xs"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.content}</Label>
-                                  <Input
-                                    value={element.properties.label || ''}
-                                    onChange={(e) => handleUpdateElement(element.id, {
-                                      properties: { ...element.properties, label: e.target.value }
-                                    })}
-                                    className="h-7 text-xs mt-1"
-                                    placeholder="Texte à afficher..."
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <Label className="text-xs font-semibold text-gray-700">{t.style}</Label>
-                                  <div className="space-y-2 mt-1">
-                                    <div>
-                                      <Label className="text-xs">{t.fontSize}</Label>
-                                      <Input
-                                        type="number"
-                                        value={element.properties.fontSize || 12}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          properties: { ...element.properties, fontSize: parseInt(e.target.value) || 12 }
-                                        })}
-                                        className="h-7 text-xs"
-                                        min="8"
-                                        max="72"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label className="text-xs">{t.color}</Label>
-                                      <Input
-                                        type="color"
-                                        value={element.properties.color || '#374151'}
-                                        onChange={(e) => handleUpdateElement(element.id, {
-                                          properties: { ...element.properties, color: e.target.value }
-                                        })}
-                                        className="h-7 w-full"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                <div className="pt-2 border-t">
-                                  <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => {
-                                      setTemplateElements(prev => prev.filter(el => el.id !== element.id));
-                                      setSelectedElement(null);
-                                      
-                                      toast({
-                                        title: 'Élément supprimé',
-                                        description: 'L\'élément a été retiré du modèle'
-                                      });
-                                    }}
-                                    className="w-full"
-                                    data-testid="delete-element-btn"
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-2" />
-                                    Supprimer
-                                  </Button>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <Square className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                          <p className="text-sm">Sélectionnez un élément pour modifier ses propriétés</p>
-                        </div>
-                      )}
-                    </div>
+                {/* Drag and Drop Context - Restructuré selon solution architecturale */}
+                {templateElements.length > 0 ? (
+                  <CanvasArea />
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    Utilisez la palette d'éléments pour commencer à créer votre modèle
                   </div>
-
-                  {/* Drag Overlay */}
-                  <DragOverlay>
-                    {draggedElement ? (
-                      <div className="bg-blue-100 border-2 border-blue-300 p-2 rounded shadow-lg">
-                        {getElementDisplayName(draggedElement)}
-                      </div>
-                    ) : null}
-                  </DragOverlay>
-                </DndContext>
+                )}
 
                 {/* Template Actions */}
                 <div className="flex justify-between items-center pt-4 border-t">
@@ -5290,27 +5139,6 @@ export default function ComprehensiveBulletinGenerator() {
                       <FileText className="h-4 w-4 mr-2" />
                       Charger modèle
                     </Button>
-                    {/* Undo/Redo buttons */}
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleUndo} 
-                      disabled={historyIndex <= 0}
-                      data-testid="undo-btn"
-                      title="Annuler (Ctrl+Z)"
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleRedo} 
-                      disabled={historyIndex >= templateHistory.length - 1}
-                      data-testid="redo-btn"
-                      title="Refaire (Ctrl+Y)"
-                    >
-                      <RotateCcw className="h-4 w-4 scale-x-[-1]" />
-                    </Button>
                   </div>
                   
                   <div className="flex gap-2">
@@ -5318,11 +5146,39 @@ export default function ComprehensiveBulletinGenerator() {
                       <Eye className="h-4 w-4 mr-2" />
                       Aperçu
                     </Button>
-                    <Button onClick={handleSaveTemplate} data-testid="save-template-btn">
-                      <Save className="h-4 w-4 mr-2" />
+                    <Button onClick={handleSaveTemplate} disabled={isSavingTemplate} data-testid="save-template-btn">
+                      {isSavingTemplate ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                      )}
                       {t.saveTemplate}
                     </Button>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* Sanctions Tab */}
+        {mountedTabs.has('sanctions') && (
+          <TabsContent value="sanctions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  {t.sanctionsTitle}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  {t.sanctionsDescription}
+                </p>
+              </CardHeader>
+              <CardContent>
+                {/* Contenu des sanctions sera ajouté ici */}
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Gestion des sanctions disciplinaires</p>
                 </div>
               </CardContent>
             </Card>
@@ -6685,16 +6541,23 @@ export default function ComprehensiveBulletinGenerator() {
                   <div><span className="font-medium">Période:</span> {previewData.term}</div>
                 </div>
               </div>
-                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
-                            <span className="text-xs">+</span>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
-                            <RotateCcw className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
+
+              {/* Zoom Controls */}
+              <div className="flex items-center gap-2 p-4 border-b">
+                <span className="text-sm font-medium">Zoom:</span>
+                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(Math.max(0.1, canvasZoom - 0.1))}>
+                  <span className="text-xs">-</span>
+                </Button>
+                <span className="text-sm min-w-[60px] text-center">{Math.round(canvasZoom * 100)}%</span>
+                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(canvasZoom + 0.1)}>
+                  <span className="text-xs">+</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setCanvasZoom(1)}>
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
                       
-                      <div 
+              <div 
                         className="w-full h-full overflow-auto p-8 pt-16"
                         style={{ 
                           backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
@@ -6810,9 +6673,15 @@ export default function ComprehensiveBulletinGenerator() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    {t.noPreviewData}
+                  </div>
+                )}
 
-                    {/* Properties Panel */}
-                    <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
+                {/* Properties Panel */}
+                <div className="lg:col-span-1 border rounded-lg p-4 bg-gray-50">
                       <h3 className="font-semibold mb-4 flex items-center gap-2">
                         <Settings className="h-4 w-4" />
                         {t.elementProperties}
