@@ -2277,7 +2277,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   {t.subjectCoefficientsDescription}
                                 </p>
                                 
-                                {/* Explications des acronymes en français et anglais */}
+                                {/* Explications des colonnes en français et anglais */}
                                 <div className="bg-blue-50 p-4 rounded-lg mb-4 space-y-3">
                                   <h4 className="font-semibold text-blue-900 mb-3">
                                     📝 Significations / Meanings:
@@ -2285,21 +2285,19 @@ export default function ComprehensiveBulletinGenerator() {
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-blue-800">🇫🇷 Français:</h5>
-                                      <p><strong>CTBA:</strong> Contrôle de Travaux et Bilan d'Apprentissage</p>
-                                      <p><strong>CBA:</strong> Contrôle de Bilan d'Apprentissage</p>
-                                      <p><strong>CA:</strong> Contrôle d'Apprentissage</p>
-                                      <p><strong>CMA:</strong> Contrôle de Mi-Apprentissage</p>
-                                      <p><strong>COTE:</strong> Cote d'appréciation (A-F)</p>
-                                      <p><strong>CNA:</strong> Compétence Non Acquise</p>
+                                      <p><strong>N/20:</strong> Note sur 20</p>
+                                      <p><strong>M/20:</strong> Moyenne sur 20</p>
+                                      <p><strong>Coef:</strong> Coefficient de la matière</p>
+                                      <p><strong>M*Coef:</strong> Moyenne × Coefficient</p>
+                                      <p><strong>Cote:</strong> Cote d'appréciation (A-F)</p>
                                     </div>
                                     <div className="space-y-2">
                                       <h5 className="font-medium text-blue-800">🇺🇸 English:</h5>
-                                      <p><strong>CTBA:</strong> Continuous Test & Balanced Assessment</p>
-                                      <p><strong>CBA:</strong> Competency-Based Assessment</p>
-                                      <p><strong>CA:</strong> Continuous Assessment</p>
-                                      <p><strong>CMA:</strong> Continuous Monitoring Assessment</p>
-                                      <p><strong>COTE:</strong> Achievement Grade (A-F)</p>
-                                      <p><strong>CNA:</strong> Competency Not Acquired</p>
+                                      <p><strong>N/20:</strong> Grade out of 20</p>
+                                      <p><strong>M/20:</strong> Average out of 20</p>
+                                      <p><strong>Coef:</strong> Subject coefficient</p>
+                                      <p><strong>M*Coef:</strong> Average × Coefficient</p>
+                                      <p><strong>Cote:</strong> Achievement Grade (A-F)</p>
                                     </div>
                                   </div>
                                 </div>
@@ -2308,21 +2306,19 @@ export default function ComprehensiveBulletinGenerator() {
                                     <thead>
                                       <tr className="bg-gray-50">
                                         <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">Matière</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CTBA</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CBA</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CA</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CMA</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">COTE</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">CNA</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Min</th>
-                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Max</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">N/20</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M/20</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Coef</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">M*Coef</th>
+                                        <th className="border border-gray-300 px-2 py-2 text-center text-sm font-semibold">Cote</th>
                                       </tr>
                                     </thead>
                                     <tbody>
                                       {filteredStudents.find(s => s.id === selectedStudentForEntry)?.approvedGrades?.map((grade, index) => (
                                         <tr key={grade.subjectId} className="hover:bg-gray-50">
-                                          <td className="border border-gray-300 px-3 py-2 text-sm font-medium">
-                                            {grade.subjectName}
+                                          <td className="border border-gray-300 px-3 py-2 text-sm">
+                                            <div className="font-medium text-gray-900">{grade.subjectName}</div>
+                                            <div className="text-xs text-gray-500 mt-1">Prof: {grade.teacherName || 'Non assigné'}</div>
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Input
@@ -2332,9 +2328,9 @@ export default function ComprehensiveBulletinGenerator() {
                                               max="20"
                                               placeholder="0.0"
                                               className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.CTBA || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CTBA', e.target.value)}
-                                              data-testid={`ctba-${grade.subjectId}`}
+                                              value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
+                                              data-testid={`note-${grade.subjectId}`}
                                             />
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
@@ -2345,41 +2341,45 @@ export default function ComprehensiveBulletinGenerator() {
                                               max="20"
                                               placeholder="0.0"
                                               className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.CBA || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CBA', e.target.value)}
-                                              data-testid={`cba-${grade.subjectId}`}
+                                              value={subjectCoefficients[grade.subjectId]?.averageOn20 || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'averageOn20', e.target.value)}
+                                              data-testid={`average-${grade.subjectId}`}
+                                            />
+                                          </td>
+                                          <td className="border border-gray-300 px-1 py-1">
+                                            <Input
+                                              type="number"
+                                              step="1"
+                                              min="1"
+                                              max="10"
+                                              placeholder="1"
+                                              className="h-8 text-center text-xs"
+                                              value={subjectCoefficients[grade.subjectId]?.coefficient || grade.coefficient || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'coefficient', e.target.value)}
+                                              data-testid={`coef-${grade.subjectId}`}
                                             />
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Input
                                               type="number"
                                               step="0.1"
-                                              min="0"
-                                              max="20"
                                               placeholder="0.0"
-                                              className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.CA || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CA', e.target.value)}
-                                              data-testid={`ca-${grade.subjectId}`}
-                                            />
-                                          </td>
-                                          <td className="border border-gray-300 px-1 py-1">
-                                            <Input
-                                              type="number"
-                                              step="0.1"
-                                              min="0"
-                                              max="20"
-                                              placeholder="0.0"
-                                              className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.CMA || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CMA', e.target.value)}
-                                              data-testid={`cma-${grade.subjectId}`}
+                                              className="h-8 text-center text-xs bg-gray-50"
+                                              value={
+                                                (() => {
+                                                  const avg = parseFloat(subjectCoefficients[grade.subjectId]?.averageOn20 || '0');
+                                                  const coef = parseFloat(subjectCoefficients[grade.subjectId]?.coefficient || grade.coefficient || '1');
+                                                  return !isNaN(avg) && !isNaN(coef) ? (avg * coef).toFixed(1) : '';
+                                                })()
+                                              }
+                                              readOnly
+                                              data-testid={`weighted-${grade.subjectId}`}
                                             />
                                           </td>
                                           <td className="border border-gray-300 px-1 py-1">
                                             <Select
-                                              value={subjectCoefficients[grade.subjectId]?.COTE || 'none'}
-                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'COTE', value)}
+                                              value={subjectCoefficients[grade.subjectId]?.cote || 'none'}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value)}
                                             >
                                               <SelectTrigger className="h-8 text-xs" data-testid={`cote-${grade.subjectId}`}>
                                                 <SelectValue placeholder="-" />
@@ -2394,43 +2394,6 @@ export default function ComprehensiveBulletinGenerator() {
                                                 <SelectItem value="F">F</SelectItem>
                                               </SelectContent>
                                             </Select>
-                                          </td>
-                                          <td className="border border-gray-300 px-1 py-1">
-                                            <Input
-                                              type="text"
-                                              placeholder="-"
-                                              className="h-8 text-center text-xs"
-                                              maxLength={50}
-                                              value={subjectCoefficients[grade.subjectId]?.CNA || 'none'}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'CNA', e.target.value)}
-                                              data-testid={`cna-${grade.subjectId}`}
-                                            />
-                                          </td>
-                                          <td className="border border-gray-300 px-1 py-1">
-                                            <Input
-                                              type="number"
-                                              step="0.1"
-                                              min="0"
-                                              max="20"
-                                              placeholder="0"
-                                              className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.minGrade || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'minGrade', e.target.value)}
-                                              data-testid={`min-grade-${grade.subjectId}`}
-                                            />
-                                          </td>
-                                          <td className="border border-gray-300 px-1 py-1">
-                                            <Input
-                                              type="number"
-                                              step="0.1"
-                                              min="0"
-                                              max="20"
-                                              placeholder="20"
-                                              className="h-8 text-center text-xs"
-                                              value={subjectCoefficients[grade.subjectId]?.maxGrade || ''}
-                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'maxGrade', e.target.value)}
-                                              data-testid={`max-grade-${grade.subjectId}`}
-                                            />
                                           </td>
                                         </tr>
                                       ))}
