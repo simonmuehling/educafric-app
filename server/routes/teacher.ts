@@ -192,6 +192,159 @@ router.get('/subjects', requireAuth, async (req, res) => {
   }
 });
 
+// Get teacher messages - REAL API implementation
+router.get('/messages', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    console.log('[TEACHER_MESSAGES] Fetching messages for teacher:', user.id, 'school:', user.schoolId);
+
+    // Get teacher-administration messages using unified messaging system
+    const connections = await storage.getTeacherAdminConnections(user.id, user.schoolId);
+    const allMessages = [];
+
+    // Fetch messages from all teacher-admin connections
+    for (const connection of connections) {
+      try {
+        const messages = await storage.getConnectionMessages(connection.id, 'teacher-admin');
+        allMessages.push(...messages);
+      } catch (error) {
+        console.warn('[TEACHER_MESSAGES] Failed to fetch messages for connection:', connection.id);
+      }
+    }
+
+    // Sort messages by date (newest first)
+    allMessages.sort((a, b) => new Date(b.sentAt || b.createdAt).getTime() - new Date(a.sentAt || a.createdAt).getTime());
+
+    console.log('[TEACHER_MESSAGES] ✅ Retrieved', allMessages.length, 'messages');
+
+    res.json({
+      success: true,
+      communications: allMessages.map(message => ({
+        id: message.id,
+        from: message.senderName || `${message.senderRole} User`,
+        fromRole: message.senderRole || 'Admin',
+        to: message.recipientName || `${user.firstName} ${user.lastName}`,
+        toRole: 'Teacher',
+        subject: message.subject || getMessageSubject(message.messageType, message.message),
+        message: message.message,
+        type: message.messageType || 'general',
+        status: message.isRead ? 'read' : 'unread',
+        date: message.sentAt || message.createdAt,
+        direction: message.senderId === user.id ? 'sent' : 'received',
+        priority: message.priority || 'normal'
+      }))
+    });
+  } catch (error: any) {
+    console.error('[TEACHER_MESSAGES] Error fetching messages:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teacher messages',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Send teacher message to administration
+router.post('/messages', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { to, subject, message, type = 'general', priority = 'normal' } = req.body;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    // Validate required fields
+    if (!message || message.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message content is required'
+      });
+    }
+
+    console.log('[TEACHER_SEND_MESSAGE] Sending message from teacher:', user.id, 'to admin');
+
+    // Find or create teacher-admin connection
+    let connection = await storage.findTeacherAdminConnection(user.id, user.schoolId);
+    if (!connection) {
+      // Create new connection to school administration
+      connection = await storage.createTeacherAdminConnection({
+        teacherId: user.id,
+        schoolId: user.schoolId,
+        connectionType: 'teacher-admin',
+        status: 'active'
+      });
+    }
+
+    // Send message through unified messaging system
+    const sentMessage = await storage.sendConnectionMessage({
+      connectionId: connection.id,
+      connectionType: 'teacher-admin',
+      senderId: user.id,
+      senderRole: 'Teacher',
+      message: message.trim(),
+      subject: subject || getMessageSubject(type, message),
+      messageType: type,
+      priority: priority,
+      messageData: {
+        schoolId: user.schoolId,
+        teacherId: user.id,
+        recipientType: 'administration'
+      }
+    });
+
+    console.log('[TEACHER_SEND_MESSAGE] ✅ Message sent successfully:', sentMessage.id);
+
+    res.status(201).json({
+      success: true,
+      message: 'Message sent successfully to school administration',
+      data: {
+        id: sentMessage.id,
+        subject: subject || getMessageSubject(type, message),
+        type: type,
+        priority: priority,
+        sentAt: sentMessage.sentAt
+      }
+    });
+  } catch (error: any) {
+    console.error('[TEACHER_SEND_MESSAGE] Error sending message:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send message',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Helper function to generate subject from message type and content
+function getMessageSubject(messageType: string, messageContent: string): string {
+  const typeSubjects: Record<string, string> = {
+    'question': 'Question from Teacher',
+    'information': 'Information Update',
+    'alert': 'Important Alert',
+    'absence': 'Absence Notification',
+    'urgent': 'Urgent Matter',
+    'general': 'Message from Teacher'
+  };
+  
+  const baseSubject = typeSubjects[messageType] || 'Message from Teacher';
+  
+  // Extract first few words from message for more descriptive subject
+  const words = messageContent.split(' ').slice(0, 6).join(' ');
+  return words.length > 30 ? `${baseSubject}: ${words}...` : `${baseSubject}: ${words}`;
+}
+
 // Get teacher assignments
 router.get('/assignments', requireAuth, async (req, res) => {
   try {

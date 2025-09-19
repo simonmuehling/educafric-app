@@ -387,6 +387,124 @@ export class ModularStorage {
     return true; // Allow all access for now
   }
 
+  // === TEACHER-ADMIN MESSAGING METHODS ===
+  async getTeacherAdminConnections(teacherId: number, schoolId: number) {
+    console.log(`[TEACHER_MESSAGING] Getting teacher-admin connections for teacher ${teacherId} in school ${schoolId}`);
+    
+    // For now, return mock connections until database is set up
+    return [
+      {
+        id: 1,
+        teacherId: teacherId,
+        schoolId: schoolId,
+        connectionType: 'teacher-admin',
+        status: 'active',
+        createdAt: new Date(),
+        adminName: 'School Administration',
+        adminRole: 'Director'
+      }
+    ];
+  }
+
+  async getConnectionMessages(connectionId: number, connectionType: string) {
+    console.log(`[TEACHER_MESSAGING] Getting messages for connection ${connectionId} (${connectionType})`);
+    
+    // Return mock messages with sample teacher-admin communication
+    const mockMessages = [
+      {
+        id: 1,
+        connectionId: connectionId,
+        senderId: 4, // Director ID
+        senderRole: 'Director',
+        senderName: 'Marie Directrice',
+        recipientName: 'Teacher User',
+        message: 'Bonjour, merci pour votre rapport mensuel. Pouvez-vous programmer une réunion pour discuter des résultats de la classe?',
+        subject: 'Réunion - Résultats de classe',
+        messageType: 'information',
+        priority: 'normal',
+        isRead: false,
+        sentAt: new Date('2025-09-18T10:30:00Z'),
+        createdAt: new Date('2025-09-18T10:30:00Z')
+      },
+      {
+        id: 2,
+        connectionId: connectionId,
+        senderId: 3, // Teacher ID (example)
+        senderRole: 'Teacher',
+        senderName: 'Teacher User',
+        recipientName: 'Marie Directrice',
+        message: 'Bonjour Madame la Directrice, j\'aimerais signaler que l\'élève Jean Kamga a besoin de soutien supplémentaire en mathématiques.',
+        subject: 'Soutien scolaire - Jean Kamga',
+        messageType: 'information',
+        priority: 'normal',
+        isRead: true,
+        sentAt: new Date('2025-09-17T14:15:00Z'),
+        createdAt: new Date('2025-09-17T14:15:00Z')
+      },
+      {
+        id: 3,
+        connectionId: connectionId,
+        senderId: 4, // Director ID
+        senderRole: 'Director',
+        senderName: 'Marie Directrice',
+        recipientName: 'Teacher User',
+        message: 'Rappel: La réunion pédagogique aura lieu demain à 15h en salle des professeurs.',
+        subject: 'Rappel - Réunion pédagogique',
+        messageType: 'alert',
+        priority: 'high',
+        isRead: false,
+        sentAt: new Date('2025-09-16T16:45:00Z'),
+        createdAt: new Date('2025-09-16T16:45:00Z')
+      }
+    ];
+
+    return mockMessages;
+  }
+
+  async findTeacherAdminConnection(teacherId: number, schoolId: number) {
+    console.log(`[TEACHER_MESSAGING] Finding teacher-admin connection for teacher ${teacherId} in school ${schoolId}`);
+    
+    // Return existing connection or null
+    return {
+      id: 1,
+      teacherId: teacherId,
+      schoolId: schoolId,
+      connectionType: 'teacher-admin',
+      status: 'active',
+      createdAt: new Date()
+    };
+  }
+
+  async createTeacherAdminConnection(connectionData: any) {
+    console.log(`[TEACHER_MESSAGING] Creating teacher-admin connection:`, connectionData);
+    
+    // Create new connection
+    const newConnection = {
+      id: Date.now(),
+      ...connectionData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    return newConnection;
+  }
+
+  async sendConnectionMessage(messageData: any) {
+    console.log(`[TEACHER_MESSAGING] Sending connection message:`, messageData);
+    
+    // Send message through connection
+    const sentMessage = {
+      id: Date.now(),
+      ...messageData,
+      sentAt: new Date(),
+      createdAt: new Date(),
+      isRead: false,
+      status: 'sent'
+    };
+
+    return sentMessage;
+  }
+
   // === FALLBACK METHODS FOR COMPATIBILITY ===
   // Simplified implementations to prevent crashes
   async getTrackingDevices(schoolId?: number) { return []; }

@@ -43,99 +43,84 @@ const FunctionalTeacherCommunications: React.FC = () => {
     message: ''
   });
 
-  // Fetch teacher communications data - CORRIGÉ: utilise API fonctionnelle
-  const { data: communications = [], isLoading } = useQuery<Communication[]>({
+  // Fetch teacher communications data - REAL API implementation without mock fallbacks
+  const { data: communications = [], isLoading, error } = useQuery<Communication[]>({
     queryKey: ['/api/teacher/messages'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/teacher/messages', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (!response.ok) {
-          console.warn('[TEACHER_COMMUNICATIONS] API failed, using mock data');
-          // Données mock pour test
-          return [
-            {
-              id: 1,
-              from: "Parent Kamga",
-              fromRole: "Parent",
-              to: "Mme Kouam",
-              toRole: "Enseignant",
-              subject: "Question sur les devoirs",
-              message: "Bonjour, pourriez-vous m'expliquer l'exercice de mathématiques ?",
-              type: "question",
-              status: "unread",
-              date: "2025-08-25T14:30:00Z",
-              direction: "received"
-            },
-            {
-              id: 2,
-              from: "Mme Kouam",
-              fromRole: "Enseignant", 
-              to: "Parent Mballa",
-              toRole: "Parent",
-              subject: "Félicitations pour les progrès",
-              message: "Votre enfant fait d'excellents progrès en français.",
-              type: "information",
-              status: "sent",
-              date: "2025-08-25T10:15:00Z",
-              direction: "sent"
-            }
-          ];
-        }
-        
-        const data = await response.json();
-        return data.communications || data.messages || [];
-      } catch (error) {
-        console.error('[TEACHER_COMMUNICATIONS] Error:', error);
-        return [];
+      const response = await fetch('/api/teacher/messages', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch messages: ${response.status} ${errorText}`);
       }
+      
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch messages');
+      }
+      
+      return data.communications || [];
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 30000, // 30 seconds
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
-  // Mutation pour envoyer des messages - SYSTÈME UNIFIÉ
+  // Mutation pour envoyer des messages - REAL API for teacher-administration communication  
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: any) => {
-      const response = await fetch('/api/unified-messaging/messages/teacher-student', {
+      const response = await fetch('/api/teacher/messages', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          connectionId: messageData.connectionId || 1,
+          to: messageData.to || 'school-administration',
+          subject: messageData.subject,
           message: messageData.message,
-          messageType: 'text',
+          type: messageData.type || 'general',
           priority: messageData.priority || 'normal'
         })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const errorText = await response.text();
+        throw new Error(`Failed to send message: ${response.status} ${errorText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to send message');
+      }
+      
+      return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/unified-messaging/messages/teacher-student'] });
-      queryClient.invalidateQueries({ queryKey: ['unified-messages'] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/messages'] });
       toast({
         title: language === 'fr' ? 'Message envoyé' : 'Message sent',
-        description: language === 'fr' ? 'Votre message a été envoyé avec succès et notifications envoyées' : 'Your message has been sent successfully and notifications sent'
+        description: language === 'fr' 
+          ? 'Votre message a été envoyé avec succès à l\'administration scolaire' 
+          : 'Your message has been sent successfully to school administration'
       });
       setShowCompose(false);
       setComposeData({ type: '', to: '', subject: '', message: '' });
     },
     onError: (error: any) => {
+      console.error('[TEACHER_SEND_MESSAGE] Error:', error);
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
-        description: language === 'fr' ? 'Impossible d\'envoyer le message' : 'Failed to send message',
+        description: language === 'fr' 
+          ? 'Impossible d\'envoyer le message à l\'administration' 
+          : 'Failed to send message to administration',
         variant: 'destructive'
       });
     }
