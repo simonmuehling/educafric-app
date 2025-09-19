@@ -62,6 +62,17 @@ export const webpushSubscriptions = pgTable("webpush_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
+// Additional validation schemas for better type safety (defined first to avoid circular deps)
+export const libraryBookTitleSchema = z.object({
+  fr: z.string().min(1, "French title is required"),
+  en: z.string().min(1, "English title is required")
+});
+
+export const libraryBookDescriptionSchema = z.object({
+  fr: z.string().optional(),
+  en: z.string().optional()
+}).optional();
+
 // Zod schemas for validation
 export const insertLibraryBookSchema = createInsertSchema(libraryBooks).omit({
   id: true,
@@ -90,17 +101,6 @@ export const insertWebpushSubscriptionSchema = createInsertSchema(webpushSubscri
   createdAt: true,
   updatedAt: true
 });
-
-// Additional validation schemas for better type safety
-export const libraryBookTitleSchema = z.object({
-  fr: z.string().min(1, "French title is required"),
-  en: z.string().min(1, "English title is required")
-});
-
-export const libraryBookDescriptionSchema = z.object({
-  fr: z.string().optional(),
-  en: z.string().optional()
-}).optional();
 
 export const audienceTypeSchema = z.enum(["student", "class", "department"]);
 export const notificationChannelSchema = z.enum(["email", "push", "sms", "whatsapp"]);

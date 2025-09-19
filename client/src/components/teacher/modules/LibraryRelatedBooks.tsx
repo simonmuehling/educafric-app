@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { 
   BookOpen, Users, Plus, Eye, Share2, Filter,
   ExternalLink, Tag, Star, Clock,
-  Search, Edit, Trash2, MessageSquare
+  Search, Edit, Trash2, MessageSquare, User, Building
 } from 'lucide-react';
 
 interface LibraryBook {
