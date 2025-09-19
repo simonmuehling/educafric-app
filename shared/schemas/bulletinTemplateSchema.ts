@@ -108,18 +108,24 @@ export interface TemplateElement {
 }
 
 export interface ElementProperties {
-  // Propriétés de style
+  // Propriétés de style étendues
   fontSize?: number;
   fontFamily?: string;
-  fontWeight?: string;
+  fontWeight?: string | number;
   color?: string;
   backgroundColor?: string;
   borderColor?: string;
   borderWidth?: number;
-  borderStyle?: string;
-  padding?: number;
-  margin?: number;
+  borderStyle?: "solid" | "dashed" | "dotted" | "double" | "none";
+  borderRadius?: number;
+  padding?: number | { top?: number; right?: number; bottom?: number; left?: number };
+  margin?: number | { top?: number; right?: number; bottom?: number; left?: number };
   textAlign?: "left" | "center" | "right" | "justify";
+  verticalAlign?: "top" | "middle" | "bottom";
+  lineHeight?: number;
+  letterSpacing?: number;
+  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
+  textDecoration?: "none" | "underline" | "overline" | "line-through";
   
   // Propriétés spécifiques au contenu
   label?: string;
@@ -127,12 +133,22 @@ export interface ElementProperties {
   format?: string; // Format d'affichage (ex: pour les dates, nombres)
   showBorder?: boolean;
   showHeader?: boolean;
+  headerText?: string;
+  footerText?: string;
+  
+  // Propriétés de validation et contraintes
+  minValue?: number;
+  maxValue?: number;
+  minLength?: number;
+  maxLength?: number;
+  decimalPlaces?: number; // Pour les notes et moyennes
+  required?: boolean;
   
   // Propriétés conditionnelles
   visible?: boolean;
   conditional?: {
     field: string;
-    operator: "equals" | "not_equals" | "greater_than" | "less_than" | "contains";
+    operator: "equals" | "not_equals" | "greater_than" | "less_than" | "contains" | "exists" | "is_empty";
     value: any;
   };
   
@@ -142,11 +158,43 @@ export interface ElementProperties {
     label: string;
     width: number;
     align: "left" | "center" | "right";
+    format?: string;
+    showTotal?: boolean;
   }>;
+  showRowNumbers?: boolean;
+  alternateRowColors?: boolean;
+  maxRows?: number;
   
   // Propriétés pour les images
   imageUrl?: string;
-  imageScale?: "fit" | "fill" | "stretch";
+  imageScale?: "fit" | "fill" | "stretch" | "contain";
+  imageWidth?: number;
+  imageHeight?: number;
+  imageBorder?: boolean;
+  
+  // Propriétés pour les signatures
+  signatureType?: "text" | "image" | "both";
+  signatureWidth?: number;
+  signatureHeight?: number;
+  showSignatureLine?: boolean;
+  signaturePlaceholder?: string;
+  
+  // Propriétés pour les notes et coefficients
+  gradeFormat?: "decimal" | "fraction" | "percentage" | "letter";
+  showCoefficient?: boolean;
+  coefficientLabel?: string;
+  gradeScale?: string; // ex: "0-20", "A-F"
+  
+  // Propriétés de langue et localisation
+  language?: "fr" | "en" | "both";
+  dateFormat?: "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY-MM-DD";
+  numberFormat?: "french" | "english"; // 15,5 vs 15.5
+  
+  // Propriétés d'interaction
+  clickable?: boolean;
+  draggable?: boolean;
+  resizable?: boolean;
+  editable?: boolean;
 }
 
 // Schémas Zod pour la validation
@@ -161,18 +209,39 @@ export const templateElementSchema = z.object({
     height: z.number().min(1)
   }),
   properties: z.object({
+    // Propriétés de style étendues
     fontSize: z.number().optional(),
     fontFamily: z.string().optional(),
-    fontWeight: z.string().optional(),
+    fontWeight: z.union([z.string(), z.number()]).optional(),
     color: z.string().optional(),
     backgroundColor: z.string().optional(),
     borderColor: z.string().optional(),
     borderWidth: z.number().optional(),
-    borderStyle: z.string().optional(),
-    padding: z.number().optional(),
-    margin: z.number().optional(),
+    borderStyle: z.enum(["solid", "dashed", "dotted", "double", "none"]).optional(),
+    borderRadius: z.number().optional(),
+    padding: z.union([z.number(), z.object({
+      top: z.number().optional(),
+      right: z.number().optional(),
+      bottom: z.number().optional(),
+      left: z.number().optional()
+    })]).optional(),
+    margin: z.union([z.number(), z.object({
+      top: z.number().optional(),
+      right: z.number().optional(),
+      bottom: z.number().optional(),
+      left: z.number().optional()
+    })]).optional(),
     textAlign: z.enum(["left", "center", "right", "justify"]).optional(),
+    verticalAlign: z.enum(["top", "middle", "bottom"]).optional(),
+    lineHeight: z.number().optional(),
+    letterSpacing: z.number().optional(),
+    textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).optional(),
+    textDecoration: z.enum(["none", "underline", "overline", "line-through"]).optional(),
+    
+    // Propriétés spécifiques au contenu
     label: z.string().optional(),
+    headerText: z.string().optional(),
+    footerText: z.string().optional(),
     placeholder: z.string().optional(),
     format: z.string().optional(),
     showBorder: z.boolean().optional(),
@@ -180,18 +249,60 @@ export const templateElementSchema = z.object({
     visible: z.boolean().optional(),
     conditional: z.object({
       field: z.string(),
-      operator: z.enum(["equals", "not_equals", "greater_than", "less_than", "contains"]),
+      operator: z.enum(["equals", "not_equals", "greater_than", "less_than", "contains", "exists", "is_empty"]),
       value: z.any()
     }).optional(),
+    
+    // Propriétés de validation et contraintes
+    minValue: z.number().optional(),
+    maxValue: z.number().optional(),
+    minLength: z.number().optional(),
+    maxLength: z.number().optional(),
+    decimalPlaces: z.number().optional(),
+    required: z.boolean().optional(),
+    // Propriétés pour les tableaux
     columns: z.array(z.object({
       field: z.string(),
       label: z.string(),
       width: z.number(),
-      align: z.enum(["left", "center", "right"])
+      align: z.enum(["left", "center", "right"]),
+      format: z.string().optional(),
+      showTotal: z.boolean().optional()
     })).optional(),
+    showRowNumbers: z.boolean().optional(),
+    alternateRowColors: z.boolean().optional(),
+    maxRows: z.number().optional(),
+    // Propriétés pour les images
     imageUrl: z.string().optional(),
-    imageScale: z.enum(["fit", "fill", "stretch"]).optional()
-  }),
+    imageScale: z.enum(["fit", "fill", "stretch", "contain"]).optional(),
+    imageWidth: z.number().optional(),
+    imageHeight: z.number().optional(),
+    imageBorder: z.boolean().optional(),
+    
+    // Propriétés pour les signatures
+    signatureType: z.enum(["text", "image", "both"]).optional(),
+    signatureWidth: z.number().optional(),
+    signatureHeight: z.number().optional(),
+    showSignatureLine: z.boolean().optional(),
+    signaturePlaceholder: z.string().optional(),
+    
+    // Propriétés pour les notes et coefficients
+    gradeFormat: z.enum(["decimal", "fraction", "percentage", "letter"]).optional(),
+    showCoefficient: z.boolean().optional(),
+    coefficientLabel: z.string().optional(),
+    gradeScale: z.string().optional(),
+    
+    // Propriétés de langue et localisation
+    language: z.enum(["fr", "en", "both"]).optional(),
+    dateFormat: z.enum(["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"]).optional(),
+    numberFormat: z.enum(["french", "english"]).optional(),
+    
+    // Propriétés d'interaction
+    clickable: z.boolean().optional(),
+    draggable: z.boolean().optional(),
+    resizable: z.boolean().optional(),
+    editable: z.boolean().optional()
+  }).passthrough(), // Évite le stripping des clés inconnues
   zIndex: z.number()
 });
 
@@ -231,68 +342,161 @@ export type BulletinTemplateVersion = typeof bulletinTemplateVersions.$inferSele
 export type TemplateElementType = typeof templateElementTypes.$inferSelect;
 export type InsertTemplateElementType = z.infer<typeof templateElementTypeInsertSchema>;
 
-// Constantes pour les catégories d'éléments
+// Constantes pour les catégories d'éléments - Organisées par ordre logique de création d'un bulletin
 export const ELEMENT_CATEGORIES = {
+  // 1. Identification et en-tête
+  HEADER: "header",
   STUDENT_INFO: "student_info",
-  GRADES: "grades", 
+  ACADEMIC_INFO: "academic_info",
+  
+  // 2. Données académiques principales
+  GRADES: "grades",
+  COEFFICIENTS: "coefficients",
+  AVERAGES: "averages", 
+  STATISTICS: "statistics",
+  
+  // 3. Comportement et assiduité
   ATTENDANCE: "attendance",
   SANCTIONS: "sanctions",
+  
+  // 4. Évaluations et appréciations
+  APPRECIATIONS: "appreciations",
   CLASS_COUNCIL: "class_council",
+  
+  // 5. Validation et signatures
   SIGNATURES: "signatures",
+  
+  // 6. Éléments de présentation
+  LOGOS_STAMPS: "logos_stamps",
   TEXT: "text",
   IMAGES: "images",
   LAYOUT: "layout"
 } as const;
 
-// Types d'éléments prédéfinis
+// Types d'éléments prédéfinis - Bibliothèque complète pour bulletin scolaire africain
 export const ELEMENT_TYPES = {
-  // Informations élève
+  // === CATEGORY: HEADER (En-tête du bulletin) ===
+  BULLETIN_TITLE: "bulletin_title", // Titre du bulletin
+  SCHOOL_NAME: "school_name", // Nom de l'établissement
+  SCHOOL_ADDRESS: "school_address", // Adresse de l'école
+  SCHOOL_PHONE: "school_phone", // Téléphone de l'école
+  PERFORMANCE_LEVELS_TEXT: "performance_levels_text", // Texte explicatif des niveaux
+  
+  // === CATEGORY: STUDENT_INFO (Informations élève) ===
   STUDENT_NAME: "student_name",
   STUDENT_MATRICULE: "student_matricule",
   STUDENT_CLASS: "student_class",
   STUDENT_PHOTO: "student_photo",
   STUDENT_BIRTH_DATE: "student_birth_date",
+  STUDENT_GENDER: "student_gender",
+  STUDENT_AGE: "student_age",
   
-  // Notes et moyennes
-  SUBJECT_GRADES: "subject_grades",
+  // === CATEGORY: ACADEMIC_INFO (Informations académiques) ===
+  ACADEMIC_YEAR: "academic_year",
+  TERM_SEMESTER: "term_semester", // Trimestre/Semestre
+  CLASS_LEVEL: "class_level", // Niveau de la classe
+  TOTAL_STUDENTS: "total_students", // Effectif de la classe
+  
+  // === CATEGORY: GRADES (Notes et évaluations) ===
+  SUBJECT_GRADES: "subject_grades", // Tableau des notes par matière
+  SUBJECT_GRADES_DETAILED: "subject_grades_detailed", // Notes détaillées (1ère, 2ème, 3ème éval)
+  INDIVIDUAL_SUBJECT_GRADE: "individual_subject_grade", // Note d'une matière spécifique
+  SUBJECT_COMMENT: "subject_comment", // Commentaire par matière
+  
+  // === CATEGORY: COEFFICIENTS (Coefficients et codes CTBA/CBA/CA/CMA) ===
+  CTBA_VALUE: "ctba_value", // Contrôle Total des Bases Acquises
+  CBA_VALUE: "cba_value", // Contrôle des Bases Acquises
+  CA_VALUE: "ca_value", // Contrôle d'Approfondissement
+  CMA_VALUE: "cma_value", // Contrôle de Maîtrise Approfondie
+  COTE_VALUE: "cote_value", // Cote (A, B, C, D, E, F)
+  CNA_VALUE: "cna_value", // Compétence Non Acquise
+  MIN_MAX_GRADES: "min_max_grades", // Valeurs [Min-Max] par matière
+  COEFFICIENT_TABLE: "coefficient_table", // Tableau des coefficients par matière
+  
+  // === CATEGORY: AVERAGES (Moyennes et totaux) ===
   GENERAL_AVERAGE: "general_average",
-  CLASS_RANK: "class_rank",
-  PERFORMANCE_LEVEL: "performance_level",
+  TRIMESTER_AVERAGE: "trimester_average",
+  SUBJECT_AVERAGE: "subject_average", // Moyenne par matière
+  TOTAL_GENERAL: "total_general", // TOTAL GÉNÉRAL
+  NUMBER_OF_AVERAGES: "number_of_averages", // Nombre de moyennes
+  CLASS_AVERAGE: "class_average", // Moyenne de la classe
   
-  // Absences et retards
+  // === CATEGORY: STATISTICS (Statistiques et classements) ===
+  CLASS_RANK: "class_rank",
+  SUCCESS_RATE: "success_rate", // Taux de réussite en %
+  PERFORMANCE_LEVEL: "performance_level",
+  CLASS_PROFILE: "class_profile", // Profil de la classe
+  GRADE_DISTRIBUTION: "grade_distribution", // Répartition des notes
+  
+  // === CATEGORY: ATTENDANCE (Absences et retards) ===
   UNJUSTIFIED_ABSENCES: "unjustified_absences",
   JUSTIFIED_ABSENCES: "justified_absences",
   LATENESS_COUNT: "lateness_count",
   DETENTION_HOURS: "detention_hours",
+  TOTAL_ABSENCE_HOURS: "total_absence_hours", // Total heures d'absence
+  ATTENDANCE_RATE: "attendance_rate", // Taux d'assiduité
   
-  // Sanctions disciplinaires
+  // === CATEGORY: SANCTIONS (Sanctions disciplinaires) ===
   CONDUCT_WARNING: "conduct_warning",
   CONDUCT_BLAME: "conduct_blame",
   EXCLUSION_DAYS: "exclusion_days",
   PERMANENT_EXCLUSION: "permanent_exclusion",
+  DISCIPLINARY_RECORD: "disciplinary_record", // Dossier disciplinaire complet
   
-  // Conseil de classe
+  // === CATEGORY: APPRECIATIONS (Appréciations et commentaires) ===
+  WORK_APPRECIATION: "work_appreciation", // Appréciation du travail
+  GENERAL_COMMENT: "general_comment", // Commentaire général
+  TEACHER_APPRECIATION: "teacher_appreciation", // Appréciation du professeur principal
+  PROGRESS_COMMENT: "progress_comment", // Commentaire sur les progrès
+  IMPROVEMENT_AREAS: "improvement_areas", // Points à améliorer
+  STRENGTHS: "strengths", // Points forts
+  
+  // === CATEGORY: CLASS_COUNCIL (Conseil de classe) ===
   CLASS_COUNCIL_DECISIONS: "class_council_decisions",
   CLASS_COUNCIL_MENTIONS: "class_council_mentions",
   ORIENTATION_RECOMMENDATIONS: "orientation_recommendations",
+  COUNCIL_DATE: "council_date", // Date du conseil de classe
+  COUNCIL_PARTICIPANTS: "council_participants", // Participants du conseil
+  COUNCIL_PRESIDENT: "council_president", // Président du conseil
   
-  // Signatures
+  // === CATEGORY: SIGNATURES (Signatures et visas) ===
   PARENT_SIGNATURE: "parent_signature",
   TEACHER_SIGNATURE: "teacher_signature",
   HEADMASTER_SIGNATURE: "headmaster_signature",
+  PARENT_VISA_DATE: "parent_visa_date", // Date visa parent
+  TEACHER_VISA_DATE: "teacher_visa_date", // Date visa enseignant
+  HEADMASTER_VISA_DATE: "headmaster_visa_date", // Date visa directeur
+  SIGNATURE_BLOCK: "signature_block", // Bloc de signatures groupées
   
-  // Zones de texte libre
+  // === CATEGORY: LOGOS_STAMPS (Logos et tampons officiels) ===
+  SCHOOL_LOGO: "school_logo",
+  CAMEROON_REPUBLIC_LOGO: "cameroon_republic_logo", // Logo République du Cameroun
+  MINISTERIAL_LOGO: "ministerial_logo", // Logo Ministère de l'Éducation
+  SCHOOL_OFFICIAL_STAMP: "school_official_stamp", // Tampon officiel de l'école
+  DIRECTOR_STAMP: "director_stamp", // Tampon du directeur
+  
+  // === CATEGORY: TEXT (Zones de texte) ===
   FREE_TEXT: "free_text",
   TEXT_LABEL: "text_label",
+  BULLETIN_HEADER: "bulletin_header", // En-tête personnalisé
+  BULLETIN_FOOTER: "bulletin_footer", // Pied de page
+  GRADE_SCALE_LEGEND: "grade_scale_legend", // Légende de l'échelle de notes
+  INSTRUCTIONS_TEXT: "instructions_text", // Instructions ou consignes
   
-  // Images et logos
-  SCHOOL_LOGO: "school_logo",
+  // === CATEGORY: IMAGES (Images et éléments visuels) ===
   BACKGROUND_IMAGE: "background_image",
+  DECORATIVE_IMAGE: "decorative_image", // Image décorative
+  QR_CODE: "qr_code", // QR Code pour vérification
+  BARCODE: "barcode", // Code-barres
   
-  // Éléments de mise en page
+  // === CATEGORY: LAYOUT (Éléments de mise en page) ===
   DIVIDER: "divider",
   SPACER: "spacer",
-  BORDER: "border"
+  BORDER: "border",
+  TABLE_CONTAINER: "table_container", // Conteneur de tableau
+  SECTION_HEADER: "section_header", // En-tête de section
+  PAGE_BREAK: "page_break", // Saut de page
+  GRID_CONTAINER: "grid_container" // Container en grille
 } as const;
 
 export type ElementCategory = typeof ELEMENT_CATEGORIES[keyof typeof ELEMENT_CATEGORIES];
