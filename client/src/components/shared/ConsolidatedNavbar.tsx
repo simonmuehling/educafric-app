@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Globe, ArrowLeft } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { EnhancedImage } from '@/components/ui/enhanced-image';
 
 interface ConsolidatedNavbarProps {
   showBackButton?: boolean;
@@ -81,17 +82,12 @@ const ConsolidatedNavbar: React.FC<ConsolidatedNavbarProps> = ({
               className="flex items-center hover:opacity-80 transition-opacity"
               title={language === 'fr' ? 'Accueil' : 'Home'}
             >
-              <img 
+              <EnhancedImage 
                 src="/assets/Edu_new (128 x 128 px)-2_1753244365562.png" 
                 alt="Educafric Logo" 
+                fallbackType="logo"
                 className="h-8 w-8 rounded-full"
-                onError={(e) => {
-                  // Fallback si logo non trouvé
-                  const target = e.currentTarget as HTMLImageElement;
-                  target?.style?.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback?.style?.display = 'flex';
-                }}
+                data-testid="img-educafric-logo"
               />
               <div 
                 className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"

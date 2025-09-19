@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ObjectUploader } from "./ObjectUploader";
+import { EnhancedImage } from "@/components/ui/enhanced-image";
 import { useToast } from "@/hooks/use-toast";
-import { School, Stamp, PenTool, Upload, Check } from "lucide-react";
+import { School, Stamp, PenTool, Upload, Check, AlertTriangle } from "lucide-react";
+import { useImageRefreshContext } from "@/contexts/ImageRefreshContext";
 import type { UploadResult } from "@uppy/core";
 
 interface SchoolAssetUploaderProps {
@@ -31,6 +33,7 @@ export function SchoolAssetUploader({
   className = "" 
 }: SchoolAssetUploaderProps) {
   const { toast } = useToast();
+  const { refreshImages } = useImageRefreshContext();
   const [uploadingAsset, setUploadingAsset] = useState<string | null>(null);
   const [assetStatus, setAssetStatus] = useState<AssetStatus>({
     logo: null,
@@ -87,6 +90,9 @@ export function SchoolAssetUploader({
             ...prev,
             [assetType as keyof AssetStatus]: uploadURL || ""
           }));
+          
+          // Trigger global image refresh to force cache-busting
+          refreshImages();
           
           onAssetUploaded?.(assetType, uploadURL);
           
@@ -160,10 +166,19 @@ export function SchoolAssetUploader({
           
           {isUploaded && (
             <div className="p-2 border rounded-lg bg-white">
-              <img 
-                src={isUploaded} 
+              <EnhancedImage
+                src={isUploaded}
                 alt={title}
+                fallbackType={assetType === 'logo' ? 'logo' : assetType === 'stamp' ? 'stamp' : 'signature'}
                 className="max-h-16 max-w-full object-contain mx-auto"
+                enableCacheBusting={true}
+                showLoadingSpinner={false}
+                onImageLoad={(success) => {
+                  if (!success) {
+                    console.warn(`Failed to load ${assetType} image:`, isUploaded);
+                  }
+                }}
+                data-testid={`img-asset-${assetType}`}
               />
             </div>
           )}

@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { SandboxProvider } from "@/contexts/SandboxContext";
 import { SandboxPremiumProvider } from "@/components/sandbox/SandboxPremiumProvider";
+import { ImageRefreshProvider } from "@/contexts/ImageRefreshContext";
 import { handleRedirect } from "@/lib/firebase";
 import React, { useEffect, lazy, Suspense, useState } from "react";
 import { BookOpen } from 'lucide-react';
@@ -527,26 +528,28 @@ function App() {
   return (
     <HookErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <LanguageProvider>
-            <CurrencyProvider>
-              <SandboxProvider>
-                <SandboxPremiumProvider>
-                  <ConsolidatedNotificationProvider>
-                  <TooltipProvider>
-                    <FirebaseRedirectHandler />
-                    <AppLayout>
-                      <ConnectionStatusIndicator />
-                      <Router />
-                    </AppLayout>
-                    <Toaster />
-                  </TooltipProvider>
-                  </ConsolidatedNotificationProvider>
-                </SandboxPremiumProvider>
-              </SandboxProvider>
-            </CurrencyProvider>
-          </LanguageProvider>
-        </AuthProvider>
+        <ImageRefreshProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <CurrencyProvider>
+                <SandboxProvider>
+                  <SandboxPremiumProvider>
+                    <ConsolidatedNotificationProvider>
+                    <TooltipProvider>
+                      <FirebaseRedirectHandler />
+                      <AppLayout>
+                        <ConnectionStatusIndicator />
+                        <Router />
+                      </AppLayout>
+                      <Toaster />
+                    </TooltipProvider>
+                    </ConsolidatedNotificationProvider>
+                  </SandboxPremiumProvider>
+                </SandboxProvider>
+              </CurrencyProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </ImageRefreshProvider>
       </QueryClientProvider>
     </HookErrorBoundary>
   );

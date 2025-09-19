@@ -16,6 +16,7 @@ import {
   Trash2,
   CheckCircle
 } from 'lucide-react';
+import { EnhancedImage } from '@/components/ui/enhanced-image';
 
 interface DigitalSignatureCanvasProps {
   onSignatureChange: (signatureData: string | null) => void;
@@ -601,10 +602,12 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
             {uploadedImageUrl && (
               <div className="border rounded-lg p-4 bg-white">
                 <div className="text-sm font-medium mb-2">{t.signaturePreview}:</div>
-                <img 
+                <EnhancedImage 
                   src={uploadedImageUrl} 
                   alt="Uploaded signature" 
+                  fallbackType="signature"
                   className="max-w-full max-h-32 object-contain border rounded"
+                  data-testid="img-signature-preview"
                 />
               </div>
             )}
@@ -626,10 +629,12 @@ const DigitalSignatureCanvas: React.FC<DigitalSignatureCanvasProps> = ({
                     data-testid={`saved-signature-${signature.id}`}
                   >
                     <div className="flex items-center gap-3">
-                      <img 
+                      <EnhancedImage 
                         src={signature.url} 
                         alt={signature.name}
+                        fallbackType="signature"
                         className="w-16 h-8 object-contain border rounded bg-white"
+                        data-testid={`img-saved-signature-${signature.id}`}
                       />
                       <div className="flex-1">
                         <div className="text-sm font-medium">{signature.name}</div>

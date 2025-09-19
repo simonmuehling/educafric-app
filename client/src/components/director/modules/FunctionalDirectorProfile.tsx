@@ -14,7 +14,7 @@ import {
   Award, Users, GraduationCap, Edit, Save, X, School,
   BarChart3, Clock, TrendingUp, Star, Shield, Camera, Upload
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { EnhancedAvatar } from '@/components/ui/enhanced-avatar';
 
 interface DirectorProfile {
   id: number;

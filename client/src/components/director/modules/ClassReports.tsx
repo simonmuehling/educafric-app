@@ -10,6 +10,7 @@ import {
   GraduationCap, TrendingUp, BarChart3, Star,
   Building2, Calendar, FileText, Filter
 } from 'lucide-react';
+import { EnhancedImage } from '@/components/ui/enhanced-image';
 
 interface ClassReport {
   id: number;
@@ -232,10 +233,12 @@ const ClassReports: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               {classReportsData.school.logoUrl && (
-                <img 
+                <EnhancedImage 
                   src={classReportsData.school.logoUrl} 
                   alt={classReportsData.school.name}
+                  fallbackType="logo"
                   className="w-16 h-16 object-contain rounded-lg border"
+                  data-testid="img-school-logo"
                 />
               )}
               <div>
