@@ -4018,26 +4018,6 @@ export default function ComprehensiveBulletinGenerator() {
                 )}
               </CardContent>
             </Card>
-                                        variant="destructive" 
-                                        size="sm"
-                                        onClick={() => {
-                                          setSanctionsData(prev => ({
-                                            ...prev,
-                                            conductBlames: prev.conductBlames.filter((_, i) => i !== index)
-                                          }));
-                                          toast({ title: t.sanctionDeleted });
-                                        }}
-                                        data-testid={`delete-blame-${index}`}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                        {t.deleteSanction}
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
                           
                           {/* Exclusions */}
                           {sanctionsData.exclusions.length > 0 && (
@@ -4113,9 +4093,23 @@ export default function ComprehensiveBulletinGenerator() {
                               </CardContent>
                             </Card>
                           )}
-                        </div>
-                      )}
-                    </div>
+
+                {!selectedStudentForSanctions && (
+                  <Card className="bg-muted">
+                    <CardContent className="pt-6">
+                      <div className="text-center text-muted-foreground">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>{t.pleaseSelectStudent}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+          </TabsContent>
+        )}
+
+        {/* Generation Options Tab */}
+        {mountedTabs.has('generation-options') && (
+          <TabsContent value="generation-options" className="space-y-4">
 
                     <Separator />
 
@@ -4296,8 +4290,6 @@ export default function ComprehensiveBulletinGenerator() {
                     </CardContent>
                   </Card>
                 )}
-              </CardContent>
-            </Card>
           </TabsContent>
         )}
 
