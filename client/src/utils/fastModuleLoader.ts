@@ -365,7 +365,7 @@ class FastModuleLoader {
   // HYPER-OPTIMIZED: Force immediate preload with aggressive caching
   async preloadCriticalModules() {
     // CRITICAL STUDENT MODULES - Force preload immediately
-    const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages'];
+    const criticalStudentModules = ['grades', 'assignments', 'attendance', 'messages', 'student-library'];
     
     if (import.meta.env.DEV) {
       console.log('[FAST_LOADER] ⚡ FORCING immediate preload of critical student modules...');
@@ -398,7 +398,7 @@ class FastModuleLoader {
       'teachers', 'students', 'classes', 'school-administrators', 'reports',
       
       // Student modules  
-      'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole',
+      'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole', 'library',
       
       // Parent modules
       'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance',
