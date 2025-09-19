@@ -1558,62 +1558,6 @@ export default function ComprehensiveBulletinGenerator() {
   });
 
   // Helper functions
-  const handleClassChange = (classId: string) => {
-    setSelectedClass(classId);
-    setSelectedStudents([]);
-    setSearchQuery('');
-  };
-
-  const handleStudentSelection = (studentId: number, selected: boolean) => {
-    if (selected) {
-      setSelectedStudents([...selectedStudents, studentId]);
-    } else {
-      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (!studentsData?.students) return;
-    
-    const eligibleStudents = studentsData.students.filter((student: StudentData) => 
-      student.approvedGrades.length > 0
-    );
-    
-    if (selectedStudents.length === eligibleStudents.length) {
-      setSelectedStudents([]);
-    } else {
-      setSelectedStudents(eligibleStudents.map((s: StudentData) => s.id));
-    }
-  };
-
-  // Handlers pour la sélection de bulletins en lot
-  const handleBulletinSelectAll = () => {
-    if (!pendingBulletins) return;
-    
-    if (selectAll) {
-      setSelectedBulletins([]);
-      setSelectAll(false);
-    } else {
-      setSelectedBulletins(pendingBulletins.map((bulletin: any) => bulletin.id));
-      setSelectAll(true);
-    }
-  };
-
-  const handleBulletinSelect = (bulletinId: number) => {
-    const isSelected = selectedBulletins.includes(bulletinId);
-    
-    if (isSelected) {
-      const newSelected = selectedBulletins.filter(id => id !== bulletinId);
-      setSelectedBulletins(newSelected);
-      if (selectAll) setSelectAll(false);
-    } else {
-      const newSelected = [...selectedBulletins, bulletinId];
-      setSelectedBulletins(newSelected);
-      if (pendingBulletins && newSelected.length === pendingBulletins.length) {
-        setSelectAll(true);
-      }
-    }
-  };
 
   const handleBulkApprove = () => {
     if (selectedBulletins.length === 0) {
