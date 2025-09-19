@@ -37,6 +37,7 @@ const FunctionalTeacherGrades: React.FC = () => {
   const [gradeForm, setGradeForm] = useState({
     studentId: '',
     subjectId: '',
+    classId: '',
     grade: '',
     maxGrade: '20',
     total: '20',
@@ -45,8 +46,29 @@ const FunctionalTeacherGrades: React.FC = () => {
     comment: ''
   });
 
+  // Fetch teacher classes data
+  const { data: classesData, isLoading: classesLoading } = useQuery({
+    queryKey: ['/api/teacher/classes'],
+    enabled: !!user
+  });
+  const classes = classesData?.classes || [];
+
+  // Fetch teacher subjects data
+  const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
+    queryKey: ['/api/teacher/subjects'],
+    enabled: !!user
+  });
+  const subjects = subjectsData?.subjects || [];
+
+  // Fetch students data based on selected class
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/teacher/students', gradeForm.classId],
+    enabled: !!user && !!gradeForm.classId
+  });
+  const students = studentsData?.students || [];
+
   // Fetch teacher grades data from PostgreSQL API
-  const { data: grades = [], isLoading } = useQuery<Grade[]>({
+  const { data: grades = [], isLoading, error } = useQuery<Grade[]>({
     queryKey: ['/api/teacher/grades'],
     queryFn: async () => {
       const response = await fetch('/api/teacher/grades', {
@@ -58,78 +80,79 @@ const FunctionalTeacherGrades: React.FC = () => {
       });
       
       if (!response.ok) {
-        console.warn('[TEACHER_GRADES] API failed, using mock data');
-        return [
-          {
-            id: 1,
-            studentId: 1,
-            studentName: "Marie Ngozi",
-            subjectName: "Mathématiques",
-            className: "6ème A",
-            grade: 16,
-            maxGrade: 20,
-            percentage: 80,
-            gradedAt: "2025-08-20T10:00:00Z",
-            comments: "Très bon travail"
-          },
-          {
-            id: 2,
-            studentId: 2,
-            studentName: "Paul Kamga",
-            subjectName: "Français",
-            className: "6ème A",
-            grade: 14,
-            maxGrade: 20,
-            percentage: 70,
-            gradedAt: "2025-08-21T14:30:00Z",
-            comments: "Peut mieux faire"
-          }
-        ];
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('[TEACHER_GRADES] API request failed:', errorMessage);
+        throw new Error(errorMessage);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('[TEACHER_GRADES] Successfully fetched grades:', data?.grades?.length || 0);
+      
+      // Return the grades array from the response
+      if (data.success && Array.isArray(data.grades)) {
+        return data.grades;
+      } else {
+        console.error('[TEACHER_GRADES] Invalid response format:', data);
+        throw new Error('Invalid response format from server');
+      }
     },
-    enabled: !!user
+    enabled: !!user,
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
   // Safe grades array handling to prevent runtime errors
   const safeGrades = Array.isArray(grades) ? grades : [];
 
-  // Add grade mutation
+  // Add grade mutation with improved error handling
   const addGradeMutation = useMutation({
     mutationFn: async (gradeData: any) => {
+      console.log('[TEACHER_GRADES] Submitting grade data:', gradeData);
+      
       const response = await fetch('/api/teacher/grade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(gradeData),
         credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to add grade');
-      return response.json();
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('[TEACHER_GRADES] Grade submission failed:', data);
+        const errorMessage = data.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(errorMessage);
+      }
+      
+      console.log('[TEACHER_GRADES] Grade submitted successfully:', data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/teacher/grades'] });
       setIsAddGradeOpen(false);
-      setGradeForm({ studentId: '', subjectId: '', grade: '', maxGrade: '20', total: '20', assignment: '', type: 'homework', comment: '' });
+      setGradeForm({ studentId: '', subjectId: '', classId: '', grade: '', maxGrade: '20', total: '20', assignment: '', type: 'homework', comment: '' });
       toast({
-        title: 'Note ajoutée',
-        description: 'La note a été ajoutée avec succès.'
+        title: language === 'fr' ? 'Note ajoutée' : 'Grade Added',
+        description: data.message || (language === 'fr' ? 'La note a été ajoutée avec succès.' : 'Grade added successfully.')
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
+      console.error('[TEACHER_GRADES] Grade submission error:', error);
       toast({
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter la note.',
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' ? 'Impossible d\'ajouter la note.' : 'Failed to add grade.'),
         variant: 'destructive'
       });
     }
   });
 
   const handleAddGrade = () => {
-    if (gradeForm.studentId && gradeForm.subjectId && gradeForm.grade && gradeForm.assignment) {
+    if (gradeForm.studentId && gradeForm.subjectId && gradeForm.classId && gradeForm.grade && gradeForm.assignment) {
       addGradeMutation.mutate({
         studentId: parseInt(gradeForm.studentId),
         subjectId: parseInt(gradeForm.subjectId),
+        classId: parseInt(gradeForm.classId),
         grade: parseFloat(gradeForm.grade),
         maxGrade: parseFloat(gradeForm.maxGrade),
         assignment: gradeForm.assignment,
@@ -224,12 +247,77 @@ const FunctionalTeacherGrades: React.FC = () => {
 
   const t = text[language as keyof typeof text];
 
+  // Error state
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                {language === 'fr' ? 'Erreur de chargement' : 'Loading Error'}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {error instanceof Error ? error.message : 
+                  (language === 'fr' ? 'Impossible de charger les notes' : 'Failed to load grades')}
+              </p>
+              <div className="mt-4">
+                <Button
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/teacher/grades'] })}
+                  variant="outline"
+                  className="mr-2"
+                >
+                  {language === 'fr' ? 'Réessayer' : 'Retry'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">{t.loading}</span>
+        <div className="space-y-6">
+          {/* Header skeleton */}
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+          
+          {/* Stats cards skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardContent className="p-4">
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {/* Content skeleton */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -415,24 +503,54 @@ const FunctionalTeacherGrades: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Ajouter une Note</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Élève ID</label>
-                <input
-                  type="text"
-                  value={gradeForm.studentId}
-                  onChange={(e) => setGradeForm(prev => ({ ...prev, studentId: e.target.value }))}
-                  placeholder="ID de l'élève"
+                <label className="text-sm font-medium">Classe *</label>
+                <select
+                  value={gradeForm.classId}
+                  onChange={(e) => {
+                    setGradeForm(prev => ({ ...prev, classId: e.target.value, studentId: '' }));
+                  }}
                   className="w-full border rounded-md px-3 py-2"
-                />
+                  disabled={classesLoading}
+                >
+                  <option value="">Sélectionner une classe</option>
+                  {classes.map((cls: any) => (
+                    <option key={cls.id} value={cls.id.toString()}>
+                      {cls.name} ({cls.studentCount || 0} élèves)
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="text-sm font-medium">Matière ID</label>
-                <input
-                  type="text"
+                <label className="text-sm font-medium">Élève *</label>
+                <select
+                  value={gradeForm.studentId}
+                  onChange={(e) => setGradeForm(prev => ({ ...prev, studentId: e.target.value }))}
+                  className="w-full border rounded-md px-3 py-2"
+                  disabled={studentsLoading || !gradeForm.classId}
+                >
+                  <option value="">Sélectionner un élève</option>
+                  {students.map((student: any) => (
+                    <option key={student.id} value={student.id.toString()}>
+                      {student.fullName} ({student.matricule})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Matière *</label>
+                <select
                   value={gradeForm.subjectId}
                   onChange={(e) => setGradeForm(prev => ({ ...prev, subjectId: e.target.value }))}
-                  placeholder="ID de la matière"
                   className="w-full border rounded-md px-3 py-2"
-                />
+                  disabled={subjectsLoading}
+                >
+                  <option value="">Sélectionner une matière</option>
+                  {subjects.map((subject: any) => (
+                    <option key={subject.id} value={subject.id.toString()}>
+                      {subject.name || subject.nameFr} (Coeff: {subject.coefficient || 1})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -493,7 +611,7 @@ const FunctionalTeacherGrades: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button 
                   onClick={handleAddGrade}
-                  disabled={addGradeMutation.isPending || !gradeForm.studentId || !gradeForm.grade || !gradeForm.assignment}
+                  disabled={addGradeMutation.isPending || !gradeForm.studentId || !gradeForm.subjectId || !gradeForm.classId || !gradeForm.grade || !gradeForm.assignment}
                   className="w-full sm:flex-1 bg-green-600 hover:bg-green-700"
                 >
                   {addGradeMutation.isPending ? 'Ajout...' : 'Ajouter la Note'}

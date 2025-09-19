@@ -3,7 +3,7 @@ import { storage } from '../storage';
 
 const router = Router();
 
-// Get students for a specific class
+// Get students for a specific class with real database integration
 router.get('/students', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -16,29 +16,63 @@ router.get('/students', requireAuth, async (req, res) => {
       });
     }
 
-    // Mock students data based on class
-    const allStudents = [
-      { id: 1, fullName: 'Marie Kouam', classId: 1, className: '6ème A', matricule: 'ESJ-2024-001' },
-      { id: 2, fullName: 'Paul Mballa', classId: 1, className: '6ème A', matricule: 'ESJ-2024-002' },
-      { id: 3, fullName: 'Sophie Ngoyi', classId: 1, className: '6ème A', matricule: 'ESJ-2024-003' },
-      { id: 4, fullName: 'Jean Fotso', classId: 2, className: '6ème B', matricule: 'ESJ-2024-004' },
-      { id: 5, fullName: 'Alice Menye', classId: 2, className: '6ème B', matricule: 'ESJ-2024-005' },
-      { id: 6, fullName: 'David Tchuente', classId: 3, className: '5ème A', matricule: 'ESJ-2024-006' }
-    ];
+    console.log('[TEACHER_STUDENTS] Fetching students for teacher:', user.id, 'classId:', classId);
+
+    // Verify teacher has access to requested class
+    const teacherClasses = await storage.getSchoolClasses(user.schoolId);
+    const teacherAssignedClasses = teacherClasses.filter((cls: any) => cls.teacherId === user.id);
     
-    const classStudents = classId ? 
-      allStudents.filter(student => student.classId.toString() === classId.toString()) :
-      allStudents;
-    
-    res.json({
-      success: true,
-      students: classStudents
-    });
+    if (classId) {
+      const hasAccessToClass = teacherAssignedClasses.some((cls: any) => cls.id.toString() === classId.toString());
+      if (!hasAccessToClass) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. You are not assigned to this class.'
+        });
+      }
+      
+      // Get students for specific class
+      const classStudents = await storage.getStudentsByClass(parseInt(classId as string));
+      const enrichedStudents = classStudents.map((student: any) => ({
+        id: student.id,
+        fullName: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+        classId: parseInt(classId as string),
+        className: teacherAssignedClasses.find((cls: any) => cls.id.toString() === classId.toString())?.name || 'Unknown Class',
+        matricule: student.matricule || `EDU-${student.id}`,
+        email: student.email
+      }));
+      
+      res.json({
+        success: true,
+        students: enrichedStudents
+      });
+    } else {
+      // Get students from all assigned classes
+      const allStudents = [];
+      for (const classInfo of teacherAssignedClasses) {
+        const classStudents = await storage.getStudentsByClass(classInfo.id);
+        const enrichedStudents = classStudents.map((student: any) => ({
+          id: student.id,
+          fullName: `${student.firstName || ''} ${student.lastName || ''}`.trim(),
+          classId: classInfo.id,
+          className: classInfo.name,
+          matricule: student.matricule || `EDU-${student.id}`,
+          email: student.email
+        }));
+        allStudents.push(...enrichedStudents);
+      }
+      
+      res.json({
+        success: true,
+        students: allStudents
+      });
+    }
   } catch (error) {
     console.error('[TEACHER_API] Error fetching students:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch class students'
+      message: 'Failed to fetch class students',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -124,6 +158,40 @@ router.get('/classes', requireAuth, async (req, res) => {
   }
 });
 
+// Get teacher subjects
+router.get('/subjects', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    console.log('[TEACHER_SUBJECTS] Fetching subjects for teacher:', user.id);
+
+    // Get all school subjects - teachers need access to subjects to create grades
+    const subjects = await storage.getSchoolSubjects(user.schoolId);
+    
+    // Filter to only active subjects
+    const activeSubjects = subjects.filter((subject: any) => subject.isActive !== false);
+    
+    res.json({
+      success: true,
+      subjects: activeSubjects
+    });
+  } catch (error) {
+    console.error('[TEACHER_API] Error fetching subjects:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch subjects',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Get teacher assignments
 router.get('/assignments', requireAuth, async (req, res) => {
   try {
@@ -155,7 +223,7 @@ router.get('/assignments', requireAuth, async (req, res) => {
   }
 });
 
-// Get teacher grades
+// Get teacher grades with real database integration
 router.get('/grades', requireAuth, async (req, res) => {
   try {
     const user = req.user as any;
@@ -167,21 +235,211 @@ router.get('/grades', requireAuth, async (req, res) => {
       });
     }
 
-    // Mock grades data
-    const grades = [
-      { id: 1, studentName: 'Alice Martin', subject: 'Mathematics', grade: 16, class: '6ème A', date: '2025-08-20' },
-      { id: 2, studentName: 'Bob Dupont', subject: 'Physics', grade: 14, class: '5ème B', date: '2025-08-22' }
-    ];
+    console.log('[TEACHER_GRADES] Fetching grades for teacher:', user.id);
+
+    // Get teacher's assigned classes and subjects
+    const teacherClasses = await storage.getSchoolClasses(user.schoolId);
+    const teacherAssignedClasses = teacherClasses.filter((cls: any) => cls.teacherId === user.id);
     
+    if (teacherAssignedClasses.length === 0) {
+      console.log('[TEACHER_GRADES] No assigned classes found for teacher:', user.id);
+      return res.json({ success: true, grades: [] });
+    }
+
+    // Fetch grades from all assigned classes
+    const allGrades = [];
+    for (const classInfo of teacherAssignedClasses) {
+      const classGrades = await storage.getGradesByClass(classInfo.id, { teacherId: user.id });
+      allGrades.push(...classGrades);
+    }
+
+    // Fetch additional data to enrich grade information
+    const enrichedGrades = [];
+    for (const grade of allGrades) {
+      try {
+        // Get student info
+        const student = await storage.getUserById(grade.studentId);
+        // Get subject info
+        const allSubjects = await storage.getSchoolSubjects(user.schoolId);
+        const subject = allSubjects.find((s: any) => s.id === grade.subjectId);
+        // Get class info
+        const classInfo = teacherAssignedClasses.find((c: any) => c.id === grade.classId);
+
+        const enrichedGrade = {
+          id: grade.id,
+          studentId: grade.studentId,
+          studentName: student ? `${student.firstName} ${student.lastName}` : 'Unknown Student',
+          subjectName: subject ? subject.name : 'Unknown Subject',
+          className: classInfo ? classInfo.name : 'Unknown Class',
+          grade: parseFloat(grade.grade) || 0,
+          maxGrade: 20, // Standard max grade
+          percentage: Math.round((parseFloat(grade.grade) || 0) / 20 * 100),
+          gradedAt: grade.createdAt || new Date().toISOString(),
+          comments: grade.comments || '',
+          coefficient: grade.coefficient || 1,
+          examType: grade.examType || 'evaluation',
+          term: grade.term,
+          academicYear: grade.academicYear
+        };
+        
+        enrichedGrades.push(enrichedGrade);
+      } catch (enrichError) {
+        console.error('[TEACHER_GRADES] Error enriching grade data:', enrichError);
+        // Add basic grade info if enrichment fails
+        enrichedGrades.push({
+          id: grade.id,
+          studentId: grade.studentId,
+          studentName: 'Unknown Student',
+          subjectName: 'Unknown Subject',
+          className: 'Unknown Class',
+          grade: parseFloat(grade.grade) || 0,
+          maxGrade: 20,
+          percentage: Math.round((parseFloat(grade.grade) || 0) / 20 * 100),
+          gradedAt: grade.createdAt || new Date().toISOString(),
+          comments: grade.comments || ''
+        });
+      }
+    }
+    
+    console.log(`[TEACHER_GRADES] Successfully fetched ${enrichedGrades.length} grades for teacher ${user.id}`);
     res.json({
       success: true,
-      grades: grades || []
+      grades: enrichedGrades
     });
   } catch (error) {
     console.error('[TEACHER_API] Error fetching grades:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch teacher grades'
+      message: 'Failed to fetch teacher grades',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// POST endpoint for grade submission
+router.post('/grade', requireAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    if (user.role !== 'Teacher') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Teacher role required.'
+      });
+    }
+
+    const { studentId, subjectId, classId, grade, maxGrade, assignment, type, comment, coefficient, term, academicYear } = req.body;
+
+    // Validate required fields
+    if (!studentId || !subjectId || !classId || grade === undefined || grade === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: studentId, subjectId, classId, and grade are required'
+      });
+    }
+
+    // Verify teacher has access to this class
+    const teacherClasses = await storage.getSchoolClasses(user.schoolId);
+    const teacherAssignedClasses = teacherClasses.filter((cls: any) => cls.teacherId === user.id);
+    const hasAccessToClass = teacherAssignedClasses.some((cls: any) => cls.id === classId);
+    
+    if (!hasAccessToClass) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You are not assigned to this class.'
+      });
+    }
+
+    // Verify student is in the class
+    const classStudents = await storage.getStudentsByClass(classId);
+    const studentInClass = classStudents.some((student: any) => student.id === studentId);
+    
+    if (!studentInClass) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student is not enrolled in this class.'
+      });
+    }
+
+    // Get current academic configuration for default term/year if not provided
+    let currentTerm = term;
+    let currentAcademicYear = academicYear;
+    
+    if (!currentTerm || !currentAcademicYear) {
+      try {
+        const academicConfig = await storage.getAcademicConfiguration(user.schoolId);
+        currentTerm = currentTerm || academicConfig?.terms?.[0]?.name || 'Premier Trimestre';
+        currentAcademicYear = currentAcademicYear || academicConfig?.academicYear?.name || '2024-2025';
+      } catch (configError) {
+        console.warn('[TEACHER_GRADE_POST] Could not fetch academic config, using defaults');
+        currentTerm = currentTerm || 'Premier Trimestre';
+        currentAcademicYear = currentAcademicYear || '2024-2025';
+      }
+    }
+
+    console.log('[TEACHER_GRADE_POST] Creating grade:', {
+      teacherId: user.id,
+      studentId,
+      subjectId,
+      classId,
+      grade: parseFloat(grade),
+      term: currentTerm,
+      academicYear: currentAcademicYear
+    });
+
+    // Check if grade already exists for this student/subject/term
+    const existingGrade = await storage.getGradeByStudentSubjectTerm(
+      studentId, 
+      subjectId, 
+      currentAcademicYear, 
+      currentTerm
+    );
+
+    if (existingGrade) {
+      return res.status(400).json({
+        success: false,
+        message: 'A grade already exists for this student in this subject for the current term. Use update instead.'
+      });
+    }
+
+    // Create the grade
+    const gradeData = {
+      studentId: parseInt(studentId),
+      teacherId: user.id,
+      subjectId: parseInt(subjectId),
+      classId: parseInt(classId),
+      schoolId: user.schoolId,
+      grade: parseFloat(grade).toString(),
+      coefficient: coefficient ? parseInt(coefficient) : 1,
+      examType: type || 'evaluation',
+      term: currentTerm,
+      academicYear: currentAcademicYear,
+      comments: comment || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const newGrade = await storage.createGrade(gradeData);
+    
+    console.log('[TEACHER_GRADE_POST] Grade created successfully:', newGrade.id);
+    
+    res.json({
+      success: true,
+      message: 'Grade added successfully',
+      grade: {
+        id: newGrade.id,
+        ...gradeData,
+        grade: parseFloat(grade),
+        maxGrade: maxGrade || 20,
+        percentage: Math.round((parseFloat(grade) / (maxGrade || 20)) * 100)
+      }
+    });
+  } catch (error) {
+    console.error('[TEACHER_API] Error adding grade:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add grade',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });

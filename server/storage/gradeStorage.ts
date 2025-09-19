@@ -187,7 +187,7 @@ export class GradeStorage implements IGradeStorage {
         .onConflictDoUpdate({
           target: [grades.studentId, grades.subjectId, grades.term, grades.academicYear],
           set: {
-            grade: sql`excluded.grade`, // Fixed: score -> grade
+            score: sql`excluded.score`, // Fixed: grade -> score to match schema
             coefficient: sql`excluded.coefficient`,
             examType: sql`excluded.exam_type`,
             comments: sql`excluded.comments`,
@@ -214,7 +214,7 @@ export class GradeStorage implements IGradeStorage {
             .onConflictDoUpdate({
               target: [grades.studentId, grades.subjectId, grades.term, grades.academicYear],
               set: {
-                grade: sql`excluded.grade`, // Fixed: score -> grade
+                score: sql`excluded.score`, // Fixed: grade -> score to match schema
                 coefficient: sql`excluded.coefficient`,
                 examType: sql`excluded.exam_type`,
                 comments: sql`excluded.comments`,
