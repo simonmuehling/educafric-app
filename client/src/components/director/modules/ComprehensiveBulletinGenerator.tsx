@@ -269,8 +269,6 @@ const manualDataValidationSchema = z.object({
   // Signatures
   parentVisaName: z.string().optional(),
   parentVisaDate: z.string().optional(),
-  teacherVisaName: z.string().optional(),
-  teacherVisaDate: z.string().optional(),
   headmasterVisaName: z.string().optional(),
   headmasterVisaDate: z.string().optional(),
   
@@ -577,8 +575,6 @@ export default function ComprehensiveBulletinGenerator() {
       generalComment: '',
       parentVisaName: '',
       parentVisaDate: new Date().toISOString().split('T')[0],
-      teacherVisaName: '',
-      teacherVisaDate: new Date().toISOString().split('T')[0],
       headmasterVisaName: '',
       headmasterVisaDate: new Date().toISOString().split('T')[0],
       classCouncilDecisions: '',
@@ -875,8 +871,6 @@ export default function ComprehensiveBulletinGenerator() {
       generalCommentField: 'Commentaire général (300 car. max)',
       parentVisaNameField: 'Nom parent/tuteur',
       parentVisaDateField: 'Date visa parent',
-      teacherVisaNameField: 'Nom professeur principal',
-      teacherVisaDateField: 'Date visa professeur',
       headmasterVisaNameField: 'Nom chef d\'établissement',
       headmasterVisaDateField: 'Date visa chef',
       
@@ -1194,8 +1188,6 @@ export default function ComprehensiveBulletinGenerator() {
       generalCommentField: 'General comment (300 char. max)',
       parentVisaNameField: 'Parent/Guardian name',
       parentVisaDateField: 'Parent visa date',
-      teacherVisaNameField: 'Main teacher name',
-      teacherVisaDateField: 'Teacher visa date',
       headmasterVisaNameField: 'School head name',
       headmasterVisaDateField: 'Headmaster visa date',
       
@@ -1485,8 +1477,6 @@ export default function ComprehensiveBulletinGenerator() {
         // Map signature fields to JSON format
         parentVisaName: data.parentVisaName || '',
         parentVisaDate: data.parentVisaDate || '',
-        teacherVisaName: data.teacherVisaName || '',
-        teacherVisaDate: data.teacherVisaDate || '',
         headmasterVisaName: data.headmasterVisaName || '',
         headmasterVisaDate: data.headmasterVisaDate || '',
         
@@ -3264,39 +3254,6 @@ export default function ComprehensiveBulletinGenerator() {
                                       <FormLabel>{t.parentVisaDateField}</FormLabel>
                                       <FormControl>
                                         <Input {...field} type="date" data-testid="parent-visa-date" />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            
-                            {/* Teacher Visa */}
-                            <div className="space-y-4">
-                              <h4 className="font-semibold text-sm text-muted-foreground">VISA PROFESSEUR PRINCIPAL</h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="teacherVisaName"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.teacherVisaNameField}</FormLabel>
-                                      <FormControl>
-                                        <Input {...field} placeholder="Nom du professeur principal" data-testid="teacher-visa-name" />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={manualDataForm.control}
-                                  name="teacherVisaDate"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.teacherVisaDateField}</FormLabel>
-                                      <FormControl>
-                                        <Input {...field} type="date" data-testid="teacher-visa-date" />
                                       </FormControl>
                                       <FormMessage />
                                     </FormItem>
