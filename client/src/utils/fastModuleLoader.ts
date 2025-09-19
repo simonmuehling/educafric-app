@@ -255,6 +255,9 @@ class FastModuleLoader {
       'reading': () => import('@/components/student/modules/LibraryRelatedBooks'),
       'books': () => import('@/components/teacher/modules/LibraryRelatedBooks'),
       
+      // Add missing content module mapping to fix warnings
+      'content': () => import('@/components/teacher/modules/CreateEducationalContent'),
+      
       // =============================================
       // 🔧 GENERIC MODULE FALLBACKS - MISSING MAPPINGS FIX
       // =============================================
