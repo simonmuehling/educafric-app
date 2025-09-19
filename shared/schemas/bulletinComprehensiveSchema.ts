@@ -135,11 +135,7 @@ const classProfileSchema = z.object({
 }).optional();
 
 // Comprehensive bulletin insert schema - simplified  
-export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true
-});
+export const insertBulletinComprehensiveSchema = createInsertSchema(bulletinComprehensive);
 
 // ===== NOUVEAU FORMAT TRACKING DÉTAILLÉ PAR DESTINATAIRE =====
 // Schema pour le statut de notification par canal et par destinataire
@@ -262,11 +258,7 @@ export const notificationTrackingSchemas = {
 };
 
 // Subject codes insert schema - simplified
-export const insertBulletinSubjectCodesSchema = createInsertSchema(bulletinSubjectCodes).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
-});
+export const insertBulletinSubjectCodesSchema = createInsertSchema(bulletinSubjectCodes);
 
 // ===== TYPE EXPORTS =====
 export type BulletinComprehensive = typeof bulletinComprehensive.$inferSelect;

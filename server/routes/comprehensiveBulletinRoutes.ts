@@ -25,7 +25,7 @@ import {
   insertBulletinSubjectCodesSchema,
   type InsertBulletinComprehensive,
   type InsertBulletinSubjectCodes
-} from '../../shared/schemas/bulletinComprehensiveSchema.js';
+} from '../../shared/schemas/bulletinComprehensiveSchema.ts';
 import { eq, and, sql, inArray } from 'drizzle-orm';
 import { requireAuth, requireAnyRole } from '../middleware/auth';
 
@@ -1368,11 +1368,92 @@ router.post('/save', requireAuth, requireDirectorAuth, async (req, res) => {
     });
 
   } catch (error: any) {
-    console.error('[COMPREHENSIVE_SAVE] ❌ Save error:', error);
+    // Enhanced error logging with detailed context
+    console.error('[COMPREHENSIVE_SAVE] ❌ Comprehensive save error occurred:');
+    console.error('[COMPREHENSIVE_SAVE] Error name:', error.name);
+    console.error('[COMPREHENSIVE_SAVE] Error message:', error.message);
+    console.error('[COMPREHENSIVE_SAVE] Error stack:', error.stack);
+    
+    // Log the validation data that caused the error
+    const currentUser = req.user as any;
+    console.error('[COMPREHENSIVE_SAVE] Request data context:', {
+      hasRequestBody: !!req.body,
+      bodyKeys: req.body ? Object.keys(req.body) : [],
+      userSchoolId: currentUser?.schoolId,
+      userId: currentUser?.id,
+      userRole: currentUser?.role
+    });
+
+    // Check for specific database errors
+    const isDatabaseError = error.code || error.constraint || error.table;
+    if (isDatabaseError) {
+      console.error('[COMPREHENSIVE_SAVE] Database error details:', {
+        code: error.code,
+        constraint: error.constraint,
+        table: error.table,
+        column: error.column,
+        detail: error.detail,
+        hint: error.hint
+      });
+    }
+
+    // Check for validation schema errors
+    if (error.name === 'ZodError') {
+      console.error('[COMPREHENSIVE_SAVE] Zod validation error:', error.errors);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error in bulletin data',
+        errors: error.errors,
+        errorType: 'validation'
+      });
+    }
+
+    // Check for database constraint errors
+    if (error.constraint) {
+      console.error('[COMPREHENSIVE_SAVE] Database constraint violation:', error.constraint);
+      return res.status(400).json({
+        success: false,
+        message: 'Database constraint violation - please check your data',
+        constraint: error.constraint,
+        errorType: 'database_constraint'
+      });
+    }
+
+    // Check for missing table/column errors
+    if (error.code === '42P01') { // undefined_table
+      console.error('[COMPREHENSIVE_SAVE] Database table not found:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Database table not found - please contact administrator',
+        errorType: 'missing_table'
+      });
+    }
+
+    if (error.code === '42703') { // undefined_column
+      console.error('[COMPREHENSIVE_SAVE] Database column not found:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Database column not found - please contact administrator',
+        errorType: 'missing_column'
+      });
+    }
+
+    // Generic database connection errors
+    if (error.code && error.code.startsWith('28')) { // Connection errors (28xxx)
+      console.error('[COMPREHENSIVE_SAVE] Database connection error:', error.code);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection temporarily unavailable',
+        errorType: 'database_connection'
+      });
+    }
+
+    // Generic server error for unhandled cases
     res.status(500).json({
       success: false,
       message: 'Failed to save comprehensive bulletin data',
-      error: error.message
+      error: error.message,
+      errorType: 'server_error'
     });
   }
 });
