@@ -1278,6 +1278,22 @@ const DocumentsContracts = () => {
       const matchesCreationDate = creationDateFilter === 'all' || creationDateFilter === '' || 
                                  isWithinDateRange(doc.date, creationDateFilter);
       
+      // Debug: Check document 37 specifically
+      if (doc.id === 37) {
+        console.log('DEBUG - Document 37 (SCHOOL-EDUCAFRIC CONTRACT):', {
+          name: doc.name,
+          category: doc.category,
+          date: doc.date,
+          searchTerm: searchTerm,
+          selectedCategory: selectedCategory,
+          creationDateFilter: creationDateFilter,
+          matchesSearch: matchesSearch,
+          matchesCategory: matchesCategory,
+          matchesCreationDate: matchesCreationDate,
+          finalResult: matchesSearch && matchesCategory && matchesCreationDate
+        });
+      }
+      
       return matchesSearch && matchesCategory && matchesCreationDate;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
@@ -1299,8 +1315,11 @@ const DocumentsContracts = () => {
         description: language === 'fr' ? `${doc.name} a été converti en PDF et ouvert` : `${doc.name} has been converted to PDF and opened`,
       });
     } else {
-      // For PDF files, open directly
-      window.open(doc.url, '_blank');
+      // For HTML/PDF files, open directly with cache-busting
+      const urlWithCacheBuster = doc.url.includes('?') ? 
+        `${doc.url}&v=${Date.now()}` : 
+        `${doc.url}?v=${Date.now()}`;
+      window.open(urlWithCacheBuster, '_blank');
       toast({
         title: language === 'fr' ? 'Document PDF ouvert' : 'PDF Document Opened',
         description: language === 'fr' ? `${doc.name} a été ouvert dans un nouvel onglet` : `${doc.name} has been opened in a new tab`,
