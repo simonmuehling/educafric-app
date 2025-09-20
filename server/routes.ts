@@ -5891,6 +5891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // === CONTRATS COMMERCIAUX (Bilingue) ===
         { id: 17, title: "Contrat Commercial EDUCAFRIC 2025 - FR", description: "Contrat commercial actualisé 2025", type: "commercial", url: "/documents/contrat-commercial-educafric-2025-actualise.html" },
         { id: 24, title: "Contrat Partenariat Commercial EDUCAFRIC - FR", description: "Contrat de partenariat commercial français", type: "commercial", url: "/documents/contrat-partenariat-commercial-educafric-fr.html" },
+        { id: 35, title: "Contrat de Partenariat Commercial - FR", description: "Deuxième formulaire de contrat de partenariat commercial", type: "commercial", url: "/documents/contrat-partenariat-commercial-fr.html" },
         { id: 18, title: "Commercial Partnership Contract - EN", description: "Commercial partnership contract in English", type: "commercial", url: "/documents/commercial-partnership-contract-en.html" },
         
         // === GUIDES TECHNIQUES COMMERCIAUX (Bilingue) ===
