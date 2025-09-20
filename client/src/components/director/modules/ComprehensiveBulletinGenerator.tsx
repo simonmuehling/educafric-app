@@ -2829,20 +2829,15 @@ export default function ComprehensiveBulletinGenerator() {
               <span className="hidden sm:inline">{language === 'fr' ? 'Gestion des Élèves' : 'Student Management'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Élèves' : 'Students'}</span>
             </TabsTrigger>
-            <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-              <Edit3 className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{language === 'fr' ? 'Saisie Manuelle' : 'Manual Data Entry'}</span>
-              <span className="sm:hidden">{language === 'fr' ? 'Saisie' : 'Entry'}</span>
-            </TabsTrigger>
-            <TabsTrigger value="sanctions-disciplinaires" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{language === 'fr' ? 'Sanctions Disciplinaires' : 'Disciplinary Sanctions'}</span>
-              <span className="sm:hidden">{language === 'fr' ? 'Sanctions' : 'Sanctions'}</span>
-            </TabsTrigger>
             <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Settings className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{language === 'fr' ? 'Options de Génération' : 'Generation Options'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Options' : 'Options'}</span>
+            </TabsTrigger>
+            <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+              <Edit3 className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">{language === 'fr' ? 'Saisie Manuelle' : 'Manual Data Entry'}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Saisie' : 'Entry'}</span>
             </TabsTrigger>
             <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Download className="h-4 w-4 flex-shrink-0" />
@@ -3998,359 +3993,74 @@ export default function ComprehensiveBulletinGenerator() {
           </TabsContent>
         )}
 
-        {/* Sanctions Disciplinaires Tab */}
-        {mountedTabs.has('sanctions-disciplinaires') && (
-          <TabsContent value="sanctions-disciplinaires" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  {language === 'fr' ? 'Gestion des Sanctions Disciplinaires' : 'Disciplinary Sanctions Management'}
-                </CardTitle>
-                <p className="text-muted-foreground">{language === 'fr' ? 'Gérez les sanctions disciplinaires pour chaque élève de la classe.' : 'Manage disciplinary sanctions for each student in the class.'}</p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Student Selection */}
-                <div className="space-y-2">
-                  <Label htmlFor="sanctions-student-select">{t.selectStudentForSanctions}</Label>
-                  <Select 
-                    value={selectedStudentForSanctions?.toString() || ''} 
-                    onValueChange={(value) => {
-                      const studentId = parseInt(value);
-                      setSelectedStudentForSanctions(studentId);
-                      // Update form with student ID
-                      sanctionsForm.setValue('studentId', studentId);
-                      // Refetch sanctions for new student
-                      if (studentId) {
-                        refetchSanctions();
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="sanctions-student-select" data-testid="sanctions-student-select">
-                      <SelectValue placeholder={t.selectStudentPlaceholder} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredStudents?.map((student: StudentData) => (
-                        <SelectItem key={student.id} value={student.id.toString()}>
-                          {student.firstName} {student.lastName} ({student.matricule})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {selectedStudentForSanctions && (
-                  <div className="space-y-6">
-                    {/* Sanctions History */}
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <History className="h-5 w-5" />
-                        {t.sanctionHistory}
-                      </h3>
-                      
-                      {isLoadingSanctions ? (
-                        <div className="flex items-center justify-center py-8">
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                          <span className="ml-2">{t.loading}</span>
-                        </div>
-                      ) : !studentSanctions || studentSanctions.length === 0 ? (
-                        <Card className="bg-green-50 border-green-200" data-testid="no-sanctions-card">
-                          <CardContent className="pt-6">
-                            <div className="flex items-center gap-2 text-green-700">
-                              <CheckCircle className="h-5 w-5" />
-                              <p>{t.noSanctionsHistory}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ) : (
-                        <div className="space-y-4" data-testid="sanctions-list">
-                          {studentSanctions.map((sanction) => (
-                            <Card key={sanction.id} className={`border-l-4 ${
-                              sanction.sanctionType === 'conduct_warning' ? 'border-l-yellow-500 bg-yellow-50' :
-                              sanction.sanctionType === 'conduct_blame' ? 'border-l-orange-500 bg-orange-50' :
-                              sanction.sanctionType === 'exclusion_temporary' ? 'border-l-red-500 bg-red-50' :
-                              'border-l-gray-500 bg-gray-50'
-                            }`}>
-                              <CardContent className="pt-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      {sanction.sanctionType === 'conduct_warning' && <AlertCircle className="h-4 w-4 text-yellow-600" />}
-                                      {sanction.sanctionType === 'conduct_blame' && <XCircle className="h-4 w-4 text-orange-600" />}
-                                      {sanction.sanctionType === 'exclusion_temporary' && <X className="h-4 w-4 text-red-600" />}
-                                      {sanction.sanctionType === 'exclusion_permanent' && <X className="h-4 w-4 text-gray-600" />}
-                                      <span className="font-semibold capitalize">
-                                        {sanction.sanctionType.replace('_', ' ')}
-                                      </span>
-                                      <Badge variant={sanction.severity === 'high' || sanction.severity === 'critical' ? 'destructive' : 'secondary'}>
-                                        {sanction.severity}
-                                      </Badge>
-                                      <Badge variant={sanction.status === 'active' ? 'default' : 'secondary'}>
-                                        {sanction.status}
-                                      </Badge>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">
-                                      <strong>{t.sanctionDate}:</strong> {new Date(sanction.date).toLocaleDateString()}
-                                    </p>
-                                    {sanction.duration && (
-                                      <p className="text-sm text-muted-foreground">
-                                        <strong>{t.duration}:</strong> {sanction.duration} {t.days}
-                                      </p>
-                                    )}
-                                    <p className="text-sm">
-                                      <strong>{t.sanctionReason}:</strong> {sanction.description}
-                                    </p>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    {sanction.status === 'active' && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                          revokeSanctionMutation.mutate({
-                                            id: sanction.id,
-                                            reason: "Révoquée par le directeur"
-                                          });
-                                        }}
-                                        disabled={revokeSanctionMutation.isPending}
-                                        data-testid={`revoke-sanction-${sanction.id}`}
-                                      >
-                                        <X className="h-4 w-4" />
-                                        {t.revoke}
-                                      </Button>
-                                    )}
-                                    <Button
-                                      variant="destructive"
-                                      size="sm"
-                                      onClick={() => {
-                                        deleteSanctionMutation.mutate({
-                                          id: sanction.id,
-                                          studentId: sanction.studentId,
-                                          classId: sanction.classId,
-                                          schoolId: sanction.schoolId
-                                        });
-                                      }}
-                                      disabled={deleteSanctionMutation.isPending}
-                                      data-testid={`delete-sanction-${sanction.id}`}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                      {t.delete}
-                                    </Button>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      )}
+        {/* Generation Options Tab */}
+        {mountedTabs.has('generation-options') && (
+          <TabsContent value="generation-options" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                {t.generationSettings}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Content Options - Organized in Logical Sections */}
+              <div className="space-y-8">
+                <h3 className="text-lg font-semibold">Contenu du bulletin</h3>
+                
+                {/* Basic Options (Keep existing) */}
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
+                  <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    Options de base
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-comments"
+                        checked={includeComments}
+                        onCheckedChange={(checked) => setIncludeComments(checked === true)}
+                        data-testid="include-comments"
+                      />
+                      <Label htmlFor="include-comments">{t.includeComments}</Label>
                     </div>
-
-                    {/* Add New Sanction Form */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Plus className="h-5 w-5" />
-                          {t.addNewSanction}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <Form {...sanctionsForm}>
-                          <form 
-                            onSubmit={sanctionsForm.handleSubmit((data) => {
-                              // Update form data with current context
-                              const sanctionData = {
-                                ...data,
-                                studentId: selectedStudentForSanctions!,
-                                classId: selectedClass ? parseInt(selectedClass) : 0,
-                                schoolId: user?.schoolId || 0,
-                                issueBy: user?.id || 0,
-                                academicYear: academicYear || '2024-2025',
-                                term: selectedTerm || 'Premier Trimestre'
-                              };
-                              
-                              createSanctionMutation.mutate(sanctionData, {
-                                onSuccess: () => {
-                                  sanctionsForm.reset({
-                                    sanctionType: 'conduct_warning',
-                                    date: new Date().toISOString().split('T')[0],
-                                    description: '',
-                                    severity: 'medium',
-                                    duration: 1
-                                  });
-                                }
-                              });
-                            })}
-                            className="space-y-4"
-                            data-testid="add-sanction-form"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <FormField
-                                control={sanctionsForm.control}
-                                name="sanctionType"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>{t.sanctionType}</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                      <FormControl>
-                                        <SelectTrigger data-testid="sanction-type-select">
-                                          <SelectValue placeholder={t.selectSanctionType} />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="conduct_warning" data-testid="sanction-type-warning">
-                                          {t.conductWarning}
-                                        </SelectItem>
-                                        <SelectItem value="conduct_blame" data-testid="sanction-type-blame">
-                                          {t.conductBlame}
-                                        </SelectItem>
-                                        <SelectItem value="exclusion_temporary" data-testid="sanction-type-temp-exclusion">
-                                          {t.exclusionTemporary}
-                                        </SelectItem>
-                                        <SelectItem value="exclusion_permanent" data-testid="sanction-type-perm-exclusion">
-                                          {t.exclusionPermanent}
-                                        </SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={sanctionsForm.control}
-                                name="severity"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>{t.severity}</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                      <FormControl>
-                                        <SelectTrigger data-testid="sanction-severity-select">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        <SelectItem value="low">{t.severityLow}</SelectItem>
-                                        <SelectItem value="medium">{t.severityMedium}</SelectItem>
-                                        <SelectItem value="high">{t.severityHigh}</SelectItem>
-                                        <SelectItem value="critical">{t.severityCritical}</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={sanctionsForm.control}
-                                name="date"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>{t.sanctionDate}</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="date" 
-                                        {...field} 
-                                        data-testid="sanction-date-input"
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              {(sanctionsForm.watch('sanctionType') === 'exclusion_temporary') && (
-                                <FormField
-                                  control={sanctionsForm.control}
-                                  name="duration"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>{t.exclusionDays}</FormLabel>
-                                      <FormControl>
-                                        <Input 
-                                          type="number" 
-                                          min="1" 
-                                          max="365" 
-                                          {...field} 
-                                          value={field.value || ''}
-                                          onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                                          data-testid="sanction-duration-input"
-                                        />
-                                      </FormControl>
-                                      <FormDescription>
-                                        {t.exclusionDaysDescription}
-                                      </FormDescription>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              )}
-                            </div>
-                            
-                            <FormField
-                              control={sanctionsForm.control}
-                              name="description"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>{t.sanctionReason}</FormLabel>
-                                  <FormControl>
-                                    <Textarea 
-                                      placeholder={t.sanctionReasonPlaceholder} 
-                                      rows={3}
-                                      {...field} 
-                                      data-testid="sanction-description-textarea"
-                                    />
-                                  </FormControl>
-                                  <FormDescription>
-                                    {t.sanctionReasonDescription}
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="flex justify-end pt-4">
-                              <Button 
-                                type="submit" 
-                                disabled={createSanctionMutation.isPending}
-                                className="min-w-[150px]"
-                                data-testid="save-sanction-button"
-                              >
-                                {createSanctionMutation.isPending ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    {t.saving}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Save className="h-4 w-4 mr-2" />
-                                    {t.saveSanction}
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </form>
-                        </Form>
-                      </CardContent>
-                    </Card>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-rankings"
+                        checked={includeRankings}
+                        onCheckedChange={(checked) => setIncludeRankings(checked === true)}
+                        data-testid="include-rankings"
+                      />
+                      <Label htmlFor="include-rankings">{t.includeRankings}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-statistics"
+                        checked={includeStatistics}
+                        onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
+                        data-testid="include-statistics"
+                      />
+                      <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="include-performance-levels"
+                        checked={includePerformanceLevels}
+                        onCheckedChange={(checked) => setIncludePerformanceLevels(checked === true)}
+                        data-testid="include-performance-levels"
+                      />
+                      <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                    </div>
                   </div>
-                )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          </TabsContent>
+        )}
 
-                {!selectedStudentForSanctions && (
-                  <Card className="bg-muted" data-testid="select-student-prompt">
-                    <CardContent className="pt-6">
-                      <div className="text-center text-muted-foreground">
-                        <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>{t.pleaseSelectStudent}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </CardContent>
-            </Card>
-                          
-                          {/* Exclusions */}
-                          {sanctionsData.exclusions.length > 0 && (
-                            <Card className="border-red-200">
+        {/* Manual Data Entry Tab */}
+        {mountedTabs.has('manual-data-entry') && (
                               <CardHeader className="pb-3">
                                 <h4 className="font-medium flex items-center gap-2 text-red-700">
                                   <Timer className="h-4 w-4" />
