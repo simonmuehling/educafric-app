@@ -1150,10 +1150,6 @@ export default function ComprehensiveBulletinGenerator() {
       formReset: 'Formulaire réinitialisé',
       emailSent: 'Email envoyé avec succès',
       emailFailed: 'Échec de l\'envoi de l\'email',
-      generationSuccess: 'Génération réussie',
-      generationError: 'Erreur de génération',
-      noClassSelected: 'Aucune classe sélectionnée',
-      noStudentsSelected: 'Aucun élève sélectionné',
       
       // Student Identity fields
       identityInformation: 'Informations d\'Identité',
@@ -1220,8 +1216,6 @@ export default function ComprehensiveBulletinGenerator() {
       send: 'Envoyer',
       sendEmail: 'Envoyer par Email',
       sendBulkEmail: 'Envoi Emails en Masse',
-      emailSent: 'Email envoyé avec succès',
-      emailFailed: 'Échec envoi email',
       emailInProgress: 'Envoi en cours...',
       selectStudentsForEmail: 'Sélectionnez des élèves pour l\'envoi email',
       confirmEmailSend: 'Confirmer l\'envoi des emails',
@@ -1440,10 +1434,6 @@ export default function ComprehensiveBulletinGenerator() {
       formReset: 'Form reset successfully',
       emailSent: 'Email sent successfully',
       emailFailed: 'Failed to send email',
-      generationSuccess: 'Generation successful',
-      generationError: 'Generation error',
-      noClassSelected: 'No class selected',
-      noStudentsSelected: 'No students selected',
       
       // Student Identity fields
       identityInformation: 'Identity Information',
@@ -1557,8 +1547,6 @@ export default function ComprehensiveBulletinGenerator() {
       send: 'Send',
       sendEmail: 'Send via Email',
       sendBulkEmail: 'Send Bulk Emails',
-      emailSent: 'Email sent successfully',
-      emailFailed: 'Email sending failed',
       emailInProgress: 'Sending emails...',
       selectStudentsForEmail: 'Select students for email sending',
       confirmEmailSend: 'Confirm email sending',
@@ -4349,7 +4337,7 @@ export default function ComprehensiveBulletinGenerator() {
                 {/* Student Selection */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">{t.selectStudent || "Sélectionner un élève"}</h3>
-                  <Select value={selectedStudentId?.toString() || ''} onValueChange={(value) => setSelectedStudentId(value ? parseInt(value) : null)}>
+                  <Select value={selectedStudentForEntry?.toString() || ''} onValueChange={(value) => setSelectedStudentForEntry(value ? parseInt(value) : null)}>
                     <SelectTrigger data-testid="student-selector">
                       <SelectValue placeholder={t.pleaseSelectStudent} />
                     </SelectTrigger>
