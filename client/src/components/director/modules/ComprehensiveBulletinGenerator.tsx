@@ -88,7 +88,6 @@ import {
   TrendingDown,
   Plus,
   Pencil,
-  Users,
   CheckSquare,
   Square
 } from 'lucide-react';
