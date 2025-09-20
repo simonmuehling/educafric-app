@@ -886,7 +886,7 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
     try {
       approvedGrades = await db.select({
         subjectId: teacherGradeSubmissions.subjectId,
-        subjectName: sql<string>`COALESCE(${subjects.name}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
+        subjectName: sql<string>`COALESCE(${subjects.nameFr}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
         firstEvaluation: teacherGradeSubmissions.firstEvaluation,
         secondEvaluation: teacherGradeSubmissions.secondEvaluation,
         thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
@@ -911,7 +911,7 @@ router.get('/preview', requireAuth, requireDirectorAuth, async (req, res) => {
         
         approvedGrades = await db.select({
           subjectId: teacherGradeSubmissions.subjectId,
-          subjectName: sql<string>`COALESCE(${subjects.name}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
+          subjectName: sql<string>`COALESCE(${subjects.nameFr}, 'Matière ' || ${teacherGradeSubmissions.subjectId})`,
           firstEvaluation: teacherGradeSubmissions.firstEvaluation,
           secondEvaluation: teacherGradeSubmissions.secondEvaluation,
           thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
@@ -1356,7 +1356,7 @@ async function getStudentBulletinData(
   // Get approved grades
   const approvedGrades = await db.select({
     subjectId: teacherGradeSubmissions.subjectId,
-    subjectName: subjects.name,
+    subjectName: subjects.nameFr,
     teacherId: teacherGradeSubmissions.teacherId,
     teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
     firstEvaluation: teacherGradeSubmissions.firstEvaluation,
