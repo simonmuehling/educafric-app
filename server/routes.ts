@@ -1356,6 +1356,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get subjects for director
+  app.get("/api/director/subjects", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let subjects;
+      
+      if (isSandboxUser) {
+        console.log('[DIRECTOR_SUBJECTS_API] Sandbox user detected - using mock data');
+        // Mock subjects data for sandbox/demo users
+        subjects = [
+          { id: 1, name: 'Mathématiques', nameEN: 'Mathematics', coefficient: 4, isActive: true },
+          { id: 2, name: 'Français', nameEN: 'French', coefficient: 6, isActive: true },
+          { id: 3, name: 'Anglais', nameEN: 'English', coefficient: 3, isActive: true },
+          { id: 4, name: 'Histoire-Géographie', nameEN: 'History-Geography', coefficient: 2, isActive: true },
+          { id: 5, name: 'Sciences Physiques', nameEN: 'Physics', coefficient: 3, isActive: true },
+          { id: 6, name: 'Sciences Naturelles', nameEN: 'Natural Sciences', coefficient: 2, isActive: true },
+          { id: 7, name: 'Education Physique', nameEN: 'Physical Education', coefficient: 2, isActive: true },
+          { id: 8, name: 'Arts Plastiques', nameEN: 'Visual Arts', coefficient: 1, isActive: true },
+          { id: 9, name: 'Informatique', nameEN: 'Computer Science', coefficient: 2, isActive: true },
+          { id: 10, name: 'ECM', nameEN: 'Civic Education', coefficient: 2, isActive: true }
+        ];
+      } else {
+        console.log('[DIRECTOR_SUBJECTS_API] Real user detected - using database data');
+        // Get real subjects from database
+        const { db } = await import('./db');
+        const { subjects } = await import('@shared/schema');
+        const { eq } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        // Get all subjects for this school
+        const schoolSubjects = await db.select()
+          .from(subjects)
+          .where(eq(subjects.schoolId, userSchoolId));
+        
+        subjects = schoolSubjects.map(subject => ({
+          id: subject.id,
+          name: subject.name,
+          nameEN: subject.nameEN || subject.name,
+          coefficient: subject.coefficient || 1,
+          isActive: true
+        }));
+      }
+      
+      console.log('[DIRECTOR_SUBJECTS_API] Subjects count:', subjects.length);
+      res.json({ success: true, subjects });
+    } catch (error) {
+      console.error('[DIRECTOR_SUBJECTS_API] Error fetching subjects:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subjects' });
+    }
+  });
+
+  // Get grades for director (by class and term)
+  app.get("/api/director/grades", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { classId, term } = req.query;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let grades;
+      
+      if (isSandboxUser) {
+        console.log('[DIRECTOR_GRADES_API] Sandbox user detected - using mock data');
+        // Mock grades data for sandbox/demo users
+        const mockGrades = [
+          // Student 1 grades
+          { id: 1, studentId: 1, subjectId: 1, grade: '14.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 2, studentId: 1, subjectId: 2, grade: '16.0', term: 'T1', academicYear: '2024-2025' },
+          { id: 3, studentId: 1, subjectId: 3, grade: '12.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 4, studentId: 1, subjectId: 4, grade: '13.0', term: 'T1', academicYear: '2024-2025' },
+          
+          // Student 2 grades
+          { id: 5, studentId: 2, subjectId: 1, grade: '11.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 6, studentId: 2, subjectId: 2, grade: '15.0', term: 'T1', academicYear: '2024-2025' },
+          { id: 7, studentId: 2, subjectId: 3, grade: '13.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 8, studentId: 2, subjectId: 4, grade: '14.0', term: 'T1', academicYear: '2024-2025' },
+          
+          // Student 3 grades
+          { id: 9, studentId: 3, subjectId: 1, grade: '17.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 10, studentId: 3, subjectId: 2, grade: '18.0', term: 'T1', academicYear: '2024-2025' },
+          { id: 11, studentId: 3, subjectId: 3, grade: '16.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 12, studentId: 3, subjectId: 4, grade: '17.0', term: 'T1', academicYear: '2024-2025' }
+        ];
+        
+        // Filter by term if provided
+        grades = term ? mockGrades.filter(g => g.term === term) : mockGrades;
+        
+        // Filter by classId if provided (mock: students 1-3 are in class 1)
+        if (classId && classId !== '1') {
+          grades = []; // No grades for other classes in mock data
+        }
+      } else {
+        console.log('[DIRECTOR_GRADES_API] Real user detected - using database data');
+        // Get real grades from database
+        const { db } = await import('./db');
+        const { grades: gradesTable, users } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        let query = db.select()
+          .from(gradesTable)
+          .where(eq(gradesTable.schoolId, userSchoolId));
+        
+        // Add filters if provided
+        const conditions = [eq(gradesTable.schoolId, userSchoolId)];
+        
+        if (classId) {
+          conditions.push(eq(gradesTable.classId, parseInt(classId as string, 10)));
+        }
+        
+        if (term) {
+          conditions.push(eq(gradesTable.term, term as string));
+        }
+        
+        const schoolGrades = await db.select()
+          .from(gradesTable)
+          .where(and(...conditions));
+        
+        grades = schoolGrades.map(grade => ({
+          id: grade.id,
+          studentId: grade.studentId,
+          subjectId: grade.subjectId,
+          grade: grade.grade,
+          term: grade.term,
+          academicYear: grade.academicYear,
+          examType: grade.examType,
+          comments: grade.comments
+        }));
+      }
+      
+      console.log('[DIRECTOR_GRADES_API] Grades count:', grades.length);
+      res.json({ success: true, grades });
+    } catch (error) {
+      console.error('[DIRECTOR_GRADES_API] Error fetching grades:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch grades' });
+    }
+  });
+
+  // Get student transcript (all grades for a student across all terms)
+  app.get("/api/director/student-transcript/:studentId", requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { studentId } = req.params;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.email?.includes('demo@') || 
+                           user.email?.includes('.sandbox@') ||
+                           user.email?.includes('.demo@') ||
+                           user.email?.includes('.test@') ||
+                           user.email?.startsWith('sandbox.');
+      
+      let student;
+      let grades;
+      
+      if (isSandboxUser) {
+        console.log('[DIRECTOR_TRANSCRIPT_API] Sandbox user detected - using mock data');
+        
+        // Mock student data
+        const mockStudents = [
+          { id: 1, name: 'Clarisse Akoa', className: '6ème A' },
+          { id: 2, name: 'Idriss Bamba', className: '6ème A' },
+          { id: 3, name: 'John Ndah', className: '6ème A' }
+        ];
+        
+        student = mockStudents.find(s => s.id === parseInt(studentId, 10));
+        
+        // Mock grades across all terms
+        const mockTranscriptGrades = [
+          // T1 grades
+          { id: 1, studentId: parseInt(studentId, 10), subjectId: 1, grade: '14.5', term: 'T1', academicYear: '2024-2025' },
+          { id: 2, studentId: parseInt(studentId, 10), subjectId: 2, grade: '16.0', term: 'T1', academicYear: '2024-2025' },
+          { id: 3, studentId: parseInt(studentId, 10), subjectId: 3, grade: '12.5', term: 'T1', academicYear: '2024-2025' },
+          
+          // T2 grades
+          { id: 4, studentId: parseInt(studentId, 10), subjectId: 1, grade: '15.0', term: 'T2', academicYear: '2024-2025' },
+          { id: 5, studentId: parseInt(studentId, 10), subjectId: 2, grade: '15.5', term: 'T2', academicYear: '2024-2025' },
+          { id: 6, studentId: parseInt(studentId, 10), subjectId: 3, grade: '13.0', term: 'T2', academicYear: '2024-2025' },
+          
+          // T3 grades
+          { id: 7, studentId: parseInt(studentId, 10), subjectId: 1, grade: '16.0', term: 'T3', academicYear: '2024-2025' },
+          { id: 8, studentId: parseInt(studentId, 10), subjectId: 2, grade: '17.0', term: 'T3', academicYear: '2024-2025' },
+          { id: 9, studentId: parseInt(studentId, 10), subjectId: 3, grade: '14.0', term: 'T3', academicYear: '2024-2025' }
+        ];
+        
+        grades = mockTranscriptGrades;
+      } else {
+        console.log('[DIRECTOR_TRANSCRIPT_API] Real user detected - using database data');
+        // Get real data from database
+        const { db } = await import('./db');
+        const { grades: gradesTable, users } = await import('@shared/schema');
+        const { eq, and } = await import('drizzle-orm');
+        
+        const userSchoolId = user.school_id || 1;
+        
+        // Get student info
+        const studentData = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.id, parseInt(studentId, 10)),
+            eq(users.schoolId, userSchoolId),
+            eq(users.role, 'Student')
+          ));
+        
+        student = studentData[0] ? {
+          id: studentData[0].id,
+          name: `${studentData[0].firstName} ${studentData[0].lastName}`,
+          className: studentData[0].className || 'N/A'
+        } : null;
+        
+        // Get all grades for this student
+        const studentGrades = await db.select()
+          .from(gradesTable)
+          .where(and(
+            eq(gradesTable.studentId, parseInt(studentId, 10)),
+            eq(gradesTable.schoolId, userSchoolId)
+          ));
+        
+        grades = studentGrades.map(grade => ({
+          id: grade.id,
+          studentId: grade.studentId,
+          subjectId: grade.subjectId,
+          grade: grade.grade,
+          term: grade.term,
+          academicYear: grade.academicYear,
+          examType: grade.examType,
+          comments: grade.comments
+        }));
+      }
+      
+      console.log('[DIRECTOR_TRANSCRIPT_API] Student:', student?.name, 'Grades count:', grades.length);
+      res.json({ success: true, student, grades });
+    } catch (error) {
+      console.error('[DIRECTOR_TRANSCRIPT_API] Error fetching student transcript:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student transcript' });
+    }
+  });
+
   // Teacher Messages
   app.get("/api/teacher/messages", requireAuth, async (req, res) => {
     try {
