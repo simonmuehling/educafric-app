@@ -2879,17 +2879,17 @@ export default function ComprehensiveBulletinGenerator() {
               <span className="hidden sm:inline">{language === 'fr' ? 'Sélection de Classe' : 'Class Selection'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Classes' : 'Classes'}</span>
             </TabsTrigger>
-            <TabsTrigger value="student-management" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+            <TabsTrigger value="student-management" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Users className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{language === 'fr' ? 'Gestion des Élèves' : 'Student Management'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Élèves' : 'Students'}</span>
             </TabsTrigger>
-            <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+            <TabsTrigger value="generation-options" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Settings className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{language === 'fr' ? 'Options de Génération' : 'Generation Options'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Options' : 'Options'}</span>
             </TabsTrigger>
-            <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+            <TabsTrigger value="manual-data-entry" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Edit3 className="h-4 w-4 flex-shrink-0" />
               <span className="hidden sm:inline">{language === 'fr' ? 'Saisie Manuelle' : 'Manual Data Entry'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Saisie' : 'Entry'}</span>
