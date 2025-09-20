@@ -1278,6 +1278,22 @@ const DocumentsContracts = () => {
       const matchesCreationDate = creationDateFilter === 'all' || creationDateFilter === '' || 
                                  isWithinDateRange(doc.date, creationDateFilter);
       
+      // Debug: Log document ID 53 specifically
+      if (doc.id === 53) {
+        console.log('DEBUG - Document 53:', {
+          name: doc.name,
+          category: doc.category,
+          date: doc.date,
+          searchTerm: searchTerm,
+          selectedCategory: selectedCategory,
+          creationDateFilter: creationDateFilter,
+          matchesSearch: matchesSearch,
+          matchesCategory: matchesCategory,
+          matchesCreationDate: matchesCreationDate,
+          finalResult: matchesSearch && matchesCategory && matchesCreationDate
+        });
+      }
+      
       return matchesSearch && matchesCategory && matchesCreationDate;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
