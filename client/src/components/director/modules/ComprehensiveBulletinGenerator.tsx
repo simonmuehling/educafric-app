@@ -584,7 +584,7 @@ export default function ComprehensiveBulletinGenerator() {
   const { user } = useAuth();
 
   // Helper pour obtenir les labels dans la langue courante
-  // const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
+  const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
 
   // State management
   const [selectedClass, setSelectedClass] = useState<string>('');

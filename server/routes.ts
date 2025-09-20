@@ -1392,22 +1392,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('[DIRECTOR_SUBJECTS_API] Real user detected - using database data');
         // Get real subjects from database
         const { db } = await import('./db');
-        const { subjects } = await import('@shared/schema');
+        const { subjects: subjectsTable } = await import('@shared/schema');
         const { eq } = await import('drizzle-orm');
         
         const userSchoolId = user.school_id || 1;
         
         // Get all subjects for this school
         const schoolSubjects = await db.select()
-          .from(subjects)
-          .where(eq(subjects.schoolId, userSchoolId));
+          .from(subjectsTable)
+          .where(eq(subjectsTable.schoolId, userSchoolId));
         
         subjects = schoolSubjects.map(subject => ({
           id: subject.id,
           name: subject.name,
-          nameEN: subject.nameEN || subject.name,
-          coefficient: subject.coefficient || 1,
-          isActive: true
+          nameEN: subject.name, // Use same name for both languages from DB
+          coefficient: 1, // Default coefficient since not in schema
+          isActive: subject.isActive
         }));
       }
       
@@ -1586,7 +1586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         student = studentData[0] ? {
           id: studentData[0].id,
           name: `${studentData[0].firstName} ${studentData[0].lastName}`,
-          className: studentData[0].className || 'N/A'
+          className: 'N/A' // TODO: Join with classes table to get actual class name
         } : null;
         
         // Get all grades for this student
