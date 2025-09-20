@@ -2080,8 +2080,6 @@ export default function ComprehensiveBulletinGenerator() {
         `/api/comprehensive-bulletins/approved-students?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
-      console.log('[DEBUG] API Response for approved students:', data);
-      console.log('[DEBUG] Students data:', data.success ? data.data : null);
       return data.success ? data.data : null;
     },
     enabled: dataLoadingEnabled && hasValidSelection
