@@ -112,6 +112,289 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+// Labels bilingues pour l'interface
+const BILINGUAL_LABELS = {
+  fr: {
+    // Navigation et tabs
+    comprehensiveBulletinGenerator: 'Générateur de Bulletins Complet',
+    classSelection: 'Sélection de Classe',
+    studentManagement: 'Gestion des Élèves',
+    manualDataEntry: 'Saisie Manuelle',
+    generationOptions: 'Options de Génération',
+    bulkOperations: 'Opérations en Lot',
+    pendingBulletins: 'Bulletins en Attente',
+    approvedBulletins: 'Bulletins Approuvés',
+    reports: 'Rapports',
+    
+    // Sélecteurs et options
+    language: 'Langue',
+    selectClass: 'Sélectionner une classe',
+    selectTerm: 'Sélectionner le trimestre',
+    academicYear: 'Année scolaire',
+    trimester: 'Trimestre',
+    firstTrimester: 'Premier Trimestre',
+    secondTrimester: 'Deuxième Trimestre',
+    thirdTrimester: 'Troisième Trimestre',
+    
+    // Actions
+    generateBulletins: 'Générer les Bulletins',
+    previewBulletin: 'Aperçu du Bulletin',
+    downloadBulletin: 'Télécharger le Bulletin',
+    save: 'Sauvegarder',
+    cancel: 'Annuler',
+    reset: 'Réinitialiser',
+    selectAll: 'Tout sélectionner',
+    refresh: 'Actualiser',
+    
+    // Informations étudiant
+    studentInfo: 'Informations de l\'Élève',
+    firstName: 'Nom & Prénoms',
+    lastName: 'Nom de famille',
+    class: 'Classe',
+    matricule: 'Matricule',
+    birthDate: 'Date de naissance',
+    
+    // Notes et évaluations
+    grades: 'Notes',
+    subjects: 'Matières',
+    coefficient: 'Coefficient',
+    average: 'Moyenne',
+    generalAverage: 'Moyenne générale',
+    classRank: 'Rang',
+    
+    // Options de génération
+    includeComments: 'Inclure les commentaires',
+    includeRankings: 'Inclure les classements',
+    includeStatistics: 'Inclure les statistiques',
+    includePerformanceLevels: 'Inclure les niveaux de performance',
+    
+    // Sections
+    absencesAndLateness: 'Absences et Retards',
+    disciplinarySanctions: 'Sanctions Disciplinaires',
+    averagesAndTotals: 'Moyennes et Totaux',
+    coefficientsAndCodes: 'Coefficients et Codes',
+    appreciationsAndSignatures: 'Appréciations et Signatures',
+    classCouncil: 'Conseil de Classe',
+    
+    // Messages
+    noDataAvailable: 'Aucune donnée disponible',
+    loadingData: 'Chargement des données...',
+    generationInProgress: 'Génération en cours...',
+    operationSuccessful: 'Opération réussie',
+    errorOccurred: 'Une erreur s\'est produite',
+    
+    // Statuts
+    pending: 'En attente',
+    approved: 'Approuvé',
+    rejected: 'Rejeté',
+    draft: 'Brouillon',
+    submitted: 'Soumis',
+    signed: 'Signé',
+    sent: 'Envoyé',
+    
+    // Messages système
+    error: 'Erreur',
+    success: 'Succès',
+    warning: 'Avertissement',
+    info: 'Information',
+    
+    // Actions détaillées
+    viewDetails: 'Voir les détails',
+    edit: 'Modifier',
+    delete: 'Supprimer',
+    close: 'Fermer',
+    confirm: 'Confirmer',
+    
+    // Titres et sections
+    title: 'Générateur de Bulletins Complet',
+    subtitle: 'Gérez la génération complète des bulletins scolaires',
+    
+    // Formulaires
+    draftSaved: 'Brouillon sauvegardé',
+    draftLoaded: 'Brouillon chargé',
+    formReset: 'Formulaire réinitialisé',
+    noDraftsFound: 'Aucun brouillon trouvé',
+    
+    // Génération
+    generationSuccess: 'Génération réussie',
+    generationError: 'Erreur de génération',
+    generating: 'Génération en cours',
+    progress: 'Progression',
+    currentStudent: 'Élève actuel',
+    errors: 'Erreurs',
+    downloadsReady: 'Téléchargements prêts',
+    
+    // Sélections
+    noClassSelected: 'Aucune classe sélectionnée',
+    noStudentsSelected: 'Aucun élève sélectionné',
+    
+    // Statistiques
+    classStatistics: 'Statistiques de la classe',
+    totalStudents: 'Total élèves',
+    completionRate: 'Taux de completion',
+    
+    // Email
+    emailSent: 'Email envoyé',
+    emailFailed: 'Échec email',
+    
+    // Dialogues
+    previewTitle: 'Aperçu du bulletin',
+    previewDescription: 'Prévisualisation du bulletin avant génération',
+    loadingPreview: 'Chargement de l\'aperçu...',
+    noPreviewData: 'Aucune donnée d\'aperçu disponible',
+    confirmGeneration: 'Confirmer la génération',
+    confirmationMessage: 'Voulez-vous générer {count} bulletins ?',
+    loadDraftDialogTitle: 'Charger un brouillon',
+    loadDraftDialogDescription: 'Sélectionnez un brouillon à charger',
+    
+    // Données additionnelles
+    name: 'Nom',
+    studentId: 'ID Élève',
+    sentBulletins: 'Bulletins Envoyés',
+    sanctionsDisciplinaires: 'Sanctions Disciplinaires'
+  },
+  
+  en: {
+    // Navigation et tabs
+    comprehensiveBulletinGenerator: 'Comprehensive Bulletin Generator',
+    classSelection: 'Class Selection',
+    studentManagement: 'Student Management',
+    manualDataEntry: 'Manual Data Entry',
+    generationOptions: 'Generation Options',
+    bulkOperations: 'Bulk Operations',
+    pendingBulletins: 'Pending Bulletins',
+    approvedBulletins: 'Approved Bulletins',
+    reports: 'Reports',
+    
+    // Sélecteurs et options
+    language: 'Language',
+    selectClass: 'Select a class',
+    selectTerm: 'Select term',
+    academicYear: 'Academic year',
+    trimester: 'Term',
+    firstTrimester: 'First Term',
+    secondTrimester: 'Second Term',
+    thirdTrimester: 'Third Term',
+    
+    // Actions
+    generateBulletins: 'Generate Bulletins',
+    previewBulletin: 'Preview Bulletin',
+    downloadBulletin: 'Download Bulletin',
+    save: 'Save',
+    cancel: 'Cancel',
+    reset: 'Reset',
+    selectAll: 'Select All',
+    refresh: 'Refresh',
+    
+    // Informations étudiant
+    studentInfo: 'Student Information',
+    firstName: 'First & Last Name',
+    lastName: 'Last Name',
+    class: 'Class',
+    matricule: 'Student ID',
+    birthDate: 'Birth Date',
+    
+    // Notes et évaluations
+    grades: 'Grades',
+    subjects: 'Subjects',
+    coefficient: 'Coefficient',
+    average: 'Average',
+    generalAverage: 'General Average',
+    classRank: 'Rank',
+    
+    // Options de génération
+    includeComments: 'Include comments',
+    includeRankings: 'Include rankings',
+    includeStatistics: 'Include statistics',
+    includePerformanceLevels: 'Include performance levels',
+    
+    // Sections
+    absencesAndLateness: 'Absences and Lateness',
+    disciplinarySanctions: 'Disciplinary Sanctions',
+    averagesAndTotals: 'Averages and Totals',
+    coefficientsAndCodes: 'Coefficients and Codes',
+    appreciationsAndSignatures: 'Appreciations and Signatures',
+    classCouncil: 'Class Council',
+    
+    // Messages
+    noDataAvailable: 'No data available',
+    loadingData: 'Loading data...',
+    generationInProgress: 'Generation in progress...',
+    operationSuccessful: 'Operation successful',
+    errorOccurred: 'An error occurred',
+    
+    // Statuts
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    draft: 'Draft',
+    submitted: 'Submitted',
+    signed: 'Signed',
+    sent: 'Sent',
+    
+    // Messages système
+    error: 'Error',
+    success: 'Success',
+    warning: 'Warning',
+    info: 'Information',
+    
+    // Actions détaillées
+    viewDetails: 'View details',
+    edit: 'Edit',
+    delete: 'Delete',
+    close: 'Close',
+    confirm: 'Confirm',
+    
+    // Titres et sections
+    title: 'Comprehensive Bulletin Generator',
+    subtitle: 'Manage complete school bulletin generation',
+    
+    // Formulaires
+    draftSaved: 'Draft saved',
+    draftLoaded: 'Draft loaded',
+    formReset: 'Form reset',
+    noDraftsFound: 'No drafts found',
+    
+    // Génération
+    generationSuccess: 'Generation successful',
+    generationError: 'Generation error',
+    generating: 'Generating',
+    progress: 'Progress',
+    currentStudent: 'Current student',
+    errors: 'Errors',
+    downloadsReady: 'Downloads ready',
+    
+    // Sélections
+    noClassSelected: 'No class selected',
+    noStudentsSelected: 'No students selected',
+    
+    // Statistiques
+    classStatistics: 'Class statistics',
+    totalStudents: 'Total students',
+    completionRate: 'Completion rate',
+    
+    // Email
+    emailSent: 'Email sent',
+    emailFailed: 'Email failed',
+    
+    // Dialogues
+    previewTitle: 'Bulletin preview',
+    previewDescription: 'Preview bulletin before generation',
+    loadingPreview: 'Loading preview...',
+    noPreviewData: 'No preview data available',
+    confirmGeneration: 'Confirm generation',
+    confirmationMessage: 'Do you want to generate {count} bulletins?',
+    loadDraftDialogTitle: 'Load draft',
+    loadDraftDialogDescription: 'Select a draft to load',
+    
+    // Données additionnelles
+    name: 'Name',
+    studentId: 'Student ID',
+    sentBulletins: 'Sent Bulletins',
+    sanctionsDisciplinaires: 'Disciplinary Sanctions'
+  }
+};
+
 // Texte des niveaux de rendement (bilingue)
 export const PERFORMANCE_LEVELS_TEXT = {
   fr: `NIVEAU DE RENDEMENT:
@@ -299,6 +582,9 @@ export default function ComprehensiveBulletinGenerator() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  // Helper pour obtenir les labels dans la langue courante
+  const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
 
   // State management
   const [selectedClass, setSelectedClass] = useState<string>('');
@@ -1206,7 +1492,7 @@ export default function ComprehensiveBulletinGenerator() {
     }
   };
 
-  const t = text[language as keyof typeof text];
+  const textLabels = text[language as keyof typeof text];
   
   // Manual data entry utility functions - OPTIMIZED WITH useCallback below
   
@@ -2496,10 +2782,37 @@ export default function ComprehensiveBulletinGenerator() {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2 text-2xl">
             <GraduationCap className="h-8 w-8 text-blue-600" />
-            {t.title}
+            {t('comprehensiveBulletinGenerator')}
           </CardTitle>
-          <p className="text-muted-foreground">{t.subtitle}</p>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </CardHeader>
+      </Card>
+
+      {/* Sélecteur de langue */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center gap-4">
+            <Label htmlFor="language-selector" className="text-sm font-medium">
+              {t('language')} / Language:
+            </Label>
+            <Select 
+              value={language} 
+              onValueChange={(value: 'fr' | 'en') => {
+                // Note: Cette fonction devrait changer la langue dans le contexte global
+                // Pour l'instant, nous affichons juste le sélecteur
+                console.log('Changement de langue vers:', value);
+              }}
+            >
+              <SelectTrigger className="w-48" id="language-selector">
+                <SelectValue placeholder="Sélectionner la langue" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Main Interface */}
@@ -2508,53 +2821,53 @@ export default function ComprehensiveBulletinGenerator() {
           <TabsList className="flex w-max min-w-full h-auto p-1 gap-1 bg-muted rounded-lg">
             <TabsTrigger value="class-selection" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <School className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.classSelection}</span>
-              <span className="sm:hidden">Classes</span>
+              <span className="hidden sm:inline">{t('classSelection')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Classes' : 'Classes'}</span>
             </TabsTrigger>
             <TabsTrigger value="student-management" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Users className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.studentManagement}</span>
-              <span className="sm:hidden">Élèves</span>
+              <span className="hidden sm:inline">{t('studentManagement')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Élèves' : 'Students'}</span>
             </TabsTrigger>
             <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Edit3 className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.manualDataEntry}</span>
-              <span className="sm:hidden">Saisie</span>
+              <span className="hidden sm:inline">{t('manualDataEntry')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Saisie' : 'Entry'}</span>
             </TabsTrigger>
             <TabsTrigger value="sanctions-disciplinaires" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.sanctionsDisciplinaires}</span>
-              <span className="sm:hidden">Sanctions</span>
+              <span className="hidden sm:inline">{t('disciplinarySanctions')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Sanctions' : 'Sanctions'}</span>
             </TabsTrigger>
             <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Settings className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.generationOptions}</span>
-              <span className="sm:hidden">Options</span>
+              <span className="hidden sm:inline">{t('generationOptions')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Options' : 'Options'}</span>
             </TabsTrigger>
             <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Download className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.bulkOperations}</span>
-              <span className="sm:hidden">Lots</span>
+              <span className="hidden sm:inline">{t('bulkOperations')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Lots' : 'Bulk'}</span>
             </TabsTrigger>
             <TabsTrigger value="pending-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Clock className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.pendingBulletins}</span>
-              <span className="sm:hidden">En Cours</span>
+              <span className="hidden sm:inline">{t('pendingBulletins')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'En Cours' : 'Pending'}</span>
             </TabsTrigger>
             <TabsTrigger value="approved-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <CheckCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.approvedBulletins}</span>
-              <span className="sm:hidden">Approuvés</span>
+              <span className="hidden sm:inline">{t('approvedBulletins')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Approuvés' : 'Approved'}</span>
             </TabsTrigger>
             <TabsTrigger value="sent-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <FileDown className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t.sentBulletins}</span>
-              <span className="sm:hidden">Envoyés</span>
+              <span className="hidden sm:inline">{t('sentBulletins')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Envoyés' : 'Sent'}</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <BarChart3 className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">Rapports</span>
-              <span className="sm:hidden">Stats</span>
+              <span className="hidden sm:inline">{t('reports')}</span>
+              <span className="sm:hidden">{language === 'fr' ? 'Stats' : 'Reports'}</span>
             </TabsTrigger>
           </TabsList>
         </div>
