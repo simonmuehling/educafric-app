@@ -582,7 +582,7 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
     const approvedGrades = await db.select({
       studentId: teacherGradeSubmissions.studentId,
       subjectId: teacherGradeSubmissions.subjectId,
-      subjectName: subjects.name,
+      subjectName: sql<string>`COALESCE(${subjects.nameFr}, ${subjects.nameEn}, 'Unknown Subject')`,
       teacherId: teacherGradeSubmissions.teacherId,
       teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
       firstEvaluation: teacherGradeSubmissions.firstEvaluation,
@@ -737,7 +737,6 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
 
     // Get students with approved grades
     const approvedGradesCount = await db.select({ 
-      studentId: teacherGradeSubmissions.studentId,
       count: sql<number>`COUNT(DISTINCT ${teacherGradeSubmissions.studentId})`
     })
       .from(teacherGradeSubmissions)

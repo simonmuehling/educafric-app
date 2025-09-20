@@ -51,11 +51,9 @@ export const classes = pgTable("classes", {
 
 export const subjects = pgTable("subjects", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  nameFr: text("name_fr").notNull(),
+  nameEn: text("name_en").notNull(),
   code: text("code"),
-  description: text("description"),
-  schoolId: integer("school_id").notNull(),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  coefficient: decimal("coefficient"),
+  schoolId: integer("school_id").notNull()
 });
