@@ -260,7 +260,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       label: t.reports,
       icon: <Calendar className="w-6 h-6" />,
       color: 'bg-indigo-500',
-      component: createDynamicModule('teacher-reports')
+      component: createDynamicModule('teacher-bulletins')
     },
     {
       id: 'communications',
