@@ -72,7 +72,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
   
   // FORCE IMMEDIATE preload of critical slow modules - Teacher specific
   React.useEffect(() => {
-    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-communications', 'teacher-timetable'];
+    const criticalModules = ['teacher-classes', 'teacher-attendance', 'teacher-assignments', 'teacher-communications', 'teacher-timetable', 'teacher-bulletins'];
     
     const forceLoadCriticalModules = async () => {
       console.log('[TEACHER_DASHBOARD] 🚀 FORCE LOADING critical modules...');
@@ -180,7 +180,7 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       classes: 'Mes Classes',
       timetable: 'Emploi du temps',
       attendance: 'Présences',
-      grades: 'Notes',
+      // grades: 'Notes', - removed (unified bulletin system)
       assignments: 'Devoirs',
       content: 'Contenu Pédagogique',
       reports: 'Bulletins',
@@ -233,20 +233,6 @@ const TeacherDashboard = ({ stats, activeModule }: TeacherDashboardProps) => {
       icon: <CheckSquare className="w-6 h-6" />,
       color: 'bg-purple-500',
       component: createDynamicModule('teacher-attendance')
-    },
-    {
-      id: 'grades',
-      label: t.grades,
-      icon: <BarChart3 className="w-6 h-6" />,
-      color: 'bg-orange-500',
-      component: createDynamicModule('teacher-grades')
-    },
-    {
-      id: 'gradebook',
-      label: language === 'fr' ? 'Carnet de Notes' : 'Gradebook',
-      icon: <Grid className="w-6 h-6" />,
-      color: 'bg-indigo-600',
-      component: createDynamicModule('teacher-gradebook')
     },
     {
       id: 'assignments',
