@@ -14,6 +14,7 @@ const DocumentsContracts = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [downloadDateFilter, setDownloadDateFilter] = useState('');
+  const [creationDateFilter, setCreationDateFilter] = useState('');
   const [downloadedDocs, setDownloadedDocs] = useState<{[key: number]: string}>({});
   
   // Load downloaded docs from localStorage on mount
@@ -37,6 +38,7 @@ const DocumentsContracts = () => {
       searchPlaceholder: 'Rechercher document...',
       addDocument: 'Ajouter Document',
       downloadDateFilter: 'Filtrer par date de téléchargement',
+      creationDateFilter: 'Filtrer par date de création',
       allDates: 'Toutes les dates',
       today: 'Aujourd\'hui',
       yesterday: 'Hier',
@@ -74,6 +76,7 @@ const DocumentsContracts = () => {
       searchPlaceholder: 'Search documents...',
       addDocument: 'Add Document',
       downloadDateFilter: 'Filter by download date',
+      creationDateFilter: 'Filter by creation date',
       allDates: 'All dates',
       today: 'Today',
       yesterday: 'Yesterday',
@@ -1249,8 +1252,10 @@ const DocumentsContracts = () => {
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
       const matchesDownloadDate = downloadDateFilter === 'all' || downloadDateFilter === '' || 
                                  isWithinDateRange(downloadedDocs[doc.id], downloadDateFilter);
+      const matchesCreationDate = creationDateFilter === 'all' || creationDateFilter === '' || 
+                                 isWithinDateRange(doc.date, creationDateFilter);
       
-      return matchesSearch && matchesCategory && matchesDownloadDate;
+      return matchesSearch && matchesCategory && matchesDownloadDate && matchesCreationDate;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
@@ -1384,13 +1389,31 @@ const DocumentsContracts = () => {
                 ))}
               </div>
               
-              {/* Download Date Filter */}
+              {/* Creation Date Filter */}
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gray-500" />
+                <select 
+                  value={creationDateFilter} 
+                  onChange={(e) => setCreationDateFilter(e.target.value)}
+                  className="text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title={t.creationDateFilter}
+                >
+                  <option value="all">{t.allDates}</option>
+                  <option value="today">{t.today}</option>
+                  <option value="yesterday">{t.yesterday}</option>
+                  <option value="thisWeek">{t.thisWeek}</option>
+                  <option value="thisMonth">{t.thisMonth}</option>
+                </select>
+              </div>
+              
+              {/* Download Date Filter */}
+              <div className="flex items-center gap-2">
+                <Download className="w-4 h-4 text-gray-500" />
                 <select 
                   value={downloadDateFilter} 
                   onChange={(e) => setDownloadDateFilter(e.target.value)}
                   className="text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title={t.downloadDateFilter}
                 >
                   <option value="all">{t.allDates}</option>
                   <option value="today">{t.today}</option>
