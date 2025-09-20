@@ -5917,6 +5917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 32, title: "CONTRAT PARTENARIAT OFFICIEL EDUCAFRIC 2025 - FR", description: "Contrat de partenariat officiel actualisé 2025 - Version française", type: "commercial", url: "/documents/educafric-contrat-officiel-2025-actualise.html" },
         { id: 33, title: "OFFICIAL PARTNERSHIP CONTRACT EDUCAFRIC 2025 - EN", description: "Official partnership contract updated 2025 - English version", type: "commercial", url: "/documents/educafric-official-contract-2025-updated-version-6-en.html" },
         { id: 34, title: "CONTRAT DE PARTENARIAT OFFICIEL 2025 - ÉCOLES / OFFICIAL PARTNERSHIP CONTRACT 2025 - SCHOOLS", description: "Contrat de partenariat bilingue spécialement conçu pour les écoles qui paient Educafric - 2025", type: "commercial", url: "/documents/contrat-partenariat-ecoles-2025.html" },
+        { id: 36, title: "CONTRAT ÉCOLE-EDUCAFRIC 2025 - ÉCOLE PAYANTE", description: "Contrat spécialisé pour les écoles qui paient Educafric avec montant et durée négociables", type: "commercial", url: "/documents/contrat-ecoles-payent-educafric-2025.html" },
         
         // === DOCUMENTS SYSTÈME (PDF uniquement) ===
         { id: 4, title: "Présentation Commerciale Complète", description: "Présentation PowerPoint pour prospects", type: "commercial", url: null },
