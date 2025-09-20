@@ -139,13 +139,40 @@ const ReportCardManagement: React.FC = () => {
   });
 
   // Fetch teacher classes 
-  const { data: classesData } = useQuery({
+  const { data: classesData, isLoading: isLoadingClasses } = useQuery({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/teacher/classes');
       return await response.json();
     },
     enabled: !!user
+  });
+
+  // Check if sandbox mode and no data available
+  const isSandboxMode = user?.email?.includes('sandbox') || user?.email?.includes('@test.educafric.com');
+  const hasNoData = !isLoadingClasses && (!classesData || classesData.length === 0);
+
+  // Mutation for loading test data
+  const loadTestDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/sandbox/seed');
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Données de test chargées',
+        description: `${data.data.students} étudiants et ${data.data.classes} classes générés avec succès`,
+      });
+      // Refresh teacher classes
+      queryClient.invalidateQueries({ queryKey: ['/api/teacher/classes'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données de test',
+        variant: 'destructive',
+      });
+    }
   });
 
   // Extract classes from response
@@ -305,6 +332,43 @@ const ReportCardManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Sandbox Test Data Button */}
+      {isSandboxMode && hasNoData && (
+        <Card className="border-dashed border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/20">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Database className="h-12 w-12 text-blue-500 mb-4" />
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Aucune donnée disponible pour les tests
+            </h3>
+            <p className="text-blue-700 dark:text-blue-300 text-center mb-6 max-w-md">
+              Vous êtes en mode sandbox. Chargez des données de test pour explorer le système de bulletins unifié.
+            </p>
+            <Button 
+              onClick={() => loadTestDataMutation.mutate()}
+              disabled={loadTestDataMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+              data-testid="load-test-data-button"
+            >
+              {loadTestDataMutation.isPending ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Génération en cours...
+                </>
+              ) : (
+                <>
+                  <Database className="h-4 w-4 mr-2" />
+                  Charger les données de test
+                </>
+              )}
+            </Button>
+            <div className="mt-4 text-xs text-blue-600 dark:text-blue-400 text-center">
+              <p>✅ 2 classes • 16 étudiants • 6 matières • Données réalistes</p>
+              <p>🔄 Se réinitialise automatiquement au redémarrage du serveur</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Class and Term Selection */}
       <Card>
