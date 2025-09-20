@@ -2859,31 +2859,6 @@ export default function ComprehensiveBulletinGenerator() {
       </Card>
 
       {/* Sélecteur de langue */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-center gap-4">
-            <Label htmlFor="language-selector" className="text-sm font-medium">
-              {language === 'fr' ? 'Langue' : 'Language'} / Language:
-            </Label>
-            <Select 
-              value={language} 
-              onValueChange={(value: 'fr' | 'en') => {
-                // Note: Cette fonction devrait changer la langue dans le contexte global
-                // Pour l'instant, nous affichons juste le sélecteur
-                console.log('Changement de langue vers:', value);
-              }}
-            >
-              <SelectTrigger className="w-48" id="language-selector">
-                <SelectValue placeholder="Sélectionner la langue" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                <SelectItem value="en">🇬🇧 English</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Interface */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
