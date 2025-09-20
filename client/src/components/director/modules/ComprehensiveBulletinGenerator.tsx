@@ -4459,7 +4459,7 @@ export default function ComprehensiveBulletinGenerator() {
                 </div>
 
                 {/* Student Selection & Generation Section */}
-                {classStudents && classStudents.length > 0 && (
+                {eligibleStudentsForGeneration && eligibleStudentsForGeneration.length > 0 && (
                   <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg space-y-4">
                     <h4 className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                       <Users className="h-4 w-4" />
@@ -4470,7 +4470,7 @@ export default function ComprehensiveBulletinGenerator() {
                         {language === 'fr' ? 'Élèves avec notes approuvées :' : 'Students with approved grades:'}
                       </Label>
                       <div className="grid gap-2 max-h-60 overflow-y-auto">
-                        {classStudents.map((student) => (
+                        {eligibleStudentsForGeneration.map((student) => (
                           <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
                             <div className="flex items-center space-x-3">
                               <Checkbox
@@ -4508,7 +4508,7 @@ export default function ComprehensiveBulletinGenerator() {
                       {/* Generation Actions */}
                       <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
                         <Button
-                          onClick={() => setSelectedStudents(classStudents.map(s => s.id))}
+                          onClick={() => setSelectedStudents(eligibleStudentsForGeneration.map(s => s.id))}
                           variant="outline"
                           size="sm"
                           data-testid="select-all-students"
@@ -4547,7 +4547,7 @@ export default function ComprehensiveBulletinGenerator() {
                 )}
                 
                 {/* No students message */}
-                {(!classStudents || classStudents.length === 0) && selectedClass && (
+                {(!eligibleStudentsForGeneration || eligibleStudentsForGeneration.length === 0) && selectedClass && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>{language === 'fr' 
@@ -4591,7 +4591,7 @@ export default function ComprehensiveBulletinGenerator() {
                       <SelectValue placeholder={t.pleaseSelectStudent} />
                     </SelectTrigger>
                     <SelectContent>
-                      {classStudents?.map((student) => (
+                      {eligibleStudentsForGeneration?.map((student) => (
                         <SelectItem key={student.id} value={student.id.toString()}>
                           {student.firstName} {student.lastName}
                         </SelectItem>
