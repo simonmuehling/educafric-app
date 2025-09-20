@@ -612,14 +612,199 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
     
     // Short-circuit if no students have approved grades
     if (uniqueStudentIds.length === 0) {
-      return res.json({
-        success: true,
-        data: {
-          students: [],
-          totalStudents: 0,
-          message: 'No students found with approved grades for this period'
+      // 🎯 SANDBOX SEEDING - Generate realistic test data when needed
+      const isSandboxUser = user.email && (
+        user.email.includes('sandbox') || 
+        user.email.includes('@test.educafric.com') ||
+        user.email.includes('@educafric.demo')
+      );
+      
+      if (isSandboxUser && process.env.NODE_ENV !== 'production') {
+        console.log('[SANDBOX_SEED] 🌱 No approved students found, generating test data for sandbox user:', user.email);
+        
+        try {
+          // Get students from the requested class
+          const classStudents = await db.select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            schoolId: users.schoolId
+          })
+          .from(users)
+          .innerJoin(classes, eq(classes.schoolId, users.schoolId))
+          .where(and(
+            eq(users.role, 'Student'),
+            eq(users.schoolId, schoolId),
+            eq(classes.id, parseInt(classId as string))
+          ))
+          .limit(6); // Get up to 6 students
+          
+          if (classStudents.length === 0) {
+            // Fallback: get any students from the school
+            const fallbackStudents = await db.select({
+              id: users.id,
+              firstName: users.firstName,
+              lastName: users.lastName,
+              email: users.email,
+              schoolId: users.schoolId
+            })
+            .from(users)
+            .where(and(
+              eq(users.role, 'Student'),
+              eq(users.schoolId, schoolId)
+            ))
+            .limit(6);
+            
+            classStudents.push(...fallbackStudents);
+          }
+          
+          if (classStudents.length > 0) {
+            // Get subjects for this school (or create basic ones)
+            const schoolSubjects = await db.select({
+              id: subjects.id,
+              nameFr: subjects.nameFr,
+              nameEn: subjects.nameEn
+            })
+            .from(subjects)
+            .limit(8);
+            
+            // Create default subjects if none exist
+            const subjectsToUse = schoolSubjects.length > 0 ? schoolSubjects : [
+              { id: 1, nameFr: 'Mathématiques', nameEn: 'Mathematics' },
+              { id: 2, nameFr: 'Français', nameEn: 'French' },
+              { id: 3, nameFr: 'Anglais', nameEn: 'English' },
+              { id: 4, nameFr: 'Sciences', nameEn: 'Science' },
+              { id: 5, nameFr: 'Histoire-Géographie', nameEn: 'History-Geography' }
+            ];
+            
+            // Get a teacher from the school (fallback to admin/director)
+            const teacher = await db.select({
+              id: users.id,
+              firstName: users.firstName,
+              lastName: users.lastName
+            })
+            .from(users)
+            .where(and(
+              inArray(users.role, ['Teacher', 'Director', 'Admin']),
+              eq(users.schoolId, schoolId)
+            ))
+            .limit(1);
+            
+            const teacherId = teacher[0]?.id || user.id;
+            
+            console.log('[SANDBOX_SEED] 📚 Seeding data for:', {
+              students: classStudents.length,
+              subjects: subjectsToUse.length,
+              teacherId
+            });
+            
+            // Insert realistic grade data for each student and subject
+            const gradeInserts = [];
+            for (const student of classStudents) {
+              for (const subject of subjectsToUse) {
+                // Generate realistic grades (8-17 out of 20)
+                const baseGrade = 8 + Math.random() * 9; // 8-17
+                const variation = (Math.random() - 0.5) * 2; // -1 to +1
+                
+                const firstEval = Math.max(0, Math.min(20, baseGrade + variation));
+                const secondEval = Math.max(0, Math.min(20, baseGrade + variation * 0.8));
+                const thirdEval = Math.max(0, Math.min(20, baseGrade + variation * 0.6));
+                const termAvg = (firstEval + secondEval + thirdEval) / 3;
+                
+                gradeInserts.push({
+                  studentId: student.id,
+                  teacherId,
+                  subjectId: subject.id,
+                  classId: parseInt(classId as string),
+                  schoolId,
+                  academicYear: academicYear as string,
+                  term: term as 'T1' | 'T2' | 'T3',
+                  
+                  firstEvaluation: firstEval.toFixed(1),
+                  secondEvaluation: secondEval.toFixed(1), 
+                  thirdEvaluation: thirdEval.toFixed(1),
+                  termAverage: termAvg.toFixed(1),
+                  
+                  coefficient: Math.floor(Math.random() * 3) + 1, // 1-3
+                  maxScore: 20,
+                  subjectComments: `Résultats ${termAvg >= 12 ? 'satisfaisants' : 'à améliorer'} [DEMO]`,
+                  
+                  isSubmitted: true,
+                  submittedAt: new Date(),
+                  reviewStatus: 'approved',
+                  
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                });
+              }
+            }
+            
+            // Batch insert all grades
+            if (gradeInserts.length > 0) {
+              await db.insert(teacherGradeSubmissions).values(gradeInserts);
+              console.log('[SANDBOX_SEED] ✅ Inserted', gradeInserts.length, 'grade records');
+              
+              // Re-run the original query to get the seeded data
+              const rerunApprovedGrades = await db.select({
+                studentId: teacherGradeSubmissions.studentId,
+                subjectId: teacherGradeSubmissions.subjectId,
+                subjectName: sql<string>`COALESCE(${subjects.nameFr}, ${subjects.nameEn}, 'Unknown Subject')`,
+                teacherId: teacherGradeSubmissions.teacherId,
+                teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+                firstEvaluation: teacherGradeSubmissions.firstEvaluation,
+                secondEvaluation: teacherGradeSubmissions.secondEvaluation,
+                thirdEvaluation: teacherGradeSubmissions.thirdEvaluation,
+                termAverage: teacherGradeSubmissions.termAverage,
+                coefficient: teacherGradeSubmissions.coefficient,
+                maxScore: teacherGradeSubmissions.maxScore,
+                subjectComments: teacherGradeSubmissions.subjectComments,
+                studentRank: teacherGradeSubmissions.studentRank,
+                isSubmitted: teacherGradeSubmissions.isSubmitted,
+                submittedAt: teacherGradeSubmissions.submittedAt
+              })
+              .from(teacherGradeSubmissions)
+              .leftJoin(subjects, eq(teacherGradeSubmissions.subjectId, subjects.id))
+              .leftJoin(users, eq(teacherGradeSubmissions.teacherId, users.id))
+              .where(and(
+                eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
+                eq(teacherGradeSubmissions.term, term as string),
+                eq(teacherGradeSubmissions.academicYear, academicYear as string),
+                eq(teacherGradeSubmissions.schoolId, schoolId),
+                eq(teacherGradeSubmissions.isSubmitted, true)
+              ));
+              
+              // Re-assign the grades to continue with normal processing
+              // This replaces the original empty approvedGrades array
+              Object.assign(approvedGrades, rerunApprovedGrades);
+              approvedGrades.length = 0;
+              approvedGrades.push(...rerunApprovedGrades);
+              
+              console.log('[SANDBOX_SEED] 🔄 Re-running query found', approvedGrades.length, 'approved grades');
+              
+              // Update uniqueStudentIds to continue normal processing
+              const newUniqueStudentIds = Array.from(new Set(approvedGrades.map(g => g.studentId)));
+              uniqueStudentIds.length = 0;
+              uniqueStudentIds.push(...newUniqueStudentIds);
+            }
+          }
+        } catch (seedError) {
+          console.error('[SANDBOX_SEED] ❌ Failed to seed test data:', seedError);
+          // Continue with empty response on seeding failure
         }
-      });
+      }
+      
+      // If still no students after seeding attempt, return empty
+      if (uniqueStudentIds.length === 0) {
+        return res.json({
+          success: true,
+          data: {
+            students: [],
+            totalStudents: 0,
+            message: 'No students found with approved grades for this period'
+          }
+        });
+      }
     }
     
     const studentsInfo = await db.execute(sql`
