@@ -240,7 +240,7 @@ const DocumentsContracts = () => {
     },
     {
       id: 53,
-      name: 'EDUCAFRIC Official Contract 2025 Updated - Version 6.0 (EN)',
+      name: 'EDUCATIONAL PARTNERSHIP CONTRACT - SCHOOL - EDUCAFRIC 2025',
       type: 'contract',
       category: 'contracts',
       school: 'All Partners',
