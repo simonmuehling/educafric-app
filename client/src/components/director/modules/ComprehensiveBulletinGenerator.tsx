@@ -1626,7 +1626,7 @@ export default function ComprehensiveBulletinGenerator() {
   const saveDraftData = () => {
     if (!selectedStudentForEntry || !selectedClass) {
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: 'Veuillez sélectionner un élève et une classe',
         variant: 'destructive'
       });
@@ -1662,13 +1662,13 @@ export default function ComprehensiveBulletinGenerator() {
       setSavedDrafts(updatedDrafts);
       
       toast({
-        title: t.success,
-        description: t.draftSaved
+        title: BILINGUAL_LABELS[language].success,
+        description: BILINGUAL_LABELS[language].draftSaved
       });
     } catch (error) {
       console.error('Error saving draft:', error);
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: 'Erreur lors de la sauvegarde du brouillon',
         variant: 'destructive'
       });
@@ -1706,8 +1706,8 @@ export default function ComprehensiveBulletinGenerator() {
       
       if (contextualDrafts.length === 0) {
         toast({
-          title: t.error,
-          description: t.noDraftsFound,
+          title: BILINGUAL_LABELS[language].error,
+          description: BILINGUAL_LABELS[language].noDraftsFound,
           variant: 'destructive'
         });
         return;
@@ -1718,8 +1718,8 @@ export default function ComprehensiveBulletinGenerator() {
         const draftData = storedDrafts[contextualDrafts[0].key];
         manualDataForm.reset(draftData);
         toast({
-          title: t.success,
-          description: t.draftLoaded
+          title: BILINGUAL_LABELS[language].success,
+          description: BILINGUAL_LABELS[language].draftLoaded
         });
         return;
       }
@@ -1731,7 +1731,7 @@ export default function ComprehensiveBulletinGenerator() {
     } catch (error) {
       console.error('Error loading drafts:', error);
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: 'Erreur lors du chargement des brouillons',
         variant: 'destructive'
       });
@@ -1747,13 +1747,13 @@ export default function ComprehensiveBulletinGenerator() {
       manualDataForm.reset();
       setShowResetConfirmDialog(false);
       toast({
-        title: t.success,
-        description: t.formReset
+        title: BILINGUAL_LABELS[language].success,
+        description: BILINGUAL_LABELS[language].formReset
       });
     } catch (error) {
       console.error('Error resetting form:', error);
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: 'Erreur lors de la réinitialisation du formulaire',
         variant: 'destructive'
       });
@@ -1769,12 +1769,12 @@ export default function ComprehensiveBulletinGenerator() {
         manualDataForm.reset(draftData);
         setShowLoadDraftDialog(false);
         toast({
-          title: t.success,
-          description: t.draftLoaded
+          title: BILINGUAL_LABELS[language].success,
+          description: BILINGUAL_LABELS[language].draftLoaded
         });
       } else {
         toast({
-          title: t.error,
+          title: BILINGUAL_LABELS[language].error,
           description: 'Brouillon introuvable',
           variant: 'destructive'
         });
@@ -1782,7 +1782,7 @@ export default function ComprehensiveBulletinGenerator() {
     } catch (error) {
       console.error('Error loading selected draft:', error);
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: 'Erreur lors du chargement du brouillon',
         variant: 'destructive'
       });
@@ -1917,7 +1917,7 @@ export default function ComprehensiveBulletinGenerator() {
     },
     onSuccess: (data) => {
       toast({
-        title: t.emailSent,
+        title: BILINGUAL_LABELS[language].emailSent,
         description: data.message || 'Email envoyé avec succès',
       });
       
@@ -1927,7 +1927,7 @@ export default function ComprehensiveBulletinGenerator() {
     onError: (error: any) => {
       console.error('[EMAIL] Error sending bulletin email:', error);
       toast({
-        title: t.emailFailed,
+        title: BILINGUAL_LABELS[language].emailFailed,
         description: error.message || 'Erreur lors de l\'envoi de l\'email',
         variant: 'destructive'
       });
@@ -1965,7 +1965,7 @@ export default function ComprehensiveBulletinGenerator() {
     },
     onSuccess: (data) => {
       toast({
-        title: t.emailSent,
+        title: BILINGUAL_LABELS[language].emailSent,
         description: data.message || `${data.data?.successful || 0} emails envoyés avec succès`,
       });
       
@@ -1975,7 +1975,7 @@ export default function ComprehensiveBulletinGenerator() {
     onError: (error: any) => {
       console.error('[EMAIL] Error sending bulk emails:', error);
       toast({
-        title: t.emailFailed,
+        title: BILINGUAL_LABELS[language].emailFailed,
         description: error.message || 'Erreur lors de l\'envoi des emails en masse',
         variant: 'destructive'
       });
@@ -2253,8 +2253,8 @@ export default function ComprehensiveBulletinGenerator() {
         setGenerationProgress(data.progress);
         setShowProgressDialog(true);
         toast({
-          title: t.success,
-          description: t.generationSuccess,
+          title: BILINGUAL_LABELS[language].success,
+          description: BILINGUAL_LABELS[language].generationSuccess,
           variant: 'default'
         });
       }
@@ -2262,8 +2262,8 @@ export default function ComprehensiveBulletinGenerator() {
     onError: (error: any) => {
       console.error('Generation error:', error);
       toast({
-        title: t.error,
-        description: error.message || t.generationError,
+        title: BILINGUAL_LABELS[language].error,
+        description: error.message || BILINGUAL_LABELS[language].generationError,
         variant: 'destructive'
       });
       setIsGenerating(false);
@@ -2339,7 +2339,7 @@ export default function ComprehensiveBulletinGenerator() {
   const handleGeneration = () => {
     if (!selectedClass) {
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: t.noClassSelected,
         variant: 'destructive'
       });
@@ -2348,7 +2348,7 @@ export default function ComprehensiveBulletinGenerator() {
 
     if (selectedStudents.length === 0) {
       toast({
-        title: t.error,
+        title: BILINGUAL_LABELS[language].error,
         description: t.noStudentsSelected,
         variant: 'destructive'
       });
