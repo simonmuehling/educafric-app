@@ -32,6 +32,45 @@ import { requireAuth, requireAnyRole } from '../middleware/auth';
 
 const router = Router();
 
+// Validation schema for teacher submissions
+const teacherSubmissionSchema = z.object({
+  studentId: z.number(),
+  classId: z.number(),
+  term: z.enum(['T1', 'T2', 'T3']),
+  academicYear: z.string(),
+  manualData: z.object({
+    unjustifiedAbsenceHours: z.string().optional(),
+    justifiedAbsenceHours: z.string().optional(),
+    latenessMinutes: z.string().optional(),
+    detentionHours: z.string().optional(),
+    termGeneral: z.string().optional(),
+    termClass: z.string().optional(),
+    termCoeff: z.string().optional(),
+    termRank: z.string().optional(),
+    termStudents: z.string().optional(),
+    classGeneral: z.string().optional(),
+    appreciation: z.string().optional(),
+    conductAppreciation: z.string().optional(),
+    workAppreciation: z.string().optional(),
+    councilDecision: z.string().optional(),
+    councilComment: z.string().optional()
+  }),
+  generationOptions: z.object({
+    includeComments: z.boolean().optional(),
+    includeRankings: z.boolean().optional(),
+    includeStatistics: z.boolean().optional(),
+    includePerformanceLevels: z.boolean().optional(),
+    includeFirstTrimester: z.boolean().optional(),
+    includeDiscipline: z.boolean().optional(),
+    includeStudentWork: z.boolean().optional(),
+    includeClassProfile: z.boolean().optional(),
+    includeUnjustifiedAbsences: z.boolean().optional(),
+    includeJustifiedAbsences: z.boolean().optional(),
+    includeLateness: z.boolean().optional(),
+    includeDetentions: z.boolean().optional(),
+    generationFormat: z.enum(['pdf', 'batch_pdf']).optional()
+  }).optional()
+});
 
 // Authorization middleware for Director/Admin access
 const requireDirectorAuth = (req: any, res: any, next: any) => {
@@ -50,6 +89,158 @@ const requireDirectorAuth = (req: any, res: any, next: any) => {
   }
   next();
 };
+
+// Authorization middleware for Teacher access
+const requireTeacherAuth = (req: any, res: any, next: any) => {
+  const user = req.user as any;
+  if (!user || !['Teacher', 'Director', 'Admin'].includes(user.role)) {
+    console.log('[AUTH] 🚫 Teacher access denied for user:', { 
+      userId: user?.id, 
+      role: user?.role, 
+      email: user?.email,
+      path: req.path 
+    });
+    return res.status(403).json({ 
+      success: false, 
+      message: 'Access denied. Teacher, Director or Admin role required.' 
+    });
+  }
+  next();
+};
+
+// ===== TEACHER SUBMISSION ENDPOINT =====
+// Route: POST /api/comprehensive-bulletins/teacher-submission
+// Purpose: Accept manual data submissions from teachers for comprehensive bulletin generation
+router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: 'School access required - invalid user context'
+      });
+    }
+
+    console.log('[TEACHER_SUBMISSION] 📝 Processing teacher data submission:', {
+      userId: user.id,
+      teacherName: `${user.firstName} ${user.lastName}`,
+      schoolId,
+      requestData: JSON.stringify(req.body, null, 2)
+    });
+
+    // Validate request data
+    const validationResult = teacherSubmissionSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      console.error('[TEACHER_SUBMISSION] ❌ Validation failed:', validationResult.error.issues);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid submission data',
+        errors: validationResult.error.issues
+      });
+    }
+
+    const { studentId, classId, term, academicYear, manualData, generationOptions } = validationResult.data;
+
+    // Verify teacher has access to this class and student
+    const teacherAccess = await db.select({
+      id: users.id,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      role: users.role
+    })
+    .from(users)
+    .where(and(
+      eq(users.id, studentId),
+      eq(users.schoolId, schoolId)
+    ))
+    .limit(1);
+
+    if (teacherAccess.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Student not found or access denied'
+      });
+    }
+
+    // Store teacher submission in bulletinComprehensive table for later processing by directors
+    await db.insert(bulletinComprehensive).values({
+      studentId,
+      classId,
+      term,
+      academicYear,
+      schoolId,
+      teacherId: user.id,
+      status: 'teacher_submitted',
+      
+      // Manual data from teacher
+      unjustifiedAbsenceHours: manualData.unjustifiedAbsenceHours || '',
+      justifiedAbsenceHours: manualData.justifiedAbsenceHours || '',
+      latenessMinutes: manualData.latenessMinutes || '',
+      detentionHours: manualData.detentionHours || '',
+      termGeneral: manualData.termGeneral || '',
+      termClass: manualData.termClass || '',
+      termCoeff: manualData.termCoeff || '',
+      termRank: manualData.termRank || '',
+      termStudents: manualData.termStudents || '',
+      classGeneral: manualData.classGeneral || '',
+      appreciation: manualData.appreciation || '',
+      conductAppreciation: manualData.conductAppreciation || '',
+      workAppreciation: manualData.workAppreciation || '',
+      councilDecision: manualData.councilDecision || '',
+      councilComment: manualData.councilComment || '',
+      
+      // Generation options (stored as JSONB)
+      generationOptions: generationOptions ? JSON.stringify(generationOptions) : null,
+      
+      // Metadata
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      
+      // Initialize other required fields with defaults
+      bulletinPdfUrl: null,
+      bulletinPdfPath: null,
+      emailSent: false,
+      smsSent: false,
+      whatsappSent: false,
+      notificationLog: null,
+      version: 1
+    });
+
+    console.log('[TEACHER_SUBMISSION] ✅ Teacher submission stored successfully:', {
+      studentId,
+      teacherId: user.id,
+      classId,
+      term,
+      academicYear,
+      status: 'teacher_submitted'
+    });
+
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Teacher submission received and stored for director processing',
+      data: {
+        studentId,
+        classId,
+        term,
+        academicYear,
+        status: 'teacher_submitted',
+        submittedAt: new Date().toISOString(),
+        teacherName: `${user.firstName} ${user.lastName}`
+      }
+    });
+
+  } catch (error) {
+    console.error('[TEACHER_SUBMISSION] 💥 Error processing teacher submission:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while processing submission',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 // Get students with approved grades for comprehensive bulletin generation
 router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, res) => {
