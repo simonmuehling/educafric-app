@@ -7367,7 +7367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as any;
       console.log(`[CAMEROON_OFFICIAL_BULLETIN] 📋 User ${user?.id} generating official Cameroon report card...`);
       
-      const { bulletinData, schoolData, language = 'fr' } = req.body;
+      const { bulletinData, schoolData, language = 'fr', templateType = 'cameroon_official_compact' } = req.body;
       
       // Import validation schema
       const { bulletinComprehensiveValidationSchema } = await import('../shared/schemas/bulletinComprehensiveSchema.js');
@@ -7389,6 +7389,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: `Invalid language. Must be one of: ${validLanguages.join(', ')}`
+        });
+      }
+      
+      // Validate templateType parameter for this route
+      if (templateType !== 'cameroon_official_compact') {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid template type for this route. Expected 'cameroon_official_compact', received '${templateType}'`
         });
       }
       
@@ -7434,7 +7442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Length', pdfBuffer.length);
       
       const duration = Date.now() - startTime;
-      console.log(`[CAMEROON_OFFICIAL_BULLETIN] ✅ Official template generated - User: ${user?.id}, Student: ${validatedBulletinData.studentId}, Class: ${validatedBulletinData.classId}, Language: ${language}, Duration: ${duration}ms, Size: ${pdfBuffer.length} bytes`);
+      console.log(`[CAMEROON_OFFICIAL_BULLETIN] ✅ Official template generated - User: ${user?.id}, Student: ${validatedBulletinData.studentId}, Class: ${validatedBulletinData.classId}, Template: ${templateType}, Language: ${language}, Duration: ${duration}ms, Size: ${pdfBuffer.length} bytes`);
       res.send(pdfBuffer);
       
     } catch (error) {

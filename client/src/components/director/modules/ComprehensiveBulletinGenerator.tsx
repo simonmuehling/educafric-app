@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
@@ -468,6 +469,7 @@ interface BulletinGenerationRequest {
   includeStatistics: boolean;
   includePerformanceLevels: boolean;
   format: 'pdf' | 'batch_pdf';
+  templateType: 'standard' | 'cameroon_official_compact';
   
   // Section Évaluation & Trimestre
   includeFirstTrimester: boolean;
@@ -528,6 +530,16 @@ interface GenerationProgress {
 
 // Manual data entry validation schema
 const manualDataValidationSchema = z.object({
+  // Student Identity (for Cameroon official template)
+  studentGender: z.enum(['M', 'F']).optional(),
+  studentDateOfBirth: z.string().optional().refine((val) => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), "Must be a valid date format (YYYY-MM-DD)"),
+  studentPlaceOfBirth: z.string().optional().refine((val) => !val || val.trim().length > 0, "Place of birth cannot be empty"),
+  studentNationality: z.string().optional().refine((val) => !val || val.trim().length > 0, "Nationality cannot be empty"),
+  schoolRegion: z.string().optional().refine((val) => !val || val.trim().length > 0, "Region cannot be empty"),
+  schoolSubdivision: z.string().optional().refine((val) => !val || val.trim().length > 0, "Subdivision cannot be empty"),
+  isRepeater: z.boolean().optional(),
+  guardianPhone: z.string().optional().refine((val) => !val || /^[\+]?[1-9][\d]{0,15}$/.test(val), "Must be a valid phone number"),
+  
   // Absences & Lateness
   unjustifiedAbsenceHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
   justifiedAbsenceHours: z.string().optional().refine((val) => !val || !isNaN(parseFloat(val)), "Must be a valid number"),
@@ -783,6 +795,7 @@ export default function ComprehensiveBulletinGenerator() {
   
   // Collapsible sections state
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    identity: true,
     absences: true,
     sanctions: false,
     totals: false,
@@ -847,6 +860,17 @@ export default function ComprehensiveBulletinGenerator() {
   const manualDataForm = useForm<ManualDataForm>({
     resolver: zodResolver(manualDataValidationSchema),
     defaultValues: {
+      // Student identity fields
+      studentGender: undefined,
+      studentDateOfBirth: '',
+      studentPlaceOfBirth: '',
+      studentNationality: '',
+      schoolRegion: '',
+      schoolSubdivision: '',
+      isRepeater: false,
+      guardianPhone: '',
+      
+      // Absences & Lateness
       unjustifiedAbsenceHours: '',
       justifiedAbsenceHours: '',
       latenessCount: 0,
@@ -1120,6 +1144,26 @@ export default function ComprehensiveBulletinGenerator() {
       loadDraft: 'Charger le brouillon',
       resetForm: 'Réinitialiser le formulaire',
       draftSaved: 'Brouillon sauvegardé avec succès',
+      
+      // Student Identity fields
+      identityInformation: 'Informations d\'Identité',
+      studentGender: 'Sexe',
+      studentDateOfBirth: 'Date de naissance',
+      studentPlaceOfBirth: 'Lieu de naissance',
+      studentNationality: 'Nationalité',
+      schoolRegion: 'Région de l\'école',
+      schoolSubdivision: 'Subdivision de l\'école',
+      isRepeater: 'Redoublant',
+      guardianPhone: 'Téléphone du parent/tuteur',
+      male: 'Masculin',
+      female: 'Féminin',
+      selectGender: 'Sélectionner le sexe',
+      enterPlaceOfBirth: 'Entrer le lieu de naissance',
+      enterNationality: 'Entrer la nationalité',
+      enterRegion: 'Entrer la région',
+      enterSubdivision: 'Entrer la subdivision',
+      enterPhoneNumber: 'Entrer le numéro de téléphone',
+      studentRepeatingGrade: 'Cet élève redouble cette classe',
       draftLoaded: 'Brouillon chargé avec succès',
       formReset: 'Formulaire réinitialisé',
       noDraftsFound: 'Aucun brouillon trouvé pour cet élève',
@@ -1382,6 +1426,26 @@ export default function ComprehensiveBulletinGenerator() {
       loadDraft: 'Load Draft',
       resetForm: 'Reset Form',
       draftSaved: 'Draft saved successfully',
+      
+      // Student Identity fields
+      identityInformation: 'Identity Information',
+      studentGender: 'Gender',
+      studentDateOfBirth: 'Date of Birth',
+      studentPlaceOfBirth: 'Place of Birth',
+      studentNationality: 'Nationality',
+      schoolRegion: 'School Region',
+      schoolSubdivision: 'School Subdivision',
+      isRepeater: 'Repeater',
+      guardianPhone: 'Guardian Phone',
+      male: 'Male',
+      female: 'Female',
+      selectGender: 'Select gender',
+      enterPlaceOfBirth: 'Enter place of birth',
+      enterNationality: 'Enter nationality',
+      enterRegion: 'Enter region',
+      enterSubdivision: 'Enter subdivision',
+      enterPhoneNumber: 'Enter phone number',
+      studentRepeatingGrade: 'This student is repeating this grade',
       
       // Sanctions Disciplinaires Tab
       sanctionsDisciplinaires: 'Disciplinary Sanctions',
@@ -2307,6 +2371,7 @@ export default function ComprehensiveBulletinGenerator() {
       includeStatistics,
       includePerformanceLevels,
       format: generationFormat,
+      templateType: templateType,
       
       // Section Évaluation & Trimestre
       includeFirstTrimester,
@@ -2420,6 +2485,7 @@ export default function ComprehensiveBulletinGenerator() {
     includeStatistics,
     includePerformanceLevels,
     generationFormat,
+    templateType,
     includeFirstTrimester,
     includeDiscipline,
     includeStudentWork,
@@ -2452,7 +2518,7 @@ export default function ComprehensiveBulletinGenerator() {
     includeHeadmasterVisa
   }), [
     includeComments, includeRankings, includeStatistics, includePerformanceLevels,
-    generationFormat, includeFirstTrimester, includeDiscipline, includeStudentWork,
+    generationFormat, templateType, includeFirstTrimester, includeDiscipline, includeStudentWork,
     includeClassProfile, includeUnjustifiedAbsences, includeJustifiedAbsences,
     includeLateness, includeDetentions, includeConductWarning, includeConductBlame,
     includeExclusions, includePermanentExclusion, includeTotalGeneral,
@@ -3089,7 +3155,159 @@ export default function ComprehensiveBulletinGenerator() {
                 <Form {...manualDataForm}>
                   <form onSubmit={manualDataForm.handleSubmit(onManualDataSubmit)} className="space-y-6">
                     
-                    {/* Section 1: Absences & Lateness */}
+                    {/* Section 1: Student Identity Information */}
+                    <Collapsible open={openSections.identity} onOpenChange={() => toggleSection('identity')}>
+                      <Card>
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                            <CardTitle className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <User className="h-5 w-5 text-blue-600" />
+                                <span>{t('identityInformation')}</span>
+                              </div>
+                              <ChevronDown className={`h-4 w-4 transition-transform ${openSections.identity ? 'rotate-180' : ''}`} />
+                            </CardTitle>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <CardContent className="pt-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={manualDataForm.control}
+                                name="studentGender"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('studentGender')}</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger data-testid="select-student-gender">
+                                          <SelectValue placeholder={t('selectGender')} />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="M">{t('male')}</SelectItem>
+                                        <SelectItem value="F">{t('female')}</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="studentDateOfBirth"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('studentDateOfBirth')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} type="date" data-testid="input-student-birth-date" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="studentPlaceOfBirth"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('studentPlaceOfBirth')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder={t('enterPlaceOfBirth')} data-testid="input-student-birth-place" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="studentNationality"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('studentNationality')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder={t('enterNationality')} data-testid="input-student-nationality" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="schoolRegion"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('schoolRegion')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder={t('enterRegion')} data-testid="input-school-region" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="schoolSubdivision"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('schoolSubdivision')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder={t('enterSubdivision')} data-testid="input-school-subdivision" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="guardianPhone"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>{t('guardianPhone')}</FormLabel>
+                                    <FormControl>
+                                      <Input {...field} placeholder={t('enterPhoneNumber')} data-testid="input-guardian-phone" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={manualDataForm.control}
+                                name="isRepeater"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                      <FormLabel className="text-base">
+                                        {t('isRepeater')}
+                                      </FormLabel>
+                                      <FormDescription>
+                                        {t('studentRepeatingGrade')}
+                                      </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        data-testid="switch-is-repeater"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
+                    
+                    {/* Section 2: Absences & Lateness */}
                     <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
                       <Card>
                         <CollapsibleTrigger asChild>
