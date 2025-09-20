@@ -27,9 +27,16 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
   const { getModule, preloadModule } = useFastModules();
   const [apiDataPreloaded, setApiDataPreloaded] = React.useState(false);
   
-  // AGGRESSIVE API DATA PRELOADING - Director APIs
+  // AGGRESSIVE API DATA PRELOADING - Director APIs (Only for Admin/Director roles)
   React.useEffect(() => {
     if (!user) return;
+    
+    // Only preload director APIs for users with appropriate roles
+    const hasDirectorRole = ['Admin', 'Director'].includes(user.role);
+    if (!hasDirectorRole) {
+      console.log('[DIRECTOR_DASHBOARD] ⚠️ User lacks director privileges, skipping API preload');
+      return;
+    }
     
     const preloadDirectorApiData = async () => {
       

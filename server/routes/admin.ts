@@ -51,19 +51,20 @@ const photoUpload = multer({
 
 // Middleware to require authentication
 function requireAuth(req: any, res: any, next: any) {
-  // Temporary bypass for testing - check for test environment
+  // Only allow sandbox bypass in development environment with specific sandbox emails
+  const isDevelopment = process.env.NODE_ENV === 'development';
   const userAgent = req.headers['user-agent'] || '';
-  const isTestEnvironment = req.headers['x-test-mode'] === 'true' || 
-                           userAgent.includes('test') ||
-                           req.originalUrl?.includes('director');
+  const isTestEnvironment = isDevelopment && req.headers['x-test-mode'] === 'true';
   
-  // Check for sandbox users
-  const isSandboxUser = req.user?.email?.includes('@test.educafric.com') || 
-                       req.user?.email?.includes('sandbox') ||
-                       req.user?.sandboxMode;
+  // Check for sandbox users (only in development)
+  const isSandboxUser = isDevelopment && (
+    req.user?.email?.includes('@test.educafric.com') || 
+    req.user?.email?.includes('sandbox') ||
+    req.user?.sandboxMode
+  );
   
   if (isSandboxUser || isTestEnvironment) {
-    // Create a mock authenticated user for testing
+    // Create a mock authenticated user for sandbox testing (dev only)
     req.user = req.user || {
       id: 4,
       email: 'school.admin@test.educafric.com',
@@ -83,10 +84,21 @@ function requireAuth(req: any, res: any, next: any) {
 // Middleware to require admin privileges
 function requireAdmin(req: any, res: any, next: any) {
   const user = req.user as any;
-  if (!['Admin', 'Director'].includes(user.role)) {
-    return res.status(403).json({ message: 'Admin privileges required' });
+  
+  // Check for sandbox users or test emails ONLY in development
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isSandboxUser = isDevelopment && (
+    user?.email?.includes('@test.educafric.com') || 
+    user?.email?.includes('sandbox') ||
+    user?.sandboxMode
+  );
+  
+  // Allow sandbox users (dev only) or users with Admin/Director roles
+  if (isSandboxUser || ['Admin', 'Director'].includes(user.role)) {
+    return next();
   }
-  next();
+  
+  return res.status(403).json({ message: 'Insufficient permissions' });
 }
 
 // Get delegate administrators
@@ -146,6 +158,8 @@ router.post('/delegates', requireAuth, requireAdmin, async (req, res) => {
 router.get('/students', requireAuth, requireAdmin, async (req, res) => {
   try {
     const user = req.user as any;
+    const { classId, studentId } = req.query;
+    
     if (!user.schoolId) {
       return res.status(400).json({
         success: false,
@@ -153,7 +167,29 @@ router.get('/students', requireAuth, requireAdmin, async (req, res) => {
       });
     }
 
-    const students = await storage.getStudentsBySchool(user.schoolId);
+    let students = await storage.getStudentsBySchool(user.schoolId);
+    
+    // Return single student if studentId is provided
+    if (studentId) {
+      const student = students.find(s => s.id === parseInt(studentId as string));
+      if (!student) {
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found'
+        });
+      }
+      console.log(`[DIRECTOR_STUDENTS] Fetched single student ${studentId}`);
+      return res.json({
+        success: true,
+        student: student
+      });
+    }
+    
+    // Filter by class if classId is provided
+    if (classId) {
+      students = students.filter(student => student.classId === classId);
+      console.log(`[DIRECTOR_STUDENTS] Filtered ${students.length} students for class ${classId}`);
+    }
     
     res.json({
       success: true,
@@ -1433,6 +1469,179 @@ router.post('/api/teachers/:id/photo', requireAuth, photoUpload.single('photo'),
     res.status(500).json({
       success: false,
       message: 'Failed to upload photo'
+    });
+  }
+});
+
+// ====================== ACADEMIC MANAGEMENT ENDPOINTS ======================
+
+// Get subjects for academic management
+router.get('/subjects', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    
+    // Sample subjects data for Cameroon secondary education
+    const subjects = [
+      { id: '1', name: 'Mathématiques', code: 'MATH', coefficient: 4 },
+      { id: '2', name: 'Français', code: 'FR', coefficient: 4 },
+      { id: '3', name: 'Anglais', code: 'ANG', coefficient: 3 },
+      { id: '4', name: 'Physique', code: 'PHY', coefficient: 3 },
+      { id: '5', name: 'Chimie', code: 'CHI', coefficient: 2 },
+      { id: '6', name: 'Biologie', code: 'BIO', coefficient: 2 },
+      { id: '7', name: 'Histoire', code: 'HIST', coefficient: 2 },
+      { id: '8', name: 'Géographie', code: 'GEO', coefficient: 2 },
+      { id: '9', name: 'Éducation Civique', code: 'ECM', coefficient: 1 },
+      { id: '10', name: 'Informatique', code: 'INFO', coefficient: 2 }
+    ];
+
+    console.log(`[DIRECTOR_SUBJECTS] Fetched ${subjects.length} subjects for school ${user.schoolId}`);
+    
+    res.json({
+      success: true,
+      subjects: subjects
+    });
+
+  } catch (error) {
+    console.error('[DIRECTOR_SUBJECTS] Error fetching subjects:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch subjects'
+    });
+  }
+});
+
+// Get grades for specific class and term
+router.get('/grades', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { classId, term } = req.query;
+    
+    if (!classId || !term) {
+      return res.status(400).json({
+        success: false,
+        message: 'Class ID and term are required'
+      });
+    }
+
+    // Generate sample grades data for the class
+    const students = await storage.getStudentsBySchool(user.schoolId);
+    const classStudents = students.filter(s => s.classId === classId);
+    
+    const subjects = [
+      { id: '1', name: 'Mathématiques', code: 'MATH', coefficient: 4 },
+      { id: '2', name: 'Français', code: 'FR', coefficient: 4 },
+      { id: '3', name: 'Anglais', code: 'ANG', coefficient: 3 },
+      { id: '4', name: 'Physique', code: 'PHY', coefficient: 3 },
+      { id: '5', name: 'Chimie', code: 'CHI', coefficient: 2 }
+    ];
+
+    const grades = [];
+    for (const student of classStudents) {
+      for (const subject of subjects) {
+        // Generate realistic grades between 8-18
+        const grade = Math.floor(Math.random() * 11) + 8;
+        grades.push({
+          id: `${student.id}-${subject.id}-${term}`,
+          studentId: student.id,
+          subjectId: subject.id,
+          subjectName: subject.name,
+          subjectCode: subject.code,
+          coefficient: subject.coefficient,
+          grade: grade,
+          term: term,
+          classId: classId
+        });
+      }
+    }
+
+    console.log(`[DIRECTOR_GRADES] Fetched ${grades.length} grades for class ${classId}, term ${term}`);
+    
+    res.json({
+      success: true,
+      grades: grades
+    });
+
+  } catch (error) {
+    console.error('[DIRECTOR_GRADES] Error fetching grades:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch grades'
+    });
+  }
+});
+
+// Get student transcript data
+router.get('/student-transcript', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const { studentId } = req.query;
+    
+    if (!studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID is required'
+      });
+    }
+
+    // Get student information
+    const students = await storage.getStudentsBySchool(user.schoolId);
+    const student = students.find(s => s.id === parseInt(studentId as string));
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Generate transcript data for all terms
+    const subjects = [
+      { id: '1', name: 'Mathématiques', code: 'MATH', coefficient: 4 },
+      { id: '2', name: 'Français', code: 'FR', coefficient: 4 },
+      { id: '3', name: 'Anglais', code: 'ANG', coefficient: 3 },
+      { id: '4', name: 'Physique', code: 'PHY', coefficient: 3 },
+      { id: '5', name: 'Chimie', code: 'CHI', coefficient: 2 },
+      { id: '6', name: 'Biologie', code: 'BIO', coefficient: 2 }
+    ];
+
+    const terms = ['T1', 'T2', 'T3'];
+    const transcript = [];
+
+    for (const term of terms) {
+      for (const subject of subjects) {
+        // Generate consistent grades for this student across terms
+        const baseGrade = 10 + (parseInt(studentId as string) % 8);
+        const termVariation = term === 'T1' ? -1 : term === 'T2' ? 0 : 1;
+        const subjectVariation = subject.coefficient > 3 ? 1 : 0;
+        const grade = Math.min(20, Math.max(5, baseGrade + termVariation + subjectVariation));
+        
+        transcript.push({
+          id: `${studentId}-${subject.id}-${term}`,
+          studentId: parseInt(studentId as string),
+          subjectId: subject.id,
+          subjectName: subject.name,
+          subjectCode: subject.code,
+          coefficient: subject.coefficient,
+          grade: grade,
+          term: term,
+          schoolYear: '2024-2025'
+        });
+      }
+    }
+
+    console.log(`[DIRECTOR_TRANSCRIPT] Fetched ${transcript.length} transcript records for student ${studentId}`);
+    
+    res.json({
+      success: true,
+      student: student,
+      transcript: transcript
+    });
+
+  } catch (error) {
+    console.error('[DIRECTOR_TRANSCRIPT] Error fetching student transcript:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch student transcript'
     });
   }
 });

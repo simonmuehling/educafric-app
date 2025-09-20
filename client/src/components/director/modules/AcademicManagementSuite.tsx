@@ -119,17 +119,20 @@ export function MasterSheet({ selectedClass, selectedTerm }: { selectedClass: st
   // Fetch students for the selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['/api/director/students', selectedClass],
+    queryFn: () => fetch(`/api/director/students?classId=${selectedClass}`).then(res => res.json()),
     enabled: !!selectedClass,
   });
 
   // Fetch subjects
   const { data: subjectsData, isLoading: subjectsLoading } = useQuery({
     queryKey: ['/api/director/subjects'],
+    queryFn: () => fetch('/api/director/subjects').then(res => res.json()),
   });
 
   // Fetch grades for the selected class and term
   const { data: gradesData, isLoading: gradesLoading } = useQuery({
     queryKey: ['/api/director/grades', selectedClass, selectedTerm],
+    queryFn: () => fetch(`/api/director/grades?classId=${selectedClass}&term=${selectedTerm}`).then(res => res.json()),
     enabled: !!selectedClass && !!selectedTerm,
   });
 
@@ -265,18 +268,21 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
   // Fetch student data
   const { data: studentData, isLoading: studentLoading } = useQuery({
     queryKey: ['/api/director/students', selectedStudentId],
+    queryFn: () => fetch(`/api/director/students?studentId=${selectedStudentId}`).then(res => res.json()),
     enabled: !!selectedStudentId,
   });
 
   // Fetch all grades for this student across all terms
   const { data: transcriptData, isLoading: transcriptLoading } = useQuery({
     queryKey: ['/api/director/student-transcript', selectedStudentId],
+    queryFn: () => fetch(`/api/director/student-transcript?studentId=${selectedStudentId}`).then(res => res.json()),
     enabled: !!selectedStudentId,
   });
 
   // Fetch subjects
   const { data: subjectsData } = useQuery({
     queryKey: ['/api/director/subjects'],
+    queryFn: () => fetch('/api/director/subjects').then(res => res.json()),
   });
 
   const student = studentData?.student;
@@ -562,6 +568,7 @@ export function AttendanceRegister({ selectedClass }: { selectedClass: string })
   // Fetch students for the selected class
   const { data: studentsData, isLoading: studentsLoading } = useQuery({
     queryKey: ['/api/director/students', selectedClass],
+    queryFn: () => fetch(`/api/director/students?classId=${selectedClass}`).then(res => res.json()),
     enabled: !!selectedClass,
   });
 
