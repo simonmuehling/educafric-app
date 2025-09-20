@@ -81,7 +81,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  CheckCircle,
   History,
   CalendarDays,
   Timer,
