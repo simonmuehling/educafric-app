@@ -244,7 +244,7 @@ const DocumentsContracts = () => {
       type: 'contract',
       category: 'contracts',
       school: 'All Partners',
-      date: '2025-08-17',
+      date: '2025-09-20',
       status: 'finalized',
       size: '48.7 KB',
       format: 'HTML',
