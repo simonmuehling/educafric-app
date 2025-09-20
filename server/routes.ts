@@ -65,17 +65,17 @@ import analyticsRoutes from "./routes/analytics";
 import whatsappRoutes from "./routes/whatsapp";
 import whatsappMsSolutionsSetup from "./routes/whatsapp-ms-solutions-setup";
 import classesRoutes from "./routes/classes";
-import gradesRoutes from "./routes/grades";
+// gradesRoutes removed - using unified comprehensive bulletin system
 import teachersStandalone from "./routes/teachers";
 import studentsStandalone from "./routes/students";
 import currencyRoutes from "./routes/currency";
 import stripeRoutes from "./routes/stripe";
 import manualPaymentRoutes from "./routes/manual-payments";
 import uploadsRoutes from "./routes/uploads";
-import bulletinRoutes from "./routes/bulletinRoutes";
+// bulletinRoutes removed - using unified comprehensive bulletin system
 import bulletinVerificationRoutes from "./routes/bulletinVerificationRoutes";
 import bulletinValidationRoutes from "./routes/bulletinValidationRoutes";
-import gradeReviewRoutes from "./routes/gradeReview";
+// gradeReviewRoutes removed - using unified comprehensive bulletin system
 import comprehensiveBulletinRoutes from "./routes/comprehensiveBulletinRoutes";
 import templateRoutes from "./routes/templateRoutes";
 import trackingRoutes from "./routes/tracking";
@@ -5019,9 +5019,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Additional routes after main registrations  
   // 🔥 PREMIUM RESTRICTED: Advanced class management (unlimited classes + analytics)
   app.use('/api/classes', checkSubscriptionFeature('advanced_class_management'), checkFreemiumLimits('classes'), classesRoutes);
-  app.use('/api/grades', gradesRoutes);
+  // app.use('/api/grades', gradesRoutes); // REMOVED - using unified comprehensive bulletin system
   // 🔥 PREMIUM RESTRICTED: Grade review system for directors (director role required)
-  app.use('/api/grade-review', checkSubscriptionFeature('advanced_grade_management'), gradeReviewRoutes);
+  // app.use('/api/grade-review', checkSubscriptionFeature('advanced_grade_management'), gradeReviewRoutes); // REMOVED - using unified comprehensive bulletin system
   app.use('/api/currency', currencyRoutes);
   app.use('/api/stripe', stripeRoutes);
   app.use('/api/manual-payments', manualPaymentRoutes);
@@ -5702,10 +5702,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.use('/api/uploads', uploadsRoutes);
 
-  // ROUTES DE TEST SUPPRIMÉES - Toutes les routes /api/bulletins sont gérées via bulletinRoutes.ts
+  // ROUTES DE TEST SUPPRIMÉES - Toutes les routes /api/bulletins sont gérées via comprehensive bulletin system
 
   
-  app.use('/api/bulletins', bulletinRoutes);
+  // app.use('/api/bulletins', bulletinRoutes); // REMOVED - using unified system
   app.use('/api/bulletins', bulletinVerificationRoutes);
   app.use('/api/sanctions', sanctionRoutes);
   // Public route for comprehensive bulletin samples (no auth required)

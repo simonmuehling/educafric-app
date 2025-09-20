@@ -108,7 +108,7 @@ class FastModuleLoader {
       
       // CRITICAL MISSING Parent modules that were causing slow loading!
       'parent-messages': () => import('@/components/parent/modules/FunctionalParentMessages'),
-      'parent-grades': () => import('@/components/parent/modules/FunctionalParentGrades'), 
+      'parent-bulletins': () => import('@/components/director/modules/ComprehensiveBulletinGenerator'), // ✅ Parents access school bulletin system 
       'parent-attendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
       
       // Additional Parent module aliases  
@@ -118,7 +118,7 @@ class FastModuleLoader {
       'ParentGeolocation': () => import('@/components/parent/modules/ParentGeolocation'),
       'FunctionalParentPayments': () => import('@/components/parent/modules/FunctionalParentPayments'),
       'ParentSubscription': () => import('@/components/parent/modules/ParentSubscription'),
-      'FunctionalParentGrades': () => import('@/components/parent/modules/FunctionalParentGrades'),
+      // 'FunctionalParentGrades' removed - parents use unified comprehensive bulletin system
       'FunctionalParentAttendance': () => import('@/components/parent/modules/FunctionalParentAttendance'),
       'FamilyConnections': () => import('@/components/parent/modules/FamilyConnections'),
       'ParentRequestManager': () => import('@/components/parent/modules/ParentRequestManager'),
@@ -127,7 +127,7 @@ class FastModuleLoader {
       'timetable': () => import('@/components/student/modules/StudentTimetable'),
       'grades': () => import('@/components/student/modules/FunctionalStudentGrades'),
       'assignments': () => import('@/components/student/modules/StudentHomework'),
-      'bulletins': () => import('@/components/student/modules/FunctionalStudentBulletins'),
+      // 'bulletins' moved to teacher unified system - see teacher-bulletins mapping
       'attendance': () => import('@/components/student/modules/FunctionalStudentAttendance'),
       'progress': () => import('@/components/student/modules/StudentProgress'),
       'student-messages': () => import('@/components/student/modules/StudentCommunications'),
@@ -163,12 +163,8 @@ class FastModuleLoader {
       'teacher-classes': () => import('@/components/teacher/modules/FunctionalMyClasses'),
       'teacher-timetable': () => import('@/components/teacher/modules/TeacherTimetable'),
       'teacher-attendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
-      'teacher-grades': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Now unified with bulletin system
-      'teacher-gradebook': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Now unified with bulletin system  
-      'gradebook': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Now unified with bulletin system
       'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
-      'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
       'teacher-bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Unified bulletin system  
       'bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Teacher bulletin generator (overrides student version)
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
@@ -181,10 +177,8 @@ class FastModuleLoader {
       'FunctionalMyClasses': () => import('@/components/teacher/modules/FunctionalMyClasses'),
       'TeacherTimetable': () => import('@/components/teacher/modules/TeacherTimetable'),
       'FunctionalTeacherAttendance': () => import('@/components/teacher/modules/FunctionalTeacherAttendance'),
-      'FunctionalTeacherGrades': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Unified bulletin system
       'FunctionalTeacherAssignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'CreateEducationalContent': () => import('@/components/teacher/modules/CreateEducationalContent'),
-      'ReportCards': () => import('@/components/teacher/modules/ReportCardManagement'),
       'FunctionalTeacherCommunications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'ReportCardManagement': () => import('@/components/teacher/modules/ReportCardManagement'),
       
@@ -403,10 +397,10 @@ class FastModuleLoader {
       'bulletins', 'progress', 'parentConnection', 'achievements', 'profile', 'student-geolocation', 'multirole', 'library',
       
       // Parent modules
-      'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-grades', 'parent-attendance', 'parent-library',
+      'subscription', 'children', 'geolocation', 'payments', 'family', 'parent-messages', 'parent-bulletins', 'parent-attendance', 'parent-library',
       
       // Teacher modules - UPDATED FOR UNIFIED BULLETIN WORKFLOW
-      'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-grades', 'teacher-assignments', 'teacher-content', 'teacher-reports', 'teacher-communications', 'teacher-absence-declaration', 'absence-declaration',
+      'teacher-classes', 'teacher-timetable', 'teacher-attendance', 'teacher-assignments', 'teacher-content', 'teacher-bulletins', 'teacher-communications', 'teacher-absence-declaration', 'absence-declaration',
       
       // Freelancer modules
       'freelancer-students', 'sessions', 'schedule', 'resources', 'freelancer-communications',
