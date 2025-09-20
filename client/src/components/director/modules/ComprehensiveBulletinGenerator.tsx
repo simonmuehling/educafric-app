@@ -3626,7 +3626,8 @@ export default function ComprehensiveBulletinGenerator() {
                                     </div>
                                   </div>
                                 </div>
-                                <div className="overflow-x-auto">
+                                {/* Desktop Table - Hidden on mobile */}
+                                <div className="hidden md:block overflow-x-auto">
                                   <table className="w-full border-collapse border border-gray-300">
                                     <thead>
                                       <tr className="bg-gray-50">
@@ -3747,6 +3748,134 @@ export default function ComprehensiveBulletinGenerator() {
                                       ))}
                                     </tbody>
                                   </table>
+                                </div>
+
+                                {/* Mobile Card Layout - Visible on mobile only */}
+                                <div className="md:hidden space-y-4">
+                                  {filteredStudents.find(s => s.id === selectedStudentForEntry)?.approvedGrades?.map((grade, index) => (
+                                    <Card key={grade.subjectId} className="border-l-4 border-l-blue-500">
+                                      <CardHeader className="pb-3">
+                                        <h4 className="font-semibold text-gray-900">{grade.subjectName}</h4>
+                                        <p className="text-sm text-gray-500">Prof: {grade.teacherName || 'Non assigné'}</p>
+                                      </CardHeader>
+                                      <CardContent className="space-y-4">
+                                        {/* Scores Row */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">N/20</Label>
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-9 text-center text-sm"
+                                              value={subjectCoefficients[grade.subjectId]?.noteOn20 || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'noteOn20', e.target.value)}
+                                              data-testid={`note-mobile-${grade.subjectId}`}
+                                            />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">M/20</Label>
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              min="0"
+                                              max="20"
+                                              placeholder="0.0"
+                                              className="h-9 text-center text-sm"
+                                              value={subjectCoefficients[grade.subjectId]?.averageOn20 || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'averageOn20', e.target.value)}
+                                              data-testid={`average-mobile-${grade.subjectId}`}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Coefficient Row */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">Coef</Label>
+                                            <Input
+                                              type="number"
+                                              step="1"
+                                              min="1"
+                                              max="10"
+                                              placeholder="1"
+                                              className="h-9 text-center text-sm"
+                                              value={subjectCoefficients[grade.subjectId]?.coefficient || grade.coefficient || ''}
+                                              onChange={(e) => updateSubjectCoefficient(grade.subjectId, 'coefficient', e.target.value)}
+                                              data-testid={`coef-mobile-${grade.subjectId}`}
+                                            />
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">M*Coef</Label>
+                                            <Input
+                                              type="number"
+                                              step="0.1"
+                                              placeholder="0.0"
+                                              className="h-9 text-center text-sm bg-gray-50"
+                                              value={
+                                                (() => {
+                                                  const avg = parseFloat(subjectCoefficients[grade.subjectId]?.averageOn20 || '0');
+                                                  const coef = parseFloat(subjectCoefficients[grade.subjectId]?.coefficient || grade.coefficient || '1');
+                                                  return !isNaN(avg) && !isNaN(coef) ? (avg * coef).toFixed(1) : '';
+                                                })()
+                                              }
+                                              readOnly
+                                              data-testid={`weighted-mobile-${grade.subjectId}`}
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Grades and Remarks Row */}
+                                        <div className="grid grid-cols-1 gap-3">
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">Cote (A-F)</Label>
+                                            <Select
+                                              value={subjectCoefficients[grade.subjectId]?.cote || ''}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'cote', value === 'none' ? '' : value)}
+                                            >
+                                              <SelectTrigger className="h-9 text-sm" data-testid={`cote-mobile-${grade.subjectId}`}>
+                                                <SelectValue placeholder="Sélectionner une cote">
+                                                  {subjectCoefficients[grade.subjectId]?.cote || '-'}
+                                                </SelectValue>
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="none">-</SelectItem>
+                                                <SelectItem value="A">A</SelectItem>
+                                                <SelectItem value="B">B</SelectItem>
+                                                <SelectItem value="C">C</SelectItem>
+                                                <SelectItem value="D">D</SelectItem>
+                                                <SelectItem value="E">E</SelectItem>
+                                                <SelectItem value="F">F</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-1">
+                                            <Label className="text-xs text-gray-600">Niveau de compétences</Label>
+                                            <Select
+                                              value={subjectCoefficients[grade.subjectId]?.remarks || ''}
+                                              onValueChange={(value) => updateSubjectCoefficient(grade.subjectId, 'remarks', value === 'none' ? '' : value)}
+                                            >
+                                              <SelectTrigger className="h-9 text-sm" data-testid={`remarks-mobile-${grade.subjectId}`}>
+                                                <SelectValue placeholder="Niveau de compétences">
+                                                  {subjectCoefficients[grade.subjectId]?.remarks || '-'}
+                                                </SelectValue>
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="none">-</SelectItem>
+                                                <SelectItem value="CVWA">CVWA - Très Bien Acquises</SelectItem>
+                                                <SelectItem value="CWA">CWA - Bien Acquises</SelectItem>
+                                                <SelectItem value="CA">CA - Acquises</SelectItem>
+                                                <SelectItem value="CAA">CAA - Moyennement Acquises</SelectItem>
+                                                <SelectItem value="CNA">CNA - Non Acquises</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
                                 </div>
                                 <div className="flex gap-2">
                                   <Button 

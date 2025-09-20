@@ -436,12 +436,12 @@ export function PDFGeneratorsPanel() {
                   <Button
                     key={generator.id}
                     variant={selectedGenerator === generator.id ? "default" : "outline"}
-                    className="w-full justify-start h-auto p-3 min-h-[80px]"
+                    className="w-full justify-start h-auto p-2 sm:p-3 min-h-[70px] sm:min-h-[80px]"
                     onClick={() => setSelectedGenerator(generator.id)}
                     data-testid={`select-generator-${generator.id}`}
                   >
-                    <div className="flex items-start gap-3 text-left w-full">
-                      <Icon className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3 text-left w-full">
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm sm:text-base leading-tight mb-1 break-words">
                           {generator.title}
@@ -478,7 +478,7 @@ export function PDFGeneratorsPanel() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Basic Options */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="language">Langue</Label>
                     <Select
@@ -579,7 +579,7 @@ export function PDFGeneratorsPanel() {
                           );
                         }
                         return (
-                          <div key={option.key} className="flex items-center space-x-2">
+                          <div key={option.key} className="flex items-center space-x-2 col-span-1 sm:col-span-2">
                             <Switch
                               id={option.key}
                               checked={currentOptions[option.key] || false}
@@ -597,11 +597,11 @@ export function PDFGeneratorsPanel() {
 
                 {/* Action Buttons */}
                 <Separator />
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     onClick={handleGenerateDemo}
                     disabled={isGenerating}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 flex-1"
                     data-testid="button-generate-demo"
                   >
                     {isGenerating ? (
@@ -609,28 +609,31 @@ export function PDFGeneratorsPanel() {
                     ) : (
                       <Download className="h-4 w-4" />
                     )}
-                    Générer Démo
+                    <span className="hidden sm:inline">Générer Démo PDF</span>
+                    <span className="sm:hidden">Générer PDF</span>
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => handleViewSample('fr')}
-                    className="flex items-center gap-2"
-                    data-testid="button-view-sample-fr"
-                  >
-                    <Eye className="h-4 w-4" />
-                    Aperçu FR
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleViewSample('fr')}
+                      className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
+                      data-testid="button-view-sample-fr"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Aperçu FR
+                    </Button>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => handleViewSample('en')}
-                    className="flex items-center gap-2"
-                    data-testid="button-view-sample-en"
-                  >
-                    <Eye className="h-4 w-4" />
-                    Aperçu EN
-                  </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleViewSample('en')}
+                      className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
+                      data-testid="button-view-sample-en"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Aperçu EN
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Color Scheme Info */}
@@ -654,7 +657,7 @@ export function PDFGeneratorsPanel() {
           <CardTitle>Fonctionnalités Incluses</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">En-têtes Officiels</Badge>
