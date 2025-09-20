@@ -20,6 +20,51 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   term: text("term").notNull(), // "T1", "T2", "T3"
   academicYear: text("academic_year").notNull(),
   
+  // ===== STUDENT IDENTITY (for Cameroon Official Template) =====
+  // Student identification and personal information
+  studentMatricule: text("student_matricule"), // Student registration number (e.g., "STU-6E-00045")
+  studentFirstName: text("student_first_name"),
+  studentLastName: text("student_last_name"),
+  studentGender: text("student_gender"), // "M" or "F"
+  studentDateOfBirth: text("student_date_of_birth"), // YYYY-MM-DD format
+  studentPlaceOfBirth: text("student_place_of_birth"),
+  isRepeater: boolean("is_repeater").default(false),
+  guardianName: text("guardian_name"), // Parent/Guardian full name
+  guardianPhone: text("guardian_phone"), // Contact phone number
+  
+  // ===== CLASS CONTEXT (for Cameroon Official Template) =====
+  // Class and school context information
+  className: text("class_name"), // e.g., "6ème A"
+  homeroomTeacherName: text("homeroom_teacher_name"), // "Mme NGONO"
+  classSize: integer("class_size"), // Total number of students in class
+  schoolRegistrationNumber: text("school_registration_number"), // "LDM-2025-001"
+  
+  // ===== TEMPLATE AND LANGUAGE SETTINGS =====
+  // Bulletin generation preferences
+  templateType: text("template_type").default("standard"), // "standard", "cameroon_official_compact"
+  language: text("language").default("fr"), // "fr", "en", or "bilingual"
+  
+  // ===== ACADEMIC PERFORMANCE SUMMARY =====
+  // Overall academic performance for the term (consolidated fields)
+  totalCoefficient: integer("total_coefficient"), // Sum of all subject coefficients
+  classRank: integer("class_rank"), // Student's rank in the class (1 = best)
+  overallGrade: text("overall_grade"), // Letter grade (A, B+, B, C+, C, D, E, F)
+  
+  // ===== CLASS STATISTICS (for Cameroon Official Template) =====
+  // Class performance statistics
+  classAverage: decimal("class_average", { precision: 5, scale: 2 }), // Class average grade
+  classHighestScore: decimal("class_highest_score", { precision: 5, scale: 2 }), // Best score in class
+  classLowestScore: decimal("class_lowest_score", { precision: 5, scale: 2 }), // Lowest score in class
+  
+  // ===== DISCIPLINE & CONDUCT =====
+  // Conduct grade (often shown as /20 in official templates)
+  conductGradeOutOf20: decimal("conduct_grade_out_of_20", { precision: 5, scale: 2 }), // Conduct/Discipline grade /20
+  
+  // ===== ATTENDANCE DETAILS (enhanced for official template) =====
+  // Attendance counts in addition to hours
+  unjustifiedAbsenceCount: integer("unjustified_absence_count").default(0), // Number of unjustified absence days
+  justifiedAbsenceCount: integer("justified_absence_count").default(0), // Number of justified absence days
+  
   // ===== SECTION ABSENCES & RETARDS =====
   // Absence tracking (hours)
   unjustifiedAbsenceHours: decimal("unjustified_absence_hours", { precision: 5, scale: 2 }).default("0.00"),
@@ -37,10 +82,9 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   permanentExclusion: boolean("permanent_exclusion").default(false), // Exclusion définitive
   
   // ===== SECTION MOYENNES & TOTAUX =====
-  // Academic totals and statistics
-  totalGeneral: decimal("total_general", { precision: 8, scale: 2 }), // TOTAL GÉNÉRAL
-  generalAverage: decimal("general_average", { precision: 5, scale: 2 }), // Moyenne Générale
-  trimesterAverage: decimal("trimester_average", { precision: 5, scale: 2 }), // MOYENNE TRIM
+  // Academic totals and statistics (consolidated - using totalGeneral and generalAverage)
+  totalGeneral: decimal("total_general", { precision: 8, scale: 2 }), // TOTAL GÉNÉRAL (sum of weighted marks)
+  generalAverage: decimal("general_average", { precision: 5, scale: 2 }), // Moyenne Générale (canonical average field)
   numberOfAverages: integer("number_of_averages"), // Nombre de moyennes
   successRate: decimal("success_rate", { precision: 5, scale: 2 }), // Taux de réussite (0-100%)
   
@@ -94,13 +138,27 @@ export const bulletinSubjectCodes = pgTable("bulletin_subject_codes", {
   studentId: integer("student_id").notNull(),
   subjectId: integer("subject_id").notNull(),
   subjectName: text("subject_name").notNull(),
+  teacherName: text("teacher_name"), // Teacher name for this subject (e.g., "Mr/Mrs ...")
+  
+  // ===== ACADEMIC PERFORMANCE (for Cameroon Official Template) =====
+  // Individual subject performance data
+  competencies: text("competencies"), // Subject competencies description
+  markOutOf20: decimal("mark_out_of_20", { precision: 5, scale: 2 }), // Individual subject mark /20
+  coefficient: integer("coefficient").default(1), // Subject coefficient
+  weightedMark: decimal("weighted_mark", { precision: 8, scale: 2 }), // mark * coefficient
+  letterGrade: text("letter_grade"), // A, B+, B, C+, C, D, E, F (unified from COTE)
+  teacherRemarks: text("teacher_remarks"), // Teacher comments/remarks for this subject (unified field)
+  
+  // ===== SUBJECT-LEVEL STATISTICS (for class comparison) =====
+  // Per-subject class statistics for comparison
+  subjectClassAverage: decimal("subject_class_average", { precision: 5, scale: 2 }), // Class average for this subject
+  subjectRank: integer("subject_rank"), // Student's rank in this specific subject within the class
   
   // ===== COEFFICIENT CODES (Section Coefficients & Codes) =====
   CTBA: decimal("ctba", { precision: 5, scale: 2 }), // Contrôle Total des Bases Acquises
   CBA: decimal("cba", { precision: 5, scale: 2 }), // Contrôle des Bases Acquises
   CA: decimal("ca", { precision: 5, scale: 2 }), // Contrôle d'Approfondissement
   CMA: decimal("cma", { precision: 5, scale: 2 }), // Contrôle de Maîtrise Approfondie
-  COTE: text("cote"), // Grade/Rating (A, B, C, D, E, F)
   CNA: text("cna"), // Compétence Non Acquise indicator
   
   // ===== MIN-MAX RANGE =====
@@ -109,7 +167,6 @@ export const bulletinSubjectCodes = pgTable("bulletin_subject_codes", {
   
   // Subject-specific performance indicators
   competencyLevel: text("competency_level"), // "Acquired", "In Progress", "Not Acquired"
-  teacherComment: text("teacher_comment"), // Subject-specific teacher comment
   
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
@@ -193,6 +250,42 @@ export const bulletinComprehensiveValidationSchema = z.object({
   term: z.string().min(1, "Term is required"),
   academicYear: z.string().min(1, "Academic year is required"),
   
+  // Student identity validations (for Cameroon Official Template)
+  studentMatricule: z.string().optional(),
+  studentFirstName: z.string().min(1, "First name is required").optional(),
+  studentLastName: z.string().min(1, "Last name is required").optional(),
+  studentGender: z.enum(["M", "F"]).optional(),
+  studentDateOfBirth: z.string().optional(),
+  studentPlaceOfBirth: z.string().optional(),
+  isRepeater: z.boolean().optional(),
+  guardianName: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  
+  // Class context validations
+  className: z.string().optional(),
+  homeroomTeacherName: z.string().optional(),
+  classSize: z.number().int().positive().optional(),
+  schoolRegistrationNumber: z.string().optional(),
+  
+  // Template and language settings
+  templateType: z.enum(["standard", "cameroon_official_compact"]).optional(),
+  language: z.enum(["fr", "en", "bilingual"]).optional(),
+  
+  // Academic performance validations (consolidated)
+  totalCoefficient: z.number().int().positive().optional(),
+  classRank: z.number().int().positive().optional(),
+  overallGrade: z.enum(["A", "B+", "B", "C+", "C", "D", "E", "F"]).optional(),
+  
+  // Class statistics validations
+  classAverage: z.string().optional(),
+  classHighestScore: z.string().optional(),
+  classLowestScore: z.string().optional(),
+  
+  // Discipline and conduct validations
+  conductGradeOutOf20: z.string().optional(),
+  unjustifiedAbsenceCount: z.number().int().min(0).optional(),
+  justifiedAbsenceCount: z.number().int().min(0).optional(),
+  
   // Attendance validations
   unjustifiedAbsenceHours: z.string().optional(),
   justifiedAbsenceHours: z.string().optional(),
@@ -221,25 +314,16 @@ export const bulletinComprehensiveValidationSchema = z.object({
   // NOUVEAU: Schema de tracking détaillé par destinataire
   notificationsSent: comprehensiveNotificationsSchema,
   
-  // Signature fields
-  parentVisaName: z.string().optional(),
-  parentVisaDate: z.string().optional(),
-  teacherVisaName: z.string().optional(),
-  teacherVisaDate: z.string().optional(),
-  headmasterVisaName: z.string().optional(),
-  headmasterVisaDate: z.string().optional(),
+  // Signature fields (JSON validation aligned with database columns)
+  parentVisa: signatureSchema,
+  teacherVisa: signatureSchema,
+  headmasterVisa: signatureSchema,
   
-  // Subject coefficients
-  subjectCoefficients: z.record(z.object({
-    CTBA: z.string().optional(),
-    CBA: z.string().optional(),
-    CA: z.string().optional(),
-    CMA: z.string().optional(),
-    COTE: z.enum(["A", "B", "C", "D", "E", "F", ""]).optional(),
-    CNA: z.string().max(50).optional(),
-    minGrade: z.string().optional(),
-    maxGrade: z.string().optional()
-  })).optional(),
+  // Include missing academic fields (consolidated - using generalAverage as canonical field)
+  generalAverage: z.string().optional(),
+  
+  // Class profile JSON validation (wired in)
+  classProfile: classProfileSchema,
   
   // ===== CONSEIL DE CLASSE VALIDATION =====
   // Class Council fields validation
@@ -256,6 +340,38 @@ export const notificationTrackingSchemas = {
   recipientStatus: recipientNotificationStatusSchema,
   comprehensive: comprehensiveNotificationsSchema
 };
+
+// Subject codes validation schema (extended for Cameroon Official Template)
+export const bulletinSubjectCodesValidationSchema = z.object({
+  // Required fields
+  bulletinComprehensiveId: z.number().int().positive("Bulletin ID is required"),
+  studentId: z.number().int().positive("Student ID is required"),
+  subjectId: z.number().int().positive("Subject ID is required"),
+  subjectName: z.string().min(1, "Subject name is required"),
+  
+  // Teacher and performance data
+  teacherName: z.string().optional(),
+  competencies: z.string().max(200, "Maximum 200 characters").optional(),
+  markOutOf20: z.string().optional(),
+  coefficient: z.number().int().positive().optional(),
+  weightedMark: z.string().optional(),
+  letterGrade: z.enum(["A", "B+", "B", "C+", "C", "D", "E", "F", ""]).optional(),
+  teacherRemarks: z.string().max(100, "Maximum 100 characters").optional(),
+  
+  // Subject-level statistics
+  subjectClassAverage: z.string().optional(),
+  subjectRank: z.number().int().positive().optional(),
+  
+  // Existing coefficient codes (removed COTE as it's consolidated with letterGrade)
+  CTBA: z.string().optional(),
+  CBA: z.string().optional(),
+  CA: z.string().optional(),
+  CMA: z.string().optional(),
+  CNA: z.string().max(50).optional(),
+  minGrade: z.string().optional(),
+  maxGrade: z.string().optional(),
+  competencyLevel: z.enum(["Acquired", "In Progress", "Not Acquired", ""]).optional()
+});
 
 // Subject codes insert schema - simplified
 export const insertBulletinSubjectCodesSchema = createInsertSchema(bulletinSubjectCodes);

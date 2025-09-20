@@ -4174,5 +4174,3 @@ export default function ComprehensiveBulletinGenerator() {
     </div>
   );
 };
-
-export default ComprehensiveBulletinGenerator;
