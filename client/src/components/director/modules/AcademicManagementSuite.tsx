@@ -435,6 +435,318 @@ export function Transcript({ selectedStudentId }: { selectedStudentId: string })
   );
 }
 
+/**************************** TIMETABLE COMPONENT ****************************/
+export function TimeTable({ selectedClass }: { selectedClass: string }) {
+  const { language } = useLanguage();
+  
+  const DAYS = language === 'fr' 
+    ? ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"]
+    : ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    
+  const PERIODS = ["07:30-08:20", "08:20-09:10", "09:20-10:10", "10:10-11:00", "11:10-12:00", "12:00-12:50"];
+
+  const [grid, setGrid] = useState(() => {
+    const obj: any = {};
+    DAYS.forEach(d => { obj[d] = PERIODS.map(() => ""); });
+    return obj;
+  });
+
+  function updateCell(day: string, idx: number, value: string) {
+    setGrid((prev: any) => ({ 
+      ...prev, 
+      [day]: prev[day].map((v: string, i: number) => (i === idx ? value : v)) 
+    }));
+  }
+
+  function clearAll() {
+    setGrid((prev: any) => {
+      const o: any = {};
+      for (const d of DAYS) o[d] = prev[d].map(() => "");
+      return o;
+    });
+  }
+
+  if (!selectedClass) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {language === 'fr' 
+              ? 'Sélectionnez une classe pour configurer l\'emploi du temps'
+              : 'Select a class to configure the timetable'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              {language === 'fr' ? 'Emploi du Temps' : 'Timetable'}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {language === 'fr' 
+                ? `Classe ${selectedClass} • Cliquez pour saisir les matières et salles`
+                : `Class ${selectedClass} • Click to enter subjects and rooms`
+              }
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print?.()}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Imprimer' : 'Print'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearAll}
+            >
+              {language === 'fr' ? 'Vider' : 'Clear'}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead className="bg-gray-50">
+              <tr>
+                <Th>{language === 'fr' ? 'Jour / Heure' : 'Day / Time'}</Th>
+                {PERIODS.map(p => <Th key={p}>{p}</Th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(grid).map(([day, slots], rIndex) => (
+                <tr key={day} className={rIndex % 2 ? "bg-white" : "bg-gray-50/50"}>
+                  <Td className="font-medium">{day}</Td>
+                  {(slots as string[]).map((value, idx) => (
+                    <Td key={idx}>
+                      <Input
+                        className="w-full h-8 text-xs"
+                        placeholder={language === 'fr' ? "Ex: MATHS – Salle 3" : "Ex: MATH – Room 3"}
+                        value={value}
+                        onChange={e => updateCell(day, idx, e.target.value)}
+                      />
+                    </Td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**************************** ATTENDANCE REGISTER COMPONENT ****************************/
+export function AttendanceRegister({ selectedClass }: { selectedClass: string }) {
+  const { language } = useLanguage();
+  
+  // Get current month and year
+  const currentDate = new Date();
+  const [month, setMonth] = useState(currentDate.getMonth() + 1);
+  const [year, setYear] = useState(currentDate.getFullYear());
+  
+  // Fetch students for the selected class
+  const { data: studentsData, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/director/students', selectedClass],
+    enabled: !!selectedClass,
+  });
+
+  const students = studentsData?.students || [];
+  
+  // Attendance matrix: { studentId: { dayNumber: "P"|"A"|"L" } }
+  const [matrix, setMatrix] = useState<{ [key: string]: { [key: string]: string } }>({});
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  function setMark(studentId: number, day: number, value: string) {
+    setMatrix(prev => ({ 
+      ...prev, 
+      [studentId]: { ...(prev[studentId] || {}), [day]: value } 
+    }));
+  }
+
+  const monthNames = language === 'fr' 
+    ? ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+    : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  if (!selectedClass) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <CheckCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {language === 'fr' 
+              ? 'Sélectionnez une classe pour gérer les présences'
+              : 'Select a class to manage attendance'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (studentsLoading) {
+    return (
+      <div className="p-4 text-sm text-center">
+        {language === 'fr' ? 'Chargement...' : 'Loading...'}
+      </div>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              {language === 'fr' ? 'Registre de Présence' : 'Attendance Register'}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {language === 'fr' 
+                ? `Classe ${selectedClass} • ${monthNames[month - 1]} ${year}`
+                : `Class ${selectedClass} • ${monthNames[month - 1]} ${year}`
+              }
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {language === 'fr' 
+                ? 'P = Présent, A = Absent, L = Retard'
+                : 'P = Present, A = Absent, L = Late'
+              }
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportCSV(
+                students.map((s: any) => {
+                  const row = matrix[s.id] || {};
+                  const totalA = Object.values(row).filter(v => v === "A").length;
+                  const totalL = Object.values(row).filter(v => v === "L").length;
+                  return {
+                    matricule: s.id,
+                    nom: s.name,
+                    ...Object.fromEntries(days.map(d => [`J${d}`, row[d] || ""])),
+                    totalA,
+                    totalL
+                  };
+                }),
+                `attendance-${selectedClass}-${year}-${month}.csv`
+              )}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {language === 'fr' ? 'Exporter CSV' : 'Export CSV'}
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {/* Month/Year Selector */}
+        <div className="flex gap-4 mb-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {language === 'fr' ? 'Mois' : 'Month'}
+            </label>
+            <Select value={month.toString()} onValueChange={(value) => setMonth(parseInt(value))}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthNames.map((name, index) => (
+                  <SelectItem key={index + 1} value={(index + 1).toString()}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              {language === 'fr' ? 'Année' : 'Year'}
+            </label>
+            <Select value={year.toString()} onValueChange={(value) => setYear(parseInt(value))}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[2024, 2025, 2026].map((y) => (
+                  <SelectItem key={y} value={y.toString()}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-xs">
+            <thead className="bg-gray-50">
+              <tr>
+                <Th sticky>{language === 'fr' ? 'Matricule' : 'Student ID'}</Th>
+                <Th sticky>{language === 'fr' ? 'Élève' : 'Student'}</Th>
+                {days.map(d => <Th key={d} className="text-center">{d}</Th>)}
+                <Th className="text-center">{language === 'fr' ? 'Total A' : 'Total A'}</Th>
+                <Th className="text-center">{language === 'fr' ? 'Total L' : 'Total L'}</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student: any, rIdx: number) => {
+                const row = matrix[student.id] || {};
+                const totalA = Object.values(row).filter(v => v === "A").length;
+                const totalL = Object.values(row).filter(v => v === "L").length;
+                
+                return (
+                  <tr key={student.id} className={rIdx % 2 ? "bg-white" : "bg-gray-50/50"}>
+                    <Td sticky>{student.id}</Td>
+                    <Td sticky className="font-medium">{student.name}</Td>
+                    {days.map(d => (
+                      <Td key={d} className="text-center">
+                        <Select
+                          value={row[d] || ""}
+                          onValueChange={(value) => setMark(student.id, d, value)}
+                        >
+                          <SelectTrigger className="w-12 h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">-</SelectItem>
+                            <SelectItem value="P">P</SelectItem>
+                            <SelectItem value="A">A</SelectItem>
+                            <SelectItem value="L">L</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Td>
+                    ))}
+                    <Td className="text-center font-medium text-red-600">{totalA}</Td>
+                    <Td className="text-center font-medium text-orange-600">{totalL}</Td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 /**************************** ACADEMIC MANAGEMENT SUITE MAIN COMPONENT ****************************/
 export default function AcademicManagementSuite() {
   const { language } = useLanguage();
@@ -540,7 +852,7 @@ export default function AcademicManagementSuite() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="mastersheet" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="mastersheet" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             {language === 'fr' ? 'Feuille Maîtresse' : 'Master Sheet'}
@@ -548,6 +860,14 @@ export default function AcademicManagementSuite() {
           <TabsTrigger value="transcript" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
             {language === 'fr' ? 'Relevé de Notes' : 'Transcript'}
+          </TabsTrigger>
+          <TabsTrigger value="timetable" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {language === 'fr' ? 'Emploi du Temps' : 'Timetable'}
+          </TabsTrigger>
+          <TabsTrigger value="attendance" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            {language === 'fr' ? 'Présences' : 'Attendance'}
           </TabsTrigger>
         </TabsList>
 
@@ -585,6 +905,14 @@ export default function AcademicManagementSuite() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="timetable" className="space-y-4">
+          <TimeTable selectedClass={selectedClass} />
+        </TabsContent>
+
+        <TabsContent value="attendance" className="space-y-4">
+          <AttendanceRegister selectedClass={selectedClass} />
         </TabsContent>
       </Tabs>
     </div>
