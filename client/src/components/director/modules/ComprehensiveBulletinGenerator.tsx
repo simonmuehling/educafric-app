@@ -86,7 +86,8 @@ import {
   Timer,
   Users2,
   TrendingDown,
-  Plus
+  Plus,
+  Pencil
 } from 'lucide-react';
 
 // Lazy loaded components
@@ -212,7 +213,6 @@ const BILINGUAL_LABELS = {
     
     // Formulaires
     draftSaved: 'Brouillon sauvegardé',
-    draftLoaded: 'Brouillon chargé',
     formReset: 'Formulaire réinitialisé',
     noDraftsFound: 'Aucun brouillon trouvé',
     
@@ -352,7 +352,6 @@ const BILINGUAL_LABELS = {
     
     // Formulaires
     draftSaved: 'Draft saved',
-    draftLoaded: 'Draft loaded',
     formReset: 'Form reset',
     noDraftsFound: 'No drafts found',
     
@@ -1144,6 +1143,17 @@ export default function ComprehensiveBulletinGenerator() {
       loadDraft: 'Charger le brouillon',
       resetForm: 'Réinitialiser le formulaire',
       draftSaved: 'Brouillon sauvegardé avec succès',
+      success: 'Succès',
+      error: 'Erreur',
+      noDraftsFound: 'Aucun brouillon trouvé pour cet élève',
+      draftLoaded: 'Brouillon chargé avec succès',
+      formReset: 'Formulaire réinitialisé',
+      emailSent: 'Email envoyé avec succès',
+      emailFailed: 'Échec de l\'envoi de l\'email',
+      generationSuccess: 'Génération réussie',
+      generationError: 'Erreur de génération',
+      noClassSelected: 'Aucune classe sélectionnée',
+      noStudentsSelected: 'Aucun élève sélectionné',
       
       // Student Identity fields
       identityInformation: 'Informations d\'Identité',
@@ -1164,9 +1174,6 @@ export default function ComprehensiveBulletinGenerator() {
       enterSubdivision: 'Entrer la subdivision',
       enterPhoneNumber: 'Entrer le numéro de téléphone',
       studentRepeatingGrade: 'Cet élève redouble cette classe',
-      draftLoaded: 'Brouillon chargé avec succès',
-      formReset: 'Formulaire réinitialisé',
-      noDraftsFound: 'Aucun brouillon trouvé pour cet élève',
       selectDraftToLoad: 'Sélectionnez un brouillon à charger',
       availableDrafts: 'Brouillons disponibles',
       resetConfirmTitle: 'Confirmer la réinitialisation',
@@ -1426,6 +1433,17 @@ export default function ComprehensiveBulletinGenerator() {
       loadDraft: 'Load Draft',
       resetForm: 'Reset Form',
       draftSaved: 'Draft saved successfully',
+      success: 'Success',
+      error: 'Error',
+      noDraftsFound: 'No drafts found for this student',
+      draftLoaded: 'Draft loaded successfully',
+      formReset: 'Form reset successfully',
+      emailSent: 'Email sent successfully',
+      emailFailed: 'Failed to send email',
+      generationSuccess: 'Generation successful',
+      generationError: 'Generation error',
+      noClassSelected: 'No class selected',
+      noStudentsSelected: 'No students selected',
       
       // Student Identity fields
       identityInformation: 'Identity Information',
@@ -1493,9 +1511,6 @@ export default function ComprehensiveBulletinGenerator() {
       sanctionReasonPlaceholder: 'Describe the reason for the sanction...',
       sanctionReasonDescription: 'Detailed description of the sanction (minimum 10 characters)',
       exclusionDaysDescription: 'Number of exclusion days (1-365 days)',
-      draftLoaded: 'Draft loaded successfully',
-      formReset: 'Form reset',
-      noDraftsFound: 'No drafts found for this student',
       selectDraftToLoad: 'Select a draft to load',
       availableDrafts: 'Available drafts',
       resetConfirmTitle: 'Confirm Reset',
