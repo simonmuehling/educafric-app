@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { 
   FileText, 
   Plus, 
-  Edit, 
+  Edit3, 
   Save, 
   Send, 
   Eye, 
@@ -24,8 +32,36 @@ import {
   BookOpen,
   Target,
   Award,
-  Trash2
+  Trash2,
+  Settings,
+  Clock,
+  AlertTriangle,
+  ChevronUp,
+  ChevronDown,
+  Database,
+  FileDown,
+  RefreshCw,
+  PenTool
 } from 'lucide-react';
+
+// Schema de validation pour les données manuelles (adapté de ComprehensiveBulletinGenerator)
+const manualDataSchema = z.object({
+  unjustifiedAbsenceHours: z.string().optional(),
+  justifiedAbsenceHours: z.string().optional(),
+  latenessMinutes: z.string().optional(),
+  detentionHours: z.string().optional(),
+  termGeneral: z.string().optional(),
+  termClass: z.string().optional(),
+  termCoeff: z.string().optional(),
+  termRank: z.string().optional(),
+  termStudents: z.string().optional(),
+  classGeneral: z.string().optional(),
+  appreciation: z.string().optional(),
+  conductAppreciation: z.string().optional(),
+  workAppreciation: z.string().optional(),
+  councilDecision: z.string().optional(),
+  councilComment: z.string().optional()
+});
 
 interface BulletinGrade {
   subjectId: number;
@@ -36,84 +72,92 @@ interface BulletinGrade {
   comment: string;
 }
 
-interface BulletinData {
-  studentId?: number;
-  studentName?: string;
-  className?: string;
-  classId?: number;
-  period: string;
-  academicYear: string;
-  grades: BulletinGrade[];
-  appreciation: string;
-  conduct: string;
-  attendanceRate: number;
-  absences: number;
-  lateArrivals: number;
-}
-
 const ReportCardManagement: React.FC = () => {
   const { language } = useLanguage();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // State management
-  const [selectedClass, setSelectedClass] = useState<string>('1');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('trimestre1');
-  const [academicYear] = useState<string>('2024-2025');
-  const [showPreview, setShowPreview] = useState<boolean>(false);
-  const [editingCard, setEditingCard] = useState<any>(null);
-  const [selectedStudent, setSelectedStudent] = useState<string>('');
-
-  // Form data for new bulletin
-  const [bulletinData, setBulletinData] = useState<BulletinData>({
-    period: 'trimestre1',
-    academicYear: '2024-2025',
-    grades: [],
-    appreciation: '',
-    conduct: 'good',
-    attendanceRate: 95,
-    absences: 0,
-    lateArrivals: 0
+  // State management (adapté de ComprehensiveBulletinGenerator)
+  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
+  const [academicYear, setAcademicYear] = useState('2024-2025');
+  const [activeTab, setActiveTab] = useState('manual-data-entry');
+  const [selectedStudentForEntry, setSelectedStudentForEntry] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Sections collapsibles state
+  const [openSections, setOpenSections] = useState({
+    absences: true,
+    sanctions: false,
+    totals: false,
+    coefficients: false,
+    appreciations: false,
+    conseil: false,
+    signatures: false
   });
 
-  // DONNÉES T3 SPÉCIFIQUES POUR ENSEIGNANTS
-  const [t3Data, setT3Data] = useState({
-    councilDecision: 'ADMIS(E) EN CLASSE SUPÉRIEURE',
-    councilMention: 'PASSABLE',
-    councilOrientation: 'Filière générale recommandée',
-    councilDate: new Date().toISOString().split('T')[0],
-    teacherObservations: '',
-    conductGrade: 18,
-    participation: 'Active et constructive',
-    assiduity: 'Excellente',
-    absencesT1: 0,
-    absencesT2: 0,
-    absencesT3: 2,
-    behaviorComments: ''
+  // Generation options state (adapté de ComprehensiveBulletinGenerator)
+  const [includeComments, setIncludeComments] = useState(true);
+  const [includeRankings, setIncludeRankings] = useState(true);
+  const [includeStatistics, setIncludeStatistics] = useState(true);
+  const [includePerformanceLevels, setIncludePerformanceLevels] = useState(true);
+  const [generationFormat, setGenerationFormat] = useState<'pdf' | 'batch_pdf'>('pdf');
+  
+  // Sections d'évaluation
+  const [includeFirstTrimester, setIncludeFirstTrimester] = useState(false);
+  const [includeDiscipline, setIncludeDiscipline] = useState(false);
+  const [includeStudentWork, setIncludeStudentWork] = useState(false);
+  const [includeClassProfile, setIncludeClassProfile] = useState(false);
+  
+  // Sections absences & retards
+  const [includeUnjustifiedAbsences, setIncludeUnjustifiedAbsences] = useState(false);
+  const [includeJustifiedAbsences, setIncludeJustifiedAbsences] = useState(false);
+  const [includeLateness, setIncludeLateness] = useState(false);
+  const [includeDetentions, setIncludeDetentions] = useState(false);
+
+  // Form pour saisie manuelle
+  const manualDataForm = useForm<z.infer<typeof manualDataSchema>>({
+    resolver: zodResolver(manualDataSchema),
+    defaultValues: {
+      unjustifiedAbsenceHours: '',
+      justifiedAbsenceHours: '',
+      latenessMinutes: '',
+      detentionHours: '',
+      termGeneral: '',
+      termClass: '',
+      termCoeff: '',
+      termRank: '',
+      termStudents: '',
+      classGeneral: '',
+      appreciation: '',
+      conductAppreciation: '',
+      workAppreciation: '',
+      councilDecision: '',
+      councilComment: ''
+    }
   });
 
-  // Available subjects
-  const subjects = [
-    'Mathématiques',
-    'Français',
-    'Anglais',
-    'Sciences',
-    'Histoire-Géographie',
-    'EPS',
-    'Arts Plastiques',
-    'Musique'
-  ];
-
-  // Fetch teacher classes and students
-  const { data: teacherClasses } = useQuery({
+  // Fetch teacher classes 
+  const { data: classesData } = useQuery({
     queryKey: ['/api/teacher/classes'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/teacher/classes');
       return await response.json();
-    }
+    },
+    enabled: !!user
   });
 
-  const { data: classStudents } = useQuery({
+  // Extract classes from response
+  const classes = useMemo(() => {
+    if (!classesData) return [];
+    if (Array.isArray(classesData)) return classesData;
+    if (classesData.classes && Array.isArray(classesData.classes)) return classesData.classes;
+    return [];
+  }, [classesData]);
+
+  // Fetch students for selected class
+  const { data: studentsData } = useQuery({
     queryKey: ['/api/teacher/students', selectedClass],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/teacher/students?classId=${selectedClass}`);
@@ -122,819 +166,554 @@ const ReportCardManagement: React.FC = () => {
     enabled: !!selectedClass
   });
 
-  const { data: studentAttendance } = useQuery({
-    queryKey: ['/api/teacher/student-attendance', selectedStudent, selectedPeriod],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/teacher/student-attendance?studentId=${selectedStudent}&period=${selectedPeriod}`);
-      return await response.json();
+  const students = studentsData?.students || [];
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery) return students;
+    return students.filter((student: any) => 
+      `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.matricule?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [students, searchQuery]);
+
+  // Event handlers 
+  const handleClassChange = useCallback((classId: string) => {
+    setSelectedClass(classId);
+    setSelectedStudentForEntry(null);
+    setSearchQuery('');
+  }, []);
+
+  const toggleSection = useCallback((sectionKey: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  }, []);
+
+  const saveDraftData = useCallback(() => {
+    const formData = manualDataForm.getValues();
+    toast({
+      title: "Brouillon sauvegardé",
+      description: "Les données ont été sauvegardées comme brouillon."
+    });
+    console.log('[TEACHER_BULLETIN] Draft saved:', formData);
+  }, [manualDataForm, toast]);
+
+  const loadDraftData = useCallback(() => {
+    // In a real implementation, this would load from API
+    toast({
+      title: "Brouillon chargé", 
+      description: "Les données du brouillon ont été chargées."
+    });
+  }, [toast]);
+
+  const resetFormData = useCallback(() => {
+    manualDataForm.reset();
+    toast({
+      title: "Formulaire réinitialisé",
+      description: "Toutes les données ont été effacées."
+    });
+  }, [manualDataForm, toast]);
+
+  // Submit manual data to comprehensive bulletin system
+  const submitToComprehensiveBulletins = useMutation({
+    mutationFn: async (data: z.infer<typeof manualDataSchema>) => {
+      const response = await apiRequest('POST', '/api/comprehensive-bulletins/teacher-submission', {
+        studentId: selectedStudentForEntry,
+        classId: parseInt(selectedClass),
+        term: selectedTerm,
+        academicYear,
+        manualData: data,
+        generationOptions: {
+          includeComments,
+          includeRankings,
+          includeStatistics,
+          includePerformanceLevels,
+          includeFirstTrimester,
+          includeDiscipline,
+          includeStudentWork,
+          includeClassProfile,
+          includeUnjustifiedAbsences,
+          includeJustifiedAbsences,
+          includeLateness,
+          includeDetentions,
+          generationFormat
+        }
+      });
+      return response.json();
     },
-    enabled: !!selectedStudent && !!selectedPeriod
+    onSuccess: () => {
+      toast({
+        title: "Données transmises",
+        description: "Les notes ont été envoyées au système de génération de bulletins."
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/comprehensive-bulletins'] });
+      manualDataForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Échec de l'envoi des données.",
+        variant: "destructive"
+      });
+    }
   });
+
+  const onManualDataSubmit = (data: z.infer<typeof manualDataSchema>) => {
+    submitToComprehensiveBulletins.mutate(data);
+  };
 
   // Translations
   const t = {
-    reportCardManagement: language === 'fr' ? 'Gestion des Bulletins' : 'Report Card Management',
-    createBulletin: language === 'fr' ? 'Créer un Bulletin' : 'Create Report Card',
-    selectClass: language === 'fr' ? 'Sélectionner la classe' : 'Select Class',
-    selectStudent: language === 'fr' ? 'Sélectionner l\'élève' : 'Select Student',
-    selectPeriod: language === 'fr' ? 'Sélectionner la période' : 'Select Period',
-    studentName: language === 'fr' ? 'Nom de l\'élève' : 'Student Name',
-    subjects: language === 'fr' ? 'Matières' : 'Subjects',
-    grade: language === 'fr' ? 'Note' : 'Grade',
-    comment: language === 'fr' ? 'Commentaire' : 'Comment',
-    generalComment: language === 'fr' ? 'Commentaire général' : 'General Comment',
-    recommendations: language === 'fr' ? 'Recommandations' : 'Recommendations',
-    conduct: language === 'fr' ? 'Conduite' : 'Conduct',
-    attendance: language === 'fr' ? 'Présence' : 'Attendance',
-    save: language === 'fr' ? 'Sauvegarder' : 'Save',
-    submit: language === 'fr' ? 'Soumettre' : 'Submit',
-    publish: language === 'fr' ? 'Publier' : 'Publish',
-    preview: language === 'fr' ? 'Aperçu' : 'Preview',
-    cancel: language === 'fr' ? 'Annuler' : 'Cancel',
-    draft: language === 'fr' ? 'Brouillon' : 'Draft',
-    submitted: language === 'fr' ? 'Soumis' : 'Submitted',
-    approved: language === 'fr' ? 'Approuvé' : 'Approved',
-    published: language === 'fr' ? 'Publié' : 'Published',
-    excellent: language === 'fr' ? 'Excellent' : 'Excellent',
-    good: language === 'fr' ? 'Bien' : 'Good',
-    average: language === 'fr' ? 'Moyen' : 'Average',
-    needsImprovement: language === 'fr' ? 'À améliorer' : 'Needs Improvement',
-    addGrade: language === 'fr' ? 'Ajouter une note' : 'Add Grade',
-    coefficient: language === 'fr' ? 'Coefficient' : 'Coefficient',
-    editBulletin: language === 'fr' ? 'Modifier le bulletin' : 'Edit Report Card',
-    autoCalculate: language === 'fr' ? 'Calculé automatiquement' : 'Automatically calculated',
-    charLimit: language === 'fr' ? 'caractères max' : 'characters max'
-  };
-
-  // Fetch existing bulletins
-  const { data: bulletins, isLoading } = useQuery({
-    queryKey: ['/api/bulletins', selectedClass, selectedPeriod],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/bulletins?classId=${selectedClass}&term=${selectedPeriod}`);
-      return await response.json();
-    }
-  });
-
-  // Add new grade row
-  const addGradeRow = () => {
-    setBulletinData(prev => ({
-      ...prev,
-      grades: [...prev.grades, {
-        subjectId: Date.now(),
-        subjectName: '',
-        grade: '',
-        maxGrade: 20,
-        coefficient: 1,
-        comment: ''
-      }]
-    }));
-  };
-
-  // Update grade data
-  const updateGradeRow = (index: number, field: keyof BulletinGrade, value: any) => {
-    setBulletinData(prev => ({
-      ...prev,
-      grades: (Array.isArray(prev.grades) ? prev.grades : []).map((grade, i) => 
-        i === index ? { ...grade, [field]: value } : grade
-      )
-    }));
-  };
-
-  // Remove grade row
-  const removeGradeRow = (index: number) => {
-    setBulletinData(prev => ({
-      ...prev,
-      grades: (Array.isArray(prev.grades) ? prev.grades : []).filter((_, i) => i !== index)
-    }));
-  };
-
-  // Calculate general average
-  const calculateGeneralAverage = () => {
-    if ((Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) === 0) return 0;
-    
-    let totalPoints = 0;
-    let totalCoefficients = 0;
-    
-    bulletinData?.grades?.forEach(grade => {
-      const gradeValue = typeof grade.grade === 'string' ? parseFloat(grade.grade) : grade.grade;
-      if (!isNaN(gradeValue)) {
-        totalPoints += gradeValue * grade.coefficient;
-        totalCoefficients += grade.coefficient;
-      }
-    });
-    
-    return totalCoefficients > 0 ? (totalPoints / totalCoefficients).toFixed(2) : '0.00';
-  };
-
-  // Calculate class rank (mock calculation)
-  const calculateClassRank = (average: number) => {
-    const mockRank = Math.floor(Math.random() * 30) + 1;
-    return { rank: mockRank, total: 32 };
-  };
-
-  // Get status badge
-  const getStatusBadge = (status: string) => {
-    const statusColors = {
-      draft: 'bg-gray-100 text-gray-800',
-      submitted: 'bg-blue-100 text-blue-800',
-      approved: 'bg-green-100 text-green-800',
-      published: 'bg-purple-100 text-purple-800'
-    };
-    
-    return (
-      <Badge className={statusColors[status as keyof typeof statusColors] || statusColors.draft}>
-        {t[status as keyof typeof t] || status}
-      </Badge>
-    );
-  };
-
-  // Reset form
-  const resetForm = () => {
-    setBulletinData({
-      period: selectedPeriod,
-      academicYear: '2024-2025',
-      grades: [],
-      appreciation: '',
-      conduct: 'good',
-      attendanceRate: 95,
-      absences: 0,
-      lateArrivals: 0
-    });
-  };
-
-  // Mutations for bulletin operations
-  const saveBulletinMutation = useMutation({
-    mutationFn: async (data: { bulletinData: BulletinData; action: 'save' | 'submit' | 'publish' }) => {
-      const response = await apiRequest('POST', '/api/bulletins/create', data);
-      return await response.json();
-    },
-    onSuccess: (_, variables) => {
-      toast({
-        title: variables.action === 'save' ? 'Brouillon sauvegardé' : 
-               variables.action === 'submit' ? 'Bulletin soumis pour approbation' : 
-               'Bulletin publié',
-        description: 'Le bulletin a été traité avec succès'
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/bulletins'] });
-      resetForm();
-    },
-    onError: () => {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de sauvegarder le bulletin',
-        variant: 'destructive'
-      });
-    }
-  });
-
-  // Handle form submission
-  const handleSaveBulletin = (action: 'save' | 'submit' | 'publish') => {
-    if ((Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) === 0) {
-      toast({
-        title: 'Erreur',
-        description: 'Veuillez ajouter au moins une note',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    saveBulletinMutation.mutate({ bulletinData, action });
+    title: language === 'fr' ? 'Gestion des Bulletins' : 'Report Card Management',
+    manualDataEntry: language === 'fr' ? 'Saisie manuelle' : 'Manual Data Entry',
+    generationOptions: language === 'fr' ? 'Options génération' : 'Generation Options',
+    selectClass: language === 'fr' ? 'Sélectionner une classe' : 'Select a class',
+    selectTerm: language === 'fr' ? 'Sélectionner un trimestre' : 'Select a term',
+    selectStudentForEntry: language === 'fr' ? 'Sélectionner un élève' : 'Select a student',
+    saveDraft: language === 'fr' ? 'Sauvegarder brouillon' : 'Save Draft',
+    loadDraft: language === 'fr' ? 'Charger brouillon' : 'Load Draft',
+    resetForm: language === 'fr' ? 'Réinitialiser' : 'Reset Form',
+    absencesLateness: language === 'fr' ? 'Absences & Retards' : 'Absences & Lateness',
+    disciplinarySanctions: language === 'fr' ? 'Sanctions Disciplinaires' : 'Disciplinary Sanctions',
+    academicTotals: language === 'fr' ? 'Totaux Académiques' : 'Academic Totals',
+    coefficientsAndCodes: language === 'fr' ? 'Coefficients & Codes' : 'Coefficients & Codes',
+    appreciationsComments: language === 'fr' ? 'Appréciations & Commentaires' : 'Appreciations & Comments',
+    councilClass: language === 'fr' ? 'Conseil de Classe' : 'Class Council',
+    signatures: language === 'fr' ? 'Signatures' : 'Signatures',
+    unjustifiedAbsHours: language === 'fr' ? 'Heures absence injustifiée' : 'Unjustified absence hours',
+    justifiedAbsHours: language === 'fr' ? 'Heures absence justifiée' : 'Justified absence hours',
+    latenessMinutes: language === 'fr' ? 'Minutes de retard' : 'Lateness minutes',
+    detentionHours: language === 'fr' ? 'Heures de retenue' : 'Detention hours',
+    submitData: language === 'fr' ? 'Transmettre au système bulletins' : 'Submit to bulletin system',
+    generationSettings: language === 'fr' ? 'Paramètres de génération' : 'Generation Settings',
+    includeComments: language === 'fr' ? 'Inclure commentaires' : 'Include comments',
+    includeRankings: language === 'fr' ? 'Inclure classements' : 'Include rankings',
+    includeStatistics: language === 'fr' ? 'Inclure statistiques' : 'Include statistics'
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header - Mobile Optimized */}
+    <div className="space-y-6 p-4">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2">
             <FileText className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t.reportCardManagement}</h2>
-            <p className="text-sm sm:text-base text-gray-600">Créer et gérer les bulletins scolaires</p>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t.title}</h2>
+            <p className="text-sm sm:text-base text-gray-600">Saisir les notes et transmettre au système de bulletins</p>
           </div>
         </div>
-        <Button onClick={() => setShowPreview(true)} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
-          <Eye className="w-4 h-4 mr-2" />
-          {t.preview}
-        </Button>
       </div>
 
-      {/* Class and Period Selection */}
-      <ModernCard>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div>
+      {/* Class and Term Selection */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label>{t.selectClass}</Label>
-              <Select value={selectedClass} onValueChange={(value) => {
-                setSelectedClass(value);
-                setSelectedStudent(''); // Reset student when class changes
-              }}>
+              <Select value={selectedClass} onValueChange={handleClassChange} data-testid="select-class">
                 <SelectTrigger>
-                  <SelectValue placeholder="Choisir une classe..." />
+                  <SelectValue placeholder={t.selectClass} />
                 </SelectTrigger>
                 <SelectContent>
-                  {(teacherClasses?.classes || []).map((cls: any) => (
-                    <SelectItem key={cls.id} value={cls.id.toString()}>{cls.name}</SelectItem>
+                  {classes.map((cls: any) => (
+                    <SelectItem key={cls.id} value={cls.id.toString()}>
+                      {cls.name} - {cls.level}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>{t.selectStudent}</Label>
-              <Select value={selectedStudent} onValueChange={(value) => {
-                setSelectedStudent(value);
-                // Auto-calculate attendance when student is selected
-                const student = (classStudents?.students || []).find((s: any) => s.id.toString() === value);
-                if (student && studentAttendance?.data) {
-                  const calculatedRate = Math.round((studentAttendance.data.presentDays / studentAttendance.data.totalDays) * 100);
-                  setBulletinData(prev => ({
-                    ...prev,
-                    studentId: parseInt(value),
-                    studentName: student.fullName,
-                    className: student.className,
-                    attendanceRate: calculatedRate,
-                    absences: studentAttendance.data.absentDays || 0,
-                    lateArrivals: studentAttendance.data.lateDays || 0
-                  }));
-                }
-              }} disabled={!selectedClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder={selectedClass ? "Choisir un élève..." : "Sélectionner d'abord une classe"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {(classStudents?.students || []).map((student: any) => (
-                    <SelectItem key={student.id} value={student.id.toString()}>{student.fullName}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>{t.selectPeriod}</Label>
-              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            
+            <div className="space-y-2">
+              <Label>{t.selectTerm}</Label>
+              <Select value={selectedTerm} onValueChange={(value: 'T1' | 'T2' | 'T3') => setSelectedTerm(value)} data-testid="select-term">
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="trimestre1">Trimestre 1</SelectItem>
-                  <SelectItem value="trimestre2">Trimestre 2</SelectItem>
-                  <SelectItem value="trimestre3">Trimestre 3</SelectItem>
+                  <SelectItem value="T1">Premier Trimestre</SelectItem>
+                  <SelectItem value="T2">Deuxième Trimestre</SelectItem>
+                  <SelectItem value="T3">Troisième Trimestre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label>Année Scolaire</Label>
-              <Input value={academicYear} disabled />
-            </div>
           </div>
-        </div>
-      </ModernCard>
+        </CardContent>
+      </Card>
 
-      {/* Bulletin Creation Form */}
-      <ModernCard>
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t.createBulletin}</h3>
-          
-          {/* Student Info - Auto-filled from selection */}
-          {selectedStudent && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-blue-50 rounded-lg">
-              <div>
-                <Label>Élève sélectionné</Label>
-                <p className="font-semibold text-blue-800">{bulletinData.studentName}</p>
-                <p className="text-sm text-blue-600">Classe: {bulletinData.className}</p>
-              </div>
-              <div>
-                <Label>Présence automatique</Label>
-                <p className="font-semibold text-green-600">{bulletinData.attendanceRate}% - {t.autoCalculate}</p>
-                <p className="text-sm text-gray-600">Absences: {bulletinData.absences} | Retards: {bulletinData.lateArrivals}</p>
-              </div>
-            </div>
-          )}
+      {/* Main Tabs Interface */}
+      {selectedClass && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="manual-data-entry" className="flex items-center gap-2">
+              <Edit3 className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.manualDataEntry}</span>
+              <span className="sm:hidden">Saisie</span>
+            </TabsTrigger>
+            <TabsTrigger value="generation-options" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.generationOptions}</span>
+              <span className="sm:hidden">Options</span>
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Grades Section */}
-          <div className="mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-              <h4 className="font-medium">{t.subjects}</h4>
-              <Button onClick={addGradeRow} size="sm" variant="outline" className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                {t.addGrade}
-              </Button>
-            </div>
+          {/* Manual Data Entry Tab */}
+          <TabsContent value="manual-data-entry" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit3 className="h-5 w-5" />
+                  {t.manualDataEntry}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Student Selection */}
+                <div className="space-y-4">
+                  <Label>{t.selectStudentForEntry}</Label>
+                  <Select 
+                    value={selectedStudentForEntry?.toString() || 'none'} 
+                    onValueChange={(value) => setSelectedStudentForEntry(value === 'none' ? null : parseInt(value))}
+                  >
+                    <SelectTrigger data-testid="student-select-manual">
+                      <SelectValue placeholder={t.selectStudentForEntry} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- {t.selectStudentForEntry} --</SelectItem>
+                      {filteredStudents.map((student: any) => (
+                        <SelectItem key={student.id} value={student.id.toString()}>
+                          {student.firstName} {student.lastName} - {student.matricule}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Draft Management Buttons */}
+                  {selectedStudentForEntry && (
+                    <div className="flex gap-2">
+                      <Button onClick={saveDraftData} variant="outline" size="sm" data-testid="save-draft">
+                        <Database className="h-4 w-4 mr-2" />
+                        {t.saveDraft}
+                      </Button>
+                      <Button onClick={loadDraftData} variant="outline" size="sm" data-testid="load-draft">
+                        <FileDown className="h-4 w-4 mr-2" />
+                        {t.loadDraft}
+                      </Button>
+                      <Button onClick={resetFormData} variant="outline" size="sm" data-testid="reset-form">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        {t.resetForm}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Manual Data Entry Form */}
+                {selectedStudentForEntry && (
+                  <Form {...manualDataForm}>
+                    <form onSubmit={manualDataForm.handleSubmit(onManualDataSubmit)} className="space-y-6">
+                      
+                      {/* Section 1: Absences & Lateness */}
+                      <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
+                        <Card>
+                          <CollapsibleTrigger asChild>
+                            <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                              <CardTitle className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-5 w-5 text-orange-600" />
+                                  {t.absencesLateness}
+                                </div>
+                                {openSections.absences ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                              </CardTitle>
+                            </CardHeader>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <CardContent className="pt-0 space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="unjustifiedAbsenceHours"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.unjustifiedAbsHours}</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          step="0.5" 
+                                          min="0" 
+                                          placeholder="0.0"
+                                          data-testid="unjustified-abs-hours"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="justifiedAbsenceHours"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.justifiedAbsHours}</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          step="0.5" 
+                                          min="0" 
+                                          placeholder="0.0"
+                                          data-testid="justified-abs-hours"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="latenessMinutes"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.latenessMinutes}</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          min="0" 
+                                          placeholder="0"
+                                          data-testid="lateness-minutes"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={manualDataForm.control}
+                                  name="detentionHours"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>{t.detentionHours}</FormLabel>
+                                      <FormControl>
+                                        <Input 
+                                          {...field} 
+                                          type="number" 
+                                          step="0.5" 
+                                          min="0" 
+                                          placeholder="0.0"
+                                          data-testid="detention-hours"
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </CardContent>
+                          </CollapsibleContent>
+                        </Card>
+                      </Collapsible>
 
-            <div className="space-y-3">
-              {(Array.isArray(bulletinData.grades) ? bulletinData.grades : []).map((grade, index) => (
-                <div key={index} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 p-3 border rounded-lg">
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <Label className="text-xs">Matière</Label>
-                    <Select 
-                      value={grade.subjectName} 
-                      onValueChange={(value) => updateGradeRow(index, 'subjectName', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir..." />
+                      {/* Section 2: Appreciations & Comments */}
+                      <Collapsible open={openSections.appreciations} onOpenChange={() => toggleSection('appreciations')}>
+                        <Card>
+                          <CollapsibleTrigger asChild>
+                            <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                              <CardTitle className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <PenTool className="h-5 w-5 text-blue-600" />
+                                  {t.appreciationsComments}
+                                </div>
+                                {openSections.appreciations ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                              </CardTitle>
+                            </CardHeader>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <CardContent className="pt-0 space-y-4">
+                              <FormField
+                                control={manualDataForm.control}
+                                name="appreciation"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Appréciation générale</FormLabel>
+                                    <FormControl>
+                                      <Textarea 
+                                        {...field} 
+                                        rows={3}
+                                        placeholder="Saisir l'appréciation générale..."
+                                        data-testid="general-appreciation"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={manualDataForm.control}
+                                name="councilDecision"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Décision du conseil de classe</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        placeholder="Ex: ADMIS(E) EN CLASSE SUPÉRIEURE"
+                                        data-testid="council-decision"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </CardContent>
+                          </CollapsibleContent>
+                        </Card>
+                      </Collapsible>
+
+                      {/* Submit Button */}
+                      <div className="flex justify-end">
+                        <Button 
+                          type="submit" 
+                          disabled={submitToComprehensiveBulletins.isPending}
+                          className="bg-blue-600 hover:bg-blue-700"
+                          data-testid="submit-to-bulletins"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {submitToComprehensiveBulletins.isPending ? 'Envoi...' : t.submitData}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Generation Options Tab */}
+          <TabsContent value="generation-options" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  {t.generationSettings}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Content Options */}
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold">Contenu du bulletin</h3>
+                  
+                  {/* Basic Options */}
+                  <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
+                    <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Options de base
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-comments"
+                          checked={includeComments}
+                          onCheckedChange={(checked) => setIncludeComments(checked === true)}
+                          data-testid="include-comments"
+                        />
+                        <Label htmlFor="include-comments">{t.includeComments}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-rankings"
+                          checked={includeRankings}
+                          onCheckedChange={(checked) => setIncludeRankings(checked === true)}
+                          data-testid="include-rankings"
+                        />
+                        <Label htmlFor="include-rankings">{t.includeRankings}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-statistics"
+                          checked={includeStatistics}
+                          onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
+                          data-testid="include-statistics"
+                        />
+                        <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-performance-levels"
+                          checked={includePerformanceLevels}
+                          onCheckedChange={(checked) => setIncludePerformanceLevels(checked === true)}
+                          data-testid="include-performance-levels"
+                        />
+                        <Label htmlFor="include-performance-levels">Niveaux de performance</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Absences & Lateness Options */}
+                  <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg space-y-3">
+                    <h4 className="font-semibold text-orange-700 dark:text-orange-300 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Absences & Retards
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-unjustified-absences"
+                          checked={includeUnjustifiedAbsences}
+                          onCheckedChange={(checked) => setIncludeUnjustifiedAbsences(checked === true)}
+                          data-testid="include-unjustified-absences"
+                        />
+                        <Label htmlFor="include-unjustified-absences">Absences injustifiées</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-justified-absences"
+                          checked={includeJustifiedAbsences}
+                          onCheckedChange={(checked) => setIncludeJustifiedAbsences(checked === true)}
+                          data-testid="include-justified-absences"
+                        />
+                        <Label htmlFor="include-justified-absences">Absences justifiées</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-lateness"
+                          checked={includeLateness}
+                          onCheckedChange={(checked) => setIncludeLateness(checked === true)}
+                          data-testid="include-lateness"
+                        />
+                        <Label htmlFor="include-lateness">Retards</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="include-detentions"
+                          checked={includeDetentions}
+                          onCheckedChange={(checked) => setIncludeDetentions(checked === true)}
+                          data-testid="include-detentions"
+                        />
+                        <Label htmlFor="include-detentions">Retenues</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Output Format */}
+                  <div className="space-y-2">
+                    <Label>Format de sortie</Label>
+                    <Select value={generationFormat} onValueChange={(value: 'pdf' | 'batch_pdf') => setGenerationFormat(value)}>
+                      <SelectTrigger data-testid="generation-format">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {(Array.isArray(subjects) ? subjects : []).map(subject => (
-                          <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-                        ))}
+                        <SelectItem value="pdf">PDF individuel</SelectItem>
+                        <SelectItem value="batch_pdf">PDF groupé (lot)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label className="text-xs">{t.grade}</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="20"
-                      value={grade.grade}
-                      onChange={(e) => updateGradeRow(index, 'grade', e?.target?.value)}
-                      placeholder="0-20"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">{t.coefficient}</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={grade.coefficient}
-                      onChange={(e) => updateGradeRow(index, 'coefficient', parseInt(e?.target?.value))}
-                    />
-                  </div>
-                  <div className="sm:col-span-2 lg:col-span-2">
-                    <Label className="text-xs">{t.comment}</Label>
-                    <Input
-                      value={grade.comment}
-                      onChange={(e) => updateGradeRow(index, 'comment', e?.target?.value)}
-                      placeholder="Appréciation..."
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button
-                      onClick={() => removeGradeRow(index)}
-                      size="sm"
-                      variant="destructive"
-                      className="w-full"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
-              ))}
-            </div>
-
-            {(Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Moyenne générale calculée: {calculateGeneralAverage()}/20</strong>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Appréciation du Professeur */}
-          <div className="mb-6">
-            <Label>Appréciation du Professeur</Label>
-            <Textarea
-              value={bulletinData.appreciation}
-              onChange={(e) => {
-                const text = e?.target?.value || '';
-                if (text.length <= 300) {
-                  setBulletinData(prev => ({ ...prev, appreciation: text }));
-                }
-              }}
-              rows={4}
-              placeholder="Appréciation générale sur le travail et le comportement de l'élève..."
-              className={bulletinData.appreciation.length > 250 ? 'border-orange-300 focus:border-orange-500' : ''}
-            />
-            <p className={`text-xs mt-1 ${bulletinData.appreciation.length > 250 ? 'text-orange-600' : 'text-gray-500'}`}>
-              {bulletinData.appreciation.length}/300 caractères
-            </p>
-          </div>
-
-          {/* Conduct and Attendance */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <Label>{t.conduct}</Label>
-              <Select
-                value={bulletinData.conduct}
-                onValueChange={(value) => setBulletinData(prev => ({ ...prev, conduct: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="excellent">{t.excellent}</SelectItem>
-                  <SelectItem value="good">{t.good}</SelectItem>
-                  <SelectItem value="average">{t.average}</SelectItem>
-                  <SelectItem value="needsImprovement">{t.needsImprovement}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Taux de présence (%) - {t.autoCalculate}</Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={bulletinData.attendanceRate}
-                disabled={!!selectedStudent}
-                className={!!selectedStudent ? 'bg-green-50 border-green-200' : ''}
-                onChange={(e) => {
-                  if (!selectedStudent) {
-                    setBulletinData(prev => ({ ...prev, attendanceRate: parseFloat(e?.target?.value) }));
-                  }
-                }}
-              />
-              {selectedStudent && (
-                <p className="text-xs text-green-600 mt-1">Calculé automatiquement depuis les données de présence</p>
-              )}
-            </div>
-            <div>
-              <Label>Nombre d'absences</Label>
-              <Input
-                type="number"
-                min="0"
-                value={bulletinData.absences}
-                onChange={(e) => setBulletinData(prev => ({ ...prev, absences: parseInt(e?.target?.value) }))}
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons - Mobile Optimized */}
-          <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
-            <Button onClick={resetForm} variant="outline" className="w-full sm:w-auto">
-              <X className="w-4 h-4 mr-2" />
-              {t.cancel}
-            </Button>
-            <Button 
-              onClick={() => handleSaveBulletin('save')} 
-              variant="outline"
-              disabled={saveBulletinMutation.isPending}
-              className="w-full sm:w-auto"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {t.save}
-            </Button>
-            <Button 
-              onClick={() => handleSaveBulletin('submit')} 
-              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
-              disabled={saveBulletinMutation.isPending}
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {t.submit}
-            </Button>
-          </div>
-        </div>
-      </ModernCard>
-
-      {/* SECTION T3 SPÉCIFIQUE POUR ENSEIGNANTS */}
-      {selectedPeriod === 'trimestre3' && (
-        <div className="space-y-6">
-          <ModernCard>
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <Award className="w-6 h-6 text-amber-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-amber-800">⚖️ Décision du Conseil de Classe</h3>
-                  <p className="text-sm text-amber-700">
-                    Informations pour la décision de passage en classe supérieure
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Décision du Conseil</Label>
-                  <Select
-                    value={t3Data.councilDecision}
-                    onValueChange={(value) => setT3Data(prev => ({ ...prev, councilDecision: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ADMIS(E) EN CLASSE SUPÉRIEURE">✅ Admis(e) en classe supérieure</SelectItem>
-                      <SelectItem value="REDOUBLE EN CLASSE ACTUELLE">🔄 Redouble en classe actuelle</SelectItem>
-                      <SelectItem value="ADMIS(E) AVEC RÉSERVES">⚠️ Admis(e) avec réserves</SelectItem>
-                      <SelectItem value="CONSEIL DE RATTRAPAGE">📝 Conseil de rattrapage</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Mention</Label>
-                  <Select
-                    value={t3Data.councilMention}
-                    onValueChange={(value) => setT3Data(prev => ({ ...prev, councilMention: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="TRÈS BIEN">🏆 Très Bien (16-20)</SelectItem>
-                      <SelectItem value="BIEN">🥈 Bien (14-16)</SelectItem>
-                      <SelectItem value="ASSEZ BIEN">🥉 Assez Bien (12-14)</SelectItem>
-                      <SelectItem value="PASSABLE">📋 Passable (10-12)</SelectItem>
-                      <SelectItem value="INSUFFISANT">❌ Insuffisant (&lt;10)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <Label>Orientation Conseillée</Label>
-                  <Input 
-                    value={t3Data.councilOrientation}
-                    onChange={(e) => setT3Data(prev => ({ ...prev, councilOrientation: e.target.value }))}
-                    placeholder="Filière générale recommandée"
-                  />
-                </div>
-                <div>
-                  <Label>Date du Conseil</Label>
-                  <Input 
-                    type="date"
-                    value={t3Data.councilDate}
-                    onChange={(e) => setT3Data(prev => ({ ...prev, councilDate: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <Label>Observations du Professeur Principal</Label>
-                <Textarea 
-                  value={t3Data.teacherObservations}
-                  onChange={(e) => setT3Data(prev => ({ ...prev, teacherObservations: e.target.value }))}
-                  placeholder="Observations sur le travail et les résultats de l'élève..."
-                  rows={3}
-                />
-              </div>
-            </div>
-          </ModernCard>
-
-          <ModernCard>
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-sky-100 rounded-lg">
-                  <Users className="w-6 h-6 text-sky-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-sky-800">👤 Bilan Comportemental Annuel</h3>
-                  <p className="text-sm text-sky-700">
-                    Évaluation du comportement et de l'assiduité de l'élève
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Note de Conduite /20</Label>
-                  <Input 
-                    type="number"
-                    min="0"
-                    max="20"
-                    value={t3Data.conductGrade}
-                    onChange={(e) => setT3Data(prev => ({ ...prev, conductGrade: parseInt(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div>
-                  <Label>Participation</Label>
-                  <Select
-                    value={t3Data.participation}
-                    onValueChange={(value) => setT3Data(prev => ({ ...prev, participation: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active et constructive">🌟 Active et constructive</SelectItem>
-                      <SelectItem value="Bonne participation">👍 Bonne participation</SelectItem>
-                      <SelectItem value="Participation modérée">📈 Participation modérée</SelectItem>
-                      <SelectItem value="Participation faible">📉 Participation faible</SelectItem>
-                      <SelectItem value="Très passive">😴 Très passive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Assiduité</Label>
-                  <Select
-                    value={t3Data.assiduity}
-                    onValueChange={(value) => setT3Data(prev => ({ ...prev, assiduity: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Excellente">⭐ Excellente</SelectItem>
-                      <SelectItem value="Très bonne">✅ Très bonne</SelectItem>
-                      <SelectItem value="Bonne">👌 Bonne</SelectItem>
-                      <SelectItem value="À améliorer">⚠️ À améliorer</SelectItem>
-                      <SelectItem value="Insuffisante">❌ Insuffisante</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <Label>Absences par Trimestre</Label>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs text-gray-500">T1 (heures)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={t3Data.absencesT1}
-                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT1: parseInt(e.target.value) || 0 }))}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">T2 (heures)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={t3Data.absencesT2}
-                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT2: parseInt(e.target.value) || 0 }))}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">T3 (heures)</Label>
-                    <Input 
-                      type="number"
-                      min="0"
-                      value={t3Data.absencesT3}
-                      onChange={(e) => setT3Data(prev => ({ ...prev, absencesT3: parseInt(e.target.value) || 0 }))}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Total annuel: {t3Data.absencesT1 + t3Data.absencesT2 + t3Data.absencesT3} heures
-                </p>
-              </div>
-
-              <div className="mt-4">
-                <Label>Commentaires sur le Comportement</Label>
-                <Textarea 
-                  value={t3Data.behaviorComments}
-                  onChange={(e) => setT3Data(prev => ({ ...prev, behaviorComments: e.target.value }))}
-                  placeholder="Observations sur le comportement général de l'élève..."
-                  rows={2}
-                />
-              </div>
-            </div>
-          </ModernCard>
-        </div>
-      )}
-
-      {/* Existing Bulletins List */}
-      {Array.isArray(bulletins) && (Array.isArray(bulletins) ? bulletins.length : 0) > 0 && (
-        <ModernCard>
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Bulletins Existants - {selectedPeriod}
-            </h3>
-            
-            <div className="space-y-3">
-              {(Array.isArray(bulletins) ? bulletins : []).map((bulletin: any) => (
-                <div key={bulletin.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{bulletin.studentName}</p>
-                      <p className="text-sm text-gray-600">
-                        Moyenne: {bulletin.generalAverage}/20 | Rang: {bulletin.classRank}
-                      </p>
-                    </div>
-                    {getStatusBadge(bulletin.status)}
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setEditingCard(bulletin)}>
-                      <Edit className="w-4 h-4 mr-1" />
-                      Modifier
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Download className="w-4 h-4 mr-1" />
-                      PDF
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </ModernCard>
-      )}
-
-      {/* Bulletin Preview Modal */}
-      {showPreview && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold">Aperçu du Bulletin</h3>
-              <Button variant="ghost" onClick={() => setShowPreview(false)}>
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="space-y-6 bg-white border rounded-lg p-8">
-              {/* Header */}
-              <div className="text-center border-b pb-4">
-                <h2 className="text-2xl font-bold">BULLETIN SCOLAIRE</h2>
-                <p className="text-gray-600 mt-1">Année Scolaire {academicYear}</p>
-              </div>
-
-              {/* Student Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p><span className="font-semibold">Élève:</span> {bulletinData.studentName || 'Nom de l\'élève'}</p>
-                  <p><span className="font-semibold">Classe:</span> {bulletinData.className || 'Classe'}</p>
-                </div>
-                <div>
-                  <p><span className="font-semibold">Période:</span> {bulletinData.period}</p>
-                  <p><span className="font-semibold">Rang:</span> {calculateClassRank(parseFloat(calculateGeneralAverage().toString())).rank}/{calculateClassRank(parseFloat(calculateGeneralAverage().toString())).total}</p>
-                </div>
-                <div>
-                  <p><span className="font-semibold">Moyenne générale:</span> {calculateGeneralAverage()}/20</p>
-                  <p><span className="font-semibold">Conduite:</span> {t[bulletinData.conduct as keyof typeof t] || bulletinData.conduct}</p>
-                </div>
-              </div>
-
-              {/* Grades Table */}
-              {(Array.isArray(bulletinData.grades) ? bulletinData.grades.length : 0) > 0 && (
-                <div>
-                  <h4 className="font-semibold mb-3">Notes par matière</h4>
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="border border-gray-300 p-2 text-left">Matière</th>
-                        <th className="border border-gray-300 p-2 text-center">Note</th>
-                        <th className="border border-gray-300 p-2 text-center">Coeff.</th>
-                        <th className="border border-gray-300 p-2 text-left">Appréciation</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(Array.isArray(bulletinData.grades) ? bulletinData.grades : []).map((grade: BulletinGrade, index: number) => (
-                        <tr key={index}>
-                          <td className="border border-gray-300 p-2">{grade.subjectName}</td>
-                          <td className="border border-gray-300 p-2 text-center font-medium">{grade.grade}/{grade.maxGrade}</td>
-                          <td className="border border-gray-300 p-2 text-center">{grade.coefficient}</td>
-                          <td className="border border-gray-300 p-2 text-sm">{grade.comment}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Appréciation du Professeur */}
-              {bulletinData.appreciation && (
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-2">Appréciation du Professeur:</h4>
-                  <p className="text-sm bg-gray-50 p-3 rounded">{bulletinData.appreciation}</p>
-                </div>
-              )}
-
-              {/* Attendance Info */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-4">
-                <div>
-                  <p><span className="font-semibold">Taux de présence:</span> {bulletinData.attendanceRate}%</p>
-                </div>
-                <div>
-                  <p><span className="font-semibold">Absences:</span> {bulletinData.absences}</p>
-                </div>
-                <div>
-                  <p><span className="font-semibold">Retards:</span> {bulletinData.lateArrivals}</p>
-                </div>
-              </div>
-
-              {/* Signatures */}
-              <div className="flex justify-between mt-8 pt-6 border-t">
-                <div className="text-center">
-                  <p className="font-medium mb-8">Enseignant</p>
-                  <div className="border-t border-gray-400 w-24"></div>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium mb-8">Directeur</p>
-                  <div className="border-t border-gray-400 w-24"></div>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium mb-8">Parent</p>
-                  <div className="border-t border-gray-400 w-24"></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button onClick={() => setShowPreview(false)} variant="outline">
-                Fermer
-              </Button>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Download className="w-4 h-4 mr-2" />
-                Télécharger PDF
-              </Button>
-            </div>
-          </div>
-        </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
