@@ -81,6 +81,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  CheckCircle,
   History,
   CalendarDays,
   Timer,
@@ -1091,6 +1092,12 @@ export default function ComprehensiveBulletinGenerator() {
       // Messages
       loadingClasses: 'Chargement des classes...',
       loadingStudents: 'Chargement des élèves...',
+      loadingRequiredData: 'Chargement des données requis',
+      loadingRequiredDataDescription: 'Sélectionnez une classe, un trimestre et une année, puis cliquez sur "Charger les données" pour commencer.',
+      noApprovedGradesTitle: 'Élèves sans notes approuvées',
+      noApprovedGradesDescription: 'Les élèves apparaissent grisés car ils n\'ont pas encore de notes approuvées. Approuvez d\'abord les notes via le module "Validation des Notes".',
+      studentsWithGrades: 'élèves avec notes approuvées',
+      studentsTotal: 'total',
       generationSuccess: 'Bulletins générés avec succès',
       downloadReady: 'Téléchargement prêt',
       confirmGeneration: 'Confirmer la génération',
@@ -1372,6 +1379,12 @@ export default function ComprehensiveBulletinGenerator() {
       // Messages
       loadingClasses: 'Loading classes...',
       loadingStudents: 'Loading students...',
+      loadingRequiredData: 'Loading Required Data',
+      loadingRequiredDataDescription: 'Select a class, term, and year, then click "Load Data" to begin.',
+      noApprovedGradesTitle: 'Students without approved grades',
+      noApprovedGradesDescription: 'Students appear grayed out because they don\'t have approved grades yet. Please approve grades first via the "Grade Validation" module.',
+      studentsWithGrades: 'students with approved grades',
+      studentsTotal: 'total',
       generationSuccess: 'Bulletins generated successfully',
       downloadReady: 'Download ready',
       confirmGeneration: 'Confirm generation',
@@ -2974,9 +2987,9 @@ export default function ComprehensiveBulletinGenerator() {
                     <div className="flex items-start gap-3">
                       <Database className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 space-y-2">
-                        <h4 className="font-medium text-blue-900">Chargement des données requis</h4>
+                        <h4 className="font-medium text-blue-900">{t.loadingRequiredData}</h4>
                         <p className="text-sm text-blue-700">
-                          Sélectionnez une classe, un trimestre et une année, puis cliquez sur "Charger les données" pour commencer.
+                          {t.loadingRequiredDataDescription}
                         </p>
                         <div className="flex gap-2 mt-3">
                           <Button 
@@ -4156,6 +4169,36 @@ export default function ComprehensiveBulletinGenerator() {
                   data-testid="search-students"
                 />
               </div>
+
+              {/* Info message when no students have approved grades */}
+              {filteredStudents.length > 0 && filteredStudents.filter(s => s.approvedGrades?.length > 0).length === 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <h4 className="font-medium text-amber-900">{t.noApprovedGradesTitle}</h4>
+                      <p className="text-sm text-amber-700">
+                        {t.noApprovedGradesDescription}
+                      </p>
+                      <div className="text-sm text-amber-600">
+                        📊 <strong>0</strong> {t.studentsWithGrades} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Students count info when some students have grades */}
+              {filteredStudents.length > 0 && filteredStudents.filter(s => s.approvedGrades?.length > 0).length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-700">
+                      📊 <strong>{filteredStudents.filter(s => s.approvedGrades?.length > 0).length}</strong> {t.studentsWithGrades} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Students List */}
               {loadingStudents ? (
