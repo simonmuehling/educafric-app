@@ -610,6 +610,18 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
     // Get unique students with their info
     const uniqueStudentIds = Array.from(new Set(approvedGrades.map(g => g.studentId)));
     
+    // Short-circuit if no students have approved grades
+    if (uniqueStudentIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          students: [],
+          totalStudents: 0,
+          message: 'No students found with approved grades for this period'
+        }
+      });
+    }
+    
     const studentsInfo = await db.execute(sql`
       SELECT 
         u.id,
@@ -623,7 +635,8 @@ router.get('/approved-students', requireAuth, requireDirectorAuth, async (req, r
         c.name as class_name
       FROM users u
       LEFT JOIN classes c ON c.id = ${parseInt(classId as string)}
-      WHERE u.id = ANY(${uniqueStudentIds})
+      WHERE u.id = ANY(ARRAY[${sql.raw(uniqueStudentIds.join(','))}]::int[])
+        AND u.school_id = ${schoolId}
         AND u.role = 'Student'
       ORDER BY u.last_name, u.first_name
     `);
@@ -735,22 +748,11 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
         // Note: Would need proper class-student relationship in production
       ));
 
-    // Get students with approved grades
-    const approvedGradesCount = await db.select({ 
-      count: sql<number>`COUNT(DISTINCT ${teacherGradeSubmissions.studentId})`
-    })
-      .from(teacherGradeSubmissions)
-      .where(and(
-        eq(teacherGradeSubmissions.classId, parseInt(classId as string)),
-        eq(teacherGradeSubmissions.term, term as string),
-        eq(teacherGradeSubmissions.academicYear, academicYear as string),
-        eq(teacherGradeSubmissions.schoolId, schoolId),
-        eq(teacherGradeSubmissions.isSubmitted, true)
-      ));
-
-    // Calculate class average
-    const classAverages = await db.execute(sql`
-      SELECT AVG(term_average) as class_average
+    // Get students with approved grades (separate aggregate query)
+    const approvedStats = await db.execute(sql`
+      SELECT 
+        COUNT(DISTINCT student_id) AS student_count,
+        ROUND(AVG(term_average)::numeric, 2) AS class_average
       FROM teacher_grade_submissions
       WHERE class_id = ${parseInt(classId as string)}
         AND term = ${term as string}
@@ -762,12 +764,12 @@ router.get('/class-statistics', requireAuth, requireDirectorAuth, async (req, re
 
     const stats = {
       totalStudents: totalStudents[0]?.count || 0,
-      approvedStudents: approvedGradesCount[0]?.count || 0,
+      approvedStudents: approvedStats.rows[0]?.student_count || 0,
       completionRate: totalStudents[0]?.count > 0 
-        ? Math.round(((approvedGradesCount[0]?.count || 0) / totalStudents[0].count) * 100)
+        ? Math.round(((approvedStats.rows[0]?.student_count || 0) / totalStudents[0].count) * 100)
         : 0,
-      averageGrade: classAverages.rows[0]?.class_average 
-        ? parseFloat(classAverages.rows[0].class_average as string) 
+      averageGrade: approvedStats.rows[0]?.class_average 
+        ? parseFloat(approvedStats.rows[0].class_average as string) 
         : 0
     };
 
