@@ -169,6 +169,8 @@ class FastModuleLoader {
       'teacher-assignments': () => import('@/components/teacher/modules/FunctionalTeacherAssignments'),
       'teacher-content': () => import('@/components/teacher/modules/CreateEducationalContent'),
       'teacher-reports': () => import('@/components/teacher/modules/ReportCardManagement'),
+      'teacher-bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Unified bulletin system  
+      'bulletins': () => import('@/components/teacher/modules/ReportCardManagement'), // ✅ Teacher bulletin generator (overrides student version)
       'teacher-communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'),
       'teacher.communications': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
       'teacher.messages': () => import('@/components/teacher/modules/FunctionalTeacherCommunications'), // Role-namespaced
