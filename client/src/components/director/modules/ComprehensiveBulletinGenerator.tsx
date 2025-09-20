@@ -1095,7 +1095,7 @@ export default function ComprehensiveBulletinGenerator() {
       loadingRequiredDataDescription: 'Sélectionnez une classe, un trimestre et une année, puis cliquez sur "Charger les données" pour commencer.',
       noApprovedGradesTitle: 'Élèves sans notes approuvées',
       noApprovedGradesDescription: 'Les élèves apparaissent grisés car ils n\'ont pas encore de notes approuvées. Approuvez d\'abord les notes via le module "Validation des Notes".',
-      studentsWithGrades: 'élèves avec notes approuvées',
+      studentsWithGradesCount: 'élèves avec notes approuvées',
       studentsTotal: 'total',
       generationSuccess: 'Bulletins générés avec succès',
       downloadReady: 'Téléchargement prêt',
@@ -1382,7 +1382,7 @@ export default function ComprehensiveBulletinGenerator() {
       loadingRequiredDataDescription: 'Select a class, term, and year, then click "Load Data" to begin.',
       noApprovedGradesTitle: 'Students without approved grades',
       noApprovedGradesDescription: 'Students appear grayed out because they don\'t have approved grades yet. Please approve grades first via the "Grade Validation" module.',
-      studentsWithGrades: 'students with approved grades',
+      studentsWithGradesCount: 'students with approved grades',
       studentsTotal: 'total',
       generationSuccess: 'Bulletins generated successfully',
       downloadReady: 'Download ready',
@@ -4182,7 +4182,7 @@ export default function ComprehensiveBulletinGenerator() {
                         {t.noApprovedGradesDescription}
                       </p>
                       <div className="text-sm text-amber-600">
-                        📊 <strong>0</strong> {t.studentsWithGrades} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
+                        📊 <strong>0</strong> {t.studentsWithGradesCount} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
                       </div>
                     </div>
                   </div>
@@ -4195,7 +4195,7 @@ export default function ComprehensiveBulletinGenerator() {
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span className="text-sm text-green-700">
-                      📊 <strong>{filteredStudents.filter(s => s.approvedGrades?.length > 0).length}</strong> {t.studentsWithGrades} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
+                      📊 <strong>{filteredStudents.filter(s => s.approvedGrades?.length > 0).length}</strong> {t.studentsWithGradesCount} / <strong>{filteredStudents.length}</strong> {t.studentsTotal}
                     </span>
                   </div>
                 </div>
