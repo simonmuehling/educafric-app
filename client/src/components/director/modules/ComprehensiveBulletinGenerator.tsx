@@ -2917,7 +2917,7 @@ export default function ComprehensiveBulletinGenerator() {
 
                 {/* Academic Year */}
                 <div className="space-y-2">
-                  <Label htmlFor="year-input">{t.academicYear}</Label>
+                  <Label htmlFor="year-input">{language === 'fr' ? 'Année scolaire' : 'Academic Year'}</Label>
                   <Input 
                     id="year-input"
                     value={academicYear}
@@ -3001,34 +3001,34 @@ export default function ComprehensiveBulletinGenerator() {
               {/* Class Statistics */}
               {classStats && dataLoadingEnabled && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold mb-3">{t.classStatistics}</h3>
+                  <h3 className="text-lg font-semibold mb-3">{language === 'fr' ? 'Statistiques de la Classe' : 'Class Statistics'}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Card>
                       <CardContent className="p-4 text-center">
                         <Users className="h-6 w-6 mx-auto mb-2 text-blue-600" />
                         <div className="text-2xl font-bold">{classStats.totalStudents}</div>
-                        <div className="text-sm text-muted-foreground">{t.totalStudents}</div>
+                        <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Total Élèves' : 'Total Students'}</div>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
                         <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-600" />
                         <div className="text-2xl font-bold">{classStats.approvedStudents}</div>
-                        <div className="text-sm text-muted-foreground">{t.approvedGrades}</div>
+                        <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Notes Approuvées' : 'Approved Grades'}</div>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
                         <BarChart3 className="h-6 w-6 mx-auto mb-2 text-purple-600" />
                         <div className="text-2xl font-bold">{classStats.completionRate}%</div>
-                        <div className="text-sm text-muted-foreground">{t.completionRate}</div>
+                        <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Taux de Complétion' : 'Completion Rate'}</div>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="h-6 w-6 mx-auto mb-2 text-orange-600" />
                         <div className="text-2xl font-bold">{classStats.averageGrade?.toFixed(1)}/20</div>
-                        <div className="text-sm text-muted-foreground">{t.averageGrade}</div>
+                        <div className="text-sm text-muted-foreground">{language === 'fr' ? 'Moyenne Générale' : 'Average Grade'}</div>
                       </CardContent>
                     </Card>
                   </div>
@@ -3045,22 +3045,22 @@ export default function ComprehensiveBulletinGenerator() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Edit3 className="h-5 w-5" />
-                {t.manualDataEntry}
+                {language === 'fr' ? 'Saisie Manuelle de Données' : 'Manual Data Entry'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Student Selection for Manual Entry */}
               <div className="space-y-4">
-                <Label>{t.selectStudentForEntry}</Label>
+                <Label>{language === 'fr' ? 'Sélectionner un élève pour la saisie' : 'Select student for entry'}</Label>
                 <Select 
                   value={selectedStudentForEntry?.toString() || 'none'} 
                   onValueChange={(value) => setSelectedStudentForEntry(value === 'none' ? null : parseInt(value))}
                 >
                   <SelectTrigger data-testid="student-select-manual">
-                    <SelectValue placeholder={t.selectStudentForEntry} />
+                    <SelectValue placeholder={language === 'fr' ? 'Sélectionner un élève...' : 'Select a student...'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">-- {t.selectStudentForEntry} --</SelectItem>
+                    <SelectItem value="none">-- {language === 'fr' ? 'Sélectionner un élève' : 'Select a student'} --</SelectItem>
                     {filteredStudents.map((student) => (
                       <SelectItem key={student.id} value={student.id.toString()}>
                         {student.firstName} {student.lastName} - {student.matricule}
@@ -3074,15 +3074,15 @@ export default function ComprehensiveBulletinGenerator() {
                   <div className="flex gap-2">
                     <Button onClick={saveDraftData} variant="outline" size="sm" data-testid="save-draft">
                       <Database className="h-4 w-4 mr-2" />
-                      {t.saveDraft}
+                      {language === 'fr' ? 'Sauvegarder le Brouillon' : 'Save Draft'}
                     </Button>
                     <Button onClick={loadDraftData} variant="outline" size="sm" data-testid="load-draft">
                       <FileDown className="h-4 w-4 mr-2" />
-                      {t.loadDraft}
+                      {language === 'fr' ? 'Charger le Brouillon' : 'Load Draft'}
                     </Button>
                     <Button onClick={resetFormData} variant="outline" size="sm" data-testid="reset-form">
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      {t.resetForm}
+                      {language === 'fr' ? 'Réinitialiser le Formulaire' : 'Reset Form'}
                     </Button>
                   </div>
                 )}
@@ -3101,7 +3101,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-orange-600" />
-                                {t.absencesLateness}
+                                {language === 'fr' ? 'Absences et Retards' : 'Absences and Lateness'}
                               </div>
                               {openSections.absences ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3115,7 +3115,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="unjustifiedAbsenceHours"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.unjustifiedAbsHours}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Heures d\'absence injustifiées' : 'Unjustified absence hours'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3135,7 +3135,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="justifiedAbsenceHours"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.justifiedAbsHours}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Heures d\'absence justifiées' : 'Justified absence hours'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3155,7 +3155,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="latenessCount"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.latenessCountField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Nombre de retards' : 'Lateness count'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3174,7 +3174,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="detentionHours"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.detentionHoursField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Heures de retenue' : 'Detention hours'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3203,7 +3203,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-red-600" />
-                                {t.disciplinarySanctions}
+                                {language === 'fr' ? 'Sanctions Disciplinaires' : 'Disciplinary Sanctions'}
                               </div>
                               {openSections.sanctions ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3225,7 +3225,7 @@ export default function ComprehensiveBulletinGenerator() {
                                       />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                      <FormLabel>{t.conductWarningField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Avertissement de conduite' : 'Conduct warning'}</FormLabel>
                                     </div>
                                   </FormItem>
                                 )}
@@ -3243,7 +3243,7 @@ export default function ComprehensiveBulletinGenerator() {
                                       />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                      <FormLabel>{t.conductBlameField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Blâme de conduite' : 'Conduct blame'}</FormLabel>
                                     </div>
                                   </FormItem>
                                 )}
@@ -3253,7 +3253,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="exclusionDays"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.exclusionDaysField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Jours d\'exclusion' : 'Exclusion days'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3280,7 +3280,7 @@ export default function ComprehensiveBulletinGenerator() {
                                       />
                                     </FormControl>
                                     <div className="space-y-1 leading-none">
-                                      <FormLabel className="text-red-600 font-semibold">{t.permanentExclusionField}</FormLabel>
+                                      <FormLabel className="text-red-600 font-semibold">{language === 'fr' ? 'Exclusion définitive' : 'Permanent exclusion'}</FormLabel>
                                     </div>
                                   </FormItem>
                                 )}
@@ -3299,7 +3299,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Calculator className="h-5 w-5 text-blue-600" />
-                                {t.academicTotals}
+                                {language === 'fr' ? 'Totaux Académiques' : 'Academic Totals'}
                               </div>
                               {openSections.totals ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3313,7 +3313,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="totalGeneral"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.totalGeneralField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Total général' : 'General total'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3333,7 +3333,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="numberOfAverages"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.numberOfAveragesField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Nombre de moyennes' : 'Number of averages'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3352,7 +3352,7 @@ export default function ComprehensiveBulletinGenerator() {
                                 name="successRate"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>{t.successRateField}</FormLabel>
+                                    <FormLabel>{language === 'fr' ? 'Taux de réussite' : 'Success rate'}</FormLabel>
                                     <FormControl>
                                       <Input 
                                         {...field} 
@@ -3382,7 +3382,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Settings className="h-5 w-5 text-indigo-600" />
-                                {t.subjectCoefficientsSection}
+                                {language === 'fr' ? 'Coefficients par Matière' : 'Subject Coefficients'}
                               </div>
                               {openSections.subjectCoefficients ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3393,7 +3393,7 @@ export default function ComprehensiveBulletinGenerator() {
                             {selectedStudentForEntry && filteredStudents.find(s => s.id === selectedStudentForEntry)?.approvedGrades?.length > 0 ? (
                               <div className="space-y-4">
                                 <p className="text-sm text-muted-foreground mb-4">
-                                  {t.subjectCoefficientsDescription}
+                                  {language === 'fr' ? 'Configurez les coefficients et codes pour chaque matière de cet élève.' : 'Configure coefficients and codes for each subject of this student.'}
                                 </p>
                                 
                                 {/* Explications des colonnes en français et anglais */}
@@ -3573,7 +3573,7 @@ export default function ComprehensiveBulletinGenerator() {
                                     data-testid="fill-default-coefficients"
                                   >
                                     <RefreshCw className="h-4 w-4 mr-2" />
-                                    {t.fillDefaultValues}
+                                    {language === 'fr' ? 'Valeurs par défaut' : 'Default values'}
                                   </Button>
                                   <Button 
                                     type="button" 
@@ -3587,7 +3587,7 @@ export default function ComprehensiveBulletinGenerator() {
                                     data-testid="clear-coefficients"
                                   >
                                     <X className="h-4 w-4 mr-2" />
-                                    {t.clearAll}
+                                    {language === 'fr' ? 'Effacer tout' : 'Clear all'}
                                   </Button>
                                 </div>
                               </div>
@@ -5080,18 +5080,18 @@ export default function ComprehensiveBulletinGenerator() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PlayCircle className="h-5 w-5" />
-                {t.bulkOperations}
+                {language === 'fr' ? 'Opérations Groupées' : 'Bulk Operations'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Generation Summary */}
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold mb-2">{t.generationSummary}</h3>
+                <h3 className="font-semibold mb-2">{language === 'fr' ? 'Résumé de la Génération' : 'Generation Summary'}</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>{t.selectedClass}: {classes?.find((c: any) => c.id.toString() === selectedClass)?.name}</div>
-                  <div>{t.term}: {selectedTerm}</div>
-                  <div>{t.academicYearLabel}: {academicYear}</div>
-                  <div>{t.selectedStudentsLabel}: {selectedStudents.length}</div>
+                  <div>{language === 'fr' ? 'Classe sélectionnée' : 'Selected Class'}: {classes?.find((c: any) => c.id.toString() === selectedClass)?.name}</div>
+                  <div>{language === 'fr' ? 'Trimestre' : 'Term'}: {selectedTerm}</div>
+                  <div>{language === 'fr' ? 'Année scolaire' : 'Academic Year'}: {academicYear}</div>
+                  <div>{language === 'fr' ? 'Élèves sélectionnés' : 'Selected Students'}: {selectedStudents.length}</div>
                   <div>{t.format}: {generationFormat === 'pdf' ? t.individualPdf : t.batchPdf}</div>
                   <div>{t.options}: {[includeComments && t.comments, includeRankings && t.rankings, includeStatistics && t.statistics, includePerformanceLevels && t.performanceLevels].filter(Boolean).join(', ')}</div>
                 </div>
