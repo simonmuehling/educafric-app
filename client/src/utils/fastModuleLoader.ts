@@ -74,6 +74,7 @@ class FastModuleLoader {
       'offer-letters': () => import('@/components/commercial/modules/OfferLetterCustomizer'),
       
       // MISSING COMMERCIAL MODULES - FIXING WARNINGS  
+      'documents': () => import('@/components/commercial/modules/DocumentsContracts'), // ✅ FIXED: Add missing documents mapping
       'DocumentsContracts': () => import('@/components/commercial/modules/DocumentsContracts'),
       'CommercialStatistics': () => import('@/components/commercial/modules/CommercialStatistics'),
       'commercial-communications': () => import('@/components/shared/CommunicationsCenter'), // Using existing communications module
