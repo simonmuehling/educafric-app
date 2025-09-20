@@ -580,4 +580,228 @@ router.get('/parents', requireAuth, async (req: AuthenticatedRequest, res: Respo
   }
 });
 
+// ===== BULLETIN SEEDING ENDPOINTS - FOR TESTING THE UNIFIED WORKFLOW =====
+
+// POST /api/sandbox/seed - Generate comprehensive bulletin test data
+router.post('/seed', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Security check: Only sandbox environment
+    if (process.env.NODE_ENV === 'production' && !process.env.SANDBOX_MODE) {
+      return res.status(403).json({ message: 'Seeding only available in sandbox' });
+    }
+
+    const seedRunId = `seed_${Date.now()}`;
+    
+    // Generate coherent data for bulletin testing
+    const schoolId = 1;
+    const teacherId = 1; // sandbox.teacher@educafric.demo
+    const directorId = 2; // sandbox.director@educafric.demo
+    const currentTerm = 'T1';
+    const academicYear = '2025-2026';
+    
+    // Create comprehensive bulletin test data in MemStorage (in-memory only)
+    const seedData = {
+      // School data
+      school: {
+        id: schoolId,
+        name: 'École Sandbox EDUCAFRIC',
+        address: 'Yaoundé, Cameroun',
+        phone: '+237222123456',
+        email: 'contact@sandbox.educafric.com',
+        directorId: directorId
+      },
+      
+      // Classes with realistic Cameroon structure
+      classes: [
+        { id: 1, name: '6ème A', level: '6ème', schoolId, teacherId, studentCount: 12 },
+        { id: 2, name: '5ème B', level: '5ème', schoolId, teacherId, studentCount: 10 }
+      ],
+      
+      // Students with African names
+      students: [
+        // 6ème A Students
+        { id: 1, firstName: 'Marie', lastName: 'Nkomo', email: 'marie.nkomo@test.educafric.com', classId: 1, schoolId },
+        { id: 2, firstName: 'Paul', lastName: 'Atangana', email: 'paul.atangana@test.educafric.com', classId: 1, schoolId },
+        { id: 3, firstName: 'Sophie', lastName: 'Mbida', email: 'sophie.mbida@test.educafric.com', classId: 1, schoolId },
+        { id: 4, firstName: 'Jean', lastName: 'Kamga', email: 'jean.kamga@test.educafric.com', classId: 1, schoolId },
+        { id: 5, firstName: 'Grace', lastName: 'Fouda', email: 'grace.fouda@test.educafric.com', classId: 1, schoolId },
+        { id: 6, firstName: 'Michel', lastName: 'Biya', email: 'michel.biya@test.educafric.com', classId: 1, schoolId },
+        
+        // 5ème B Students
+        { id: 7, firstName: 'Fatou', lastName: 'Diallo', email: 'fatou.diallo@test.educafric.com', classId: 2, schoolId },
+        { id: 8, firstName: 'Samuel', lastName: 'Essomba', email: 'samuel.essomba@test.educafric.com', classId: 2, schoolId },
+        { id: 9, firstName: 'Aminata', lastName: 'Ouedraogo', email: 'aminata.ouedraogo@test.educafric.com', classId: 2, schoolId },
+        { id: 10, firstName: 'David', lastName: 'Ondoua', email: 'david.ondoua@test.educafric.com', classId: 2, schoolId }
+      ],
+      
+      // Subjects with Cameroon coefficients
+      subjects: [
+        { id: 1, name: 'Mathématiques', code: 'MATH', coefficient: 4 },
+        { id: 2, name: 'Français', code: 'FR', coefficient: 3 },
+        { id: 3, name: 'Anglais', code: 'EN', coefficient: 3 },
+        { id: 4, name: 'Histoire-Géographie', code: 'HG', coefficient: 2 },
+        { id: 5, name: 'Sciences de la Vie et de la Terre', code: 'SVT', coefficient: 2 },
+        { id: 6, name: 'Éducation Physique et Sportive', code: 'EPS', coefficient: 1 }
+      ],
+      
+      // Teacher grade submissions (approved for director processing)
+      teacherGradeSubmissions: [],
+      
+      // Pre-seeded bulletinComprehensive entries (teacher_submitted status)
+      bulletinComprehensive: []
+    };
+    
+    // Generate realistic teacher grade submissions for all students
+    seedData.students.forEach(student => {
+      seedData.subjects.forEach(subject => {
+        const baseGrade = 10 + Math.random() * 8; // 10-18 range
+        seedData.teacherGradeSubmissions.push({
+          id: `${student.id}_${subject.id}_${Date.now()}`,
+          studentId: student.id,
+          subjectId: subject.id,
+          classId: student.classId,
+          teacherId,
+          schoolId,
+          term: currentTerm,
+          academicYear,
+          grade: Math.round(baseGrade * 100) / 100, // Round to 2 decimals
+          maxGrade: 20,
+          reviewStatus: 'approved', // Ready for bulletin generation
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: directorId,
+          submittedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        });
+      });
+      
+      // Create bulletinComprehensive entry with teacher_submitted status
+      seedData.bulletinComprehensive.push({
+        id: `bulletin_${student.id}_${Date.now()}`,
+        studentId: student.id,
+        classId: student.classId,
+        schoolId,
+        term: currentTerm,
+        academicYear,
+        status: 'teacher_submitted',
+        
+        // Sample manual data from teacher
+        unjustifiedAbsenceHours: (Math.random() * 5).toFixed(2),
+        justifiedAbsenceHours: (Math.random() * 2).toFixed(2),
+        detentionHours: (Math.random() * 1).toFixed(2),
+        latenessCount: Math.floor(Math.random() * 3),
+        
+        // Sample appreciations
+        appreciation: `Élève ${student.firstName} montre de bonnes capacités. Peut mieux faire avec plus de travail personnel.`,
+        conductAppreciation: 'Conduite satisfaisante',
+        workAppreciation: 'Travail régulier à maintenir',
+        councilDecision: 'Passage en classe supérieure',
+        
+        // Metadata
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        version: 1,
+        seedRunId // For cleanup
+      });
+    });
+    
+    // Store in MemStorage (temporary, will disappear on restart)
+    await storage.seedBulletinData?.(seedData);
+    
+    console.log('[SANDBOX_SEED] ✅ Generated bulletin test data:', {
+      schools: 1,
+      classes: seedData.classes.length,
+      students: seedData.students.length,
+      subjects: seedData.subjects.length,
+      gradeSubmissions: seedData.teacherGradeSubmissions.length,
+      bulletinEntries: seedData.bulletinComprehensive.length,
+      seedRunId,
+      term: currentTerm,
+      academicYear
+    });
+    
+    res.json({
+      success: true,
+      message: 'Données de test générées avec succès pour les bulletins',
+      data: {
+        seedRunId,
+        schools: 1,
+        classes: seedData.classes.length,
+        students: seedData.students.length,
+        subjects: seedData.subjects.length,
+        gradeSubmissions: seedData.teacherGradeSubmissions.length,
+        bulletinEntries: seedData.bulletinComprehensive.length,
+        term: currentTerm,
+        academicYear,
+        expiresAt: 'Server restart', // MemStorage only
+        instructions: {
+          teacher: 'Accédez au module "Notes/Bulletins" pour voir les classes et étudiants',
+          director: 'Accédez au module "Bulletin Management" pour traiter les soumissions'
+        }
+      }
+    });
+    
+  } catch (error: any) {
+    console.error('[SANDBOX_SEED] 💥 Error generating test data:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la génération des données de test',
+      error: error.message 
+    });
+  }
+});
+
+// POST /api/sandbox/reset - Clear all seeded data
+router.post('/reset', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    if (process.env.NODE_ENV === 'production' && !process.env.SANDBOX_MODE) {
+      return res.status(403).json({ message: 'Reset only available in sandbox' });
+    }
+    
+    // Clear MemStorage seeded data
+    await storage.resetSeedData?.();
+    
+    console.log('[SANDBOX_RESET] ✅ All seeded data cleared');
+    
+    res.json({
+      success: true,
+      message: 'Toutes les données de test ont été supprimées',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error: any) {
+    console.error('[SANDBOX_RESET] 💥 Error resetting data:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erreur lors du reset des données',
+      error: error.message 
+    });
+  }
+});
+
+// GET /api/sandbox/status - Check seeding status
+router.get('/seeding-status', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const status = await storage.getSeedStatus?.() || {
+      seeded: false,
+      lastSeedAt: null,
+      dataCount: { schools: 0, classes: 0, students: 0, subjects: 0, bulletins: 0 }
+    };
+    
+    res.json({
+      success: true,
+      ...status,
+      environment: process.env.NODE_ENV || 'development',
+      sandboxMode: process.env.SANDBOX_MODE === 'true'
+    });
+    
+  } catch (error: any) {
+    console.error('[SANDBOX_STATUS] 💥 Error checking status:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Erreur lors de la vérification du statut',
+      error: error.message 
+    });
+  }
+});
+
 export default router;
