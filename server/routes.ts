@@ -7360,6 +7360,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ✅ CAMEROON OFFICIAL BULLETIN GENERATOR - New Template Route
+  app.post('/api/bulletins/cameroon-official/pdf', requireAuth, requireAnyRole(['Director', 'Teacher', 'Admin']), async (req: Request, res: Response) => {
+    const startTime = Date.now();
+    try {
+      const user = req.user as any;
+      console.log(`[CAMEROON_OFFICIAL_BULLETIN] 📋 User ${user?.id} generating official Cameroon report card...`);
+      
+      const { bulletinData, schoolData, language = 'fr' } = req.body;
+      
+      // Import validation schema
+      const { bulletinComprehensiveValidationSchema } = await import('../shared/schemas/bulletinComprehensiveSchema.js');
+      
+      // Validate bulletin data with Zod
+      const validationResult = bulletinComprehensiveValidationSchema.safeParse(bulletinData);
+      if (!validationResult.success) {
+        console.warn('[CAMEROON_OFFICIAL_BULLETIN] ⚠️ Validation failed:', validationResult.error.issues);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid bulletin data',
+          errors: validationResult.error.issues
+        });
+      }
+      
+      // Validate language parameter
+      const validLanguages = ['fr', 'en', 'bilingual'];
+      if (!validLanguages.includes(language)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid language. Must be one of: ${validLanguages.join(', ')}`
+        });
+      }
+      
+      // Use validated data
+      const validatedBulletinData = validationResult.data;
+      
+      // SECURITY: Verify user authorization for this student/class (IDOR prevention)
+      if (!user.schoolId) {
+        return res.status(403).json({
+          success: false,
+          message: 'School ID required for authorization'
+        });
+      }
+      
+      // Verify the bulletin belongs to the user's school
+      if (validatedBulletinData.schoolId && validatedBulletinData.schoolId !== user.schoolId) {
+        console.warn(`[CAMEROON_OFFICIAL_BULLETIN] 🚨 IDOR attempt - User ${user.id} (school ${user.schoolId}) accessing bulletin for school ${validatedBulletinData.schoolId}`);
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: Bulletin not from your school'
+        });
+      }
+      
+      // Import PDF generator
+      const { PDFGenerator } = await import('./services/pdfGenerator.js');
+      
+      // Generate the official Cameroon template PDF
+      const pdfBuffer = await PDFGenerator.renderCameroonOfficialReportCard(validatedBulletinData, schoolData, language);
+      
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        throw new Error('PDF generation returned empty buffer');
+      }
+      
+      // Generate safe filename (sanitized)
+      const studentFirstName = (validatedBulletinData.studentFirstName || 'Student').replace(/[^a-zA-Z0-9]/g, '_');
+      const studentLastName = (validatedBulletinData.studentLastName || 'Name').replace(/[^a-zA-Z0-9]/g, '_');
+      const term = (validatedBulletinData.term || 'T1').replace(/[^a-zA-Z0-9]/g, '_');
+      const filename = `bulletin-officiel-${studentFirstName}_${studentLastName}-${term}-${Date.now()}.pdf`;
+      
+      // Set PDF headers for download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      const duration = Date.now() - startTime;
+      console.log(`[CAMEROON_OFFICIAL_BULLETIN] ✅ Official template generated - User: ${user?.id}, Student: ${validatedBulletinData.studentId}, Class: ${validatedBulletinData.classId}, Language: ${language}, Duration: ${duration}ms, Size: ${pdfBuffer.length} bytes`);
+      res.send(pdfBuffer);
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`[CAMEROON_OFFICIAL_BULLETIN] ❌ Error after ${duration}ms:`, {
+        message: error.message,
+        userId: req.user?.id,
+        stack: error.stack?.substring(0, 200)
+      });
+      
+      // Don't leak internal errors to client
+      const safeMessage = error.message?.includes('validation') 
+        ? 'Validation error in bulletin data' 
+        : 'Error generating Cameroon official bulletin';
+      
+      res.status(500).json({
+        success: false,
+        message: safeMessage
+      });
+    }
+  });
+
   // API 404 handler - must be after all API routes
   app.use('/api/*', (req, res) => {
     res.status(404).json({ 
