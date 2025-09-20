@@ -39,6 +39,16 @@ const teacherSubmissionSchema = z.object({
   term: z.enum(['T1', 'T2', 'T3']),
   academicYear: z.string(),
   manualData: z.object({
+    // ✅ NOTES PAR MATIÈRE - CONNEXION TEACHER → DIRECTOR
+    subjectGrades: z.array(z.object({
+      subjectId: z.number(),
+      subjectName: z.string(),
+      grade: z.union([z.number(), z.string()]),
+      maxGrade: z.number().default(20),
+      coefficient: z.number().default(1),
+      comment: z.string().optional()
+    })).optional(),
+    
     unjustifiedAbsenceHours: z.string().optional(),
     justifiedAbsenceHours: z.string().optional(),
     latenessMinutes: z.string().optional(),
@@ -162,6 +172,52 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
         success: false,
         message: 'Student not found or access denied'
       });
+    }
+
+    // 🎯 STOCKER LES NOTES PAR MATIÈRE d'abord
+    if (manualData.subjectGrades && manualData.subjectGrades.length > 0) {
+      console.log('[TEACHER_SUBMISSION] 📊 Processing subject grades:', manualData.subjectGrades.length);
+      
+      // Stocker chaque note individuelle dans teacherGradeSubmissions
+      for (const gradeData of manualData.subjectGrades) {
+        const gradeValue = typeof gradeData.grade === 'string' ? 
+          parseFloat(gradeData.grade) : gradeData.grade;
+          
+        if (!isNaN(gradeValue) && gradeValue > 0) {
+          await db.insert(teacherGradeSubmissions).values({
+            studentId,
+            teacherId: user.id,
+            subjectId: gradeData.subjectId,
+            classId,
+            schoolId,
+            academicYear,
+            term: term as 'T1' | 'T2' | 'T3',
+            
+            // Notes - utiliser la même note pour toutes les évaluations pour simplifier
+            firstEvaluation: gradeValue.toString(),
+            secondEvaluation: gradeValue.toString(),
+            thirdEvaluation: gradeValue.toString(),
+            termAverage: gradeValue.toString(),
+            
+            coefficient: gradeData.coefficient || 1,
+            maxScore: gradeData.maxGrade || 20,
+            subjectComments: gradeData.comment || '',
+            
+            isSubmitted: true,
+            submittedAt: new Date(),
+            reviewStatus: 'pending', // Director doit approuver
+            
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+          
+          console.log('[TEACHER_SUBMISSION] ✅ Subject grade stored:', {
+            subject: gradeData.subjectName,
+            grade: gradeValue,
+            coefficient: gradeData.coefficient
+          });
+        }
+      }
     }
 
     // Store teacher submission in bulletinComprehensive table for later processing by directors
