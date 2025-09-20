@@ -2878,17 +2878,17 @@ export default function ComprehensiveBulletinGenerator() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <School className="h-5 w-5" />
-                {t.classSelection}
+                {language === 'fr' ? 'Sélection de Classe' : 'Class Selection'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {/* Class Selection */}
                 <div className="space-y-2">
-                  <Label htmlFor="class-select">{t.selectClass}</Label>
+                  <Label htmlFor="class-select">{language === 'fr' ? 'Sélectionner une classe' : 'Select a class'}</Label>
                   <Select value={selectedClass} onValueChange={handleClassChange}>
                     <SelectTrigger id="class-select" data-testid="class-select">
-                      <SelectValue placeholder={t.selectClass} />
+                      <SelectValue placeholder={language === 'fr' ? 'Sélectionner une classe' : 'Select a class'} />
                     </SelectTrigger>
                     <SelectContent>
                       {classes?.map((cls: any) => (
@@ -2902,7 +2902,7 @@ export default function ComprehensiveBulletinGenerator() {
 
                 {/* Term Selection */}
                 <div className="space-y-2">
-                  <Label htmlFor="term-select">{t.selectTerm}</Label>
+                  <Label htmlFor="term-select">{language === 'fr' ? 'Sélectionner le trimestre' : 'Select term'}</Label>
                   <Select value={selectedTerm} onValueChange={(value: 'T1' | 'T2' | 'T3') => setSelectedTerm(value)}>
                     <SelectTrigger id="term-select" data-testid="term-select">
                       <SelectValue />
