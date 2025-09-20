@@ -460,22 +460,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let dashboardData;
       
       if (isSandboxUser) {
-        // Mock data for sandbox users
+        console.log('[TEACHER_DASHBOARD] 🔧 Sandbox user detected, serving rich sandbox dashboard data');
+        // Rich sandbox data for sandbox users
         dashboardData = {
           classes: [
-            { id: 1, name: '6ème A', studentCount: 35, averageGrade: 14.2 },
-            { id: 2, name: '5ème B', studentCount: 32, averageGrade: 13.8 },
-            { id: 3, name: '4ème A', studentCount: 28, averageGrade: 15.1 }
+            { 
+              id: 1, 
+              name: '6ème A', 
+              studentCount: 28, 
+              averageGrade: 15.9,
+              room: 'Salle 105',
+              schedule: 'Lun-Mar-Jeu 08:00-12:00',
+              subject: 'Mathématiques',
+              lastActivity: '2025-09-07'
+            },
+            { 
+              id: 2, 
+              name: '5ème B', 
+              studentCount: 32, 
+              averageGrade: 16.2,
+              room: 'Salle 203',
+              schedule: 'Mar-Mer-Ven 09:00-13:00',
+              subject: 'Français',
+              lastActivity: '2025-09-07'
+            },
+            { 
+              id: 3, 
+              name: '4ème C', 
+              studentCount: 26, 
+              averageGrade: 14.8,
+              room: 'Salle 301',
+              schedule: 'Lun-Mer-Ven 10:00-14:00',
+              subject: 'Histoire-Géographie',
+              lastActivity: '2025-09-07'
+            }
           ],
           recentGrades: [
-            { studentName: 'Marie Kouam', subject: 'Mathématiques', grade: 16, date: '2024-01-15' },
-            { studentName: 'Jean Mballa', subject: 'Français', grade: 14, date: '2024-01-14' },
-            { studentName: 'Fatima Said', subject: 'Sciences', grade: 18, date: '2024-01-13' }
+            { studentName: 'Marie Nkomo', subject: 'Mathématiques', grade: 16.5, maxGrade: 20, date: '2025-09-07', className: '6ème A' },
+            { studentName: 'Paul Atangana', subject: 'Mathématiques', grade: 14.0, maxGrade: 20, date: '2025-09-07', className: '6ème A' },
+            { studentName: 'Sophie Mbida', subject: 'Français', grade: 17.5, maxGrade: 20, date: '2025-09-06', className: '5ème B' },
+            { studentName: 'Jean Kamga', subject: 'Histoire-Géographie', grade: 14.5, maxGrade: 20, date: '2025-09-05', className: '4ème C' },
+            { studentName: 'Grace Fouda', subject: 'Mathématiques', grade: 17.2, maxGrade: 20, date: '2025-09-04', className: '3ème D' }
           ],
           upcomingEvents: [
-            { title: 'Conseil de classe 6ème A', date: '2024-01-20', type: 'meeting' },
-            { title: 'Examen Mathématiques', date: '2024-01-22', type: 'exam' }
-          ]
+            { title: 'Formation signatures numériques bulletins', date: '2025-09-15', type: 'training', description: 'Formation pour les professeurs principaux' },
+            { title: 'Conseil de classe 6ème A', date: '2025-09-25', type: 'meeting', description: 'Évaluation trimestrielle' },
+            { title: 'Examen Mathématiques 5ème B', date: '2025-09-28', type: 'exam', description: 'Contrôle sur les équations' },
+            { title: 'Réunion parent-enseignant', date: '2025-10-05', type: 'meeting', description: 'Rencontre avec les familles' }
+          ],
+          schoolInfo: {
+            name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
+            totalStudents: 542,
+            totalTeachers: 38,
+            totalClasses: 22,
+            features: ['Signatures numériques', 'Géolocalisation', 'Notifications multicanalées', 'Rapports avancés']
+          },
+          personalStats: {
+            totalGradesEntered: 247,
+            averageStudentPerformance: 15.6,
+            attendanceRate: 94.2,
+            messagesReceived: 23,
+            canSignBulletins: true,
+            digitalSignatureEnabled: true
+          }
         };
       } else {
         // For real users, implement actual data fetching
