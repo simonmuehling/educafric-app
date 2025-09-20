@@ -46,16 +46,31 @@ import {
 
 // Schema de validation pour les données manuelles (adapté de ComprehensiveBulletinGenerator)
 const manualDataSchema = z.object({
-  unjustifiedAbsenceHours: z.string().optional(),
-  justifiedAbsenceHours: z.string().optional(),
-  latenessMinutes: z.string().optional(),
-  detentionHours: z.string().optional(),
+  // Notes par matière
+  subjectGrades: z.array(z.object({
+    subjectId: z.number(),
+    subjectName: z.string(),
+    grade: z.union([z.number(), z.string()]),
+    maxGrade: z.number().default(20),
+    coefficient: z.number().default(1),
+    comment: z.string().optional()
+  })).optional(),
+  
+  // Totaux académiques
   termGeneral: z.string().optional(),
   termClass: z.string().optional(),
   termCoeff: z.string().optional(),
   termRank: z.string().optional(),
   termStudents: z.string().optional(),
   classGeneral: z.string().optional(),
+  
+  // Absences et retards
+  unjustifiedAbsenceHours: z.string().optional(),
+  justifiedAbsenceHours: z.string().optional(),
+  latenessMinutes: z.string().optional(),
+  detentionHours: z.string().optional(),
+  
+  // Appréciations
   appreciation: z.string().optional(),
   conductAppreciation: z.string().optional(),
   workAppreciation: z.string().optional(),
@@ -88,6 +103,7 @@ const ReportCardManagement: React.FC = () => {
   
   // Sections collapsibles state
   const [openSections, setOpenSections] = useState({
+    grades: true,  // Section notes par matière
     absences: true,
     sanctions: false,
     totals: false,
@@ -96,6 +112,15 @@ const ReportCardManagement: React.FC = () => {
     conseil: false,
     signatures: false
   });
+  
+  // Subject grades state
+  const [subjectGrades, setSubjectGrades] = useState<BulletinGrade[]>([
+    { subjectId: 1, subjectName: 'Mathématiques', grade: '', maxGrade: 20, coefficient: 3, comment: '' },
+    { subjectId: 2, subjectName: 'Français', grade: '', maxGrade: 20, coefficient: 3, comment: '' },
+    { subjectId: 3, subjectName: 'Anglais', grade: '', maxGrade: 20, coefficient: 2, comment: '' },
+    { subjectId: 4, subjectName: 'Histoire-Géographie', grade: '', maxGrade: 20, coefficient: 2, comment: '' },
+    { subjectId: 5, subjectName: 'Sciences', grade: '', maxGrade: 20, coefficient: 2, comment: '' }
+  ]);
 
   // Generation options state (adapté de ComprehensiveBulletinGenerator)
   const [includeComments, setIncludeComments] = useState(true);
@@ -120,6 +145,7 @@ const ReportCardManagement: React.FC = () => {
   const manualDataForm = useForm<z.infer<typeof manualDataSchema>>({
     resolver: zodResolver(manualDataSchema),
     defaultValues: {
+      subjectGrades: [],
       unjustifiedAbsenceHours: '',
       justifiedAbsenceHours: '',
       latenessMinutes: '',
@@ -291,7 +317,12 @@ const ReportCardManagement: React.FC = () => {
   });
 
   const onManualDataSubmit = (data: z.infer<typeof manualDataSchema>) => {
-    submitToComprehensiveBulletins.mutate(data);
+    // Inclure les notes par matière dans les données soumises
+    const submissionData = {
+      ...data,
+      subjectGrades: subjectGrades.filter(grade => grade.grade !== '') // Inclure seulement les notes remplies
+    };
+    submitToComprehensiveBulletins.mutate(submissionData);
   };
 
   // Translations
@@ -308,6 +339,7 @@ const ReportCardManagement: React.FC = () => {
     absencesLateness: language === 'fr' ? 'Absences & Retards' : 'Absences & Lateness',
     disciplinarySanctions: language === 'fr' ? 'Sanctions Disciplinaires' : 'Disciplinary Sanctions',
     academicTotals: language === 'fr' ? 'Totaux Académiques' : 'Academic Totals',
+    subjectGrades: language === 'fr' ? 'Notes par matière' : 'Subject Grades',
     coefficientsAndCodes: language === 'fr' ? 'Coefficients & Codes' : 'Coefficients & Codes',
     appreciationsComments: language === 'fr' ? 'Appréciations & Commentaires' : 'Appreciations & Comments',
     councilClass: language === 'fr' ? 'Conseil de Classe' : 'Class Council',
@@ -492,9 +524,107 @@ const ReportCardManagement: React.FC = () => {
                   <Form {...manualDataForm}>
                     <form onSubmit={manualDataForm.handleSubmit(onManualDataSubmit)} className="space-y-6">
                       
-                      {/* Section 1: Absences & Lateness */}
-                      <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
-                        <Card>
+                      {/* Section 1: Notes par matière - VISIBLE selon options */}
+                      {includeComments && (
+                        <Collapsible open={openSections.grades} onOpenChange={() => toggleSection('grades')}>
+                          <Card>
+                            <CollapsibleTrigger asChild>
+                              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                                <CardTitle className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <BookOpen className="h-5 w-5 text-green-600" />
+                                    {t.subjectGrades}
+                                  </div>
+                                  {openSections.grades ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                </CardTitle>
+                              </CardHeader>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <CardContent className="pt-0 space-y-4">
+                                {subjectGrades.map((subject, index) => (
+                                  <div key={subject.subjectId} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
+                                    <div className="md:col-span-1">
+                                      <Label className="font-medium text-gray-700">{subject.subjectName}</Label>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-gray-500">Note /{subject.maxGrade}</Label>
+                                      <Input
+                                        value={subject.grade}
+                                        onChange={(e) => {
+                                          const newGrades = [...subjectGrades];
+                                          newGrades[index].grade = e.target.value;
+                                          setSubjectGrades(newGrades);
+                                        }}
+                                        placeholder="15.5"
+                                        className="h-8"
+                                        data-testid={`grade-${subject.subjectName.toLowerCase()}`}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-gray-500">Coeff. ({subject.coefficient})</Label>
+                                      <Input
+                                        type="number"
+                                        value={subject.coefficient}
+                                        onChange={(e) => {
+                                          const newGrades = [...subjectGrades];
+                                          newGrades[index].coefficient = parseInt(e.target.value) || 1;
+                                          setSubjectGrades(newGrades);
+                                        }}
+                                        className="h-8"
+                                        min="1"
+                                        max="5"
+                                        data-testid={`coeff-${subject.subjectName.toLowerCase()}`}
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-gray-500">Appréciation</Label>
+                                      <Input
+                                        value={subject.comment}
+                                        onChange={(e) => {
+                                          const newGrades = [...subjectGrades];
+                                          newGrades[index].comment = e.target.value;
+                                          setSubjectGrades(newGrades);
+                                        }}
+                                        placeholder="TB, AB, Passable..."
+                                        className="h-8"
+                                        data-testid={`comment-${subject.subjectName.toLowerCase()}`}
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {/* Bouton pour ajouter une matière */}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const newSubject = {
+                                      subjectId: subjectGrades.length + 1,
+                                      subjectName: 'Nouvelle matière',
+                                      grade: '',
+                                      maxGrade: 20,
+                                      coefficient: 1,
+                                      comment: ''
+                                    };
+                                    setSubjectGrades([...subjectGrades, newSubject]);
+                                  }}
+                                  className="w-full"
+                                  data-testid="add-subject-button"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Ajouter une matière
+                                </Button>
+                              </CardContent>
+                            </CollapsibleContent>
+                          </Card>
+                        </Collapsible>
+                      )}
+
+                      {/* Section 2: Absences & Lateness - VISIBLE selon options */}
+                      {(includeUnjustifiedAbsences || includeJustifiedAbsences || includeLateness || includeDetentions) && (
+                        <Collapsible open={openSections.absences} onOpenChange={() => toggleSection('absences')}>
+                          <Card>
                           <CollapsibleTrigger asChild>
                             <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
                               <CardTitle className="flex items-center justify-between">
@@ -592,11 +722,13 @@ const ReportCardManagement: React.FC = () => {
                             </CardContent>
                           </CollapsibleContent>
                         </Card>
-                      </Collapsible>
+                        </Collapsible>
+                      )}
 
-                      {/* Section 2: Appreciations & Comments */}
-                      <Collapsible open={openSections.appreciations} onOpenChange={() => toggleSection('appreciations')}>
-                        <Card>
+                      {/* Section 3: Appreciations & Comments - VISIBLE selon options */}
+                      {includeComments && (
+                        <Collapsible open={openSections.appreciations} onOpenChange={() => toggleSection('appreciations')}>
+                          <Card>
                           <CollapsibleTrigger asChild>
                             <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
                               <CardTitle className="flex items-center justify-between">
@@ -648,7 +780,8 @@ const ReportCardManagement: React.FC = () => {
                             </CardContent>
                           </CollapsibleContent>
                         </Card>
-                      </Collapsible>
+                        </Collapsible>
+                      )}
 
                       {/* Submit Button */}
                       <div className="flex justify-end">
@@ -669,7 +802,147 @@ const ReportCardManagement: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Generation Options Tab */}
+          {/* Generation Options Tab - Contrôle les sections visibles */}
+          <TabsContent value="generation-options" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  {t.generationSettings}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                
+                {/* Options principales */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-800">Sections à inclure</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-comments"
+                        checked={includeComments}
+                        onCheckedChange={setIncludeComments}
+                        data-testid="include-comments-checkbox"
+                      />
+                      <Label htmlFor="include-comments" className="font-medium">
+                        Notes par matière & Appréciations
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-rankings"
+                        checked={includeRankings}
+                        onCheckedChange={setIncludeRankings}
+                        data-testid="include-rankings-checkbox"
+                      />
+                      <Label htmlFor="include-rankings" className="font-medium">
+                        {t.includeRankings}
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-statistics"
+                        checked={includeStatistics}
+                        onCheckedChange={setIncludeStatistics}
+                        data-testid="include-statistics-checkbox"
+                      />
+                      <Label htmlFor="include-statistics" className="font-medium">
+                        {t.includeStatistics}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Options d'absences/retards */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-gray-800">Absences & Retards</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-unjustified-absences"
+                        checked={includeUnjustifiedAbsences}
+                        onCheckedChange={setIncludeUnjustifiedAbsences}
+                        data-testid="include-unjustified-absences-checkbox"
+                      />
+                      <Label htmlFor="include-unjustified-absences">
+                        Absences injustifiées
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-justified-absences"
+                        checked={includeJustifiedAbsences}
+                        onCheckedChange={setIncludeJustifiedAbsences}
+                        data-testid="include-justified-absences-checkbox"
+                      />
+                      <Label htmlFor="include-justified-absences">
+                        Absences justifiées
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-lateness"
+                        checked={includeLateness}
+                        onCheckedChange={setIncludeLateness}
+                        data-testid="include-lateness-checkbox"
+                      />
+                      <Label htmlFor="include-lateness">
+                        Retards
+                      </Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="include-detentions"
+                        checked={includeDetentions}
+                        onCheckedChange={setIncludeDetentions}
+                        data-testid="include-detentions-checkbox"
+                      />
+                      <Label htmlFor="include-detentions">
+                        Retenues
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Aperçu des sections actives */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h5 className="font-medium text-blue-800 mb-2">Aperçu des sections actives :</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {includeComments && (
+                      <span className="bg-blue-200 text-blue-800 px-2 py-1 rounded text-sm">
+                        Notes & Appréciations
+                      </span>
+                    )}
+                    {(includeUnjustifiedAbsences || includeJustifiedAbsences || includeLateness || includeDetentions) && (
+                      <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded text-sm">
+                        Absences & Retards
+                      </span>
+                    )}
+                    {includeRankings && (
+                      <span className="bg-green-200 text-green-800 px-2 py-1 rounded text-sm">
+                        Classements
+                      </span>
+                    )}
+                    {includeStatistics && (
+                      <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-sm">
+                        Statistiques
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Original Generation Options Tab (keep existing one too) */}
           <TabsContent value="generation-options" className="space-y-4">
             <Card>
               <CardHeader>
