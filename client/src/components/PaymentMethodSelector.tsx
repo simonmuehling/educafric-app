@@ -194,7 +194,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 <li>Composez <strong>*126#</strong> sur votre téléphone MTN</li>
                 <li>Sélectionnez <strong>1</strong> (Transfert d'argent)</li>
                 <li>Sélectionnez <strong>1</strong> (Vers un numéro MTN)</li>
-                <li>Entrez le numéro: <strong className="text-yellow-600">672 128 559</strong></li>
+                <li>Entrez le numéro: <strong className="text-yellow-600">672 12 8559</strong></li>
                 <li>Entrez le montant: <strong className="text-green-600">{amount.toLocaleString()} XAF</strong></li>
                 <li>Confirmez avec votre code PIN</li>
               </ol>
@@ -223,7 +223,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Numéro:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">672 128 559</span>
+                    <span className="font-medium">672 12 8559</span>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -231,6 +231,23 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                       className="h-6 w-6 p-0"
                     >
                       {copiedField === 'Numéro MTN Mobile Money' ? 
+                        <Check className="h-3 w-3 text-green-600" /> : 
+                        <Copy className="h-3 w-3" />
+                      }
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Treasury:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Abanda Akak</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard('Abanda Akak', 'Treasury MTN')}
+                      className="h-6 w-6 p-0"
+                    >
+                      {copiedField === 'Treasury MTN' ? 
                         <Check className="h-3 w-3 text-green-600" /> : 
                         <Copy className="h-3 w-3" />
                       }
