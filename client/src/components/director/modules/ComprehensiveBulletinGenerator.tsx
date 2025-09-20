@@ -3594,7 +3594,7 @@ export default function ComprehensiveBulletinGenerator() {
                             ) : (
                               <div className="text-center py-8 text-muted-foreground">
                                 <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                <p>{t.selectStudentToConfigureCoefficients}</p>
+                                <p>{language === 'fr' ? 'Sélectionnez un élève pour configurer les coefficients par matière.' : 'Select a student to configure subject coefficients.'}</p>
                               </div>
                             )}
                           </CardContent>
@@ -3610,7 +3610,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <BookMarked className="h-5 w-5 text-green-600" />
-                                {t.appreciationsComments}
+                                {language === 'fr' ? 'Appréciations et Commentaires' : 'Appreciations and Comments'}
                               </div>
                               {openSections.appreciations ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3624,7 +3624,7 @@ export default function ComprehensiveBulletinGenerator() {
                               name="generalComment"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>{t.generalCommentField}</FormLabel>
+                                  <FormLabel>{language === 'fr' ? 'Commentaire général' : 'General comment'}</FormLabel>
                                   <FormControl>
                                     <Textarea 
                                       {...field} 
@@ -3654,7 +3654,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-indigo-600" />
-                                {t.classCouncilSection}
+                                {language === 'fr' ? 'Section Conseil de Classe' : 'Class Council Section'}
                               </div>
                               {openSections.classCouncil ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3668,11 +3668,11 @@ export default function ComprehensiveBulletinGenerator() {
                               name="classCouncilDecisions"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>{t.classCouncilDecisionsField}</FormLabel>
+                                  <FormLabel>{language === 'fr' ? 'Décisions du conseil de classe' : 'Class council decisions'}</FormLabel>
                                   <FormControl>
                                     <Textarea 
                                       {...field} 
-                                      placeholder={t.classCouncilDecisionsPlaceholder}
+                                      placeholder={language === 'fr' ? 'Décisions du conseil de classe...' : 'Class council decisions...'}
                                       className="min-h-[120px]"
                                       maxLength={1000}
                                       data-testid="class-council-decisions"
@@ -3698,7 +3698,7 @@ export default function ComprehensiveBulletinGenerator() {
                             <CardTitle className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <FileSignature className="h-5 w-5 text-purple-600" />
-                                {t.signaturesSection}
+                                {language === 'fr' ? 'Section Signatures' : 'Signatures Section'}
                               </div>
                               {openSections.signatures ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                             </CardTitle>
@@ -3715,7 +3715,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   name="parentVisaName"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>{t.parentVisaNameField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Nom du visa parent' : 'Parent visa name'}</FormLabel>
                                       <FormControl>
                                         <Input {...field} placeholder="Nom du parent/tuteur" data-testid="parent-visa-name" />
                                       </FormControl>
@@ -3728,7 +3728,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   name="parentVisaDate"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>{t.parentVisaDateField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Date du visa parent' : 'Parent visa date'}</FormLabel>
                                       <FormControl>
                                         <Input {...field} type="date" data-testid="parent-visa-date" />
                                       </FormControl>
@@ -3748,7 +3748,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   name="headmasterVisaName"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>{t.headmasterVisaNameField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Nom du visa directeur' : 'Headmaster visa name'}</FormLabel>
                                       <FormControl>
                                         <Input {...field} placeholder="Nom du chef d'établissement" data-testid="headmaster-visa-name" />
                                       </FormControl>
@@ -3761,7 +3761,7 @@ export default function ComprehensiveBulletinGenerator() {
                                   name="headmasterVisaDate"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>{t.headmasterVisaDateField}</FormLabel>
+                                      <FormLabel>{language === 'fr' ? 'Date du visa directeur' : 'Headmaster visa date'}</FormLabel>
                                       <FormControl>
                                         <Input {...field} type="date" data-testid="headmaster-visa-date" />
                                       </FormControl>
@@ -3790,7 +3790,7 @@ export default function ComprehensiveBulletinGenerator() {
               {!selectedStudentForEntry && (
                 <div className="text-center py-12 text-muted-foreground">
                   <Edit3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>{t.selectStudentForEntry}</p>
+                  <p>{language === 'fr' ? 'Sélectionnez un élève pour la saisie de données.' : 'Select a student for data entry.'}</p>
                 </div>
               )}
             </CardContent>
@@ -3806,7 +3806,7 @@ export default function ComprehensiveBulletinGenerator() {
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  {t.studentsWithGrades}
+                  {language === 'fr' ? 'Élèves avec notes' : 'Students with grades'}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Button
@@ -3820,7 +3820,7 @@ export default function ComprehensiveBulletinGenerator() {
                       : t.selectAll}
                   </Button>
                   <Badge variant="secondary">
-                    {selectedStudents.length} {t.selectedStudents}
+                    {selectedStudents.length} {language === 'fr' ? 'élèves sélectionnés' : 'selected students'}
                   </Badge>
                 </div>
               </div>
@@ -3830,7 +3830,7 @@ export default function ComprehensiveBulletinGenerator() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder={t.searchStudents}
+                  placeholder={language === 'fr' ? 'Rechercher les élèves...' : 'Search students...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -3842,7 +3842,7 @@ export default function ComprehensiveBulletinGenerator() {
               {loadingStudents ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span>{t.loadingStudents}</span>
+                  <span>{language === 'fr' ? 'Chargement des élèves...' : 'Loading students...'}</span>
                 </div>
               ) : (
                 <div className="grid gap-3">
@@ -3915,7 +3915,7 @@ export default function ComprehensiveBulletinGenerator() {
                                     data-testid={`preview-button-${student.id}`}
                                   >
                                     <Eye className="h-4 w-4 mr-1" />
-                                    {t.previewBulletin}
+                                    {language === 'fr' ? 'Aperçu du bulletin' : 'Preview bulletin'}
                                   </Button>
                                 )}
                               </div>
@@ -3981,7 +3981,7 @@ export default function ComprehensiveBulletinGenerator() {
                                     data-testid={`preview-button-${student.id}`}
                                   >
                                     <Eye className="h-4 w-4 mr-2" />
-                                    {t.previewBulletin}
+                                    {language === 'fr' ? 'Aperçu du bulletin' : 'Preview bulletin'}
                                   </Button>
                                 )}
                               </div>
@@ -4005,9 +4005,9 @@ export default function ComprehensiveBulletinGenerator() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
-                  {t.sanctionsManagement}
+                  {language === 'fr' ? 'Gestion des Sanctions Disciplinaires' : 'Disciplinary Sanctions Management'}
                 </CardTitle>
-                <p className="text-muted-foreground">{t.sanctionsDescription}</p>
+                <p className="text-muted-foreground">{language === 'fr' ? 'Gérez les sanctions disciplinaires pour chaque élève de la classe.' : 'Manage disciplinary sanctions for each student in the class.'}</p>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Student Selection */}
@@ -5735,9 +5735,9 @@ export default function ComprehensiveBulletinGenerator() {
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t.previewTitle}</DialogTitle>
+            <DialogTitle>{language === 'fr' ? 'Aperçu du bulletin' : 'Bulletin Preview'}</DialogTitle>
             <DialogDescription>
-              {t.previewDescription}
+              {language === 'fr' ? 'Prévisualisation du bulletin généré avant distribution.' : 'Preview of the generated bulletin before distribution.'}
             </DialogDescription>
           </DialogHeader>
           
