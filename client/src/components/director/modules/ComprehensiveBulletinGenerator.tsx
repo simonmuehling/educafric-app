@@ -87,7 +87,10 @@ import {
   Users2,
   TrendingDown,
   Plus,
-  Pencil
+  Pencil,
+  Users,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 
 // Lazy loaded components
@@ -4413,6 +4416,111 @@ export default function ComprehensiveBulletinGenerator() {
                     </div>
                   </div>
                 </div>
+
+                {/* Student Selection & Generation Section */}
+                {classStudents && classStudents.length > 0 && (
+                  <div className="bg-purple-50 dark:bg-purple-950/20 p-4 rounded-lg space-y-4">
+                    <h4 className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      {language === 'fr' ? 'Sélection des élèves' : 'Student Selection'}
+                    </h4>
+                    <div className="space-y-3">
+                      <Label>
+                        {language === 'fr' ? 'Élèves avec notes approuvées :' : 'Students with approved grades:'}
+                      </Label>
+                      <div className="grid gap-2 max-h-60 overflow-y-auto">
+                        {classStudents.map((student) => (
+                          <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                id={`student-${student.id}`}
+                                checked={selectedStudents.includes(student.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedStudents(prev => [...prev, student.id]);
+                                  } else {
+                                    setSelectedStudents(prev => prev.filter(id => id !== student.id));
+                                  }
+                                }}
+                                data-testid={`select-student-${student.id}`}
+                              />
+                              <Label htmlFor={`student-${student.id}`} className="cursor-pointer">
+                                {student.firstName} {student.lastName}
+                              </Label>
+                            </div>
+                            <Button
+                              onClick={() => {
+                                setPreviewStudentId(student.id);
+                                setShowPreviewDialog(true);
+                              }}
+                              variant="outline"
+                              size="sm"
+                              data-testid={`preview-button-${student.id}`}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              {language === 'fr' ? 'Aperçu' : 'Preview'}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Generation Actions */}
+                      <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                        <Button
+                          onClick={() => setSelectedStudents(classStudents.map(s => s.id))}
+                          variant="outline"
+                          size="sm"
+                          data-testid="select-all-students"
+                        >
+                          <CheckSquare className="h-4 w-4 mr-2" />
+                          {language === 'fr' ? 'Sélectionner tout' : 'Select All'}
+                        </Button>
+                        <Button
+                          onClick={() => setSelectedStudents([])}
+                          variant="outline"
+                          size="sm"
+                          data-testid="deselect-all-students"
+                        >
+                          <Square className="h-4 w-4 mr-2" />
+                          {language === 'fr' ? 'Désélectionner tout' : 'Deselect All'}
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            // Trigger bulk generation for selected students
+                            console.log('Generating bulletins for students:', selectedStudents);
+                            // In real implementation, this would call the generation API
+                          }}
+                          disabled={selectedStudents.length === 0}
+                          className="bg-green-600 hover:bg-green-700"
+                          data-testid="generate-bulletins"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          {language === 'fr' 
+                            ? `Générer ${selectedStudents.length} bulletin${selectedStudents.length > 1 ? 's' : ''}` 
+                            : `Generate ${selectedStudents.length} bulletin${selectedStudents.length > 1 ? 's' : ''}`
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* No students message */}
+                {(!classStudents || classStudents.length === 0) && selectedClass && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>{language === 'fr' 
+                      ? 'Aucun élève avec des notes approuvées pour cette classe et ce trimestre.' 
+                      : 'No students with approved grades for this class and term.'
+                    }</p>
+                    <p className="text-sm mt-2">
+                      {language === 'fr' 
+                        ? 'Vérifiez l\'onglet "Gestion des Élèves" pour plus de détails.' 
+                        : 'Check the "Student Management" tab for more details.'
+                      }
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
