@@ -822,7 +822,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-comments"
                         checked={includeComments}
-                        onCheckedChange={setIncludeComments}
+                        onCheckedChange={(checked) => setIncludeComments(checked === true)}
                         data-testid="include-comments-checkbox"
                       />
                       <Label htmlFor="include-comments" className="font-medium">
@@ -834,7 +834,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-rankings"
                         checked={includeRankings}
-                        onCheckedChange={setIncludeRankings}
+                        onCheckedChange={(checked) => setIncludeRankings(checked === true)}
                         data-testid="include-rankings-checkbox"
                       />
                       <Label htmlFor="include-rankings" className="font-medium">
@@ -846,7 +846,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-statistics"
                         checked={includeStatistics}
-                        onCheckedChange={setIncludeStatistics}
+                        onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
                         data-testid="include-statistics-checkbox"
                       />
                       <Label htmlFor="include-statistics" className="font-medium">
@@ -865,7 +865,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-unjustified-absences"
                         checked={includeUnjustifiedAbsences}
-                        onCheckedChange={setIncludeUnjustifiedAbsences}
+                        onCheckedChange={(checked) => setIncludeUnjustifiedAbsences(checked === true)}
                         data-testid="include-unjustified-absences-checkbox"
                       />
                       <Label htmlFor="include-unjustified-absences">
@@ -877,7 +877,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-justified-absences"
                         checked={includeJustifiedAbsences}
-                        onCheckedChange={setIncludeJustifiedAbsences}
+                        onCheckedChange={(checked) => setIncludeJustifiedAbsences(checked === true)}
                         data-testid="include-justified-absences-checkbox"
                       />
                       <Label htmlFor="include-justified-absences">
@@ -889,7 +889,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-lateness"
                         checked={includeLateness}
-                        onCheckedChange={setIncludeLateness}
+                        onCheckedChange={(checked) => setIncludeLateness(checked === true)}
                         data-testid="include-lateness-checkbox"
                       />
                       <Label htmlFor="include-lateness">
@@ -901,7 +901,7 @@ const ReportCardManagement: React.FC = () => {
                       <Checkbox
                         id="include-detentions"
                         checked={includeDetentions}
-                        onCheckedChange={setIncludeDetentions}
+                        onCheckedChange={(checked) => setIncludeDetentions(checked === true)}
                         data-testid="include-detentions-checkbox"
                       />
                       <Label htmlFor="include-detentions">
@@ -942,129 +942,6 @@ const ReportCardManagement: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Original Generation Options Tab (keep existing one too) */}
-          <TabsContent value="generation-options" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  {t.generationSettings}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Content Options */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-semibold">Contenu du bulletin</h3>
-                  
-                  {/* Basic Options */}
-                  <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg space-y-3">
-                    <h4 className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Options de base
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-comments"
-                          checked={includeComments}
-                          onCheckedChange={(checked) => setIncludeComments(checked === true)}
-                          data-testid="include-comments"
-                        />
-                        <Label htmlFor="include-comments">{t.includeComments}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-rankings"
-                          checked={includeRankings}
-                          onCheckedChange={(checked) => setIncludeRankings(checked === true)}
-                          data-testid="include-rankings"
-                        />
-                        <Label htmlFor="include-rankings">{t.includeRankings}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-statistics"
-                          checked={includeStatistics}
-                          onCheckedChange={(checked) => setIncludeStatistics(checked === true)}
-                          data-testid="include-statistics"
-                        />
-                        <Label htmlFor="include-statistics">{t.includeStatistics}</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-performance-levels"
-                          checked={includePerformanceLevels}
-                          onCheckedChange={(checked) => setIncludePerformanceLevels(checked === true)}
-                          data-testid="include-performance-levels"
-                        />
-                        <Label htmlFor="include-performance-levels">Niveaux de performance</Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Absences & Lateness Options */}
-                  <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg space-y-3">
-                    <h4 className="font-semibold text-orange-700 dark:text-orange-300 flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Absences & Retards
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-unjustified-absences"
-                          checked={includeUnjustifiedAbsences}
-                          onCheckedChange={(checked) => setIncludeUnjustifiedAbsences(checked === true)}
-                          data-testid="include-unjustified-absences"
-                        />
-                        <Label htmlFor="include-unjustified-absences">Absences injustifiées</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-justified-absences"
-                          checked={includeJustifiedAbsences}
-                          onCheckedChange={(checked) => setIncludeJustifiedAbsences(checked === true)}
-                          data-testid="include-justified-absences"
-                        />
-                        <Label htmlFor="include-justified-absences">Absences justifiées</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-lateness"
-                          checked={includeLateness}
-                          onCheckedChange={(checked) => setIncludeLateness(checked === true)}
-                          data-testid="include-lateness"
-                        />
-                        <Label htmlFor="include-lateness">Retards</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="include-detentions"
-                          checked={includeDetentions}
-                          onCheckedChange={(checked) => setIncludeDetentions(checked === true)}
-                          data-testid="include-detentions"
-                        />
-                        <Label htmlFor="include-detentions">Retenues</Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Output Format */}
-                  <div className="space-y-2">
-                    <Label>Format de sortie</Label>
-                    <Select value={generationFormat} onValueChange={(value: 'pdf' | 'batch_pdf') => setGenerationFormat(value)}>
-                      <SelectTrigger data-testid="generation-format">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf">PDF individuel</SelectItem>
-                        <SelectItem value="batch_pdf">PDF groupé (lot)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       )}
     </div>
