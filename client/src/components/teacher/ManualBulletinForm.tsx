@@ -3,6 +3,72 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
+// Support bilingue FR/EN
+const BILINGUAL_LABELS = {
+  fr: {
+    bulletinTitle: "BULLETIN SCOLAIRE",
+    trimester: "TRIMESTRE",
+    academicYear: "Année scolaire",
+    student: "Élève",
+    class: "Classe",
+    subject: "MATIÈRE",
+    teacher: "Enseignant",
+    competencies: "Compétences évaluées",
+    grade1: "N/20",
+    grade2: "M/20",
+    coefficient: "Coef",
+    total: "M x coef",
+    cote: "COTE",
+    appreciation: "Appréciations (visa enseignant)",
+    generalAverage: "Moyenne générale",
+    discipline: "Discipline",
+    parameters: "Paramètres",
+    prefillCompetencies: "Préremplir les compétences du trimestre",
+    addSubject: "Ajouter une matière",
+    save: "Enregistrer",
+    print: "Imprimer",
+    firstName: "Nom & Prénoms",
+    birthInfo: "Date & Lieu de naissance",
+    gender: "Genre",
+    uniqueId: "Identifiant Unique",
+    repeater: "Redoublant",
+    classSize: "Effectif",
+    mainTeacher: "Professeur principal",
+    parents: "Parents / Tuteurs"
+  },
+  en: {
+    bulletinTitle: "SCHOOL REPORT CARD",
+    trimester: "TERM",
+    academicYear: "Academic year",
+    student: "Student",
+    class: "Class",
+    subject: "SUBJECT",
+    teacher: "Teacher",
+    competencies: "Skills assessed",
+    grade1: "G1/20",
+    grade2: "G2/20",
+    coefficient: "Coef",
+    total: "Total",
+    cote: "GRADE",
+    appreciation: "Comments (teacher signature)",
+    generalAverage: "Overall average",
+    discipline: "Discipline",
+    parameters: "Settings",
+    prefillCompetencies: "Prefill term competencies",
+    addSubject: "Add subject",
+    save: "Save",
+    print: "Print",
+    firstName: "Full Name",
+    birthInfo: "Date & Place of birth",
+    gender: "Gender",
+    uniqueId: "Student ID",
+    repeater: "Repeater",
+    classSize: "Class size",
+    mainTeacher: "Main teacher",
+    parents: "Parents / Guardians"
+  }
+};
+
 interface ManualBulletinFormProps {
   studentId?: string;
   trimestre?: string;
@@ -198,6 +264,7 @@ export default function ManualBulletinForm({
 }: ManualBulletinFormProps) {
   const [loading, setLoading] = useState(true);
   const [eleve, setEleve] = useState<any>(null);
+  const [language, setLanguage] = useState<'fr' | 'en'>('fr'); // État de la langue
   const [rows, setRows] = useState<SubjectRow[]>(() => 
     defaultSubjects.map(s => ({
       matiere: s.matiere,
@@ -224,6 +291,9 @@ export default function ManualBulletinForm({
     appEleve: "",
     visaParent: "",
   });
+
+  // Helper pour obtenir les labels dans la langue courante
+  const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -437,50 +507,106 @@ export default function ManualBulletinForm({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <div className="lg:col-span-2 bg-white rounded-2xl shadow p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold">BULLETIN SCOLAIRE – {meta.trimestre?.toUpperCase()} TRIMESTRE</h1>
-              <p className="text-sm text-gray-500">Année scolaire : {meta.annee}</p>
+            <div className="flex items-center gap-4">
+              {/* Logo de l'établissement */}
+              <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                {eleve?.etablissement?.logoUrl ? (
+                  <img 
+                    src={eleve.etablissement.logoUrl} 
+                    alt="Logo établissement" 
+                    className="w-full h-full object-contain rounded-lg"
+                    data-testid="school-logo"
+                  />
+                ) : (
+                  <div className="text-xs text-gray-400 text-center">
+                    <div>🏫</div>
+                    <div>LOGO</div>
+                  </div>
+                )}
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold">{t('bulletinTitle')} – {meta.trimestre?.toUpperCase()} {t('trimester')}</h1>
+                <p className="text-sm text-gray-500">{t('academicYear')} : {meta.annee}</p>
+                <p className="text-xs text-gray-600 mt-1">{eleve?.etablissement?.nom}</p>
+              </div>
             </div>
-            <div>
-              {/* Logo/Immatriculation */}
-              <div className="text-right text-xs text-gray-500">
-                <div>{eleve?.etablissement?.nom}</div>
-                <div>{eleve?.etablissement?.immatriculation}</div>
+            <div className="flex items-center gap-4">
+              {/* Photo de l'élève */}
+              <div className="w-20 h-24 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-gray-200">
+                {eleve?.photoUrl ? (
+                  <img 
+                    src={eleve.photoUrl} 
+                    alt={`Photo de ${eleve.nom}`} 
+                    className="w-full h-full object-cover rounded-lg"
+                    data-testid="student-photo"
+                  />
+                ) : (
+                  <div className="text-xs text-gray-400 text-center">
+                    <div>👤</div>
+                    <div>PHOTO</div>
+                  </div>
+                )}
+              </div>
+              {/* QR Code et immatriculation */}
+              <div className="text-right">
+                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center border mb-2">
+                  <div className="text-xs text-gray-400 text-center">
+                    <div>📱</div>
+                    <div>QR</div>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  <div>{eleve?.etablissement?.immatriculation}</div>
+                  <div>#{eleve?.identifiantUnique}</div>
+                </div>
               </div>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <Info label="Nom & Prénoms" value={eleve.nom} />
-            <Info label="Classe" value={eleve.classe} />
-            <Info label="Date & Lieu de naissance" value={`${eleve.dateNaissance} à ${eleve.lieuNaissance}`} />
-            <Info label="Genre" value={eleve.sexe} />
-            <Info label="Identifiant Unique" value={eleve.identifiantUnique} />
-            <Info label="Redoublant" value={eleve.redoublant ? "Oui" : "Non"} />
-            <Info label="Effectif" value={String(eleve.effectif)} />
-            <Info label="Professeur principal" value={eleve.professeurPrincipal} />
-            <Info label="Parents / Tuteurs" value={`${eleve.parents.noms} – ${eleve.parents.contacts}`} className="sm:col-span-2" />
+            <Info label={t('firstName')} value={eleve.nom} />
+            <Info label={t('class')} value={eleve.classe} />
+            <Info label={t('birthInfo')} value={`${eleve.dateNaissance} à ${eleve.lieuNaissance}`} />
+            <Info label={t('gender')} value={eleve.sexe} />
+            <Info label={t('uniqueId')} value={eleve.identifiantUnique} />
+            <Info label={t('repeater')} value={eleve.redoublant ? (language === 'fr' ? "Oui" : "Yes") : (language === 'fr' ? "Non" : "No")} />
+            <Info label={t('classSize')} value={String(eleve.effectif)} />
+            <Info label={t('mainTeacher')} value={eleve.professeurPrincipal} />
+            <Info label={t('parents')} value={`${eleve.parents.noms} – ${eleve.parents.contacts}`} className="sm:col-span-2" />
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow p-4">
-          <h2 className="font-semibold mb-2">Paramètres</h2>
+          <h2 className="font-semibold mb-2">{t('parameters')}</h2>
           <div className="space-y-2 text-sm">
+            {/* Sélecteur de langue */}
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Langue / Language</label>
+              <select 
+                className="w-full border rounded-xl px-3 py-2" 
+                value={language} 
+                onChange={e=>setLanguage(e.target.value as 'fr' | 'en')}
+                data-testid="select-language"
+              >
+                <option value="fr">🇫🇷 Français</option>
+                <option value="en">🇬🇧 English</option>
+              </select>
+            </div>
             <LabeledInput 
-              label="Année scolaire" 
+              label={t('academicYear')} 
               value={meta.annee} 
               onChange={v => setMeta(m => ({...m, annee:v}))} 
               data-testid="input-academic-year"
             />
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Trimestre</label>
+              <label className="block text-xs text-gray-500 mb-1">{t('trimester')}</label>
               <select 
                 className="w-full border rounded-xl px-3 py-2" 
                 value={meta.trimestre} 
                 onChange={e=>setMeta(m=>({...m,trimestre:e.target.value}))}
                 data-testid="select-trimester"
               >
-                <option value="Premier">Premier</option>
-                <option value="Deuxième">Deuxième</option>
-                <option value="Troisième">Troisième</option>
+                <option value="Premier">{language === 'fr' ? 'Premier' : 'First'}</option>
+                <option value="Deuxième">{language === 'fr' ? 'Deuxième' : 'Second'}</option>
+                <option value="Troisième">{language === 'fr' ? 'Troisième' : 'Third'}</option>
               </select>
             </div>
             <button 
@@ -489,7 +615,7 @@ export default function ManualBulletinForm({
               className="w-full px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium flex items-center justify-center gap-2"
               data-testid="button-prefill-competencies"
             >
-              ✨ Préremplir les compétences du trimestre
+              ✨ {t('prefillCompetencies')}
             </button>
           </div>
         </div>
@@ -501,15 +627,15 @@ export default function ManualBulletinForm({
           <table className="min-w-full text-xs sm:text-sm">
             <thead className="bg-gray-50">
               <tr className="text-left">
-                <Th>MATIÈRE</Th>
-                <Th>Enseignant</Th>
-                <Th className="w-80">Compétences évaluées</Th>
-                <Th>N/20</Th>
-                <Th>M/20</Th>
-                <Th>Coef</Th>
-                <Th>M x coef</Th>
-                <Th>COTE</Th>
-                <Th className="w-64">Appréciations (visa enseignant)</Th>
+                <Th>{t('subject')}</Th>
+                <Th>{t('teacher')}</Th>
+                <Th className="w-80">{t('competencies')}</Th>
+                <Th>{t('grade1')}</Th>
+                <Th>{t('grade2')}</Th>
+                <Th>{t('coefficient')}</Th>
+                <Th>{t('total')}</Th>
+                <Th>{t('cote')}</Th>
+                <Th className="w-64">{t('appreciation')}</Th>
                 <Th></Th>
               </tr>
             </thead>
@@ -618,7 +744,7 @@ export default function ManualBulletinForm({
             </tbody>
             <tfoot>
               <tr className="bg-gray-100 font-semibold">
-                <Td colSpan={5}>TOTAL</Td>
+                <Td colSpan={5}>{language === 'fr' ? 'TOTAL' : 'TOTAL'}</Td>
                 <Td>{totals.totalCoef}</Td>
                 <Td>{totals.totalMxCoef}</Td>
                 <Td>{totals.cote}</Td>
@@ -635,10 +761,10 @@ export default function ManualBulletinForm({
             className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200"
             data-testid="button-add-subject"
           >
-            + Ajouter une matière
+            + {t('addSubject')}
           </button>
           <div className="text-sm">
-            Moyenne générale : <span className="font-semibold" data-testid="text-average">{totals.moyenne}/20</span>
+            {t('generalAverage')} : <span className="font-semibold" data-testid="text-average">{totals.moyenne}/20</span>
           </div>
         </div>
 
@@ -720,7 +846,7 @@ export default function ManualBulletinForm({
             onClick={()=>window.print?.()}
             data-testid="button-print"
           >
-            Imprimer
+            {t('print')}
           </button>
           <button 
             type="submit" 
@@ -728,7 +854,7 @@ export default function ManualBulletinForm({
             disabled={saveMutation.isPending}
             data-testid="button-save"
           >
-            {saveMutation.isPending ? 'Sauvegarde...' : 'Enregistrer'}
+            {saveMutation.isPending ? (language === 'fr' ? 'Sauvegarde...' : 'Saving...') : t('save')}
           </button>
         </div>
       </form>
