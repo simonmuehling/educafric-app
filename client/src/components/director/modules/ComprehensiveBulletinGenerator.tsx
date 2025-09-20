@@ -1713,7 +1713,7 @@ export default function ComprehensiveBulletinGenerator() {
       if (!selectedClass) return null;
       
       const response = await apiRequest('GET', 
-        `/api/grade-review/approved-students?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/approved-students?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
@@ -1728,7 +1728,7 @@ export default function ComprehensiveBulletinGenerator() {
       if (!selectedClass) return null;
       
       const response = await apiRequest('GET', 
-        `/api/grade-review/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
+        `/api/comprehensive-bulletins/class-statistics?classId=${selectedClass}&term=${selectedTerm}&academicYear=${academicYear}`
       );
       const data = await response.json();
       return data.success ? data.data : null;
