@@ -5891,7 +5891,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // === CONTRATS COMMERCIAUX (Bilingue) ===
         { id: 17, title: "Contrat Commercial EDUCAFRIC 2025 - FR", description: "Contrat commercial actualisé 2025", type: "commercial", url: "/documents/contrat-commercial-educafric-2025-actualise.html" },
         { id: 24, title: "Contrat Partenariat Commercial EDUCAFRIC - FR", description: "Contrat de partenariat commercial français", type: "commercial", url: "/documents/contrat-partenariat-commercial-educafric-fr.html" },
-        { id: 35, title: "Contrat de Partenariat Commercial - FR", description: "Deuxième formulaire de contrat de partenariat commercial", type: "commercial", url: "/documents/contrat-partenariat-commercial-fr.html" },
         { id: 18, title: "Commercial Partnership Contract - EN", description: "Commercial partnership contract in English", type: "commercial", url: "/documents/commercial-partnership-contract-en.html" },
         
         // === GUIDES TECHNIQUES COMMERCIAUX (Bilingue) ===
@@ -5917,6 +5916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 32, title: "CONTRAT PARTENARIAT OFFICIEL EDUCAFRIC 2025 - FR", description: "Contrat de partenariat officiel actualisé 2025 - Version française", type: "commercial", url: "/documents/educafric-contrat-officiel-2025-actualise.html" },
         { id: 33, title: "OFFICIAL PARTNERSHIP CONTRACT EDUCAFRIC 2025 - EN", description: "Official partnership contract updated 2025 - English version", type: "commercial", url: "/documents/educafric-official-contract-2025-updated-version-6-en.html" },
         { id: 34, title: "CONTRAT DE PARTENARIAT OFFICIEL 2025 - ÉCOLES / OFFICIAL PARTNERSHIP CONTRACT 2025 - SCHOOLS", description: "Contrat de partenariat bilingue spécialement conçu pour les écoles qui paient Educafric - 2025", type: "commercial", url: "/documents/contrat-partenariat-ecoles-2025.html" },
+        { id: 35, title: "Contrat de Partenariat Commercial - FR", description: "Deuxième formulaire de contrat de partenariat commercial", type: "commercial", url: "/documents/contrat-partenariat-commercial-fr.html" },
         { id: 36, title: "CONTRAT ÉCOLE-EDUCAFRIC 2025 - ÉCOLE PAYANTE", description: "Contrat spécialisé pour les écoles qui paient Educafric avec montant et durée négociables", type: "commercial", url: "/documents/contrat-ecoles-payent-educafric-2025.html" },
         { id: 37, title: "SCHOOL-EDUCAFRIC CONTRACT 2025 - SCHOOL PAYMENT", description: "Specialized contract for schools paying Educafric with negotiable amount and duration", type: "commercial", url: "/documents/school-pays-educafric-contract-2025-en.html" },
         
