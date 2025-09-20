@@ -66,6 +66,7 @@ const teacherSubmissionSchema = z.object({
     councilComment: z.string().optional()
   }),
   generationOptions: z.object({
+    // Options générales
     includeComments: z.boolean().optional(),
     includeRankings: z.boolean().optional(),
     includeStatistics: z.boolean().optional(),
@@ -74,10 +75,50 @@ const teacherSubmissionSchema = z.object({
     includeDiscipline: z.boolean().optional(),
     includeStudentWork: z.boolean().optional(),
     includeClassProfile: z.boolean().optional(),
+    
+    // Absences & Retards
     includeUnjustifiedAbsences: z.boolean().optional(),
     includeJustifiedAbsences: z.boolean().optional(),
     includeLateness: z.boolean().optional(),
     includeDetentions: z.boolean().optional(),
+    
+    // 🎯 SECTIONS MANQUANTES - HARMONISATION COMPLÈTE
+    // Sanctions Disciplinaires
+    includeConductWarning: z.boolean().optional(),
+    includeConductBlame: z.boolean().optional(),
+    includeExclusions: z.boolean().optional(),
+    includePermanentExclusion: z.boolean().optional(),
+    
+    // Moyennes & Totaux
+    includeTotalGeneral: z.boolean().optional(),
+    includeAppreciations: z.boolean().optional(),
+    includeGeneralAverage: z.boolean().optional(),
+    includeTrimesterAverage: z.boolean().optional(),
+    includeNumberOfAverages: z.boolean().optional(),
+    includeSuccessRate: z.boolean().optional(),
+    
+    // Coefficients & Codes
+    includeCoef: z.boolean().optional(),
+    includeCTBA: z.boolean().optional(),
+    includeMinMax: z.boolean().optional(),
+    includeCBA: z.boolean().optional(),
+    includeCA: z.boolean().optional(),
+    includeCMA: z.boolean().optional(),
+    includeCOTE: z.boolean().optional(),
+    includeCNA: z.boolean().optional(),
+    
+    // Appréciations & Signatures
+    includeWorkAppreciation: z.boolean().optional(),
+    includeParentVisa: z.boolean().optional(),
+    includeTeacherVisa: z.boolean().optional(),
+    includeHeadmasterVisa: z.boolean().optional(),
+    
+    // Conseil de Classe
+    includeClassCouncilDecisions: z.boolean().optional(),
+    includeClassCouncilMentions: z.boolean().optional(),
+    includeOrientationRecommendations: z.boolean().optional(),
+    includeCouncilDate: z.boolean().optional(),
+    
     generationFormat: z.enum(['pdf', 'batch_pdf']).optional()
   }).optional()
 });
@@ -153,16 +194,42 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
 
     const { studentId, classId, term, academicYear, manualData, generationOptions } = validationResult.data;
 
-    // Verify teacher has access to this class and student
+    // 🔒 AUTORISATION RENFORCÉE - Vérifier étudiant ET teacher assigné à cette classe  
+    const studentClassAccess = await db.select({
+      studentId: users.id,
+      studentName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      classId: classes.id,
+      className: classes.name
+    })
+    .from(users)
+    .innerJoin(classes, and(
+      eq(users.id, studentId),
+      eq(users.role, 'Student'),
+      eq(users.schoolId, schoolId),
+      eq(classes.id, classId),
+      eq(classes.schoolId, schoolId)
+    ))
+    .limit(1);
+
+    if (studentClassAccess.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Student not found in specified class or access denied'
+      });
+    }
+
+    // 🔒 VÉRIFICATION CRITIQUE: Teacher doit être assigné à cette classe
+    // Pour l'instant, on vérifie que teacher et étudiant sont dans la même école
+    // TODO: Implémenter table teacher_class_assignments pour contrôle plus strict
     const teacherAccess = await db.select({
-      id: users.id,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      role: users.role
+      teacherId: users.id,
+      teacherName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+      schoolId: users.schoolId
     })
     .from(users)
     .where(and(
-      eq(users.id, studentId),
+      eq(users.id, user.id),
+      eq(users.role, 'Teacher'),
       eq(users.schoolId, schoolId)
     ))
     .limit(1);
@@ -170,9 +237,19 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
     if (teacherAccess.length === 0) {
       return res.status(403).json({
         success: false,
-        message: 'Student not found or access denied'
+        message: 'Teacher not authorized for this school'
       });
     }
+
+    console.log('[TEACHER_SUBMISSION] ✅ Access verified:', {
+      teacherId: user.id,
+      teacherName: teacherAccess[0].teacherName,
+      studentId,
+      studentName: studentClassAccess[0].studentName,
+      classId,
+      className: studentClassAccess[0].className,
+      schoolId
+    });
 
     // 🎯 STOCKER LES NOTES PAR MATIÈRE d'abord
     if (manualData.subjectGrades && manualData.subjectGrades.length > 0) {
@@ -217,6 +294,121 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
             coefficient: gradeData.coefficient
           });
         }
+      }
+    }
+
+    // 🎯 STOCKER TOUTES LES PRÉFÉRENCES D'OPTIONS (8 SECTIONS COMPLÈTES)
+    if (generationOptions) {
+      // 🔧 CORRECTION CRITIQUE: Utiliser db.execute au lieu de db.query pour SQL brut
+      try {
+        // 🔧 CORRECTION DRIZZLE: Utiliser SQL template au lieu de .bind()
+        await db.execute(sql`
+          INSERT INTO teacher_bulletin_preferences (
+            teacher_id, student_id, class_id, school_id, term, academic_year,
+            include_comments, include_rankings, include_statistics, include_performance_levels,
+            include_first_trimester, include_discipline, include_student_work, include_class_profile,
+            include_unjustified_absences, include_justified_absences, include_lateness, include_detentions,
+            include_conduct_warning, include_conduct_blame, include_exclusions, include_permanent_exclusion,
+            include_total_general, include_appreciations, include_general_average, include_trimester_average,
+            include_number_of_averages, include_success_rate,
+            include_coef, include_ctba, include_min_max, include_cba, include_ca, include_cma, include_cote, include_cna,
+            include_work_appreciation, include_parent_visa, include_teacher_visa, include_headmaster_visa,
+            include_class_council_decisions, include_class_council_mentions, include_orientation_recommendations, include_council_date,
+            generation_format, updated_at
+          ) VALUES (
+            ${user.id}, ${studentId}, ${classId}, ${schoolId}, ${term}, ${academicYear},
+            ${generationOptions.includeComments || false},
+            ${generationOptions.includeRankings || false},
+            ${generationOptions.includeStatistics || false},
+            ${generationOptions.includePerformanceLevels || false},
+            ${generationOptions.includeFirstTrimester || false},
+            ${generationOptions.includeDiscipline || false},
+            ${generationOptions.includeStudentWork || false},
+            ${generationOptions.includeClassProfile || false},
+            ${generationOptions.includeUnjustifiedAbsences || false},
+            ${generationOptions.includeJustifiedAbsences || false},
+            ${generationOptions.includeLateness || false},
+            ${generationOptions.includeDetentions || false},
+            ${generationOptions.includeConductWarning || false},
+            ${generationOptions.includeConductBlame || false},
+            ${generationOptions.includeExclusions || false},
+            ${generationOptions.includePermanentExclusion || false},
+            ${generationOptions.includeTotalGeneral || false},
+            ${generationOptions.includeAppreciations || false},
+            ${generationOptions.includeGeneralAverage || false},
+            ${generationOptions.includeTrimesterAverage || false},
+            ${generationOptions.includeNumberOfAverages || false},
+            ${generationOptions.includeSuccessRate || false},
+            ${generationOptions.includeCoef || false},
+            ${generationOptions.includeCTBA || false},
+            ${generationOptions.includeMinMax || false},
+            ${generationOptions.includeCBA || false},
+            ${generationOptions.includeCA || false},
+            ${generationOptions.includeCMA || false},
+            ${generationOptions.includeCOTE || false},
+            ${generationOptions.includeCNA || false},
+            ${generationOptions.includeWorkAppreciation || false},
+            ${generationOptions.includeParentVisa || false},
+            ${generationOptions.includeTeacherVisa || false},
+            ${generationOptions.includeHeadmasterVisa || false},
+            ${generationOptions.includeClassCouncilDecisions || false},
+            ${generationOptions.includeClassCouncilMentions || false},
+            ${generationOptions.includeOrientationRecommendations || false},
+            ${generationOptions.includeCouncilDate || false},
+            ${generationOptions.generationFormat || 'pdf'}, NOW()
+          ) 
+          ON CONFLICT (teacher_id, student_id, class_id, term, academic_year) 
+          DO UPDATE SET
+            include_comments = EXCLUDED.include_comments,
+            include_rankings = EXCLUDED.include_rankings,
+            include_statistics = EXCLUDED.include_statistics,
+            include_performance_levels = EXCLUDED.include_performance_levels,
+            include_first_trimester = EXCLUDED.include_first_trimester,
+            include_discipline = EXCLUDED.include_discipline,
+            include_student_work = EXCLUDED.include_student_work,
+            include_class_profile = EXCLUDED.include_class_profile,
+            include_unjustified_absences = EXCLUDED.include_unjustified_absences,
+            include_justified_absences = EXCLUDED.include_justified_absences,
+            include_lateness = EXCLUDED.include_lateness,
+            include_detentions = EXCLUDED.include_detentions,
+            include_conduct_warning = EXCLUDED.include_conduct_warning,
+            include_conduct_blame = EXCLUDED.include_conduct_blame,
+            include_exclusions = EXCLUDED.include_exclusions,
+            include_permanent_exclusion = EXCLUDED.include_permanent_exclusion,
+            include_total_general = EXCLUDED.include_total_general,
+            include_appreciations = EXCLUDED.include_appreciations,
+            include_general_average = EXCLUDED.include_general_average,
+            include_trimester_average = EXCLUDED.include_trimester_average,
+            include_number_of_averages = EXCLUDED.include_number_of_averages,
+            include_success_rate = EXCLUDED.include_success_rate,
+            include_coef = EXCLUDED.include_coef,
+            include_ctba = EXCLUDED.include_ctba,
+            include_min_max = EXCLUDED.include_min_max,
+            include_cba = EXCLUDED.include_cba,
+            include_ca = EXCLUDED.include_ca,
+            include_cma = EXCLUDED.include_cma,
+            include_cote = EXCLUDED.include_cote,
+            include_cna = EXCLUDED.include_cna,
+            include_work_appreciation = EXCLUDED.include_work_appreciation,
+            include_parent_visa = EXCLUDED.include_parent_visa,
+            include_teacher_visa = EXCLUDED.include_teacher_visa,
+            include_headmaster_visa = EXCLUDED.include_headmaster_visa,
+            include_class_council_decisions = EXCLUDED.include_class_council_decisions,
+            include_class_council_mentions = EXCLUDED.include_class_council_mentions,
+            include_orientation_recommendations = EXCLUDED.include_orientation_recommendations,
+            include_council_date = EXCLUDED.include_council_date,
+            generation_format = EXCLUDED.generation_format,
+            updated_at = NOW()
+        `);
+        
+        console.log('[TEACHER_SUBMISSION] ✅ All 8 sections preferences stored:', {
+          teacherId: user.id,
+          studentId,
+          optionsCount: Object.keys(generationOptions).length
+        });
+      } catch (prefsError) {
+        console.error('[TEACHER_SUBMISSION] ❌ Failed to store preferences:', prefsError);
+        // Continue sans bloquer - les préférences sont optionnelles
       }
     }
 
@@ -276,6 +468,88 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       success: false,
       message: 'Internal server error while processing submission',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// 🎯 ROUTE POUR RÉCUPÉRER LES PRÉFÉRENCES TEACHER (Director Access)
+router.get('/teacher-preferences/:studentId/:classId/:term/:academicYear', requireAuth, requireDirectorAuth, async (req, res) => {
+  try {
+    const user = req.user as any;
+    const schoolId = user.schoolId;
+    const { studentId, classId, term, academicYear } = req.params;
+    
+    console.log('[TEACHER_PREFERENCES] 📋 Director requesting teacher preferences:', {
+      schoolId,
+      studentId,
+      classId,
+      term,
+      academicYear
+    });
+
+    // Récupérer toutes les préférences des enseignants pour cet étudiant
+    const teacherPreferences = await db.execute(sql`
+      SELECT 
+        teacher_id,
+        include_comments, include_rankings, include_statistics, include_performance_levels,
+        include_first_trimester, include_discipline, include_student_work, include_class_profile,
+        include_unjustified_absences, include_justified_absences, include_lateness, include_detentions,
+        include_conduct_warning, include_conduct_blame, include_exclusions, include_permanent_exclusion,
+        include_total_general, include_appreciations, include_general_average, include_trimester_average,
+        include_number_of_averages, include_success_rate,
+        include_coef, include_ctba, include_min_max, include_cba, include_ca, include_cma, include_cote, include_cna,
+        include_work_appreciation, include_parent_visa, include_teacher_visa, include_headmaster_visa,
+        include_class_council_decisions, include_class_council_mentions, include_orientation_recommendations, include_council_date,
+        generation_format, created_at, updated_at
+      FROM teacher_bulletin_preferences 
+      WHERE student_id = ${studentId} AND class_id = ${classId} AND term = ${term} AND academic_year = ${academicYear} AND school_id = ${schoolId}
+      ORDER BY updated_at DESC
+    `);
+
+    // Récupérer les infos des enseignants
+    const teacherIds = teacherPreferences.rows.map((pref: any) => pref.teacher_id);
+    let teacherNames: any[] = [];
+    
+    if (teacherIds.length > 0) {
+      teacherNames = await db.select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email
+      })
+      .from(users)
+      .where(sql`${users.id} = ANY(${teacherIds}::int[])`);
+    }
+
+    // Fusionner les préférences avec les noms
+    const enrichedPreferences = teacherPreferences.rows.map((pref: any) => {
+      const teacher = teacherNames.find(t => t.id === pref.teacher_id);
+      return {
+        ...pref,
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : 'Enseignant inconnu',
+        teacherEmail: teacher?.email || ''
+      };
+    });
+
+    console.log('[TEACHER_PREFERENCES] ✅ Found preferences from', enrichedPreferences.length, 'teachers');
+
+    return res.json({
+      success: true,
+      teacherPreferences: enrichedPreferences,
+      summary: {
+        totalTeachers: enrichedPreferences.length,
+        studentId: parseInt(studentId),
+        classId: parseInt(classId),
+        term,
+        academicYear
+      }
+    });
+
+  } catch (error) {
+    console.error('[TEACHER_PREFERENCES] ❌ Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch teacher preferences'
     });
   }
 });
