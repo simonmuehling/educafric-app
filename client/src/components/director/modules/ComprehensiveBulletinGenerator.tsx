@@ -615,6 +615,7 @@ export default function ComprehensiveBulletinGenerator() {
   const [includeStatistics, setIncludeStatistics] = useState(true);
   const [includePerformanceLevels, setIncludePerformanceLevels] = useState(true);
   const [generationFormat, setGenerationFormat] = useState<'pdf' | 'batch_pdf'>('pdf');
+  const [templateType, setTemplateType] = useState<'standard' | 'cameroon_official_compact'>('standard');
   
   // Section Évaluation & Trimestre
   const [includeFirstTrimester, setIncludeFirstTrimester] = useState(false);
@@ -4050,6 +4051,44 @@ export default function ComprehensiveBulletinGenerator() {
                         data-testid="include-performance-levels"
                       />
                       <Label htmlFor="include-performance-levels">{t.includePerformanceLevels}</Label>
+                    </div>
+                  </div>
+                  
+                  {/* Template Selector */}
+                  <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg space-y-3 mt-4">
+                    <h4 className="font-semibold text-green-700 dark:text-green-300 flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      {language === 'fr' ? 'Modèle de bulletin' : 'Report Card Template'}
+                    </h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="template-selector">
+                        {language === 'fr' ? 'Sélectionner le modèle de bulletin' : 'Select report card template'}
+                      </Label>
+                      <Select value={templateType} onValueChange={(value: 'standard' | 'cameroon_official_compact') => setTemplateType(value)}>
+                        <SelectTrigger id="template-selector" data-testid="template-selector" className="w-full">
+                          <SelectValue placeholder={language === 'fr' ? 'Choisir un modèle...' : 'Choose a template...'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="standard">
+                            {language === 'fr' ? '📄 Standard Educafric' : '📄 Standard Educafric'}
+                          </SelectItem>
+                          <SelectItem value="cameroon_official_compact">
+                            {language === 'fr' ? '🇨🇲 Officiel Cameroun (Compact)' : '🇨🇲 Cameroon Official (Compact)'}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground">
+                        {templateType === 'cameroon_official_compact' 
+                          ? (language === 'fr' 
+                            ? '✓ Modèle officiel conforme aux normes du Ministère de l\'Éducation du Cameroun'
+                            : '✓ Official template compliant with Cameroon Ministry of Education standards'
+                          )
+                          : (language === 'fr'
+                            ? 'Modèle standard avec toutes les fonctionnalités Educafric'
+                            : 'Standard template with all Educafric features'
+                          )
+                        }
+                      </p>
                     </div>
                   </div>
                 </div>
