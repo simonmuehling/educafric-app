@@ -1246,4 +1246,49 @@ export class ModularStorage {
   async getRecommendedBooksForStudent(studentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForStudent(studentId, schoolId); }
   async getRecommendedBooksForParent(parentId: number, schoolId: number) { return this.libraryStorage.getRecommendedBooksForParent(parentId, schoolId); }
   async getTeacherRecommendations(teacherId: number, schoolId: number) { return this.libraryStorage.getTeacherRecommendations(teacherId, schoolId); }
+  
+  // === SANDBOX SEEDING METHODS - FOR TESTING BULLETIN WORKFLOW ===
+  private seedData: any = null;
+  private seedTimestamp: string | null = null;
+  
+  async seedBulletinData(data: any) {
+    console.log('[STORAGE_SEED] 📊 Storing bulletin test data in memory...');
+    this.seedData = {
+      ...data,
+      seededAt: new Date().toISOString()
+    };
+    this.seedTimestamp = new Date().toISOString();
+    
+    console.log('[STORAGE_SEED] ✅ Bulletin test data stored successfully', {
+      classes: data.classes?.length || 0,
+      students: data.students?.length || 0,
+      subjects: data.subjects?.length || 0,
+      gradeSubmissions: data.teacherGradeSubmissions?.length || 0,
+      bulletins: data.bulletinComprehensive?.length || 0
+    });
+    return true;
+  }
+  
+  async resetSeedData() {
+    console.log('[STORAGE_RESET] 🧹 Clearing all seeded test data...');
+    this.seedData = null;
+    this.seedTimestamp = null;
+    console.log('[STORAGE_RESET] ✅ All seeded data cleared');
+    return true;
+  }
+  
+  async getSeedStatus() {
+    const hasData = this.seedData !== null;
+    return {
+      seeded: hasData,
+      lastSeedAt: this.seedTimestamp,
+      dataCount: hasData ? {
+        schools: 1,
+        classes: this.seedData.classes?.length || 0,
+        students: this.seedData.students?.length || 0,
+        subjects: this.seedData.subjects?.length || 0,
+        bulletins: this.seedData.bulletinComprehensive?.length || 0
+      } : { schools: 0, classes: 0, students: 0, subjects: 0, bulletins: 0 }
+    };
+  }
 }
