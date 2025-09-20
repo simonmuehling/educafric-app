@@ -1216,6 +1216,34 @@ const DocumentsContracts = () => {
       url: '/documents/report-card-a4-optimized-educafric-en.html',
       description: 'Compact report card template optimized for A4 printing - All information on single page, practical format for African schools'
     },
+
+    // === NOUVEAUX CONTRATS ÉCOLE-EDUCAFRIC 2025 ===
+    {
+      id: 36,
+      name: 'CONTRAT ÉCOLE-EDUCAFRIC 2025 - ÉCOLE PAYANTE',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Établissements Scolaires',
+      date: '2025-09-20',
+      status: 'finalized',
+      size: '19.9 KB',
+      format: 'HTML',
+      url: '/documents/contrat-ecoles-payent-educafric-2025.html',
+      description: 'Contrat spécialisé pour les écoles qui paient Educafric avec montant et durée négociables'
+    },
+    {
+      id: 37,
+      name: 'SCHOOL-EDUCAFRIC CONTRACT 2025 - SCHOOL PAYMENT',
+      type: 'contract',
+      category: 'contracts',
+      school: 'Educational Institutions',
+      date: '2025-09-20',
+      status: 'finalized',
+      size: '18.7 KB',
+      format: 'HTML',
+      url: '/documents/school-pays-educafric-contract-2025-en.html',
+      description: 'Specialized contract for schools paying Educafric with negotiable amount and duration'
+    },
   ];
 
   const isWithinDateRange = (downloadDate: string, filter: string): boolean => {
