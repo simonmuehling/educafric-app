@@ -28,6 +28,9 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   studentGender: text("student_gender"), // "M" or "F"
   studentDateOfBirth: text("student_date_of_birth"), // YYYY-MM-DD format
   studentPlaceOfBirth: text("student_place_of_birth"),
+  studentNationality: text("student_nationality"), // Nationalité
+  schoolRegion: text("school_region"), // Région de l'école
+  schoolSubdivision: text("school_subdivision"), // Subdivision de l'école
   isRepeater: boolean("is_repeater").default(false),
   guardianName: text("guardian_name"), // Parent/Guardian full name
   guardianPhone: text("guardian_phone"), // Contact phone number
@@ -47,14 +50,14 @@ export const bulletinComprehensive = pgTable("bulletin_comprehensive", {
   // ===== ACADEMIC PERFORMANCE SUMMARY =====
   // Overall academic performance for the term (consolidated fields)
   totalCoefficient: integer("total_coefficient"), // Sum of all subject coefficients
-  classRank: integer("class_rank"), // Student's rank in the class (1 = best)
+  studentRank: integer("student_rank"), // Student's rank in the class (1 = best)
   overallGrade: text("overall_grade"), // Letter grade (A, B+, B, C+, C, D, E, F)
   
   // ===== CLASS STATISTICS (for Cameroon Official Template) =====
   // Class performance statistics
   classAverage: decimal("class_average", { precision: 5, scale: 2 }), // Class average grade
-  classHighestScore: decimal("class_highest_score", { precision: 5, scale: 2 }), // Best score in class
-  classLowestScore: decimal("class_lowest_score", { precision: 5, scale: 2 }), // Lowest score in class
+  classMax: decimal("class_max", { precision: 5, scale: 2 }), // Best score in class
+  classMin: decimal("class_min", { precision: 5, scale: 2 }), // Lowest score in class
   
   // ===== DISCIPLINE & CONDUCT =====
   // Conduct grade (often shown as /20 in official templates)
@@ -247,6 +250,7 @@ export const bulletinComprehensiveValidationSchema = z.object({
   // Required fields
   studentId: z.number().int().positive("Student ID is required"),
   classId: z.number().int().positive("Class ID is required"),
+  schoolId: z.number().int().positive("School ID is required"),
   term: z.string().min(1, "Term is required"),
   academicYear: z.string().min(1, "Academic year is required"),
   
@@ -257,6 +261,9 @@ export const bulletinComprehensiveValidationSchema = z.object({
   studentGender: z.enum(["M", "F"]).optional(),
   studentDateOfBirth: z.string().optional(),
   studentPlaceOfBirth: z.string().optional(),
+  studentNationality: z.string().optional(),
+  schoolRegion: z.string().optional(),
+  schoolSubdivision: z.string().optional(),
   isRepeater: z.boolean().optional(),
   guardianName: z.string().optional(),
   guardianPhone: z.string().optional(),
@@ -273,13 +280,13 @@ export const bulletinComprehensiveValidationSchema = z.object({
   
   // Academic performance validations (consolidated)
   totalCoefficient: z.number().int().positive().optional(),
-  classRank: z.number().int().positive().optional(),
+  studentRank: z.number().int().positive().optional(),
   overallGrade: z.enum(["A", "B+", "B", "C+", "C", "D", "E", "F"]).optional(),
   
   // Class statistics validations
   classAverage: z.string().optional(),
-  classHighestScore: z.string().optional(),
-  classLowestScore: z.string().optional(),
+  classMax: z.string().optional(),
+  classMin: z.string().optional(),
   
   // Discipline and conduct validations
   conductGradeOutOf20: z.string().optional(),
@@ -411,7 +418,6 @@ export function generateSampleComprehensiveData(studentId: number, classId: numb
     // Academic performance
     totalGeneral: (baseAverage * 9 * 2).toFixed(2), // Approximate total
     generalAverage: baseAverage.toFixed(2),
-    trimesterAverage: baseAverage.toFixed(2),
     numberOfAverages: 9, // Standard subject count
     successRate: (Math.min(95, 60 + baseAverage * 2)).toFixed(2), // Correlated with average
     
