@@ -171,40 +171,22 @@ router.post('/teacher-submission', requireAuth, requireTeacherAuth, async (req, 
       term,
       academicYear,
       schoolId,
-      teacherId: user.id,
       status: 'teacher_submitted',
       
-      // Manual data from teacher
-      unjustifiedAbsenceHours: manualData.unjustifiedAbsenceHours || '',
-      justifiedAbsenceHours: manualData.justifiedAbsenceHours || '',
-      latenessMinutes: manualData.latenessMinutes || '',
-      detentionHours: manualData.detentionHours || '',
-      termGeneral: manualData.termGeneral || '',
-      termClass: manualData.termClass || '',
-      termCoeff: manualData.termCoeff || '',
-      termRank: manualData.termRank || '',
-      termStudents: manualData.termStudents || '',
-      classGeneral: manualData.classGeneral || '',
+      // Manual data from teacher - using decimal strings for precision
+      unjustifiedAbsenceHours: manualData.unjustifiedAbsenceHours || '0.00',
+      justifiedAbsenceHours: manualData.justifiedAbsenceHours || '0.00',
+      detentionHours: manualData.detentionHours || '0.00',
+      
+      // Text fields
       appreciation: manualData.appreciation || '',
       conductAppreciation: manualData.conductAppreciation || '',
       workAppreciation: manualData.workAppreciation || '',
       councilDecision: manualData.councilDecision || '',
-      councilComment: manualData.councilComment || '',
       
-      // Generation options (stored as JSONB)
-      generationOptions: generationOptions ? JSON.stringify(generationOptions) : null,
-      
-      // Metadata
+      // Initialize with defaults
       createdAt: new Date(),
       updatedAt: new Date(),
-      
-      // Initialize other required fields with defaults
-      bulletinPdfUrl: null,
-      bulletinPdfPath: null,
-      emailSent: false,
-      smsSent: false,
-      whatsappSent: false,
-      notificationLog: null,
       version: 1
     });
 
