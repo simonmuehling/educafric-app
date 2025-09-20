@@ -13,7 +13,6 @@ const DocumentsContracts = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [downloadDateFilter, setDownloadDateFilter] = useState('');
   const [creationDateFilter, setCreationDateFilter] = useState('');
   const [downloadedDocs, setDownloadedDocs] = useState<{[key: number]: string}>({});
   
@@ -37,7 +36,6 @@ const DocumentsContracts = () => {
       subtitle: 'Hub documentaire commercial et gestion des contrats',
       searchPlaceholder: 'Rechercher document...',
       addDocument: 'Ajouter Document',
-      downloadDateFilter: 'Filtrer par date de téléchargement',
       creationDateFilter: 'Filtrer par date de création',
       allDates: 'Toutes les dates',
       today: 'Aujourd\'hui',
@@ -75,7 +73,6 @@ const DocumentsContracts = () => {
       subtitle: 'Commercial document hub and contract management',
       searchPlaceholder: 'Search documents...',
       addDocument: 'Add Document',
-      downloadDateFilter: 'Filter by download date',
       creationDateFilter: 'Filter by creation date',
       allDates: 'All dates',
       today: 'Today',
@@ -234,12 +231,12 @@ const DocumentsContracts = () => {
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
-      date: '2025-08-17',
+      date: '2025-09-20',
       status: 'finalized',
       size: '54.1 KB',
       format: 'HTML',
       url: '/documents/educafric-contrat-officiel-2025-actualise.html',
-      description: 'Version 6.0 - Contrat officiel actualisé du 17 août 2025 avec nouveau modèle de paiement : EDUCAFRIC paie maintenant les établissements. École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an'
+      description: 'Version 6.0 - Contrat officiel actualisé du 20 septembre 2025 avec nouveau modèle de paiement : EDUCAFRIC paie maintenant les établissements. École Publique: 50,000 XAF/an, École Privée: 75,000 XAF/an, École Entreprise: 150,000 XAF/an, École GPS: 50,000 XAF/an, École Publique Complet: 90,000 XAF/an, École Privée Complet: 115,000 XAF/an - Parents: Publique 12,000 XAF/an, Privée 18,000 XAF/an, GPS 12,000 XAF/an - Freelancers Professionnel: 25,000 XAF/an'
     },
     {
       id: 53,
@@ -981,7 +978,7 @@ const DocumentsContracts = () => {
       type: 'pricing',
       category: 'contracts',
       school: 'Documentation Officielle',
-      date: '2025-09-06',
+      date: '2025-09-20',
       status: 'finalized',
       size: '28 KB',
       format: 'HTML',
@@ -1035,7 +1032,7 @@ const DocumentsContracts = () => {
       type: 'contract',
       category: 'contracts',
       school: 'Tous Partenaires',
-      date: '2025-09-06',
+      date: '2025-09-20',
       status: 'finalized',
       size: '52 KB',
       format: 'HTML',
@@ -1250,12 +1247,10 @@ const DocumentsContracts = () => {
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            doc.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-      const matchesDownloadDate = downloadDateFilter === 'all' || downloadDateFilter === '' || 
-                                 isWithinDateRange(downloadedDocs[doc.id], downloadDateFilter);
       const matchesCreationDate = creationDateFilter === 'all' || creationDateFilter === '' || 
                                  isWithinDateRange(doc.date, creationDateFilter);
       
-      return matchesSearch && matchesCategory && matchesDownloadDate && matchesCreationDate;
+      return matchesSearch && matchesCategory && matchesCreationDate;
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
@@ -1397,23 +1392,6 @@ const DocumentsContracts = () => {
                   onChange={(e) => setCreationDateFilter(e.target.value)}
                   className="text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   title={t.creationDateFilter}
-                >
-                  <option value="all">{t.allDates}</option>
-                  <option value="today">{t.today}</option>
-                  <option value="yesterday">{t.yesterday}</option>
-                  <option value="thisWeek">{t.thisWeek}</option>
-                  <option value="thisMonth">{t.thisMonth}</option>
-                </select>
-              </div>
-              
-              {/* Download Date Filter */}
-              <div className="flex items-center gap-2">
-                <Download className="w-4 h-4 text-gray-500" />
-                <select 
-                  value={downloadDateFilter} 
-                  onChange={(e) => setDownloadDateFilter(e.target.value)}
-                  className="text-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  title={t.downloadDateFilter}
                 >
                   <option value="all">{t.allDates}</option>
                   <option value="today">{t.today}</option>
