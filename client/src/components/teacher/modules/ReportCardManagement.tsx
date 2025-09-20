@@ -148,9 +148,22 @@ const ReportCardManagement: React.FC = () => {
     enabled: !!user
   });
 
-  // Check if sandbox mode and no data available
+  // Extract classes from response
+  const classes = useMemo(() => {
+    if (!classesData) return [];
+    if (Array.isArray(classesData)) return classesData;
+    if (classesData.classes && Array.isArray(classesData.classes)) return classesData.classes;
+    // Handle schoolsWithClasses format
+    if (classesData.schoolsWithClasses && Array.isArray(classesData.schoolsWithClasses)) {
+      const allClasses = classesData.schoolsWithClasses.flatMap((school: any) => school.classes || []);
+      return allClasses;
+    }
+    return [];
+  }, [classesData]);
+
+  // Check if sandbox mode and no data available  
   const isSandboxMode = user?.email?.includes('sandbox') || user?.email?.includes('@test.educafric.com');
-  const hasNoData = !isLoadingClasses && (!classesData || classesData.length === 0);
+  const hasNoData = !isLoadingClasses && classes.length === 0;
 
   // Mutation for loading test data
   const loadTestDataMutation = useMutation({
@@ -174,14 +187,6 @@ const ReportCardManagement: React.FC = () => {
       });
     }
   });
-
-  // Extract classes from response
-  const classes = useMemo(() => {
-    if (!classesData) return [];
-    if (Array.isArray(classesData)) return classesData;
-    if (classesData.classes && Array.isArray(classesData.classes)) return classesData.classes;
-    return [];
-  }, [classesData]);
 
   // Fetch students for selected class
   const { data: studentsData } = useQuery({
@@ -333,16 +338,26 @@ const ReportCardManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Sandbox Test Data Button */}
-      {isSandboxMode && hasNoData && (
+      {/* Sandbox Test Data Button - Always show in sandbox mode */}
+      {isSandboxMode && (
         <Card className="border-dashed border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/20">
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <Database className="h-12 w-12 text-blue-500 mb-4" />
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Aucune donnée disponible pour les tests
-            </h3>
-            <p className="text-blue-700 dark:text-blue-300 text-center mb-6 max-w-md">
-              Vous êtes en mode sandbox. Chargez des données de test pour explorer le système de bulletins unifié.
+          <CardContent className="flex flex-col items-center justify-center py-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Database className="h-8 w-8 text-blue-500" />
+              <div>
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                  Mode Sandbox - Données de Test
+                </h3>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  {hasNoData ? 'Aucune donnée disponible' : `${classes.length} classes chargées`}
+                </p>
+              </div>
+            </div>
+            <p className="text-blue-700 dark:text-blue-300 text-center mb-4 text-sm max-w-md">
+              {hasNoData 
+                ? 'Chargez des données de test pour explorer le système de bulletins unifié.'
+                : 'Rechargez des données fraîches pour tester le système avec de nouvelles informations.'
+              }
             </p>
             <Button 
               onClick={() => loadTestDataMutation.mutate()}
@@ -358,13 +373,13 @@ const ReportCardManagement: React.FC = () => {
               ) : (
                 <>
                   <Database className="h-4 w-4 mr-2" />
-                  Charger les données de test
+                  {hasNoData ? 'Charger les données de test' : 'Regénérer les données de test'}
                 </>
               )}
             </Button>
-            <div className="mt-4 text-xs text-blue-600 dark:text-blue-400 text-center">
-              <p>✅ 2 classes • 16 étudiants • 6 matières • Données réalistes</p>
-              <p>🔄 Se réinitialise automatiquement au redémarrage du serveur</p>
+            <div className="mt-3 text-xs text-blue-600 dark:text-blue-400 text-center">
+              <p>✅ 2 classes • 16 étudiants • 6 matières • Données cohérentes</p>
+              <p>🔄 Données temporaires en mémoire (redémarrage = reset)</p>
             </div>
           </CardContent>
         </Card>
