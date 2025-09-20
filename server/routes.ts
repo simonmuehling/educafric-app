@@ -1695,12 +1695,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // TEACHER API ROUTES - Complete implementation
+  // TEACHER API ROUTES - Complete implementation with sandbox data integration
   app.get("/api/teacher/classes", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
       
-      // Grouper par école avec les classes assignées
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.sandboxMode;
+      
+      if (isSandboxUser) {
+        console.log('[TEACHER_API] 🔧 Sandbox user detected, serving sandbox classes data');
+        // Use rich sandbox data for sandbox users
+        const sandboxSchoolsWithClasses = [
+          {
+            schoolId: 1,
+            schoolName: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
+            schoolAddress: 'Quartier Bastos, Avenue Kennedy, Yaoundé, Cameroun',
+            schoolPhone: '+237 222 123 456',
+            isConnected: true,
+            assignmentDate: '2025-09-01',
+            classes: [
+              {
+                id: 1,
+                name: '6ème A',
+                level: '6ème',
+                section: 'A',
+                studentCount: 28,
+                subject: 'Mathématiques',
+                room: 'Salle 105',
+                schedule: 'Lun-Mar-Jeu 08:00-12:00',
+                teacherId: 1,
+                teacherName: 'Mme. Essola Catherine',
+                lastUpdated: '2025-09-07',
+                canSignBulletins: true
+              },
+              {
+                id: 2,
+                name: '5ème B',
+                level: '5ème',
+                section: 'B',
+                studentCount: 32,
+                subject: 'Français',
+                room: 'Salle 203',
+                schedule: 'Mar-Mer-Ven 09:00-13:00',
+                teacherId: 2,
+                teacherName: 'M. Biya François',
+                lastUpdated: '2025-09-07',
+                canSignBulletins: true
+              },
+              {
+                id: 3,
+                name: '4ème C',
+                level: '4ème',
+                section: 'C',
+                studentCount: 26,
+                subject: 'Histoire-Géographie',
+                room: 'Salle 301',
+                schedule: 'Lun-Mer-Ven 10:00-14:00',
+                teacherId: 3,
+                teacherName: 'M. Ondoa Vincent',
+                lastUpdated: '2025-09-07',
+                canSignBulletins: false
+              }
+            ]
+          }
+        ];
+        return res.json({ success: true, schoolsWithClasses: sandboxSchoolsWithClasses });
+      }
+      
+      // Grouper par école avec les classes assignées (données normales)
       const schoolsWithClasses = [
         {
           schoolId: 1,
@@ -1885,6 +1951,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/teacher/students", requireAuth, async (req, res) => {
     try {
       const user = req.user as any;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.sandboxMode;
+      
+      if (isSandboxUser) {
+        console.log('[TEACHER_API] 🔧 Sandbox user detected, serving sandbox students data');
+        // Use rich sandbox data for sandbox users
+        const sandboxStudents = [
+          {
+            id: 1, 
+            firstName: 'Marie', 
+            lastName: 'Nkomo', 
+            email: 'marie.nkomo@test.educafric.com',
+            classId: 1, 
+            className: '6ème A', 
+            gender: 'F', 
+            phone: '+237655123456',
+            grades: { math: 16.5, french: 15.2, english: 17.0 }, 
+            lastActivity: '2025-09-07',
+            status: 'Actif', 
+            parentPhone: '+237677234567',
+            age: 12,
+            enrollmentDate: '2024-09-01',
+            attendance: 95.8,
+            behavior: 'Excellent'
+          },
+          {
+            id: 2, 
+            firstName: 'Paul', 
+            lastName: 'Atangana', 
+            email: 'paul.atangana@test.educafric.com',
+            classId: 1, 
+            className: '6ème A', 
+            gender: 'M', 
+            phone: '+237655123457',
+            grades: { math: 14.0, french: 16.8, english: 15.5 }, 
+            lastActivity: '2025-09-07',
+            status: 'Actif', 
+            parentPhone: '+237677234568',
+            age: 13,
+            enrollmentDate: '2024-09-01',
+            attendance: 92.3,
+            behavior: 'Bon'
+          },
+          {
+            id: 3, 
+            firstName: 'Sophie', 
+            lastName: 'Mbida', 
+            email: 'sophie.mbida@test.educafric.com',
+            classId: 2, 
+            className: '5ème B', 
+            gender: 'F', 
+            phone: '+237655123458',
+            grades: { math: 18.0, french: 17.5, english: 16.2 }, 
+            lastActivity: '2025-09-07',
+            status: 'Actif', 
+            parentPhone: '+237677234569',
+            age: 14,
+            enrollmentDate: '2024-09-01',
+            attendance: 98.5,
+            behavior: 'Excellent'
+          },
+          {
+            id: 4, 
+            firstName: 'Jean', 
+            lastName: 'Kamga', 
+            email: 'jean.kamga@test.educafric.com',
+            classId: 3, 
+            className: '4ème C', 
+            gender: 'M', 
+            phone: '+237655123459',
+            grades: { math: 15.8, french: 14.5, english: 16.8 }, 
+            lastActivity: '2025-09-07',
+            status: 'Actif', 
+            parentPhone: '+237677234570',
+            age: 15,
+            enrollmentDate: '2024-09-01',
+            attendance: 89.7,
+            behavior: 'Bon'
+          },
+          {
+            id: 5, 
+            firstName: 'Grace', 
+            lastName: 'Fouda', 
+            email: 'grace.fouda@test.educafric.com',
+            classId: 4, 
+            className: '3ème D', 
+            gender: 'F', 
+            phone: '+237655123460',
+            grades: { math: 17.2, french: 18.0, english: 17.8 }, 
+            lastActivity: '2025-09-07',
+            status: 'Actif', 
+            parentPhone: '+237677234571',
+            age: 16,
+            enrollmentDate: '2024-09-01',
+            attendance: 96.4,
+            behavior: 'Excellent'
+          }
+        ];
+        return res.json(sandboxStudents);
+      }
       
       const students = [
         {
@@ -6831,10 +7001,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // School profile
+  // School profile with sandbox data integration
   app.get('/api/school/profile', requireAuth, requireAnyRole(['Director', 'Admin']), async (req, res) => {
     try {
       const user = req.user as any;
+      
+      // Check if user is in sandbox/demo mode
+      const isSandboxUser = user.email?.includes('@test.educafric.com') || 
+                           user.email?.includes('@educafric.demo') || 
+                           user.email?.includes('sandbox@') || 
+                           user.sandboxMode;
+      
+      if (isSandboxUser) {
+        console.log('[SCHOOL_API] 🔧 Sandbox user detected, serving sandbox school profile');
+        // Use rich sandbox data for sandbox users
+        const sandboxProfile = {
+          id: 1,
+          name: 'École Internationale de Yaoundé - Sandbox EDUCAFRIC 2025 ✨',
+          type: 'Privé Bilingue Premium',
+          address: 'Quartier Bastos, Avenue Kennedy, Yaoundé, Cameroun',
+          phone: '+237 222 123 456',
+          email: 'contact@eiy-sandbox.educafric.com',
+          website: 'www.eiy-sandbox.educafric.com',
+          director: 'Dr. Marie NKOMO',
+          vicePrincipal: 'Prof. Paul ATANGANA',
+          studentsCount: 542,
+          teachersCount: 38,
+          classesCount: 22,
+          established: 2010,
+          lastUpdate: '2025-09-07',
+          accreditation: 'Ministère de l\'Éducation du Cameroun - Accréditation Premium 2025',
+          curriculum: 'Programme Bilingue Franco-Anglais avec IA & Signatures Numériques',
+          newFeatures2025: [
+            'Signatures numériques bulletins par professeurs principaux',
+            'Rapports filtrés par classes et enseignants', 
+            'Documents commerciaux bilingues français/anglais',
+            'Vérification QR codes DEMO2024 et EDU2024',
+            'Interface complètement bilingue'
+          ],
+          levels: ['Maternelle', 'Primaire', 'Collège', 'Lycée'],
+          specializations: ['Sciences & Technologies', 'Langues & Littératures', 'Arts & Communication'],
+          facilities: ['Laboratoires numériques', 'Bibliothèque multimédia', 'Centre sportif', 'Auditorium'],
+          status: 'Active',
+          academicYear: '2024-2025',
+          currentTerm: 'Trimestre 2',
+          logoUrl: null,
+          timezone: 'Africa/Douala',
+          language: 'fr'
+        };
+        return res.json(sandboxProfile);
+      }
       
       const profile = {
         id: 1,
