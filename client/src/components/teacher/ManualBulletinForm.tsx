@@ -63,6 +63,121 @@ const defaultCompetences: Record<string, string> = {
   "INFORMATIQUE": "Identifier les éléments matériels / logiciels…",
 };
 
+// ====== TEMPLATES COMPÉTENCES PAR TRIMESTRE ======
+// Compétences pré-remplies selon le référentiel africain
+const COMPETENCE_TEMPLATES = {
+  Premier: {
+    ANGLAIS: [
+      "Se présenter, parler de la famille et de l'école",
+      "Acheter/vendre, découvrir les métiers",
+    ].join("\n"),
+    INFORMATIQUE: [
+      "Identifier matériel/logiciel d'un micro-ordinateur",
+      "Connaitre les règles en salle info",
+    ].join("\n"),
+    FRANÇAIS: [
+      "Orthographier et comprendre un dialogue",
+      "Écrire une lettre privée (structure et politesse)",
+    ].join("\n"),
+    MATHÉMATIQUES: [
+      "Résoudre des opérations de base (addition, soustraction)",
+      "Comprendre les notions de géométrie plane",
+    ].join("\n"),
+    SCIENCES: [
+      "Observer et décrire les phénomènes naturels",
+      "Identifier les organes du corps humain",
+    ].join("\n"),
+    GÉOGRAPHIE: [
+      "Se situer dans l'espace et le temps",
+      "Identifier les continents et océans",
+    ].join("\n"),
+    HISTOIRE: [
+      "Comprendre les périodes historiques de base",
+      "Identifier les personnages historiques importants",
+    ].join("\n"),
+  },
+  Deuxième: {
+    ANGLAIS: [
+      "Décrire son quotidien, loisirs et habitudes (Present Simple)",
+      "Donner/recevoir des indications (directions, lieux)",
+    ].join("\n"),
+    INFORMATIQUE: [
+      "Gestion des fichiers et dossiers (créer, renommer, organiser)",
+      "Traitement de texte : mise en forme de base",
+    ].join("\n"),
+    FRANÇAIS: [
+      "Compréhension et résumé d'un récit",
+      "Production d'un paragraphe argumentatif simple",
+    ].join("\n"),
+    MATHÉMATIQUES: [
+      "Résoudre des problèmes avec multiplication et division",
+      "Comprendre les fractions et pourcentages",
+    ].join("\n"),
+    SCIENCES: [
+      "Expérimenter et analyser des réactions simples",
+      "Comprendre les cycles de la vie",
+    ].join("\n"),
+    GÉOGRAPHIE: [
+      "Analyser les climats et reliefs",
+      "Comprendre l'organisation territoriale",
+    ].join("\n"),
+    HISTOIRE: [
+      "Analyser les causes et conséquences d'événements",
+      "Comprendre l'évolution des sociétés",
+    ].join("\n"),
+  },
+  Troisième: {
+    ANGLAIS: [
+      "Parler de projets et d'événements passés (Past Simple)",
+      "Exprimer des intentions et plans (Futur proche)",
+    ].join("\n"),
+    INFORMATIQUE: [
+      "Présentation : diaporama (insertion d'images/tableaux)",
+      "Sensibilisation sécurité numérique (mots de passe, phishing)",
+    ].join("\n"),
+    FRANÇAIS: [
+      "Analyse grammaticale (accords essentiels)",
+      "Écriture d'un récit cohérent (début, développement, fin)",
+    ].join("\n"),
+    MATHÉMATIQUES: [
+      "Résoudre des équations du premier degré",
+      "Maîtriser les propriétés géométriques avancées",
+    ].join("\n"),
+    SCIENCES: [
+      "Comprendre les lois physiques fondamentales",
+      "Analyser les écosystèmes et biodiversité",
+    ].join("\n"),
+    GÉOGRAPHIE: [
+      "Synthèse des connaissances géographiques",
+      "Analyser les enjeux du développement durable",
+    ].join("\n"),
+    HISTOIRE: [
+      "Synthèse historique et perspectives d'avenir",
+      "Comprendre les enjeux contemporains",
+    ].join("\n"),
+  },
+};
+
+function prefillCompetencesFor(trimester: string) {
+  return (prevRows: SubjectRow[]) => prevRows.map(r => ({
+    ...r,
+    competences: (COMPETENCE_TEMPLATES?.[trimester as keyof typeof COMPETENCE_TEMPLATES]?.[normalizeKey(r.matiere)] || r.competences || "")
+  }));
+}
+
+function normalizeKey(m: string): string {
+  if (!m) return "";
+  const k = m.toUpperCase();
+  if (k.includes("ANGLAIS")) return "ANGLAIS";
+  if (k.includes("INFORMATIQUE")) return "INFORMATIQUE";
+  if (k.includes("FRANÇAIS") || k.includes("FRANCAIS")) return "FRANÇAIS";
+  if (k.includes("MATHÉMATIQUES") || k.includes("MATHEMATIQUES")) return "MATHÉMATIQUES";
+  if (k.includes("SCIENCES")) return "SCIENCES";
+  if (k.includes("GÉOGRAPHIE") || k.includes("GEOGRAPHIE")) return "GÉOGRAPHIE";
+  if (k.includes("HISTOIRE")) return "HISTOIRE";
+  return k;
+}
+
 interface SubjectRow {
   matiere: string;
   enseignant: string;
@@ -368,6 +483,14 @@ export default function ManualBulletinForm({
                 <option value="Troisième">Troisième</option>
               </select>
             </div>
+            <button 
+              type="button" 
+              onClick={() => setRows(prefillCompetencesFor(meta.trimestre))} 
+              className="w-full px-3 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium flex items-center justify-center gap-2"
+              data-testid="button-prefill-competencies"
+            >
+              ✨ Préremplir les compétences du trimestre
+            </button>
           </div>
         </div>
       </div>
