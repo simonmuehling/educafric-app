@@ -81,6 +81,12 @@ export const useRealTimeUpdates = (options: UseRealTimeOptions = {}) => {
       const port = window.location.port || '5000';
       host = `${hostname}:${port}`;
       console.log('[REALTIME] 🔧 Using fallback host:', host);
+    } else if (host.includes(':undefined')) {
+      // Fix cases where port is undefined in the host string
+      const hostname = window.location.hostname || 'localhost';
+      const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
+      host = port && port !== '80' && port !== '443' ? `${hostname}:${port}` : hostname;
+      console.log('[REALTIME] 🔧 Fixed undefined port in host:', host);
     }
     
     // Remove insecure sessionToken from URL - authentication should be handled via headers or cookies
