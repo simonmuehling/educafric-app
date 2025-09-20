@@ -604,7 +604,7 @@ export default function ComprehensiveBulletinGenerator() {
   const [selectedTerm, setSelectedTerm] = useState<'T1' | 'T2' | 'T3'>('T1');
   const [academicYear, setAcademicYear] = useState('2024-2025');
   
-  // Lazy loading state for tabs (mount-on-enter pattern)
+  // Simplified tab state without student-management
   const [activeTab, setActiveTab] = useState('class-selection');
   const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set(['class-selection']));
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
@@ -3079,6 +3079,183 @@ export default function ComprehensiveBulletinGenerator() {
                       </CardContent>
                     </Card>
                   </div>
+                </div>
+              )}
+
+              {/* Student Selection Section */}
+              {selectedClass && dataLoadingEnabled && (
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      {language === 'fr' ? 'Sélection des Élèves' : 'Student Selection'}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleSelectAll}
+                        variant="outline"
+                        size="sm"
+                        data-testid="select-all-button"
+                        disabled={!filteredStudents.some(s => s.approvedGrades.length > 0)}
+                      >
+                        {selectedStudents.length === filteredStudents.filter(s => s.approvedGrades.length > 0).length 
+                          ? (language === 'fr' ? 'Désélectionner tout' : 'Deselect all')
+                          : (language === 'fr' ? 'Sélectionner tout' : 'Select all')}
+                      </Button>
+                      <Badge variant="secondary">
+                        {selectedStudents.length} {language === 'fr' ? 'sélectionné(s)' : 'selected'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder={language === 'fr' ? 'Rechercher un élève...' : 'Search for a student...'}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                      data-testid="search-students"
+                    />
+                  </div>
+
+                  {/* Info message when no students have approved grades */}
+                  {filteredStudents.length > 0 && filteredStudents.filter(s => s.approvedGrades?.length > 0).length === 0 && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <h4 className="font-medium text-amber-900">
+                            {language === 'fr' ? 'Aucune note approuvée trouvée' : 'No approved grades found'}
+                          </h4>
+                          <p className="text-sm text-amber-700">
+                            {language === 'fr' 
+                              ? 'Cette classe n\'a aucun élève avec des notes approuvées pour cette période. Veuillez approuver les notes via le module "Validation des Notes" ou sélectionner une autre classe/trimestre.'
+                              : 'This class has no students with approved grades for this period. Please approve grades via the "Grade Validation" module or select another class/term.'}
+                          </p>
+                          <div className="text-sm text-amber-600">
+                            📊 <strong>0</strong> {language === 'fr' ? 'élèves avec notes' : 'students with grades'} / <strong>{filteredStudents.length}</strong> total
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Students count info when some students have grades */}
+                  {filteredStudents.length > 0 && filteredStudents.filter(s => s.approvedGrades?.length > 0).length > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700">
+                          📊 <strong>{filteredStudents.filter(s => s.approvedGrades?.length > 0).length}</strong> {language === 'fr' ? 'élèves avec notes' : 'students with grades'} / <strong>{filteredStudents.length}</strong> total
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Students List */}
+                  {loadingStudents ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span>{language === 'fr' ? 'Chargement des élèves...' : 'Loading students...'}</span>
+                    </div>
+                  ) : filteredStudents.length > 0 ? (
+                    <div className="grid gap-3 max-h-96 overflow-y-auto">
+                      {filteredStudents.map((student: StudentData) => {
+                        const qualityStatus = getStudentQualityStatus(student);
+                        const isSelected = selectedStudents.includes(student.id);
+                        const hasApprovedGrades = student.approvedGrades.length > 0;
+                        
+                        return (
+                          <div 
+                            key={student.id} 
+                            className={cn(
+                              "flex items-center space-x-3 p-3 border rounded-lg transition-colors",
+                              hasApprovedGrades 
+                                ? "border-green-200 bg-green-50/50 hover:bg-green-100/80" 
+                                : "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed",
+                              isSelected && hasApprovedGrades && "ring-2 ring-blue-500 bg-blue-50"
+                            )}
+                            data-testid={`student-row-${student.id}`}
+                          >
+                            <Checkbox
+                              checked={isSelected}
+                              disabled={!hasApprovedGrades}
+                              onCheckedChange={(checked) => 
+                                handleStudentSelection(student.id, checked as boolean)
+                              }
+                              data-testid={`student-checkbox-${student.id}`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className={cn(
+                                  "text-sm font-medium",
+                                  hasApprovedGrades ? "text-gray-900" : "text-gray-500"
+                                )}>
+                                  {student.firstName} {student.lastName}
+                                </p>
+                                {qualityStatus.icon && (
+                                  <div className={cn("text-xs px-2 py-0.5 rounded-full", qualityStatus.color)}>
+                                    {qualityStatus.icon}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {hasApprovedGrades ? (
+                                <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
+                                  <div className="flex items-center gap-1">
+                                    <BookOpen className="h-3 w-3" />
+                                    <span>{student.approvedGrades.length} matières</span>
+                                  </div>
+                                  
+                                  {student.overallAverage && (
+                                    <div className="flex items-center gap-1">
+                                      <TrendingUp className="h-3 w-3" />
+                                      <span>Moy. {student.overallAverage.toFixed(1)}/20</span>
+                                    </div>
+                                  )}
+                                  
+                                  {student.rank && (
+                                    <div className="flex items-center gap-1">
+                                      <Award className="h-3 w-3" />
+                                      <span>Rang {student.rank}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {language === 'fr' ? 'Aucune note approuvée' : 'No approved grades'}
+                                </p>
+                              )}
+                            </div>
+                            
+                            {hasApprovedGrades && (
+                              <Button
+                                onClick={() => {
+                                  setPreviewStudentId(student.id);
+                                  setShowPreviewDialog(true);
+                                }}
+                                variant="outline"
+                                size="sm"
+                                data-testid={`preview-button-${student.id}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                <span className="hidden sm:inline">
+                                  {language === 'fr' ? 'Aperçu' : 'Preview'}
+                                </span>
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>{language === 'fr' ? 'Aucun élève trouvé pour cette classe.' : 'No students found for this class.'}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
