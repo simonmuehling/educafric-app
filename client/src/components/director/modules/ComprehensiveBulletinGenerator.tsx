@@ -584,7 +584,7 @@ export default function ComprehensiveBulletinGenerator() {
   const { user } = useAuth();
 
   // Helper pour obtenir les labels dans la langue courante
-  const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
+  // const t = (key: keyof typeof BILINGUAL_LABELS.fr) => BILINGUAL_LABELS[language][key];
 
   // State management
   const [selectedClass, setSelectedClass] = useState<string>('');
@@ -2782,9 +2782,9 @@ export default function ComprehensiveBulletinGenerator() {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2 text-2xl">
             <GraduationCap className="h-8 w-8 text-blue-600" />
-            {t('comprehensiveBulletinGenerator')}
+            {language === 'fr' ? 'Générateur de Bulletins Complet' : 'Comprehensive Bulletin Generator'}
           </CardTitle>
-          <p className="text-muted-foreground">{t('subtitle')}</p>
+          <p className="text-muted-foreground">{language === 'fr' ? 'Gérez la génération complète des bulletins scolaires' : 'Manage complete school bulletin generation'}</p>
         </CardHeader>
       </Card>
 
@@ -2793,7 +2793,7 @@ export default function ComprehensiveBulletinGenerator() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-center gap-4">
             <Label htmlFor="language-selector" className="text-sm font-medium">
-              {t('language')} / Language:
+              {language === 'fr' ? 'Langue' : 'Language'} / Language:
             </Label>
             <Select 
               value={language} 
@@ -2821,52 +2821,52 @@ export default function ComprehensiveBulletinGenerator() {
           <TabsList className="flex w-max min-w-full h-auto p-1 gap-1 bg-muted rounded-lg">
             <TabsTrigger value="class-selection" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <School className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('classSelection')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Sélection de Classe' : 'Class Selection'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Classes' : 'Classes'}</span>
             </TabsTrigger>
             <TabsTrigger value="student-management" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Users className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('studentManagement')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Gestion des Élèves' : 'Student Management'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Élèves' : 'Students'}</span>
             </TabsTrigger>
             <TabsTrigger value="manual-data-entry" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Edit3 className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('manualDataEntry')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Saisie Manuelle' : 'Manual Data Entry'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Saisie' : 'Entry'}</span>
             </TabsTrigger>
             <TabsTrigger value="sanctions-disciplinaires" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('disciplinarySanctions')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Sanctions Disciplinaires' : 'Disciplinary Sanctions'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Sanctions' : 'Sanctions'}</span>
             </TabsTrigger>
             <TabsTrigger value="generation-options" disabled={!selectedClass} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Settings className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('generationOptions')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Options de Génération' : 'Generation Options'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Options' : 'Options'}</span>
             </TabsTrigger>
             <TabsTrigger value="bulk-operations" disabled={selectedStudents.length === 0} className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Download className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('bulkOperations')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Opérations en Lot' : 'Bulk Operations'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Lots' : 'Bulk'}</span>
             </TabsTrigger>
             <TabsTrigger value="pending-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <Clock className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('pendingBulletins')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins en Attente' : 'Pending Bulletins'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'En Cours' : 'Pending'}</span>
             </TabsTrigger>
             <TabsTrigger value="approved-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <CheckCircle className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('approvedBulletins')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins Approuvés' : 'Approved Bulletins'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Approuvés' : 'Approved'}</span>
             </TabsTrigger>
             <TabsTrigger value="sent-bulletins" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <FileDown className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('sentBulletins')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Bulletins Envoyés' : 'Sent Bulletins'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Envoyés' : 'Sent'}</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
               <BarChart3 className="h-4 w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{t('reports')}</span>
+              <span className="hidden sm:inline">{language === 'fr' ? 'Rapports' : 'Reports'}</span>
               <span className="sm:hidden">{language === 'fr' ? 'Stats' : 'Reports'}</span>
             </TabsTrigger>
           </TabsList>
@@ -5851,7 +5851,10 @@ export default function ComprehensiveBulletinGenerator() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t.confirmGeneration}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t.confirmationMessage.replace('{count}', selectedStudents.length.toString())}
+              {language === 'fr' 
+                ? `Voulez-vous générer ${selectedStudents.length} bulletins ?`
+                : `Do you want to generate ${selectedStudents.length} bulletins?`
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
