@@ -212,9 +212,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       notifications: 'Notifications',
       schoolAdministrators: 'Administrateurs Délégués',
       
-      // Grade Review System
-      gradeReview: 'Révision des Notes',
-      gradeReviewQueue: 'File de Révision',
       pdfGenerators: 'Générateurs PDF',
 
       finances: 'Finances',
@@ -241,9 +238,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       notifications: 'Notifications',
       schoolAdministrators: 'Delegate Administrators',
       
-      // Grade Review System
-      gradeReview: 'Grade Review',
-      gradeReviewQueue: 'Review Queue',
       pdfGenerators: 'PDF Generators',
 
       finances: 'Finances',
@@ -406,27 +400,6 @@ const DirectorDashboard: React.FC<DirectorDashboardProps> = ({ activeModule }) =
       icon: <BookOpen className="w-6 h-6" />,
       color: 'bg-emerald-500',
       component: createDynamicModule('content-approval')
-    },
-    {
-      id: 'grade-review-queue',
-      label: t.gradeReview,
-      icon: <CheckSquare className="w-6 h-6" />,
-      color: 'bg-blue-600',
-      component: (
-        <PremiumFeatureGate
-          featureName="Système Révision Notes"
-          userType="School"
-          features={[
-            "Révision approfondie des notes enseignants",
-            "Workflow d'approbation automatisé",
-            "Détection d'anomalies et validation",
-            "Notifications et suivi en temps réel",
-            "Analytics de performance pédagogique"
-          ]}
-        >
-          {createDynamicModule('grade-review-queue')}
-        </PremiumFeatureGate>
-      )
     },
     {
       id: 'notifications',

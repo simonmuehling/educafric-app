@@ -51,10 +51,6 @@ class FastModuleLoader {
       'pdf-generators': () => import('@/components/director/modules/PDFGenerators'),
       'academic-management': () => import('@/components/director/modules/AcademicManagementSuite'),
       
-      // Grade Review System - Premium Feature
-      'grade-review-queue': () => import('@/components/director/modules/GradeReviewQueue'),
-      'grade-review': () => import('@/components/director/modules/GradeReviewQueue'), // Alias
-      'detailed-grade-review': () => import('@/components/director/modules/DetailedGradeReview'),
       
       // =============================================
       // 💼 COMMERCIAL MODULES - SEPARATE SECTION
